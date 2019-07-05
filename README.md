@@ -2,31 +2,40 @@
 Firmware and Drivers for PANDA TimeSwipe Boards
 
 # Using the Raspberry Pi as programmer with openOCD
-	•	
-
 
 ## Installing openOCD 
 
-	1.	Updating:  <sudo apt-get update> 
-	2.	Installing dependencies:  <sudo apt-get install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev>
-	3.	git clone:  make a directory „openocd“, go to it and git clone there: „https://sourceforge.net/p/openocd/code/“ (http://openocd.org)
-	4.	
-	5.	make config for rPi and its GPIO:  go to the folder openocd-code and type <./bootstrap>, then <./configure --enable-sysfsgpio --enable-bcm2835gpio> 
-	6.	build:  <make> 
-	7.	install:  <sudo make install>
- 
+1) Updating:  <sudo apt-get update>
+2) Installing dependencies:  <sudo apt-get install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev>
+3) git clone:  make a directory „openocd“, go to it and git clone there: „https://sourceforge.net/p/openocd/code/“ (http://openocd.org)
+4) make config for rPi and its GPIO:  go to the folder openocd-code and type <./bootstrap>, then <./configure --enable-sysfsgpio --enable-bcm2835gpio>
+5) build:  <make>
+6) install:  <sudo make install>
+
 
 ## Starting openOCD
 
-	1.	script for openOCD:  put the file „PandaOCD.cfg“ in home/pi 
-	2.	start openOCD:  in home/pi type <sudo openocd -f PandaOCD.cfg>
+1) script for openOCD:  put the file „PandaOCD.cfg“ in home/pi
+2) start openOCD:  in home/pi type <sudo openocd -f PandaOCD.cfg>
 
 You should see something like:
- adapter speed: 2000 kHz cortex_m reset_config sysresetreq Info : Listening on port 6666 for tcl connections Info : Listening on port 4444 for telnet connections Info : BCM2835 GPIO JTAG/SWD bitbang driver Info : SWD only mode enabled (specify tck, tms, tdi and tdo gpios to add JTAG mode) Info : clock speed 2002 kHz Info : SWD DPIDR 0x2ba01477 Info : atsame5.cpu: hardware has 6 breakpoints, 4 watchpoints Info : atsame5.cpu: external reset detected Info : Listening on port 3333 for gdb connections
 
-	1.	telnet connection:  in a new terminal window on your computer type <telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi.  (E.g.: telnet 10.0.0.1 4444)
-	Depending on the operating system on your computer it is possible 	that telnet has to be activated. Not necessary for Ubuntu. 
-	1.	Typing openOCD commands: in the window with the telnet connection it is possible now to type openOCD commands.  For example: 
+ adapter speed: 2000 kHz
+ cortex_m reset_config sysresetreq
+ Info : Listening on port 6666 for tcl connections
+ Info : Listening on port 4444 for telnet connections
+ Info : BCM2835 GPIO JTAG/SWD bitbang driver
+ Info : SWD only mode enabled (specify tck, tms, tdi and tdo gpios to add JTAG mode)
+ Info : clock speed 2002 kHz
+ Info : SWD DPIDR 0x2ba01477
+ Info : atsame5.cpu: hardware has 6 breakpoints, 4 watchpoints
+ Info : atsame5.cpu: external reset detected
+ Info : Listening on port 3333 for gdb connections
+
+1) telnet connection:  in a new terminal window on your computer type <telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444)
+Depending on the operating system on your computer it is possible that telnet has to be activated. Not necessary for Ubuntu.
+
+2) Typing openOCD commands: in the window with the telnet connection it is possible now to type openOCD commands.  For example: 
 	•	reset_init : halting
 	•	flash erase_check 0 : looking on the flash
 	•	flash erase_sector 0 4 4 : erases sector 4 on bank 0
