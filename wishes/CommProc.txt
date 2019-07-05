@@ -1,0 +1,8 @@
+In the settings file should be the main settings like gains, bridge voltage and offsets for the beginning. But it has to be extendible.
+The SAM has to check the settings file, if these are legal values and send a feedback to the rPi.
+The other commands have to be checked too.
+If the rPi sends a value for an output for example, the rPi asks in the next step for this value.
+So on the rPi it can be checked, if the setting has been succesfully made.
+There have to be interrupts/events on both sides (SAM and rPi), because the rPi has to be informed immediately, if something changes, 
+if for example the button is pressed or a sensor is taken off.
+Is it possible to detect, if a sensor is connected or not?
