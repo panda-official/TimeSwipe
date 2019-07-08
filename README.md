@@ -15,8 +15,8 @@ Firmware and Drivers for PANDA TimeSwipe Boards
 
 ## Starting openOCD
 
-1) script for openOCD:  put the file „PandaOCD.cfg“ in home/pi
-2) start openOCD:  in home/pi type <sudo openocd -f PandaOCD.cfg>
+1) script for openOCD:  put the file „PandaOCD.cfg“ in "home/pi"
+2) start openOCD:  in "home/pi" type \<sudo openocd -f PandaOCD.cfg>
 
 You should see something like:
 
@@ -32,7 +32,7 @@ You should see something like:
  Info : atsame5.cpu: external reset detected
  Info : Listening on port 3333 for gdb connections
 
-1) telnet connection:  in a new terminal window on your computer type <telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444)
+1) telnet connection:  in a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444)
 Depending on the operating system on your computer it is possible that telnet has to be activated. Not necessary for Ubuntu.
 
 2) Typing openOCD commands: in the window with the telnet connection it is possible now to type openOCD commands.  For example: 
