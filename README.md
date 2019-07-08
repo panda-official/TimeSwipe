@@ -5,7 +5,7 @@ Firmware and Drivers for PANDA TimeSwipe Boards
 
 ## Installing openOCD 
 
-1) Updating: sudo apt-get update
+1) Updating: <sudo apt-get update>
 2) Installing dependencies:  <sudo apt-get install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev>
 3) git clone:  make a directory „openocd“, go to it and git clone there: „https://sourceforge.net/p/openocd/code/“ (http://openocd.org)
 4) make config for rPi and its GPIO:  go to the folder openocd-code and type <./bootstrap>, then <./configure --enable-sysfsgpio --enable-bcm2835gpio>
