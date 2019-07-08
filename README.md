@@ -20,17 +20,17 @@ Firmware and Drivers for PANDA TimeSwipe Boards
 
 You should see something like:
 
- adapter speed: 2000 kHz \r
- cortex_m reset_config sysresetreq
- Info : Listening on port 6666 for tcl connections
- Info : Listening on port 4444 for telnet connections
- Info : BCM2835 GPIO JTAG/SWD bitbang driver
- Info : SWD only mode enabled (specify tck, tms, tdi and tdo gpios to add JTAG mode)
- Info : clock speed 2002 kHz
- Info : SWD DPIDR 0x2ba01477
- Info : atsame5.cpu: hardware has 6 breakpoints, 4 watchpoints
- Info : atsame5.cpu: external reset detected
- Info : Listening on port 3333 for gdb connections
+ adapter speed: 2000 kHz 
+ cortex_m reset_config sysresetreq 
+ Info : Listening on port 6666 for tcl connections 
+ Info : Listening on port 4444 for telnet connections 
+ Info : BCM2835 GPIO JTAG/SWD bitbang driver 
+ Info : SWD only mode enabled (specify tck, tms, tdi and tdo gpios to add JTAG mode) 
+ Info : clock speed 2002 kHz 
+ Info : SWD DPIDR 0x2ba01477 
+ Info : atsame5.cpu: hardware has 6 breakpoints, 4 watchpoints 
+ Info : atsame5.cpu: external reset detected 
+ Info : Listening on port 3333 for gdb connections 
 
 1) telnet connection:  in a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444)
 Depending on the operating system on your computer it is possible that telnet has to be activated. Not necessary for Ubuntu.
