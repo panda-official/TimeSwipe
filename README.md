@@ -36,10 +36,10 @@ You should see something like:
 Depending on the operating system on your computer it is possible that telnet has to be activated. Not necessary for Ubuntu.
 
 2) Typing openOCD commands: in the window with the telnet connection it is possible now to type openOCD commands.  For example: 
-	•	reset_init : halting
-	•	flash erase_check 0 : looking on the flash
-	•	flash erase_sector 0 4 4 : erases sector 4 on bank 0
-	•	atsame5_chip-erase : the former command only erases one sector. To erase the whole flash, use this command (the only command in this list which does not require reset_init)
+	•	reset_init : halting <br />
+	•	flash erase_check 0 : looking on the flash <br />
+	•	flash erase_sector 0 4 4 : erases sector 4 on bank 0 <br />
+	•	atsame5_chip-erase : the former command only erases one sector. To erase the whole flash, use this command (the only command in this list which does not require reset_init) <br />
 	•	flash write_image xxx.elf : flash an elf-file
 
 A debugging connection (gdb) can be established just like the telnet connection on port 3333. 
