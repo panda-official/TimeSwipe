@@ -21,7 +21,7 @@ Firmware and Drivers for PANDA TimeSwipe Boards
 You should see something like:
 
  adapter speed: 2000 kHz
- cortex_m reset_config sysresetreq
+ cortex_m reset_config sysresetreqfff
  Info : Listening on port 6666 for tcl connections
  Info : Listening on port 4444 for telnet connections
  Info : BCM2835 GPIO JTAG/SWD bitbang driver
