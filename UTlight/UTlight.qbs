@@ -21,6 +21,8 @@ CppApplication {
         "../src/Abstracts/json_stream.cpp",
         "../src/Abstracts/jsondisp.cpp",
         "../src/Abstracts/std_port.cpp",
+        "../src/BLogic/DataVis.cpp",
+        "../src/BLogic/DataVis.h",
         "../src/BLogic/menu_logic.cpp",
         "../src/BLogic/nodeControl.cpp",
         "../src/Board/ADmux.cpp",
