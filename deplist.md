@@ -2,32 +2,38 @@
 
 ## dependencies for the firmware:
 
-- startup_ARMCM4.S :
-    assembler startup code
-    dir: /prj_templ/Custom
-    status: changed/tuned 
+- startup_ARMCM4.S: <br />
+    assembler startup code <br />
+    dir: /prj_templ/Custom <br />
+    status: changed/tuned <br />
     license: ARM (?, Please, see license conditions inside the file)
     
-- CMSIS library:
-    CortexMx control library
-    dir: /prj_templ/CMSIS
-    status: original
+- gcc.ld, gcc_RAM.ld: <br />
+    linker scripts <br />
+    dir: /prj_templ/Custom <br />
+    status: changed/tuned <br />
+    license: ARM (?, no license description)
+    
+- CMSIS library: <br />
+    CortexMx control library <br />
+    dir: /prj_templ/CMSIS <br />
+    status: original <br />
     license: Apache-2.0 www.apache.org/licenses/LICENSE-2.0
     
-- SAME54's header files from manufactor (Atmel/Microchip)
-    chip's perephireals description 
-    dir: /prj_templ/include
-    status: original
+- SAME54's header files from manufactor (Atmel/Microchip) <br />
+    chip's perephireals description <br /> 
+    dir: /prj_templ/include <br />
+    status: original <br />
     license: Apache-2.0 www.apache.org/licenses/LICENSE-2.0
     
- - Adafruit_NeoPixel
-    an Arduino library used for control of LEDs
-    dir: Adafruit_NeoPixel
-    status: changed/tuned
+ - Adafruit_NeoPixel <br />
+    an Arduino library used for control of LEDs <br />
+    dir: /Adafruit_NeoPixel <br />
+    status: changed/tuned <br />
     license: GNU LESSER GENERAL PUBLIC LICENSE
  
- -  nlohmann/json
-    JSON for Modern C++ https://nlohmann.github.io/json/
-    dir: outside the project folder
-    status: original
+ -  nlohmann/json <br />
+    JSON for Modern C++ https://nlohmann.github.io/json/ <br />
+    dir: outside the project folder <br />
+    status: original <br />
     license: MIT License
