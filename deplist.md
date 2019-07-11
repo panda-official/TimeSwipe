@@ -1,6 +1,6 @@
 # Dependencies and associated licences for the project:
 
-## dependencies for the firmware:
+## third party dependencies for the firmware:
 
 - startup_ARMCM4.S: <br />
     assembler startup code <br />
