@@ -3,31 +3,31 @@
 ## third party dependencies for the firmware:
 
 - startup_ARMCM4.S: <br />
-    assembler startup code <br />
+    assembler startup code https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm <br />
     dir: /prj_templ/Custom <br />
     status: changed/tuned <br />
     license: ? (Please, see license conditions inside the file)
     
 - gcc.ld, gcc_RAM.ld: <br />
-    linker scripts <br />
+    linker scripts https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm <br />
     dir: /prj_templ/Custom <br />
     status: changed/tuned <br />
     license: ? (No license description)
     
 - CMSIS library: <br />
-    CortexMx control library <br />
+    CortexMx control library https://start.atmel.com <br />
     dir: /prj_templ/CMSIS <br />
     status: original <br />
     license: Apache-2.0 www.apache.org/licenses/LICENSE-2.0
     
 - SAME54's header files from manufactor (Atmel/Microchip) <br />
-    chip's perephireals description <br /> 
+    chip's perephireals description https://start.atmel.com <br /> 
     dir: /prj_templ/include <br />
     status: original <br />
     license: Apache-2.0 www.apache.org/licenses/LICENSE-2.0
     
  - Adafruit_NeoPixel <br />
-    an Arduino library used for control of LEDs <br />
+    an Arduino library used for control of LEDs https://github.com/adafruit/Adafruit_NeoPixel <br />
     dir: /Adafruit_NeoPixel <br />
     status: changed/tuned <br />
     license: GNU LESSER GENERAL PUBLIC LICENSE
