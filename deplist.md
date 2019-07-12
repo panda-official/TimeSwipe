@@ -6,7 +6,13 @@
     Pre-built GNU toolchain for Arm Cortex-M and Cortex-R processors  https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm  <br />
     dir: outside the project folder <br />
     status: original <br />
-    license: These toolchains are based on Free Software Foundation's (FSF) GNU Open source tools and newlib.
+    license: These toolchains are based on Free Software Foundation's (FSF) GNU Open source tools and newlib.  <br />
+    
+    The newlib subdirectory is a collection of software from several sources.
+    Each file may have its own copyright/license that is embedded in the source 
+    file. Unless otherwise noted in the body of the source file(s), the following copyright
+    notices will apply to the contents of the newlib subdirectory: https://sourceware.org/newlib/
+
 
 - startup_ARMCM4.S: <br />
     assembler startup code https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm <br />
