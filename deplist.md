@@ -6,7 +6,7 @@
     Pre-built GNU toolchain for Arm Cortex-M and Cortex-R processors  https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm  <br />
     dir: outside the project folder <br />
     status: original <br />
-    license: GNU GENERAL PUBLIC LICENSE  <br />
+    license: GNU GENERAL PUBLIC LICENSE https://www.gnu.org/licenses/gpl-3.0.html  <br />
     These toolchains are based on Free Software Foundation's (FSF) GNU Open source tools and newlib.  <br />
     
     The newlib subdirectory is a collection of software from several sources.
@@ -19,13 +19,13 @@
     assembler startup code https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm <br />
     dir: /prj_templ/Custom <br />
     status: changed/tuned <br />
-    license:  GNU GENERAL PUBLIC LICENSE(?) (Please, see additional license conditions inside the file)
+    license:  GNU GENERAL PUBLIC LICENSE(?) https://www.gnu.org/licenses/gpl-3.0.html (Please, see additional license conditions inside the file)
     
 - gcc.ld, gcc_RAM.ld: <br />
     linker scripts https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm <br />
     dir: /prj_templ/Custom <br />
     status: changed/tuned <br />
-    license: GNU GENERAL PUBLIC LICENSE (?) (No additional license description)
+    license: GNU GENERAL PUBLIC LICENSE https://www.gnu.org/licenses/gpl-3.0.html
     
 - CMSIS library: <br />
     CortexMx control library https://start.atmel.com, https://developer.arm.com/tools-and-software/embedded/cmsis <br />
