@@ -43,7 +43,7 @@
     an Arduino library used for control of LEDs https://github.com/adafruit/Adafruit_NeoPixel <br />
     dir: /Adafruit_NeoPixel <br />
     status: changed/tuned <br />
-    license: GNU LESSER GENERAL PUBLIC LICENSE
+    license: GNU LESSER GENERAL PUBLIC LICENSE https://www.gnu.org/licenses/lgpl-3.0.html
  
  -  nlohmann/json <br />
     JSON for Modern C++ https://nlohmann.github.io/json/ <br />
