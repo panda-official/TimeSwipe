@@ -15,7 +15,7 @@
     license: ? (No license description)
     
 - CMSIS library: <br />
-    CortexMx control library https://start.atmel.com <br />
+    CortexMx control library https://start.atmel.com, https://developer.arm.com/tools-and-software/embedded/cmsis <br />
     dir: /prj_templ/CMSIS <br />
     status: original <br />
     license: Apache-2.0 www.apache.org/licenses/LICENSE-2.0
