@@ -33,7 +33,7 @@
     status: original <br />
     license: Apache-2.0 www.apache.org/licenses/LICENSE-2.0
     
-- SAME54's header files from manufactor (Atmel/Microchip) <br />
+- SAME54's header files from manufacturer (Atmel/Microchip) <br />
     chip's perephireals description https://start.atmel.com <br /> 
     dir: /prj_templ/include <br />
     status: original <br />
