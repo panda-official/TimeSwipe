@@ -2,6 +2,12 @@
 
 ## third party dependencies for the firmware:
 
+- GNU Arm Embedded Toolchain  <br />
+    Pre-built GNU toolchain for Arm Cortex-M and Cortex-R processors  https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm  <br />
+    dir: outside the project folder <br />
+    status: original <br />
+    license: These toolchains are based on Free Software Foundation's (FSF) GNU Open source tools and newlib.
+
 - startup_ARMCM4.S: <br />
     assembler startup code https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm <br />
     dir: /prj_templ/Custom <br />
