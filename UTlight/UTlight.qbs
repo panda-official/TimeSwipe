@@ -6,13 +6,13 @@ CppApplication {
     cpp.positionIndependentCode: false
     cpp.executableSuffix: ".elf"
 
-    property string rootPath: ".."
-    //path.replace("/ADmin", "")
+    //property string rootPath: ".."
+    property string rootPath: path.replace("/UTlight", "")
     property string jsonPath: "../../../json/include"
 
     files: [
-        "../Adafruit_NeoPixel/Adafruit_NeoPixel.cpp",
-        "../prj_templ/Custom/startup_ARMCM4.S",
+        "../3rdparty/Adafruit_NeoPixel/Adafruit_NeoPixel.cpp",
+        "../3rdparty/prj_templ/Custom/startup_ARMCM4.S",
         "../src/Abstracts/DAC.cpp",
         "../src/Abstracts/SyncCom.cpp",
         "../src/Abstracts/cmd.cpp",
@@ -66,8 +66,8 @@ CppApplication {
         rootPath+"/src/BLogic",
         rootPath+"/src/Procs",
         rootPath+"/src/SAMe54",
-        rootPath+"/prj_templ/include",
-        rootPath+"/prj_templ/CMSIS/Include",
+        rootPath+"/3rdparty/prj_templ/include",
+        rootPath+"/3rdparty/prj_templ/CMSIS/Include",
         jsonPath
 
     ]
@@ -106,7 +106,7 @@ CppApplication {
     //linker:
     cpp.linkerFlags: [
 
-            "-T"+rootPath+"/prj_templ/Custom/gcc_RAM.ld",
+            "-T"+rootPath+"/3rdparty/prj_templ/Custom/gcc_RAM.ld",
            // "-u _printf_float"
     ]
 }
