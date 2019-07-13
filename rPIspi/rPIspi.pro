@@ -4,7 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    ../BCMsrc/bcm2835.c \
+    ../3rdparty/BCMsrc/bcm2835.c \
     ../src/Abstracts/SyncCom.cpp \
     ../src/Abstracts/frm_stream.cpp \
     ../src/Linux/OS_linux.cpp \
@@ -14,10 +14,9 @@ SOURCES += main.cpp \
 
 HEADERS += \
     ../src/Linux/nixconsole.h \
-    ../BCMsrc/BCS_SLV_SPI.h
 
 
 INCLUDEPATH+="../src/Abstracts"
 INCLUDEPATH+="../src/Linux"
 INCLUDEPATH+="../src/rPI"
-INCLUDEPATH+="../BCMsrc"
+INCLUDEPATH+="../3rdparty/BCMsrc"

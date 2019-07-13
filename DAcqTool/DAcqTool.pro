@@ -5,7 +5,7 @@ CONFIG -= qt
 
 SOURCES += main.cpp \
     ../src/rPI/bcmspi.cpp \
-    ../BCMsrc/bcm2835.c \
+    ../3rdparty/BCMsrc/bcm2835.c \
     ../src/Abstracts/SyncCom.cpp \
     ../src/Abstracts/frm_stream.cpp \
     ../src/Linux/OS_linux.cpp
@@ -13,4 +13,4 @@ SOURCES += main.cpp \
 INCLUDEPATH+="../src/Abstracts"
 INCLUDEPATH+="../src/Linux"
 INCLUDEPATH+="../src/rPI"
-INCLUDEPATH+="../BCMsrc"
+INCLUDEPATH+="../3rdparty/BCMsrc"

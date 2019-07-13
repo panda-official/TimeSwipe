@@ -30,6 +30,13 @@
    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
    POSSIBILITY OF SUCH DAMAGE.
    ---------------------------------------------------------------------------*/
+
+/*--------------------------13.07.2019---------------------------------
+  This file was edited by VNK to:
+  add SAME54 external interrupts handlers: locs 97-233
+  Panda Team
+  ---------------------------------------------------------------------*/
+
 	.syntax	unified
 	.arch	armv7e-m
 

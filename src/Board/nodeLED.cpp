@@ -1,9 +1,16 @@
+/*
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+Copyright (c) 2019 Panda Team
+*/
+
 //ino stubs:
 
 #include <random>
 
 #include "nodeLED.h"
-#include "../../../Adafruit_NeoPixel/Adafruit_NeoPixel.h"
+#include "../../../3rdparty/Adafruit_NeoPixel/Adafruit_NeoPixel.h"
 
 void Wait(unsigned long time_mS);
 

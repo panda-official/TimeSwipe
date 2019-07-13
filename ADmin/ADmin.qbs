@@ -1,3 +1,11 @@
+/*
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+Copyright (c) 2019 Panda Team
+*/
+
+
 import qbs
 
 CppApplication {
@@ -10,8 +18,8 @@ CppApplication {
     property string jsonPath: "../../../json/include"
 
     files: [
-        "../Adafruit_NeoPixel/Adafruit_NeoPixel.cpp",
-        "../prj_templ/Custom/startup_ARMCM4.S",
+        "../3rdparty/Adafruit_NeoPixel/Adafruit_NeoPixel.cpp",
+        "../3rdparty/prj_templ/Custom/startup_ARMCM4.S",
         "../src/Abstracts/DAC.cpp",
         "../src/Abstracts/SyncCom.cpp",
         "../src/Abstracts/cmd.cpp",
@@ -57,14 +65,15 @@ CppApplication {
 
     cpp.includePaths: [
 
+        rootPath+"/src/3rdparty_glue",
         rootPath+"/src/include",
         rootPath+"/src/Abstracts",
         rootPath+"/src/Board",
         rootPath+"/src/BLogic",
         rootPath+"/src/Procs",
         rootPath+"/src/SAMe54",
-        rootPath+"/prj_templ/include",
-        rootPath+"/prj_templ/CMSIS/Include",
+        rootPath+"/3rdparty/prj_templ/include",
+        rootPath+"/3rdparty/prj_templ/CMSIS/Include",
         jsonPath
 
     ]
@@ -103,7 +112,7 @@ CppApplication {
     //linker:
     cpp.linkerFlags: [
 
-            "-T"+rootPath+"/prj_templ/Custom/gcc.ld",
+             "-T"+rootPath+"/3rdparty/prj_templ/Custom/gcc.ld",
            // "-u _printf_float"
     ]
 }

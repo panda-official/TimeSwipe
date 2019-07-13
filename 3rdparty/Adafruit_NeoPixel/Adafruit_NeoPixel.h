@@ -16,6 +16,11 @@
   <http://www.gnu.org/licenses/>.
   --------------------------------------------------------------------*/
 
+/*--------------------------13.07.2019---------------------------------
+  This file was edited by VNK to replace <WProgram.h> & <pins_arduino.h>
+  by the stub: Adafruit_NeoPixel_stub.h (ifdef SAM_BRM), locs 30-34
+  ---------------------------------------------------------------------*/
+
 #ifndef ADAFRUIT_NEOPIXEL_H
 #define ADAFRUIT_NEOPIXEL_H
 
@@ -26,7 +31,7 @@
  #include <WProgram.h>
  #include <pins_arduino.h>
 #else
-#include "ino_stub.h"
+#include "Adafruit_NeoPixel_stub.h"
 #endif
 #endif
 

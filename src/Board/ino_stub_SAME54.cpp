@@ -1,6 +1,14 @@
+/*
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+Copyright (c) 2019 Panda Team
+*/
+
+
 //SAME54 PORTS for ino:
 
-#include "../../../Adafruit_NeoPixel/ino_stub.h"
+#include "Adafruit_NeoPixel_stub.h"
 #include "sam.h"
 
 #define PIN_MASK (1L<<12) 	//PB12=041

@@ -31,6 +31,12 @@
   <http://www.gnu.org/licenses/>.
   -------------------------------------------------------------------------*/
 
+/*--------------------------13.07.2019---------------------------------
+  This file was edited by VNK to:
+ fix Adafruit_NeoPixel::updateLength (wrong CPU instruction after
+ compilation)
+  ---------------------------------------------------------------------*/
+
 #include "Adafruit_NeoPixel.h"
 
 #if defined(NRF52) || defined(NRF52_SERIES)
@@ -84,7 +90,7 @@ void Adafruit_NeoPixel::updateLength(uint16_t n) {
   // Allocate new data -- note: ALL PIXELS ARE CLEARED
   //numBytes = n * ((wOffset == rOffset) ? 3 : 4);
   
-  int nb=n * ((wOffset == rOffset) ? 3 : 4);	//arch bug??? dbgd 24.02.2019
+  int nb=n * ((wOffset == rOffset) ? 3 : 4);	//VNK arch bug??? dbgd 24.02.2019
   numBytes =nb;
   if((pixels = (uint8_t *)malloc(numBytes))) {
     memset(pixels, 0, numBytes);
