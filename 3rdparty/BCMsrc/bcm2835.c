@@ -8,6 +8,11 @@
 // $Id: bcm2835.c,v 1.26 2018/08/27 20:45:57 mikem Exp mikem $
 */
 
+/*--------------------------14.07.2019---------------------------------
+  This file was edited by VNK to add some SPI-communication primitives
+  locs 782-844
+  Panda Team
+  ---------------------------------------------------------------------*/
 
 #include <stdlib.h>
 #include <stdio.h>

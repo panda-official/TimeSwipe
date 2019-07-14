@@ -7,6 +7,12 @@
    $Id: bcm2835.h,v 1.24 2018/08/27 20:45:57 mikem Exp mikem $
 */
 
+/*--------------------------14.07.2019---------------------------------
+  This file was edited by VNK to add some SPI-communication primitives
+  locs 1880-1890
+  Panda Team
+  ---------------------------------------------------------------------*/
+
 /*! \mainpage C library for Broadcom BCM 2835 as used in Raspberry Pi
   
   This is a C library for Raspberry Pi (RPi). It provides access to 
@@ -1624,18 +1630,6 @@ extern "C" {
       \sa bcm2835_spi_transfern()
     */
     extern uint8_t bcm2835_spi_transfer(uint8_t value);
-
-    //---------------add on: 17.05.2019-----------------
-    void _bcm_spi_send_char(uint8_t value);
-    int _bcm_spi_rec_char(void);
-    void _bcm_spi_purge(void);
-    int _bsm_spi_is_done(void);
-    void _bsm_spi_cs(int how);
-
-    //aux SPI1: 30.05.2019:
-    void _bcm_aux_spi_transfernb(const char *tbuf, char *rbuf, uint32_t len, int bCS);  //this uses "Variable width" mode of the SPI1 aux data bits 28:24 are
-   // used as shift length
-    //--------------------------------------------------
     
     /*! Transfers any number of bytes to and from the currently selected SPI slave.
       Asserts the currently selected CS pins (as previously set by bcm2835_spi_chipSelect) 
@@ -1881,6 +1875,19 @@ extern "C" {
       Can vary from 0 to RANGE.
     */
     extern void bcm2835_pwm_set_data(uint8_t channel, uint32_t data);
+
+
+    //---------------add on: 17.05.2019-----------------
+    void _bcm_spi_send_char(uint8_t value);
+    int _bcm_spi_rec_char(void);
+    void _bcm_spi_purge(void);
+    int _bsm_spi_is_done(void);
+    void _bsm_spi_cs(int how);
+
+    //aux SPI1: 30.05.2019:
+    void _bcm_aux_spi_transfernb(const char *tbuf, char *rbuf, uint32_t len, int bCS);  //this uses "Variable width" mode of the SPI1 aux data bits 28:24 are
+   // used as shift length
+    //--------------------------------------------------
 
     /*! @}  */
 #ifdef __cplusplus
