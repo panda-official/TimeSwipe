@@ -1,7 +1,7 @@
 /*
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+If a copy of the GPL was not distributed with this
+file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
@@ -16,7 +16,7 @@ Copyright (c) 2019 Panda Team
 enum class typeMenu{none, gain, bridge, setzero };
 
 
-class CMenuLogic : public CTimerEvent, public CButtonEvent, public CJSONEvCP
+class CMenuLogic : public CTimerEvent, public CButtonEvent,  public IJSONEvent, public CJSONEvCP
 {
 public:
         static constexpr typeLEDcol  GAIN_COLOR					=LEDrgb(10, 0, 0);
@@ -31,6 +31,7 @@ public:
 public:	//events:
 	virtual void OnButtonState(typeButtonState nState);
 	virtual void OnTimer(int nId);
+        virtual void on_event(const char *key, nlohmann::json &val); //15.07.2019 now can rec an event
 	
 	//def ctor:
 	CMenuLogic();

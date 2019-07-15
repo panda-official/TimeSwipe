@@ -1,7 +1,7 @@
 /*
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+If a copy of the GPL was not distributed with this
+file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
@@ -71,8 +71,8 @@ void nodeControl::SetZero(bool how)
     //put an event inside zero proc???
     //no, just reflect the action...
 
-    nlohmann::json v=how;
-    Instance().Fire_on_event("Zero", v);
+   /* nlohmann::json v=how;
+    Instance().Fire_on_event("Zero", v);*/ //15.07.2019 ->moved to zero_cal_man
 
     if(how)
         m_pZeroCal->Start();

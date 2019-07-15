@@ -1,15 +1,15 @@
 /*
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+If a copy of the GPL was not distributed with this
+file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
-
 
 #ifdef EMU
 #include <iostream>
 #endif
 #include "menu_logic.h"
+#include <string.h>
 
 CMenuLogic::CMenuLogic()
 {
@@ -48,10 +48,10 @@ void CMenuLogic::update_menu(typeMenu menu)
 		}
 		break;
 		
-		case typeMenu::setzero:
+        case typeMenu::setzero:
 		{
             nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, SETZERO_COLOR);
-		}
+        }
 	}
 #ifdef EMU
 	std::cout<<"menu updated..."<<std::endl;
@@ -86,6 +86,15 @@ void CMenuLogic::select_menu(typeMenu menu, bool bPreview)
 
 
 //events:
+void CMenuLogic::on_event(const char *key, nlohmann::json &val) //15.07.2019 now can rec an event
+{
+    if(0==strcmp("Zero", key))
+    {
+        select_menu(val ? typeMenu::setzero : typeMenu::none, false);
+    }
+}
+
+
 void CMenuLogic::OnButtonState(typeButtonState nState)
 {
 #ifdef EMU
@@ -134,8 +143,6 @@ void CMenuLogic::OnButtonState(typeButtonState nState)
 			case typeMenu::setzero:
 			{
                 nodeControl::SetZero(true); //02.05.2019
-                //nodeLED::blinkMultipleLED(1, 4, SETZERO_COLOR_ACTIVE, 2, 200);
-                //select_menu(typeMenu::none, false); //no preview!
 			}
 			return;
 		}

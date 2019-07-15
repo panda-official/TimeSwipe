@@ -1,10 +1,9 @@
 /*
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+If a copy of the GPL was not distributed with this
+file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
-
 
 #include "zerocal_man.h"
 //#include <math.h>
@@ -15,6 +14,10 @@ unsigned long get_tick_mS(void);
 
 void CCalMan::Start()
 {
+    nlohmann::json v=true;
+    Fire_on_event("Zero", v);
+
+    m_PState=FSM::running;
     unsigned int nSize=m_ChanCal.size();
     for(unsigned int i=0; i<nSize; i++)
     {
@@ -24,6 +27,8 @@ void CCalMan::Start()
         m_pLED[i]->SetColor(CMenuLogic::SETZERO_COLOR_ACTIVE);
     }
     m_LastTimeUpd=get_tick_mS();
+    m_UpdSpan=100;
+
 }
  void CCalMan::StopReset()
  {
@@ -33,19 +38,33 @@ void CCalMan::Start()
          m_ChanCal[i].StopReset();
          m_pLED[i]->ON(false);
      }
+     m_PState=FSM::halted;
+
+     nlohmann::json v=false;
+     Fire_on_event("Zero", v);
  }
 void CCalMan::Update()
 {
     unsigned long cur_time=get_tick_mS();
-    if( cur_time-m_LastTimeUpd < 100)
+    if( cur_time-m_LastTimeUpd < m_UpdSpan)
         return;
     m_LastTimeUpd=cur_time;
 
+    if(FSM::halted==m_PState)
+        return;
+
+    if(FSM::running==m_PState){
+
+    bool bRunning=false;
     unsigned int nSize=m_ChanCal.size();
     for(unsigned int i=0; i<nSize; i++)
     {
         m_ChanCal[i].Update();
         typePTsrcState tstate=m_ChanCal[i].state();
+        if(typePTsrcState::searching==tstate)
+        {
+            bRunning=true;
+        }
         if(tstate!=m_State[i])
         {
             m_State[i]=tstate;
@@ -61,5 +80,15 @@ void CCalMan::Update()
                     m_pLED[i]->SetColor(CMenuLogic::SETZERO_COLOR_ACTIVE);
             }
         }
+    }
+    if(!bRunning)
+    {
+        m_UpdSpan=1000; //1 sec delay
+        m_PState=FSM::delay;
+    }
+    }
+    else
+    {
+        StopReset();
     }
 }

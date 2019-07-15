@@ -1,7 +1,7 @@
 /*
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+If a copy of the GPL was not distributed with this
+file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
@@ -22,13 +22,17 @@ protected: //data
     int            m_ProcBits;
 
     int m_TargPoint;
-    int m_TargErrTolerance;
+    static int m_TargErrTolerance; //15.07.2019 make the value static (one for all?)
 
     //control:
     std::shared_ptr<CAdc> m_pADC;
     std::shared_ptr<CDac> m_pDAC;
 
 public:
+    //m_TargErrTolerance setter/getter 15.07.2019
+    static int  GetTargErrTol() {return m_TargErrTolerance; }
+    static void SetTargErrTol(int val){ if(val<1) val=1; m_TargErrTolerance=val;}
+
     typePTsrcState state(){return m_State;}
     CADpointSearch(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC)
     {
@@ -36,7 +40,7 @@ public:
 
         m_pADC=pADC;
         m_pDAC=pDAC;
-        m_TargErrTolerance=3;
+        m_TargErrTolerance=25;  //15.07.2019 25 bits
     }
     typePTsrcState Search(int val)
     {

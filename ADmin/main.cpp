@@ -1,10 +1,9 @@
 /*
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+If a copy of the GPL was not distributed with this
+file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
-
 
 //build for ADCs-DACs:
 
@@ -199,6 +198,10 @@ int main(void)
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
         pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(nullptr,  &nodeControl::SetZero) );
 
+        //15.07.2019 adding m_TargErrTolerance getter/setter:
+        pDisp->Add("Zero.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
+
+
         //ADMUX:
         pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux, nullptr,  &CADmux::EnableADmes) );
         //pDisp->Add("DACmode", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, nullptr,  &CADmux::SetDACmode) );
@@ -210,8 +213,11 @@ int main(void)
 
 
         //--------------------menu+button+detection of a master----------------
-        CMenuLogic menu;
-        SAMButton button(menu);
+       // CMenuLogic menu;
+
+        auto pMenu=std::make_shared<CMenuLogic>();
+
+        SAMButton button(*pMenu);
         CMasterDetect mdetect; //test object
 
         //------------------JSON 10.06.2019---------------------
@@ -223,8 +229,11 @@ int main(void)
         pDisp->Add("je", pJE);
         button.AdviseSink(pJE);
         mdetect.AdviseSink(pJE); //18.06.2019
-        menu.AdviseSink(pJE);
+        pMenu->AdviseSink(pJE);
         nodeControl::Instance().AdviseSink(pJE);
+
+        pZeroCal->AdviseSink(pJE);
+        pZeroCal->AdviseSink(pMenu);
         //--------------------------------------------------------------------------------------------------------------
 
 
@@ -263,7 +272,7 @@ int main(void)
              if( (get_tick_mS()-last_time_upd)>=1000 )	//to do: add an event!!!
              {
                      last_time_upd=get_tick_mS();
-                     menu.OnTimer(0);
+                     pMenu->OnTimer(0);
              }
              //Wait(10);
 
