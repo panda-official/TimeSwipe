@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.2.1, 2019-07-15T20:19:11. -->
+<!-- Written by QtCreator 4.2.1, 2019-07-17T17:40:56. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -431,11 +431,11 @@
     </valuelist>
     <value type="QString" key="BareMetal.CustomRunConfig.Executable"></value>
     <value type="QString" key="BareMetal.RunConfig.WorkingDirectory"></value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Запуск через сервер GDB или аппаратный отладчик</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">UTlight (через сервер GDB или аппаратный отладчик)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">BareMetal.CustomRunConfig</value>
     <value type="QString" key="Qt4ProjectManager.MaemoRunConfiguration.Arguments"></value>
-    <value type="QString" key="Qt4ProjectManager.MaemoRunConfiguration.ProFile"></value>
+    <value type="QString" key="Qt4ProjectManager.MaemoRunConfiguration.ProFile">.</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>

@@ -27,14 +27,28 @@ protected:
 
     unsigned long last_time_vis = 0;
 
+    //17.07.2019:
+    bool          m_bStarted=true;
+    bool          m_bStartInitOder=false;
+    unsigned long m_upd_tspan_mS=1000; //initial delay of 1 sec...
+
     std::shared_ptr<CAdc> m_pADC; //data source
     std::shared_ptr<CLED> m_pLED; //output led
 
+public:
     //helpers:
     void reset();
 
 public:
     CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
+
+    //17.07.2019:
+    void Start(bool bHow, unsigned long nDelay_mS);
+    /*{
+
+        m_bStarted=bHow;
+        m_upd_tspan_mS=nDelay_mS;
+    }*/
 
     void Update(); //updation
 };

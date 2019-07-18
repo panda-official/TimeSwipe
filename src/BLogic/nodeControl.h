@@ -12,23 +12,32 @@ Copyright (c) 2019 Panda Team
 #include "zerocal_man.h"
 #include "json_evsys.h"
 
-class nodeControl : public CJSONEvCP{
+//this seems to be a "model" in MVC...
+class nodeControl : public std::enable_shared_from_this<nodeControl>, public CJSONEvCP,  public IJSONEvent{
 protected:
         static std::shared_ptr<CADmux>  m_pMUX;
         static std::shared_ptr<CCalMan> m_pZeroCal;
         static int gain_out(int val); //impl helper
 
+        virtual void on_event(const char *key, nlohmann::json &val); //17.07.2019 now can rec an event
+
 
         //19.06.2019: make a singleton from this
 public:
-        static nodeControl& Instance()
+        /*static nodeControl& Instance()
         {
            static nodeControl singleton;
            return singleton;
+        }*/
+
+        static nodeControl& Instance()
+        {
+           static std::shared_ptr<nodeControl> ptr(new nodeControl);
+           return *ptr;
         }
 private:
-        nodeControl(){}                                         // Private constructor
-        ~nodeControl(){}
+        nodeControl() {}                                         // Private constructor
+       // ~nodeControl(){}
         nodeControl(const nodeControl&)=delete;                 // Prevent copy-construction
         nodeControl& operator=(const nodeControl&)=delete;      // Prevent assignment
 	
@@ -38,6 +47,10 @@ public:
             m_pMUX=pMUX;
             m_pZeroCal=pZeroCal;
         }
+
+        //add data vis: 17.07.2019:
+        static void CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
+        static void StartDataVis(bool bHow, unsigned long nDelay_mS=0);
 
         static bool IsRecordStarted();
         static void StartRecord(const bool how);
@@ -67,4 +80,6 @@ public:
         static void SetBridge(bool how);
 	
         static void SetZero(bool how);
+
+        static void Update(); //17.07.2019
 };

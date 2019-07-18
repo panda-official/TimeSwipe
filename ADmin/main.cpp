@@ -30,38 +30,6 @@ int sys_clock_init(void);
 unsigned long get_tick_mS(void);
 void Wait(unsigned long time_mS);
 
-//measurement of voltage setup time: +++dbg
-/*int mes_vset_time(auto pADC, auto pDAC, int setp, int targ, int epsilon)
-{
-    unsigned long start_time=get_tick_mS();
-    unsigned long elapsed;
-
-    pDAC->SetRawOutput(setp);
-
-    do
-    {
-        elapsed=get_tick_mS()-start_time;
-
-        if( std::abs(targ-pADC->DirectMeasure())<=epsilon )
-            return elapsed;
-    }
-    while(elapsed<5000);
-
-    return -1;
-}
-
-std::shared_ptr<CSamSPIsc7> pSPIsc7;
-void SPI1_retranslator(std::string str)
-{
-   // str+=":retr\n";
-   CFIFO msg;
-   for(auto ch : str)
-   {
-       msg<<ch;
-   }
-   pSPIsc7->send(msg);
-}*/
-
 
 int main(void)
 {
@@ -131,6 +99,21 @@ int main(void)
         pZeroCal->Add(pADC4, pDACD, pLED4);
 
         nodeControl::SetControlItems(pADmux, pZeroCal);
+
+
+        //17.07.2019: DataVis:
+        nodeControl::CreateDataVis(pADC1, pLED1);
+        nodeControl::CreateDataVis(pADC2, pLED2);
+        nodeControl::CreateDataVis(pADC3, pLED3);
+        nodeControl::CreateDataVis(pADC4, pLED4);
+
+        //18.07.2019: preparing and start:
+        pDACA->SetRawOutput(2048);
+        pDACB->SetRawOutput(2048);
+        pDACC->SetRawOutput(2048);
+        pDACD->SetRawOutput(2048);
+        nodeControl::StartDataVis(true, 1000);
+
 
 
         //---------------------------11.05.2019: some commands:---------------------------------------------------------
@@ -203,7 +186,7 @@ int main(void)
 
 
         //ADMUX:
-        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux, nullptr,  &CADmux::EnableADmes) );
+        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) ); //18.07.2019 - a getter is added
         //pDisp->Add("DACmode", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, nullptr,  &CADmux::SetDACmode) );
 
         //27.05.2019:
@@ -230,10 +213,12 @@ int main(void)
         button.AdviseSink(pJE);
         mdetect.AdviseSink(pJE); //18.06.2019
         pMenu->AdviseSink(pJE);
+        pMenu->AdviseSink(nodeControl::Instance().shared_from_this()); //18.07.2019
         nodeControl::Instance().AdviseSink(pJE);
 
         pZeroCal->AdviseSink(pJE);
         pZeroCal->AdviseSink(pMenu);
+        pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this()); //18.07.2019
         //--------------------------------------------------------------------------------------------------------------
 
 
@@ -250,6 +235,9 @@ int main(void)
 
              //update calproc:
              pZeroCal->Update();
+
+             //17.07.2019: update control
+             nodeControl::Instance().Update();
 
              //update LEDs:
              nodeLED::Update();

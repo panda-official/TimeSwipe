@@ -14,8 +14,7 @@ CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED
 {
     m_pADC=pADC;
     m_pLED=pLED;
-
-    last_time_vis=get_tick_mS()-1000; //set initial delay of 1 sec...
+    last_time_vis=get_tick_mS(); //set initial delay of 1 sec...
 }
 
 void CDataVis::reset()
@@ -26,12 +25,41 @@ void CDataVis::reset()
     meas_min = meas1 - min_wind/2;
 }
 
+void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
+{
+    m_bStarted=bHow;
+    m_upd_tspan_mS=nDelay_mS;
+
+    if(bHow)
+    {
+        m_bStartInitOder=true;
+    }
+    else
+    {
+        m_pLED->ON(false);
+    }
+}
+
 void CDataVis::Update()
 {
     //quataion:
-    if( (get_tick_mS()-last_time_vis)<1000 )
+    if( (get_tick_mS()-last_time_vis)<m_upd_tspan_mS )
         return;
+
+    m_upd_tspan_mS=20; //some default value for a fast updation
     last_time_vis=get_tick_mS();
+
+    if(!m_bStarted)
+        return;
+
+    if(m_bStartInitOder)                //dbg...this all should be moved into the "View" instance
+    {
+        m_pLED->SetBlinkMode(false);
+        m_pLED->SetColor(0);
+        m_pLED->ON(true);
+        m_bStartInitOder=false;
+    }
+
 
     //obtaining color val:
     unsigned int meas1=m_pADC->DirectMeasure();
@@ -45,5 +73,4 @@ void CDataVis::Update()
 
     unsigned int intens1=static_cast<unsigned int>((pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0);
     m_pLED->SetColor(intens1*65536);
-
 }

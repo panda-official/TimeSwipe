@@ -9,6 +9,7 @@ Copyright (c) 2019 Panda Team
 //implementing emulation of node control:
 
 #include "nodeControl.h"
+#include "DataVis.h"
 
 std::shared_ptr<CADmux>  nodeControl::m_pMUX;
 std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
@@ -18,10 +19,66 @@ std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 
 static bool brecord=false;
 
+//hidden???
+static std::vector<CDataVis>  m_DataVis;
+
+
+//17.07.2019:
+void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
+{
+    m_DataVis.emplace_back(pADC, pLED);
+}
+void nodeControl::StartDataVis(bool bHow, unsigned long nDelay_mS)
+{
+    for(auto &el : m_DataVis) el.Start(bHow, nDelay_mS);
+}
+void nodeControl::on_event(const char *key, nlohmann::json &val) //17.07.2019 now can rec an event
+{
+    //this all should be moved into the "View" instance later...
+
+    if(0==strcmp("Zero", key))
+    {
+        if(val) //proc started
+        {
+            StartDataVis(false);
+        }
+        else
+        {
+            //reset:
+            for(auto &el : m_DataVis) el.reset();
+
+            StartDataVis(true);
+        }
+        return;
+    }
+
+    //menu selection:
+    if(0==strcmp("Menu", key))
+    {
+        if(val>0) //menu is selected
+        {
+            StartDataVis(false);
+        }
+        else
+        {
+             StartDataVis(true, 2000);
+        }
+    }
+
+}
+
+void nodeControl::Update()
+{
+    for(auto &el : m_DataVis) el.Update();
+}
+
 bool nodeControl::IsRecordStarted(){ return brecord;}
 void nodeControl::StartRecord(const bool how)
 {
    // brecord=how;
+
+    //17.07.2019:
+    StartDataVis(false);
 
     //make a stamp:
     typeLEDcol rstamp=nodeLED::gen_rnd_col();
@@ -32,6 +89,9 @@ void nodeControl::StartRecord(const bool how)
 
     //blink: here???
     nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 3, 300);
+
+    //17.07.2019: restart data vis:
+    StartDataVis(true, 1800);
 }
 
 int nodeControl::gain_out(int val)
