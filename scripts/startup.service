@@ -1,0 +1,10 @@
+[Unit]
+Description=Startup
+
+[Service]
+Type=simple
+ExecStart=/bin/Startup.sh
+
+[Install]
+WantedBy=multi-user.target
+ 
