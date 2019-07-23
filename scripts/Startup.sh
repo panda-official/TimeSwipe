@@ -8,4 +8,4 @@ echo 0 > /sys/class/gpio/gpio17/value
 sleep 0.1
 echo 1 > /sys/class/gpio/gpio17/value
 
-#reset complite
+#reset complete
