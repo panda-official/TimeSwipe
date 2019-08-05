@@ -1,9 +1,13 @@
 # TimeSwipe
 Firmware and Drivers for PANDA TimeSwipe Boards
 
-# Using the Raspberry Pi as programmer with openOCD
+# Flashing
 
-## Installing openOCD 
+For flashing a programmer or debugger like the Atmel ICE can be used. More conveniently, since usually the board is plugged onto a Raspberry Pi anyway, the Raspberry Pi can be used as a programmer. In the following it is described how this can be done, using the software openOCD. 
+
+## Using the Raspberry Pi as programmer with openOCD
+
+### Installing openOCD 
 
 1) Updating:  \<sudo apt-get update>
 2) Installing dependencies:  \<sudo apt-get install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev>
@@ -13,7 +17,7 @@ Firmware and Drivers for PANDA TimeSwipe Boards
 6) install:  \<sudo make install>
 
 
-## Starting openOCD
+### Starting openOCD
 
 1) script for openOCD:  put the file „PandaOCD.cfg“ in "home/pi"
 2) start openOCD:  in "home/pi" type \<sudo openocd -f PandaOCD.cfg>
@@ -33,19 +37,29 @@ You should see something like:
  Info : Listening on port 3333 for gdb connections 
 
 3) telnet connection:  in a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444) <br />
-Depending on the operating system on your computer it is possible that telnet has to be activated. Not necessary for Ubuntu.
+Depending on the operating system on the computer it is possible that telnet has to be activated (Not necessary for Ubuntu).
 
-4) Typing openOCD commands: in the window with the telnet connection it is possible now to type openOCD commands.  For example: <br />
+4) Flashing software:  type openOCD commands in the window with the telnet connection
+
+1. atsame5 chip-erase		to delete old software in the flash, it is necessary to wait a few seconds until the chip is erased
+2. reset_init			to halt
+3. flash erase_check 0		to look if erasing has been completed
+4. flash write_image xxx.elf	to flash new software (elf-file)
+5. flash erase_check 0		to look if software has been flashed
+
+Some openOCD commands: <br />
 	•	reset_init : halting <br />
 	•	flash erase_check 0 : looking on the flash <br />
 	•	flash erase_sector 0 4 4 : erases sector 4 on bank 0 <br />
-	•	atsame5_chip-erase : the former command only erases one sector. To erase the whole flash, use this command (the only command in this list which does not require reset_init) <br />
+	•	atsame5 chip-erase : the former command only erases one sector. To erase the whole flash, use this command (the only command in this list which does not require reset_init) <br />
 	•	flash write_image xxx.elf : flash an elf-file
+
 
 A debugging connection (gdb) can be established just like the telnet connection on port 3333. 
 
 
-## Dependencies
+
+### Dependencies
 
 - autoconf :  	https://www.gnu.org/software/autoconf/  
 	Autoconf is an extensible package of M4 macros that produce shell 	scripts to automatically configure software source code packages. 	These scripts can adapt the packages to many kinds of UNIX-like 	systems without manual user intervention.
