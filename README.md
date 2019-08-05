@@ -47,14 +47,16 @@ Depending on the operating system on the computer it is possible that telnet has
 4. flash write_image xxx.elf	to flash new software (elf-file)
 5. flash erase_check 0		to look if software has been flashed
 
+<br />
 Some openOCD commands: <br />
+<br />
 	•	reset_init : halting <br />
 	•	flash erase_check 0 : looking on the flash <br />
 	•	flash erase_sector 0 4 4 : erases sector 4 on bank 0 <br />
 	•	atsame5 chip-erase : the former command only erases one sector. To erase the whole flash, use this command (the only command in this list which does not require reset_init) <br />
 	•	flash write_image xxx.elf : flash an elf-file
 
-
+<br />
 A debugging connection (gdb) can be established just like the telnet connection on port 3333. 
 
 
