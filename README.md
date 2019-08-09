@@ -22,7 +22,7 @@ For flashing a programmer or debugger like the Atmel ICE can be used. More conve
 1) script for openOCD:  create a file „PandaOCD.cfg“ with the following content and put it in "home/pi":
    
 
-/# GPIO17 ---> RST
+&#35 GPIO17 ---> RST
 # GPIO27 ---> DCLK
 # GPIO22 ---> DIO
 # GND    ---> GND
