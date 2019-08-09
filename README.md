@@ -23,9 +23,9 @@ For flashing a programmer or debugger like the Atmel ICE can be used. More conve
    
 
 \# GPIO17 ---> RST
-# GPIO27 ---> DCLK
-# GPIO22 ---> DIO
-# GND    ---> GND
+\# GPIO27 ---> DCLK
+\# GPIO22 ---> DIO
+\# GND    ---> GND
 
 bindto 0.0.0.0
 
@@ -33,15 +33,15 @@ interface bcm2835gpio
 
 bcm2835gpio_peripheral_base 0x3F000000
 
-#adapter_khz 1000
+\#adapter_khz 1000
 
-# Transition delay calculation: SPEED_COEFF/khz - SPEED_OFFSET
-# These depend on system clock, calibrated for stock 900MHz
-# bcm2835gpio_speed SPEED_COEFF SPEED_OFFSET
+\# Transition delay calculation: SPEED_COEFF/khz - SPEED_OFFSET
+\# These depend on system clock, calibrated for stock 900MHz
+\# bcm2835gpio_speed SPEED_COEFF SPEED_OFFSET
 bcm2835gpio_speed_coeffs 146203 36
 
-# Each of the SWD lines need a gpio number set: swclk swdio
-# Header pin numbers: GPIO27 GPIO22
+\# Each of the SWD lines need a gpio number set: swclk swdio
+\# Header pin numbers: GPIO27 GPIO22
 bcm2835gpio_swd_nums 27 22
 
 bcm2835gpio_srst_num 17
@@ -49,9 +49,9 @@ reset_config srst_only srst_push_pull
 
 transport select swd
 
-#set WORKAREASIZE 0x2000
+\#set WORKAREASIZE 0x2000
 source [find target/atsame5x.cfg]
-#reset_config none
+\#reset_config none
 
 
 
