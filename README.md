@@ -96,7 +96,7 @@ Some openOCD commands: <br />
 	•	reset_init : halting <br />
 	•	flash erase_check 0 : looking on the flash <br />
 	•	flash erase_sector 0 4 4 : erases sector 4 on bank 0 <br />
-	•	atsame5 chip-erase : the former command only erases one sector. To erase the whole flash, use this command (the only command in this list which does not require reset_init) <br />
+	•	atsame5 chip-erase : the former command only erases one sector. To erase the whole flash, use this command (the <br /> only command in this list which does not require reset_init) <br />
 	•	flash write_image xxx.elf : flash an elf-file
 
 <br />
