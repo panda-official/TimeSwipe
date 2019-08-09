@@ -53,6 +53,8 @@ transport select swd
 source [find target/atsame5x.cfg]
 \#reset_config none
 
+<br />
+<br />
 
 
 2) start openOCD:  in "home/pi" type \<sudo openocd -f PandaOCD.cfg>
