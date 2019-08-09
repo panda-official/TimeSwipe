@@ -73,8 +73,14 @@ You should see something like:
  Info : atsame5.cpu: external reset detected <br />
  Info : Listening on port 3333 for gdb connections 
 
+<br />
+<br />
+
 3) telnet connection:  in a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444) <br />
 Depending on the operating system on the computer it is possible that telnet has to be activated (Not necessary for Ubuntu).
+
+<br />
+<br />
 
 4) Flashing software:  type openOCD commands in the window with the telnet connection
 
