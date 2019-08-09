@@ -201,7 +201,7 @@ int main(void)
         auto pMenu=std::make_shared<CMenuLogic>();
 
         SAMButton button(*pMenu);
-        CMasterDetect mdetect; //test object
+       // CMasterDetect mdetect; //test object
 
         //------------------JSON 10.06.2019---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -211,7 +211,7 @@ int main(void)
         auto pJE=std::make_shared<CEvDisp>(pDisp);
         pDisp->Add("je", pJE);
         button.AdviseSink(pJE);
-        mdetect.AdviseSink(pJE); //18.06.2019
+        //mdetect.AdviseSink(pJE); //18.06.2019
         pMenu->AdviseSink(pJE);
         pMenu->AdviseSink(nodeControl::Instance().shared_from_this()); //18.07.2019
         nodeControl::Instance().AdviseSink(pJE);
@@ -228,6 +228,7 @@ int main(void)
      //int time=mes_vset_time(pADC1, pDACA, 2048, 2048, 20);
 
         bool bDetectMasterOnStartUp=true;
+        unsigned long loop_start_time=get_tick_mS();
         while(1) //endless loop
         {
              //update ADC:
@@ -245,8 +246,21 @@ int main(void)
              //upd button:
              button.update();
 
+             //09.08.2019:
+             if(bDetectMasterOnStartUp)
+             {
+                 if( (get_tick_mS()-loop_start_time)>1000 )
+                 {
+                     bDetectMasterOnStartUp=false;
+                     if(!pSPIsc2->WasCsTrigerred())
+                     {
+                         pADmux->EnableADmes(true);
+                     }
+                 }
+             }
+
              //update detection of a master: 18.06.2019
-             mdetect.Update();
+          /*   mdetect.Update();
              if(bDetectMasterOnStartUp && !mdetect.IsMasterAlive())   //test only; to do: add an event hadler
              {
                 // if(!pADmux->IsADmesEnabled()) //??? only once ????
@@ -254,7 +268,7 @@ int main(void)
                      pADmux->EnableADmes(true);
                      bDetectMasterOnStartUp=false;
                  //}
-             }
+             }*/
 
              //upd menu object:
              if( (get_tick_mS()-last_time_upd)>=1000 )	//to do: add an event!!!

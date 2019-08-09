@@ -65,6 +65,9 @@ public:
 
         //24.06.2019:
         void EnableIRQs(bool how);
+
+        //09.08.2019:
+        bool WasCsTrigerred(){ return m_bCSactive; }
 };
 
 

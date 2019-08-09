@@ -184,7 +184,7 @@ int main(void)
         //--------------------menu+button+detection of a master----------------
      //   CMenuLogic menu;
         //SAMButton button(menu);
-        CMasterDetect mdetect; //test object
+      //  CMasterDetect mdetect; //test object
 
         //------------------JSON 10.06.2019---------------------
      /*   auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -206,6 +206,7 @@ int main(void)
      //int time=mes_vset_time(pADC1, pDACA, 2048, 2048, 20);
 
         bool bDetectMasterOnStartUp=true;
+        unsigned long loop_start_time=get_tick_mS();
         while(1) //endless loop
         {
              //update ADC:
@@ -221,7 +222,7 @@ int main(void)
             // button.update();
 
              //update detection of a master: 18.06.2019
-             mdetect.Update();
+          /*   mdetect.Update();
              if(bDetectMasterOnStartUp && !mdetect.IsMasterAlive())   //test only; to do: add an event hadler
              {
                 // if(!pADmux->IsADmesEnabled()) //??? only once ????
@@ -229,6 +230,19 @@ int main(void)
                      pADmux->EnableADmes(true);
                      bDetectMasterOnStartUp=false;
                  //}
+             }*/
+
+             //09.08.2019:
+             if(bDetectMasterOnStartUp)
+             {
+                 if( (get_tick_mS()-loop_start_time)>60000 )
+                 {
+                     bDetectMasterOnStartUp=false;
+                     if(!pSPIsc2->WasCsTrigerred())
+                     {
+                         pADmux->EnableADmes(true);
+                     }
+                 }
              }
 
              //upd menu object:
