@@ -119,6 +119,13 @@ public:
                     return typeCRes::parse_err;
 
                 (m_pObj.get()->*m_pSetter)(val);
+
+                //14.08.2019: feedback
+                if(m_pGetter)
+                {
+                     *(d.m_pOut)<<(m_pObj.get()->*m_pGetter)();
+                }
+
             }
             else {
                 //error:
@@ -165,6 +172,12 @@ public:
                     return typeCRes::parse_err; }
 
                     m_pSetter(val);
+
+                    //14.08.2019: feedback
+                    if(m_pGetter)
+                    {
+                        *(d.m_pOut)<<m_pGetter();
+                    }
             }
             else {
                 //error:

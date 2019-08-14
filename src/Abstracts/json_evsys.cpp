@@ -30,10 +30,15 @@ typeCRes CJSONEvDispatcher::Call(CCmdCallDescr &d)
        return typeCRes::fset_not_supported;
     }
 
-    m_event["telapsed_mS"]=get_tick_mS()-m_EvFlagRaiseTStamp_mS;
+   // m_event["telapsed_mS"]=get_tick_mS()-m_EvFlagRaiseTStamp_mS; 14.08.2019 - empty message by default
     RaiseEventFlag(false);
-    *(d.m_pOut)<<m_event.dump();
-    m_event.clear();
+
+    //don't send if there is nothing to send 14.08.2019
+    if(!m_event.empty())
+    {
+        *(d.m_pOut)<<m_event.dump();
+        m_event.clear();
+    }
 
     return typeCRes::OK;
 }

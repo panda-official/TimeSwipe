@@ -44,6 +44,7 @@ public:
         m_pLED.emplace_back(pLED);
         m_State.emplace_back(typePTsrcState::idle);
     }
+    bool IsStarted(){ return (FSM::halted!=m_PState); }
     void Start();
     void StopReset();
     void Update();

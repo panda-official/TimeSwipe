@@ -80,6 +80,7 @@ public:
         static void SetBridge(bool how);
 	
         static void SetZero(bool how);
+        inline static bool GetZeroRunSt(){ return m_pZeroCal->IsStarted(); }
 
         static void Update(); //17.07.2019
 };

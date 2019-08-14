@@ -179,7 +179,7 @@ int main(void)
         pDisp->Add("Gain", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetGain, &nodeControl::SetGain) );
         pDisp->Add("Bridge", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetBridge,  &nodeControl::SetBridge) );
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
-        pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(nullptr,  &nodeControl::SetZero) );
+        pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetZeroRunSt,  &nodeControl::SetZero) );
 
         //15.07.2019 adding m_TargErrTolerance getter/setter:
         pDisp->Add("Zero.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
@@ -208,7 +208,8 @@ int main(void)
         pDisp->Add("js", pJC);
 
         //------------------EVENTS 14.06.2019-------------------
-        auto pJE=std::make_shared<CEvDisp>(pDisp);
+        //auto pJE=std::make_shared<CEvDisp>(pDisp);
+        auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp); //14.08.2019 - removed event pin
         pDisp->Add("je", pJE);
         button.AdviseSink(pJE);
         //mdetect.AdviseSink(pJE); //18.06.2019
@@ -224,11 +225,10 @@ int main(void)
 
         //step 6 - enabling AD mes, set gain:
        // pADmux->EnableADmes(true); 18.06.2019 removed
+       //int time=mes_vset_time(pADC1, pDACA, 2048, 2048, 20);
 
-     //int time=mes_vset_time(pADC1, pDACA, 2048, 2048, 20);
-
-        bool bDetectMasterOnStartUp=true;
-        unsigned long loop_start_time=get_tick_mS();
+       // bool bDetectMasterOnStartUp=true;
+       // unsigned long loop_start_time=get_tick_mS();
         while(1) //endless loop
         {
              //update ADC:
@@ -246,8 +246,8 @@ int main(void)
              //upd button:
              button.update();
 
-             //09.08.2019:
-             if(bDetectMasterOnStartUp)
+             //09.08.2019:->removed 14.08.2019
+             /*if(bDetectMasterOnStartUp)
              {
                  if( (get_tick_mS()-loop_start_time)>1000 )
                  {
@@ -257,17 +257,6 @@ int main(void)
                          pADmux->EnableADmes(true);
                      }
                  }
-             }
-
-             //update detection of a master: 18.06.2019
-          /*   mdetect.Update();
-             if(bDetectMasterOnStartUp && !mdetect.IsMasterAlive())   //test only; to do: add an event hadler
-             {
-                // if(!pADmux->IsADmesEnabled()) //??? only once ????
-                 //{
-                     pADmux->EnableADmes(true);
-                     bDetectMasterOnStartUp=false;
-                 //}
              }*/
 
              //upd menu object:
