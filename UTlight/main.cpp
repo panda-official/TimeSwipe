@@ -11,6 +11,7 @@ Copyright (c) 2019 Panda Team
 #include "SamQSPI.h"
 #include "SamSPIsc2.h"
 #include "SamSPIsc7.h"
+#include "SamI2Cmem.h"  //18.08.2019
 #include "ADmux.h"
 #include "SamADCcntr.h"
 #include "SamDACcntr.h"
@@ -52,6 +53,16 @@ int main(void)
       //  pSPIsc7    =std::make_shared<CSamSPIsc7>(true); //it will be a master 03.06.2019
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
         pSPIsc2->EnableIRQs(true); //IRQ mode 24.06.2019
+
+
+        //----------------creating I2C EEPROM-----------------------
+        CSamI2Cmem EEPROM;
+        char emem[4095]; //={1,2,3,4,5,6,7};
+        memset(emem, '7', sizeof(emem));
+        strcpy(emem, "Hello! Here is a Panda Board!");
+        EEPROM.SetMemBuf(emem, sizeof(emem));
+        EEPROM.EnableIRQs(true);
+        //----------------------------------------------------------
 
 
          //step 2 - creating ADC0:

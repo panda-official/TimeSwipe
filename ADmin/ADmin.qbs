@@ -46,6 +46,8 @@ CppApplication {
         "../src/SAMe54/SamADCcntr.cpp",
         "../src/SAMe54/SamCLK.cpp",
         "../src/SAMe54/SamDACcntr.cpp",
+        "../src/SAMe54/SamI2Cmem.cpp",
+        "../src/SAMe54/SamI2Cmem.h",
         "../src/SAMe54/SamQSPI.cpp",
         "../src/SAMe54/SamSPI.cpp",
         "../src/SAMe54/SamSPIsc2.cpp",

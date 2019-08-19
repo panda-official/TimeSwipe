@@ -1,10 +1,3 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
-
 //setup system clocks + CORTEX-Mx SysTick:
 
 #include "sam.h"
@@ -50,6 +43,24 @@ __enable_irq();
 int sys_clock_init(void){
 
 #ifndef KEMU
+
+	// Run with a 12MHz external crystal on XOSC1
+	/*OSCCTRL->XOSCCTRL[1].bit.ENALC      = 1;
+	OSCCTRL->XOSCCTRL[1].bit.IMULT      = 4;
+	OSCCTRL->XOSCCTRL[1].bit.IPTAT      = 3;
+	OSCCTRL->XOSCCTRL[1].bit.ONDEMAND   = 0;
+	OSCCTRL->XOSCCTRL[1].bit.XTALEN     = 1;
+	OSCCTRL->XOSCCTRL[1].bit.ENABLE     = 1;
+
+	// Wait for OSC to be ready
+	while (0 == OSCCTRL->STATUS.bit.XOSCRDY1);*/
+
+
+        //-----24.04.2019: secure delay - if something goes wrong we have a window of normal CPU work to get a control....
+    //    unsigned long StartTime=get_tick_mS();
+      //  while( (get_tick_mS()-StartTime)<300){}
+        //--------------------------------------
+
 	
 	//use DFLL+gen2: 20.03.2019
 	
