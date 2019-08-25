@@ -21,16 +21,16 @@ examples:
 
 Here is a list of all possible DAC's access points:
 
-DACA
-DACA.raw
-DACB
-DACB.raw
-DACC
-DACC.raw
-DACD
-DACD.raw
-DAC1.raw
-DAC2.raw
+DACA <br />
+DACA.raw <br />
+DACB <br />
+DACB.raw <br />
+DACC <br />
+DACC.raw <br />
+DACD <br />
+DACD.raw <br />
+DAC1.raw <br />
+DAC2.raw <br />
 
 
 
@@ -44,10 +44,10 @@ examples:
 
 Here is a list of all possible ADC's access points:
 
-ADC1.raw
-ADC2.raw
-ADC3.raw
-ADC4.raw
+ADC1.raw <br />
+ADC2.raw <br />
+ADC3.raw <br />
+ADC4.raw <br />
 
 
 
@@ -59,29 +59,29 @@ Sub domain .col     Holds a LED color value (integer RGB value 0:0xffffff, <unsi
 
 Here is a list of all possible LED's access points:
 
-LED1
-LED1.blink
-LED1.col
-LED2
-LED2.blink
-LED2.col
-LED3
-LED3.blink
-LED3.col
-LED4
-LED4.blink
-LED4.col
+LED1 <br />
+LED1.blink <br />
+LED1.col <br />
+LED2 <br />
+LED2.blink <br />
+LED2.col <br />
+LED3 <br />
+LED3.blink <br />
+LED3.col <br />
+LED4 <br />
+LED4.blink <br />
+LED4.col <br />
 
 
 The following access points has only one root domain name:
 
-Gain                Holds a gain value (integer value 1:4, <int>, r/w)
-Bridge              Holds a bridge switch state (ON or OFF) (boolen, false:true, <bool>, r/w)
-Record              Writing "true" to this variable initiates/restarts a record process (boolean, false:true, <bool>, r/w)
-Zero                Start/stop zero calibration process (boolean, false:true, <bool>, w)
-Zero.errtol         Holds a zero calibration process error tolerance value (integer, <int> r/w)
-EnableADmes         Holds an ADC enabled state (ON or OFF) (boolean, false:true, <bool>, r/w)
-DACsw               Holds a DACs mode switch state (0 - using external DACs(A-C) only or 1 -using DACA, DACC, DAC0, DAC1) (integer value, 0:1, <int>, r/w)
+Gain                Holds a gain value (integer value 1:4, <int>, r/w) <br />
+Bridge              Holds a bridge switch state (ON or OFF) (boolen, false:true, <bool>, r/w) <br />
+Record              Writing "true" to this variable initiates/restarts a record process (boolean, false:true, <bool>, r/w) <br />
+Zero                Start/stop zero calibration process (boolean, false:true, <bool>, w) <br />
+Zero.errtol         Holds a zero calibration process error tolerance value (integer, <int> r/w) <br />
+EnableADmes         Holds an ADC enabled state (ON or OFF) (boolean, false:true, <bool>, r/w) <br />
+DACsw               Holds a DACs mode switch state (0 - using external DACs(A-C) only or 1 -using DACA, DACC, DAC0, DAC1) (integer value, 0:1, <int>, r/w) <br />
 
 
 JSON controlled access points:
@@ -126,12 +126,12 @@ A responce from a slave is a read back value(object) in a case of success or an 
 
 Common communication errors for all access points are listed below:
 
-!Line_err!              - communication bus error
-!!Timeout_err!          - the board is not responding during specified timeout
-!obj_not_found!         - a requested access point is not found
-!>_not_supported!       - read operation is not supported
-!<_not_supported!       - write operation is not supported
-!protocol_error!        - request message doesn't fit to a protocol format (missing access point name or access operator or a value)
+!Line_err!              - communication bus error <br />
+!!Timeout_err!          - the board is not responding during specified timeout <br />
+!obj_not_found!         - a requested access point is not found <br />
+!>_not_supported!       - read operation is not supported <br />
+!<_not_supported!       - write operation is not supported <br />
+!protocol_error!        - request message doesn't fit to a protocol format (missing access point name or access operator or a value) <br />
 
 
 examples:
