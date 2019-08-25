@@ -76,7 +76,7 @@ LED4.col <br />
 The following access points has only one root domain name:
 
 Gain                Holds a gain value (integer value 1:4, <int>, r/w) <br />
-Bridge              Holds a bridge switch state (ON or OFF) (boolen, false:true, <bool>, r/w) <br />
+Bridge              Holds a bridge switch state (ON or OFF) (boolean, false:true, <bool>, r/w) <br />
 Record              Writing "true" to this variable initiates/restarts a record process (boolean, false:true, <bool>, r/w) <br />
 Zero                Start/stop zero calibration process (boolean, false:true, <bool>, w) <br />
 Zero.errtol         Holds a zero calibration process error tolerance value (integer, <int> r/w) <br />
