@@ -10,10 +10,13 @@ Copyright (c) 2019 Panda Team
 //timer func for M4:
 static unsigned long sys_time_mS;
 
+extern "C"{		//01.09.2019
 void SysTick_Handler(void)
 {
 	sys_time_mS++;
-}
+}}
+
+
 unsigned long get_tick_mS(void)
 {
 	return sys_time_mS;

@@ -10,7 +10,7 @@ Copyright (c) 2019 Panda Team
 #include <random>
 
 #include "nodeLED.h"
-#include "../../../3rdparty/Adafruit_NeoPixel/Adafruit_NeoPixel.h"
+#include "Adafruit_NeoPixel.h"  //28.08.2019
 
 void Wait(unsigned long time_mS);
 

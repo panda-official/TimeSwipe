@@ -24,8 +24,8 @@ Copyright (c) 2019 Panda Team
 #include "cmd.h"
 #include "std_port.h"
 #include "jsondisp.h"
-#include "EventDisp.h"
-#include "MasterDetect.h"
+//#include "EventDisp.h"
+//#include "MasterDetect.h"
 
 /*const char PandaHat[]=
 {
