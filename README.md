@@ -30,11 +30,10 @@ We recommend to install the following software on your host machine:
 
 4) Clone this repository on your host machine.
 
-After a proper software installation run a "cmake" command to build all of the necessary software packages.
+After a proper software installation run a bootstrap script to build all of the necessary software packages and 
+install a  end-production release package.
 
-Being built packages are ready for an installation. Run "cmake install" command to install a  end-production release package.
-If you'd like to customize software by some changes or just investigate how it is working there is an ability of installing debug package by "cmake install_D".
-
+If you'd like to customize software by some changes or just investigate how it is working there is an ability of installing debug package.
 The debug session can be handled by the IDE of your choice. The examples of using most popular IDE's for debugging are given in the docs:
 
 Eclipse IDE: (...)
