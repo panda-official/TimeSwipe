@@ -2,6 +2,8 @@
 
 cmake_minimum_required(VERSION 3.1)
 
+#obtain JSON settings: 05.09.2019
+#include(ObtainJSONsettings.cmake)
 
 project(JSON_lib)
 #add_definitions(-D__SAME54P20A__)
