@@ -11,8 +11,6 @@ using namespace std;
 
 #include "console.h"
 #include "bcmspi.h"
-#include "BSC_SLV_SPI.h"
-#include "frm_stream.h"
 
 void Wait(unsigned long time_mS);
 int main(int argc, char *argv[])
@@ -86,32 +84,7 @@ int main(int argc, char *argv[])
     else {
 
         //slave mode:
-        CBSCslaveSPI spi;
-
-        if(!spi.is_initialzed())
-        {
-            std::cout<<"Failed to initialize BCM SPI-"<<nSPI<<"Slave. Try sudo"<<std::endl;
-            return 0;
-        }
-
-        CNixConsole cio;
-        CFIFO  msg;
-
-       std::cout<<"SPI-"<<nSPI<<" Slave"<<std::endl<<"listening messages:"<<std::endl<<"-> ";
-       while(true)
-       {
-           if(spi.receive(msg))
-           {
-			 /*  CFIFO answer;
-               CFrmStream out(&answer);
-               out<<"received:"<<msg.in_avail()<<"\n";
-               spi.send(answer);*/
-			   
-               cio.send(msg);
-               std::cout<<std::endl<<"-> ";
-           }
-           //Wait(1); //????
-       }
+        std::cout<<"Slave mode is not supported currently..."<<std::endl; 
     }
 
     return 0;

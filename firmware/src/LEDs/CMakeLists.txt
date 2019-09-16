@@ -1,12 +1,12 @@
-#SAME54 sub-dir lib:
+#This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+#If a copy of the GPL was not distributed with this
+#file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
+#Copyright (c) 2019 Panda Team
 
 cmake_minimum_required(VERSION 3.1)
 
 project(LEDS_lib)
 
-
-#set(SOURCE_LIB SamCLK.cpp SamSercom.cpp)
-#message(STATUS "ASM FLAGS: ${CMAKE_ASM_FLAGS}")
 
 add_library(LEDS_lib STATIC nodeLED.cpp ino_stub_SAME54.cpp ../../3rdParty/Adafruit_NeoPixel/Adafruit_NeoPixel.cpp)
 
