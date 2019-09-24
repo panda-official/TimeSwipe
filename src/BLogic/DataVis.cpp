@@ -78,6 +78,11 @@ void CDataVis::Update()
         meas_min = meas1;
     }
 
-    unsigned int intens1=static_cast<unsigned int>((pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0);
-    m_pLED->SetColor(intens1*65536);
+    unsigned int intens1=(pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0;
+    unsigned int col_act[3] = {static_cast<unsigned int>(col_DMS[0] * intens1/255), static_cast<unsigned int>(col_DMS[1] * intens1/255), static_cast<unsigned int>(col_DMS[2] * intens1/255)};
+
+
+//    unsigned int intens1=static_cast<unsigned int>((pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0);
+
+    m_pLED->SetColor(col_act[0]*65536 + col_act[1]*256 + col_act[2]);
 }

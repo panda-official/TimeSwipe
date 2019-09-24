@@ -18,7 +18,13 @@ Copyright (c) 2019 Panda Team
 class CDataVis
 {
 protected:
+    //Colour codes:
+
+    unsigned int col_DMS[3] = {24, 250, 208};
+    unsigned int col_IEPE[3] = {50, 151, 247};
+
     //parameters:
+
     const float b_brght = 55.0; //should it be const?
 
     unsigned int meas_max = 2048;
