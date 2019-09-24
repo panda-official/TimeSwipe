@@ -22,7 +22,14 @@ void CDataVis::reset()
     unsigned int meas1=m_pADC->DirectMeasure();
 
     meas_max = meas1 + min_wind/2;
+    if(meas_max > 4095){
+        meas_max = 4095;
+    }
+
     meas_min = meas1 - min_wind/2;
+    if(meas_min < 0){
+        meas_min = 0;
+    }
 }
 
 void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
