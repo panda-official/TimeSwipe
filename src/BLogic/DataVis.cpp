@@ -36,6 +36,7 @@ void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
 {
     m_bStarted=bHow;
     m_upd_tspan_mS=nDelay_mS;
+    CDataVis::reset();
 
     if(bHow)
     {
@@ -53,7 +54,7 @@ void CDataVis::Update()
     if( (get_tick_mS()-last_time_vis)<m_upd_tspan_mS )
         return;
 
-    m_upd_tspan_mS=20; //some default value for a fast updation
+    m_upd_tspan_mS=17; //some default value for a fast updation
     last_time_vis=get_tick_mS();
 
     if(!m_bStarted)
