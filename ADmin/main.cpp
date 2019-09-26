@@ -261,6 +261,7 @@ int main(void)
 
         //step 6 - enabling AD mes, set gain:
        // pADmux->EnableADmes(true); 18.06.2019 removed
+          pADmux->SetUBRvoltage(true);
        //int time=mes_vset_time(pADC1, pDACA, 2048, 2048, 20);
 
        // bool bDetectMasterOnStartUp=true;
