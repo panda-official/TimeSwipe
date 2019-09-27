@@ -76,7 +76,7 @@ int main(void)
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
         pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
 
-        //----------------creating I2C EEPROM-----------------------
+/*        //----------------creating I2C EEPROM-----------------------
         auto pEEPROM= std::make_shared<CSamI2Cmem>();
         //char emem[4095]; //={1,2,3,4,5,6,7};
         //memset(emem, '7', sizeof(emem));
@@ -84,7 +84,7 @@ int main(void)
         pEEPROM->SetMemBuf((char*)PandaHat, sizeof(PandaHat));
         pEEPROM->EnableIRQs(true);
         //----------------------------------------------------------
-
+*/
 
          //step 2 - creating ADC0:
 #ifndef  USE_AD_CUSTOM_RANGES   //if not using custom ranges range is absolute 17.06.2019
@@ -228,7 +228,7 @@ int main(void)
 
      //   pDisp->Add("SPI1", std::make_shared< CCmdSGHandlerF<std::string> >(nullptr,  SPI1_retranslator) );
 
-        pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
+//        pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
 
 
         //--------------------menu+button+detection of a master----------------
