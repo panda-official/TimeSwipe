@@ -53,7 +53,12 @@ SET(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER}) #05.09.2019
 
 
 #fetch firmware dir:
-string(REPLACE "src" "" PATH_FIRMWARE ${CMAKE_CURRENT_SOURCE_DIR})
+#string(REPLACE "src" "" PATH_FIRMWARE ${CMAKE_CURRENT_SOURCE_DIR})
+string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "firmware" ROOT_PATH_POS)
+#message(STATUS ${ROOT_PATH_POS} )
+string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} 0 ${ROOT_PATH_POS} PATH_FIRMWARE)
+string(APPEND PATH_FIRMWARE "firmware")
+#message(STATUS ${PATH_FIRMWARE} )
 
 #compiler flags:
 set(COMPILER_FLAGS "-O0  -ffunction-sections -fdata-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")

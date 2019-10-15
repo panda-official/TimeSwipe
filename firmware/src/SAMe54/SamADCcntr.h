@@ -49,7 +49,7 @@ public:
 
     virtual int DirectMeasure()
     {
-        CSamADCchan::DirectMeasure(50, 0.8f);
+        return CSamADCchan::DirectMeasure(50, 0.8f);
     }
 
     int DirectMeasure(int nMesCnt, float alpha); //27.05.2019
