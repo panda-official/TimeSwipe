@@ -41,7 +41,7 @@ protected:
     std::shared_ptr<CSamCLK> m_pCLK;
 
     //interface:
-    char *m_pMem=nullptr;
+    unsigned char *m_pMem=nullptr;
     unsigned int m_nMemSize=0;
     unsigned int m_nMemCurInd=0;
 
@@ -62,7 +62,7 @@ public:
     inline bool    isIRQmode(){return m_bIRQmode;}
     void EnableIRQs(bool how);
 
-    inline void SetMemBuf(char *pBuf, unsigned int nSize)
+    inline void SetMemBuf(unsigned char *pBuf, unsigned int nSize)
     {
         m_pMem=pBuf;
         m_nMemSize=nSize;
