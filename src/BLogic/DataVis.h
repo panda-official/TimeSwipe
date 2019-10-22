@@ -33,6 +33,7 @@ protected:
     unsigned int min_wind = 100;
 
     unsigned long last_time_vis = 0;
+    bool first_update = true;
 
     //17.07.2019:
     bool          m_bStarted=true;
