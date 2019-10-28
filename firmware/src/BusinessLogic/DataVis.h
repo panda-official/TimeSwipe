@@ -18,7 +18,14 @@ Copyright (c) 2019 Panda Team
 class CDataVis
 {
 protected:
+    //Colour codes:
+
+    unsigned int col_DMS[3] = {24, 250, 208};
+    unsigned int col_IEPE[3] = {50, 151, 247};
+    unsigned int col_act[3];
+
     //parameters:
+
     const float b_brght = 55.0; //should it be const?
 
     unsigned int meas_max = 2048;
@@ -26,6 +33,7 @@ protected:
     unsigned int min_wind = 100;
 
     unsigned long last_time_vis = 0;
+    bool first_update = true;
 
     //17.07.2019:
     bool          m_bStarted=true;

@@ -22,13 +22,25 @@ void CDataVis::reset()
     unsigned int meas1=m_pADC->DirectMeasure();
 
     meas_max = meas1 + min_wind/2;
+    if(meas_max > 4095){
+        meas_max = 4095;
+    }
+
     meas_min = meas1 - min_wind/2;
+    if(meas_min < 0){
+        meas_min = 0;
+    }
 }
 
 void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
 {
+    for (int i = 0; i < 3; ++i) {
+        col_act[i]=col_IEPE[i];
+    }
     m_bStarted=bHow;
     m_upd_tspan_mS=nDelay_mS;
+
+//    CDataVis::reset();
 
     if(bHow)
     {
@@ -46,7 +58,12 @@ void CDataVis::Update()
     if( (get_tick_mS()-last_time_vis)<m_upd_tspan_mS )
         return;
 
-    m_upd_tspan_mS=20; //some default value for a fast updation
+    if(first_update == true){
+        CDataVis::reset();
+        first_update = false;
+    }
+
+    m_upd_tspan_mS=17; //some default value for a fast updation
     last_time_vis=get_tick_mS();
 
     if(!m_bStarted)
@@ -71,6 +88,12 @@ void CDataVis::Update()
         meas_min = meas1;
     }
 
-    unsigned int intens1=static_cast<unsigned int>((pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0);
-    m_pLED->SetColor(intens1*65536);
+    float intens1=(pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0;
+    unsigned int col_intens[3] = {static_cast<unsigned int>(col_act[0] * intens1/255), static_cast<unsigned int>(col_act[1] * intens1/255), static_cast<unsigned int>(col_act[2] * intens1/255)};
+
+
+//    unsigned int intens1=static_cast<unsigned int>((pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0);
+
+    m_pLED->SetColor(col_intens[0]*65536 + col_intens[1]*256 + col_intens[2]);
+//    m_pLED->SetColor((50*65536) + (151*256) + 247);
 }
