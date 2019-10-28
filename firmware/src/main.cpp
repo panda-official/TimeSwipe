@@ -67,7 +67,7 @@ int main(void)
 
         //----------------creating I2C EEPROM-----------------------
         //21.10.2019: redout an external EEPROM chip:
-        CFIFO EEPROM;
+      /*  CFIFO EEPROM;
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
         pEEPROM_MasterBus->EnableIRQs(true);
         pEEPROM_MasterBus->receive(EEPROM); //ok, have got data...(not tested yet)
@@ -75,7 +75,7 @@ int main(void)
 
         auto pEEPROM= std::make_shared<CSamI2Cmem>();
         pEEPROM->SetMemBuf((unsigned char*)PandaHat, sizeof(PandaHat));
-        pEEPROM->EnableIRQs(true);
+        pEEPROM->EnableIRQs(true);*/
         //----------------------------------------------------------
 
 
@@ -221,16 +221,13 @@ int main(void)
 
      //   pDisp->Add("SPI1", std::make_shared< CCmdSGHandlerF<std::string> >(nullptr,  SPI1_retranslator) );
 
-        pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
+   //     pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
 
 
         //--------------------menu+button+detection of a master----------------
-       // CMenuLogic menu;
-
         auto pMenu=std::make_shared<CMenuLogic>();
-
         SAMButton button(*pMenu);
-       // CMasterDetect mdetect; //test object
+
 
         //------------------JSON 10.06.2019---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -252,17 +249,9 @@ int main(void)
         //--------------------------------------------------------------------------------------------------------------
 
 
-        //step 6 - enabling AD mes, set gain:
-       // pADmux->EnableADmes(true); 18.06.2019 removed
-       //int time=mes_vset_time(pADC1, pDACA, 2048, 2048, 20);
-
-       // bool bDetectMasterOnStartUp=true;
-       // unsigned long loop_start_time=get_tick_mS();
+        pADmux->SetUBRvoltage(true);
         while(1) //endless loop
         {
-             //update ADC:
-           //  pSamADC0->Update(); 27.05.2019->use direct
-
              //update calproc:
              pZeroCal->Update();
 
@@ -274,19 +263,6 @@ int main(void)
 
              //upd button:
              button.update();
-
-             //09.08.2019:->removed 14.08.2019
-             /*if(bDetectMasterOnStartUp)
-             {
-                 if( (get_tick_mS()-loop_start_time)>1000 )
-                 {
-                     bDetectMasterOnStartUp=false;
-                     if(!pSPIsc2->WasCsTrigerred())
-                     {
-                         pADmux->EnableADmes(true);
-                     }
-                 }
-             }*/
 
              //upd menu object:
              if( (get_tick_mS()-last_time_upd)>=1000 )	//to do: add an event!!!
