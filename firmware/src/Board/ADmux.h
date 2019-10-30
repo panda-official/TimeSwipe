@@ -19,6 +19,7 @@ protected:
         typeDACmode m_CurDACmode;
         bool       m_UBRVoltage;
         bool       m_bADmesEnabled;  //18.06.2019
+        bool       m_bFanIsStarted; //31.10.2019
 
 public:
 	CADmux();
@@ -31,6 +32,9 @@ public:
         void SetDACmode(typeDACmode mode);
         void SetUBRvoltage(bool how);
         bool GetUBRVoltage(){ return m_UBRVoltage; }
+
+        void StartFan(bool how);
+        bool IsFanStarted(){ return m_bFanIsStarted; }
 
         //converter:
          void setDACsw(int mode){ SetDACmode(mode ? typeDACmode::SamAndExtDACs : typeDACmode::ExtDACs); }

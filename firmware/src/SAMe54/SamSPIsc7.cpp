@@ -37,7 +37,7 @@ CSamSPIsc7::CSamSPIsc7(bool bMaster) : CSamSPI(typeSamSercoms::Sercom7, bMaster)
 
     //----------setup PINs: IOSET1 PD08, PD09, PD10, PD11----------------
     //PD08 -> group 3, even, function "C"(PAD0)=0x02: MOSI
-    PORT->Group[3].PMUX[4].bit.PMUXE=0x02;
+  /*  PORT->Group[3].PMUX[4].bit.PMUXE=0x02;
     PORT->Group[3].PINCFG[8].bit.PMUXEN=1; //enable
 
     //PD09 -> group 3, odd, function "C"(PAD1)=0x02:  SCK
@@ -59,8 +59,38 @@ CSamSPIsc7::CSamSPIsc7(bool bMaster) : CSamSPI(typeSamSercoms::Sercom7, bMaster)
 
     //PD11 -> group 0, odd, function "C"(PAD3)=0x02:  MISO
     PORT->Group[3].PMUX[5].bit.PMUXO=0x02;
-    PORT->Group[3].PINCFG[11].bit.PMUXEN=1;
+    PORT->Group[3].PINCFG[11].bit.PMUXEN=1;*/
     //--------------------------------------------------------------------
+
+
+    //-------------setup PINs: Version2: PC12,PC13,PC14,PC15--------------
+    //PC12 MOSI
+    PORT->Group[2].PMUX[6].bit.PMUXE=0x02;
+    PORT->Group[2].PINCFG[12].bit.PMUXEN=1; //enable
+
+    //PC13 -> group 2, odd, function "C"(PAD1)=0x02:  SCK
+    PORT->Group[2].PMUX[6].bit.PMUXO=0x02;
+    PORT->Group[2].PINCFG[13].bit.PMUXEN=1; //enable
+
+    //PC14
+    if(m_bMaster) //configure as output:
+    {
+         PORT->Group[2].PINCFG[14].bit.PMUXEN=0;
+         PORT->Group[2].DIRSET.bit.DIRSET=(1L<<14);
+         PORT->Group[2].OUTSET.bit.OUTSET=(1L<<14);  //initial state=HIGH
+    }
+    else
+    {
+         //PD10 -> group 3, even, function "C"(PAD2)=0x02: SS
+         PORT->Group[2].PMUX[7].bit.PMUXE=0x02;
+         PORT->Group[2].PINCFG[14].bit.PMUXEN=1; //enable
+    }
+
+    //PC15 -> group 0, odd, function "C"(PAD3)=0x02:  MISO
+    PORT->Group[2].PMUX[7].bit.PMUXO=0x02;
+    PORT->Group[2].PINCFG[15].bit.PMUXEN=1;
+
+   //--------------------------------------------------------------------
 
 
     //---------------------finishing init---------------------------------

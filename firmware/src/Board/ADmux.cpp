@@ -34,7 +34,22 @@ CADmux::CADmux()
     PORT->Group[2].OUTCLR.reg=(1L<<7);
     m_UBRVoltage=false; //!!! 07.05.2019
 
+    //30.10.2019 setup fan pins(ventilator) PA09
+    PORT->Group[0].DIRSET.reg=(1L<<9);
+    PORT->Group[0].OUTCLR.reg=(1L<<9);
+    m_bFanIsStarted=false;
+
 }
+
+void CADmux::StartFan(bool how)
+{
+    m_bFanIsStarted=how;
+    if(how)
+        PORT->Group[0].OUTSET.reg=(1L<<9);	//on
+    else
+        PORT->Group[0].OUTCLR.reg=(1L<<9);	//off
+}
+
 void CADmux::EnableADmes(bool how)
 {
     m_bADmesEnabled=how; //18.06.2019

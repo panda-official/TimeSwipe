@@ -219,6 +219,10 @@ int main(void)
         //27.05.2019:
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
 
+        //31.10.2019: fan command
+        pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
+
+
         //pDisp->Add("SPI1", std::make_shared< CCmdSGHandlerF<std::string> >(nullptr,  SPI1_retranslator) );
         //pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
 

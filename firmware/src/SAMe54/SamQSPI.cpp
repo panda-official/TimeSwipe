@@ -21,8 +21,8 @@ CSamQSPI::CSamQSPI()
     PORT->Group[0].PINCFG[8].bit.PMUXEN=1; //enable
 
     //PA09 -> group 0, even, function "H"(qspi)=0x07
-    PORT->Group[0].PMUX[4].bit.PMUXO=0x07;
-    PORT->Group[0].PINCFG[9].bit.PMUXEN=1; //enable
+ /*   PORT->Group[0].PMUX[4].bit.PMUXO=0x07;
+    PORT->Group[0].PINCFG[9].bit.PMUXEN=1; //enable*/
 
     //PB10 -> group 1, even, function "H"(qspi)=0x07
     PORT->Group[1].PMUX[5].bit.PMUXE=0x07;
