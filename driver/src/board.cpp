@@ -1,0 +1,102 @@
+#include "board.hpp"
+
+// RPI GPIO FUNCTIONS
+void pullGPIO(unsigned pin, unsigned high)
+{
+    GPIO_PULL = high << pin;
+}
+
+void initGPIOInput(unsigned pin)
+{
+    INP_GPIO(pin);
+}
+
+void initGPIOOutput(unsigned pin)
+{
+    INP_GPIO(pin);
+    OUT_GPIO(pin);
+    pullGPIO(pin, 0);
+}
+
+void init(int sensorType)
+{
+    initGPIOInput(DATA0);
+    initGPIOInput(DATA1);
+    initGPIOInput(DATA2);
+    initGPIOInput(DATA3);
+    initGPIOInput(DATA4);
+    initGPIOInput(DATA5);
+    initGPIOInput(DATA6);
+    initGPIOInput(DATA7);
+
+    initGPIOInput(TCO);
+    initGPIOInput(PI_OK);
+    initGPIOInput(FAIL);
+    initGPIOInput(BUTTON);
+
+    // initGPIOOutput(PI_ON);
+    initGPIOOutput(CLOCK);
+    initGPIOOutput(RESET);
+
+    // Initial Reset
+    setGPIOLow(CLOCK);
+    setGPIOHigh(RESET);
+
+    // SPI Communication
+    // // Select Syensor type
+    CFIFO msgSensorType;
+    msgSensorType += "Bridge<" + std::to_string(sensorType) + "\n";
+    spi.send(msgSensorType);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    // // Start Measurement
+    CFIFO msgStop;
+    msgStop += "EnableADmes<0\n";
+    spi.send(msgStop);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    CFIFO msgStart;
+    msgStart += "EnableADmes<1\n";
+    spi.send(msgStart);
+}
+
+void shutdown()
+{
+    // Reset Clock
+    setGPIOLow(CLOCK);
+    // Stop Measurement
+    CFIFO msgStop;
+    msgStop += "EnableADmes<0\n";
+    spi.send(msgStop);
+}
+
+void setGPIOHigh(unsigned pin)
+{
+    GPIO_SET = 1 << pin;
+}
+
+void setGPIOLow(unsigned pin)
+{
+    GPIO_CLR = 1 << pin;
+}
+
+static const uint32_t ALL_32_BITS_ON = 0xFFFFFFFF; // (2^32)-1 - ALL BCM_PINS
+void resetAllGPIO()
+{
+    GPIO_CLR = ALL_32_BITS_ON;
+}
+
+void sleep55ns()
+{
+    readAllGPIO();
+}
+
+void sleep8ns()
+{
+    setGPIOHigh(10); // ANY UNUSED PIN!!!
+}
+
+unsigned int readAllGPIO()
+{
+    return (*(gpio + 13) & ALL_32_BITS_ON); 
+}

@@ -1,0 +1,10 @@
+# package build command:
+# docker run --rm -v "$PWD":/usr/src  timeswipe:arch /usr/src/build_arch.sh
+FROM archlinux
+
+RUN pacman -Syu --noconfirm && pacman -Sy --noconfirm shadow sudo fakeroot grep binutils make cmake gcc aarch64-linux-gnu-gcc
+RUN useradd build
+
+
+
+
