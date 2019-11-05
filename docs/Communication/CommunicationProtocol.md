@@ -138,30 +138,30 @@ examples:
 
 1. setting a DACA value to 5 Volts:
 
-request message:                DACA<5.0\n
-successive response message:     5.0\n
+request message:                DACA<5.0\n <br />
+successive response message:     5.0\n <br />
 
 2. reading actual ADC2 raw value:
 
-request message:                ADC1.raw>\n
-successive response message:     3.7\n
+request message:                ADC1.raw>\n <br />
+successive response message:     3.7\n <br />
 
 3. setup a board via a JSON command:
 
-request message:                js<{ {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
-successive response message:     { {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
+request message:                js<{ {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n <br />
+successive response message:     { {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n <br />
 
 4. read back board settings via a JSON command:
 
-request message:                js>{ {"Gain" : "?"}, {"Bridge" : "?"}, {"DACA" : "?"}, {"DACB" : "?"}, {"DACC" : "?"}, {"DACD" : "?"} }\n
-successive response message:     { {"Gain" : 3}, {"Bridge" : true}, {"DACA" : 0.1}, {"DACB" : -1.2}, {"DACC" : 0.5}, {"DACD" : 1.6} }\n
-note: when reading information from a variable via "js>" command values in the pair "key:value" are ignored and should be set to a question mark.
+request message:                js>{ {"Gain" : "?"}, {"Bridge" : "?"}, {"DACA" : "?"}, {"DACB" : "?"}, {"DACC" : "?"}, {"DACD" : "?"} }\n <br />
+successive response message:     { {"Gain" : 3}, {"Bridge" : true}, {"DACA" : 0.1}, {"DACB" : -1.2}, {"DACC" : 0.5}, {"DACD" : 1.6} }\n <br />
+note: when reading information from a variable via "js>" command values in the pair "key:value" are ignored and should be set to a question mark. <br />
 
 5. polling latest board events via a JSON command:
 
-request message:                je>
-successive response message:    { {"Button" : true}, {"ButtonStateCnt" : 3} } - indicates the board's button was pressed and shows its state counter:
-odd value button is pressed, even - released
+request message:                je> <br />
+successive response message:    { {"Button" : true}, {"ButtonStateCnt" : 3} } - indicates the board's button was pressed and shows its state counter: <br />
+odd value button is pressed, even - released <br />
 
 
 The protocol is implemented by the board's driver over a specific SPI protocol.
