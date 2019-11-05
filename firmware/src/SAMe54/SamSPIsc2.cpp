@@ -34,32 +34,11 @@ CSamSPIsc2::CSamSPIsc2(bool bMaster) : CSamSPI(typeSamSercoms::Sercom2, bMaster)
     //--------------------------------------------------------------------
 
 
-    //NO! this is sercom4:!!!!!
-    //----------setup PINs: IOSET1 PA12, PA13, PA14, PA15----------------
-    //PA12 -> group 0, even, function "D"(PAD1)=0x03: SCLK
-  /*  PORT->Group[0].PMUX[6].bit.PMUXE=0x03;
-    PORT->Group[0].PINCFG[12].bit.PMUXEN=1; //enable
-
-    PORT->Group[0].PMUX[6].bit.PMUXO=0x03;
-    PORT->Group[0].PINCFG[13].bit.PMUXEN=1; //enable
-
-    //...........
-    //PA14 -> group 0, even, function "D"(PAD2)=0x03: MOSI
-    PORT->Group[0].PMUX[7].bit.PMUXE=0x03;
-    PORT->Group[0].PINCFG[14].bit.PMUXEN=1; //enable
-
-    //PA15 -> group 0, odd, function "D"(PAD3)=0x03:  MISO
-    PORT->Group[0].PMUX[7].bit.PMUXO=0x03;
-    PORT->Group[0].PINCFG[15].bit.PMUXEN=1;*/
-    //-------------------------------------------------------------------
-
-
-
     //---------------------finishing init---------------------------------
      SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
 
      //1: slave mode:
-   //  pSPI->CTRLA.bit.MODE=0x02;
+     //pSPI->CTRLA.bit.MODE=0x02;
 
      //2: CPOL/CPHA - default
      //......................

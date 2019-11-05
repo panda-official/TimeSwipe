@@ -7,10 +7,14 @@ Copyright (c) 2019 Panda Team
 
 //this file implement only Wait funct stub.
 
-unsigned long get_tick_mS(void);
+//unsigned long get_tick_mS(void);
 
-void Wait(unsigned long time_mS)
+#include "os.h"
+
+namespace os{
+void wait(unsigned long time_mS)
 {
 	unsigned long start_time=get_tick_mS();
 	while( (get_tick_mS()-start_time)<time_mS ){ asm("nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;"); }
+}
 }

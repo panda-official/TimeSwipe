@@ -7,10 +7,12 @@ Copyright (c) 2019 Panda Team
 
 //build for ADCs-DACs:
 
+#include "os.h"
 #include "SamQSPI.h"
 #include "SamSPIsc2.h"
 #include "SamSPIsc7.h"
-#include "SamI2Cmem.h"  //19.08.2019
+#include "I2CmemHAT.h"
+#include "I2Cmem8Pin.h"
 #include "SamI2CeepromMaster.h"
 #include "ADmux.h"
 #include "SamADCcntr.h"
@@ -27,28 +29,11 @@ Copyright (c) 2019 Panda Team
 #include "jsondisp.h"
 
 
-//GPIO 24 pull-up:
-const char PandaHat[]=
-{
-0x52, 0x2D, 0x50, 0x69, 0x01, 0x00, 0x02, 0x00, 0x6D, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
-0x31, 0x00, 0x00, 0x00, 0xDF, 0x5D, 0x24, 0xB1, 0x59, 0xC3, 0xE3, 0x99, 0x75, 0x45, 0xD9, 0x6A,
-0x95, 0x28, 0xD2, 0x6C, 0x00, 0x00, 0x01, 0x00, 0x0A, 0x0F, 0x50, 0x61, 0x6E, 0x64, 0x61, 0x20,
-0x47, 0x6D, 0x42, 0x48, 0x54, 0x69, 0x6D, 0x65, 0x53, 0x77, 0x69, 0x70, 0x65, 0x20, 0x42, 0x6F,
-0x61, 0x72, 0x64, 0xCD, 0xD2, 0x02, 0x00, 0x01, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0xCF, 0x6E
-};
-
 int sys_clock_init(void);
-unsigned long get_tick_mS(void);
-void Wait(unsigned long time_mS);
-
-
-
 int main(void)
 {
         //step 0: clock init:
-        unsigned long last_time_upd=get_tick_mS();
+        unsigned long last_time_upd=os::get_tick_mS();
         sys_clock_init(); //->120MHz
         nodeLED::init();
         auto pLED1      =std::make_shared<CLED>(typeLED::LED1);
@@ -65,17 +50,28 @@ int main(void)
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
         pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
 
+
         //----------------creating I2C EEPROM-----------------------
-        //21.10.2019: redout an external EEPROM chip:
-      /*  CFIFO EEPROM;
+        //creating shared mem buf:
+        auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
+        pEEPROM_MemBuf->reserve(1024); //reserve 1kb for an EEPROM data
+
+        //creating an I2C EEPROM master to operate with an external chip:
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
         pEEPROM_MasterBus->EnableIRQs(true);
-        pEEPROM_MasterBus->receive(EEPROM); //ok, have got data...(not tested yet)
 
+        //request data from an external chip:
+        pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
+        pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
 
-        auto pEEPROM= std::make_shared<CSamI2Cmem>();
-        pEEPROM->SetMemBuf((unsigned char*)PandaHat, sizeof(PandaHat));
-        pEEPROM->EnableIRQs(true);*/
+        //create 2 I2C slaves for R/W EEPROM data from extension plugs and connect them to the bufer:
+        auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
+        pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
+        pEEPROM_HAT->EnableIRQs(true);
+
+        auto pEEPROM_8Pin=std::make_shared<CSamI2Cmem8Pin>();
+        pEEPROM_8Pin->SetMemBuf(pEEPROM_MemBuf);
+        pEEPROM_8Pin->EnableIRQs(true);
         //----------------------------------------------------------
 
 
@@ -241,7 +237,6 @@ int main(void)
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp); //14.08.2019 - removed event pin
         pDisp->Add("je", pJE);
         button.AdviseSink(pJE);
-        //mdetect.AdviseSink(pJE); //18.06.2019
         pMenu->AdviseSink(pJE);
         pMenu->AdviseSink(nodeControl::Instance().shared_from_this()); //18.07.2019
         nodeControl::Instance().AdviseSink(pJE);
@@ -268,12 +263,11 @@ int main(void)
              button.update();
 
              //upd menu object:
-             if( (get_tick_mS()-last_time_upd)>=1000 )	//to do: add an event!!!
+             if( (os::get_tick_mS()-last_time_upd)>=1000 )	//to do: add an event!!!
              {
-                     last_time_upd=get_tick_mS();
+                     last_time_upd=os::get_tick_mS();
                      pMenu->OnTimer(0);
              }
-             //Wait(10);
 
              //10.05.2019:
             pSPIsc2->Update();

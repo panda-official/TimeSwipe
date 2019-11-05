@@ -39,10 +39,15 @@ protected:
     void IRQhandler();
     bool m_bIRQmode=false;
 
-    int  m_nDevAddr=0x50;
-    bool m_IOdir=false;     //false -read, true write
+    int  m_nDevAddr=0x50;           //device address
+    int  m_nMemAddr=0;              //memory address
+    int  m_nReadDataCountLim=4096;  //a limit for the data to read out
+    bool m_IOdir=false;             //false -read, true write
+
+    unsigned long m_OpTmt_mS=500;
 
     std::shared_ptr<CSamCLK> m_pCLK;
+    CFIFO *m_pBuf=nullptr; //one single buf for R\W?
 
     virtual void OnIRQ0();
     virtual void OnIRQ1();
@@ -50,15 +55,8 @@ protected:
     virtual void OnIRQ3();
 
     //helpers:
+    void SetWriteProtection(bool how);
     void StartTranfer(bool how);
-
-    //mem interface:
-    /*unsigned char *m_pMem=nullptr;
-    unsigned int m_nMemSize=0;
-    unsigned int m_nMemCurInd=0;*/
-
-    CFIFO *m_pBuf=nullptr; //one single buf for R\W?
-
     void rewindMemBuf(); //{m_nMemCurInd=0;}
     int readB();
     int writeB(int val);
@@ -68,6 +66,8 @@ public:
     CSamI2CeepromMaster();
 
     inline bool    isIRQmode(){return m_bIRQmode;}
+    inline void    SetDeviceAddr(int nDevAddr){m_nDevAddr=nDevAddr; }
+    inline void    SetDataAddrAndCountLim(int nDataAddr, int nCountLim=4096){m_nMemAddr=nDataAddr;  m_nReadDataCountLim=nCountLim;}
     void EnableIRQs(bool how);
 
     //serial:

@@ -7,14 +7,12 @@ Copyright (c) 2019 Panda Team
 
 //SAM's regular SPI:
 
+#include "os.h"
 #include "SamSPI.h"
 #include "sam.h"
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
-
-void Wait(unsigned long time_mS);
-unsigned long get_tick_mS(void);
 
 CSamSPI::CSamSPI(typeSamSercoms nSercom, bool bMaster) : CSamSercom(nSercom)
 {
@@ -155,10 +153,10 @@ bool CSamSPI::send_char(typeSChar ch)
 {
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
 
-    unsigned long WaitBeginTime=get_tick_mS();
+    unsigned long WaitBeginTime=os::get_tick_mS();
     while( 0==(pSPI->INTFLAG.bit.DRE) )
     {
-        if( (get_tick_mS()-WaitBeginTime) >100 )
+        if( (os::get_tick_mS()-WaitBeginTime) >100 )
         {
             chip_select(false);
             return false;

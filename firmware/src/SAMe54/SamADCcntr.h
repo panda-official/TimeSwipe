@@ -10,7 +10,8 @@ Copyright (c) 2019 Panda Team
 #pragma once
 #include  <memory>
 #include <list>
-//#include "ADchan.h"
+
+#include "os.h"
 #include "ADC.h"
 #include "SamCLK.h"
 
@@ -22,7 +23,6 @@ enum class typeSamADCmuxneg : int {none=-1, AIN0=0, AIN1, AIN2, AIN3, AIN4, AIN5
 
 //SAM's ADC channel:
 class CSamADCcntr;
-unsigned long get_tick_mS(void);
 class CSamADCchan : public CAdc
 {
 friend class CSamADCcntr;
@@ -33,12 +33,12 @@ protected:
     typeSamADCmuxneg m_negIN;
 
     //23.05.2019:
-    unsigned long m_MesTStamp=get_tick_mS();
+    unsigned long m_MesTStamp=os::get_tick_mS();
     float         m_FilteredRawVal=0;
     int           m_UnfilteredRawVal=0;
     float         m_filter_t_mSec=50.0f;
 
-    unsigned long data_age(){ return (get_tick_mS()-m_MesTStamp); }
+    unsigned long data_age(){ return (os::get_tick_mS()-m_MesTStamp); }
     void SetRawBinVal(int RawVal);
 
 

@@ -39,6 +39,7 @@ protected:
     bool m_bIRQmode=false;
 
     std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<CFIFO>   m_pFIFObuf; //02.11.2019
 
     //interface:
     unsigned char *m_pMem=nullptr;
@@ -55,18 +56,31 @@ protected:
     virtual void OnIRQ2();
     virtual void OnIRQ3();
 
+    inline void obtain_membuf()
+    {
+        m_pMem=(unsigned char*)(m_pFIFObuf->c_str()); //dbg only
+        m_nMemSize=m_pFIFObuf->size(); //??? not good....
+    }
+
 public:
-    CSamI2Cmem();
+    CSamI2Cmem(typeSamSercoms nSercom);
     //virtual ~CSamI2Cmem(); //just to keep polymorphic behaviour, should be never called
 
     inline bool    isIRQmode(){return m_bIRQmode;}
     void EnableIRQs(bool how);
 
-    inline void SetMemBuf(unsigned char *pBuf, unsigned int nSize)
+    //02.11.2019:
+    void SetMemBuf(std::shared_ptr<CFIFO> &pFIFObuf)
+    {
+        m_pFIFObuf=pFIFObuf;
+        obtain_membuf();
+    }
+
+   /* inline void SetMemBuf(unsigned char *pBuf, unsigned int nSize)
     {
         m_pMem=pBuf;
         m_nMemSize=nSize;
-    }
+    }*/
 
     inline unsigned int GetCurMemInd(){ return m_nMemCurInd; }
     void    SetCurMemInd(unsigned int nInd){ m_nMemCurInd=nInd; }

@@ -5,6 +5,7 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
+#include "os.h"
 #include "sam.h"
 
 //timer func for M4:
@@ -16,8 +17,9 @@ void SysTick_Handler(void)
 	sys_time_mS++;
 }}
 
-
+namespace os  {
 unsigned long get_tick_mS(void)
 {
 	return sys_time_mS;
+}
 }

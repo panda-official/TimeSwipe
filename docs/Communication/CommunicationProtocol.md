@@ -93,24 +93,24 @@ js                  Writing to this variable a JSON object leads to write operat
                     
 je                  Holds latest events description in a form of a JSON object (JSON object, r)
 
-The structure of the JSON can be arbitrary but must follow a semantic rule: {"variable name" : value}. When reading information from a variable value is ignored and should be set to zero.
+The structure of the JSON can be arbitrary but must follow a semantic rule: {"variable name" : value}. When reading information from a variable value is ignored and should be set to a question mark.
 
 examples: 
 
 {
-  {"DACA", 0.1},
-  {"DACB", -1.2},
-  {"DACC", 0.5},
-  {"DACD", 1.6}
+  {"DACA" : 0.1},
+  {"DACB" : -1.2},
+  {"DACC" : 0.5},
+  {"DACD" : 1.6}
 }
                 - a JSON object for setting a group of the 4 DACS
                 
 
 {
-  {"DACA", 0},
-  {"DACB", 0},
-  {"DACC", 0},
-  {"DACD", 0}
+  {"DACA" : "?"},
+  {"DACB" : "?"},
+  {"DACC" : "?"},
+  {"DACD" : "?"}
 }
                 - a JSON object for read back values of a group of the 4 DACS
 
@@ -127,7 +127,7 @@ A responce from a slave is a read back value(object) in a case of success or an 
 Common communication errors for all access points are listed below:
 
 !Line_err!              - communication bus error <br />
-!!Timeout_err!          - the board is not responding during specified timeout <br />
+!Timeout_err!          - the board is not responding during specified timeout <br />
 !obj_not_found!         - a requested access point is not found <br />
 !>_not_supported!       - read operation is not supported <br />
 !<_not_supported!       - write operation is not supported <br />
@@ -148,14 +148,20 @@ successive response message:     3.7\n
 
 3. setup a board via a JSON command:
 
-request message:                js<{ {"gain", 3}, {"bridge", true}, {"offsets", {{"DACA", 0.1},{"DACB", -1.2},{"DACC", 0.5},{"DACD", 1.6}}} }\n
-successive response message:     { {"gain", 3}, {"bridge", true}, {"offsets", {{"DACA", 0.1},{"DACB", -1.2},{"DACC", 0.5},{"DACD", 1.6}}} }\n
+request message:                js<{ {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
+successive response message:     { {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
 
 4. read back board settings via a JSON command:
 
-request message:                js>{ {"gain", 0}, {"bridge", false}, {"DACA",0},{"DACB",0},{"DACC",0},{"DACD",0} }\n
-successive response message:     { {"gain", 3}, {"bridge", true}, {"DACA", 0.1},{"DACB", -1.2},{"DACC", 0.5},{"DACD", 1.6} }\n
+request message:                js>{ {"Gain" : "?"}, {"Bridge" : "?"}, {"DACA" : "?"}, {"DACB" : "?"}, {"DACC" : "?"}, {"DACD" : "?"} }\n
+successive response message:     { {"Gain" : 3}, {"Bridge" : true}, {"DACA" : 0.1}, {"DACB" : -1.2}, {"DACC" : 0.5}, {"DACD" : 1.6} }\n
+note: when reading information from a variable via "js>" command values in the pair "key:value" are ignored and should be set to a question mark.
 
+5. polling latest board events via a JSON command:
+
+request message:                je>
+successive response message:    { {"Button" : true}, {"ButtonStateCnt", 3} } - indicates the board's button was pressed and shows its state counter:
+odd value button is pressed, even - released
 
 
 The protocol is implemented by the board's driver over a specific SPI protocol.

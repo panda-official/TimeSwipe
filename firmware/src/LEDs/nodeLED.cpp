@@ -9,10 +9,9 @@ Copyright (c) 2019 Panda Team
 
 #include <random>
 
+#include "os.h"
 #include "nodeLED.h"
 #include "Adafruit_NeoPixel.h"  //28.08.2019
-
-void Wait(unsigned long time_mS);
 
 //nodeLED implementation:
 
@@ -27,7 +26,6 @@ std::default_random_engine generator;
 std::uniform_int_distribution<int> distribution(3,220);
 
 //01.05.2019: led control class:
-unsigned long get_tick_mS(void);
 CLED::CLED(typeLED nLED)
 {
     m_nLED=nLED;
@@ -39,7 +37,7 @@ CLED::~CLED()
 }
 void CLED::Update()
 {
-    unsigned long cur_time=get_tick_mS();
+    unsigned long cur_time=os::get_tick_mS();
     if( cur_time-m_LastTimeUpd < m_BlinkPeriod_mS)
         return;
     m_LastTimeUpd=cur_time;
@@ -74,7 +72,7 @@ void CLED::ON(bool how)
     m_bON=how;
     if(how)
     {
-        m_LastTimeUpd=get_tick_mS();
+        m_LastTimeUpd=os::get_tick_mS();
         m_bPhase=true;
     }
     else
@@ -196,70 +194,3 @@ void nodeLED::blinkMultipleLED(typeLEDind firstLED,  typeLEDind lastLED, typeLED
     else
         pLED->ON(false);
 }
-
-
-
-
-
-//this is obsolete:
-/*void nodeLED::resetALL()
-{
-	typeLEDCntr &pixels=glob_NeoPix;
-	
-	pixels.fill(0, 0, 0);
-    pixels.show();
-}
-void nodeLED::selectLED(typeLEDind sel, typeLEDcol sel_color, typeLEDind range_begin, typeLEDind range_end, typeLEDcol back_color)
-{
-	typeLEDCntr &pixels=glob_NeoPix;
-    
-    pixels.fill(0, 0, 0);
-    for(typeLEDind i=range_begin; i<=range_end; i++)
-    {
-		pixels.setPixelColor(i-1, sel==i ? sel_color : back_color);
-	} 
-	pixels.show();
-}
-void nodeLED::setMultipleLED(typeLEDind range_begin, typeLEDind range_end, typeLEDcol back_color)
-{
-	typeLEDCntr &pixels=glob_NeoPix;
-	
-	pixels.fill(0, 0, 0);
-    for(typeLEDind i=range_begin; i<=range_end; i++)
-    {
-		pixels.setPixelColor(i-1, back_color);
-	} 
-	pixels.show();
-	
-}
-void nodeLED::blinkLED(typeLEDind sel, typeLEDcol blink_color)
-{
-	typeLEDCntr &pixels=glob_NeoPix;
-	
-	for(int i=0; i<3; i++)
-	{
-		pixels.setPixelColor(sel-1, blink_color);
-		pixels.show();
-		Wait(100); //0.1 sec
-		pixels.fill(0, 0, 0);	//27.02.2019
-		pixels.show();
-	}
-	
-}
-void nodeLED::blinkMultipleLED(typeLEDind firstLED,  typeLEDind lastLED, typeLEDcol blink_color, int replication, int duration)
-{
-	typeLEDCntr &pixels=glob_NeoPix;
-	
-	for(int r=0; r<replication; r++)
-	{
-		for(typeLEDind i=firstLED; i<=lastLED; i++)
-		{
-			pixels.setPixelColor(i-1, blink_color);
-		}
-		pixels.show();
-		Wait(duration);
-		pixels.fill(0, 0, 0);
-		pixels.show();
-		Wait(duration);
-	}
-}*/

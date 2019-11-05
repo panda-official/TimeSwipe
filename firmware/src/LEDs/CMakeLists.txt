@@ -15,7 +15,7 @@ target_compile_definitions(LEDS_lib PRIVATE -DSAM_BRM)
 target_compile_definitions(LEDS_lib PRIVATE -D__SAMD51__)
 target_compile_definitions(LEDS_lib PRIVATE -D__SAME54P20A__)
 
-
+target_include_directories(LEDS_lib PUBLIC ../Interfaces)
 target_include_directories(LEDS_lib PRIVATE ../../src/LEDs)
 target_include_directories(LEDS_lib PRIVATE ../../3rdParty/Adafruit_NeoPixel)
 target_include_directories(LEDS_lib PRIVATE ../../3rdParty/prj_templ/CMSIS/Include)

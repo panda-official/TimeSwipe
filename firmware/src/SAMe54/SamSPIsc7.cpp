@@ -35,9 +35,10 @@ CSamSPIsc7::CSamSPIsc7(bool bMaster) : CSamSPI(typeSamSercoms::Sercom7, bMaster)
 {
     Port *pPORTS=PORT;
 
+#ifdef TIME_SWIPE_BRD_V0
     //----------setup PINs: IOSET1 PD08, PD09, PD10, PD11----------------
     //PD08 -> group 3, even, function "C"(PAD0)=0x02: MOSI
-  /*  PORT->Group[3].PMUX[4].bit.PMUXE=0x02;
+    PORT->Group[3].PMUX[4].bit.PMUXE=0x02;
     PORT->Group[3].PINCFG[8].bit.PMUXEN=1; //enable
 
     //PD09 -> group 3, odd, function "C"(PAD1)=0x02:  SCK
@@ -59,8 +60,9 @@ CSamSPIsc7::CSamSPIsc7(bool bMaster) : CSamSPI(typeSamSercoms::Sercom7, bMaster)
 
     //PD11 -> group 0, odd, function "C"(PAD3)=0x02:  MISO
     PORT->Group[3].PMUX[5].bit.PMUXO=0x02;
-    PORT->Group[3].PINCFG[11].bit.PMUXEN=1;*/
+    PORT->Group[3].PINCFG[11].bit.PMUXEN=1;
     //--------------------------------------------------------------------
+#else
 
 
     //-------------setup PINs: Version2: PC12,PC13,PC14,PC15--------------
@@ -91,6 +93,7 @@ CSamSPIsc7::CSamSPIsc7(bool bMaster) : CSamSPI(typeSamSercoms::Sercom7, bMaster)
     PORT->Group[2].PINCFG[15].bit.PMUXEN=1;
 
    //--------------------------------------------------------------------
+#endif
 
 
     //---------------------finishing init---------------------------------

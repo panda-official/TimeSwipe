@@ -40,7 +40,7 @@ void CSamADCchan::SetRawBinVal(int RawVal)
 {
     m_UnfilteredRawVal=RawVal;
     m_FilteredRawVal+=((float)RawVal - m_FilteredRawVal ) * ( (float)data_age() ) / m_filter_t_mSec;
-    m_MesTStamp=get_tick_mS();
+    m_MesTStamp=os::get_tick_mS();
 
     CADchan::SetRawBinVal(m_FilteredRawVal);
 }
@@ -200,5 +200,5 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     pADC->CTRLA.bit.ENABLE=1;   //enable the ADC
     while(pADC->SYNCBUSY.bit.ENABLE){}
     //-------------------------------------------------------------------
-	
 }
+

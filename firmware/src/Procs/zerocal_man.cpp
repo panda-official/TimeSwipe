@@ -5,6 +5,7 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
+#include "os.h"
 #include "zerocal_man.h"
 //#include <math.h>
 
@@ -26,7 +27,7 @@ void CCalMan::Start()
         m_pLED[i]->SetBlinkMode(true);
         m_pLED[i]->SetColor(CMenuLogic::SETZERO_COLOR_ACTIVE);
     }
-    m_LastTimeUpd=get_tick_mS();
+    m_LastTimeUpd=os::get_tick_mS();
     m_UpdSpan=100;
 
 }
@@ -45,7 +46,7 @@ void CCalMan::Start()
  }
 void CCalMan::Update()
 {
-    unsigned long cur_time=get_tick_mS();
+    unsigned long cur_time=os::get_tick_mS();
     if( cur_time-m_LastTimeUpd < m_UpdSpan)
         return;
     m_LastTimeUpd=cur_time;

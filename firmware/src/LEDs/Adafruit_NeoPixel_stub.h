@@ -8,9 +8,9 @@ Copyright (c) 2019 Panda Team
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "os.h"
 typedef bool boolean;
-unsigned long get_tick_mS(void);
-#define micros() (get_tick_mS()*1000)
+#define micros() (os::get_tick_mS()*1000)
 
 #define INPUT 	0
 #define OUTPUT 	1

@@ -15,6 +15,8 @@ Copyright (c) 2019 Panda Team
 class SAMButton: public CPinButton, public CJSONEvCP //to do add sink list inside the class!
 {
 protected:
+        unsigned long m_nStateCounter=0; //button state counter: even - released, odd - pressed
+
         CButtonEvent &m_sink;
 
         virtual bool get_signal(void);

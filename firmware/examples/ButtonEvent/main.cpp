@@ -7,6 +7,7 @@ Copyright (c) 2019 Panda Team
 
 //build for ADCs-DACs:
 
+#include "os.h"
 #include "SamQSPI.h"
 #include "SamSPIsc2.h"
 #include "SamSPIsc7.h"
@@ -28,7 +29,7 @@ Copyright (c) 2019 Panda Team
 
 
 //GPIO 24 pull-up:
-const char PandaHat[]=
+/*const char PandaHat[]=
 {
 0x52, 0x2D, 0x50, 0x69, 0x01, 0x00, 0x02, 0x00, 0x6D, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
 0x31, 0x00, 0x00, 0x00, 0xDF, 0x5D, 0x24, 0xB1, 0x59, 0xC3, 0xE3, 0x99, 0x75, 0x45, 0xD9, 0x6A,
@@ -37,18 +38,14 @@ const char PandaHat[]=
 0x61, 0x72, 0x64, 0xCD, 0xD2, 0x02, 0x00, 0x01, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0xCF, 0x6E
-};
+};*/
 
 int sys_clock_init(void);
-unsigned long get_tick_mS(void);
-void Wait(unsigned long time_mS);
-
-
 
 int main(void)
 {
         //step 0: clock init:
-        unsigned long last_time_upd=get_tick_mS();
+        unsigned long last_time_upd=os::get_tick_mS();
         sys_clock_init(); //->120MHz
         nodeLED::init();
         auto pLED1      =std::make_shared<CLED>(typeLED::LED1);
@@ -64,15 +61,6 @@ int main(void)
       //  pSPIsc7    =std::make_shared<CSamSPIsc7>(true); //it will be a master 03.06.2019
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
         pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
-
-        //----------------creating I2C EEPROM-----------------------
-        auto pEEPROM= std::make_shared<CSamI2Cmem>();
-        //char emem[4095]; //={1,2,3,4,5,6,7};
-        //memset(emem, '7', sizeof(emem));
-        //strcpy(emem, "Hello! Here is a Panda Board!");
-        pEEPROM->SetMemBuf((char*)PandaHat, sizeof(PandaHat));
-        pEEPROM->EnableIRQs(true);
-        //----------------------------------------------------------
 
 
          //step 2 - creating ADC0:
@@ -204,7 +192,7 @@ int main(void)
 
         //27.05.2019:
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
-        pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
+        //pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
 
 
         //--------------------menu+button-----------------------

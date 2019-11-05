@@ -7,6 +7,8 @@ Copyright (c) 2019 Panda Team
 
 //SAM DAC controller class impl:
 
+//an iface to OS:
+#include "os.h"
 #include "SamDACcntr.h"
 #include "sam.h"
 
@@ -42,8 +44,6 @@ void CSamDACcntr::DriverSetVal(float val, int out_bin)
          while(0==DAC->STATUS.bit.EOC1){}
     }
 }
-
-void Wait(unsigned long time_mS);
 void CSamDACcntr::common_init() //common settings for both dacs
 {
     if(m_bInitialized) return;
@@ -90,7 +90,7 @@ void CSamDACcntr::common_init() //common settings for both dacs
     DAC->DACCTRL[0].bit.ENABLE=1;
     DAC->DACCTRL[1].bit.ENABLE=1;
 
-     Wait(2); //???
+     os::wait(2); //the waiting is required
 
     //enable controller itself:
     DAC->CTRLA.bit.ENABLE=1;

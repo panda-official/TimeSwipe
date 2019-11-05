@@ -6,15 +6,15 @@ Copyright (c) 2019 Panda Team
 */
 
 
+#include "os.h"
 #include "DataVis.h"
 #include <math.h>
 
-unsigned long get_tick_mS(void);
 CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
 {
     m_pADC=pADC;
     m_pLED=pLED;
-    last_time_vis=get_tick_mS(); //set initial delay of 1 sec...
+    last_time_vis=os::get_tick_mS(); //set initial delay of 1 sec...
 }
 
 void CDataVis::reset()
@@ -40,8 +40,6 @@ void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
     m_bStarted=bHow;
     m_upd_tspan_mS=nDelay_mS;
 
-//    CDataVis::reset();
-
     if(bHow)
     {
         m_bStartInitOder=true;
@@ -55,7 +53,7 @@ void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
 void CDataVis::Update()
 {
     //quataion:
-    if( (get_tick_mS()-last_time_vis)<m_upd_tspan_mS )
+    if( (os::get_tick_mS()-last_time_vis)<m_upd_tspan_mS )
         return;
 
     if(first_update == true){
@@ -64,7 +62,7 @@ void CDataVis::Update()
     }
 
     m_upd_tspan_mS=17; //some default value for a fast updation
-    last_time_vis=get_tick_mS();
+    last_time_vis=os::get_tick_mS();
 
     if(!m_bStarted)
         return;

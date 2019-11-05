@@ -20,6 +20,7 @@ target_include_directories(BOARD_lib PUBLIC ../Interfaces)
 target_include_directories(BOARD_lib PUBLIC ../ADCDAC)
 target_include_directories(BOARD_lib PUBLIC ../JSONstuff)
 target_include_directories(BOARD_lib PUBLIC ../Communication)
+target_include_directories(BOARD_lib PUBLIC ../SAMe54)
 
 target_include_directories(BOARD_lib PRIVATE ../../3rdParty/prj_templ/include)
 target_include_directories(BOARD_lib PRIVATE ../../3rdParty/prj_templ/CMSIS/Include)
