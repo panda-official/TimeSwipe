@@ -160,7 +160,7 @@ note: when reading information from a variable via "js>" command values in the p
 5. polling latest board events via a JSON command:
 
 request message:                je>
-successive response message:    { {"Button" : true}, {"ButtonStateCnt", 3} } - indicates the board's button was pressed and shows its state counter:
+successive response message:    { {"Button" : true}, {"ButtonStateCnt" : 3} } - indicates the board's button was pressed and shows its state counter:
 odd value button is pressed, even - released
 
 
