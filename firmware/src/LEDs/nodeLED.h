@@ -39,7 +39,10 @@ protected:
     int m_CurBlinkingPeriod=0;
     int m_BlinkingPeriodLimit=0;
 
-    inline uint16_t get_zerob_ind(){ return static_cast<uint16_t>(m_nLED)-1; }
+    inline uint16_t get_zerob_ind(){ return (5 + ((static_cast<uint16_t>(m_nLED))*(-1)))-1; }
+ //   inline uint16_t get_zerob_ind(){ return static_cast<uint16_t>(5 + ((m_nLED)*(-1)))-1; }
+//    inline uint16_t get_zerob_ind(){ return static_cast<uint16_t>(m_nLED)-1; }
+
 
 public:
     CLED(typeLED nLED);
