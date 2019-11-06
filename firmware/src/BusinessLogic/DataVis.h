@@ -31,7 +31,7 @@ protected:
     unsigned int meas_max = 2048.0;
     unsigned int meas_min = 2048.0;
     unsigned int min_wind = 100;
-    unsigned int k_range = 0.004;
+    const float k_range = 0.004;
 
     unsigned long last_time_vis = 0;
     bool first_update = true;
