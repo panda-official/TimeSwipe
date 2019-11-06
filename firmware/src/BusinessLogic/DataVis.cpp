@@ -79,12 +79,24 @@ void CDataVis::Update()
     //obtaining color val:
     unsigned int meas1=m_pADC->DirectMeasure();
 
+
     if(meas1 > meas_max){
         meas_max = meas1;
+        if((meas1-meas_min) > 100)
+            meas_min = meas_min + (k_range *(meas1 - meas_min));
     }
-    if(meas1 < meas_min){
+    else if(meas1 < meas_min){
         meas_min = meas1;
+        if((meas_max-meas1) > 100)
+            meas_max = meas_max - (k_range *(meas_max - meas1));
     }
+    else {
+        if((meas_max-meas1) > 100)
+            meas_max = meas_max - (k_range *(meas_max - meas1));
+        if((meas1-meas_min) > 100)
+            meas_min = meas_min + (k_range *(meas1 - meas_min));
+    }
+
 
     float intens1=(pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0;
     unsigned int col_intens[3] = {static_cast<unsigned int>(col_act[0] * intens1/255), static_cast<unsigned int>(col_act[1] * intens1/255), static_cast<unsigned int>(col_act[2] * intens1/255)};
