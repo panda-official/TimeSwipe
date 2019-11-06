@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(CORTEXMX_lib)
 
-add_library(CORTEXMX_lib STATIC nodeTimeCM4.cpp nodeHandlersCM4.cpp)
+add_library(CORTEXMX_lib STATIC nodeTimeCM4.cpp)
 
 target_include_directories(CORTEXMX_lib PUBLIC ../Interfaces)
 target_compile_definitions(CORTEXMX_lib PRIVATE -D__SAME54P20A__)
