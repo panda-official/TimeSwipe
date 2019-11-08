@@ -3,7 +3,6 @@
 struct GPIOData
 {
     uint8_t byte;
-    // bool tco;
     unsigned int tco;
     bool piOK;
 };
@@ -34,20 +33,9 @@ GPIOData readByteAndStatusFromGPIO()
 
     return {
         byte,
-        // (allGPIO & TCO_POSITION) != 0,
         (allGPIO & TCO_POSITION),
         (allGPIO & PI_STATUS_POSITION) != 0};
 }
-
-// GPIOData readStatusFromGPIO()
-// {
-//     unsigned int allGPIO = readAllGPIO();
-
-//     return {
-//         0,
-//         (allGPIO & TCO_POSITION) != 0,
-//         (allGPIO & PI_STATUS_POSITION) != 0};
-// }
 
 constexpr bool isRisingFlank(bool last, bool now)
 {

@@ -43,21 +43,14 @@ void init(int sensorType)
     setGPIOHigh(RESET);
 
     // SPI Communication
-    // // Select Syensor type
-    CFIFO msgSensorType;
-    msgSensorType += "Bridge<" + std::to_string(sensorType) + "\n";
-    spi.send(msgSensorType);
+    // // Select Sensor type
+    bInterface.setBridge(sensorType);
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     // // Start Measurement
-    CFIFO msgStop;
-    msgStop += "EnableADmes<0\n";
-    spi.send(msgStop);
+    bInterface.setEnableADmes(0);
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-    CFIFO msgStart;
-    msgStart += "EnableADmes<1\n";
-    spi.send(msgStart);
+    bInterface.setEnableADmes(1);
 }
 
 void shutdown()
@@ -65,9 +58,7 @@ void shutdown()
     // Reset Clock
     setGPIOLow(CLOCK);
     // Stop Measurement
-    CFIFO msgStop;
-    msgStop += "EnableADmes<0\n";
-    spi.send(msgStop);
+    bInterface.setEnableADmes(0);
 }
 
 void setGPIOHigh(unsigned pin)

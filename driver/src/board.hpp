@@ -7,7 +7,7 @@
 #include <thread>
 
 #include "gpio/gpio.h"
-#include "bcmspi.h"
+#include "board_iface.hpp"
 
 // PIN NAMES
 static const unsigned char DATA0 = 7;  //BCM 7  - PIN 26
@@ -56,7 +56,7 @@ void resetAllGPIO();
 void sleep55ns();
 void sleep8ns();
 unsigned int readAllGPIO();
-CBcmSPI spi(CBcmLIB::iSPI::SPI0);
+BoardInterface bInterface;
 
 #include "board.cpp"
 
