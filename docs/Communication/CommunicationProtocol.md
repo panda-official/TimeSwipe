@@ -127,7 +127,9 @@ There are a number of protocols that can be used for managing data of access poi
 The simple ANSI text protocol is implemented by default.
 The protocol works according to a master-slave communication model.
 
-A request from a master consists of: access point name (variable) + access operator ('>' means read variable, '<' means write value) + value (object) + new line character (/n). 
+A request from a master consists of: <br />
+__access point name (variable) + access operator ('>' means read variable, '<' means write value) + value (object) + new line character (/n)__  <br />
+<br />
 The response from a slave is a read back value in the case of success or an error message started with a '!' character.
 
 ### Common communication errors for all access points:
