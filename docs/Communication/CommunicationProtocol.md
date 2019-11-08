@@ -80,7 +80,6 @@ LED4 <br />
 LED4.blink <br />
 LED4.col <br />
 
-
 ### Access points with only one root domain name:
 
  Access Point   |       Function
@@ -91,15 +90,14 @@ Record          |   Writing "true" to this variable initiates/restarts a record 
 Zero            |   Start/stop zero calibration process (boolean, false:true, w)
 Zero.errtol     |   Holds a zero calibration process error tolerance value (integer r/w)
 EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false:true, r/w)
-DACsw           |   Holds a DACs mode switch state (0 - using external DACs(A-C) only or 1 -using DACA, DACC, DAC0, DAC1) (integer value, 0:1, r/w)
-
+DACsw           |   Holds a DAC's mode switch state (0 - using external DACs(A-D) only, or 1 -using DACA, DACC, DAC0, DAC1) (integer value, 0:1, r/w)
 
 ### JSON controlled access points:
 
  Access Point   |       Function
 --------------  |    --------------------------------------------------------------------------------------------------------------------------------------- 
 js              |    Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).      
-je              |    Holds latest events description in a form of a JSON object (JSON object, r)
+je              |    Holds latest events description in form of a JSON object (JSON object, r)
 
 The structure of the JSON can be arbitrary but must follow a semantic rule: {"variable name" : value}. When reading information from a variable, the value is ignored and should be set to a question mark.
 
@@ -111,7 +109,7 @@ The structure of the JSON can be arbitrary but must follow a semantic rule: {"va
   {"DACC" : 0.5},
   {"DACD" : 1.6}
 }
-                - a JSON object for setting a group of the 4 DACS
+                - a JSON object for setting a group of the 4 DACs
                 
 
 {
@@ -120,7 +118,7 @@ The structure of the JSON can be arbitrary but must follow a semantic rule: {"va
   {"DACC" : "?"},
   {"DACD" : "?"}
 }
-                - a JSON object for read back values of a group of the 4 DACS
+                - a JSON object for read back values of a group of the 4 DACs
 
 
 # Communication protocols
@@ -141,42 +139,50 @@ Error message       |    Meaning
 !obj_not_found!     |   a requested access point is not found
 !>_not_supported!   |   read operation is not supported
 !<_not_supported!   |   write operation is not supported
-!protocol_error!    |   request message doesn't fit to a protocol format (missing access point name or access operator or a value)
+!protocol_error!    |   request message does not fit to protocol format (e.g. missing access point name, access operator or value)
 
 
 #### Examples:
 
-##### 1. setting a DACA value to 5 Volts:
+##### 1. Setting a DACA value to 5 Volts:
 
 Request/Response             |  Command
 ---------------------------- | --------------------
 request message:             |   DACA<5.0\n
 successive response message: |    5.0\n
 
-##### 2. reading actual ADC2 raw value:
+<br />
+
+##### 2. Reading actual ADC2 raw value:
 
 Request/Response             |  Command
 ---------------------------- | --------------------
 request message:             |   ADC1.raw>\n
 successive response message: |    3.7\n
 
-##### 3. setup a board via a JSON command:
+<br />
+
+##### 3. Setup a board via a JSON command:
 
 Request/Response              |  Command
 ----------------------------- | -------------------------------------------------------------------------------------------------------------------------
 request message:              |   js<{ {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
 successive response message:  |    { {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
 
-##### 4. read back board settings via a JSON command:
+<br />
+
+##### 4. Read back board settings via a JSON command:
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------
 request message:               |  js>{ {"Gain" : "?"}, {"Bridge" : "?"}, {"DACA" : "?"}, {"DACB" : "?"}, {"DACC" : "?"}, {"DACD" : "?"} }\n
 successive response message:   |   { {"Gain" : 3}, {"Bridge" : true}, {"DACA" : 0.1}, {"DACB" : -1.2}, {"DACC" : 0.5}, {"DACD" : 1.6} }\n
 
-Note: When reading information from a variable via "js>" command values in the pair "key:value" are ignored and should be set to a question mark. <br />
+Note: When reading information from a variable via "js>" command, values in the pair "key:value" are ignored and should be set to a question mark. <br />
 
-##### 5. polling latest board events via a JSON command:
+<br />
+
+##### 5. Polling latest board events via a JSON command:
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------------------
