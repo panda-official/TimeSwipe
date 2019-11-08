@@ -86,6 +86,7 @@ Type openOCD commands in the window with the open telnet connection:
 
 <br />
 Some openOCD commands: 
+<br />
 
 Command                            |  Function
 ---------------------------------- | ---------------------------------------------
