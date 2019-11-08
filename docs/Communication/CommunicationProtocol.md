@@ -84,7 +84,7 @@ LED4.col <br />
 ### Access points with only one root domain name:
 
  Access Point   |       Function
---------------      --------------------------------------------------------------------------------------------------------------------------------------- 
+--------------  |    ------------------------------------------------------------------------------------------------------- 
 Gain            |   Holds a gain value (integer value 1:4, r/w)
 Bridge          |   Holds a bridge switch state (ON or OFF) (boolean, false:true, r/w)
 Record          |   Writing "true" to this variable initiates/restarts a record process (boolean, false:true, r/w) 
@@ -97,7 +97,7 @@ DACsw           |   Holds a DACs mode switch state (0 - using external DACs(A-C)
 ### JSON controlled access points:
 
  Access Point   |       Function
---------------      --------------------------------------------------------------------------------------------------------------------------------------- 
+--------------  |    --------------------------------------------------------------------------------------------------------------------------------------- 
 js              |    Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).      
 je              |    Holds latest events description in a form of a JSON object (JSON object, r)
 
@@ -135,7 +135,7 @@ The response from a slave is a read back value in the case of success or an erro
 ### Common communication errors for all access points:
 
 Error message       |    Meaning
-------------------     -----------------------------------------------------------------------------------------------------------------
+------------------  |   -----------------------------------------------------------------------------------------------------------------
 !Line_err!          |   communication bus error
 !Timeout_err!       |   the board is not responding during specified timeout
 !obj_not_found!     |   a requested access point is not found
@@ -149,28 +149,28 @@ Error message       |    Meaning
 ##### 1. setting a DACA value to 5 Volts:
 
 Request/Response             |  Command
-----------------------------   --------------------
+---------------------------- | --------------------
 request message:             |   DACA<5.0\n
 successive response message: |    5.0\n
 
 ##### 2. reading actual ADC2 raw value:
 
 Request/Response             |  Command
-----------------------------   --------------------
+---------------------------- | --------------------
 request message:             |   ADC1.raw>\n
 successive response message: |    3.7\n
 
 ##### 3. setup a board via a JSON command:
 
 Request/Response              |  Command
------------------------------   -------------------------------------------------------------------------------------------------------------------------
+----------------------------- | -------------------------------------------------------------------------------------------------------------------------
 request message:              |   js<{ {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
 successive response message:  |    { {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
 
 ##### 4. read back board settings via a JSON command:
 
 Request/Response               |  Command
-------------------------------   -------------------------------------------------------------------------------------------------------------
+------------------------------ | -------------------------------------------------------------------------------------------------------------
 request message:               |  js>{ {"Gain" : "?"}, {"Bridge" : "?"}, {"DACA" : "?"}, {"DACB" : "?"}, {"DACC" : "?"}, {"DACD" : "?"} }\n
 successive response message:   |   { {"Gain" : 3}, {"Bridge" : true}, {"DACA" : 0.1}, {"DACB" : -1.2}, {"DACC" : 0.5}, {"DACD" : 1.6} }\n
 
@@ -179,7 +179,7 @@ Note: When reading information from a variable via "js>" command values in the p
 ##### 5. polling latest board events via a JSON command:
 
 Request/Response               |  Command
-------------------------------   -------------------------------------------------------------------------------------------------------------------------
+------------------------------ | -------------------------------------------------------------------------------------------------------------------------
 request message:               |  je>
 successive response message:   |  { {"Button" : true}, {"ButtonStateCnt" : 3} } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
 
