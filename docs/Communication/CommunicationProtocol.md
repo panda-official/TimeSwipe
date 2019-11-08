@@ -12,11 +12,11 @@ This way access points form a hierarchical data model.
 
 ### Type DAC: 
 
-This access point type is used to control board's DACs and consists of two domain names.
+This access point type is used to control the board's DACs and consists of two domain names.
 
-Root domain:        Holds a DAC setpoint in floating-point format (real value, -10:+10 Volts, <float>, r/w)
+Root domain:        Holds a DAC setpoint in floating-point format (real value, -10:+10 Volts, r/w)
 <br />
-Sub domain (.raw):    Holds a DAC setpoint in a raw binary format (integer value 0:4095 discrets, <int>, r/w)
+Sub domain (.raw):    Holds a DAC setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
 
 Here is a list of all possible DAC's access points:
 
@@ -44,7 +44,7 @@ Setting DAC1 and DAC2 is a special feature for controlling two of the analog out
 This access point type is used to control board's ADCs and consists of two domain names.
 
 Root domain:        Can be used only with sub-domain <br />
-Sub domain (.raw):    Holds an ADC measured value in a raw binary format (integer value 0:4095 discrets, <int>, r)
+Sub domain (.raw):    Holds an ADC measured value in a raw binary format (integer value 0:4095 discrets, r)
 
 Here is a list of all possible ADC's access points:
 
@@ -61,9 +61,9 @@ ADC4.raw <br />
 
 This access point type is used to control board's LEDs.
 
-Root domain:        Holds a LED ON/OFF state (boolen, false:true, <bool>, w) <br />
-Sub domain (.blink):   Holds a LED blinking mode (ON or OFF) (boolen, false:true, <bool>, w) <br />
-Sub domain (.col):     Holds a LED color value (integer RGB value 0:0xffffff, <unsigned int>, w)
+Root domain:        Holds a LED ON/OFF state (boolen, false:true, w) <br />
+Sub domain (.blink):   Holds a LED blinking mode (ON or OFF) (boolen, false:true, w) <br />
+Sub domain (.col):     Holds a LED color value (integer RGB value 0:0xffffff, w)
 
 Here is a list of all possible LED's access points:
 
