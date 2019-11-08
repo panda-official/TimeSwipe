@@ -48,10 +48,7 @@ Create a file „PandaOCD.cfg“ with the following content and put it in "home/
 	source [find target/atsame5x.cfg] <br />
 	\#reset_config none
 	
-<br />
-<br />
-
-
+	
 ### Starting openOCD:  
 
 In "home/pi" type \<sudo openocd -f PandaOCD.cfg>.
@@ -70,20 +67,14 @@ You should see something like:
  Info : atsame5.cpu: external reset detected <br />
  Info : Listening on port 3333 for gdb connections 
 
-<br />
-<br />
-
 ### Open a telnet connection:  
 
 In a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444) <br />
 Depending on the operating system on the computer it is possible that telnet has to be activated (Not necessary for Ubuntu).
 
-<br />
-<br />
-
 ## Flashing with openOCD  
 
-Type openOCD commands in the window with the telnet connection:
+Type openOCD commands in the window with the open telnet connection:
 
 1. atsame5 chip-erase		delete old software in the flash, it is necessary to wait a few seconds until the chip is erased
 2. reset_init			halt
@@ -104,6 +95,7 @@ Some openOCD commands: <br />
 <br />
 A debugging connection (gdb) can be established just like the telnet connection on port 3333. 
 
+<br />
 <br />
 
 ### Dependencies
