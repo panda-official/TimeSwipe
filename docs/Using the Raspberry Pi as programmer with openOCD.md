@@ -12,7 +12,9 @@
 
 ## Starting openOCD
 
-### Script for openOCD:  create a file „PandaOCD.cfg“ with the following content and put it in "home/pi":
+### Creating a script for openOCD:  
+
+Create a file „PandaOCD.cfg“ with the following content and put it in "home/pi":
    
 
 	\# GPIO17 ---> RST <br />
@@ -50,7 +52,9 @@
 <br />
 
 
-### start openOCD:  in "home/pi" type \<sudo openocd -f PandaOCD.cfg>
+### Starting openOCD:  
+
+In "home/pi" type \<sudo openocd -f PandaOCD.cfg>.
 
 You should see something like:
 
@@ -69,13 +73,15 @@ You should see something like:
 <br />
 <br />
 
-### telnet connection:  in a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444) <br />
+### Open a telnet connection:  
+
+In a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444) <br />
 Depending on the operating system on the computer it is possible that telnet has to be activated (Not necessary for Ubuntu).
 
 <br />
 <br />
 
-## Flashing with openOCD:  
+## Flashing with openOCD  
 
 Type openOCD commands in the window with the telnet connection:
 
