@@ -47,7 +47,6 @@ protected:
     unsigned int m_nMemCurInd=0;
 
     int readB();
-    int writeB(int val);
     void set_addr_H(int addr);
     void set_addr_L(int addr);
 
@@ -75,12 +74,6 @@ public:
         m_pFIFObuf=pFIFObuf;
         obtain_membuf();
     }
-
-   /* inline void SetMemBuf(unsigned char *pBuf, unsigned int nSize)
-    {
-        m_pMem=pBuf;
-        m_nMemSize=nSize;
-    }*/
 
     inline unsigned int GetCurMemInd(){ return m_nMemCurInd; }
     void    SetCurMemInd(unsigned int nInd){ m_nMemCurInd=nInd; }

@@ -40,48 +40,6 @@ public:
         void rewind(){ m_ReadInd=0; } //17.06.2019
 };
 
-/*class CFIFO : public std::vector<unsigned char>
-{
-protected:
-        int m_ReadInd=0;
-
-public:
-        CFIFO & operator <<(typeSChar b)
-        {
-                push_back(b);
-                return *this;
-        }
-        CFIFO & operator >>(typeSChar &b)
-        {
-                b=at(m_ReadInd++);
-                return *this;
-        }
-        int in_avail() const { return size()-m_ReadInd; }
-        void reset() { clear(); m_ReadInd=0; }
-};*/
-
-
-//15.05.2019 : make FIFO from a stream bufer
-/*#include <sstream>
-class CFIFO : public std::stringbuf
-{
-public:
-    void reset()    //reset all internals:
-    {
-        setp(pbase(), pbase());
-        setg(eback(), eback(), eback());
-        pubseekpos(0);
-    }
-    CFIFO & operator <<(typeSChar ch)
-    {
-        sputc(ch); return *this;
-    }
-    CFIFO & operator >>(typeSChar &ch)
-    {
-        ch=sbumpc(); return *this;
-    }
-};*/
-
 
 //basic serial interface:
 struct ISerial
@@ -146,18 +104,4 @@ public:
 protected:
         virtual ~CSerial()=default;
 };
-
-//serial echo: software loopback for testing 10.05.2019
-/*class CSerialEcho : public ISerialEvent
-{
-protected:
-    std::shared_ptr<CSerial> m_pBus;
-
-    virtual void on_rec_char(typeSChar ch)
-    {
-        m_pBus->send(ch);
-    }
-public:
-    CSerialEcho(const std::shared_ptr<CSerial> &pBus) :m_pBus(pBus) {}
-};*/
 

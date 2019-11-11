@@ -19,6 +19,11 @@ CSamI2Cmem::CSamI2Cmem(typeSamSercoms nSercom) : CSamSercom(nSercom)
 
     CSamSercom::EnableSercomBus(m_nSercom, true);
 
+    //10.11.2019: perform a soft reset before use:
+    pI2C->CTRLA.bit.SWRST=1;
+    while(pI2C->SYNCBUSY.bit.SWRST){}
+    while(pI2C->CTRLA.bit.SWRST){}
+
     m_pCLK=CSamCLK::Factory();
 
     //connect:
@@ -73,39 +78,13 @@ void CSamI2Cmem::IRQhandler()
             m_MState=FSM::addrHb;
         }
         pI2C->CTRLB.bit.CMD=3;
-        //pI2C->INTFLAG.bit.AMATCH=1;
- //       pI2C->INTFLAG.bit.DRDY=1;
         return;
     }
     if(pI2C->INTFLAG.bit.DRDY)  //data ready
     {
-     /*   if(!m_MState)
-        {
-            //int data=pI2C->DATA.reg;
-            //return;
-            m_MState=pI2C->STATUS.bit.DIR ? FSM::read :FSM::addrHb;
-        }*/
-
-      /*  if(pI2C->INTFLAG.bit.AMATCH) //adress match
-        {
-            if(pI2C->STATUS.bit.DIR) //read
-            {
-                m_MState=FSM::read;
-            }
-            else                 //write
-            {
-                m_MState=FSM::addrHb;
-            }
-         }*/
-
         if(FSM::read==m_MState)
         {
             pI2C->DATA.reg=readB(); return;
-        }
-        if(FSM::write==m_MState)
-        {
-            writeB(pI2C->DATA.reg); return;
-            return;
         }
         if(FSM::addrHb==m_MState)
         {
@@ -182,16 +161,6 @@ int CSamI2Cmem::readB()
         return -1;
 
     return m_pMem[m_nMemCurInd++];
-}
-int CSamI2Cmem::writeB(int val)
-{
-    obtain_membuf();
-
-    if(m_nMemCurInd>=m_nMemSize)
-        return -1;
-
-    m_pMem[m_nMemCurInd++]=val;
-    return 0;
 }
 void CSamI2Cmem::set_addr_H(int addr)
 {

@@ -39,10 +39,13 @@ protected:
     void IRQhandler();
     bool m_bIRQmode=false;
 
-    int  m_nDevAddr=0x50;           //device address
+    int  m_nDevAddr=0xA0;           //device address
     int  m_nMemAddr=0;              //memory address
+    int  m_nCurMemAddr=0;           //additional variable for processing pages
+    int  m_nPageBytesLeft;
     int  m_nReadDataCountLim=4096;  //a limit for the data to read out
     bool m_IOdir=false;             //false -read, true write
+    static const int m_nPageSize=32;
 
     unsigned long m_OpTmt_mS=500;
 
@@ -55,12 +58,9 @@ protected:
     virtual void OnIRQ3();
 
     //helpers:
-    void SetWriteProtection(bool how);
     void StartTranfer(bool how);
     void rewindMemBuf(); //{m_nMemCurInd=0;}
-    int readB();
     int writeB(int val);
-
 
 public:
     CSamI2CeepromMaster();

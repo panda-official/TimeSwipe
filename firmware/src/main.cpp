@@ -64,14 +64,10 @@ int main(void)
         pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
         pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
 
-        //create 2 I2C slaves for R/W EEPROM data from extension plugs and connect them to the bufer:
+        //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
         auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
         pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
         pEEPROM_HAT->EnableIRQs(true);
-
-        auto pEEPROM_8Pin=std::make_shared<CSamI2Cmem8Pin>();
-        pEEPROM_8Pin->SetMemBuf(pEEPROM_MemBuf);
-        pEEPROM_8Pin->EnableIRQs(true);
         //----------------------------------------------------------
 
 

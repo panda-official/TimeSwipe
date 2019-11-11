@@ -11,11 +11,13 @@ Copyright (c) 2019 Panda Team
 
 #include "sam.h"
 
+//#define EEPROM_8BIT_ADDR
+
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMI2CM(nSercom) &(glob_GetSercomPtr(nSercom)->I2CM) //ptr to a master section
 
 
-CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom7)
+CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
 {
 
     //----------setup PINs: IOSET1 PD08, PD09, PD10----------------
@@ -27,22 +29,16 @@ CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom7)
     PORT->Group[3].PMUX[4].bit.PMUXO=0x03;
     PORT->Group[3].PINCFG[9].bit.PMUXEN=1; //enable
 
-    //PD10 -> grop 3, chip write protection
-    PORT->Group[3].DIRSET.reg=(1L<<10); //set dir to output
-    PORT->Group[3].OUTSET.reg=(1L<<10);
-    //--------------------------------------------------------------
-
-    /*PORT->Group[3].PMUX[4].bit.PMUXE=0x02;
-    PORT->Group[3].PINCFG[8].bit.PMUXEN=1; //enable
-
-    //PD09 -> group 3, odd, function "C"(PAD0)=0x02:  SDA
-    PORT->Group[3].PMUX[4].bit.PMUXO=0x02;
-    PORT->Group[3].PINCFG[9].bit.PMUXEN=1; //enable*/
 
     //tune I2C master:
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
 
     CSamSercom::EnableSercomBus(m_nSercom, true);
+
+    //perform a soft reset before use:
+    pI2Cm->CTRLA.bit.SWRST=1;
+    while(pI2Cm->SYNCBUSY.bit.SWRST){}
+    while(pI2Cm->CTRLA.bit.SWRST){}
 
     m_pCLK=CSamCLK::Factory();
 
@@ -71,36 +67,14 @@ CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom7)
         pI2Cm->STATUS.bit.BUSSTATE=1;
     }
 }
-void CSamI2CeepromMaster::SetWriteProtection(bool how)
-{
-    if(how)
-    {
-        PORT->Group[3].OUTSET.reg=(1L<<10);
-    }
-    else
-    {
-        PORT->Group[3].OUTCLR.reg=(1L<<10);
-    }
-}
 
 bool CSamI2CeepromMaster::send(CFIFO &msg)  //blocking call
 {
-SetWriteProtection(false);
-    m_pBuf=&msg;
-    StartTranfer(true);
-    unsigned long StartWaitTime=os::get_tick_mS();
-    while(FSM::halted!=m_MState && errTransfer!=m_MState)
-    {
-        if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
-            break;
-        os::wait(50);
-    }
-    m_pBuf=nullptr;
-SetWriteProtection(true);
-    return (FSM::halted==m_MState);
+    return false;
 }
 bool CSamI2CeepromMaster::receive(CFIFO &msg) //blocking call
 {
+    m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
     StartTranfer(false);
     unsigned long StartWaitTime=os::get_tick_mS();
@@ -121,9 +95,7 @@ void CSamI2CeepromMaster::StartTranfer(bool how)
 
     m_IOdir=how;
     m_MState=FSM::start;
-    rewindMemBuf();
     pI2Cm->ADDR.bit.ADDR=m_nDevAddr; //this will initiate a transfer sequence
-
 }
 
 //IRQ handling:
@@ -159,18 +131,19 @@ void CSamI2CeepromMaster::IRQhandler()
         if(FSM::start==m_MState)
         {
             //set address HB:
-            pI2Cm->DATA.bit.DATA=(m_nMemAddr>>8);
 #ifdef EEPROM_8BIT_ADDR
             m_MState=FSM::addrLb;
+            pI2Cm->DATA.bit.DATA=(m_nCurMemAddr/m_nPageSize);
 #else
             m_MState=FSM::addrHb;
+            pI2Cm->DATA.bit.DATA=(m_nCurMemAddr>>8);
 #endif
             return;
         }
         if(FSM::addrHb==m_MState)
         {
-            pI2Cm->DATA.bit.DATA=(m_nMemAddr&0xff);
             m_MState=FSM::addrLb;
+            pI2Cm->DATA.bit.DATA=(m_nCurMemAddr&0xff);
             return;
         }
         if(FSM::addrLb==m_MState)
@@ -178,31 +151,15 @@ void CSamI2CeepromMaster::IRQhandler()
             //after setting the addres switch the direction: R or W
             if(m_IOdir) //write
             {
-                //nothing to do, just continue writing:
-                m_MState=FSM::write;
+                //nothing to do
+                m_MState=FSM::halted;
+                pI2Cm->CTRLB.bit.CMD=0x3; //stop
             }
             else
             {
                 //initiating a repeated start for read:
-                pI2Cm->ADDR.bit.ADDR=m_nDevAddr+1;
                 m_MState=FSM::read;
-            }
-            return;
-        }
-        if(FSM::write==m_MState)
-        {
-            //write data until the end
-            int val=readB();
-            if(val>=0)
-            {
-                pI2Cm->DATA.bit.DATA=val;
-            }
-            else {
-                //EOF:
-                m_MState=FSM::halted;
-
-                //issue a stop condition:
-                pI2Cm->CTRLB.bit.CMD=0x3; //stop
+                pI2Cm->ADDR.bit.ADDR=m_nDevAddr+1;
             }
             return;
         }
@@ -276,23 +233,12 @@ void CSamI2CeepromMaster::rewindMemBuf()
     if(m_pBuf)
         m_pBuf->rewind();
 }
-int CSamI2CeepromMaster::readB()
-{
-    if(!m_pBuf)
-        return -1;
-    if(0==m_pBuf->in_avail())
-        return -1;
-
-    typeSChar ch;
-    (*m_pBuf)>>ch;
-    return ch;
-}
 int CSamI2CeepromMaster::writeB(int val)
 {
     if(!m_pBuf)
         return -1;
 
-    if(m_pBuf->size()>=m_nReadDataCountLim) //memmory protection
+    if(m_pBuf->in_avail()>=m_nReadDataCountLim) //memmory protection
         return -1;
 
     (*m_pBuf)<<val;
