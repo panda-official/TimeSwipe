@@ -62,6 +62,15 @@ for Arch:
 sudo pacman -Sy aarch64-linux-gnu-gcc
 ```
 
+for target platform:
+```
+cd driver
+mkdir build
+cd build
+cmake ..
+make
+```
+
 Library package should be installed:
 
 `timeswipe-x.x.x-x-any.pkg.tar.xz` for Arch

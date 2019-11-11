@@ -6,8 +6,13 @@ SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3")
 
 file (STRINGS "version" BUILD_NUMBER)
 project(timeswipe VERSION ${BUILD_NUMBER} DESCRIPTION "timeswipe driver")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+SET(CMAKE_C_COMPILER gcc )
+SET(CMAKE_CXX_COMPILER g++ )
+else ()
 SET(CMAKE_C_COMPILER aarch64-linux-gnu-gcc )
 SET(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++ )
+endif ()
 SET(CMAKE_INSTALL_LIBDIR lib)
 
 include(GNUInstallDirs)
