@@ -47,6 +47,7 @@ set_target_properties(timeswipe PROPERTIES CXX_STANDARD 17)
 set_target_properties(timeswipeStatic PROPERTIES CXX_STANDARD 17)
 
 
+SET(CMAKE_INSTALL_PREFIX "/usr")
 install(TARGETS timeswipe
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

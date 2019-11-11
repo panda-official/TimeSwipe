@@ -8,6 +8,8 @@ else ()
 SET(CMAKE_C_COMPILER aarch64-linux-gnu-gcc )
 SET(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++ )
 endif ()
+SET(CMAKE_C_FLAGS "-lpthread -O3")
+SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3")
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(timeswipe REQUIRED timeswipe)

@@ -71,6 +71,11 @@ cmake ..
 make
 ```
 
+install on target platform:
+```
+sudo make install
+```
+
 Library package should be installed:
 
 `timeswipe-x.x.x-x-any.pkg.tar.xz` for Arch
