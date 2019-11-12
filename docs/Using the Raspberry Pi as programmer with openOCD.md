@@ -17,9 +17,9 @@
 Create a file „PandaOCD.cfg“ with the following content and put it in "home/pi":
    
 
-	\# GPIO17 ---> RST <br />
-	\# GPIO27 ---> DCLK <br />
-	\# GPIO22 ---> DIO <br />
+	\# GPIO17 ---> RST
+	\# GPIO27 ---> DCLK
+	\# GPIO22 ---> DIO
 	\# GND    ---> GND
 	
 	bindto 0.0.0.0
@@ -30,22 +30,22 @@ Create a file „PandaOCD.cfg“ with the following content and put it in "home/
 	
 	\#adapter_khz 1000
 	
-	\# Transition delay calculation: SPEED_COEFF/khz - SPEED_OFFSET <br />
-	\# These depend on system clock, calibrated for stock 900MHz <br />
-	\# bcm2835gpio_speed SPEED_COEFF SPEED_OFFSET <br />
+	\# Transition delay calculation: SPEED_COEFF/khz - SPEED_OFFSET
+	\# These depend on system clock, calibrated for stock 900MHz
+	\# bcm2835gpio_speed SPEED_COEFF SPEED_OFFSET
 	bcm2835gpio_speed_coeffs 146203 36
 	
-	\# Each of the SWD lines need a gpio number set: swclk swdio <br />
-	\# Header pin numbers: GPIO27 GPIO22 <br />
+	\# Each of the SWD lines need a gpio number set: swclk swdio
+	\# Header pin numbers: GPIO27 GPIO22
 	bcm2835gpio_swd_nums 27 22
 	
-	bcm2835gpio_srst_num 17 <br />
+	bcm2835gpio_srst_num 17
 	reset_config srst_only srst_push_pull
 	
 	transport select swd
 	
-	\#set WORKAREASIZE 0x2000 <br />
-	source [find target/atsame5x.cfg] <br />
+	\#set WORKAREASIZE 0x2000
+	source [find target/atsame5x.cfg]
 	\#reset_config none
 	
 	
