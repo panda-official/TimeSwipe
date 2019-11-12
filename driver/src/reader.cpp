@@ -140,6 +140,7 @@ struct RecordReader
         waitForPiOk();
 
         // II.
+        bool dry_run = true;
         while (run)
         {
             auto res = readByteAndStatusFromGPIO();
@@ -155,9 +156,10 @@ struct RecordReader
                 bytesRead = 0;
             }
 
-            run = !(currentTCO - lastTCO == 16384);
+            run = dry_run || !(currentTCO - lastTCO == 16384);
             // run = !isRisingFlank(lastTCO,currentTCO);
             lastTCO = currentTCO;
+            dry_run = false;
         }
 
         // discard first read - thats any old data in RAM!
