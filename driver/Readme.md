@@ -71,6 +71,9 @@ cmake ..
 make
 ```
 
+for OSX:
+[README.md](contrib/OSX/README.md)
+
 install on target platform:
 ```
 sudo make install
