@@ -1,20 +1,30 @@
 # Using the Raspberry Pi as programmer with openOCD
 
-## Installing openOCD 
+## Installing openOCD on a DebianOS (like [Ubuntu](https://wiki.ubuntu.com/ARM/RaspberryPi) or [Raspbian](https://www.raspberrypi.org/downloads/raspbian/))
 
-1) Updating:  \<sudo apt-get update>
-2) Installing dependencies:  \<sudo apt-get install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev>
-3) git clone:  make a directory „openocd“, go to it and git clone there: „https://sourceforge.net/p/openocd/code/“ (http://openocd.org)
-4) make config for rPi and its GPIO:  go to the folder openocd-code and type \<./bootstrap>, then \<./configure --enable-sysfsgpio --enable-bcm2835gpio>
-5) build:  \<make>
-6) install:  \<sudo make install>
+1) Updating package manager
+2) Installing dependencies
+3) Clone Repository (git://git.code.sf.net/p/openocd/code)
+4) Make config for rPi and its GPIO
+5) Build
+6) Install
 
+```
+sudo apt-get update
+sudo apt-get install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev
+git clone git://git.code.sf.net/p/openocd/code openocd
+cd openocd
+./bootstrap
+./configure --enable-sysfsgpio --enable-bcm2835gpio
+make
+sudo make install
+```
 
 ## Starting openOCD
 
 ### Creating a script for openOCD:  
 
-Create a file „PandaOCD.cfg“ with the following content and put it in "home/pi":
+Create a file „PandaOCD.cfg“ with the following content:
    
 
 	\# GPIO17 ---> RST
@@ -51,7 +61,7 @@ Create a file „PandaOCD.cfg“ with the following content and put it in "home/
 	
 ### Starting openOCD:  
 
-In "home/pi" type \<sudo openocd -f PandaOCD.cfg>.
+Run `sudo openocd -f PandaOCD.cfg`.
 
 You should see something like:
 
@@ -69,7 +79,7 @@ You should see something like:
 
 ### Open a telnet connection:  
 
-In a new terminal window on your computer type \<telnet ip_rPi 4444> , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444) <br />
+In a new terminal window on your computer type `telnet ip_rPi 4444` , ip_rPi: IP-adress of your Raspberry Pi. (E.g.: telnet 10.0.0.1 4444)<br />
 Depending on the operating system on the computer it is possible that telnet has to be activated (Not necessary for Ubuntu).
 
 ## Flashing with openOCD  
