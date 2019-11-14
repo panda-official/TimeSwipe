@@ -39,6 +39,9 @@ CADmux::CADmux()
     PORT->Group[0].OUTCLR.reg=(1L<<9);
     m_bFanIsStarted=false;
 
+    PORT->Group[3].DIRSET.reg=(1L<<10);
+    PORT->Group[3].OUTSET.reg=(1L<<10);
+
 }
 
 void CADmux::StartFan(bool how)

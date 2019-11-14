@@ -22,13 +22,19 @@ CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
 
     //----------setup PINs: IOSET1 PD08, PD09, PD10----------------
     //PD08 -> group 3, even, function "C"(PAD1)=0x02: SDL
+    PORT->Group[3].DIRCLR.reg=(1L<<8);
+    PORT->Group[3].OUTSET.reg=(1L<<8);
+    PORT->Group[3].PINCFG[8].bit.PULLEN=1;
     PORT->Group[3].PMUX[4].bit.PMUXE=0x03;
     PORT->Group[3].PINCFG[8].bit.PMUXEN=1; //enable
 
     //PD09 -> group 3, odd, function "C"(PAD0)=0x02:  SDA
+    PORT->Group[3].DIRCLR.reg=(1L<<9);
+    PORT->Group[3].OUTSET.reg=(1L<<9);
+    PORT->Group[3].PINCFG[9].bit.PULLEN=1;
+    PORT->Group[3].PINCFG[9].bit.INEN=1;
     PORT->Group[3].PMUX[4].bit.PMUXO=0x03;
     PORT->Group[3].PINCFG[9].bit.PMUXEN=1; //enable
-
 
     //tune I2C master:
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
