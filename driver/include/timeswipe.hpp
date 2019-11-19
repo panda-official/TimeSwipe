@@ -88,6 +88,11 @@ public:
      */
     bool Stop();
 
+    /**
+      \brief Minimal interval between sensor reading in milliseconds
+      */
+    static const unsigned READ_INTERVAL_MS = 100;
+
 private:
     std::unique_ptr<TimeSwipeImpl> _impl;
 

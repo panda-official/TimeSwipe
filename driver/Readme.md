@@ -85,9 +85,9 @@ Library package should be installed:
 
 `timeswipe_x.x.x.deb` for Ubuntu
 
-There is a sample application with cmake configuration in ./example directory:
+There is a DataLogging sample application with cmake configuration in ./examples/DataLogging directory:
 ```
-cd example
+cd examples/DataLogging
 mkdir build
 cd build
 cmake ..
