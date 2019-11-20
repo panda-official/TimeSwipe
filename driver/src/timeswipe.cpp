@@ -16,7 +16,6 @@ public:
     bool Stop();
 private:
     RecordReader Rec;
-    std::chrono::time_point<std::chrono::steady_clock> lastSent;
 };
 
 std::mutex TimeSwipeImpl::startStopMtx;
@@ -62,13 +61,7 @@ bool TimeSwipeImpl::Start(std::function<void(std::vector<Record>)> cb) {
 
     while (true)
     {
-        auto now = std::chrono::steady_clock::now();
-        auto diff_us = std::chrono::duration_cast<std::chrono::microseconds> (now - lastSent).count();
-        if (diff_us < TimeSwipe::READ_INTERVAL_MS*1000)
-            std::this_thread::sleep_for(std::chrono::microseconds(TimeSwipe::READ_INTERVAL_MS*1000 - diff_us));
-
         auto data = Rec.read();
-        lastSent = std::chrono::steady_clock::now();
         cb(std::move(data));
     }
 

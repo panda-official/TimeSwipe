@@ -69,6 +69,9 @@ int main(int argc, char *argv[])
                 std::cout << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
                 if (!dump) break; // print only first
             }
+            // It is possible to read as fast as possible and get small amonut of data
+            // if this callback function delays more than 500ms - some data will be loosed
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
     });
     if (!ret) {
         std::cerr << "timeswipe start failed" << std::endl;
