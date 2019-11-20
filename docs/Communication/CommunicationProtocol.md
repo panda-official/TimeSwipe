@@ -97,19 +97,19 @@ The structure of the JSON can be arbitrary but must follow a semantic rule: {"va
 #### Examples: 
 
 {
-  "DACA.raw" : 2048,
-  "DACB.raw" : 3000,
-  "DACC.raw" : 1700,
-  "DACD.raw" : 2200
+  "AOUT1.raw" : 2048,
+  "AOUT2.raw" : 3000,
+  "AOUT3.raw" : 1700,
+  "AOUT4.raw" : 2200
 }
                 - a JSON object for setting a group of the 4 DACs
                 
 
 {
-  "DACA.raw" : "?",
-  "DACB.raw" : "?",
-  "DACC.raw" : "?",
-  "DACD.raw" : "?"
+  "AOUT1.raw" : "?",
+  "AOUT2.raw" : "?",
+  "AOUT3.raw" : "?",
+  "AOUT4.raw" : "?"
 }
                 - a JSON object for read back values of a group of the 4 DACs
 
