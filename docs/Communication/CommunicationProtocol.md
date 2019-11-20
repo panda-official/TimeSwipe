@@ -18,7 +18,7 @@ Root domain:          Can be used only with sub-domain <br />
 <br />
 Sub domain (.raw):    Holds an analog output setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
 
-Here is a list of all possible analog outputs access points:
+Here is a list of all possible analog output access points:
 
 AOUT1.raw <br />
 AOUT2.raw <br />
