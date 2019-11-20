@@ -21,12 +21,12 @@ SET(CMAKE_C_FLAGS "-lpthread -O3")
 SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-include_directories(../include ../3rdParty)
+include_directories(../../include ../../3rdParty)
 else ()
 find_package(PkgConfig REQUIRED)
 pkg_search_module(timeswipe REQUIRED timeswipe)
 
-include_directories(${timeswipe_INCLUDE_DIRS} ../3rdParty)
+include_directories(${timeswipe_INCLUDE_DIRS} ../../3rdParty)
 link_directories(${timeswipe_LIBRARY_DIRS})
 endif ()
 
@@ -35,7 +35,7 @@ set(SOURCE_FILES main.cpp)
 add_executable(main ${SOURCE_FILES})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries(main ${CMAKE_SOURCE_DIR}/../build/libtimeswipe.a)
+target_link_libraries(main ${CMAKE_SOURCE_DIR}/../../build/libtimeswipe.a)
 set(CMAKE_LD_FLAGS "")
 set(CMAKE_SHARED_LINKER_FLAGS "")
 set(CMAKE_EXE_LINKER_FLAGS "")

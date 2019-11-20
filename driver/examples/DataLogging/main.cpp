@@ -25,12 +25,17 @@ int main(int argc, char *argv[])
 
     if (argc < 3)
     {
-        std::cout << "Wrong usage: 'sudo " << argv[0] << " [config-path (config as json file - see example)] [input type: NORM/IEPE]'" << std::endl;
+        std::cerr << "Wrong usage: 'sudo " << argv[0] << " [config-path (config as json file - see example)] [--dump] [input type: NORM/IEPE]'" << std::endl;
         return 1;
     }
+    bool dump = false;
     std::ifstream i(argv[1]);
     i >> config;
     std::string input{argv[2]};
+    if (input == "--dump") {
+        dump = true;
+        input = argv[3];
+    }
 
     TimeSwipe tswipe;
 
@@ -59,12 +64,14 @@ int main(int argc, char *argv[])
 
     // Board Start
 
-    bool ret = tswipe.Start([](auto&& records) {
+    bool ret = tswipe.Start([&](auto&& records) {
             for (const auto& rec: records) {
                 std::cout << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
-                break; // print only first
+                if (!dump) break; // print only first
             }
-            std::this_thread::sleep_for(std::chrono::microseconds(100000));
+            // It is possible to read as fast as possible and get small amonut of data
+            // if this callback function delays more than 500ms - some data will be loosed
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
     });
     if (!ret) {
         std::cerr << "timeswipe start failed" << std::endl;

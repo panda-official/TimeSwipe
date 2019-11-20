@@ -63,18 +63,7 @@ bool TimeSwipeImpl::Start(std::function<void(std::vector<Record>)> cb) {
     {
         auto data = Rec.read();
         cb(std::move(data));
-
-        // if (data.size())
-        // {
-        //     std::cout << data[0].Sensors[0] << "\t" << data[0].Sensors[1] << "\t" << data[0].Sensors[2] << "\t" << data[0].Sensors[3] << "\n";
-        //     for (size_t i = 1; i < data.size(); ++i)
-        //     {
-        //         data_log << data[i].Sensors[0] << "\t" << data[i].Sensors[1] << "\t" << data[i].Sensors[2] << "\t" << data[i].Sensors[3] << "\n";
-        //     }
-        // }
-        // std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
-
 
     return true;
 }

@@ -76,6 +76,8 @@ public:
      *
      * After each sensor read complete cb called with vector of @ref Record
      *
+     * Buffer is for 500ms data if \p cb works longer than 500ms, next data will be loosed
+     *
      * @param cb
      * @return false if reading procedure start failed, otherwise it blocks current execution thread and returns true after reading finished
      */
