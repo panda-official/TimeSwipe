@@ -25,9 +25,9 @@ AOUT2.raw <br />
 AOUT3.raw <br />
 AOUT4.raw <br />
 
-By the board design analog outputs #3 and #4 are shared by two DAC(digital to analog converter) chips. So it is possible to use either first chip or second to set a voltage on the analog output. The corresponding chip is selected by a DACsw variable (explained later in this document): 0 default chip(4-channel MAX5715), 1 - alternative chip(2-channel SAME54 internal DAC).
+By the board design analog outputs #3 and #4 are shared by two DAC(digital to analog converter) chips. So it is possible to use either first chip or second to set a voltage at the analog output. The corresponding chip is selected by a DACsw variable (explained later in this document): 0 default chip(4-channel MAX5715), 1 - alternative chip(2-channel SAME54 internal DAC).
 Note that analog output channels #1 and #2 are always connected to MAX 5715 #1 and #2 channels.
-And analog output channels  #3 and #4 can be connected either to MAX 5715 #3 and #4 channels (default) or to #1 and #2 SAME54 DAC #1 and #2 channels.
+And analog output channels  #3 and #4 can be connected either to MAX 5715 #3 and #4 channels (default) or to SAME54's DAC #1 and #2 channels.
 While the chip is disconnected, its in the "cold" state. To preset the output values of currently disconnected ("cold") chip
 additional access points are presented:
 
