@@ -12,6 +12,7 @@ Copyright (c) 2019 Panda Team
 enum class typeADgain: int {gainX1=1, gainX2, gainX4, gainX8};
 enum class typeDACmode : int {ExtDACs=0, SamAndExtDACs};
 
+#include "DAC.h"
 class CADmux
 {
 protected:
@@ -39,5 +40,5 @@ public:
         //converter:
          void setDACsw(int mode){ SetDACmode(mode ? typeDACmode::SamAndExtDACs : typeDACmode::ExtDACs); }
          int getDACsw(){ return static_cast<int>(m_CurDACmode); }
-
 };
+
