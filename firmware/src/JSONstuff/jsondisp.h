@@ -15,7 +15,15 @@ class CJSONDispatcher : public CCmdCallHandler //just connect handler here
 protected:
     std::shared_ptr<CCmdDispatcher> m_pDisp;
 
+    //void CallPrimitive()
 
+    /*!
+     *  @brief: returns all possible settings (enumerates all "get" handlers)
+     *
+     *  @param jResp - a JSON object to fill with the settings
+     *
+     */
+    void DumpAllSettings(nlohmann::json &jResp);
 
 public:
     void Call(nlohmann::json &jObj, nlohmann::json &jResp, CCmdCallDescr::ctype ct);    //recursive
