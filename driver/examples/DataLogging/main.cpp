@@ -14,42 +14,78 @@
 #include "timeswipe.hpp"
 
 // #include <chrono>
-// std::ofstream data_log;
 
 std::function<void(int)> shutdown_handler;
 void signal_handler(int signal) { shutdown_handler(signal); }
 
+void usage(const char* name)
+{
+    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>]'" << std::endl;
+    std::cerr << "default for <configname> is ./config.json" << std::endl;
+    std::cerr << "default for <input_type> is the first one from <configname>" << std::endl;
+    std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     nlohmann::json config;
-
-    if (argc < 3)
-    {
-        std::cerr << "Wrong usage: 'sudo " << argv[0] << " [config-path (config as json file - see example)] [--dump] [input type: NORM/IEPE]'" << std::endl;
-        return 1;
-    }
+    std::ofstream data_log;
     bool dump = false;
-    std::ifstream i(argv[1]);
-    i >> config;
-    std::string input{argv[2]};
-    if (input == "--dump") {
-        dump = true;
-        input = argv[3];
+    std::string configname = "config.json";
+    std::string dumpname;
+    std::string input;
+
+    for (unsigned i = 1; i < argc; i++) {
+        if (!strcmp(argv[i],"--config")) {
+            if (i+1 > argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            configname = argv[i+1];
+            ++i;
+        } else if (!strcmp(argv[i],"--input")) {
+            if (i+1 > argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            input = argv[i+1];
+            ++i;
+        } else if (!strcmp(argv[i],"--output")) {
+            if (i+1 > argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            dumpname = argv[i+1];
+            ++i;
+        } else {
+            usage(argv[0]);
+            return 1;
+        }
     }
+
+    std::ifstream iconfigname(configname);
+    iconfigname >> config;
+    auto& configitem = *config.begin();
+    if (input.length()) configitem = *config.find(input);
+    if(dumpname.length()) {
+        data_log.open(dumpname);
+        dump = true;
+    }
+
 
     TimeSwipe tswipe;
 
     // Board Preparation
 
-    tswipe.SetBridge(config[input]["U_BRIDGE"]);
+    tswipe.SetBridge(configitem["U_BRIDGE"]);
 
-    const auto& offs = config[input]["SENSOR_OFFSET"];
+    const auto& offs = configitem["SENSOR_OFFSET"];
     tswipe.SetSensorOffsets(offs[0], offs[1], offs[2], offs[3]);
 
-    const auto& gains = config[input]["SENSOR_GAIN"];
+    const auto& gains = configitem["SENSOR_GAIN"];
     tswipe.SetSensorGains(gains[0], gains[1], gains[2], gains[3]);
 
-    const auto& trans = config[input]["SENSOR_TRANSMISSION"];
+    const auto& trans = configitem["SENSOR_TRANSMISSION"];
     tswipe.SetSensorTransmissions(trans[0], trans[1], trans[2], trans[3]);
 
 
@@ -65,9 +101,10 @@ int main(int argc, char *argv[])
     // Board Start
 
     bool ret = tswipe.Start([&](auto&& records) {
-            for (const auto& rec: records) {
-                std::cout << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
-                if (!dump) break; // print only first
+            for (size_t i = 0; i < records.size(); i++) {
+                const auto& rec = records[i];
+                if (i==0) std::cout << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
+                if (dump) data_log << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
             }
             // It is possible to read as fast as possible and get small amonut of data
             // if this callback function delays more than 500ms - some data will be loosed
