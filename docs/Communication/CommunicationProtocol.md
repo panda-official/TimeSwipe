@@ -10,29 +10,36 @@ This way access points form a hierarchical data model.
 
 ## Possible access point types:
 
-### Type AOUT: 
+### Type DAC: 
 
-This access point type is used to control the board's analog outputs and consists of two domain names.
+This access point type is used for setting offset on the input signal for each of 4 channels by controlling the input signal amplifier.
+The access point consists of two domain names.
 
 Root domain:          Can be used only with sub-domain <br />
 <br />
 Sub domain (.raw):    Holds an analog output setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
 
-Here is a list of all possible analog output access points:
+Here is a list of all possible DAC access points:
 
-AOUT1.raw <br />
-AOUT2.raw <br />
+DAC1.raw <br />
+DAC2.raw <br />
+DAC3.raw <br />
+DAC4.raw <br />
+
+### Type AOUT
+
+By default the input signal amplifier outputs connected to board's analog outputs.
+But there is an ability to control analog outputs #3 and #4 manually by selecting the special control mode via a DACsw variable (explained later in this document).
+The mode is activated by setting DACsw=1. Amplifier outputs #3 and #4 will be disconnected and replaced by internal 2-channel DAC output.
+To control analog output values #3 and #4 in this mode additional access points are presented:
+
+Root domain:          Can be used only with sub-domain <br />
+<br />
+Sub domain (.raw):    Holds an analog output setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
+
+
 AOUT3.raw <br />
 AOUT4.raw <br />
-
-By the board design analog outputs #3 and #4 are shared by two DAC(digital to analog converter) chips. So it is possible to use either first chip or second to set a voltage at the analog output. The corresponding chip is selected by a DACsw variable (explained later in this document): 0 default chip(4-channel MAX5715), 1 - alternative chip(2-channel SAME54 internal DAC).
-Note that analog output channels #1 and #2 are always connected to MAX 5715 #1 and #2 channels.
-And analog output channels  #3 and #4 can be connected either to MAX 5715 #3 and #4 channels (default) or to SAME54's DAC #1 and #2 channels.
-While the chip is disconnected, its in the "cold" state. To preset the output values of currently disconnected ("cold") chip
-additional access points are presented:
-
-AOUT3cold.raw <br />
-AOUT4cold.raw <br />
 
 
 ### Type ADC: 
@@ -83,7 +90,7 @@ Record          |   Writing "true" to this variable initiates/restarts a record 
 Zero            |   Start/stop zero calibration process (boolean, false:true, w)
 Zero.errtol     |   Holds a zero calibration process error tolerance value (integer r/w)
 EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false:true, r/w)
-DACsw           |   Determines which of the DACs chip is connected to the analog outputs #3-4 (0 - default, 1 - alternative) (integer value, 0:1, r/w)
+DACsw           |   Determines the mode of controlling analog outputs #3-4 (0 - default (amplified input signal), 1 - manual via AOUT3, AOUT4) (integer value, 0:1, r/w)
 
 ### JSON controlled access points:
 
@@ -97,21 +104,21 @@ The structure of the JSON can be arbitrary but must follow a semantic rule: {"va
 #### Examples: 
 
 {
-  "AOUT1.raw" : 2048,
-  "AOUT2.raw" : 3000,
-  "AOUT3.raw" : 1700,
-  "AOUT4.raw" : 2200
+  "DAC1.raw" : 2048,
+  "DAC2.raw" : 3000,
+  "DAC3.raw" : 1700,
+  "DAC4.raw" : 2200
 }
-                - a JSON object for setting a group of the 4 DACs
+                - a JSON object for setting a group of the 4 offsets
                 
 
 {
-  "AOUT1.raw" : "?",
-  "AOUT2.raw" : "?",
-  "AOUT3.raw" : "?",
-  "AOUT4.raw" : "?"
+  "DAC1.raw" : "?",
+  "DAC2.raw" : "?",
+  "DAC3.raw" : "?",
+  "DAC4.raw" : "?"
 }
-                - a JSON object for read back values of a group of the 4 DACs
+                - a JSON object for read back values of a group of the 4 offsets
 
 
 # Communication protocols
@@ -140,25 +147,27 @@ Error message       |    Meaning
 #### Examples:
 
 
-##### 1. Setting an analog output #1 value to 2048 Discrets:
+##### 1. Setting an offset value for channel #1 to 2048 Discrets:
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   AOUT1.raw<2048\n
+request message:             |   DAC1.raw<2048\n
 successive response message: |   2048\n
 
 <br />
 
-##### 2. Preset a currently disconnected DAC's chip ("cold" state) output to 3000 Discrets to be ready connected to analog output #3 (DACsw=0, MAX5715 DAC channels #3,#4 connected to analog outputs #3,#4, SAME54 DAC disconnected):
+##### 2. Preset a value for analog output #3 to 2048 Discrets to be controlled in a manual mode:
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   AOUT3cold.raw<3000\n
-successive response message: |   3000\n
+request message:             |   AOUT3.raw<2048\n
+successive response message: |   2048\n
 
 <br />
 
-##### 3. Swap DAC chips connection to analog outputs #3 and #4 (will be: DACsw=1, MAX5715 DAC channels #3 and #4 disconnected, preset SAME54 DAC channels #1 & #2 connected to analog outputs #3 and #4):
+
+
+##### 3. Set the manual control mode for channels #3 and #4 (will be: DACsw=1, amplifier's otputs #3 and #4 are disconnected, preset channels AOUT3 & AOUT4 connected to analog outputs #3 and #4):
 
 Request/Response             |  Command
 ---------------------------- | --------------------
@@ -167,11 +176,11 @@ successive response message: |   1\n
 
 <br />
 
-##### 4. Control analog output #3 directly with currently connected DAC chip (DACsw=1, means MAX5715 DAC channels #3 and #4 disconnected, SAME54 DAC channels #1 & #2 connected to analog outputs #3 and #4):
+##### 4. Control analog output #4 directly in the manual mode (DACsw=1):
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   AOUT3.raw<3000\n
+request message:             |   AOUT4.raw<3000\n
 successive response message: |   3000\n
 
 <br />
@@ -191,8 +200,8 @@ successive response message: |    3.7\n
 
 Request/Response              |  Command
 ----------------------------- | -------------------------------------------------------------------------------------------------------------------------
-request message:              |   js<{ "Gain" : 3, "Bridge" : true,   "AOUT1.raw" : 500, "AOUT2.raw" : 700, "AOUT3.raw" : 900, "AOUT4.raw" : 1100 }\n
-successive response message:  |       {"Gain" : 3, "Bridge" : true,   "AOUT1.raw" : 500, "AOUT2.raw" : 700, "AOUT3.raw" : 900, "AOUT4.raw" : 1100 }\n
+request message:              |   js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
 
 <br />
 
@@ -200,8 +209,8 @@ successive response message:  |       {"Gain" : 3, "Bridge" : true,   "AOUT1.raw
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>{ "Gain" : "?", "Bridge" : "?", "AOUT1.raw" : "?", "AOUT2.raw" : "?", "AOUT3.raw" : "?", "AOUT4.raw" : "?" }\n
-successive response message:   |     {"Gain" : 3, "Bridge" : true,   "AOUT1.raw" : 500, "AOUT2.raw" : 700, "AOUT3.raw" : 900, "AOUT4.raw" : 1100 }\n
+request message:               |  js>{ "Gain" : "?", "Bridge" : "?", "DAC1.raw" : "?", "DAC2.raw" : "?", "DAC3.raw" : "?", "DAC4.raw" : "?" }\n
+successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
 
 Note: When reading information from a variable via "js>" command, values in the pair "key:value" are ignored and should be set to a question mark. <br />
 

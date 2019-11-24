@@ -153,34 +153,15 @@ int main(void)
         auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
         pSPIsc2->AdviseSink(pStdPort);
 
-        //! creating a decorator for Analog OUT 3&4 since both DACmax5715 channels #3-4 and SSAME54's DACs #1-2 can occupy the output.
+        //! adding offsets control commands DAC 1-4
+        pDisp->Add("DAC1.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACA, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("DAC2.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACB, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("DAC3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACC, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("DAC4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACD, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
 
-        auto pAOut3Decor=std::make_shared<CDACdecor>(pDACC, pSamDAC0, pADmux);
-        auto pAOut4Decor=std::make_shared<CDACdecor>(pDACD, pSamDAC1, pADmux);
-
-
-        //! adding analog outputs control commands: 1-4
-      /*  pDisp->Add("AOUT1", std::make_shared< CCmdSGHandler<CDac, float> >(pDACA, &CDac::GetRealVal, &CDac::SetVal ) );
-        pDisp->Add("AOUT2", std::make_shared< CCmdSGHandler<CDac, float> >(pDACB, &CDac::GetRealVal, &CDac::SetVal ) );
-        pDisp->Add("AOUT3", std::make_shared< CCmdSGHandler<CDACdecor, float> >(pAOut3Decor, &CDACdecor::GetRealVal, &CDACdecor::SetVal ) );
-        pDisp->Add("AOUT4", std::make_shared< CCmdSGHandler<CDACdecor, float> >(pAOut4Decor, &CDACdecor::GetRealVal, &CDACdecor::SetVal ) );*/
-
-        pDisp->Add("AOUT1.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACA, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-        pDisp->Add("AOUT2.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACB, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-        pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDACdecor, int> >(pAOut3Decor, &CDACdecor::GetRawBinVal, &CDACdecor::SetRawOutput ) );
-        pDisp->Add("AOUT4.raw", std::make_shared< CCmdSGHandler<CDACdecor, int> >(pAOut4Decor, &CDACdecor::GetRawBinVal, &CDACdecor::SetRawOutput ) );
-
-        //! adding commands for "cold" analog outputs
-        //! (when one of the DACs chip is disconnected from an output it is in the "cold" state, so two special AOUTXcold
-        //!  are added to preset a value in this state that it could be connected to the output with a preseted value)
-        auto pAOut3DecorCold=std::make_shared<CDACdecor>(pDACC, pSamDAC0, pADmux, true);
-        auto pAOut4DecorCold=std::make_shared<CDACdecor>(pDACD, pSamDAC1, pADmux, true);
-
-
-       /* pDisp->Add("AOUT3cold", std::make_shared< CCmdSGHandler<CDACdecor, float> >(pAOut3DecorCold, &CDACdecor::GetRealVal, &CDACdecor::SetVal ) );
-        pDisp->Add("AOUT4cold", std::make_shared< CCmdSGHandler<CDACdecor, float> >(pAOut4DecorCold, &CDACdecor::GetRealVal, &CDACdecor::SetVal ) );*/
-        pDisp->Add("AOUT3cold.raw", std::make_shared< CCmdSGHandler<CDACdecor, int> >(pAOut3DecorCold, &CDACdecor::GetRawBinVal, &CDACdecor::SetRawOutput ) );
-        pDisp->Add("AOUT4cold.raw", std::make_shared< CCmdSGHandler<CDACdecor, int> >(pAOut4DecorCold, &CDACdecor::GetRawBinVal, &CDACdecor::SetRawOutput ) );
+        //! adding commands for analog outputs 3-4 control
+        pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC0, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("AOUT4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC1, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
 
 
         pDisp->Add("ADC1.raw", std::make_shared< CCmdSGHandler<CAdc, int> >(pADC1, &CAdc::DirectMeasure) );
