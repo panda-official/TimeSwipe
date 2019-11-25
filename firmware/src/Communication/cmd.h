@@ -36,7 +36,7 @@ struct CCmdCallDescr
 {
     std::string     m_strCommand;   //!the command string name
     int             m_hashCommand;  //!the command hash value
-    int             m_nCmdIndex;    //!the command index (zero-based)
+    unsigned int    m_nCmdIndex;    //!the command index (zero-based)
 
     CFrmStream    *m_pIn=nullptr;   //!input stream: to fetch function/methode input arguments
     CFrmStream    *m_pOut=nullptr;  //!output stream: to store function/methodes output arguments or return value
@@ -105,6 +105,7 @@ class  CCmdDispatcher
 {
 protected:
      typeDispTable m_DispTable;
+     typeCRes __Call(CCmdCallDescr &d);
 
 public:
 

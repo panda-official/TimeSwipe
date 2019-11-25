@@ -9,26 +9,45 @@ Copyright (c) 2019 Panda Team
 
 #include "cmd.h"
 
-CCmdCallDescr::cres CCmdDispatcher::Call(CCmdCallDescr &d)
+CCmdCallDescr::cres CCmdDispatcher::__Call(CCmdCallDescr &d)
 {
-   typeDispTable::const_iterator pCmd=m_DispTable.find(d.m_strCommand);
-   if(pCmd!=m_DispTable.end())
+    //by call method:
+   if(CCmdCallDescr::cmethod::byCmdName==d.m_cmethod)
    {
-       //call:
-       typeCRes cres=pCmd->second->Call(d);
-       if(d.m_bThrowExcptOnErr)
-       {
-           if(typeCRes::fget_not_supported==cres)
-               throw CCmdException(">_not_supported!");
-           if(typeCRes::fset_not_supported==cres)
-               throw CCmdException("<_not_supported!");
-       }
-       return cres;
-   }
 
-   //error: cannot found 09.06.2019
-   if(d.m_bThrowExcptOnErr)
-       throw CCmdException("obj_not_found!");
+        typeDispTable::const_iterator pCmd=m_DispTable.find(d.m_strCommand);
+        if(pCmd!=m_DispTable.end())
+        {
+            //call:
+            return pCmd->second->Call(d);
+        }
+        return typeCRes::obj_not_found;
+   }
+   if(CCmdCallDescr::cmethod::byCmdIndex==d.m_cmethod)
+   {
+        if(d.m_nCmdIndex < static_cast<unsigned int>(m_DispTable.size()))
+        {
+            typeDispTable::const_iterator pCmd=m_DispTable.begin();
+            std::advance(pCmd, d.m_nCmdIndex);
+            d.m_strCommand=pCmd->first;
+            return pCmd->second->Call(d);
+        }
+   }
    return typeCRes::obj_not_found;
 }
+CCmdCallDescr::cres CCmdDispatcher::Call(CCmdCallDescr &d)
+{
+    typeCRes cres=__Call(d);
+    if(d.m_bThrowExcptOnErr)
+    {
+        if(typeCRes::obj_not_found==cres)
+            throw CCmdException("obj_not_found!");
+        if(typeCRes::fget_not_supported==cres)
+            throw CCmdException(">_not_supported!");
+        if(typeCRes::fset_not_supported==cres)
+            throw CCmdException("<_not_supported!");
+    }
+    return cres;
+}
+
 

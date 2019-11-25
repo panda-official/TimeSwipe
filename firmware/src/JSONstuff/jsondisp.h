@@ -25,8 +25,10 @@ protected:
      */
     void DumpAllSettings(nlohmann::json &jResp);
 
+    void CallPrimitive(const std::string &strKey, nlohmann::json &ReqVal, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+
 public:
-    void Call(nlohmann::json &jObj, nlohmann::json &jResp, CCmdCallDescr::ctype ct);    //recursive
+    void Call(nlohmann::json &jObj, nlohmann::json &jResp, CCmdCallDescr::ctype ct, bool bArrayMode=false);    //recursive
 
     virtual typeCRes Call(CCmdCallDescr &d);
 
@@ -35,9 +37,3 @@ public:
         m_pDisp=pDisp;
     }
 };
-
-
-/*#ifndef JSONDISP_H
-#define JSONDISP_H
-
-#endif // JSONDISP_H*/
