@@ -9,7 +9,10 @@
 #include "gpio/gpio.h"
 #include "board_iface.hpp"
 
+//#define NEW_BOARD
+
 // PIN NAMES
+#ifndef NEW_BOARD
 static const unsigned char DATA0 = 7;  //BCM 7  - PIN 26
 static const unsigned char DATA1 = 0; //BCM 0 - PIN 27
 static const unsigned char DATA2 = 1;  //BCM 1  - PIN 28
@@ -18,14 +21,22 @@ static const unsigned char DATA4 = 6;  //BCM 6  - PIN 31
 static const unsigned char DATA5 = 12; //BCM 12 - PIN 32
 static const unsigned char DATA6 = 13; //BCM 13 - PIN 33
 static const unsigned char DATA7 = 16; //BCM 16 - PIN 36
-
+#else
+static const unsigned char DATA0 = 24; //BCM 24 - PIN 18
+static const unsigned char DATA1 = 25; //BCM 25 - PIN 22
+static const unsigned char DATA2 = 7; //BCM 7 - PIN 26
+static const unsigned char DATA3 = 5; //BCM 5 - PIN 29
+static const unsigned char DATA4 = 6; //BCM 6 - PIN 31
+static const unsigned char DATA5 = 12; //BCM 12 - PIN 32
+static const unsigned char DATA6 = 13; //BCM 13 - PIN 33
+static const unsigned char DATA7 = 16; //BCM 16 - PIN 36
+#endif
 static const unsigned char CLOCK = 4; //BCM 4 - PIN 7
 static const unsigned char TCO = 14;   //BCM 14 - PIN 8
 static const unsigned char PI_OK = 15; //BCM 15 - PIN 10
 static const unsigned char FAIL = 18; //BCM 18 - PIN 12
 static const unsigned char RESET = 17; //BCM 17 - PIN 11
 static const unsigned char BUTTON = 25; //BCM 25 - PIN 22
-
 
 static const std::array<uint32_t, 8> DATA_POSITION{
   1UL << DATA0,

@@ -67,6 +67,12 @@ public:
      * @param trans4
      */
     void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
+
+    /**
+     * \brief Read sensors callback function pointer
+     */
+    using ReadCallback = std::function<void(std::vector<Record>, uint64_t errors)>;
+
     /**
      * \brief Start reading Sensor loop
      *
@@ -81,7 +87,7 @@ public:
      * @param cb
      * @return false if reading procedure start failed, otherwise it blocks current execution thread and returns true after reading finished
      */
-    bool Start(std::function<void(std::vector<Record>)> cb);
+    bool Start(ReadCallback cb);
 
     /**
      * \brief Stop reading Sensor loop
