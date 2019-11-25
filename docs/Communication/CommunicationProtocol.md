@@ -192,7 +192,7 @@ successive response message: |   3000\n
 Request/Response             |  Command
 ---------------------------- | --------------------
 request message:             |   ADC1.raw>\n
-successive response message: |    3.7\n
+successive response message: |    2048\n
 
 <br />
 
