@@ -178,11 +178,13 @@ struct RecordReader
 
     void waitForPiOk()
     {
+#ifndef NEW_BOARD
         // // for 4MHz Quartz
-        // std::this_thread::sleep_for(std::chrono::microseconds(2100));
-
+         std::this_thread::sleep_for(std::chrono::microseconds(2100));
+#else
         // for 12MHz Quartz
         std::this_thread::sleep_for(std::chrono::microseconds(700));
+#endif
     }
 
     void setup()

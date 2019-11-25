@@ -54,12 +54,12 @@ Cross-compiler aarch64 must be available in development environment
 
 for ubuntu:
 ```
-sudo apt install g++-aarch64-linux-gnu
+sudo apt install g++-aarch64-linux-gnu g++-arm-linux-gnueabihf libboost-all-dev
 ```
 
 for Arch:
 ```
-sudo pacman -Sy aarch64-linux-gnu-gcc
+sudo pacman -Sy aarch64-linux-gnu-gcc arm-none-eabi-binutils community/arm-none-eabi-gcc extra/boost-libs extra/boost
 ```
 
 for target platform:
@@ -83,7 +83,8 @@ Library package should be installed:
 
 `timeswipe-x.x.x-x-any.pkg.tar.xz` for Arch
 
-`timeswipe_x.x.x.deb` for Ubuntu
+`timeswipe_x.x.x.aarch64.deb` for Ubuntu aarch64
+`timeswipe_x.x.x.armv7l.deb` for Ubuntu/Raspbian armv7l
 
 There is a DataLogging sample application with cmake configuration in ./examples/DataLogging directory:
 ```
@@ -94,3 +95,11 @@ cmake ..
 make
 ```
 
+DataLogging cross-platform armv7l build:
+```
+cd examples/DataLogging
+mkdir build
+cd build
+cmake -DARM32=True ..
+make
+```
