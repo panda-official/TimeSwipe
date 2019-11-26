@@ -23,6 +23,10 @@ public:
     {
         m_pJSON=pJSON;
     }
+  /*  CJSONStream(const nlohmann::json *pJSON) : CFrmStream(nullptr)
+    {
+        m_pJSON=static_cast<nlohmann::json *>(pJSON);
+    }*/
 };
 
 

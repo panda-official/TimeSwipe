@@ -25,6 +25,9 @@ void CJSONEvDispatcher::on_event(const char *key, nlohmann::json &val)
 }
 typeCRes CJSONEvDispatcher::Call(CCmdCallDescr &d)
 {
+    if(IsCmdSubsysLocked())
+        return typeCRes::disabled;
+
     if(d.m_ctype & CCmdCallDescr::ctype::ctSet) //set
     {
        return typeCRes::fset_not_supported;

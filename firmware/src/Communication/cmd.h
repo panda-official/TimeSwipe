@@ -48,7 +48,8 @@ struct CCmdCallDescr
         obj_not_found,      //!<requested command(object) was not found
         fget_not_supported, //!<"get" property is not supported by a handler
         fset_not_supported, //!<"set" property is not supported by a handler
-        parse_err           //!<an error occurred while parsing arguments from the input stream
+        parse_err,          //!<an error occurred while parsing arguments from the input stream
+        disabled            //!<handler is disabled for some reasons
     };
 
     //!invocation type ("call type"=ctype)
@@ -65,7 +66,7 @@ struct CCmdCallDescr
         byCmdName=1,        //!<by a command string name (using m_strCommand)
         byCmdHash=2,        //!<by a command hash value  (using m_hashCommand)
         byCmdIndex=4        //!<by a command zero-based index (using m_nCmdIndex)
-    }m_cmethod;
+    }m_cmethod=byCmdName;
 
     bool m_bThrowExcptOnErr=false; //! if true, throw an exception CCmdException instead of returning cres
 
