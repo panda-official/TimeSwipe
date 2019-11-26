@@ -12,38 +12,41 @@ This way access points form a hierarchical data model.
 
 ### Type DAC: 
 
-This access point type is used to control the board's DACs and consists of two domain names.
+This access point type is used for setting offset on the input signal for each of 4 channels by controlling the input signal amplifier.
+The access point consists of two domain names.
 
-Root domain:        Holds a DAC setpoint in floating-point format (real value, -10:+10 Volts, r/w)
+Root domain:          Can be used only with sub-domain <br />
 <br />
-Sub domain (.raw):    Holds a DAC setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
+Sub domain (.raw):    Holds an analog output setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
 
-Here is a list of all possible DAC's access points:
+Here is a list of all possible DAC access points:
 
-DACA <br />
-DACA.raw <br />
-DACB <br />
-DACB.raw <br />
-DACC <br />
-DACC.raw <br />
-DACD <br />
-DACD.raw <br />
 DAC1.raw <br />
 DAC2.raw <br />
+DAC3.raw <br />
+DAC4.raw <br />
 
-DACA-D are external DACs on the board, while DAC1 and DAC2 are internal DACs of the ATSAME54P20A chip. Normally only the setting of DACA-D is required. <br />
-Setting DAC1 and DAC2 is a special feature for controlling two of the analog outputs via rPi. For using this feature DACsw has to be set to 1 (explained later in this document).
+### Type AOUT
 
-#### Examples: 
-"DACA"        an access point for board's DACA setpoint in floating-point format <br />
-"DACA.raw"    an access point for board's DACA setpoint in raw binary format
+By default the input signal amplifier outputs connected to board's analog outputs.
+But there is an ability to control analog outputs #3 and #4 manually by selecting the special control mode via a DACsw variable (explained later in this document).
+The mode is activated by setting DACsw=1. Amplifier outputs #3 and #4 will be disconnected and replaced by internal 2-channel DAC output.
+To control analog output values #3 and #4 in this mode additional access points are presented:
+
+Root domain:          Can be used only with sub-domain <br />
+<br />
+Sub domain (.raw):    Holds an analog output setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
+
+
+AOUT3.raw <br />
+AOUT4.raw <br />
 
 
 ### Type ADC: 
 
 This access point type is used to control board's ADCs and consists of two domain names.
 
-Root domain:        Can be used only with sub-domain <br />
+Root domain:          Can be used only with sub-domain <br />
 Sub domain (.raw):    Holds an ADC measured value in a raw binary format (integer value 0:4095 discrets, r)
 
 Here is a list of all possible ADC's access points:
@@ -52,9 +55,6 @@ ADC1.raw <br />
 ADC2.raw <br />
 ADC3.raw <br />
 ADC4.raw <br />
-
-#### Examples:
-"ADC1.raw"   an access point for an actual measured value of board's ADC1 in raw binary format (0-4095, discrets)
 
 
 ### Type LED: 
@@ -90,35 +90,35 @@ Record          |   Writing "true" to this variable initiates/restarts a record 
 Zero            |   Start/stop zero calibration process (boolean, false:true, w)
 Zero.errtol     |   Holds a zero calibration process error tolerance value (integer r/w)
 EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false:true, r/w)
-DACsw           |   Holds a DAC's mode switch state (0 - using external DACs(A-D) only, or 1 -using DACA, DACC, DAC0, DAC1) (integer value, 0:1, r/w)
+DACsw           |   Determines the mode of controlling analog outputs #3-4 (0 - default (amplified input signal), 1 - manual via AOUT3, AOUT4) (integer value, 0:1, r/w)
 
 ### JSON controlled access points:
 
  Access Point   |       Function
 --------------  |    --------------------------------------------------------------------------------------------------------------------------------------- 
-js              |    Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).      
-je              |    Holds latest events description in form of a JSON object (JSON object, r)
+js              |    ("JSON setpoint") Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).      
+je              |    ("JSON event") Holds latest events description in form of a JSON object (JSON object, r)
 
 The structure of the JSON can be arbitrary but must follow a semantic rule: {"variable name" : value}. When reading information from a variable, the value is ignored and should be set to a question mark.
 
 #### Examples: 
 
 {
-  {"DACA" : 0.1},
-  {"DACB" : -1.2},
-  {"DACC" : 0.5},
-  {"DACD" : 1.6}
+  "DAC1.raw" : 2048,
+  "DAC2.raw" : 3000,
+  "DAC3.raw" : 1700,
+  "DAC4.raw" : 2200
 }
-                - a JSON object for setting a group of the 4 DACs
+                - a JSON object for setting a group of the 4 offsets
                 
 
 {
-  {"DACA" : "?"},
-  {"DACB" : "?"},
-  {"DACC" : "?"},
-  {"DACD" : "?"}
+  "DAC1.raw" : "?",
+  "DAC2.raw" : "?",
+  "DAC3.raw" : "?",
+  "DAC4.raw" : "?"
 }
-                - a JSON object for read back values of a group of the 4 DACs
+                - a JSON object for read back values of a group of the 4 offsets
 
 
 # Communication protocols
@@ -146,50 +146,82 @@ Error message       |    Meaning
 
 #### Examples:
 
-##### 1. Setting a DACA value to 5 Volts:
+
+##### 1. Setting an offset value for channel #1 to 2048 Discrets:
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   DACA<5.0\n
-successive response message: |    5.0\n
+request message:             |   DAC1.raw<2048\n
+successive response message: |   2048\n
 
 <br />
 
-##### 2. Reading actual ADC2 raw value:
+##### 2. Preset a value for analog output #3 to 2048 Discrets to be controlled in a manual mode:
+
+Request/Response             |  Command
+---------------------------- | --------------------
+request message:             |   AOUT3.raw<2048\n
+successive response message: |   2048\n
+
+<br />
+
+
+
+##### 3. Set the manual control mode for channels #3 and #4 (will be: DACsw=1, amplifier's otputs #3 and #4 are disconnected, preset channels AOUT3 & AOUT4 connected to analog outputs #3 and #4):
+
+Request/Response             |  Command
+---------------------------- | --------------------
+request message:             |   DACsw<1\n
+successive response message: |   1\n
+
+<br />
+
+##### 4. Control analog output #4 directly in the manual mode (DACsw=1):
+
+Request/Response             |  Command
+---------------------------- | --------------------
+request message:             |   AOUT4.raw<3000\n
+successive response message: |   3000\n
+
+<br />
+
+
+
+##### 5. Reading actual ADC2 raw value:
 
 Request/Response             |  Command
 ---------------------------- | --------------------
 request message:             |   ADC1.raw>\n
-successive response message: |    3.7\n
+successive response message: |    2048\n
 
 <br />
 
-##### 3. Setup a board via a JSON command:
+##### 6. Setup a board via a JSON command:
 
 Request/Response              |  Command
 ----------------------------- | -------------------------------------------------------------------------------------------------------------------------
-request message:              |   js<{ {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
-successive response message:  |    { {"Gain" : 3}, {"Bridge" : true}, {"Offsets" : {{"DACA" : 0.1},{"DACB" : -1.2},{"DACC" : 0.5},{"DACD" : 1.6}}} }\n
+request message:              |   js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
 
 <br />
 
-##### 4. Read back board settings via a JSON command:
+##### 7. Read back board settings via a JSON command:
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>{ {"Gain" : "?"}, {"Bridge" : "?"}, {"DACA" : "?"}, {"DACB" : "?"}, {"DACC" : "?"}, {"DACD" : "?"} }\n
-successive response message:   |   { {"Gain" : 3}, {"Bridge" : true}, {"DACA" : 0.1}, {"DACB" : -1.2}, {"DACC" : 0.5}, {"DACD" : 1.6} }\n
+request message:               |  js>{ "Gain" : "?", "Bridge" : "?", "DAC1.raw" : "?", "DAC2.raw" : "?", "DAC3.raw" : "?", "DAC4.raw" : "?" }\n
+successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
 
 Note: When reading information from a variable via "js>" command, values in the pair "key:value" are ignored and should be set to a question mark. <br />
 
 <br />
 
-##### 5. Polling latest board events via a JSON command:
+##### 8. Polling latest board events via a JSON command:
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------------------
 request message:               |  je>
-successive response message:   |  { {"Button" : true}, {"ButtonStateCnt" : 3} } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
+successive response message:   |  { "Button" : true, "ButtonStateCnt" : 3 } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
 
 
 The protocol is implemented by the board's driver over a specific SPI protocol.
