@@ -16,9 +16,35 @@ Copyright (c) 2019 Panda Team
 class CJSONbase
 {
 protected:
-    static bool m_bLockCmdSubsys;
+    static int m_nLockCmdSubsysCnt;
 
 public:
-    inline void LockCmdSubsys(bool how){m_bLockCmdSubsys=how;}
-    inline bool IsCmdSubsysLocked(){return m_bLockCmdSubsys;}
+    inline void LockCmdSubsys(bool how)
+    {
+       if(how)
+           m_nLockCmdSubsysCnt++;
+       else
+          m_nLockCmdSubsysCnt--;
+    }
+    inline bool IsCmdSubsysLocked(){return (m_nLockCmdSubsysCnt>0);}
+};
+
+/*!
+ * \brief The CJSONCmdLock JSON command sub-sys auto-locker
+ */
+
+class CJSONCmdLock
+{
+protected:
+    CJSONbase &m_refCntrObj;
+
+public:
+    CJSONCmdLock(CJSONbase &obj) : m_refCntrObj(obj)
+    {
+        m_refCntrObj.LockCmdSubsys(true);
+    }
+    ~CJSONCmdLock()
+    {
+        m_refCntrObj.LockCmdSubsys(false);
+    }
 };

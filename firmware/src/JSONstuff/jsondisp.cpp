@@ -17,7 +17,7 @@ void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jR
     CallDescr.m_ctype=CCmdCallDescr::ctype::ctGet;
     CallDescr.m_cmethod=CCmdCallDescr::cmethod::byCmdIndex;
 
-    LockCmdSubsys(true);    //! prevent self calling and deadly recursy
+    //LockCmdSubsys(true);    //! prevent self calling and deadly recursy
     for(CallDescr.m_nCmdIndex=0;; CallDescr.m_nCmdIndex++)
     {
         nlohmann::json jval;
@@ -33,7 +33,7 @@ void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jR
 
         }
     }
-    LockCmdSubsys(false);
+    //LockCmdSubsys(false);
 }
 
 void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &jReq, nlohmann::json &jResp, const CCmdCallDescr::ctype ct)
@@ -122,6 +122,8 @@ typeCRes CJSONDispatcher::Call(CCmdCallDescr &d)
         return typeCRes::disabled;
 
     //! an exception can be thrown wile working with a JSON!
+
+    CJSONCmdLock CmdLock(*this); //lock the command sys against recursy calls
 
     std::string str;
     nlohmann::json jresp;

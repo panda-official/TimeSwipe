@@ -7,4 +7,4 @@ Copyright (c) 2019 Panda Team
 
 #include "json_base.h"
 
-bool CJSONbase::m_bLockCmdSubsys=false;
+int CJSONbase::m_nLockCmdSubsysCnt=0;

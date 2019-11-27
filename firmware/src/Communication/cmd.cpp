@@ -46,6 +46,8 @@ CCmdCallDescr::cres CCmdDispatcher::Call(CCmdCallDescr &d)
             throw CCmdException(">_not_supported!");
         if(typeCRes::fset_not_supported==cres)
             throw CCmdException("<_not_supported!");
+        if(typeCRes::disabled==cres)
+            throw CCmdException("disabled!");
     }
     return cres;
 }
