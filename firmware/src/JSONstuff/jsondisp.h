@@ -24,7 +24,7 @@ protected:
      *  @param jResp - a JSON object to fill with the settings
      *
      */
-    void DumpAllSettings(nlohmann::json &jResp);
+    void DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jResp);
 
     void CallPrimitive(const std::string &strKey, nlohmann::json &ReqVal, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
 

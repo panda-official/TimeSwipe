@@ -99,26 +99,12 @@ DACsw           |   Determines the mode of controlling analog outputs #3-4 (0 - 
 js              |    ("JSON setpoint") Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).      
 je              |    ("JSON event") Holds latest events description in form of a JSON object (JSON object, r)
 
-The structure of the JSON can be arbitrary but must follow a semantic rule: {"variable name" : value}. When reading information from a variable, the value is ignored and should be set to a question mark.
+The structure of the JSON object can be arbitrary but must follow several semantic rules:
+When setting a value in an entry of a JSON object the format should be {"variable name" : value}.
+When reading information from a variable its name can be placed in a "JSON array" type: ["variable name", ..].
+Its a preferable way. Alternativetly it can be requested with a "get" request in a following form {"variable name" : "?"}
 
-#### Examples: 
 
-{
-  "DAC1.raw" : 2048,
-  "DAC2.raw" : 3000,
-  "DAC3.raw" : 1700,
-  "DAC4.raw" : 2200
-}
-                - a JSON object for setting a group of the 4 offsets
-                
-
-{
-  "DAC1.raw" : "?",
-  "DAC2.raw" : "?",
-  "DAC3.raw" : "?",
-  "DAC4.raw" : "?"
-}
-                - a JSON object for read back values of a group of the 4 offsets
 
 
 # Communication protocols
@@ -205,7 +191,16 @@ successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw"
 
 <br />
 
-##### 7. Read back board settings via a JSON command:
+##### 7. Read back board settings via a JSON command(preferable way)
+
+Request/Response               |  Command
+------------------------------ | -------------------------------------------------------------------------------------------------------------
+request message:               |  js>[ "Gain", "Bridge", "DAC1.raw", "DAC2.raw", "DAC3.raw", "DAC4.raw" ]\n
+successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+
+<br />
+
+##### 8. Read back board settings via a JSON command(alternative way)
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------
@@ -216,19 +211,24 @@ Note: When reading information from a variable via "js>" command, values in the 
 
 <br />
 
-##### 8. Polling latest board events via a JSON command:
+##### 9. Dump all available variables with a read access via a single JSON command
+
+Request/Response               |  Command
+------------------------------ | -------------------------------------------------------------------------------------------------------------
+request message:               |  js>\n
+successive response message:   |  {"ADC1.raw" : 2047, ...<all previous listed variables with a read access>... }\n
+
+<br />
+
+##### 10. Polling latest board events via a JSON command:
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------------------
-request message:               |  je>
-successive response message:   |  { "Button" : true, "ButtonStateCnt" : 3 } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
+request message:               |  je>\n
+successive response message:   |  {"Button" : true, "ButtonStateCnt" : 3 } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
 
+Note: The event response message can vary depending on the current events active (please, see "EventSystem" documentation)
 
 The protocol is implemented by the board's driver over a specific SPI protocol.
-
-
-
-
-
 
 

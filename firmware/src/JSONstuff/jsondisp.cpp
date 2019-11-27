@@ -8,11 +8,12 @@ Copyright (c) 2019 Panda Team
 #include "jsondisp.h"
 #include "json_stream.h"
 
-void CJSONDispatcher::DumpAllSettings(nlohmann::json &jResp)
+void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jResp)
 {
     //! here we use cmethod::byCmdIndex to enumerate all possible "get" handlers:
 
     CCmdCallDescr CallDescr;    //! the exception mode is set to false
+    CallDescr.m_pIn=d.m_pIn; //-!!!
     CallDescr.m_ctype=CCmdCallDescr::ctype::ctGet;
     CallDescr.m_cmethod=CCmdCallDescr::cmethod::byCmdIndex;
 
@@ -21,7 +22,7 @@ void CJSONDispatcher::DumpAllSettings(nlohmann::json &jResp)
     {
         nlohmann::json jval;
         CJSONStream out(&jval);
-        CallDescr.m_pOut=&out; //!!!
+        CallDescr.m_pOut=&out; //-!!!
         typeCRes cres=m_pDisp->Call(CallDescr);
         if(CCmdCallDescr::cres::obj_not_found==cres)
             break;  //!reached the end of the command table
@@ -38,8 +39,10 @@ void CJSONDispatcher::DumpAllSettings(nlohmann::json &jResp)
 void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &jReq, nlohmann::json &jResp, const CCmdCallDescr::ctype ct)
 {
     //prepare:
+    CJSONStream in(&jReq);
     CJSONStream out(&jResp);
     CCmdCallDescr CallDescr;
+    CallDescr.m_pIn=&in;
     CallDescr.m_pOut=&out;
     CallDescr.m_strCommand=strKey;
     CallDescr.m_ctype=ct;
@@ -50,10 +53,6 @@ void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &j
 
         if(CCmdCallDescr::ctype::ctSet==ct)
         {
-            //create input sream just in time:
-            CJSONStream in(&jReq);
-            CallDescr.m_pIn=&in;
-
             cres=m_pDisp->Call(CallDescr); //set
             CallDescr.m_bThrowExcptOnErr=false; //test can we read back a value...
         }
@@ -81,22 +80,18 @@ void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &j
 
 void CJSONDispatcher::Call(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, bool bArrayMode)
 {
+    nlohmann::json stub=""; //- stub
     for (auto& el : jObj.items()) {
 
         nlohmann::json &val=el.value();
         const std::string &strKey=el.key();
-       // const std::string &strKey=bArrayMode ? static_cast<const std::string>(val):el.key();
-       // nlohmann::json &rval=jResp[strKey];
-
         if(val.is_primitive())          //can resolve a call
         {
-            //if(strKey.empty())
             if(bArrayMode)
             {
                 if(!val.is_string())
                 {
                     nlohmann::json &jerr=jResp[strKey]["error"];
-                    //jerr["val"]=val;
                     jerr["edescr"]="cannot resolve this key!";
                     continue;
                 }
@@ -104,16 +99,13 @@ void CJSONDispatcher::Call(nlohmann::json &jObj, nlohmann::json &jResp, const CC
                 if(CCmdCallDescr::ctype::ctGet!=ct)
                 {
                     nlohmann::json &jerr=jResp[strValKey]["error"];
-                    //jerr["val"]=val;
                     jerr["edescr"]="cannot resolve single key in non-get call!";
                     continue;
                 }
-                //const std::string &strValKey=static_cast<const std::string>(val);
-                CallPrimitive(strValKey, val, jResp[strValKey], ct);
+                CallPrimitive(strValKey, stub, jResp[strValKey], ct);
             }
             else
             {
-                //CallPrimitive(strKey, val, rval, ct);
                 CallPrimitive(strKey, val, jResp[strKey], ct);
             }
         }
@@ -135,16 +127,15 @@ typeCRes CJSONDispatcher::Call(CCmdCallDescr &d)
     nlohmann::json jresp;
 
     *(d.m_pIn)>>str;
-    if( d.m_pIn->bad())
-    {
-        if(str.empty() && CCmdCallDescr::ctype::ctGet==d.m_ctype)
-        {
-            DumpAllSettings(jresp);
-        }
-        else return typeCRes::parse_err;
+     if(str.empty() && CCmdCallDescr::ctype::ctGet==d.m_ctype)
+     {
+        DumpAllSettings(d, jresp);
      }
      else
      {
+        if( d.m_pIn->bad())
+            return typeCRes::parse_err;
+
         auto cmd=nlohmann::json::parse(str);
         Call(cmd, jresp, d.m_ctype, cmd.is_array());
      }
