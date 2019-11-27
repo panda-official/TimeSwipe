@@ -77,14 +77,13 @@ void resetAllGPIO()
     GPIO_CLR = ALL_32_BITS_ON;
 }
 
-void sleep55ns()
+void busyWait(uint64_t ns)
 {
-    readAllGPIO();
-}
-
-void sleep8ns()
-{
-    setGPIOHigh(10); // ANY UNUSED PIN!!!
+    if (ns == 0) return;
+    volatile uint64_t cycles = ns/8 + (ns % 8) ? 1 : 0;
+        while(cycles > 0) {
+        cycles--;
+    }
 }
 
 unsigned int readAllGPIO()

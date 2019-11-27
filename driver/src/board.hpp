@@ -1,3 +1,8 @@
+/**
+ * \file
+ * \brief Board related settings and functions
+ */
+
 #ifndef BOARD
 #define BOARD
 
@@ -9,7 +14,7 @@
 #include "gpio/gpio.h"
 #include "board_iface.hpp"
 
-//#define NEW_BOARD
+#define NEW_BOARD
 
 // PIN NAMES
 #ifndef NEW_BOARD
@@ -64,8 +69,19 @@ void shutdown();
 void setGPIOHigh(unsigned pin);
 void setGPIOLow(unsigned pin);
 void resetAllGPIO();
-void sleep55ns();
-void sleep8ns();
+/**
+ *  \brief sleep nanoseconds wit busy wait
+ *
+ *  @param ns - nanoseconds to sleep
+ *
+ *  During tests on Rpi3 with 32bit Raspbian it was found that this function:
+ *
+ *  with cycles = 1(ns=8) sleeps 8-25 ns on idle core
+ *
+ *  with cycles = 7(ns=55) sleeps 45-64 ns on idle core
+ */
+void busyWait(uint64_t ns);
+
 unsigned int readAllGPIO();
 BoardInterface bInterface;
 

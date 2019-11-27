@@ -7,15 +7,15 @@ struct GPIOData
     bool piOK;
 };
 
+uint64_t waitNs = 110;
+
 GPIOData readByteAndStatusFromGPIO()
 {
     setGPIOHigh(CLOCK);
-    sleep55ns();
-    sleep55ns();
+    busyWait(waitNs);
 
     setGPIOLow(CLOCK);
-    sleep55ns();
-    sleep55ns();
+    busyWait(waitNs);
 
     unsigned int allGPIO = readAllGPIO();
     uint8_t byte =
@@ -28,8 +28,7 @@ GPIOData readByteAndStatusFromGPIO()
         ((allGPIO & DATA_POSITION[6]) >> 12) | //     1
         ((allGPIO & DATA_POSITION[7]) >> 16);  //     0
 
-    sleep55ns();
-    sleep55ns();
+    busyWait(waitNs);
 
     return {
         byte,
@@ -170,8 +169,7 @@ struct RecordReader
         }
 
         // III.
-        sleep55ns();
-        sleep55ns();
+        busyWait(waitNs);
 
         return out;
     }
