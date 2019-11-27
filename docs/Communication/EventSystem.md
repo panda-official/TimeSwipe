@@ -23,8 +23,8 @@ The current event table can be obtained via default communication protocol in a 
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------------------
-request message:               |  je>
-successive response message:   |  { "Button" : true, "ButtonStateCnt" : 3 } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
+request message:               |  je>\n
+successive response message:   |  { "Button" : true, "ButtonStateCnt" : 3 }\n - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
 
 Please, see CommunicationProtocol.md for default communication protocol details.
 
