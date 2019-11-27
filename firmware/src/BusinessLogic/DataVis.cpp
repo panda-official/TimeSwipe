@@ -34,9 +34,10 @@ void CDataVis::reset()
 
 void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
 {
-    for (int i = 0; i < 3; ++i) {
+/*    for (int i = 0; i < 3; ++i) {
         col_act[i]=col_IEPE[i];
     }
+*/ //27.11.19, ib: moved to DataVis.h because DataVis::Start is called not only once at start, but everytime at setting a marker.
     m_bStarted=bHow;
     m_upd_tspan_mS=nDelay_mS;
 

@@ -81,14 +81,15 @@ void nodeControl::StartRecord(const bool how)
     StartDataVis(false);
 
     //make a stamp:
-    typeLEDcol rstamp=nodeLED::gen_rnd_col();
+ //   typeLEDcol rstamp=nodeLED::gen_rnd_col();
 
     //19.06.2019: generate an event:
     nlohmann::json v=rstamp;
     Instance().Fire_on_event("Record", v);
 
     //blink: here???
-    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 3, 300);
+ //   nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 3, 300);
+    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, (255*65536 + 255*256 + 255));
 
     //17.07.2019: restart data vis:
     StartDataVis(true, 1800);

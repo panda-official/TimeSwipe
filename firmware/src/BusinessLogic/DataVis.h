@@ -22,7 +22,7 @@ protected:
 
     unsigned int col_DMS[3] = {24, 250, 208};
     unsigned int col_IEPE[3] = {50, 151, 247};
-    unsigned int col_act[3];
+    unsigned int col_act[3] = {50, 151, 247};
 
     //parameters:
 
