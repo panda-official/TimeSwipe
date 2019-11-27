@@ -17,7 +17,7 @@ protected:
 	//params:
 	float m_low_trhold=0.2f;
 	float m_high_trhold=0.8f;
-	float m_filter_t_Sec=0.08f;
+	float m_filter_t_Sec=0.018f;
 	
 	//variables:
 	float m_level=0.0f;
