@@ -80,11 +80,14 @@ void nodeControl::StartRecord(const bool how)
     //17.07.2019:
     StartDataVis(false);
 
+    static unsigned long count_mark=0;
     //make a stamp:
  //   typeLEDcol rstamp=nodeLED::gen_rnd_col();
+    count_mark++;
 
     //19.06.2019: generate an event:
-    nlohmann::json v=rstamp;
+//    nlohmann::json v=rstamp;
+    nlohmann::json v=count_mark;
     Instance().Fire_on_event("Record", v);
 
     //blink: here???
