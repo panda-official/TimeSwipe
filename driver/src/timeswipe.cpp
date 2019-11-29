@@ -1,6 +1,7 @@
 #include <memory>
 #include <mutex>
 #include <atomic>
+#include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
 #include "timeswipe.hpp"
 #include "reader.hpp"
@@ -15,6 +16,8 @@ public:
     void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
     void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
     bool Start(TimeSwipe::ReadCallback);
+    bool onButton(std::function<void(bool)> cb);
+    bool onError(std::function<void(uint64_t)> cb);
     bool Stop();
 private:
     RecordReader Rec;
@@ -26,6 +29,13 @@ private:
     void _startFetcher();
     void _stopFetcher();
     void _fetcherLoop();
+    bool _isStarted();
+    void _receiveEvents(const std::chrono::steady_clock::time_point& now);
+
+    TimeSwipe::OnButtonCallback onButtonCb;
+    TimeSwipe::OnErrorCallback onErrorCb;
+
+    std::chrono::steady_clock::time_point _lastButtonCheck;
     bool _fetcherWork = false;
     std::thread _fetcherThread;
 };
@@ -82,7 +92,9 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
         for (size_t i = 1; i < num; i++) {
             records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
         }
+        if (errors && onErrorCb) onErrorCb(errors);
         cb(std::move(records[0]), errors);
+
     }
 
     return true;
@@ -99,6 +111,34 @@ bool TimeSwipeImpl::Stop() {
     _stopFetcher();
     Rec.stop();
     return true;
+}
+
+
+bool TimeSwipeImpl::onButton(TimeSwipe::OnButtonCallback cb) {
+    if (_isStarted()) return false;
+    onButtonCb = cb;
+    return true;
+}
+
+bool TimeSwipeImpl::onError(TimeSwipe::OnErrorCallback cb) {
+    if (_isStarted()) return false;
+    onErrorCb = cb;
+    return true;
+}
+
+bool TimeSwipeImpl::_isStarted() {
+    std::lock_guard<std::mutex> lock(startStopMtx);
+    return startedInstance != nullptr;
+}
+
+void TimeSwipeImpl::_receiveEvents(const std::chrono::steady_clock::time_point& now) {
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastButtonCheck).count() > 100) {
+        _lastButtonCheck = now;
+        auto event = readBoardEvents();
+        if (event.button && onButtonCb) {
+            onButtonCb(event.buttonCounter % 2);
+        }
+    }
 }
 
 TimeSwipe::TimeSwipe() {
@@ -127,6 +167,14 @@ bool TimeSwipe::Start(TimeSwipe::ReadCallback cb) {
     return _impl->Start(cb);
 }
 
+bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb) {
+    return _impl->onError(cb);
+}
+
+bool TimeSwipe::onButton(TimeSwipe::OnButtonCallback cb) {
+    return _impl->onButton(cb);
+}
+
 void TimeSwipeImpl::_startFetcher() {
     _fetcherWork = true;
     _fetcherThread = std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop,this));
@@ -140,9 +188,11 @@ void TimeSwipeImpl::_stopFetcher() {
 
 void TimeSwipeImpl::_fetcherLoop() {
     while (_fetcherWork) {
+        auto now = std::chrono::steady_clock::now();
         auto data = Rec.read();
         if (!recordBuffer.push(data))
             ++recordErrors;
+        _receiveEvents(now);
     }
 }
 

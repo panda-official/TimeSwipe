@@ -82,12 +82,34 @@ public:
      *
      * After each sensor read complete cb called with vector of @ref Record
      *
-     * Buffer is for 500ms data if \p cb works longer than 500ms, next data will be loosed
+     * Buffer is for 1 second data if \p cb works longer than 1 second, next data can be loosed and next callback called with non-zero errors
      *
      * @param cb
      * @return false if reading procedure start failed, otherwise it blocks current execution thread and returns true after reading finished
      */
     bool Start(ReadCallback cb);
+
+    using OnButtonCallback = std::function<void(bool)>;
+    /**
+     * \brief Register callback for button pressed/released
+     *
+     * onButton must be called before ref @Start called, otherwise register fails
+     *
+     * @param cb callback called with true when button pressed and with false when button released
+     * @return false if register callback failed, true otherwise
+     */
+    bool onButton(OnButtonCallback cb);
+
+    using OnErrorCallback = std::function<void(uint64_t)>;
+    /**
+     * \brief Register error callback
+     *
+     * onError must be called before ref @Start called, otherwise register fails
+     *
+     * @param cb callback called once read error occurred
+     * @return false if register callback failed, true otherwise
+     */
+    bool onError(OnErrorCallback cb);
 
     /**
      * \brief Stop reading Sensor loop

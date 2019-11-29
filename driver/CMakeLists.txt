@@ -30,6 +30,7 @@ include(GNUInstallDirs)
 
 SET(SRC
     src/timeswipe.cpp
+    src/board_iface.cpp
 	3rdParty/BCMsrc/bcm2835.c
 	src/Communication/SyncCom.cpp
 	src/RaspberryPi/bcmspi.cpp
