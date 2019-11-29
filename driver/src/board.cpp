@@ -1,4 +1,5 @@
 #include "board.hpp"
+#include <sys/time.h>
 
 // RPI GPIO FUNCTIONS
 void pullGPIO(unsigned pin, unsigned high)
@@ -77,13 +78,17 @@ void resetAllGPIO()
     GPIO_CLR = ALL_32_BITS_ON;
 }
 
-void busyWait(uint64_t ns)
+void busyWaitMicroseconds(uint64_t us)
 {
-    if (ns == 0) return;
-    volatile uint64_t cycles = ns/8 + (ns % 8) ? 1 : 0;
-        while(cycles > 0) {
-        cycles--;
-    }
+    struct timeval tnow, tlong, tend;
+
+    gettimeofday (&tnow, NULL) ;
+    tlong.tv_sec  = us / 1000000 ;
+    tlong.tv_usec = us % 1000000 ;
+    timeradd (&tnow, &tlong, &tend) ;
+
+    while (timercmp (&tnow, &tend, <))
+      gettimeofday (&tnow, NULL) ;
 }
 
 unsigned int readAllGPIO()
