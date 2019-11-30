@@ -118,3 +118,11 @@ BoardEvents readBoardEvents()
     }
     return ret;
 }
+
+std::string readBoardGetSettings(const std::string& request, std::string& error) {
+    return BoardInterface::get()->getGetSettings(request, error);
+}
+
+std::string readBoardSetSettings(const std::string& request, std::string& error) {
+    return BoardInterface::get()->getSetSettings(request, error);
+}

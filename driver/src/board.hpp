@@ -72,6 +72,8 @@ void sleep55ns();
 void sleep8ns();
 unsigned int readAllGPIO();
 BoardEvents readBoardEvents();
+std::string readBoardGetSettings(const std::string& request, std::string& error);
+std::string readBoardSetSettings(const std::string& request, std::string& error);
 
 #include "board.cpp"
 

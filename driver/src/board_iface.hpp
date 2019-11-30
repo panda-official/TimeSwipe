@@ -16,11 +16,25 @@ class BoardInterface
         }
         return false;
     }
+    bool receiveAnswer(std::string& ans, std::string& error) {
+        auto ret = receiveAnswer(ans);
+        if (ret && !ans.empty() && ans[0]=='!') {
+            error = ans;
+            ans.clear();
+        }
+        return ret;
+    }
     void sendSetCommand(const std::string& variable, const std::string& value) {
         sendCommand(variable + "<" + value + "\n");
     }
     void sendEventsCommand() {
         sendCommand("je>\n");
+    }
+    void sendSetSettingsCommand(const std::string& request) {
+        sendCommand("js<" + request + "\n");
+    }
+    void sendGetSettingsCommand(const std::string& request) {
+        sendCommand("js>" + request + "\n");
     }
 
     BoardInterface()
@@ -54,4 +68,23 @@ public:
         sendEventsCommand();
         return receiveAnswer(ev);
     }
+
+    std::string getSetSettings(const std::string& request, std::string& error) {
+        sendSetSettingsCommand(request);
+        std::string answer;
+        if (!receiveAnswer(answer, error)) {
+            error = "read SPI failed";
+        }
+        return answer;
+    }
+
+    std::string getGetSettings(const std::string& request, std::string& error) {
+        sendGetSettingsCommand(request);
+        std::string answer;
+        if (!receiveAnswer(answer, error)) {
+            error = "read SPI failed";
+        }
+        return answer;
+    }
+
 };

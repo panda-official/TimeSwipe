@@ -3,6 +3,7 @@
 #include <atomic>
 #include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
+#include <future>
 #include "timeswipe.hpp"
 #include "reader.hpp"
 
@@ -18,6 +19,7 @@ public:
     bool Start(TimeSwipe::ReadCallback);
     bool onButton(std::function<void(bool)> cb);
     bool onError(std::function<void(uint64_t)> cb);
+    std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
 private:
     RecordReader Rec;
@@ -31,6 +33,10 @@ private:
     void _fetcherLoop();
     bool _isStarted();
     void _receiveEvents(const std::chrono::steady_clock::time_point& now);
+
+    boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
+    boost::lockfree::spsc_queue<std::pair<std::string,std::string>, boost::lockfree::capacity<1024>> _outSPI;
+    void _processSPIRequests();
 
     TimeSwipe::OnButtonCallback onButtonCb;
     TimeSwipe::OnErrorCallback onErrorCb;
@@ -126,6 +132,18 @@ bool TimeSwipeImpl::onError(TimeSwipe::OnErrorCallback cb) {
     return true;
 }
 
+std::string TimeSwipeImpl::Settings(uint8_t set_or_get, const std::string& request, std::string& error) {
+    _inSPI.push(std::make_pair(set_or_get, request));
+    std::pair<std::string,std::string> resp;
+
+    while (!_outSPI.pop(resp)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    error = resp.second;
+
+    return resp.first;
+}
+
 bool TimeSwipeImpl::_isStarted() {
     std::lock_guard<std::mutex> lock(startStopMtx);
     return startedInstance != nullptr;
@@ -138,6 +156,15 @@ void TimeSwipeImpl::_receiveEvents(const std::chrono::steady_clock::time_point& 
         if (event.button && onButtonCb) {
             onButtonCb(event.buttonCounter % 2);
         }
+    }
+}
+
+void TimeSwipeImpl::_processSPIRequests() {
+    std::pair<uint8_t,std::string> request;
+    while (_inSPI.pop(request)) {
+        std::string error;
+        auto response = request.first ? readBoardSetSettings(request.second, error) : readBoardGetSettings(request.second, error);
+        _outSPI.push(std::make_pair(response, error));
     }
 }
 
@@ -163,6 +190,18 @@ void TimeSwipe::SetSensorTransmissions(double trans1, double trans2, double tran
     return _impl->SetSensorTransmissions(trans1, trans2, trans3, trans4);
 }
 
+void TimeSwipe::Init(int bridge, int offsets[4], int gains[4], double transmissions[4]) {
+    SetBridge(bridge);
+    SetSensorOffsets(offsets[0], offsets[1], offsets[2], offsets[3]);
+    SetSensorGains(gains[0], gains[1], gains[2], gains[3]);
+    SetSensorTransmissions(transmissions[0], transmissions[1], transmissions[2], transmissions[3]);
+}
+
+void TimeSwipe::SetSecondary(int number) {
+    //TODO: complete on ontegration
+    SetBridge(number);
+}
+
 bool TimeSwipe::Start(TimeSwipe::ReadCallback cb) {
     return _impl->Start(cb);
 }
@@ -173,6 +212,14 @@ bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb) {
 
 bool TimeSwipe::onButton(TimeSwipe::OnButtonCallback cb) {
     return _impl->onButton(cb);
+}
+
+std::string TimeSwipe::SetSettings(const std::string& request, std::string& error) {
+    return _impl->Settings(1, request, error);
+}
+
+std::string TimeSwipe::GetSettings(const std::string& request, std::string& error) {
+    return _impl->Settings(0, request, error);
 }
 
 void TimeSwipeImpl::_startFetcher() {
@@ -193,6 +240,7 @@ void TimeSwipeImpl::_fetcherLoop() {
         if (!recordBuffer.push(data))
             ++recordErrors;
         _receiveEvents(now);
+        _processSPIRequests();
     }
 }
 
