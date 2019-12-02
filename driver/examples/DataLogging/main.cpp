@@ -100,7 +100,23 @@ int main(int argc, char *argv[])
 
     // Board Start
 
-    bool ret = tswipe.Start([&](auto&& records, uint64_t errors) {
+    bool ret = tswipe.onButton([&](bool pressed) {
+        std::cout << "Button: " <<  (pressed ? "pressed":"released") << std::endl;
+    });
+    if (!ret) {
+        std::cerr << "onButton init failed" << std::endl;
+        return 1;
+    }
+
+    ret = tswipe.onError([&](uint64_t errors) {
+        std::cout << "Got errors: " << errors << std::endl;
+    });
+    if (!ret) {
+        std::cerr << "onError init failed" << std::endl;
+        return 1;
+    }
+
+    ret = tswipe.Start([&](auto&& records, uint64_t errors) {
             for (size_t i = 0; i < records.size(); i++) {
                 const auto& rec = records[i];
                 if (i==0) std::cout << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";

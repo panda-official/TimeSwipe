@@ -69,6 +69,26 @@ public:
     void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
 
     /**
+     * \brief Setup secondary number
+     *
+     * @param number - secondary number
+     */
+    void SetSecondary(int number);
+
+    /**
+     * \brief Initialize sensors
+     *
+     * This method is all-in-one replacement for @ref SetBridge @ref SetSensorOffsets @ref SetSensorGains @ref SetSensorTransmissions
+     *
+     * @param bridge - bridge number
+     * @param offsets - sensor offsets @ref SetSensorOffsets
+     * @param gains - sensor gains @ref SetSensorGains
+     * @param transmissions - sensor transmissions - @ref SetSensorTransmissions
+     */
+    void Init(int bridge, int offsets[4], int gains[4], double transmissions[4]);
+
+
+    /**
      * \brief Read sensors callback function pointer
      */
     using ReadCallback = std::function<void(std::vector<Record>, uint64_t errors)>;
@@ -82,12 +102,52 @@ public:
      *
      * After each sensor read complete cb called with vector of @ref Record
      *
-     * Buffer is for 500ms data if \p cb works longer than 500ms, next data will be loosed
+     * Buffer is for 1 second data if \p cb works longer than 1 second, next data can be loosed and next callback called with non-zero errors
      *
      * @param cb
      * @return false if reading procedure start failed, otherwise it blocks current execution thread and returns true after reading finished
      */
     bool Start(ReadCallback cb);
+
+    /**
+     * \brief Send SPI SetSettings request and receive the answer
+     *
+     * @param request - request json string
+     * @param error - output error
+     * @return json-formatted answer, set error if error occured
+     */
+    std::string SetSettings(const std::string& request, std::string& error);
+
+    /**
+     * \brief Send SPI GetSettings request and receive the answer
+     *
+     * @param request - request json string
+     * @param error - output error
+     * @return json-formatted answer, set error if error occured
+     */
+    std::string GetSettings(const std::string& request, std::string& error);
+
+    using OnButtonCallback = std::function<void(bool)>;
+    /**
+     * \brief Register callback for button pressed/released
+     *
+     * onButton must be called before ref @Start called, otherwise register fails
+     *
+     * @param cb callback called with true when button pressed and with false when button released
+     * @return false if register callback failed, true otherwise
+     */
+    bool onButton(OnButtonCallback cb);
+
+    using OnErrorCallback = std::function<void(uint64_t)>;
+    /**
+     * \brief Register error callback
+     *
+     * onError must be called before ref @Start called, otherwise register fails
+     *
+     * @param cb callback called once read error occurred
+     * @return false if register callback failed, true otherwise
+     */
+    bool onError(OnErrorCallback cb);
 
     /**
      * \brief Stop reading Sensor loop

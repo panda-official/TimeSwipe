@@ -1,4 +1,5 @@
 #include "board.hpp"
+#include <nlohmann/json.hpp>
 
 // RPI GPIO FUNCTIONS
 void pullGPIO(unsigned pin, unsigned high)
@@ -44,13 +45,13 @@ void init(int sensorType)
 
     // SPI Communication
     // // Select Sensor type
-    bInterface.setBridge(sensorType);
+    BoardInterface::get()->setBridge(sensorType);
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     // // Start Measurement
-    bInterface.setEnableADmes(0);
+    BoardInterface::get()->setEnableADmes(0);
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    bInterface.setEnableADmes(1);
+    BoardInterface::get()->setEnableADmes(1);
 }
 
 void shutdown()
@@ -58,7 +59,7 @@ void shutdown()
     // Reset Clock
     setGPIOLow(CLOCK);
     // Stop Measurement
-    bInterface.setEnableADmes(0);
+    BoardInterface::get()->setEnableADmes(0);
 }
 
 void setGPIOHigh(unsigned pin)
@@ -90,4 +91,38 @@ void sleep8ns()
 unsigned int readAllGPIO()
 {
     return (*(gpio + 13) & ALL_32_BITS_ON); 
+}
+
+
+BoardEvents readBoardEvents()
+{
+    BoardEvents ret;
+    std::string data;
+    if (BoardInterface::get()->getEvents(data) && !data.empty()) {
+        if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
+
+        if (data.empty()) return ret;
+
+        //XXX: SPI sometimes returns errors like "!obj_not_found!", "!protocol_error!" - fix this:
+        if (data[0] == '!') return ret;
+
+        auto j = nlohmann::json::parse(data);
+        auto it_btn = j.find("Button");
+        if (it_btn != j.end() && it_btn->is_boolean() && it_btn->get<bool>()) {
+            auto it_cnt = j.find("ButtonStateCnt");
+            if (it_cnt != j.end() && it_cnt->is_number()) {
+                ret.button = true;
+                ret.buttonCounter = it_cnt->get<unsigned>();
+            }
+        }
+    }
+    return ret;
+}
+
+std::string readBoardGetSettings(const std::string& request, std::string& error) {
+    return BoardInterface::get()->getGetSettings(request, error);
+}
+
+std::string readBoardSetSettings(const std::string& request, std::string& error) {
+    return BoardInterface::get()->getSetSettings(request, error);
 }
