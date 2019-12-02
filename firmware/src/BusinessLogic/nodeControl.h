@@ -52,6 +52,7 @@ public:
         //add data vis: 17.07.2019:
         static void CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
         static void StartDataVis(bool bHow, unsigned long nDelay_mS=0);
+        static void BlinkAtStart();
 
         static bool IsRecordStarted();
         static void StartRecord(const bool how);

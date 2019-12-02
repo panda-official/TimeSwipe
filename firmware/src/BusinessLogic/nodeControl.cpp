@@ -32,6 +32,14 @@ void nodeControl::StartDataVis(bool bHow, unsigned long nDelay_mS)
 {
     for(auto &el : m_DataVis) el.Start(bHow, nDelay_mS);
 }
+void nodeControl::BlinkAtStart()
+{
+    m_pLED->SetBlinkMode(false);
+    m_pLED->SetColor(0);
+    m_pLED->ON(true);
+
+    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 2, 300);
+}
 void nodeControl::on_event(const char *key, nlohmann::json &val) //17.07.2019 now can rec an event
 {
     //this all should be moved into the "View" instance later...
@@ -82,7 +90,7 @@ void nodeControl::StartRecord(const bool how)
 
     static unsigned long count_mark=0;
     //make a stamp:
- //   typeLEDcol rstamp=nodeLED::gen_rnd_col();
+    typeLEDcol rstamp=nodeLED::gen_rnd_col();
     count_mark++;
 
     //19.06.2019: generate an event:

@@ -133,18 +133,18 @@ int main(void)
         nodeControl::SetControlItems(pADmux, pZeroCal);
 
 
-        //17.07.2019: DataVis:
+ /*       //17.07.2019: DataVis:
         nodeControl::CreateDataVis(pADC1, pLED1);
         nodeControl::CreateDataVis(pADC2, pLED2);
         nodeControl::CreateDataVis(pADC3, pLED3);
         nodeControl::CreateDataVis(pADC4, pLED4);
-
+*/
         //18.07.2019: preparing and start:
         pDACA->SetRawOutput(2048);
         pDACB->SetRawOutput(2048);
         pDACC->SetRawOutput(2048);
         pDACD->SetRawOutput(2048);
-        nodeControl::StartDataVis(true, 1000);
+ //       nodeControl::StartDataVis(true, 1000); 
 
 
 
@@ -215,6 +215,16 @@ int main(void)
         //--------------------menu+button+detection of a master----------------
         auto pMenu=std::make_shared<CMenuLogic>();
         SAMButton button(*pMenu);
+
+
+       //17.07.2019: DataVis:
+        nodeControl::CreateDataVis(pADC1, pLED1);
+        nodeControl::CreateDataVis(pADC2, pLED2);
+        nodeControl::CreateDataVis(pADC3, pLED3);
+        nodeControl::CreateDataVis(pADC4, pLED4);
+
+        //18.07.2019: preparing and start:
+        nodeControl::StartDataVis(true, 1000);
 
 
         //------------------JSON 10.06.2019---------------------
