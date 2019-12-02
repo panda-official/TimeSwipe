@@ -5,7 +5,20 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//a simplest command processor:
+/*!
+*   @file
+*   @brief A simple command proccessor structures and classes.
+*
+*   @details The processing of all incoming command requests is realized by a CCmdDispatcher
+*   object instance. The port object instance that implements the current communication protocol (simple text, binary/specific)
+*   transforms an incoming request from a protocol depended form to an uniform request described by CCmdCallDescr class
+*   where command name in a string format (if presented) its hash value,  pointers to input/output streams and other service
+*   information are stored. Then a port that holds a pointer to the CCmdDispatcher calls  CCmdDispatcher methode "Call" with
+*   CCmdCallDescr as a parameter. CCmdDispatcher process the incoming request by finding specific command handler
+*   in its internal map and invoking the handler. The call result is stored in the same CCmdCallDescr parameter and
+*   hence it is further accesible by a port.
+*   By adding number of different port instances several communication protocols can be implemented at once.
+*/
 
 #pragma once
 
@@ -14,34 +27,48 @@ Copyright (c) 2019 Panda Team
 #include <map>
 #include "frm_stream.h"
 
+/*!
+*   @brief A uniform command request descriptor.
+*
+*/
+
 struct CCmdCallDescr
 {
-    std::string     m_strCommand;
-    int             m_hashCommand;
+    std::string     m_strCommand;   //!the command string name
+    int             m_hashCommand;  //!the command hash value
+    unsigned int    m_nCmdIndex;    //!the command index (zero-based)
 
-    CFrmStream    *m_pIn=nullptr;
-    CFrmStream    *m_pOut=nullptr;
+    CFrmStream    *m_pIn=nullptr;   //!input stream: to fetch function/methode input arguments
+    CFrmStream    *m_pOut=nullptr;  //!output stream: to store function/methodes output arguments or return value
 
-    //call result:
+    //!command handler invocation result ("call result"=cres)
     enum cres :int {
 
-        OK=0,
-        obj_not_found,
-        fget_not_supported,
-        fset_not_supported,
-        parse_err
+        OK=0,               //!<successful invocation
+        obj_not_found,      //!<requested command(object) was not found
+        fget_not_supported, //!<"get" property is not supported by a handler
+        fset_not_supported, //!<"set" property is not supported by a handler
+        parse_err,          //!<an error occurred while parsing arguments from the input stream
+        disabled            //!<handler is disabled for some reasons
     };
 
-    //call type: get,set,methode, etc:
+    //!invocation type ("call type"=ctype)
     enum ctype :int {
 
-        ctGet=1,
-        ctSet=2
+        ctGet=1,            //!<"get" property
+        ctSet=2             //!<"set" property
 
     }m_ctype=ctGet;
 
-    //09.06.2019: flags
-    bool m_bThrowExcptOnErr=false;
+    //!how to dispatch an invocation? by command string name, hash value or index?
+    enum cmethod :int {
+
+        byCmdName=1,        //!<by a command string name (using m_strCommand)
+        byCmdHash=2,        //!<by a command hash value  (using m_hashCommand)
+        byCmdIndex=4        //!<by a command zero-based index (using m_nCmdIndex)
+    }m_cmethod=byCmdName;
+
+    bool m_bThrowExcptOnErr=false; //! if true, throw an exception CCmdException instead of returning cres
 
 
 };
@@ -79,6 +106,7 @@ class  CCmdDispatcher
 {
 protected:
      typeDispTable m_DispTable;
+     typeCRes __Call(CCmdCallDescr &d);
 
 public:
 

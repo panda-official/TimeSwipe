@@ -9,7 +9,8 @@ Copyright (c) 2019 Panda Team
 
 #include <vector>
 #include <memory>
-#include <nlohmann/json.hpp>
+//#include <nlohmann/json.hpp>
+#include "json_base.h"
 
 //15.07.2019: event labels???
 
@@ -56,7 +57,7 @@ public:
 };
 
 #include "cmd.h"
-class CJSONEvDispatcher : public IJSONEvent, public CCmdCallHandler
+class CJSONEvDispatcher : public IJSONEvent, public CJSONbase, public CCmdCallHandler
 {
 protected:
     nlohmann::json m_event;

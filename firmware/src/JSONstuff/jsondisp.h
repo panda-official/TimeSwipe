@@ -7,18 +7,29 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include <nlohmann/json.hpp>
+//#include <nlohmann/json.hpp>
+#include "json_base.h"
 #include "cmd.h"
 
-class CJSONDispatcher : public CCmdCallHandler //just connect handler here
+class CJSONDispatcher : public CJSONbase, public CCmdCallHandler //just connect handler here
 {
 protected:
     std::shared_ptr<CCmdDispatcher> m_pDisp;
 
+    //void CallPrimitive()
 
+    /*!
+     *  @brief: returns all possible settings (enumerates all "get" handlers)
+     *
+     *  @param jResp - a JSON object to fill with the settings
+     *
+     */
+    void DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jResp);
+
+    void CallPrimitive(const std::string &strKey, nlohmann::json &ReqVal, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
 
 public:
-    void Call(nlohmann::json &jObj, nlohmann::json &jResp, CCmdCallDescr::ctype ct);    //recursive
+    void Call(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, const bool bArrayMode);    //recursive
 
     virtual typeCRes Call(CCmdCallDescr &d);
 
@@ -27,9 +38,3 @@ public:
         m_pDisp=pDisp;
     }
 };
-
-
-/*#ifndef JSONDISP_H
-#define JSONDISP_H
-
-#endif // JSONDISP_H*/
