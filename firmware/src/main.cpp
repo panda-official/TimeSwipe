@@ -23,6 +23,7 @@ Copyright (c) 2019 Panda Team
 #include "menu_logic.h"
 #include "SAMbutton.h"
 #include "nodeLED.h"
+#include "nodeControl.h"
 #include "zerocal_man.h"
 
 #include "cmd.h"
@@ -216,6 +217,8 @@ int main(void)
         auto pMenu=std::make_shared<CMenuLogic>();
         SAMButton button(*pMenu);
 
+        //02.12.2019: Blinking as start signal :
+        nodeControl::BlinkAtStart(typeBoard::IEPEBoard);
 
        //17.07.2019: DataVis:
         nodeControl::CreateDataVis(pADC1, pLED1);
@@ -224,7 +227,7 @@ int main(void)
         nodeControl::CreateDataVis(pADC4, pLED4);
 
         //18.07.2019: preparing and start:
-        nodeControl::StartDataVis(true, 1000);
+        nodeControl::StartDataVis(true, 1200);
 
 
         //------------------JSON 10.06.2019---------------------
@@ -247,6 +250,7 @@ int main(void)
 
 
         pADmux->SetUBRvoltage(true);
+
         while(1) //endless loop
         {
              //update calproc:

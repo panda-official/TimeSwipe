@@ -5,46 +5,40 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-#include <iostream>
-using namespace std;
+//#include <iostream>
+//using namespace std;
 #include "colour_codes.h"
 
-
-void set_board_colour(unsigned int* pCol_act, typeBoard nBoard)
-{
-    switch (nBoard)
-    {
-    case 1:
-        for(int i = 0; i < 3; i++)
-        {
-        *(pCol_act + i) = col_DMS[i];
-        }
-      break;
-    case 2:
-        for(int i = 0; i < 3; i++)
-        {
-        *(pCol_act + i) = col_IEPE[i];
-        }
-        break;
-    default:
-        break;
-    }
-}
+ //   enum class typeBoard {DMSBoard, IEPEBoard};
 
 
-int main()
-{
 
-    set_board_colour(col_act, typeBoard::DMSBoard);
+    //Colour codes:
 
-    cout << endl << endl;
+    unsigned int col_DMS[3] = {24, 250, 208};
+    unsigned int col_IEPE[3] = {73, 199, 255};
+    
+    //unsigned int col_white[3] = {255, 255, 255};
+    //unsigned int col_red[3] = {255, 0, 0};
+    //actual colour:
+    unsigned int col_act[3] = {0, 0, 0};
 
-    cout << "Die Boardfarbe ist: " << col_act[0] << " " << col_act[1] << " " << col_act[2] << endl;
 
-    cout << endl;
+    //scalar codes:
+
+    unsigned int col_DMS_sca = col_DMS[0]*65536 + col_DMS[1]*256 + col_DMS[2];
+    unsigned int col_IEPE_sca = col_IEPE[0]*65536 + col_IEPE[1]*256 + col_IEPE[2];
+
+    //unsigned int col_white_sca = col_white[0]*65536 + col_white[1]*256 + col_white[2];
+    //unsigned int col_red_sca = col_red[0]*65536 + col_red[1]*256 + col_red[2];
 
 
-    return 0;
-}
+
+
+
+
+
+
+
 
 

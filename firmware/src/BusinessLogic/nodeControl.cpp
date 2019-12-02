@@ -11,6 +11,8 @@ Copyright (c) 2019 Panda Team
 #include "nodeControl.h"
 #include "DataVis.h"
 
+#include "colour_codes.h"
+
 std::shared_ptr<CADmux>  nodeControl::m_pMUX;
 std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 
@@ -32,13 +34,33 @@ void nodeControl::StartDataVis(bool bHow, unsigned long nDelay_mS)
 {
     for(auto &el : m_DataVis) el.Start(bHow, nDelay_mS);
 }
-void nodeControl::BlinkAtStart()
+void nodeControl::Set_board_colour(unsigned int* pCol_act, typeBoard nBoard)
 {
-    m_pLED->SetBlinkMode(false);
-    m_pLED->SetColor(0);
-    m_pLED->ON(true);
+    switch (nBoard)
+    {
+    case typeBoard::DMSBoard:
+        for(int i = 0; i < 3; i++)
+        {
+        *(pCol_act + i) = col_DMS[i];
+        }
+      break;
+    case typeBoard::IEPEBoard:
+        for(int i = 0; i < 3; i++)
+        {
+        *(pCol_act + i) = col_IEPE[i];
+        }
+        break;
+    default:
+        break;
+    }
+}
+void nodeControl::BlinkAtStart(typeBoard boardtype)
+{
+    Set_board_colour(col_act, boardtype);  
 
-    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 2, 300);
+    unsigned int col_act_sca = col_act[0]*65536 + col_act[1]*256 + col_act[2]; 
+
+    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, col_act_sca, 2, 300);
 }
 void nodeControl::on_event(const char *key, nlohmann::json &val) //17.07.2019 now can rec an event
 {
@@ -100,10 +122,10 @@ void nodeControl::StartRecord(const bool how)
 
     //blink: here???
  //   nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 3, 300);
-    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, (255*65536 + 255*256 + 255));
+    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, LEDrgb(255, 255, 255));
 
     //17.07.2019: restart data vis:
-    StartDataVis(true, 1800);
+    StartDataVis(true, 300);
 }
 
 int nodeControl::gain_out(int val)

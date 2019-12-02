@@ -13,6 +13,11 @@ Copyright (c) 2019 Panda Team
 #include "json_evsys.h"
 
 
+//enum class typeADgain: int {gainX1=1, gainX2, gainX4, gainX8};
+//enum class typeDACmode : int {ExtDACs=0, SamAndExtDACs};
+
+enum class typeBoard: int {DMSBoard=0, IEPEBoard};
+
 //this seems to be a "model" in MVC...
 class nodeControl : public std::enable_shared_from_this<nodeControl>, public CJSONEvCP,  public IJSONEvent{
 protected:
@@ -50,9 +55,13 @@ public:
         }
 
         //add data vis: 17.07.2019:
+        //added blinking at start-up 02.12.2019:
         static void CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
         static void StartDataVis(bool bHow, unsigned long nDelay_mS=0);
-        static void BlinkAtStart();
+
+        //enum class typeBoard {DMSBoard, IEPEBoard};
+        static void Set_board_colour(unsigned int* pCol_act, typeBoard nBoard);
+        static void BlinkAtStart(typeBoard boardtype);
 
         static bool IsRecordStarted();
         static void StartRecord(const bool how);
