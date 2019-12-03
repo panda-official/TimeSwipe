@@ -23,6 +23,7 @@ class TimeSwipe {
 public:
     TimeSwipe();
     ~TimeSwipe();
+    TimeSwipe(const TimeSwipe&) = delete;
     /**
      * \brief Setup bridge number
      *
