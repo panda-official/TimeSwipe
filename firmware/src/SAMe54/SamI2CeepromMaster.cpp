@@ -15,69 +15,95 @@ Copyright (c) 2019 Panda Team
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMI2CM(nSercom) &(glob_GetSercomPtr(nSercom)->I2CM) //ptr to a master section
+#define SYNC_BUS(pBus) while(pBus->SYNCBUSY.bit.SYSOP){}
 
 
 CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
 {
-
-    //----------setup PINs: IOSET1 PD08, PD09, PD10----------------
-    //PD08 -> group 3, even, function "C"(PAD1)=0x02: SDL
-    PORT->Group[3].DIRCLR.reg=(1L<<8);
-    PORT->Group[3].OUTSET.reg=(1L<<8);
-    PORT->Group[3].PINCFG[8].bit.PULLEN=1;
-    PORT->Group[3].PMUX[4].bit.PMUXE=0x03;
-    PORT->Group[3].PINCFG[8].bit.PMUXEN=1; //enable
-
-    //PD09 -> group 3, odd, function "C"(PAD0)=0x02:  SDA
-    PORT->Group[3].DIRCLR.reg=(1L<<9);
-    PORT->Group[3].OUTSET.reg=(1L<<9);
-    PORT->Group[3].PINCFG[9].bit.PULLEN=1;
-    PORT->Group[3].PINCFG[9].bit.INEN=1;
-    PORT->Group[3].PMUX[4].bit.PMUXO=0x03;
-    PORT->Group[3].PINCFG[9].bit.PMUXEN=1; //enable
-
-    //tune I2C master:
-    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
-
     CSamSercom::EnableSercomBus(m_nSercom, true);
-
-    //perform a soft reset before use:
-    pI2Cm->CTRLA.bit.SWRST=1;
-    while(pI2Cm->SYNCBUSY.bit.SWRST){}
-    while(pI2Cm->CTRLA.bit.SWRST){}
-
     m_pCLK=CSamCLK::Factory();
 
     //connect:
     ConnectGCLK(m_nSercom, m_pCLK->CLKind());
     m_pCLK->Enable(true);
 
-    //setup I2C master mode:
+    setup_bus();
+}
+
+void CSamI2CeepromMaster::reset_chip_logic()
+{
+    //! disconnecting pins from I2C bus since we cannot use its interface
+
+    PORT->Group[3].PINCFG[8].bit.PMUXEN=0;
+    PORT->Group[3].PINCFG[9].bit.PMUXEN=0;
+
+    //! performing a manual 10-period clock sequence - this will reset a chip
+
+    PORT->Group[3].OUTCLR.reg=(1L<<8);
+    for(int i=0; i<10; i++)
+    {
+        PORT->Group[3].DIRSET.reg=(1L<<8); //should go to 0
+        os::wait(1);
+        PORT->Group[3].DIRCLR.reg=(1L<<8); //back by pull up...
+        os::wait(1);
+    }
+}
+void CSamI2CeepromMaster::setup_bus()
+{
+    //SCL:
+    PORT->Group[3].PMUX[4].bit.PMUXE=0x03;
+    PORT->Group[3].PINCFG[8].bit.PMUXEN=1; //enable
+
+    //SDA:
+    PORT->Group[3].PMUX[4].bit.PMUXO=0x03;
+    PORT->Group[3].PINCFG[9].bit.PMUXEN=1; //enable
+
+    /*! "Violating the protocol may cause the I2C to hang. If this happens it is possible to recover from this
+    *   state by a software Reset (CTRLA.SWRST='1')." page 1026
+    */
+
+    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+    while(pI2Cm->SYNCBUSY.bit.SWRST){}
+    pI2Cm->CTRLA.bit.SWRST=1;
+    while(pI2Cm->CTRLA.bit.SWRST){}
+
+
     pI2Cm->CTRLA.bit.MODE=0x05;
-    //pI2Cm->CTRLA.bit.SCLSM=0; //def
 
     //setup:
-    //pI2Cm->CTRLB.bit.SMEN=1;        //smart mode is enabled
-    pI2Cm->CTRLA.bit.SCLSM=1;
-    pI2Cm->CTRLA.bit.INACTOUT=1; //0x01; //55uS shoud be enough
-    pI2Cm->CTRLB.bit.ACKACT=0; //0x01;   //sending ACK after the bit is received (auto)
+    pI2Cm->CTRLA.bit.INACTOUT=1;  //55uS shoud be enough
+    pI2Cm->CTRLB.bit.ACKACT=0;    //sending ACK after the bit is received (auto)
     pI2Cm->BAUD.bit.BAUD=0xff;
-    pI2Cm->BAUD.bit.BAUDLOW=0 ; //0xFF;
+
+    //! if it was an IRQ mode don't forget to restart it:
+    if(m_bIRQmode)
+    {
+        EnableIRQs(true);
+    }
 
     //enable:
     pI2Cm->CTRLA.bit.ENABLE=1;
 
-    //pI2Cm->STATUS.bit.BUSSTATE=1;
     while(0==pI2Cm->STATUS.bit.BUSSTATE)
     {
+        SYNC_BUS(pI2Cm)
         pI2Cm->STATUS.bit.BUSSTATE=1;
     }
 }
 
-bool CSamI2CeepromMaster::send(CFIFO &msg)  //blocking call
+void CSamI2CeepromMaster::check_reset()
 {
-    return false;
+    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+
+    if(3==pI2Cm->STATUS.bit.BUSSTATE) //chip hangs...
+    {
+        reset_chip_logic();
+        setup_bus();
+    }
 }
+
+
+
 bool CSamI2CeepromMaster::receive(CFIFO &msg) //blocking call
 {
     m_nCurMemAddr=m_nMemAddr;
@@ -99,15 +125,23 @@ void CSamI2CeepromMaster::StartTranfer(bool how)
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
 
+    check_reset(); //! check chip & bus states before transfer, reset if needed
+
     m_IOdir=how;
     m_MState=FSM::start;
+    SYNC_BUS(pI2Cm)
+    pI2Cm->CTRLB.bit.ACKACT=0;      //sets "ACK" action
+    SYNC_BUS(pI2Cm)
     pI2Cm->ADDR.bit.ADDR=m_nDevAddr; //this will initiate a transfer sequence
+
 }
 
 //IRQ handling:
 void CSamI2CeepromMaster::IRQhandler()
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+
+    SYNC_BUS(pI2Cm)
 
     //proc line error first:
     if(pI2Cm->INTFLAG.bit.ERROR) //proc an error: LENERR, SEXTTOUT, MEXTTOUT, LOWTOUT, ARBLOST, and BUSERR
@@ -128,10 +162,9 @@ void CSamI2CeepromMaster::IRQhandler()
             //stop the communication:
             m_MState=errTransfer;
             pI2Cm->CTRLB.bit.CMD=0x3; //stop
-            //pI2Cm->INTFLAG.bit.MB=1;
             return;
             //how the flags will be reset? by a new start?
-            //"This bit is automatically cleared when writing to the ADDR register" (Manual)
+            //!"This bit is automatically cleared when writing to the ADDR register" (Manual)
         }
 
         if(FSM::start==m_MState)
@@ -157,7 +190,7 @@ void CSamI2CeepromMaster::IRQhandler()
             //after setting the addres switch the direction: R or W
             if(m_IOdir) //write
             {
-                //nothing to do
+                //nothing to do, stop:
                 m_MState=FSM::halted;
                 pI2Cm->CTRLB.bit.CMD=0x3; //stop
             }
@@ -179,12 +212,16 @@ void CSamI2CeepromMaster::IRQhandler()
         {
             m_MState=FSM::halted;
             pI2Cm->CTRLB.bit.CMD=0x3; //stop
+            return;
         }
         //read data untill the end
-        else if(writeB(pI2Cm->DATA.bit.DATA)<0) //EOF
+        if(writeB(pI2Cm->DATA.bit.DATA)<0) //EOF
         {
             m_MState=FSM::halted;
+            pI2Cm->CTRLB.bit.ACKACT=1; //setting "NACK" to the chip
+            SYNC_BUS(pI2Cm)
             pI2Cm->CTRLB.bit.CMD=0x3; //stop
+            return;
         }
         pI2Cm->CTRLB.bit.CMD=0x2;
         pI2Cm->INTFLAG.bit.SB=1;
@@ -244,7 +281,7 @@ int CSamI2CeepromMaster::writeB(int val)
     if(!m_pBuf)
         return -1;
 
-    if(m_pBuf->in_avail()>=m_nReadDataCountLim) //memmory protection
+    if(m_pBuf->size()>=m_nReadDataCountLim) //memmory protection
         return -1;
 
     (*m_pBuf)<<val;

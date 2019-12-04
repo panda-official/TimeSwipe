@@ -69,18 +69,19 @@ int main(void)
         auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
         pEEPROM_MemBuf->reserve(1024); //reserve 1kb for an EEPROM data
 
+        //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
+        auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
+        pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
+        pEEPROM_HAT->EnableIRQs(true);
+
         //creating an I2C EEPROM master to operate with an external chip:
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
         pEEPROM_MasterBus->EnableIRQs(true);
 
         //request data from an external chip:
         pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
+        pEEPROM_MasterBus->SetDeviceAddr(0xA0);
         pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
-
-        //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
-        auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
-        pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
-        pEEPROM_HAT->EnableIRQs(true);
         //----------------------------------------------------------
 
 

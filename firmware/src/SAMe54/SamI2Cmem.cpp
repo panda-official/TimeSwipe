@@ -19,16 +19,10 @@ CSamI2Cmem::CSamI2Cmem(typeSamSercoms nSercom) : CSamSercom(nSercom)
 
     CSamSercom::EnableSercomBus(m_nSercom, true);
 
-    //10.11.2019: perform a soft reset before use:
+    //perform a soft reset before use:
     pI2C->CTRLA.bit.SWRST=1;
     while(pI2C->SYNCBUSY.bit.SWRST){}
     while(pI2C->CTRLA.bit.SWRST){}
-
-    m_pCLK=CSamCLK::Factory();
-
-    //connect:
-    ConnectGCLK(m_nSercom, m_pCLK->CLKind());
-    m_pCLK->Enable(true);
 
     //setup slave mode:
     pI2C->CTRLA.bit.MODE=0x04;
@@ -67,6 +61,7 @@ bool CSamI2Cmem::send(CFIFO &msg){ return false;}
 void CSamI2Cmem::IRQhandler()
 {
     SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
+
     if(pI2C->INTFLAG.bit.AMATCH) //adress match
     {
         if(pI2C->STATUS.bit.DIR) //read
@@ -77,6 +72,7 @@ void CSamI2Cmem::IRQhandler()
         {
             m_MState=FSM::addrHb;
         }
+        pI2C->CTRLB.bit.ACKACT=0; //ackact;
         pI2C->CTRLB.bit.CMD=3;
         return;
     }
@@ -84,7 +80,25 @@ void CSamI2Cmem::IRQhandler()
     {
         if(FSM::read==m_MState)
         {
-            pI2C->DATA.reg=readB(); return;
+            /*!
+             *   check if NACK is received:
+             *   SAME54 manual, page 1036:
+             *   "If NACK is
+             *   received, indicated by STATUS.RXNACK=1, the I2C slave must expect a stop or a repeated start to be
+             *   received. The I2C slave must release the data line to allow the I2C master to generate a stop or repeated
+             *   start"
+             *
+             */
+            if(pI2C->STATUS.bit.RXNACK && !pI2C->STATUS.bit.SR) //! check RXNACK only when it is not repeated start
+            {
+                m_MState=FSM::halted;
+                pI2C->CTRLB.bit.CMD=2;
+            }
+            else
+            {
+                pI2C->DATA.reg=readB();
+            }
+            return;
         }
         if(FSM::addrHb==m_MState)
         {
@@ -92,11 +106,16 @@ void CSamI2Cmem::IRQhandler()
             m_MState=FSM::addrLb;
             return;
         }
-        //else //if(FSM::addrLb==m_MState)
+        if(FSM::addrLb==m_MState)
         {
             set_addr_L(pI2C->DATA.reg);
-            m_MState=FSM::write;
+            m_MState=FSM::waiting_rs;
+            return;
         }
+
+        pI2C->CTRLB.bit.ACKACT=1; //generate nack (writing is not allowed!)
+        pI2C->CTRLB.bit.CMD=2;
+        m_MState=FSM::halted;
 
     }
     if(pI2C->INTFLAG.bit.ERROR)
@@ -137,7 +156,6 @@ void CSamI2Cmem::EnableIRQs(bool how)
     if(how)
     {
         pI2C->INTENSET.reg=(SERCOM_I2CS_INTENSET_PREC|SERCOM_I2CS_INTENSET_AMATCH|SERCOM_I2CS_INTENSET_DRDY|SERCOM_I2CS_INTENSET_ERROR);
-        //pI2C->INTENSET.reg=(SERCOM_I2CS_INTENSET_PREC|SERCOM_I2CS_INTENSET_DRDY|SERCOM_I2CS_INTENSET_ERROR);
     }
     else
     {
