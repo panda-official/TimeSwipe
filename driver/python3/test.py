@@ -1,9 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import timeswipe
 import time
 import json
 import sys
 import signal
+
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 import optparse
 
@@ -42,7 +45,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 def process(records, errors):
     if errors:
-        print >> sys.stderr, "errors: ", errors
+        print_err("errors: ", errors)
     for record in records:
         print('\t'.join([str(int(x)) for x in record]))
     if len(records) == 0 and errors==0:

@@ -69,11 +69,6 @@ install(TARGETS timeswipe
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-set(Boost_ARCHITECTURE "armhf")
-find_package(Boost COMPONENTS python REQUIRED)
-
-target_link_libraries(timeswipe ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} atomic)
-
 configure_file(contrib/timeswipe.pc.in timeswipe.pc @ONLY)
 configure_file(contrib/DEBIAN/control.in DEBIAN/control @ONLY)
 configure_file(contrib/arch/PKGBUILD.in PKGBUILD @ONLY)

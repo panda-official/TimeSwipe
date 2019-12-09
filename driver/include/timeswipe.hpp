@@ -132,7 +132,7 @@ public:
     /**
      * \brief Register callback for button pressed/released
      *
-     * onButton must be called before ref @Start called, otherwise register fails
+     * onButton must be called before @ref Start called, otherwise register fails
      *
      * @param cb callback called with true when button pressed and with false when button released
      * @return false if register callback failed, true otherwise
@@ -143,7 +143,7 @@ public:
     /**
      * \brief Register error callback
      *
-     * onError must be called before ref @Start called, otherwise register fails
+     * onError must be called before @ref Start called, otherwise register fails
      *
      * @param cb callback called once read error occurred
      * @return false if register callback failed, true otherwise
