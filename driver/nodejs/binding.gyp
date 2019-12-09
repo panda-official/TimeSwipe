@@ -11,7 +11,6 @@
         ],
         'libraries': [
             "/usr/lib/libtimeswipe.so",
-            "/usr/lib/python2.7/config-arm-linux-gnueabihf/libpython2.7.so"
         ],
         'dependencies': [
             "<!(node -p \"require('node-addon-api').gyp\")"

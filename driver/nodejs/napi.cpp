@@ -14,7 +14,13 @@ private:
     void SetSensorOffsetsWrap(const Napi::CallbackInfo& info);
     void SetSensorGainsWrap(const Napi::CallbackInfo& info);
     void SetSensorTransmissionsWrap(const Napi::CallbackInfo& info);
-    void StartWrap(const Napi::CallbackInfo& info); //TODO: bool
+    void SetSecondaryWrap(const Napi::CallbackInfo& info);
+    Napi::Value StartWrap(const Napi::CallbackInfo& info);
+    Napi::Value SetSettingsWrap(const Napi::CallbackInfo& info);
+    Napi::Value GetSettingsWrap(const Napi::CallbackInfo& info);
+    Napi::Value onButtonWrap(const Napi::CallbackInfo& info);
+    Napi::Value onErrorWrap(const Napi::CallbackInfo& info);
+    Napi::Value StopWrap(const Napi::CallbackInfo& info);
 };
 
 Napi::FunctionReference TimeSwipeNAPI::constructor;
@@ -30,7 +36,13 @@ Napi::Object TimeSwipeNAPI::Init(Napi::Env env, Napi::Object exports) {
                   InstanceMethod("SetSensorOffsets", &TimeSwipeNAPI::SetSensorOffsetsWrap),
                   InstanceMethod("SetSensorGains", &TimeSwipeNAPI::SetSensorGainsWrap),
                   InstanceMethod("SetSensorTransmissions", &TimeSwipeNAPI::SetSensorTransmissionsWrap),
-                  InstanceMethod("Start", &TimeSwipeNAPI::StartWrap)
+                  InstanceMethod("SetSecondary", &TimeSwipeNAPI::SetSecondaryWrap),
+                  InstanceMethod("Start", &TimeSwipeNAPI::StartWrap),
+                  InstanceMethod("SetSettings", &TimeSwipeNAPI::SetSecondaryWrap),
+                  InstanceMethod("GetSettings", &TimeSwipeNAPI::GetSettingsWrap),
+                  InstanceMethod("onButton", &TimeSwipeNAPI::onButtonWrap),
+                  InstanceMethod("onError", &TimeSwipeNAPI::onErrorWrap),
+                  InstanceMethod("Stop", &TimeSwipeNAPI::StopWrap),
                   });
 
   constructor = Napi::Persistent(func);
@@ -111,7 +123,21 @@ void TimeSwipeNAPI::SetSensorTransmissionsWrap(const Napi::CallbackInfo& info) {
   this->SetSensorTransmissions(value0.DoubleValue(), value1.DoubleValue(), value2.DoubleValue(), value3.DoubleValue());
 }
 
-void TimeSwipeNAPI::StartWrap(const Napi::CallbackInfo& info) {
+void TimeSwipeNAPI::SetSecondaryWrap(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  int length = info.Length();
+
+  if (length <= 0 || !info[0].IsNumber()) {
+    Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+  }
+
+  Napi::Number value = info[0].As<Napi::Number>();
+  this->SetSecondary(value);
+}
+
+Napi::Value TimeSwipeNAPI::StartWrap(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
@@ -123,19 +149,108 @@ void TimeSwipeNAPI::StartWrap(const Napi::CallbackInfo& info) {
 
   Napi::Function cb = info[0].As<Napi::Function>();
 
-  this->Start([this, cb, env](std::vector<Record> records, uint64_t errors) {
+  auto res = this->Start([this, cb, env](std::vector<Record> records, uint64_t errors) {
       auto arr = Napi::Array::New(env, records.size());
       unsigned i = 0;
       for (const auto& r: records) {
           auto rec = Napi::Array::New(env, 4);
-          for (unsigned j = 0; j < 4; j++)
+          for (unsigned j = 0; j < 4; j++) {
             rec[j] = Napi::Number::New(env, r.Sensors[j]);
+          }
           arr[i++] = rec;
       }
-      printf("calling arr: %u errors: %lu\n", arr.Length(), errors);fflush(stdout);
       cb.Call(env.Global(), {arr, Napi::Number::New(env, errors)});
   });
+  return Napi::Boolean::New(env, res);
 }
+
+Napi::Value TimeSwipeNAPI::SetSettingsWrap(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    int length = info.Length();
+
+    if (length <= 0 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "String expected").ThrowAsJavaScriptException();
+    }
+
+    auto value = info[0].As<Napi::String>();
+    std::string err;
+    auto resp = this->SetSettings(value, err);
+    auto arr = Napi::Array::New(env, 2);
+    arr[0u] = resp;
+    arr[1u] = err;
+    return arr;
+}
+
+Napi::Value TimeSwipeNAPI::GetSettingsWrap(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    int length = info.Length();
+
+    if (length <= 0 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "String expected").ThrowAsJavaScriptException();
+    }
+
+    auto value = info[0].As<Napi::String>();
+    std::string err;
+    auto resp = this->GetSettings(value, err);
+    auto arr = Napi::Array::New(env, 2);
+    arr[0u] = resp;
+    arr[1u] = err;
+    return arr;
+}
+
+Napi::Value TimeSwipeNAPI::onButtonWrap(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  int length = info.Length();
+
+  if (length <= 0 || !info[0].IsFunction()) {
+    Napi::TypeError::New(env, "Function expected").ThrowAsJavaScriptException();
+  }
+
+  Napi::Function cb = info[0].As<Napi::Function>();
+
+  auto res = this->onButton([this, cb, env](bool pressed, unsigned counter) {
+      auto arr = Napi::Array::New(env, 2);
+      arr[0u] = pressed;
+      arr[0u] = counter;
+      cb.Call(env.Global(), {arr});
+  });
+  return Napi::Boolean::New(env, res);
+}
+
+Napi::Value TimeSwipeNAPI::onErrorWrap(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  int length = info.Length();
+
+  if (length <= 0 || !info[0].IsFunction()) {
+    Napi::TypeError::New(env, "Function expected").ThrowAsJavaScriptException();
+  }
+
+  Napi::Function cb = info[0].As<Napi::Function>();
+
+  auto res = this->onError([this, cb, env](uint64_t errors) {
+      auto arr = Napi::Array::New(env, 1);
+      arr[0u] = errors;
+      cb.Call(env.Global(), {arr});
+  });
+  return Napi::Boolean::New(env, res);
+}
+
+Napi::Value TimeSwipeNAPI::StopWrap(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  auto res = this->Stop();
+  return Napi::Boolean::New(env, res);
+}
+
 
 Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
   return TimeSwipeNAPI::Init(env, exports);

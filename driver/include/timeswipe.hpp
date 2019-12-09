@@ -128,13 +128,13 @@ public:
      */
     std::string GetSettings(const std::string& request, std::string& error);
 
-    using OnButtonCallback = std::function<void(bool)>;
+    using OnButtonCallback = std::function<void(bool, unsigned)>;
     /**
      * \brief Register callback for button pressed/released
      *
      * onButton must be called before @ref Start called, otherwise register fails
      *
-     * @param cb callback called with true when button pressed and with false when button released
+     * @param cb callback called with true when button pressed and with false when button released, button counter (odd - pressed, even - released)
      * @return false if register callback failed, true otherwise
      */
     bool onButton(OnButtonCallback cb);

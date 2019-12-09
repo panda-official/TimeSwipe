@@ -1,6 +1,6 @@
 {
   "name": "timeswipe",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "TimeSwipe js NAPI",
   "main": "index.js",
   "gypfile": true,
