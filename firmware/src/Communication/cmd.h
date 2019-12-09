@@ -30,16 +30,34 @@ Copyright (c) 2019 Panda Team
 /*!
 *   @brief A uniform command request descriptor.
 *
+*   @details The processing of all incoming command requests is realized by a CCmdDispatcher
+*   object instance. The port object instance that implements the current communication protocol (simple text, binary/specific)
+*   transforms an incoming request from a protocol depended form to an uniform request described by CCmdCallDescr class
+*   where command name in a string format (if presented) its hash value,  pointers to input/output streams and other service
+*   information are stored. Then a port that holds a pointer to the CCmdDispatcher calls  CCmdDispatcher methode "Call" with
+*   CCmdCallDescr as a parameter. CCmdDispatcher process the incoming request by finding specific command handler
+*   in its internal map and invoking the handler. The call result is stored in the same CCmdCallDescr parameter and
+*   hence it is further accesible by a port.
+*   By adding number of different port instances several communication protocols can be implemented at once.
+*
 */
 
 struct CCmdCallDescr
 {
-    std::string     m_strCommand;   //!the command string name
-    int             m_hashCommand;  //!the command hash value
-    unsigned int    m_nCmdIndex;    //!the command index (zero-based)
+    //!the command in a string format
+    std::string     m_strCommand;
 
-    CFrmStream    *m_pIn=nullptr;   //!input stream: to fetch function/methode input arguments
-    CFrmStream    *m_pOut=nullptr;  //!output stream: to store function/methodes output arguments or return value
+    //!a hash value of the command string
+    int             m_hashCommand;
+
+    //!a zero based index of the command
+    unsigned int    m_nCmdIndex;
+
+    //!input stream: to fetch function/methode input arguments
+    CFrmStream    *m_pIn=nullptr;
+
+    //!output stream: to store function/methodes output arguments or return value
+    CFrmStream    *m_pOut=nullptr;
 
     //!command handler invocation result ("call result"=cres)
     enum cres :int {
@@ -60,15 +78,16 @@ struct CCmdCallDescr
 
     }m_ctype=ctGet;
 
-    //!how to dispatch an invocation? by command string name, hash value or index?
+    //!how to dispatch an invocation? by a command in a string format, its hash value or index?
     enum cmethod :int {
 
-        byCmdName=1,        //!<by a command string name (using m_strCommand)
-        byCmdHash=2,        //!<by a command hash value  (using m_hashCommand)
-        byCmdIndex=4        //!<by a command zero-based index (using m_nCmdIndex)
+        byCmdName=1,        //!<by a command in a string format (using m_strCommand)
+        byCmdHash=2,        //!<by a command's hash value  (using m_hashCommand)
+        byCmdIndex=4        //!<by a command's zero-based index (using m_nCmdIndex)
     }m_cmethod=byCmdName;
 
-    bool m_bThrowExcptOnErr=false; //! if true, throw an exception CCmdException instead of returning cres
+    //! if true, throw an exception CCmdException instead of returning cres
+    bool m_bThrowExcptOnErr=false;
 
 
 };
