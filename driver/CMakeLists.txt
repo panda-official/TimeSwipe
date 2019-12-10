@@ -58,6 +58,7 @@ target_include_directories(timeswipe PRIVATE include)
 set_target_properties(timeswipe PROPERTIES CXX_STANDARD 17)
 endif ()
 
+target_link_libraries(timeswipe atomic)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 else ()
