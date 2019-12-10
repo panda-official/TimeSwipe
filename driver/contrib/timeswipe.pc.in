@@ -8,5 +8,5 @@ Description: @PROJECT_DESCRIPTION@
 Version: @PROJECT_VERSION@
 
 Requires:
-Libs: -L${libdir} -ltimeswipe -lpthread -latomic
+Libs: -L${libdir} -ltimeswipe -lpthread -latomic -lboost_python.so
 Cflags: -I${includedir}

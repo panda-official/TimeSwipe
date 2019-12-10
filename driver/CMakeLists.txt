@@ -28,6 +28,7 @@ SET(CMAKE_INSTALL_LIBDIR lib)
 
 include(GNUInstallDirs)
 
+
 SET(SRC
     src/timeswipe.cpp
     src/board_iface.cpp
@@ -41,7 +42,7 @@ add_library(timeswipeStatic STATIC ${SRC})
 set_target_properties(timeswipeStatic PROPERTIES OUTPUT_NAME "timeswipe")
 set_target_properties(timeswipeStatic PROPERTIES PUBLIC_HEADER include/timeswipe.hpp)
 set_target_properties(timeswipeStatic PROPERTIES VERSION ${PROJECT_VERSION})
-SET(timeswipe_include_dirs src src/RaspberryPi src/Interfaces src/Communication 3rdParty 3rdParty/BCMsrc)
+SET(timeswipe_include_dirs src src/RaspberryPi src/Interfaces src/Communication 3rdParty 3rdParty/BCMsrc "/usr/include/python2.7/")
 target_include_directories(timeswipeStatic PRIVATE ${timeswipe_include_dirs})
 target_include_directories(timeswipeStatic PRIVATE include)
 set_target_properties(timeswipeStatic PROPERTIES CXX_STANDARD 17)

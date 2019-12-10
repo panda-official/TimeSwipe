@@ -17,8 +17,8 @@ public:
     void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
     void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
     bool Start(TimeSwipe::ReadCallback);
-    bool onButton(std::function<void(bool)> cb);
-    bool onError(std::function<void(uint64_t)> cb);
+    bool onButton(TimeSwipe::OnButtonCallback cb);
+    bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
 private:
@@ -136,6 +136,10 @@ std::string TimeSwipeImpl::Settings(uint8_t set_or_get, const std::string& reque
     _inSPI.push(std::make_pair(set_or_get, request));
     std::pair<std::string,std::string> resp;
 
+    if (!_fetcherWork) {
+        _processSPIRequests();
+    }
+
     while (!_outSPI.pop(resp)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
@@ -154,7 +158,7 @@ void TimeSwipeImpl::_receiveEvents(const std::chrono::steady_clock::time_point& 
         _lastButtonCheck = now;
         auto event = readBoardEvents();
         if (event.button && onButtonCb) {
-            onButtonCb(event.buttonCounter % 2);
+            onButtonCb(event.buttonCounter % 2, event.buttonCounter);
         }
     }
 }

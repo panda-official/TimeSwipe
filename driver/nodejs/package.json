@@ -1,0 +1,21 @@
+{
+  "name": "timeswipe",
+  "version": "0.0.3",
+  "description": "TimeSwipe js NAPI",
+  "main": "index.js",
+  "gypfile": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean"
+  },
+  "author": "Ilya Gavrilov",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "node-gyp": "^6.0.1"
+  },
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^2.0.0"
+  }
+}
