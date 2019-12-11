@@ -47,7 +47,7 @@ def process(records, errors):
     if errors:
         print_err("errors: ", errors)
     for record in records:
-        print('\t'.join([str(int(x)) for x in record]))
+        print('\t'.join([str(int(x)) for x in record.sensors]))
     if len(records) == 0 and errors==0:
         time.sleep(1.0/100)
 
