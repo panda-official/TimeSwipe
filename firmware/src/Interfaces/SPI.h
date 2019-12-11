@@ -9,7 +9,7 @@ Copyright (c) 2019 Panda Team
 
 /*!
 *   @file
-*   @brief A definition file for SPI(Serial Pheriferial Interface) CSPI class - basic class for all SPI devices
+*   @brief A definition file for SPI(Serial Peripheral Interface) CSPI class - basic class for all SPI devices
 *
 */
 
