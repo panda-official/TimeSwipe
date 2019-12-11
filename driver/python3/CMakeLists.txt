@@ -21,7 +21,7 @@ endif ()
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(PYTHON3 REQUIRED python3)
-target_include_directories(timeswipe_py PRIVATE ${PYTHON3_INCLUDE_DIRS})
+target_include_directories(timeswipe_py PRIVATE ${PYTHON3_INCLUDE_DIRS} src)
 
 target_link_libraries(timeswipe_py timeswipe ${Boost_LIBRARIES} ${PYTHON3_LIBRARIES})
 

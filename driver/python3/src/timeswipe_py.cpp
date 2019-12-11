@@ -1,40 +1,29 @@
 #include <vector>
 #include "timeswipe.hpp"
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include "array_indexing_suite.h"
 #include <iostream>
 
-template<class T>
-struct VecToList
+bool operator== (const Record &r1, const Record &r2)
 {
-    static PyObject* convert(const std::vector<T>& vec)
-    {
-        boost::python::list* l = new boost::python::list();
-        for(size_t i = 0; i < vec.size(); i++) {
-            l->append(vec[i]);
-        }
+    return r1.Sensors == r2.Sensors;
+}
 
-        return l->ptr();
-    }
-};
-
-struct RecordToList
-{
-    static PyObject* convert(const Record& rec)
-    {
-        boost::python::list* l = new boost::python::list();
-        for(size_t i = 0; i < rec.Sensors.size(); i++) {
-            l->append(rec.Sensors[i]);
-        }
-
-        return l->ptr();
-    }
-};
+template <class T, class M> M get_member_type(M T:: *);
+#define GET_TYPE_OF(mem) decltype(get_member_type(mem))
 
 BOOST_PYTHON_MODULE(timeswipe)
 {
-    boost::python::to_python_converter<Record, RecordToList>();
+    using namespace boost::python;
+    boost::python::class_<Record>("Record").add_property("sensors", &Record::Sensors 
+            //,boost::python::return_value_policy<boost::python::return_by_value>()
+            );
+    boost::python::class_<std::vector<Record>>("RecordList")
+        .def(boost::python::vector_indexing_suite<std::vector<Record>>());
+    boost::python::class_<GET_TYPE_OF(&Record::Sensors)>("Sensor")
+        .def(array_indexing_suite<GET_TYPE_OF(&Record::Sensors)>()) ;
 
-    boost::python::to_python_converter<std::vector<Record, std::allocator<Record> >, VecToList<Record> >();
     boost::python::class_<TimeSwipe, boost::noncopyable>("TimeSwipe")
         .def("SetBridge", &TimeSwipe::SetBridge,
                 "Setup bridge number. It is mandatory to setup the bridge before Start")

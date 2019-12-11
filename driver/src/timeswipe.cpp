@@ -89,7 +89,8 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
 
     _startFetcher();
 
-    while (true)
+    //while (true) // wait for all captured data read
+    while (_fetcherWork) // exit immidiately after Stop
     {
         std::vector<Record> empty;
         std::vector<Record> records[4096];
@@ -101,6 +102,8 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
         if (errors && onErrorCb) onErrorCb(errors);
         cb(std::move(records[0]), errors);
 
+        // Exit on stop: read data first
+        if (num == 0 && !_fetcherWork) break;
     }
 
     return true;

@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.9)
 
 add_definitions(-O3)
-SET(CMAKE_C_FLAGS "-lpthread -O3")
-SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3")
+SET(CMAKE_C_FLAGS "-lpthread -O3 -Wall")
+SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3 -Wall")
 
 file (STRINGS "version" BUILD_NUMBER)
 project(timeswipe VERSION ${BUILD_NUMBER} DESCRIPTION "timeswipe driver")
@@ -62,8 +62,8 @@ target_link_libraries(timeswipe atomic)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 else ()
-SET(CMAKE_C_FLAGS "-lpthread -O3 -fPIC")
-SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3 -fPIC -std=gnu++17")
+SET(CMAKE_C_FLAGS "-lpthread -O3 -fPIC -Wall")
+SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3 -fPIC -std=gnu++17 -Wall")
 SET(CMAKE_INSTALL_PREFIX "/usr")
 install(TARGETS timeswipe
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
