@@ -1,4 +1,0 @@
-<map id="CSamI2CeepromMaster::SetDataAddrAndCountLim" name="CSamI2CeepromMaster::SetDataAddrAndCountLim">
-<area shape="rect" id="node2" href="$class_c_sam_i2_ceeprom_master.html#aa8d65d5d32cbd8697496806343707d57" title="CSamI2CeepromMaster\l::EnableIRQs" alt="" coords="237,5,400,47"/>
-<area shape="rect" id="node3" href="$class_c_sam_sercom.html#a35634ff26d7b948d78e67ea5273277a3" title="CSamSercom::EnableIRQ" alt="" coords="448,13,624,39"/>
-</map>

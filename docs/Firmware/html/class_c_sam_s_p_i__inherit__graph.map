@@ -1,8 +1,0 @@
-<map id="CSamSPI" name="CSamSPI">
-<area shape="rect" id="node6" href="$class_c_sam_s_p_isc2.html" title="CSamSPIsc2" alt="" coords="5,304,108,331"/>
-<area shape="rect" id="node7" href="$class_c_sam_s_p_isc7.html" title="CSamSPIsc7" alt="" coords="132,304,235,331"/>
-<area shape="rect" id="node2" href="$class_c_sam_sercom.html" title="CSamSercom" alt="" coords="15,155,119,181"/>
-<area shape="rect" id="node3" href="$class_c_serial.html" title="The basic class for all serial devices. " alt="" coords="51,80,116,107"/>
-<area shape="rect" id="node4" href="$struct_i_serial.html" title="Basic serial communication interface. " alt="" coords="93,5,151,32"/>
-<area shape="rect" id="node5" href="$class_c_s_p_i.html" title="The basic class for SPI devices. " alt="" coords="144,155,199,181"/>
-</map>

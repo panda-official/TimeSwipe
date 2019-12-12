@@ -1,8 +1,0 @@
-<map id="CCalMan::IsStarted" name="CCalMan::IsStarted">
-<area shape="rect" id="node2" href="$class_c_cal_man.html#aa3964aa69062454a3457f67f296fd4dc" title="CCalMan::Start" alt="" coords="199,25,312,52"/>
-<area shape="rect" id="node5" href="$class_c_cal_man.html#a5185f826be06d6702f95805e0fe2ee5b" title="CCalMan::StopReset" alt="" coords="367,126,513,153"/>
-<area shape="rect" id="node6" href="$class_c_cal_man.html#a0b16cd39a0e889deebd81a274307da93" title="CCalMan::Update" alt="" coords="192,76,319,102"/>
-<area shape="rect" id="node3" href="$class_c_j_s_o_n_ev_c_p.html#a6eff77fadfb045c28152d72093c64931" title="CJSONEvCP::Fire_on\l_event" alt="" coords="561,43,716,84"/>
-<area shape="rect" id="node4" href="$namespaceos.html#ac04ca6031e6d83a4060b575554d21a59" title="os::get_tick_mS" alt="" coords="381,25,499,52"/>
-<area shape="rect" id="node7" href="$node_l_e_d_8h.html#a6960c4257b818467b06f17a20c16ae69" title="LEDrgb" alt="" coords="407,76,473,102"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="CSamSPI::CSamSPI" name="CSamSPI::CSamSPI">
-<area shape="rect" id="node2" href="$class_c_sam_sercom.html#ad0c5ac7a4032767a33559c47d7800055" title="CSamSercom::EnableSercomBus" alt="" coords="201,5,421,32"/>
-<area shape="rect" id="node3" href="$class_c_sam_c_l_k.html#a27c5f353fe168fa8ad5e587bf8af8731" title="CSamCLK::Factory" alt="" coords="243,56,380,83"/>
-<area shape="rect" id="node6" href="$class_c_sam_sercom.html#a629305a694be030b3fff4416ce786c07" title="CSamSercom::ConnectGCLK" alt="" coords="213,107,410,133"/>
-<area shape="rect" id="node4" href="$class_c_sam_c_l_k.html#a4c4a28047e5ae931b17e3dc291d51407" title="CSamCLK::CSamCLK" alt="" coords="469,31,625,57"/>
-<area shape="rect" id="node5" href="$class_c_sam_c_l_k.html#ae35a929bb3e980852deca9e5709710ae" title="CSamCLK::WaitSync" alt="" coords="472,81,623,108"/>
-</map>

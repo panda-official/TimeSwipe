@@ -1,6 +1,0 @@
-<map id="CDac5715sa::DriverSetVal" name="CDac5715sa::DriverSetVal">
-<area shape="rect" id="node2" href="$class_c_s_p_i.html#af76804385ef36a726ebea57753f35db7" title="setup phase &amp; polarity " alt="" coords="253,5,371,32"/>
-<area shape="rect" id="node3" href="$class_c_s_p_i.html#a70e0c03f2e36d4214965175e61f548af" title="setup the bus timing profile —minimal time to HOLD CS HIGH—___delay in between transfers___—delay ..." alt="" coords="233,56,391,83"/>
-<area shape="rect" id="node4" href="$class_c_s_p_i.html#a525e73f7d6e900c421cef3cf8b098373" title="setup baudrate divisor " alt="" coords="243,107,381,133"/>
-<area shape="rect" id="node5" href="$class_c_s_p_i.html#ad13ba3d1c75d1078a1160434bd3fdcda" title="send a serial message to this class object " alt="" coords="267,157,357,184"/>
-</map>

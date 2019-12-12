@@ -1,9 +1,0 @@
-<map id="CSamI2CeepromMaster::StartTranfer" name="CSamI2CeepromMaster::StartTranfer">
-<area shape="rect" id="node2" href="$class_c_sam_i2_ceeprom_master.html#a7fff897bfc0cbbf39c9cedefa1d26b2a" title="check_reset: check bus state and perfom a chip reset/bus reinit if needed. " alt="" coords="216,39,379,80"/>
-<area shape="rect" id="node3" href="$class_c_sam_i2_ceeprom_master.html#ad3f86613013402646c63537891273e1c" title="reset_chip_logic: reset EEPROM chip logic if it hangs and makes the bus busy " alt="" coords="427,5,589,47"/>
-<area shape="rect" id="node6" href="$class_c_sam_i2_ceeprom_master.html#a6635b4312ef72614078ecb26015e6801" title="setup_bus: initial bus setup(pinout, modes, speed with an initial reset) " alt="" coords="427,71,589,112"/>
-<area shape="rect" id="node4" href="$namespaceos.html#a2e2bfbffa4537332ce427b71b76338ed" title="os::wait" alt="" coords="685,13,753,39"/>
-<area shape="rect" id="node5" href="$namespaceos.html#ac04ca6031e6d83a4060b575554d21a59" title="os::get_tick_mS" alt="" coords="877,13,995,39"/>
-<area shape="rect" id="node7" href="$class_c_sam_i2_ceeprom_master.html#aa8d65d5d32cbd8697496806343707d57" title="CSamI2CeepromMaster\l::EnableIRQs" alt="" coords="637,71,800,112"/>
-<area shape="rect" id="node8" href="$class_c_sam_sercom.html#a35634ff26d7b948d78e67ea5273277a3" title="CSamSercom::EnableIRQ" alt="" coords="848,78,1024,105"/>
-</map>

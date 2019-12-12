@@ -1,4 +1,0 @@
-<map id="CSamI2CeepromMaster::reset_chip_logic" name="CSamI2CeepromMaster::reset_chip_logic">
-<area shape="rect" id="node2" href="$namespaceos.html#a2e2bfbffa4537332ce427b71b76338ed" title="os::wait" alt="" coords="216,13,284,39"/>
-<area shape="rect" id="node3" href="$namespaceos.html#ac04ca6031e6d83a4060b575554d21a59" title="os::get_tick_mS" alt="" coords="332,13,449,39"/>
-</map>

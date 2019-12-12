@@ -1,6 +1,0 @@
-<map id="CSamI2CeepromMaster" name="CSamI2CeepromMaster">
-<area shape="rect" id="node2" href="$class_c_sam_sercom.html" title="CSamSercom" alt="" coords="5,157,109,184"/>
-<area shape="rect" id="node3" href="$class_c_serial.html" title="The basic class for all serial devices. " alt="" coords="25,81,90,108"/>
-<area shape="rect" id="node4" href="$struct_i_serial.html" title="Basic serial communication interface. " alt="" coords="28,5,87,32"/>
-<area shape="rect" id="node5" href="$class_c_f_i_f_o.html" title="The First&#45;In&#45;First&#45;Out bufer implementation. " alt="" coords="134,157,197,184"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="CSamI2Cmem" name="CSamI2Cmem">
-<area shape="rect" id="node2" href="$class_c_sam_sercom.html" title="CSamSercom" alt="" coords="8,155,112,181"/>
-<area shape="rect" id="node3" href="$class_c_serial.html" title="The basic class for all serial devices. " alt="" coords="27,80,93,107"/>
-<area shape="rect" id="node4" href="$struct_i_serial.html" title="Basic serial communication interface. " alt="" coords="31,5,89,32"/>
-</map>

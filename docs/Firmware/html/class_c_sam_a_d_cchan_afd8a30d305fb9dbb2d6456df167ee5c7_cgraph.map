@@ -1,6 +1,0 @@
-<map id="CSamADCchan::SetRawBinVal" name="CSamADCchan::SetRawBinVal">
-<area shape="rect" id="node2" href="$class_c_sam_a_d_cchan.html#a5c40331073038b43bfe66af72c320538" title="CSamADCchan::data_age" alt="" coords="263,5,440,32"/>
-<area shape="rect" id="node3" href="$namespaceos.html#ac04ca6031e6d83a4060b575554d21a59" title="os::get_tick_mS" alt="" coords="522,31,639,57"/>
-<area shape="rect" id="node4" href="$class_c_a_dchan.html#aca308eff7a2ae8c654d35ced02449da5" title="CADchan::SetRawBinVal" alt="" coords="265,107,437,133"/>
-<area shape="rect" id="node5" href="$class_c_a_dchan.html#ae11c55f6f1d95316c24e26139bb926d1" title="CADchan::RawBinary2Real" alt="" coords="488,107,673,133"/>
-</map>

@@ -1,8 +1,0 @@
-<map id="CMenuLogic::select_menu" name="CMenuLogic::select_menu">
-<area shape="rect" id="node2" href="$class_c_j_s_o_n_ev_c_p.html#a6eff77fadfb045c28152d72093c64931" title="CJSONEvCP::Fire_on\l_event" alt="" coords="244,15,399,57"/>
-<area shape="rect" id="node3" href="$class_c_menu_logic.html#a501722bc332eab4e725424e373dce412" title="CMenuLogic::update_menu" alt="" coords="231,81,412,108"/>
-<area shape="rect" id="node4" href="$classnode_l_e_d.html#a7a2ee11da128449f814e12dbac8b6255" title="nodeLED::selectLED" alt="" coords="474,5,619,32"/>
-<area shape="rect" id="node5" href="$classnode_control.html#aed1deeabaca8cb722ebf72fd6e77799d" title="nodeControl::GetGain" alt="" coords="473,56,621,83"/>
-<area shape="rect" id="node6" href="$classnode_control.html#a856b5dab4e2d4e9da798da1e0851163f" title="nodeControl::GetBridge" alt="" coords="467,107,626,133"/>
-<area shape="rect" id="node7" href="$classnode_l_e_d.html#a9303919a541e30db70fa69ffaab49325" title="nodeLED::setMultipleLED" alt="" coords="460,157,633,184"/>
-</map>

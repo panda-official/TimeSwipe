@@ -1,6 +1,0 @@
-<map id="CJSONEvDispatcher::on_event" name="CJSONEvDispatcher::on_event">
-<area shape="rect" id="node2" href="$class_c_j_s_o_n_ev_dispatcher.html#a17e6a03bad861dca94312dd2a0d4b934" title="CJSONEvDispatcher::\lIsEventFlagRaised" alt="" coords="208,5,363,47"/>
-<area shape="rect" id="node4" href="$class_c_j_s_o_n_ev_dispatcher.html#abd2b7681c4a6824a9198411d1f5d4be5" title="CJSONEvDispatcher::\lRaiseEventFlag" alt="" coords="208,71,363,112"/>
-<area shape="rect" id="node3" href="$struct_i_j_s_o_n_event.html#a6626a7aad518970db37e2bdf9c7230ed" title="IJSONEvent::on_event" alt="" coords="411,13,568,39"/>
-<area shape="rect" id="node5" href="$namespaceos.html#ac04ca6031e6d83a4060b575554d21a59" title="os::get_tick_mS" alt="" coords="431,78,548,105"/>
-</map>

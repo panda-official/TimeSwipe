@@ -1,6 +1,0 @@
-<map id="src/Board/I2Cmem8Pin.h" name="src/Board/I2Cmem8Pin.h">
-<area shape="rect" id="node2" href="$_sam_i2_cmem_8h.html" title="SamI2Cmem.h" alt="" coords="62,80,173,107"/>
-<area shape="rect" id="node3" href="$_sam_sercom_8h.html" title="SamSercom.h" alt="" coords="65,155,170,181"/>
-<area shape="rect" id="node4" href="$_serial_8h.html" title="A definition file for basic serial data types and interfaces: CFIFO, ISerial, ISerialEvent, CSerial. " alt="" coords="33,229,100,256"/>
-<area shape="rect" id="node7" href="$_sam_c_l_k_8h.html" title="SamCLK.h" alt="" coords="125,229,211,256"/>
-</map>

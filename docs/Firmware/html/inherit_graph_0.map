@@ -1,8 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$class_c_a_dchan.html" title="CADchan" alt="" coords="5,31,84,57"/>
-<area shape="rect" id="node2" href="$class_c_adc.html" title="CAdc" alt="" coords="133,5,187,32"/>
-<area shape="rect" id="node4" href="$class_c_dac.html" title="CDac" alt="" coords="132,56,188,83"/>
-<area shape="rect" id="node3" href="$class_c_sam_a_d_cchan.html" title="CSamADCchan" alt="" coords="236,5,352,32"/>
-<area shape="rect" id="node5" href="$class_c_dac5715sa.html" title="The CDac5715sa class implements MAX5715 DAC&#39;s channel functionality. " alt="" coords="245,56,343,83"/>
-<area shape="rect" id="node6" href="$class_c_sam_d_a_ccntr.html" title="CSamDACcntr" alt="" coords="239,107,349,133"/>
-</map>
