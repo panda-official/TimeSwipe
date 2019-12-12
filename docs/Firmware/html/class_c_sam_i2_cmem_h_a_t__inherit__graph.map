@@ -1,0 +1,6 @@
+<map id="CSamI2CmemHAT" name="CSamI2CmemHAT">
+<area shape="rect" id="node2" href="$class_c_sam_i2_cmem.html" title="The CSamI2Cmem class emulates CAT24C32 EEPROM chip in the read&#45;only mode. " alt="" coords="19,229,128,256"/>
+<area shape="rect" id="node3" href="$class_c_sam_sercom.html" title="CSamSercom" alt="" coords="21,155,125,181"/>
+<area shape="rect" id="node4" href="$class_c_serial.html" title="The basic class for all serial devices. " alt="" coords="41,80,106,107"/>
+<area shape="rect" id="node5" href="$struct_i_serial.html" title="Basic serial communication interface. " alt="" coords="44,5,103,32"/>
+</map>

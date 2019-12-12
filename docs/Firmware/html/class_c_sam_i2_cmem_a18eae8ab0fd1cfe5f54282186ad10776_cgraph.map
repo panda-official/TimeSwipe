@@ -1,0 +1,12 @@
+<map id="CSamI2Cmem::obtain_membuf" name="CSamI2Cmem::obtain_membuf">
+<area shape="rect" id="node2" href="$class_c_sam_i2_cmem.html#ac3fb442a58df4c165af5b1903fcceea8" title="Current SERCOM IRQ lines (overriden) " alt="" coords="225,5,390,32"/>
+<area shape="rect" id="node7" href="$class_c_sam_i2_cmem.html#ab758b1afb6cb6910a5c111ada02dd9f3" title="CSamI2Cmem::OnIRQ1" alt="" coords="225,56,390,83"/>
+<area shape="rect" id="node8" href="$class_c_sam_i2_cmem.html#ae1eaed632edb2f7c3b2f101238e5a5c9" title="CSamI2Cmem::OnIRQ2" alt="" coords="225,107,390,133"/>
+<area shape="rect" id="node9" href="$class_c_sam_i2_cmem.html#a8bcc62569d6aebc7dd49e97cec29226e" title="CSamI2Cmem::OnIRQ3" alt="" coords="225,157,390,184"/>
+<area shape="rect" id="node10" href="$class_c_sam_i2_cmem.html#a500d5b044510d0e168a40944d1137f86" title="CSamI2Cmem::CSamI2Cmem" alt="" coords="205,208,409,235"/>
+<area shape="rect" id="node3" href="$class_c_sam_i2_cmem.html#a6d55071ddce1b044bd4c680b1c87adbd" title="holds the current finite state " alt="" coords="476,107,659,133"/>
+<area shape="rect" id="node4" href="$class_c_sam_i2_cmem.html#a6f38f9e9704cef2a4577e9b67ba2de32" title="pointer to a FIFO bufer to readout data from " alt="" coords="742,208,893,235"/>
+<area shape="rect" id="node5" href="$class_c_sam_i2_cmem.html#a416be24cc3915112d7b0e78c6d5f84e6" title="set_addr_H sets a high&#45;byte of m_nMemCurInd (bits 8&#45;15) " alt="" coords="725,81,909,108"/>
+<area shape="rect" id="node6" href="$class_c_sam_i2_cmem.html#aea0986058d047a28456b1fc31bab22cc" title="set_addr_H sets a low&#45;byte of m_nMemCurInd (bits 0&#45;7) " alt="" coords="727,132,908,159"/>
+<area shape="rect" id="node11" href="$class_c_sam_sercom.html#ad0c5ac7a4032767a33559c47d7800055" title="CSamSercom::EnableSercomBus" alt="" coords="457,208,677,235"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="CJSONDispatcher::Call" name="CJSONDispatcher::Call">
+<area shape="rect" id="node2" href="$class_c_j_s_o_nbase.html#ab8ea4ba7651c73de264bc482d650734d" title="CJSONbase::IsCmdSubsysLocked" alt="" coords="216,5,445,32"/>
+<area shape="rect" id="node3" href="$class_c_j_s_o_n_dispatcher.html#afe311a887d18a94fe1bfcac687c9bee5" title=": returns all possible settings (enumerates all &quot;get&quot; handlers) " alt="" coords="236,57,425,98"/>
+<area shape="rect" id="node4" href="$class_c_frm_stream.html#a44dbc1dfa0d4a336741a641f0f47dbd6" title="CFrmStream::bad" alt="" coords="267,123,394,149"/>
+<area shape="rect" id="node5" href="$class_c_j_s_o_n_dispatcher.html#a57dbe0d58d8cabb8788bce0f467c9dc8" title="CJSONDispatcher::Call" alt="" coords="249,173,412,200"/>
+<area shape="rect" id="node6" href="$class_c_j_s_o_n_dispatcher.html#aec6dec8ef83f9419c196f27189387579" title="CJSONDispatcher::CallPrimitive" alt="" coords="493,173,707,200"/>
+</map>

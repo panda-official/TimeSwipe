@@ -1,0 +1,20 @@
+var searchData=
+[
+  ['b_5fbrght',['b_brght',['../class_c_data_vis.html#aa7f9d3bfba92c0130b1f6b6c3297154c',1,'CDataVis']]],
+  ['bad',['bad',['../class_c_frm_stream.html#a44dbc1dfa0d4a336741a641f0f47dbd6',1,'CFrmStream::bad()'],['../class_c_sync_ser_com_f_s_m.html#aed4878074bc8806017cfdb970b019376',1,'CSyncSerComFSM::bad()']]],
+  ['blink',['Blink',['../class_c_l_e_d.html#a70814ffa772e62d1d289432c35c68a31',1,'CLED']]],
+  ['blinkled',['blinkLED',['../classnode_l_e_d.html#ab81d4e6e89fa7b00fff6aefee13b7aa0',1,'nodeLED']]],
+  ['blinkmultipleled',['blinkMultipleLED',['../classnode_l_e_d.html#a0f2d86ffcb60d6e944f42426cdbb8f49',1,'nodeLED']]],
+  ['board_5fdoc_2eh',['Board_doc.h',['../_board__doc_8h.html',1,'']]],
+  ['board',['Board',['../_board_page.html',1,'']]],
+  ['boolean',['boolean',['../_adafruit___neo_pixel__stub_8h.html#af29b166bf5fea7f0bbc07f7014a8c6b5',1,'Adafruit_NeoPixel_stub.h']]],
+  ['bridge',['bridge',['../menu__logic_8h.html#a5a0d16c5a30d8946e13dcf69230bdee7a98ac6b4b086b5a2f47677b15e786d9ba',1,'menu_logic.h']]],
+  ['bridgevoltage_5fcolor',['BRIDGEVOLTAGE_COLOR',['../class_c_menu_logic.html#ab7e8a31ca547215984fe0d7d4bad1e07',1,'CMenuLogic']]],
+  ['bridgevoltage_5fcolor_5factive',['BRIDGEVOLTAGE_COLOR_ACTIVE',['../class_c_menu_logic.html#aa00af4af78aaebfd54d37118166a08d9',1,'CMenuLogic']]],
+  ['businesslogic_5fdoc_2eh',['BusinessLogic_doc.h',['../_business_logic__doc_8h.html',1,'']]],
+  ['businesslogic',['BusinessLogic',['../_business_logic_page.html',1,'']]],
+  ['button_2eh',['button.h',['../button_8h.html',1,'']]],
+  ['bycmdhash',['byCmdHash',['../struct_c_cmd_call_descr.html#a1a76ec57cac8a234a9623762cbae899fa0eb6fcf4e54ebcc1708e90288276d7b8',1,'CCmdCallDescr']]],
+  ['bycmdindex',['byCmdIndex',['../struct_c_cmd_call_descr.html#a1a76ec57cac8a234a9623762cbae899fa0b45d723c57a3d9ca344a51145e93c70',1,'CCmdCallDescr']]],
+  ['bycmdname',['byCmdName',['../struct_c_cmd_call_descr.html#a1a76ec57cac8a234a9623762cbae899facb03afe4bd8911f58029b5374029633d',1,'CCmdCallDescr']]]
+];

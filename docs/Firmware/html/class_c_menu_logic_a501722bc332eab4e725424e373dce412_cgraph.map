@@ -1,0 +1,6 @@
+<map id="CMenuLogic::update_menu" name="CMenuLogic::update_menu">
+<area shape="rect" id="node2" href="$classnode_l_e_d.html#a7a2ee11da128449f814e12dbac8b6255" title="nodeLED::selectLED" alt="" coords="249,5,394,32"/>
+<area shape="rect" id="node3" href="$classnode_control.html#aed1deeabaca8cb722ebf72fd6e77799d" title="nodeControl::GetGain" alt="" coords="247,56,395,83"/>
+<area shape="rect" id="node4" href="$classnode_control.html#a856b5dab4e2d4e9da798da1e0851163f" title="nodeControl::GetBridge" alt="" coords="242,107,401,133"/>
+<area shape="rect" id="node5" href="$classnode_l_e_d.html#a9303919a541e30db70fa69ffaab49325" title="nodeLED::setMultipleLED" alt="" coords="235,157,408,184"/>
+</map>

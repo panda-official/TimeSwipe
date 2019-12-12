@@ -1,0 +1,7 @@
+<map id="CSamDACcntr::common_init" name="CSamDACcntr::common_init">
+<area shape="rect" id="node2" href="$class_c_sam_c_l_k.html#a27c5f353fe168fa8ad5e587bf8af8731" title="CSamCLK::Factory" alt="" coords="245,56,383,83"/>
+<area shape="rect" id="node5" href="$namespaceos.html#a2e2bfbffa4537332ce427b71b76338ed" title="os::wait" alt="" coords="280,107,348,133"/>
+<area shape="rect" id="node3" href="$class_c_sam_c_l_k.html#a4c4a28047e5ae931b17e3dc291d51407" title="CSamCLK::CSamCLK" alt="" coords="431,5,587,32"/>
+<area shape="rect" id="node4" href="$class_c_sam_c_l_k.html#ae35a929bb3e980852deca9e5709710ae" title="CSamCLK::WaitSync" alt="" coords="433,56,584,83"/>
+<area shape="rect" id="node6" href="$namespaceos.html#ac04ca6031e6d83a4060b575554d21a59" title="os::get_tick_mS" alt="" coords="450,107,567,133"/>
+</map>

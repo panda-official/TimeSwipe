@@ -1,0 +1,4 @@
+<map id="CSamI2Cmem::isIRQmode" name="CSamI2Cmem::isIRQmode">
+<area shape="rect" id="node2" href="$class_c_sam_i2_cmem.html#ad63ff0e4cc9496b88a9c77923069fdb5" title="CSamI2Cmem::EnableIRQs" alt="" coords="236,5,424,32"/>
+<area shape="rect" id="node3" href="$class_c_sam_sercom.html#a35634ff26d7b948d78e67ea5273277a3" title="CSamSercom::EnableIRQ" alt="" coords="472,5,648,32"/>
+</map>

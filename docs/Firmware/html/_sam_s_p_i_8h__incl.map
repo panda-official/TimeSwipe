@@ -1,0 +1,7 @@
+<map id="src/SAMe54/SamSPI.h" name="src/SAMe54/SamSPI.h">
+<area shape="rect" id="node2" href="$_s_p_i_8h.html" title="A definition file for SPI(Serial Peripheral Interface) CSPI class &#45; basic class for all SPI devices..." alt="" coords="5,80,60,107"/>
+<area shape="rect" id="node6" href="$_sam_sercom_8h.html" title="SamSercom.h" alt="" coords="200,80,305,107"/>
+<area shape="rect" id="node9" href="$_sync_com_8h.html" title="SyncCom.h" alt="" coords="85,80,175,107"/>
+<area shape="rect" id="node3" href="$_serial_8h.html" title="A definition file for basic serial data types and interfaces: CFIFO, ISerial, ISerialEvent, CSerial. " alt="" coords="97,155,163,181"/>
+<area shape="rect" id="node7" href="$_sam_c_l_k_8h.html" title="SamCLK.h" alt="" coords="209,155,296,181"/>
+</map>

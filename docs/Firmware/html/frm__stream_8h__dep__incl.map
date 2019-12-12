@@ -1,0 +1,23 @@
+<map id="src/Communication/frm_stream.h" name="src/Communication/frm_stream.h">
+<area shape="rect" id="node2" href="$cmd_8h.html" title="A simple command proccessor structures and classes. " alt="" coords="965,102,1139,129"/>
+<area shape="rect" id="node5" href="$std__port_8cpp.html" title="src/Communication/std\l_port.cpp" alt="" coords="1476,273,1633,315"/>
+<area shape="rect" id="node20" href="$frm__stream_8cpp.html" title="src/Communication/frm\l_stream.cpp" alt="" coords="1355,95,1514,136"/>
+<area shape="rect" id="node21" href="$json__stream_8h.html" title="src/JSONstuff/json\l_stream.h" alt="" coords="1197,95,1331,136"/>
+<area shape="rect" id="node3" href="$cmd_8cpp.html" title="src/Communication/cmd.cpp" alt="" coords="403,191,592,218"/>
+<area shape="rect" id="node4" href="$std__port_8h.html" title="src/Communication/std\l_port.h" alt="" coords="1257,184,1415,225"/>
+<area shape="rect" id="node6" href="$main_8cpp.html" title="src/main.cpp" alt="" coords="909,534,1006,561"/>
+<area shape="rect" id="node7" href="$json__evsys_8h.html" title="src/JSONstuff/json\l_evsys.h" alt="" coords="617,184,751,225"/>
+<area shape="rect" id="node18" href="$jsondisp_8h.html" title="src/JSONstuff/jsondisp.h" alt="" coords="1013,191,1182,218"/>
+<area shape="rect" id="node8" href="$_s_a_mbutton_8h.html" title="src/Board/SAMbutton.h" alt="" coords="729,281,887,307"/>
+<area shape="rect" id="node10" href="$node_control_8h.html" title="src/BusinessLogic/nodeControl.h" alt="" coords="239,363,454,389"/>
+<area shape="rect" id="node11" href="$menu__logic_8h.html" title="src/BusinessLogic/menu\l_logic.h" alt="" coords="536,437,701,479"/>
+<area shape="rect" id="node16" href="$json__evsys_8cpp.html" title="src/JSONstuff/json\l_evsys.cpp" alt="" coords="321,273,455,315"/>
+<area shape="rect" id="node17" href="$zerocal__man_8h.html" title="src/Procs/zerocal_man.h" alt="" coords="479,281,646,307"/>
+<area shape="rect" id="node9" href="$_s_a_mbutton_8cpp.html" title="src/Board/SAMbutton.cpp" alt="" coords="722,363,894,389"/>
+<area shape="rect" id="node14" href="$node_control_8cpp.html" title="src/BusinessLogic/nodeControl.cpp" alt="" coords="233,445,461,471"/>
+<area shape="rect" id="node15" href="$node_control__emu_8cpp.html" title="src/BusinessLogic/nodeControl\l_emu.cpp" alt="" coords="5,437,208,479"/>
+<area shape="rect" id="node12" href="$menu__logic_8cpp.html" title="src/BusinessLogic/menu\l_logic.cpp" alt="" coords="613,527,779,568"/>
+<area shape="rect" id="node13" href="$zerocal__man_8cpp.html" title="src/Procs/zerocal_man.cpp" alt="" coords="408,534,589,561"/>
+<area shape="rect" id="node19" href="$jsondisp_8cpp.html" title="src/JSONstuff/jsondisp.cpp" alt="" coords="1087,281,1270,307"/>
+<area shape="rect" id="node22" href="$json__stream_8cpp.html" title="src/JSONstuff/json\l_stream.cpp" alt="" coords="1439,184,1574,225"/>
+</map>

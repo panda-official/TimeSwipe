@@ -1,0 +1,5 @@
+<map id="nodeControl::SetGain" name="nodeControl::SetGain">
+<area shape="rect" id="node2" href="$classnode_control.html#a1fa149a9f2137bce16ce3e24a6f75596" title="nodeControl::gain_out" alt="" coords="200,35,349,61"/>
+<area shape="rect" id="node3" href="$classnode_control.html#a57e60bae8338169cf39aa0f571fd1014" title="nodeControl::Instance" alt="" coords="399,5,550,32"/>
+<area shape="rect" id="node4" href="$class_c_j_s_o_n_ev_c_p.html#a6eff77fadfb045c28152d72093c64931" title="CJSONEvCP::Fire_on\l_event" alt="" coords="397,57,552,98"/>
+</map>

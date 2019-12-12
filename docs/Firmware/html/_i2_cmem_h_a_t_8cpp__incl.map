@@ -1,0 +1,7 @@
+<map id="src/Board/I2CmemHAT.cpp" name="src/Board/I2CmemHAT.cpp">
+<area shape="rect" id="node2" href="$_i2_cmem_h_a_t_8h.html" title="I2CmemHAT.h" alt="" coords="62,80,173,107"/>
+<area shape="rect" id="node3" href="$_sam_i2_cmem_8h.html" title="SamI2Cmem.h" alt="" coords="62,155,173,181"/>
+<area shape="rect" id="node4" href="$_sam_sercom_8h.html" title="SamSercom.h" alt="" coords="65,229,170,256"/>
+<area shape="rect" id="node5" href="$_serial_8h.html" title="A definition file for basic serial data types and interfaces: CFIFO, ISerial, ISerialEvent, CSerial. " alt="" coords="33,304,100,331"/>
+<area shape="rect" id="node8" href="$_sam_c_l_k_8h.html" title="SamCLK.h" alt="" coords="125,304,211,331"/>
+</map>

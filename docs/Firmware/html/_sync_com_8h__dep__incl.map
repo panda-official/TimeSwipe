@@ -1,0 +1,10 @@
+<map id="src/Communication/SyncCom.h" name="src/Communication/SyncCom.h">
+<area shape="rect" id="node2" href="$_sync_com_8cpp.html" title="src/Communication/SyncCom.cpp" alt="" coords="5,80,228,107"/>
+<area shape="rect" id="node3" href="$_sam_s_p_i_8h.html" title="src/SAMe54/SamSPI.h" alt="" coords="252,80,411,107"/>
+<area shape="rect" id="node4" href="$_sam_s_p_i_8cpp.html" title="src/SAMe54/SamSPI.cpp" alt="" coords="45,155,217,181"/>
+<area shape="rect" id="node5" href="$_sam_s_p_isc2_8h.html" title="src/SAMe54/SamSPIsc2.h" alt="" coords="242,155,421,181"/>
+<area shape="rect" id="node8" href="$_sam_s_p_isc7_8h.html" title="src/SAMe54/SamSPIsc7.h" alt="" coords="445,155,623,181"/>
+<area shape="rect" id="node6" href="$main_8cpp.html" title="src/main.cpp" alt="" coords="384,229,481,256"/>
+<area shape="rect" id="node7" href="$_sam_s_p_isc2_8cpp.html" title="src/SAMe54/SamSPIsc2.cpp" alt="" coords="167,229,360,256"/>
+<area shape="rect" id="node9" href="$_sam_s_p_isc7_8cpp.html" title="src/SAMe54/SamSPIsc7.cpp" alt="" coords="505,229,699,256"/>
+</map>

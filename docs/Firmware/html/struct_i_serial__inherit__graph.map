@@ -1,0 +1,13 @@
+<map id="ISerial" name="ISerial">
+<area shape="rect" id="node2" href="$class_c_serial.html" title="The basic class for all serial devices. " alt="" coords="230,80,295,107"/>
+<area shape="rect" id="node11" href="$class_c_s_p_i.html" title="The basic class for SPI devices. " alt="" coords="337,80,391,107"/>
+<area shape="rect" id="node3" href="$class_c_sam_sercom.html" title="CSamSercom" alt="" coords="208,155,312,181"/>
+<area shape="rect" id="node4" href="$class_c_sam_i2_ceeprom_master.html" title="CSamI2CeepromMaster" alt="" coords="5,229,168,256"/>
+<area shape="rect" id="node5" href="$class_c_sam_i2_cmem.html" title="The CSamI2Cmem class emulates CAT24C32 EEPROM chip in the read&#45;only mode. " alt="" coords="192,229,301,256"/>
+<area shape="rect" id="node8" href="$class_c_sam_s_p_i.html" title="CSamSPI" alt="" coords="338,229,419,256"/>
+<area shape="rect" id="node6" href="$class_c_sam_i2_cmem8_pin.html" title="CSamI2Cmem8Pin" alt="" coords="13,304,147,331"/>
+<area shape="rect" id="node7" href="$class_c_sam_i2_cmem_h_a_t.html" title="CSamI2CmemHAT" alt="" coords="172,304,308,331"/>
+<area shape="rect" id="node9" href="$class_c_sam_s_p_isc2.html" title="CSamSPIsc2" alt="" coords="333,304,435,331"/>
+<area shape="rect" id="node10" href="$class_c_sam_s_p_isc7.html" title="CSamSPIsc7" alt="" coords="459,304,562,331"/>
+<area shape="rect" id="node12" href="$class_c_sam_q_s_p_i.html" title="CSamQSPI" alt="" coords="401,155,492,181"/>
+</map>

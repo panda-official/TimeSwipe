@@ -1,0 +1,7 @@
+<map id="CADchan" name="CADchan">
+<area shape="rect" id="node2" href="$class_c_adc.html" title="CAdc" alt="" coords="61,80,116,107"/>
+<area shape="rect" id="node4" href="$class_c_dac.html" title="CDac" alt="" coords="167,80,223,107"/>
+<area shape="rect" id="node3" href="$class_c_sam_a_d_cchan.html" title="CSamADCchan" alt="" coords="5,155,121,181"/>
+<area shape="rect" id="node5" href="$class_c_dac5715sa.html" title="The CDac5715sa class implements MAX5715 DAC&#39;s channel functionality. " alt="" coords="146,155,245,181"/>
+<area shape="rect" id="node6" href="$class_c_sam_d_a_ccntr.html" title="CSamDACcntr" alt="" coords="269,155,380,181"/>
+</map>

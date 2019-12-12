@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['gain',['gain',['../menu__logic_8h.html#a5a0d16c5a30d8946e13dcf69230bdee7ad2d74b47b149d8090871a2f33e80809b',1,'menu_logic.h']]],
+  ['gainx1',['gainX1',['../_a_dmux_8h.html#ab089c8d86a50296787f665b57fb96f41aa6fd10bb966a9473a125e83534140474',1,'ADmux.h']]],
+  ['gainx2',['gainX2',['../_a_dmux_8h.html#ab089c8d86a50296787f665b57fb96f41a9329763d1d2f993b007824fc40c48d53',1,'ADmux.h']]],
+  ['gainx4',['gainX4',['../_a_dmux_8h.html#ab089c8d86a50296787f665b57fb96f41abba7105d3bd8be0135212f9e180e32b7',1,'ADmux.h']]],
+  ['gainx8',['gainX8',['../_a_dmux_8h.html#ab089c8d86a50296787f665b57fb96f41af1e28a98e5eb0f49fec3c80ceecd581d',1,'ADmux.h']]],
+  ['gclk1',['GCLK1',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aabca559ff0ee4c9aaea2506b691f28dc9',1,'SamCLK.h']]],
+  ['gclk10',['GCLK10',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa3cfcd4461e29648ee59eb80bae9eb755',1,'SamCLK.h']]],
+  ['gclk11',['GCLK11',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa712b0dc00d6ddd1dc4573f5c4a306a1a',1,'SamCLK.h']]],
+  ['gclk2',['GCLK2',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aab29e70400bb519719585db2b51f91e25',1,'SamCLK.h']]],
+  ['gclk3',['GCLK3',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa90897020cc4f4d1b5e4f77f77e1e97d5',1,'SamCLK.h']]],
+  ['gclk4',['GCLK4',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa839e6b716eb0599501da86a7bdc0b16f',1,'SamCLK.h']]],
+  ['gclk5',['GCLK5',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa098fff7147cd6a247576173dc19a17b9',1,'SamCLK.h']]],
+  ['gclk6',['GCLK6',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa67c2f53c47ff2bdac546d5da518e78b1',1,'SamCLK.h']]],
+  ['gclk7',['GCLK7',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa2876a7e6d07a3fae1b8d91d624cc6951',1,'SamCLK.h']]],
+  ['gclk8',['GCLK8',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aa5159066846200e7bb96be37bd001db86',1,'SamCLK.h']]],
+  ['gclk9',['GCLK9',['../_sam_c_l_k_8h.html#a1376fc5b39a3e4d24c4cfdad385a3f3aae096ec64d86b46c499423e6cf5baeebb',1,'SamCLK.h']]]
+];
