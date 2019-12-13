@@ -21,7 +21,7 @@
  * The Command Dispatcher is used to dispatch command request in protocol-independent format to corresponding command handler.
  *
  * Finally, to implement primary communication protocol based on "access point" concept (see CommunicationProtocol.md)
- * its neccesary to transorm a command request from protocol-independent format to C/C++ function/class method call with
+ * its neccesary to transform a command request from protocol-independent format to C/C++ function/class method call with
  * "get" and "set" signatures like "APtype get()" and "void set(APtype)" where APtype is an access point type.
  * For this purpose two special command handlers are used: CCmdSGHandler - for binding to class methods,
  * CCmdSGHandlerF - for binding to functions or static class methods.
