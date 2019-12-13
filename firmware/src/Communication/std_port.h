@@ -59,7 +59,6 @@ public:
     {
         m_pDisp=pDisp;
         m_pBus=pBus;
-        //pBus->AdviseSink() //???
     }
 
 };

@@ -10,7 +10,7 @@ Copyright (c) 2019 Panda Team
 #include <nlohmann/json.hpp>
 
 /*!
- * \brief The CJSONbase a superclass for all JSON-stuff objects
+ * \brief A superclass for all JSON-stuff objects
  */
 
 class CJSONbase
@@ -30,7 +30,7 @@ public:
 };
 
 /*!
- * \brief The CJSONCmdLock JSON command sub-sys auto-locker
+ * \brief A JSON command sub-sys auto-locker
  */
 
 class CJSONCmdLock

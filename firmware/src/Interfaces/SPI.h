@@ -16,7 +16,7 @@ Copyright (c) 2019 Panda Team
 #include "Serial.h"
 
 /*!
- * \brief   The basic class for SPI devices
+ * \brief   A basic class for SPI devices
  * \details This pure virtual class declares some specific SPI interfaces for setting phase and polarity set_phpol() ,
  * baud rate divisor set_baud_div(), setting time profile for transfer operation set_tprofile_divs()
  * \todo seems to be deprecated,too complex...

@@ -21,7 +21,7 @@ Copyright (c) 2019 Panda Team
 typedef int typeSChar;
 
 /*!
- * \brief The First-In-First-Out bufer implementation.
+ * \brief A First-In-First-Out bufer implementation.
  *
  * \details The FIFO buffer is used as basic data storage/exchange primitive type in the firmware.
  * Derived from std::string it also inherits std::string and std::vector functionality
@@ -79,7 +79,7 @@ public:
 
 
 /*!
- * \brief Basic serial communication interface
+ * \brief A basic serial communication interface
  *
  * \details The interface allows derived classes to communicate by exchanging serial messages
  *  (character sequences) which are stored in FIFO buffers. This is base interface class for implementing a serial device.
@@ -124,12 +124,16 @@ struct ISerial
 
      /*!
       * \brief ISerial remove copy constructor
+      * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+      *  that is unacceptable)
       */
      ISerial(const ISerial&) = delete;
 
      /*!
       * \brief operator = remove copy operator
       * \return
+      * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+      *  that is unacceptable)
       */
      ISerial& operator=(const ISerial&) = delete;
 
@@ -140,7 +144,7 @@ protected:
 };
 
 /*!
- * \brief The callback interface used to notify the derived class that an event happened
+ * \brief A callback interface used to notify the derived class that an event happened
  *  at the serial device.
  */
 struct ISerialEvent
@@ -156,12 +160,16 @@ struct ISerialEvent
 
         /*!
          * \brief remove copy constructor
+         * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+         *  that is unacceptable)
          */
         ISerialEvent(const ISerialEvent&) = delete;
 
         /*!
          * \brief remove copy operator
          * \return
+         * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+         *  that is unacceptable)
          */
         ISerialEvent& operator=(const ISerialEvent&) = delete;
 
@@ -173,7 +181,7 @@ protected:
 
 
 /*!
- * \brief   The basic class for all serial devices
+ * \brief   A basic class for all serial devices
  * \details This is a template for deriving all serial devices.
  *  It implements a connection point for ISerialEvent inside. So all objects that realise ISerialEvent can be advised
  *  to this serial device by AdviseSink and receive corresponding notifications

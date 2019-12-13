@@ -15,7 +15,7 @@ Copyright (c) 2019 Panda Team
 
 
 /*!
- * \brief The callback interface used to notify the derived class that a timer event happened
+ * \brief A callback interface used to notify the derived class that a timer event happened
  */
 class CTimerEvent{
 public:
@@ -31,12 +31,16 @@ public:
 
     /*!
      * \brief remove copy constructor
+     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+     *  that is unacceptable)
      */
     CTimerEvent(const CTimerEvent&) = delete;
 
     /*!
      * \brief remove copy operator
      * \return
+     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+     *  that is unacceptable)
      */
     CTimerEvent& operator=(const CTimerEvent&) = delete;
 protected:

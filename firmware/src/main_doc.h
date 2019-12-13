@@ -21,6 +21,10 @@
  *
  *  \ref Interfaces_page - the basic inerfaces, data primitives and classes definitions. Most of firmware classes are based on this data types
  *
+ *  To see how analog part of board is managed please refer to \ref ADCDAC_page
+ *
+ *  A communication with external master device and implementation of communication protocols is another essential part of the firmware.
+ *  it can be found at \ref Communication_page
  *
  * The list of all firmware directories is shown below:
  *
@@ -31,7 +35,7 @@
  *
  * \ref BusinessLogic_page - Business Logic parts that determine behaviour of the board UI components - menues, LEDs and so on
  *
- * \ref Communication_page - The components are used for external communication
+ * \ref Communication_page - The components used for external communication
  *
  * \ref CortexMX_page - CortexMX core specific components
  *
