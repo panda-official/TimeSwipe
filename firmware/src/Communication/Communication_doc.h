@@ -4,7 +4,7 @@
  *  
  * \page Communication_page Communication
  *
- * The communication with the master device is realised as master-slave model.
+ * The communication with the master device is implemented by a master-slave model.
  * Master device sends a command request and waiting for responce from the board.
  * Handling of corresponding communication protocols and commands dispatching is implemented via Port (basic CStdPort),
  * Stream (basic CFrmStream) and Command Dispatcher ( CCmdDispatcher ) concepts.
