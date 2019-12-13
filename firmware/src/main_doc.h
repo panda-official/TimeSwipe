@@ -5,7 +5,7 @@
  * 
  * \mainpage TimeSwipe Firmware Manual
  *
- * \section intro_sec Introduction
+ *\section intro_sec Introduction
  *
  *  This manual describes the source code structure of the firmware, basic modules and concepts used,
  *  classes hierarchy and function calls graphs.
@@ -14,12 +14,12 @@
  *
  *  The source code is divided into several logical parts and placed in the corresponding directories
  *
- *  For brief view on the firmware structure please focus on the following components for begining:
+ *  For brief view on the firmware structure please focus on the following components for beginning:
  *
- *  main() - the current firmware assemblage point. Here all neccesary firmware objects and modules are created at run-time,
- *  corresponding bindings and links are established between them and the main firmware  loop starts running ("superloop mode")
+ *  main() - the current firmware assemblage point. Here all necessary firmware objects and modules are created at run-time,
+ *  corresponding bindings and links are established between them and the main firmware  loop starts running ("super loop mode")
  *
- *  \ref Interfaces_page - the basic inerfaces, data primitives and classes definitions. Most of firmware classes are based on this data types
+ *  \ref Interfaces_page - the basic interfaces, data primitives and classes definitions. Most of firmware classes are based on this data types
  *
  *  To see how analog part of board is managed please refer to \ref ADCDAC_page
  *
@@ -33,7 +33,7 @@
  *
  * \ref Board_page  - TimeSwipe board specific components
  *
- * \ref BusinessLogic_page - Business Logic parts that determine behaviour of the board UI components - menues, LEDs and so on
+ * \ref BusinessLogic_page - Business Logic parts that determine behavior of the board UI components - menus, LEDs and so on
  *
  * \ref Communication_page - The components used for external communication
  *

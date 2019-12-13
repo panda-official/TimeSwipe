@@ -21,12 +21,12 @@ Copyright (c) 2019 Panda Team
 typedef int typeSChar;
 
 /*!
- * \brief A First-In-First-Out bufer implementation.
+ * \brief A First-In-First-Out buffer implementation.
  *
  * \details The FIFO buffer is used as basic data storage/exchange primitive type in the firmware.
  * Derived from std::string it also inherits std::string and std::vector functionality
  *
- * \todo Maybe it was not really good idea to inherit std::string and std::vector in a pure FIFO bufer
+ * \todo Maybe it was not really good idea to inherit std::string and std::vector in a pure FIFO buffer
  * but it is often required a functionality of a memory buffer with a random access.
  * any ideas?
  */

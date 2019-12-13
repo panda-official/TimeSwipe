@@ -14,8 +14,8 @@
  *  To avoid waiting in updation queue and switching between channels overridden direct measurement function of the CAdc can be called:
  *  CAdc#DirectMeasure()
  *
- *  CDac derived object can be also added to a board object or alternativetly the control functionality can be implemented directly via
- *  overridden CDac#DriverSetVal() since continuos updating and queing usually not required for the DAC channel. The example of self-controlled
+ *  CDac derived object can be also added to a board object or alternatively the control functionality can be implemented directly via
+ *  overridden CDac#DriverSetVal() since continuous updating and queuing usually not required for the DAC channel. The example of self-controlled
  *  channel can be found in CDac5715sa class
  *
  */
