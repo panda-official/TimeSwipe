@@ -15,7 +15,7 @@ python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 ```
 sudo pip3 install --upgrade pip
 sudo pip3 install --upgrade cmake_setuptools
-sudo pip3 install -i https://test.pypi.org/simple/ --upgrade timeswipe
+sudo pip3 install -i https://test.pypi.org/simple/ --upgrade timeswipe1
 ```
 
 ## Documentation:
