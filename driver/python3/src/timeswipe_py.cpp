@@ -13,6 +13,17 @@ bool operator== (const Record &r1, const Record &r2)
 template <class T, class M> M get_member_type(M T:: *);
 #define GET_TYPE_OF(mem) decltype(get_member_type(mem))
 
+template <typename F>
+auto GIL_WRAPPER(F&& f) {
+    return [f=std::forward<F>(f)](auto&&... args) {
+        auto gstate = PyGILState_Ensure();
+        auto ret = f(std::forward<decltype(args)>(args)...);
+        PyGILState_Release(gstate);
+	return ret;
+    };
+}
+
+
 BOOST_PYTHON_MODULE(timeswipe)
 {
     using namespace boost::python;
@@ -49,7 +60,7 @@ BOOST_PYTHON_MODULE(timeswipe)
         },
             "This method is all-in-one replacement for SetBridge SetSensorOffsets SetSensorGains SetSensorTransmissions")
         .def("Start", +[](TimeSwipe& self, boost::python::object object) {
-            self.Start(object);
+            self.Start(GIL_WRAPPER(object));
         },
             "Start reading Sensor loop. It is mandatory to setup SetBridge SetSensorOffsets SetSensorGains and SetSensorTransmissions before start. Only one instance of TimeSwipe can be running each moment of the time. After each sensor read complete cb called with vector of Record. Buffer is for 1 second data if cb works longer than 1 second, next data can be loosed and next callback called with non-zero errors")
         .def("SetSettings", &TimeSwipe::SetSettings,
@@ -57,11 +68,11 @@ BOOST_PYTHON_MODULE(timeswipe)
         .def("GetSettings", &TimeSwipe::GetSettings,
              "Send SPI GetSettings request and receive the answer")
         .def("onButton", +[](TimeSwipe& self, boost::python::object object) {
-            self.onButton(object);
+            self.onButton(GIL_WRAPPER(object));
         },
             "Register callback for button pressed/released. onButton must be called before called, otherwise register fails")
         .def("onError", +[](TimeSwipe& self, boost::python::object object) {
-            self.onError(object);
+            self.onError(GIL_WRAPPER(object));
         },
             "onError must be called before Start called, otherwise register fails")
         .def("Stop", &TimeSwipe::Stop,

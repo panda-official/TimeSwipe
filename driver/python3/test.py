@@ -43,14 +43,18 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
+count = 0
 def process(records, errors):
+    global count
     if errors:
         print_err("errors: ", errors)
     for record in records:
-        print('\t'.join([str(int(x)) for x in record.sensors]))
+        #print('\t'.join([str(int(x)) for x in record.sensors]))
+        count = count + 1
     if len(records) == 0 and errors==0:
         time.sleep(1.0/100)
 
 tswipe.Start(process)
-
+time.sleep(10)
+print("count: ", count)
 

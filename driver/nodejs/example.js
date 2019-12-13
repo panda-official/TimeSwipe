@@ -12,15 +12,31 @@ timeswipe.onError(async function (errors) {
     console.error("onError errors: ", errors);
 });
 
+var lines = 0
 timeswipe.Start(async function (data, error) {
     if (error) {
         console.error("errors: ",error);
     } else {
-        await data.forEach(function(entry) {
-            console.log(entry.join('\t'));
+        data.forEach(function(entry) {
+            //console.log(entry.join('\t'));
+            lines = lines + 1;
         });
-        if (data.length == 0 && errors==0) {
-            await sleep(100);
+        if (data.length == 0 && error==0) {
+            //await sleep(100);
         }
     }
 });
+
+const promise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    resolve()
+  }, 10000)
+})
+
+function onComplete () {
+  timeswipe.Stop()
+  console.log('got lines: ', lines)
+}
+
+promise.then(onComplete)
+

@@ -12,6 +12,7 @@ class TimeSwipeImpl {
     static std::mutex startStopMtx;
     static TimeSwipeImpl* startedInstance;
 public:
+    ~TimeSwipeImpl();
     void SetBridge(int bridge);
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
     void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
@@ -21,18 +22,18 @@ public:
     bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
+
 private:
+    bool _isStarted();
+    void _fetcherLoop();
+    void _pollerLoop(TimeSwipe::ReadCallback cb);
+    void _receiveEvents(const std::chrono::steady_clock::time_point& now);
+
     RecordReader Rec;
     // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
     static const unsigned constexpr BUFFER_SIZE = 48000/32*2;
     boost::lockfree::spsc_queue<std::vector<Record>, boost::lockfree::capacity<BUFFER_SIZE>> recordBuffer;
     std::atomic_uint64_t recordErrors = 0;
-
-    void _startFetcher();
-    void _stopFetcher();
-    void _fetcherLoop();
-    bool _isStarted();
-    void _receiveEvents(const std::chrono::steady_clock::time_point& now);
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
     boost::lockfree::spsc_queue<std::pair<std::string,std::string>, boost::lockfree::capacity<1024>> _outSPI;
@@ -42,12 +43,17 @@ private:
     TimeSwipe::OnErrorCallback onErrorCb;
 
     std::chrono::steady_clock::time_point _lastButtonCheck;
-    bool _fetcherWork = false;
+    bool _work = false;
     std::thread _fetcherThread;
+    std::thread _pollerThread;
 };
 
 std::mutex TimeSwipeImpl::startStopMtx;
 TimeSwipeImpl* TimeSwipeImpl::startedInstance = nullptr;
+
+TimeSwipeImpl::~TimeSwipeImpl() {
+    Stop();
+}
 
 void TimeSwipeImpl::SetBridge(int bridge) {
     Rec.sensorType = bridge;
@@ -87,24 +93,9 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     Rec.setup();
     Rec.start();
 
-    _startFetcher();
-
-    //while (true) // wait for all captured data read
-    while (_fetcherWork) // exit immidiately after Stop
-    {
-        std::vector<Record> empty;
-        std::vector<Record> records[4096];
-        auto num = recordBuffer.pop(&records[0], 4096);
-        uint64_t errors = recordErrors.fetch_and(0UL);
-        for (size_t i = 1; i < num; i++) {
-            records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
-        }
-        if (errors && onErrorCb) onErrorCb(errors);
-        cb(std::move(records[0]), errors);
-
-        // Exit on stop: read data first
-        if (num == 0 && !_fetcherWork) break;
-    }
+    _work = true;
+    _fetcherThread = std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop, this));
+    _pollerThread = std::thread(std::bind(&TimeSwipeImpl::_pollerLoop, this, cb));
 
     return true;
 }
@@ -117,11 +108,20 @@ bool TimeSwipeImpl::Stop() {
         }
         startedInstance = nullptr;
     }
-    _stopFetcher();
+
+    _work = false;
+    if(_fetcherThread.joinable())
+        _fetcherThread.join();
+    if(_pollerThread.joinable())
+        _pollerThread.join();
+
+    while (recordBuffer.pop());
+    while (_inSPI.pop());
+    while (_outSPI.pop());
+
     Rec.stop();
     return true;
 }
-
 
 bool TimeSwipeImpl::onButton(TimeSwipe::OnButtonCallback cb) {
     if (_isStarted()) return false;
@@ -139,7 +139,7 @@ std::string TimeSwipeImpl::Settings(uint8_t set_or_get, const std::string& reque
     _inSPI.push(std::make_pair(set_or_get, request));
     std::pair<std::string,std::string> resp;
 
-    if (!_fetcherWork) {
+    if (!_work) {
         _processSPIRequests();
     }
 
@@ -229,25 +229,29 @@ std::string TimeSwipe::GetSettings(const std::string& request, std::string& erro
     return _impl->Settings(0, request, error);
 }
 
-void TimeSwipeImpl::_startFetcher() {
-    _fetcherWork = true;
-    _fetcherThread = std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop,this));
-}
-
-void TimeSwipeImpl::_stopFetcher() {
-    _fetcherWork = false;
-    if(_fetcherThread.joinable())
-        _fetcherThread.join();
-}
-
 void TimeSwipeImpl::_fetcherLoop() {
-    while (_fetcherWork) {
+    while (_work) {
         auto now = std::chrono::steady_clock::now();
         auto data = Rec.read();
         if (!recordBuffer.push(data))
             ++recordErrors;
         _receiveEvents(now);
         _processSPIRequests();
+    }
+}
+
+void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
+    while (_work)
+    {
+        std::vector<Record> empty;
+        std::vector<Record> records[4096];
+        auto num = recordBuffer.pop(&records[0], 4096);
+        uint64_t errors = recordErrors.fetch_and(0UL);
+        for (size_t i = 1; i < num; i++) {
+            records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
+        }
+        if (errors && onErrorCb) onErrorCb(errors);
+        cb(std::move(records[0]), errors);
     }
 }
 

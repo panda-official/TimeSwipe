@@ -1,7 +1,6 @@
-
 #include <napi.h>
+#include "napi-thread-safe-callback.hpp"
 #include "timeswipe.hpp"
-
 
 class TimeSwipeNAPI: public TimeSwipe, public Napi::ObjectWrap<TimeSwipeNAPI>
 {
@@ -143,23 +142,32 @@ Napi::Value TimeSwipeNAPI::StartWrap(const Napi::CallbackInfo& info) {
 
   int length = info.Length();
 
+  bool fail = false;
   if (length <= 0 || !info[0].IsFunction()) {
-    Napi::TypeError::New(env, "Function expected").ThrowAsJavaScriptException();
+      //Napi::TypeError::New(env, "Function expected").ThrowAsJavaScriptException();
+      fail = true;
   }
+  auto callback = std::make_shared<ThreadSafeCallback>(info[0].As<Napi::Function>());
 
-  Napi::Function cb = info[0].As<Napi::Function>();
-
-  auto res = this->Start([this, cb, env](std::vector<Record> records, uint64_t errors) {
-      auto arr = Napi::Array::New(env, records.size());
-      unsigned i = 0;
-      for (const auto& r: records) {
-          auto rec = Napi::Array::New(env, 4);
-          for (unsigned j = 0; j < 4; j++) {
-            rec[j] = Napi::Number::New(env, r.Sensors[j]);
+  auto res = this->Start([this, callback, fail](std::vector<Record> records, uint64_t errors) {
+    try {
+      if (fail) throw std::runtime_error("Function expected");
+      callback->call([records, errors] (Napi::Env env, std::vector<napi_value>& args) {
+          auto arr = Napi::Array::New(env, records.size());
+          unsigned i = 0;
+          for (const auto& r: records) {
+              auto rec = Napi::Array::New(env, 4);
+              for (unsigned j = 0; j < 4; j++) {
+                rec[j] = Napi::Number::New(env, r.Sensors[j]);
+              }
+              arr[i++] = rec;
           }
-          arr[i++] = rec;
-      }
-      cb.Call(env.Global(), {arr, Napi::Number::New(env, errors)});
+          args = { arr, Napi::Number::New(env, errors) };
+      });
+    }
+    catch (std::exception& e) {
+        callback->callError(e.what());
+    }
   });
   return Napi::Boolean::New(env, res);
 }
@@ -208,17 +216,25 @@ Napi::Value TimeSwipeNAPI::onButtonWrap(const Napi::CallbackInfo& info) {
 
   int length = info.Length();
 
+  bool fail = false;
   if (length <= 0 || !info[0].IsFunction()) {
-    Napi::TypeError::New(env, "Function expected").ThrowAsJavaScriptException();
+    //Napi::TypeError::New(env, "Function expected").ThrowAsJavaScriptException();
+    fail = true;
   }
 
-  Napi::Function cb = info[0].As<Napi::Function>();
+  auto callback = std::make_shared<ThreadSafeCallback>(info[0].As<Napi::Function>());
 
-  auto res = this->onButton([this, cb, env](bool pressed, unsigned counter) {
-      auto arr = Napi::Array::New(env, 2);
-      arr[0u] = pressed;
-      arr[0u] = counter;
-      cb.Call(env.Global(), {arr});
+  auto res = this->onButton([this, callback, fail](bool pressed, unsigned counter) {
+    try {
+      if (fail) throw std::runtime_error("Function expected");
+      callback->call([pressed, counter] (Napi::Env env, std::vector<napi_value>& args) {
+          args = { Napi::Boolean::New(env, pressed), Napi::Number::New(env, counter) };
+      });
+    }
+    catch (std::exception& e) {
+        callback->callError(e.what());
+    }
+
   });
   return Napi::Boolean::New(env, res);
 }
@@ -229,16 +245,25 @@ Napi::Value TimeSwipeNAPI::onErrorWrap(const Napi::CallbackInfo& info) {
 
   int length = info.Length();
 
+  bool fail = false;
   if (length <= 0 || !info[0].IsFunction()) {
     Napi::TypeError::New(env, "Function expected").ThrowAsJavaScriptException();
+    fail = true;
   }
 
-  Napi::Function cb = info[0].As<Napi::Function>();
+  auto callback = std::make_shared<ThreadSafeCallback>(info[0].As<Napi::Function>());
 
-  auto res = this->onError([this, cb, env](uint64_t errors) {
-      auto arr = Napi::Array::New(env, 1);
-      arr[0u] = errors;
-      cb.Call(env.Global(), {arr});
+  auto res = this->onError([this, callback, fail](uint64_t errors) {
+    try {
+      if (fail) throw std::runtime_error("Function expected");
+      callback->call([errors] (Napi::Env env, std::vector<napi_value>& args) {
+          args = { Napi::Number::New(env, errors) };
+      });
+    }
+    catch (std::exception& e) {
+        callback->callError(e.what());
+    }
+
   });
   return Napi::Boolean::New(env, res);
 }

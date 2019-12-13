@@ -105,8 +105,10 @@ public:
      *
      * Buffer is for 1 second data if \p cb works longer than 1 second, next data can be loosed and next callback called with non-zero errors
      *
+     * Function starts two threads: one thread reads sensor values to the ring buffer, second thread polls ring buffer and calls @ref cb
+     *
      * @param cb
-     * @return false if reading procedure start failed, otherwise it blocks current execution thread and returns true after reading finished
+     * @return false if reading procedure start failed, otherwise true
      */
     bool Start(ReadCallback cb);
 

@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     // Board Start
 
-    bool ret = tswipe.onButton([&](bool pressed) {
+    bool ret = tswipe.onButton([&](bool pressed, unsigned count) {
         std::cout << "Button: " <<  (pressed ? "pressed":"released") << std::endl;
     });
     if (!ret) {
@@ -131,8 +131,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    // Board Stop
+    std::this_thread::sleep_for(std::chrono::seconds(10));
 
+    // Board Stop
     if (!tswipe.Stop()) {
         std::cerr << "timeswipe stop failed" << std::endl;
         return -1;
