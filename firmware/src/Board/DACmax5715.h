@@ -5,8 +5,14 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//DAC max 5715
 #pragma once
+
+/*!
+*   \file
+*   \brief A definition file for MAX5715 DAC's channel
+*   CDACdecor
+*
+*/
 
 /*!
  * \brief The typeDac5715chan enum enumeration of presented DAC channels

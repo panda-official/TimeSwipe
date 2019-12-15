@@ -21,8 +21,8 @@ Copyright (c) 2019 Panda Team
  * \details Since the clock frequency is provided by a SPI master device to push bytes through the bus, at least one problem occurs:
  * how many clocks are required to fetch responce message from the slave if the message has variable lenght?
  * This problem is solved by using simple software flow-control:
- * each transaction is started with a "silence frame" (a sequence of zeros) that is used as marker of transfer begin
- * then a number of bytes to receive is transmitted in two bytes MSB-LSB order. Where MSB is marked with 0x80 flag.
+ * each transaction is started with a "silence frame" (a sequence of zeros) that is used as marker of transfer begin.
+ * Then a number of bytes that should be received is transmitted in two bytes in MSB-LSB order. Where MSB is marked with 0x80 flag.
  * This works symmetric both for master and slave: first, the master sends a silence frame followed by the length of the message,
  * so the slave knows the number of bytes to receive,
  * then the master fetches the same message header from the slave and

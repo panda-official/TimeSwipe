@@ -21,10 +21,23 @@
  *
  *  \ref Interfaces_page - the basic interfaces, data primitives and classes definitions. Most of firmware classes are based on this data types
  *
- *  To see how analog part of board is managed please refer to \ref ADCDAC_page
+ *  To see how analog part of board is managed, please refer to \ref ADCDAC_page
  *
  *  A communication with external master device and implementation of communication protocols is another essential part of the firmware.
  *  it can be found at \ref Communication_page
+ *
+ * To see how basic board functionality is provided (settings, interaction with the user and data visualisation) please, refer to
+ * \ref BusinessLogic_page
+ *
+ * The built-in routines like finding amplifier zero offsets are situated in the \ref Procs_page
+ *
+ * The \ref JSONstuff_page contains some JSON-based communication extensions and simple event system.
+ *
+ * If you'd like to have deeper knowledge about firmware components including also hardware-dependent components,
+ * please refer to the rest sections:  \ref Board_page, \ref SAMe54_page, \ref LEDs_page and \ref CortexMX_page
+ * <br />
+ * <br />
+ *
  *
  * The list of all firmware directories is shown below:
  *
