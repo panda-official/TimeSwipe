@@ -21,9 +21,6 @@ timeswipe.Start(async function (data, error) {
             //console.log(entry.join('\t'));
             lines = lines + 1;
         });
-        if (data.length == 0 && error==0) {
-            //await sleep(100);
-        }
     }
 });
 
@@ -36,6 +33,7 @@ const promise = new Promise((resolve, reject) => {
 function onComplete () {
   timeswipe.Stop()
   console.log('got lines: ', lines)
+  process.exit(0)
 }
 
 promise.then(onComplete)

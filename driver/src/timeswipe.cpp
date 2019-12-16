@@ -247,6 +247,11 @@ void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
         std::vector<Record> records[4096];
         auto num = recordBuffer.pop(&records[0], 4096);
         uint64_t errors = recordErrors.fetch_and(0UL);
+        if (num == 0 && errors == 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            continue;
+        }
+
         for (size_t i = 1; i < num; i++) {
             records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
         }

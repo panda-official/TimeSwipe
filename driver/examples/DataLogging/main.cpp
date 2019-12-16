@@ -122,9 +122,6 @@ int main(int argc, char *argv[])
                 if (i==0) std::cout << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
                 if (dump) data_log << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
             }
-            // It is possible to read as fast as possible and get small amonut of data
-            // if this callback function delays more than 1s - some data can be loosed
-            if (records.empty() && errors==0) std::this_thread::sleep_for(std::chrono::milliseconds(100));
     });
     if (!ret) {
         std::cerr << "timeswipe start failed" << std::endl;
