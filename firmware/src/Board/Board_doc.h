@@ -17,7 +17,7 @@
  *
  * CPinButton - an implementation of a button which uses digital pin state as an input signal with a debouncing code.
  *
- * SAMButton- a hardware-dependent realization of the board's button with ability of generation a JSON event from the button state
+ * SAMButton - a hardware-dependent realization of the board's button with ability of generation a JSON event from the button state
  *
  * CSamI2CmemHAT - a hardware-dependent realization of CAT2430 EEPROM chip emulation for HAT's outputs
  *

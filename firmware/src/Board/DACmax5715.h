@@ -10,7 +10,7 @@ Copyright (c) 2019 Panda Team
 /*!
 *   \file
 *   \brief A definition file for MAX5715 DAC's channel
-*   CDACdecor
+*   CDac5715sa
 *
 */
 

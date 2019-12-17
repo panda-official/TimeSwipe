@@ -82,15 +82,25 @@ protected:
 	virtual void send_event(typeButtonState nState)=0;
 	
 public:
+
+    /*!
+     * \brief The button state update method
+     * \details
+     */
 	void update(void)
 	{	
+        //! check if minimum updation time has elapsed since last updation
         unsigned long elapsed=os::get_tick_mS()-m_last_time_upd;
 		if(elapsed<m_upd_quant)
 			return;
 			
+        //! if yes, set new updation time stamp
         m_last_time_upd=os::get_tick_mS();
 			
-		m_level+=( (get_signal() ? 1.0f:0.0f) - m_level ) * ( (float)elapsed ) / (m_filter_t_Sec*1000.0f); //filtering
+        //! get the signal level and apply a 1-st order digital filter
+        m_level+=( (get_signal() ? 1.0f:0.0f) - m_level ) * ( (float)elapsed ) / (m_filter_t_Sec*1000.0f);
+
+        //! determine the button state based on filtered signal level
 		if(m_level>=m_high_trhold)
 		{
 			m_cur_state=typeButtonState::pressed;
@@ -99,6 +109,8 @@ public:
 		{
 			m_cur_state=typeButtonState::released;
 		}	
+
+        //! if the state differs from previous state, generate a button event
 		if(m_prev_state!=m_cur_state)
 		{
 			m_prev_state=m_cur_state;

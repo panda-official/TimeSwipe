@@ -5,23 +5,31 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//#ifndef DATAVIS_H
-//#define DATAVIS_H
+/*!
+*   \file
+*   \brief A definition file for
+*   CDataVis
+*/
 
 #pragma once
 
 #include <memory>
-//#include <vector>
 #include "ADC.h"
 #include "nodeLED.h"
 
+/*!
+ * \brief Data visualization class: displays the ADC channel's measured signal levels by binded LED
+ */
 class CDataVis
 {
 protected:
-    //Colour codes:
-
+    //! Color codes for DMS board
     unsigned int col_DMS[3] = {24, 250, 208};
+
+    //! Color codes for IEPE board
     unsigned int col_IEPE[3] = {50, 151, 247};
+
+    //! Actual displayed color
     unsigned int col_act[3];
 
     //parameters:
@@ -36,10 +44,9 @@ protected:
     unsigned long last_time_vis = 0;
     bool first_update = true;
 
-    //17.07.2019:
     bool          m_bStarted=true;
     bool          m_bStartInitOder=false;
-    unsigned long m_upd_tspan_mS=1000; //initial delay of 1 sec...
+    unsigned long m_upd_tspan_mS=1000;
 
     std::shared_ptr<CAdc> m_pADC; //data source
     std::shared_ptr<CLED> m_pLED; //output led
@@ -51,15 +58,6 @@ public:
 public:
     CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
 
-    //17.07.2019:
     void Start(bool bHow, unsigned long nDelay_mS);
-    /*{
-
-        m_bStarted=bHow;
-        m_upd_tspan_mS=nDelay_mS;
-    }*/
-
     void Update(); //updation
 };
-
-//#endif // DATAVIS_H
