@@ -7,7 +7,6 @@ Copyright (c) 2019 Panda Team
 
 #include "os.h"
 #include "zerocal_man.h"
-//#include <math.h>
 
 
 #include "menu_logic.h"
