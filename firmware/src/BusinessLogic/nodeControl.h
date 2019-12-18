@@ -12,11 +12,10 @@ Copyright (c) 2019 Panda Team
 #include "zerocal_man.h"
 #include "json_evsys.h"
 
+#include "board_type.h"
 
-//enum class typeADgain: int {gainX1=1, gainX2, gainX4, gainX8};
-//enum class typeDACmode : int {ExtDACs=0, SamAndExtDACs};
 
-enum class typeBoard: int {DMSBoard=0, IEPEBoard};
+//enum class typeBoard: int {DMSBoard=0, IEPEBoard};
 
 //this seems to be a "model" in MVC...
 class nodeControl : public std::enable_shared_from_this<nodeControl>, public CJSONEvCP,  public IJSONEvent{

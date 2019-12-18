@@ -218,7 +218,7 @@ int main(void)
         SAMButton button(*pMenu);
 
         //02.12.2019: Blinking as start signal :
-        nodeControl::BlinkAtStart(typeBoard::IEPEBoard);
+        nodeControl::BlinkAtStart(m_Board);
 
        //17.07.2019: DataVis:
         nodeControl::CreateDataVis(pADC1, pLED1);

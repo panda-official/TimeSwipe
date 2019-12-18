@@ -10,6 +10,8 @@ Copyright (c) 2019 Panda Team
 #include "DataVis.h"
 #include <math.h>
 
+#include "board_type.h"
+
 CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
 {
     m_pADC=pADC;
@@ -37,7 +39,7 @@ void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
 /*    for (int i = 0; i < 3; ++i) {
         col_act[i]=col_IEPE[i];
     }
-*/ //27.11.19, ib: moved to DataVis.h because DataVis::Start is called not only once at start, but everytime at setting a marker.
+*/ //27.11.19, ib: moved to Set_board_colour (nodeControl) because DataVis::Start is called not only once at start, but everytime at setting a marker.
     m_bStarted=bHow;
     m_upd_tspan_mS=nDelay_mS;
 

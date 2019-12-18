@@ -11,7 +11,6 @@ Copyright (c) 2019 Panda Team
 #include "nodeControl.h"
 #include "DataVis.h"
 
-#include "colour_codes.h"
 
 std::shared_ptr<CADmux>  nodeControl::m_pMUX;
 std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
@@ -58,9 +57,7 @@ void nodeControl::BlinkAtStart(typeBoard boardtype)
 {
     Set_board_colour(col_act, boardtype);  
 
-    unsigned int col_act_sca = col_act[0]*65536 + col_act[1]*256 + col_act[2]; 
-
-    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, col_act_sca, 2, 300);
+    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, LEDrgb(col_act[0], col_act[1], col_act[2]), 2, 300);
 }
 void nodeControl::on_event(const char *key, nlohmann::json &val) //17.07.2019 now can rec an event
 {
@@ -122,7 +119,7 @@ void nodeControl::StartRecord(const bool how)
 
     //blink: here???
  //   nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 3, 300);
-    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, LEDrgb(255, 255, 255));
+    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, LEDrgb(255, 10, 10));
 
     //17.07.2019: restart data vis:
     StartDataVis(true, 300);
