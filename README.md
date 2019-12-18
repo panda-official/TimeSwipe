@@ -26,6 +26,6 @@ The flashing procedure depends on the programmer which is being used. It usually
 
 The product consists of several modules. Semantic Versioning is used for modules.
 Compatibility is defined as follows: for the driver and firmware, compatibility is determined by the major version number.
-For example, firmware is 1.2.1 compatible with driver 1.3.5 and 1.4.1 and not compatible with driver 2.0.1
+For example, firmware 1.2.1 is compatible with driver 1.3.5 and 1.4.1 and not compatible with driver 2.0.1
 For the compatibility between the submodules of the driver the minor number is also taken into account: for example,
-python driver submodule 1.3.9 compatible with driver 1.3.5 and not compatible with  driver 1.4.1
+python driver submodule 1.3.9 is compatible with driver 1.3.5 and not compatible with  driver 1.4.1
