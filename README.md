@@ -15,12 +15,14 @@ For flashing a programmer or debugger like the Atmel ICE can be used. More conve
 
 The flashing procedure depends on the programmer which is being used. It usually consists of deleting old data/software in the flash memory of the chip and writing the new software. The flashing procedure is shown for flashing via Raspberry Pi with openOCD as an example:
 
-|                             |                                     | 
-|-----------------------------|  -----------------------------------|                       
-|1. atsame5 chip-erase	      |   delete old software in the flash  |
-|2. halt      		            |   halt                              |
-|3. flash erase_check 0		    |   look if erasing has been completed|
-|4. flash write_image xxx.elf	|   flash new software (elf-file)     |
+|                             |                                                   | 
+|-----------------------------|  -------------------------------------------------|                       
+|1. atsame5 chip-erase	      |   delete old firmware in the flash                |
+|2. reset                     |   reset the chip                                  |
+|3. halt      		            |   halt the firmware                               |
+|4. reset halt                |   reset the chip and keep it in the halted state  |
+|5. flash erase_check 0		    |   look for erased/filled sectors                  |
+|6. flash write_image xxx.elf	|   flash new firmware (elf-file)                   |
 
 # Product version
 
