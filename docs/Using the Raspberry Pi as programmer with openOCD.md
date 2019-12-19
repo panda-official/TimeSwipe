@@ -89,7 +89,7 @@ Type openOCD commands in the window with the open telnet connection:
 |                              |                                     | 
 |----------------------------- |  -----------------------------------|                       
 |1. atsame5 chip-erase	       |   delete old software in the flash |
-|2. reset_init	               |   halt                             |
+|2. reset init	               |   halt                             |
 |3. flash erase_check 0	       |   look if erasing has been completed |
 |4. flash write_image xxx.elf  |   flash new software (elf-file)      |
 |5. flash erase_check 0	       |   look if software has been flashed
@@ -100,10 +100,10 @@ Some openOCD commands: <br />
 
 Command                            |  Function
 ---------------------------------- | ---------------------------------------------
-reset_init                         |  halt
+reset init                         |  halt
 flash erase_check 0                |  shows the data in the flash
 flash erase_sector 0 4 4           |  erases sector 4 on bank 0
-atsame5 chip-erase                 |  erases the whole flash, use this command (does not require reset_init)
+atsame5 chip-erase                 |  erases the whole flash, use this command (does not require reset init)
 flash write_image xxx.elf          |  flash an elf-file
 
 

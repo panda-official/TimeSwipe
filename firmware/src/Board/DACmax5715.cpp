@@ -12,19 +12,35 @@ CDac5715sa::CDac5715sa(CSPI *pBus, typeDac5715chan nChan, float RangeMin, float 
 {
 	m_pBus=pBus;
 	m_chan=nChan;
-        m_IntRange=4095;
+
+    //! setup the raw-binary range and user defined user range
+    m_IntRange=4095;
 	SetRange(RangeMin, RangeMax);
 }
 
 //driver function:
 void CDac5715sa::DriverSetVal(float val, int out_bin)
 {
-	//tune SPI:
+    /*!
+     * m_pBus->set_phpol(false, true);
+     * setup phase & polarity: phase=0(not shifted), polarity=true(1, bus idle state=HIGH)
+     */
 	m_pBus->set_phpol(false, true);
+
+    //! m_pBus->set_tprofile_divs(0xff, 0, 0xff);
+    //! setup the bus timing profile:
+    //! ---minimal time to HOLD CS HIGH---___delay in between transfers___---delay before SCK is continued
 	m_pBus->set_tprofile_divs(0xff, 0, 0xff);
+
+    //! m_pBus->set_baud_div(0xff);
+    //! setup the bus buadrate divisor: rate=clock_speed/255;
 	m_pBus->set_baud_div(0xff);
-	
-	//form a message:
+
+    //! cmd<<(0x30+(int)m_chan)<<((out_bin>>4)&0xff)<<((out_bin<<4)&0xff);
+    //! forms a controlling message to be sent via SPI(MAX5715 manual, page 18)
+    //! 1st byte: command 3(code value and load value "CODEn_LOADn")+channel number
+    //! 2nd byte: control word high-byte
+    //! 3nd byte: control word low byte
 	CFIFO cmd;
 	cmd<<(0x30+(int)m_chan)<<((out_bin>>4)&0xff)<<((out_bin<<4)&0xff);
 	m_pBus->send(cmd);
