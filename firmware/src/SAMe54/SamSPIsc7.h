@@ -5,27 +5,32 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//SAM's regular SPI:
+/*!
+*   \file
+*   \brief A definition file for
+*   CSamSPIsc7
+*/
+
 #pragma once
 
 #include "SamSPI.h"
 
+/*!
+ * \brief A hardware-dependent realization of SPI intercommunication bus for SERCOM7 pinouts
+ */
 class CSamSPIsc7 : public CSamSPI
 {
 public:
-        CSamSPIsc7(bool bMaster=false); //ctor, bus init
-//        virtual ~CSamSPIsc7(){} //just to keep polymorphic behaviour, should be never called
-
-        virtual void chip_select(bool how);
-	
-	//serial:
-        /*virtual bool send(CFIFO &msg);
-	virtual bool receive(CFIFO &msg);
-	
-	//specific:
-	void set_phpol(bool bPhase, bool bPol);
-	void set_baud_div(unsigned char div);
-        void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel);*/
+    /*!
+      * \brief The class constructor
+      * \param bMaster A Master mode
+      * The constructor does the following:
+      * 1) calls CSamSPI constructor
+      * 2) setups corresponding PINs and its multiplexing
+      * 3) performs final tuning and enables SERCOM7 in SPI mode
+      */
+    CSamSPIsc7(bool bMaster=false);
+    virtual void chip_select(bool how);
 };
 
 

@@ -25,9 +25,9 @@ class CDac : public CADchan{
 protected:
     /*!
      * \brief Sets the output value to the real DAC device
-     * \param val value to set in a real-unit format for devices that can accept it(some PCI boards for example)
-     * \param out_bin value to set in a raw-binary format - most common format for DAC devices
-     * \details the function is used to transfer a control value from the abstract DAC channel to the real DAC device
+     * \param val A value to set in a real-unit format for devices that can accept it(some PCI boards for example)
+     * \param out_bin A value to set in a raw-binary format - most common format for DAC devices
+     * \details The function is used to transfer a control value from the abstract DAC channel to the real DAC device
      *  and must be re-implemented in the real device control class
      */
     virtual void DriverSetVal(float val, int out_bin)=0;

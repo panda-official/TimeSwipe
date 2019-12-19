@@ -18,7 +18,7 @@ std::shared_ptr<CSamCLK> CSamCLK::Factory()
 {
     for(int i=static_cast<int>(typeSamCLK::GCLK2); i<=static_cast<int>(typeSamCLK::GCLK11); i++)
     {
-        //13.05.2019: check if harware occupied by a first time (???)
+        //check if hardware occupied by a first time
         if(GCLK->GENCTRL[i].bit.GENEN)
         {
             m_bOcupied[i]=true; continue;
@@ -28,13 +28,11 @@ std::shared_ptr<CSamCLK> CSamCLK::Factory()
         if(!m_bOcupied[i])
         {
             m_bOcupied[i]=true;
-            //std::shared_ptr<CSamCLK> pClk=std::make_shared<CSamCLK>();
             CSamCLK *pClk= new CSamCLK; //because of protected ctor
             pClk->m_nCLK=i;
             m_Clocks.push_back(pClk);
             GCLK->GENCTRL[i].bit.SRC=GCLK_GENCTRL_SRC_DFLL; //def source
-            pClk->WaitSync(); //???
-
+            pClk->WaitSync();
             return std::shared_ptr<CSamCLK>(pClk);
         }
     }
@@ -60,14 +58,3 @@ void CSamCLK::Enable(bool how)
     WaitSync();
 }
 
-
-/*typeSamCLK CSamCLKcntr::GetFreeCLKind()
-{
-    int i;
-    for(int i=(int)typeSamCLK::GCLK1; i<=(int)typeSamCLK::GCLK11; i++)
-    {
-        if(0==GCLK->GENCTRL[i].bit.GENEN)
-            return (typeSamCLK)i;
-    }
-    return typeSamCLK::none; //not found
-}*/

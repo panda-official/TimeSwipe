@@ -26,55 +26,55 @@ class CSPI : public virtual ISerial{
 	
 public:
     /*!
-     * \brief send a serial message to this class object
-     * \param msg  a message to send (output parameter)
-     * \return operation result: true if successful otherwise - false
+     * \brief Sends a serial message to this class object
+     * \param msg  A message to send (output parameter)
+     * \return The operation result: true if successful otherwise - false
      */
     virtual bool send(CFIFO &msg)=0;
 
     /*!
-     * \brief receive a serial message from this class object
-     * \param msg a message to receive (input parameter)
-     * \return operation result: true if successful otherwise - false
+     * \brief Receives a serial message from this class object
+     * \param msg A message to receive (input parameter)
+     * \return The operation result: true if successful otherwise - false
      */
     virtual bool receive(CFIFO &msg)=0;
 
     /*!
-     * \brief send a single character to this class object
-     * \param ch a character to send
-     * \return operation result: true if successful otherwise - false
-     * \details deprecated
+     * \brief Sends a single character to this class object
+     * \param ch A character to send
+     * \return The operation result: true if successful otherwise - false
+     * \deprecated
      */
 
     virtual bool send(typeSChar ch)=0;
 
     /*!
-     * \brief receive a single character from this class object
-     * \param ch a character to receive
-     * \return operation result: true if successful otherwise - false
-     * \details deprecated
+     * \brief Receives a single character from this class object
+     * \param ch A character to receive
+     * \return The operation result: true if successful otherwise - false
+     * \deprecated
      */
 
     virtual bool receive(typeSChar &ch)=0;
 	
     /*!
-     * \brief setup phase & polarity
-     * \param bPhase phase to set: true(1)-shifted, false(0) - not shifted
-     * \param bPol polarity to set: true - bus idle state=HIGH, false - bus idle state=LOW
+     * \brief Setups phase & polarity
+     * \param bPhase A phase to set: true(1)-shifted, false(0) - not shifted
+     * \param bPol A polarity to set: true - bus idle state=HIGH, false - bus idle state=LOW
      */
 	virtual void set_phpol(bool bPhase, bool bPol)=0;
 
     /*!
-     * \brief  setup baudrate divisor
-     * \param div divisor value: baudrate=clock_speed/div
+     * \brief  Setups baudrate divisor
+     * \param div A divisor value: baudrate=clock_speed/div
      */
 	virtual void set_baud_div(unsigned char div)=0;
 
     /*!
-     * \brief setup the bus timing profile ---minimal time to HOLD CS HIGH---___delay in between transfers___---delay before SCK is continued---
-     * \param CSminDel minimal time to HOLD CS HIGH
-     * \param IntertransDel delay in between transfers
-     * \param BeforeClockDel delay before SCK is continued
+     * \brief Setups the bus timing profile ---minimal time to HOLD CS HIGH---___delay in between transfers___---delay before SCK is continued---
+     * \param CSminDel A minimal time to HOLD CS HIGH
+     * \param IntertransDel A delay in between transfers
+     * \param BeforeClockDel A delay before SCK is continued
      */
 	virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel)=0;
 

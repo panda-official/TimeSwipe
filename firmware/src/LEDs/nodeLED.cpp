@@ -5,27 +5,24 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//ino stubs:
 
 #include <random>
-
 #include "os.h"
 #include "nodeLED.h"
-#include "Adafruit_NeoPixel.h"  //28.08.2019
+#include "Adafruit_NeoPixel.h"
 
-//nodeLED implementation:
 
 //neopix object:
-static Adafruit_NeoPixel glob_NeoPix(4, 12); //4 leds, 18PIN pi, neoGRB, PA17 SAM const vals, maybe change later for dynamic creation...
+static Adafruit_NeoPixel glob_NeoPix(4, 12);
 typedef Adafruit_NeoPixel typeLEDCntr;
 
 bool              nodeLED::m_bLEDisChanged=false;
-std::list<CLED *> nodeLED::m_LEDs; //keep it static???
+std::list<CLED *> nodeLED::m_LEDs;
 
 std::default_random_engine generator;
 std::uniform_int_distribution<int> distribution(3,220);
 
-//01.05.2019: led control class:
+
 CLED::CLED(typeLED nLED)
 {
     m_nLED=nLED;
@@ -47,7 +44,6 @@ void CLED::Update()
 
     m_bPhase=!m_bPhase;
 
-    //21.06.2019
     if(m_BlinkingPeriodLimit>0){
     if(m_bPhase && ++m_CurBlinkingPeriod>=m_BlinkingPeriodLimit)
     {
@@ -59,7 +55,7 @@ void CLED::Update()
     nodeLED::m_bLEDisChanged=true;
 }
 
-void CLED::Blink(int nPeriods) //21.06.2019
+void CLED::Blink(int nPeriods)
 {
     m_bBlinking=true;
     m_CurBlinkingPeriod=0;
@@ -77,8 +73,8 @@ void CLED::ON(bool how)
     }
     else
     {
-        m_BlinkingPeriodLimit=0; //reset auto blinking 21.06.2019
-         m_BlinkPeriod_mS=400;  //set a period to default???
+        m_BlinkingPeriodLimit=0;
+         m_BlinkPeriod_mS=400;
     }
 
     typeLEDCntr &pixels=glob_NeoPix;
@@ -121,7 +117,7 @@ void nodeLED::init(void)
 {
 	glob_NeoPix.begin();
 #ifndef KEMU
-	resetALL(); //25.02.2019
+    resetALL();
 #endif
 }
 
@@ -135,7 +131,7 @@ void nodeLED::random(int nBlink)
     }
 }
 
-//21.06.2019: make new non-blocking, working with LEDs obj:
+
 void nodeLED::resetALL()
 {
     for(const auto pLED:m_LEDs)

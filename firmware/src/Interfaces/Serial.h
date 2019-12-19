@@ -183,7 +183,7 @@ protected:
 /*!
  * \brief   A basic class for all serial devices
  * \details This is a template for deriving all serial devices.
- *  It implements a connection point for ISerialEvent inside. So all objects that realise ISerialEvent can be advised
+ *  It implements a connection point for ISerialEvent inside. All objects that realize ISerialEvent can be advised
  *  to this serial device by AdviseSink and receive corresponding notifications
  *
  */
@@ -219,7 +219,7 @@ public:
 
         /*!
          * \brief Subscribe a new listener to serial device events
-         * \param sink an object to subscribe
+         * \param A sink to an object to subscribe
          */
         void AdviseSink(const std::shared_ptr<ISerialEvent> &sink)
         {

@@ -30,7 +30,7 @@
  * <H4> SERCOM-based serial devices </H4>
  *
  * SERCOM is a SAME54's Serial Communication Interface.
- * Depending on settings it can be turned into USART, SPI, I2C-master or I2C-slave
+ * Depending on settings it can be turned into USART, SPI, I2C-master or I2C-slave.
  *
  * CSamSercom provides the basic functionality of SERCOM mainly dealing with interrupt processing, enabling and connecting corresponding
  * CSamCLK (Generic Clock controller)

@@ -5,43 +5,107 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//SAM's regular SPI:
+/*!
+*   \file
+*   \brief A definition file for
+*   CSamSPI
+*/
+
 #pragma once
 
 #include "SPI.h"
 #include "SamSercom.h"
-#include "SyncCom.h"    //20.05.219
+#include "SyncCom.h"
 
+/*!
+ * \brief A basic SAME54 SPI class used for intercommunication with external device with integrated flow control
+ * \details Provides a basic low-level communication protocol ( flow control via CSyncSerComFSM )
+ */
 class CSamSPI : public CSamSercom, public CSPI
 {
 protected:
-        bool           m_bMaster; //master/slave mode 03.06.2019
-        bool           m_bIRQmode;  //IRQmode 25.06.2019
+
+        /*!
+         * \brief Is acting as master or as slave?
+         */
+        bool           m_bMaster;
+
+        /*!
+         * \brief Are SERCOM interrupt lines enabled?
+         */
+        bool           m_bIRQmode;
+
+        /*!
+         * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)
+         * \return true=interrupt mode is enabled, false=disabled
+         */
         inline bool    isIRQmode(){return m_bIRQmode;}
 
-        //typeSamSercoms m_nSercom; -> moved to the super 24.06.2019
+
+        /*!
+         * \brief An associated clock generator: used only in a master mode
+         */
         std::shared_ptr<CSamCLK> m_pCLK;
 
-        //flow control:
+        /*!
+         * \brief Is chip select pin activated ?
+         */
         bool m_bCSactive=false;
+
+        /*!
+         * \brief A flow control object
+         */
         CSyncSerComFSM m_ComCntr;
+
+        /*!
+         * \brief Primary FIFO buffer to hold input chracters obtained inside interrupt routine
+         * \details The writing to this buffer should be as fast as possible to leave interrupt routine and
+         *  let it process next incoming characters
+         */
         CFIFO m_recFIFO;
-        CFIFO m_recFIFOhold;    //25.06.2019 - hold the result
 
+        /*!
+         * \brief Secondary FIFO buffer that's processed in Update method. Incoming message appears in the buffer by swapping with
+         * m_recFIFO.
+         * \details The buffer is swapped with m_recFIFO when any amount of data is detected in m_recFIFO. Then m_recFIFO dump its data
+         *  to this bufer and can continue receive symbols in interrupt routine while message in  m_recFIFOhold is processing.
+         * Speed is not critical since m_recFIFOhold is processed in CSamSPI::Update()
+         */
+        CFIFO m_recFIFOhold;
 
-        //working with rx buf:
-        //void check_rx();
+        /*!
+         * \brief Interrupt handling routine
+         * \details Can be called automatically by the hardware when interrupt mode is enable or
+         *  polled by CSamSPI::Update() if IRQ mode is disabled (slow mode)
+         */
         void IRQhandler();
 
-        //04.06.2019:
+        /*!
+         * \brief Sends one character and waits until it is sent
+         * \param ch A character to send
+         * \return An operation result: true=ok, false=error
+         */
         bool send_char(typeSChar ch);
 
-        //03.06.2019:
+        /*!
+         * \brief A method that makes a chip selection in a master mode. Has to be overridden in the derived class
+         * \param how true=select chip, false=deselect chip
+         */
         virtual void chip_select(bool how){}
 	
-//public:
-        CSamSPI(typeSamSercoms nSercom, bool bMaster=false); //ctor, bus init
-        virtual ~CSamSPI(); //just to keep polymorphic behaviour, should be never called
+        /*!
+         * \brief The class constructor
+         * \param nSercom The SERCOM ID
+         * \param bMaster A master mode
+         * \details The constructor does the following:
+         * 1) calls CSamSercom constructor
+         * 2) enables communication bus with corresponding SERCOM
+         * 3) connects available clock generator via CSom CLK service if in a master mode
+         * 4) sets default baudrate
+         * 5) Turns device into SPI-master or SPI-slave(default) depending on bMaster
+         */
+        CSamSPI(typeSamSercoms nSercom, bool bMaster=false);
+        virtual ~CSamSPI();
 
         virtual void OnIRQ0();
         virtual void OnIRQ1();
@@ -49,24 +113,51 @@ protected:
         virtual void OnIRQ3();
 
 public:
-	//serial:
-	virtual bool send(CFIFO &msg);
-	virtual bool receive(CFIFO &msg);
+        virtual bool send(CFIFO &msg);
+
+        /*!
+         * \brief Does nothing
+         * \param msg Ignored
+         * \return false
+         */
+        virtual bool receive(CFIFO &msg);
         virtual bool send(typeSChar ch);
+
+        /*!
+         * \brief Does nothing
+         * \param msg Ignored
+         * \return false
+         */
         virtual bool receive(typeSChar &ch);
 	
-	//specific:
         virtual void set_phpol(bool bPhase, bool bPol);
         virtual void set_baud_div(unsigned char div);
+
+        /*!
+         * \brief Does nothing
+         * \param msg Ignored
+         * \return false
+         */
         virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel);
 
-        //10.05.2019: updation
-        void Update(); //{ check_rx(); } //+++dbg only version
+        /*!
+         * \brief The object state update method.
+         * \details Gets the CPU time to update internal state of the object.
+         *  Must be called from a "super loop" or from corresponding thread
+         *  If the IRQ mode is not enabled, CSamSPI::IRQhandler() is called inside this methode
+         */
+        void Update();
 
-        //24.06.2019:
+        /*!
+         * \brief Enables IRQ mode
+         * \param how true=enable, false=disable
+         */
         void EnableIRQs(bool how);
 
-        //09.08.2019:
+        /*!
+         * \brief Returns the state of chip select
+         * \return true=selected, false=deselected
+         */
         bool WasCsTrigerred(){ return m_bCSactive; }
 };
 

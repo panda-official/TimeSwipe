@@ -29,17 +29,21 @@ Copyright (c) 2019 Panda Team
 #include "std_port.h"
 #include "jsondisp.h"
 
+/*!
+ * \brief Setups the CPU main clock frequency to 120MHz
+ * \return 0=frequency tuning was successful
+ */
 int sys_clock_init(void);
 
 
 
 /*!
-*  @brief The current firmware assemblage point
+*  \brief The current firmware assemblage point
 *
-*  @details Here is all neccesary firmware objects and modules are created at run-time
+*  \details Here is all neccesary firmware objects and modules are created at run-time
 *  and corresponding bindings and links are established between them
 *
-*  @todo Add or remove desired objects to change the firmware behavior,
+*  \todo Add or remove desired objects to change the firmware behavior,
 *  or add/remove desired functionality
 *
 */
@@ -59,8 +63,7 @@ int main(void)
         //step 1 - creating QSPI bus:
         CSamQSPI objQSPI;
 
-        //10.05.2019: creating SC2 SPI:
-      //  pSPIsc7    =std::make_shared<CSamSPIsc7>(true); //it will be a master 03.06.2019
+
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
         pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
 
@@ -87,7 +90,7 @@ int main(void)
 
 
          //step 2 - creating ADC0:
-#ifndef  USE_AD_CUSTOM_RANGES   //if not using custom ranges range is absolute 17.06.2019
+#ifndef  USE_AD_CUSTOM_RANGES
         auto pSamADC0   =std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
         auto pADC1      =std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none, 0.0f, 4095.0f);
         auto pADC2      =std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN3, typeSamADCmuxneg::none, 0.0f, 4095.0f);
@@ -135,13 +138,13 @@ int main(void)
         nodeControl::SetControlItems(pADmux, pZeroCal);
 
 
-        //17.07.2019: DataVis:
+        //Data visualization
         nodeControl::CreateDataVis(pADC1, pLED1);
         nodeControl::CreateDataVis(pADC2, pLED2);
         nodeControl::CreateDataVis(pADC3, pLED3);
         nodeControl::CreateDataVis(pADC4, pLED4);
 
-        //18.07.2019: preparing and start:
+        //Setup initial offset for the amplifier
         pDACA->SetRawOutput(2048);
         pDACB->SetRawOutput(2048);
         pDACC->SetRawOutput(2048);
@@ -150,7 +153,7 @@ int main(void)
 
 
 
-        //---------------------------11.05.2019: some commands:---------------------------------------------------------
+        //---------------------------------------------------command system------------------------------------------------------
         auto pDisp=         std::make_shared<CCmdDispatcher>();
         auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
         pSPIsc2->AdviseSink(pStdPort);
@@ -195,56 +198,41 @@ int main(void)
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
         pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetZeroRunSt,  &nodeControl::SetZero) );
 
-        //15.07.2019 adding m_TargErrTolerance getter/setter:
         pDisp->Add("Zero.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-
-
-        //ADMUX:
         pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) ); //18.07.2019 - a getter is added
-        //pDisp->Add("DACmode", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, nullptr,  &CADmux::SetDACmode) );
-
-        //27.05.2019:
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
-
-        //31.10.2019: fan command
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
-
-
-        //pDisp->Add("SPI1", std::make_shared< CCmdSGHandlerF<std::string> >(nullptr,  SPI1_retranslator) );
-        //pDisp->Add("EE.ind", std::make_shared< CCmdSGHandler<CSamI2Cmem, unsigned int> >(pEEPROM, &CSamI2Cmem::GetCurMemInd, &CSamI2Cmem::SetCurMemInd ) );
-
 
         //--------------------menu+button+detection of a master----------------
         auto pMenu=std::make_shared<CMenuLogic>();
         SAMButton button(*pMenu);
 
 
-        //------------------JSON 10.06.2019---------------------
+        //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
         pDisp->Add("js", pJC);
 
-        //------------------EVENTS 14.06.2019-------------------
-        //auto pJE=std::make_shared<CEvDisp>(pDisp);
-        auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp); //14.08.2019 - removed event pin
+        //------------------JSON EVENTS-------------------
+        auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
         pDisp->Add("je", pJE);
         button.AdviseSink(pJE);
         pMenu->AdviseSink(pJE);
-        pMenu->AdviseSink(nodeControl::Instance().shared_from_this()); //18.07.2019
+        pMenu->AdviseSink(nodeControl::Instance().shared_from_this());
         nodeControl::Instance().AdviseSink(pJE);
 
         pZeroCal->AdviseSink(pJE);
         pZeroCal->AdviseSink(pMenu);
-        pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this()); //18.07.2019
+        pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this());
         //--------------------------------------------------------------------------------------------------------------
 
 
         pADmux->SetUBRvoltage(true);
-        while(1) //endless loop
+        while(1) //endless loop ("super loop")
         {
              //update calproc:
              pZeroCal->Update();
 
-             //17.07.2019: update control
+
              nodeControl::Instance().Update();
 
              //update LEDs:
@@ -260,8 +248,6 @@ int main(void)
                      pMenu->OnTimer(0);
              }
 
-             //10.05.2019:
-            pSPIsc2->Update();
-          //  pSPIsc7->Update();
+             pSPIsc2->Update();
         }
 }

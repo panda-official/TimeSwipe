@@ -15,7 +15,7 @@ Copyright (c) 2019 Panda Team
 */
 
 /*!
- * \brief The NVMscpage struct: NVM Software Calibration Area Mapping
+ * \brief NVM Software Calibration Area Mapping
  *
  * \details "The NVM Software Calibration Area contains calibration data that are determined and written during
  *           production test. These calibration values should be read by the application software and written back to
