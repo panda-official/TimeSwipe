@@ -5,24 +5,19 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//SAM's Sercom selector: returns an adress:
 
 #include "SamSercom.h"
 #include "sam.h"
 
-//extern uint32_t __isr_vector;
 
 static CSamSercom *glob_pSC[8]={nullptr};
 
 CSamSercom::CSamSercom(typeSamSercoms nSercom)
 {
-    //check, if it already created:
-    //............................
-
     m_nSercom=nSercom;
     glob_pSC[static_cast<int>(nSercom)]=this;
 }
-CSamSercom::~CSamSercom()   //actually should never be called....
+CSamSercom::~CSamSercom()
 {
     glob_pSC[static_cast<int>(m_nSercom)]=nullptr;
 }
@@ -82,7 +77,7 @@ void SERCOM2_0_Handler(void)
 }
 void SERCOM2_1_Handler(void)
 {
-    glob_pSC[2]->OnIRQ1(); //DRE??
+    glob_pSC[2]->OnIRQ1();
 }
 void SERCOM2_2_Handler(void)
 {
@@ -237,9 +232,5 @@ void CSamSercom::ConnectGCLK(typeSamSercoms nSercom, typeSamCLK nCLK)
     }
 }
 
-
-/*void CSamSercom::SetupIRQhandlers(typeSamSercoms nSercom, void (*pIRQ1)(void), void (*pIRQ2)(void), void (*pIRQ3)(void), void (*pIRQ4)(void))
-{
-}*/
 
 

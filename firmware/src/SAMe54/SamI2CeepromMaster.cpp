@@ -150,7 +150,7 @@ void CSamI2CeepromMaster::IRQhandler()
         pI2Cm->STATUS.reg=0xff; //clear status ?
         pI2Cm->INTFLAG.bit.ERROR=1;
 
-        m_MState=errTransfer; //???
+        m_MState=errTransfer;
         return;
     }
 
@@ -270,7 +270,6 @@ void CSamI2CeepromMaster::EnableIRQs(bool how)
     CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
 }
 
-//+++new mem int:
 void CSamI2CeepromMaster::rewindMemBuf()
 {
     if(m_pBuf)

@@ -5,37 +5,62 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-/*#ifndef FRM_STREAM_H
-#define FRM_STREAM_H
-
-#endif // FRM_STREAM_H*/
+/*!
+*   @file
+*   @brief A basic formatted stream class
+*   CFrmStream
+*
+*/
 
 #pragma once
 
-//base class for a formated stream:
-
-//1: std:
-
-//#include <istream>
-//typedef std::iostream CFrmStream;
-
-
-//2: custom: iostream is too heavy.....
-
-//just a stub for testing:
 #include "Serial.h"
 
+/*!
+ * \brief A formatted stream class.
+ * \details Provides a mechanism for retrieving/storing
+ *  primitive data types (int, float, std::string, e.t.c) from/to the stream.
+ *  similar to ios::ios, but standard library is too heavy
+ */
 class CFrmStream
 {
 protected:
+
+    /*!
+    * \brief A pointer to FIFO buffer used as stream-buffer
+    */
    CFIFO *m_pBuf=nullptr;
+
+   /*!
+    * \brief Actual parsing error status (true=active)
+    */
    bool  m_bErr=false;
 
+   /*!
+    * \brief Extraction operator helper
+    * \param pVar void pointer to an extracted variable
+    * \param ti variable type
+    */
    virtual void get(void *pVar, const std::type_info &ti);
+
+   /*!
+    * \brief Insertion operator helper
+    * \param pVar void pointer to an inserted variable
+    * \param ti variable type
+    */
    virtual void set(const void *pVar, const std::type_info &ti);
 
+   //! start tocken used for string extraction
    typeSChar m_chStartTocken=' ';
+
+   //! end tocken used for string extraction
    typeSChar m_chEndTocken='\0';
+
+   /*!
+    * \brief Extract a string from the stream
+    * \param str Filled with extracted string (IN parameter)
+    * \return Operation result: true - succesfull extraction, false - failure
+    */
    bool fetch_string(std::string &str);
 
    template<typename type>
@@ -48,6 +73,10 @@ protected:
    }
 
 public:
+   /*!
+     * \brief Returns the status of the last parsing operation
+     * \return
+     */
     bool bad(){return m_bErr;}
 
     CFrmStream(CFIFO *pBuf)

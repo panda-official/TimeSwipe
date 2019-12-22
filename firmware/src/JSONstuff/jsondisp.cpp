@@ -17,12 +17,11 @@ void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jR
     CallDescr.m_ctype=CCmdCallDescr::ctype::ctGet;
     CallDescr.m_cmethod=CCmdCallDescr::cmethod::byCmdIndex;
 
-    //LockCmdSubsys(true);    //! prevent self calling and deadly recursy
     for(CallDescr.m_nCmdIndex=0;; CallDescr.m_nCmdIndex++)
     {
         nlohmann::json jval;
         CJSONStream out(&jval);
-        CallDescr.m_pOut=&out; //-!!!
+        CallDescr.m_pOut=&out;
         typeCRes cres=m_pDisp->Call(CallDescr);
         if(CCmdCallDescr::cres::obj_not_found==cres)
             break;  //!reached the end of the command table
@@ -33,7 +32,6 @@ void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jR
 
         }
     }
-    //LockCmdSubsys(false);
 }
 
 void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &jReq, nlohmann::json &jResp, const CCmdCallDescr::ctype ct)
@@ -80,7 +78,7 @@ void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &j
 
 void CJSONDispatcher::Call(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, bool bArrayMode)
 {
-    nlohmann::json stub=""; //- stub
+    nlohmann::json stub=""; //stub
     for (auto& el : jObj.items()) {
 
         nlohmann::json &val=el.value();
@@ -123,7 +121,7 @@ typeCRes CJSONDispatcher::Call(CCmdCallDescr &d)
 
     //! an exception can be thrown wile working with a JSON!
 
-    CJSONCmdLock CmdLock(*this); //lock the command sys against recursy calls
+    CJSONCmdLock CmdLock(*this); //lock the command sys against recursive calls
 
     std::string str;
     nlohmann::json jresp;

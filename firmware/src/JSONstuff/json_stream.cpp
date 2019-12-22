@@ -29,10 +29,6 @@ void CJSONStream::get(void *pVar, const std::type_info &ti)
     {
         *(static_cast<float*>(pVar))=jo;
     }
-    /*else if(ti==typeid(const char *))
-    {
-       strcpy(*((char**)pVar), (const char*)jo);
-    }*/
     else if(ti==typeid(std::string))
     {
         *(static_cast<std::string*>(pVar))=jo;

@@ -5,9 +5,6 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//SAM ADC controller class:
-
-
 #include "SamADCcntr.h"
 #include "sam.h"
 #include "NVMpage.h"
@@ -19,14 +16,12 @@ Copyright (c) 2019 Panda Team
 #define GCLK_ADC1   41
 
 
-//25.04.2019: SamADCchan:
-//ctor:
 CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax)
 {
     m_pCont=pCont;
     m_posIN=posIN;
     m_negIN=negIN;
-    m_IntRange=4095; //!!!
+    m_IntRange=4095;
     SetRange(RangeMin, RangeMax);
 
     pCont->m_Chans.push_back(this);
@@ -45,7 +40,7 @@ void CSamADCchan::SetRawBinVal(int RawVal)
     CADchan::SetRawBinVal(m_FilteredRawVal);
 }
 
-//27.05.2019:
+
  int CSamADCchan::DirectMeasure(int nMesCnt, float alpha)
  {
      //select one chanel and no switching beetwen mes:
@@ -150,7 +145,7 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     //-------------------------------------------------------------------
     
     
-    //------------------enable main clock to drive ADC bus!!!------------
+    //------------------enable main clock to drive ADC bus---------------
     if(typeSamADC::Adc0==nADC)
 		MCLK->APBDMASK.bit.ADC0_=1;
 	else
@@ -184,18 +179,18 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     //------------------------------------------------------------------
 
 
-    //----------27.05.2019-enabling accumulation & averaging------------
+    //----------------enabling accumulation & averaging-----------------
         pADC->AVGCTRL.bit.SAMPLENUM=0x07; //128 samples
         while(pADC->SYNCBUSY.bit.AVGCTRL){}
         pADC->AVGCTRL.bit.ADJRES=0x04;      //12 bits res of 128 samples
         while(pADC->SYNCBUSY.bit.AVGCTRL){}
         pADC->CTRLB.bit.RESSEL=0x01; //16BIT For averaging mode output
         while(pADC->SYNCBUSY.bit.CTRLB){}
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------------
 
     
     //--------------------------enabling---------------------------------
-    pADC->REFCTRL.bit.REFSEL    =0x05; //AREFB	//+++dbg only
+    pADC->REFCTRL.bit.REFSEL    =0x05; //AREFB
     while(pADC->SYNCBUSY.bit.REFCTRL){}
     pADC->CTRLA.bit.ENABLE=1;   //enable the ADC
     while(pADC->SYNCBUSY.bit.ENABLE){}
