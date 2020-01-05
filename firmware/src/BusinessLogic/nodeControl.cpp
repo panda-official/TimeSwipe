@@ -109,6 +109,23 @@ void nodeControl::SetBridge(bool how)
     nlohmann::json v=how;
     Instance().Fire_on_event("Bridge", v);
 }
+
+void nodeControl::SetSecondary(int nMode)
+{
+    nMode&=1; //fit the value
+
+    m_pMUX->SetUBRvoltage(nMode);
+
+    //generate an event:
+    nlohmann::json v=nMode;
+    Instance().Fire_on_event("SetSecondary", v);
+
+}
+int nodeControl::GetSecondary()
+{
+    return m_pMUX->GetUBRVoltage();
+}
+
 void nodeControl::SetZero(bool how)
 {
     if(how)

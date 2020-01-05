@@ -74,6 +74,15 @@ private:
 	
 public:
         /*!
+         * \brief The possible values for IEPE measure modes
+         */
+        enum MesModes
+        {
+            IEPE=0,         //!<IEPE mode
+            Normsignal      //!<Normal signal
+        };
+
+        /*!
          * \brief Binds board's digital multiplexer and controller object of finding amplifier offsets routine
          * to this object
          * \param pMUX A pointer to the board's digital multiplexer
@@ -157,6 +166,18 @@ public:
          * \return true=bridge voltage is ON, false=bridge voltage is off
          */
         static bool GetBridge();
+
+        /*!
+         * \brief Sets the measurement mode
+         * \param nMode: 0 = IEPE; 1 = Normsignal
+         */
+        static void SetSecondary(int nMode);
+
+        /*!
+         * \brief Gets current measurement mode
+         * \return 0 = IEPE; 1 = Normsignal
+         */
+        static int GetSecondary();
 	
         /*!
          * \brief Starts/stops finding amplifier offsets procedure

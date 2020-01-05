@@ -62,7 +62,7 @@ protected:
          * \details The writing to this buffer should be as fast as possible to leave interrupt routine and
          *  let it process next incoming characters
          */
-        CFIFO m_recFIFO;
+        CFIFOlt<256> m_recFIFO;
 
         /*!
          * \brief Secondary FIFO buffer that's processed in Update method. Incoming message appears in the buffer by swapping with
@@ -71,7 +71,7 @@ protected:
          *  to this bufer and can continue receive symbols in interrupt routine while message in  m_recFIFOhold is processing.
          * Speed is not critical since m_recFIFOhold is processed in CSamSPI::Update()
          */
-        CFIFO m_recFIFOhold;
+        CFIFOlt<256> m_recFIFOhold;
 
         /*!
          * \brief Interrupt handling routine

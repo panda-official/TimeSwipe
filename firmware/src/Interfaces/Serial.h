@@ -79,6 +79,90 @@ public:
 
 
 /*!
+ * \brief Light&Fast FIFO buffer implementation.
+ *
+ * \details This special FIFO buffer is designed for use in IRQ routines
+ *
+ */
+template<int nBufSize>
+class CFIFOlt
+{
+protected:
+        int m_ReadInd=0;
+        int m_WriteInd=0;
+        char *m_pBuf;
+
+        char m_Buf[nBufSize];
+
+public:
+        CFIFOlt()
+        {
+            m_pBuf=m_Buf;
+        }
+
+        /*!
+         * \brief insertion operator
+         * \param b a simbol to be inserted according to FIFO order
+         * \return reference to this
+         */
+        inline CFIFOlt & operator <<(typeSChar b)
+        {
+                if(m_WriteInd>=nBufSize)
+                {
+                    m_WriteInd=0;
+                }
+                m_pBuf[m_WriteInd++]=b;
+                return *this;
+        }
+
+        /*!
+         * \brief extraction operator
+         * \param b a simbol to be extracted according to FIFO order
+         * \return reference to this
+         */
+
+        inline CFIFOlt & operator >>(typeSChar &b)
+        {
+                b=m_pBuf[m_ReadInd++];
+                return *this;
+        }
+
+        /*!
+         * \brief Dumps content of this buffer to another and resets this buffer
+         * \details The operation is used to pass received data from IRQ routine to a normal thread (another FIFO) where
+         *  processing speed is not critical and immideatly free this buffer for receiving a new incoming data
+         * \param dest A buffer to pass the received data
+         */
+        inline void dumpres(CFIFOlt &dest)
+        {
+            char *pNewBuf=dest.m_pBuf;
+            dest.m_pBuf=m_pBuf;
+            m_pBuf=pNewBuf;
+            dest.m_ReadInd=m_ReadInd;
+            dest.m_WriteInd=m_WriteInd;
+            m_ReadInd=0;
+            m_WriteInd=0;
+        }
+
+        /*!
+         * \brief how many elements are available in the FIFO buffer?
+         * \return the number of available elements.
+         */
+        inline int in_avail() const { return m_WriteInd-m_ReadInd; }
+
+        /*!
+         * \brief remove all elements from the buffer
+         */
+        inline void reset() { m_WriteInd=0; m_ReadInd=0; }
+
+        /*!
+         * \brief restore all elements that have been exctracted form the bufer by >> extraction operator
+         */
+        inline void rewind(){ m_ReadInd=0; }
+};
+
+
+/*!
  * \brief A basic serial communication interface
  *
  * \details The interface allows derived classes to communicate by exchanging serial messages
