@@ -7,17 +7,9 @@ Copyright (c) 2019 Panda Team
 
 /*!
 *   @file
-*   @brief A simple command proccessor structures and classes.
+*   @brief A simple command proccessor structures and classes:
+*   CCmdCallDescr, CCmdException, CCmdCallHandler, CCmdSGHandler, CCmdSGHandlerF
 *
-*   @details The processing of all incoming command requests is realized by a CCmdDispatcher
-*   object instance. The port object instance that implements the current communication protocol (simple text, binary/specific)
-*   transforms an incoming request from a protocol depended form to an uniform request described by CCmdCallDescr class
-*   where command name in a string format (if presented) its hash value,  pointers to input/output streams and other service
-*   information are stored. Then a port that holds a pointer to the CCmdDispatcher calls  CCmdDispatcher methode "Call" with
-*   CCmdCallDescr as a parameter. CCmdDispatcher process the incoming request by finding specific command handler
-*   in its internal map and invoking the handler. The call result is stored in the same CCmdCallDescr parameter and
-*   hence it is further accesible by a port.
-*   By adding number of different port instances several communication protocols can be implemented at once.
 */
 
 #pragma once
@@ -28,9 +20,9 @@ Copyright (c) 2019 Panda Team
 #include "frm_stream.h"
 
 /*!
-*   @brief A uniform command request descriptor.
+*   @brief An uniform command request descriptor.
 *
-*   @details The processing of all incoming command requests is realized by a CCmdDispatcher
+*   @details The processing of all incoming command requests is released by a CCmdDispatcher
 *   object instance. The port object instance that implements the current communication protocol (simple text, binary/specific)
 *   transforms an incoming request from a protocol depended form to an uniform request described by CCmdCallDescr class
 *   where command name in a string format (if presented) its hash value,  pointers to input/output streams and other service
@@ -94,13 +86,20 @@ struct CCmdCallDescr
 typedef  CCmdCallDescr::cres typeCRes;
 
 
-//cmd proc exception: 09.06.2019
+
 #include <string.h>
-//#include <exception>
+
+/*!
+ * \brief A command execution exception
+ */
 class CCmdException : public std::exception
 {
 protected:
-    char m_descr[64]; //light exception
+
+    /*!
+     * \brief Buffer for holding error text description
+     */
+    char m_descr[64];
 
 public:
     explicit CCmdException(const char *pDescr)
@@ -114,40 +113,80 @@ public:
 
 };
 
-
+/*!
+ * \brief A basic class for command handler
+ */
 struct CCmdCallHandler
 {
+    /*!
+     * \brief A method for handling a concrete command
+     * \param d Call descriptor in protocol-independent format
+     * \return
+     */
     virtual typeCRes Call(CCmdCallDescr &d)=0;
 };
 
+
 typedef std::map<std::string, std::shared_ptr<CCmdCallHandler>> typeDispTable;
+
+/*!
+ * \brief A command dispatcher class
+ */
 class  CCmdDispatcher
 {
 protected:
+
+    /*!
+      * \brief Dispatching table (a map of <command string, pointer to the command handler object> )
+      */
      typeDispTable m_DispTable;
      typeCRes __Call(CCmdCallDescr &d);
 
 public:
 
+     /*!
+      * \brief Adding a new command handler to the dispatching table
+      * \param pCmdName Command in a string format
+      * \param pHandler A pointer to the command handler object
+      */
      void Add(const char *pCmdName, const std::shared_ptr<CCmdCallHandler> &pHandler)
      {
          m_DispTable.emplace(pCmdName, pHandler);
      }
+
+     /*!
+      * \brief Find a corresponding command handler by requested call parameters and call it
+      * \param d Call parameters
+      * \return call result
+      * \exception CCmdException is thrown on error if CCmdCallDescr::m_bThrowExcptOnErr=true;
+      */
      typeCRes Call(CCmdCallDescr &d);
 };
 
 
-//set/get handler:
+/*!
+ * \brief A command dispatcher handler for handling an access point "get" and "set" requests via binding to the methods
+ *  with a corresponding signature of an arbitrary class
+ * \tparam typeClass The type of a class
+ * \tparam typeArg The type of an access point
+ *
+ */
 template<typename typeClass, typename typeArg>
 class CCmdSGHandler : public CCmdCallHandler
 {
 protected:
-    //typeClass *m_pObj;
     std::shared_ptr<typeClass> m_pObj;
     typeArg (typeClass::*m_pGetter)(void);
     void    (typeClass::*m_pSetter)(typeArg val);
 
 public:
+
+    /*!
+     * \brief The class constructor
+     * \param pObj A pointer to binding object
+     * \param pGetter An obligatory pointer to the class method with "get" signature
+     * \param pSetter An optional pointer to the class method with "set" signature
+     */
     CCmdSGHandler(const std::shared_ptr<typeClass> &pObj, typeArg (typeClass::*pGetter)(void), void (typeClass::*pSetter)(typeArg val)=nullptr)
     {
         m_pObj=pObj;
@@ -194,6 +233,13 @@ public:
     }
 };
 
+/*!
+ * \brief A command dispatcher handler for handling an access point "get" and "set" requests via binding to the arbitrary
+ *  function with a corresponding signature
+ * \tparam typeArg The type of an access point
+ *
+ */
+
 template<typename typeArg>
 class CCmdSGHandlerF : public CCmdCallHandler
 {
@@ -202,6 +248,12 @@ protected:
     void    (*m_pSetter)(typeArg val);
 
 public:
+    /*!
+     * \brief A class constructor
+     * \param pGetter An obligatory pointer to the function with "get" signature
+     * \param pSetter An optional pointer to the function with "set" signature
+     */
+
     CCmdSGHandlerF(typeArg (*pGetter)(void), void (*pSetter)(typeArg val)=nullptr)
     {
         m_pGetter=pGetter;

@@ -6,6 +6,12 @@ Copyright (c) 2019 Panda Team
 */
 
 
+/*!
+*   \file
+*   \brief A definition file for
+*   CSamI2Cmem
+*/
+
 #pragma once
 
 #include "SamSercom.h"
@@ -35,11 +41,17 @@ public:
     };
 
 protected:
-    FSM    m_MState=FSM::halted; //! holds the current finite state
-    void IRQhandler();           //! I2C bus IRQ handler
-    bool m_bIRQmode=false;       //! is the IRQ mode enabled?
+    //! holds the current finite state
+    FSM    m_MState=FSM::halted;
 
-    std::shared_ptr<CFIFO>   m_pFIFObuf; //! pointer to a FIFO bufer to readout data from
+    //! I2C bus IRQ handler
+    void IRQhandler();
+
+    //! Is the IRQ mode enabled?
+    bool m_bIRQmode=false;
+
+    //! A pointer to a FIFO bufer to readout data from
+    std::shared_ptr<CFIFO>   m_pFIFObuf;
 
     /*! implementation of the small kind of "hardware independent" memory interface (stream-like)
     * used in the I2C IRQ handler:
@@ -66,45 +78,90 @@ protected:
 
     void set_addr_L(int addr);
 
-    //! interface variables
+    //! A pointer to a memory buffer
     unsigned char *m_pMem=nullptr;
+
+    //! The memory buffer size
     unsigned int m_nMemSize=0;
+
+    //! A current reading index
     unsigned int m_nMemCurInd=0;
 
     /*!
-     * \brief obtain_membuf: bridge from FIFO bufer to memory inerface (called to obtainmemory interface variables)
+     * \brief A bridge from FIFO buffer to memory interface (called to obtain memory interface variables)
      */
 
     inline void obtain_membuf()
     {
-        m_pMem=(unsigned char*)(m_pFIFObuf->c_str()); //dbg only
-        m_nMemSize=m_pFIFObuf->size(); //??? not good....
+        m_pMem=(unsigned char*)(m_pFIFObuf->c_str());
+        m_nMemSize=m_pFIFObuf->size();
     }
 
 
-    //! Current SERCOM IRQ lines (overriden)
     virtual void OnIRQ0();
     virtual void OnIRQ1();
     virtual void OnIRQ2();
     virtual void OnIRQ3();
 
 public:
+    /*!
+     * \brief The class constructor
+     * \param nSercom The SERCOM ID
+     * \details The constructor does the following:
+     * 1) calls CSamSercom constructor
+     * 2) enables communication bus with corresponding SERCOM
+     * 3) turns SERCOM to I2Cslave
+     * 4) performs final tuning and enables SERCOM I2Cslave
+     */
     CSamI2Cmem(typeSamSercoms nSercom);
-    //virtual ~CSamI2Cmem(); //just to keep polymorphic behaviour, should be never called
 
+    /*!
+     * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)
+     * \return true=interrupt mode is enabled, false=disabled
+     */
     inline bool    isIRQmode(){return m_bIRQmode;}
+
+    /*!
+     * \brief Enables IRQ mode
+     * \param how true=enable, false=disable
+     */
     void EnableIRQs(bool how);
 
-    //02.11.2019:
+    /*!
+     * \brief Setups the buffer to read EEPROM data from
+     * \param pFIFObuf A pointer to the buffer
+     */
     void SetMemBuf(std::shared_ptr<CFIFO> &pFIFObuf)
     {
         m_pFIFObuf=pFIFObuf;
         obtain_membuf();
     }
 
-    //serial:
-    virtual bool send(CFIFO &msg); //{ return false;}
-    virtual bool receive(CFIFO &msg); //{return false;}
-    virtual bool send(typeSChar ch); //{return false;}
-    virtual bool receive(typeSChar &ch); //{return false;}
+    /*!
+     * \brief Does nothing
+     * \param msg Ignored
+     * \return false
+     */
+    virtual bool send(CFIFO &msg);
+
+    /*!
+     * \brief Does nothing
+     * \param msg Ignored
+     * \return false
+     */
+    virtual bool receive(CFIFO &msg);
+
+    /*!
+     * \brief Does nothing
+     * \param ch Ignored
+     * \return false
+     */
+    virtual bool send(typeSChar ch);
+
+    /*!
+     * \brief Does nothing
+     * \param ch Ignored
+     * \return false
+     */
+    virtual bool receive(typeSChar &ch);
 };

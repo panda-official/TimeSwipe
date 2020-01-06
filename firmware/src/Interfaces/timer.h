@@ -7,14 +7,44 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
+/*!
+*   @file
+*   @brief A definition file for basic timer event interface CTimerEvent
+*
+*/
+
+
+/*!
+ * \brief A callback interface used to notify the derived class that a timer event happened
+ */
 class CTimerEvent{
 public:
+
+    /*!
+     * \brief a new timer event triggered
+     * \param nId timer ID value
+     */
 	virtual void OnTimer(int nId)=0;
 
-    //forbid coping:
+    //! default constructor
     CTimerEvent()=default;
+
+    /*!
+     * \brief remove copy constructor
+     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+     *  that is unacceptable)
+     */
     CTimerEvent(const CTimerEvent&) = delete;
+
+    /*!
+     * \brief remove copy operator
+     * \return
+     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
+     *  that is unacceptable)
+     */
     CTimerEvent& operator=(const CTimerEvent&) = delete;
 protected:
-        virtual ~CTimerEvent()=default;
+
+     //! virtual destructor
+     virtual ~CTimerEvent()=default;
 };

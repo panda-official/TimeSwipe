@@ -5,9 +5,13 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
+/*!
+*   @file
+*   @brief Implementation file file for  CDac channel methods CDac::SetVal() and CDac::SetRawOutput()
+*
+*/
+
 #include "DAC.h"
-
-
 void CDac::SetVal(float val)
 {
         SetRealVal(val);

@@ -67,7 +67,7 @@ void CDataVis::Update()
     if(!m_bStarted)
         return;
 
-    if(m_bStartInitOder)                //dbg...this all should be moved into the "View" instance
+    if(m_bStartInitOder)
     {
         m_pLED->SetBlinkMode(false);
         m_pLED->SetColor(0);
@@ -100,10 +100,5 @@ void CDataVis::Update()
 
     float intens1=(pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0;
     unsigned int col_intens[3] = {static_cast<unsigned int>(col_act[0] * intens1/255), static_cast<unsigned int>(col_act[1] * intens1/255), static_cast<unsigned int>(col_act[2] * intens1/255)};
-
-
-//    unsigned int intens1=static_cast<unsigned int>((pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0);
-
     m_pLED->SetColor(col_intens[0]*65536 + col_intens[1]*256 + col_intens[2]);
-//    m_pLED->SetColor((50*65536) + (151*256) + 247);
 }

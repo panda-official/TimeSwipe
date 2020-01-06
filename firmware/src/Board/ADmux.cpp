@@ -20,21 +20,21 @@ CADmux::CADmux()
     
     //setup ADC/DAC cntr pins:
     //DAC control switch PIN PB04:
-    PORT->Group[1].DIRSET.reg=(1L<<4);  //18.04.19
-    //PORT->Group[1].OUTCLR.reg=(1L<<4);  //18.04.19
-    SetDACmode(typeDACmode::ExtDACs); //27.05.2019 - set to default state
+    PORT->Group[1].DIRSET.reg=(1L<<4);
+    //PORT->Group[1].OUTCLR.reg=(1L<<4);
+    SetDACmode(typeDACmode::ExtDACs);
 
     //ADC control measure switch PIN PB13:
-    PORT->Group[1].DIRSET.reg=(1L<<13); //19.04.19
+    PORT->Group[1].DIRSET.reg=(1L<<13);
     PORT->Group[1].OUTCLR.reg=(1L<<13);
     m_bADmesEnabled=false; //18.06.2019
 
-    //24.04.2019: set UBR PC07 pin to zero:
+    //set UBR PC07 pin to zero:
     PORT->Group[2].DIRSET.reg=(1L<<7);
     PORT->Group[2].OUTCLR.reg=(1L<<7);
-    m_UBRVoltage=false; //!!! 07.05.2019
+    m_UBRVoltage=false;
 
-    //30.10.2019 setup fan pins(ventilator) PA09
+    //setup fan pins(ventilator) PA09
     PORT->Group[0].DIRSET.reg=(1L<<9);
     PORT->Group[0].OUTCLR.reg=(1L<<9);
     m_bFanIsStarted=false;
@@ -55,7 +55,7 @@ void CADmux::StartFan(bool how)
 
 void CADmux::EnableADmes(bool how)
 {
-    m_bADmesEnabled=how; //18.06.2019
+    m_bADmesEnabled=how;
 	if(how)
 		PORT->Group[1].OUTSET.reg=(1L<<13);	//on
 	else

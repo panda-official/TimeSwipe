@@ -7,7 +7,6 @@ Copyright (c) 2019 Panda Team
 
 //SAM DAC controller class impl:
 
-//an iface to OS:
 #include "os.h"
 #include "SamDACcntr.h"
 #include "sam.h"
@@ -53,7 +52,6 @@ void CSamDACcntr::common_init() //common settings for both dacs
     PORT->Group[0].PMUX[1].bit.PMUXO=0x01;
     PORT->Group[0].PINCFG[3].bit.PMUXEN=1; //enable
 
-    //enable both DAC's outputs(dbg???)
     //DAC0 VOUT PA02 -> group 0, even, function "B"(DAC)=0x01: DAC/VOUT[0]
     PORT->Group[0].PMUX[1].bit.PMUXE=0x01;
     PORT->Group[0].PINCFG[2].bit.PMUXEN=1; //enable
@@ -81,10 +79,9 @@ void CSamDACcntr::common_init() //common settings for both dacs
 
 
     //----------------------finishing init & enabling--------------------
-    DAC->CTRLB.bit.REFSEL=0; //!!! //VREFAU; this is default
+    DAC->CTRLB.bit.REFSEL=0;
 
     //Control: all default except REFRESH and ENABLE...
-    //set both together...+++dbg only!!!!
     DAC->DACCTRL[0].bit.REFRESH=1;
     DAC->DACCTRL[1].bit.REFRESH=1;
     DAC->DACCTRL[0].bit.ENABLE=1;

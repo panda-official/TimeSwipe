@@ -8,6 +8,13 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 /*!
+*   \file
+*   \brief A definition file for Pseudo-Decorator class for DAC
+*   CDACdecor
+*
+*/
+
+/*!
 *  @brief Pseudo-Decorator class for a DAC: changing DAC behavior depending on CADmux's DACmode
 *
 *  @details A pseudo-decorator class (just a simple wrapper class without a super-class) that contains
