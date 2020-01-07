@@ -28,6 +28,7 @@ private:
     void _fetcherLoop();
     void _pollerLoop(TimeSwipe::ReadCallback cb);
     void _receiveEvents(const std::chrono::steady_clock::time_point& now);
+    void _waitThreads();
 
     RecordReader Rec;
     // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
@@ -84,7 +85,7 @@ void TimeSwipeImpl::SetSensorTransmissions(double trans1, double trans2, double 
 bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     {
         std::lock_guard<std::mutex> lock(startStopMtx);
-        if (startedInstance) {
+        if (_work || startedInstance) {
             return false;
         }
         startedInstance = this;
@@ -96,6 +97,7 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     _work = true;
     _fetcherThread = std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop, this));
     _pollerThread = std::thread(std::bind(&TimeSwipeImpl::_pollerLoop, this, cb));
+    std::thread(std::bind(&TimeSwipeImpl::_waitThreads, this)).detach();
 
     return true;
 }
@@ -103,13 +105,17 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
 bool TimeSwipeImpl::Stop() {
     {
         std::lock_guard<std::mutex> lock(startStopMtx);
-        if (startedInstance != this) {
+        if (!_work || startedInstance != this) {
             return false;
         }
         startedInstance = nullptr;
     }
 
     _work = false;
+    return true;
+}
+
+void TimeSwipeImpl::_waitThreads() {
     if(_fetcherThread.joinable())
         _fetcherThread.join();
     if(_pollerThread.joinable())
@@ -120,7 +126,6 @@ bool TimeSwipeImpl::Stop() {
     while (_outSPI.pop());
 
     Rec.stop();
-    return true;
 }
 
 bool TimeSwipeImpl::onButton(TimeSwipe::OnButtonCallback cb) {

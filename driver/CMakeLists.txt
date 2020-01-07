@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_definitions(-O3)
 SET(CMAKE_C_FLAGS "-lpthread -O3 -Wall")
@@ -56,9 +57,9 @@ target_include_directories(timeswipe PRIVATE ${timeswipe_include_dirs})
 set_target_properties(timeswipe PROPERTIES CXX_STANDARD 17)
 endif ()
 
-find_library(ATOMIC_LIB atomic)
+find_library(ATOMIC_LIB atomic NO_DEFAULT_PATH PATHS /usr/lib/gcc/arm-linux-gnueabihf/8)
 if(ATOMIC_LIB)
-    target_link_libraries(timeswipe ${ATOMIC_LIB_LIBRARIES})
+    target_link_libraries(timeswipe ${ATOMIC_LIB})
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
