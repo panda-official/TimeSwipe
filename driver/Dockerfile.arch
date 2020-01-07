@@ -2,7 +2,7 @@
 # docker run --rm -v "$PWD":/usr/src  timeswipe:arch /usr/src/build_arch.sh
 FROM archlinux
 
-RUN pacman -Syu --noconfirm && pacman -Sy --noconfirm shadow sudo fakeroot grep binutils make cmake gcc aarch64-linux-gnu-gcc boost-libs boost
+RUN pacman -Syu --noconfirm && pacman -Sy --noconfirm shadow sudo fakeroot grep binutils make cmake gcc aarch64-linux-gnu-gcc boost-libs boost awk
 RUN useradd build
 
 # aarch64 comiler doesn't "look" into aarch64-linux-gnu dir

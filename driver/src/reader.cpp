@@ -19,9 +19,9 @@ GPIOData readByteAndStatusFromGPIO()
 
     unsigned int allGPIO = readAllGPIO();
     uint8_t byte =
-        ((allGPIO & DATA_POSITION[0]) >> 0) |  // Bit 7
-        ((allGPIO & DATA_POSITION[1]) << 6) |  //     6
-        ((allGPIO & DATA_POSITION[2]) << 4) |  //     5
+        ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
+        ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
+        ((allGPIO & DATA_POSITION[2]) >> 2) |  //     5
         ((allGPIO & DATA_POSITION[3]) >> 1) |  //     4
         ((allGPIO & DATA_POSITION[4]) >> 3) |  //     3
         ((allGPIO & DATA_POSITION[5]) >> 10) | //     2
