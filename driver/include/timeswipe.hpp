@@ -5,6 +5,9 @@
 #pragma once
 #include <memory>
 #include <functional>
+#include <array>
+#include <vector>
+#include <string>
 
 /**
  * \brief Sensor read primitive
