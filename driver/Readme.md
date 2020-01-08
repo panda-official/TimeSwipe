@@ -8,6 +8,7 @@ docker build -t timeswipe:arch -f Dockerfile.arch .
 
 build package command:
 ```
+git submodule update --init
 docker run --rm -v "$PWD/..":/usr/src  timeswipe:arch /usr/src/driver/build_arch.sh
 ```
 
@@ -32,6 +33,7 @@ docker build -t timeswipe:deb -f Dockerfile.ubuntu .
 
 build package command:
 ```
+git submodule update --init
 docker run --rm -v "$PWD/..":/usr/src  timeswipe:deb /usr/src/driver/build_deb.sh
 ```
 
