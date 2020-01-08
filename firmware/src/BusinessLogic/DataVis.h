@@ -18,26 +18,30 @@ Copyright (c) 2019 Panda Team
 #include "nodeLED.h"
 
 /*!
- * \brief Data visualization class: displays the measured signal levels of the ADC channel using the LED indicator
+ * \brief Data visualization class: displays the measured signal levels of the ADC channel using the LED indicator. Like this it visualizes the actual measurement values.
  */
 class CDataVis
 {
 protected:
-    //! Color codes for DMS board
+    //! Color code for DMS board
     unsigned int col_DMS[3] = {24, 250, 208};
 
-    //! Color codes for IEPE board
+    //! Color code for IEPE board
     unsigned int col_IEPE[3] = {50, 151, 247};
 
-    //! An actual color that will be displayed (either DMS or IEPE)
+    //! The actual board color that will be displayed (either DMS or IEPE)
     unsigned int col_act[3];
 
-    //! A brightness constant
+    //! A brightness constant for calculating the actual LED brightness for visualization
     const float b_brght = 55.0;
 
-    unsigned int meas_max = 2048.0;
-    unsigned int meas_min = 2048.0;
+    //! The upper visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to max. brightness. 
+    unsigned int meas_max;
+    //! The lower visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to min. brightness. 
+    unsigned int meas_min;
+    //! Min. visualization range. Is set around actual measurement value after startup and after a reset. 
     unsigned int min_wind = 100;
+    //! Proportional factor for the adjustment of the visualization range boundaries 
     const float k_range = 0.004;
 
     /*!
@@ -46,7 +50,7 @@ protected:
     unsigned long last_time_vis = 0;
 
     /*!
-     * \brief Will be updated for a first time after reset()?
+     * \brief A bool variable for initializing the visualization range with reset() function after startup
      */
     bool first_update = true;
 
@@ -56,7 +60,7 @@ protected:
     bool          m_bStarted=true;
 
     /*!
-     * \brief "Start" order - to be executed in CDataVis::Update() method
+     * \brief "Start" order for initialization - to be executed in CDataVis::Update() method
      * \details Preparing/re-initialize object internals for visualization after issuing a CDataVis::Start method
      */
     bool          m_bStartInitOder=false;
@@ -78,7 +82,7 @@ protected:
 
 public:
     /*!
-     * \brief Resets internal state of the object
+     * \brief Resets internal state of the object by setting the min. visualization range (min_wind) around the actual measurement value
      */
     void reset();
 
