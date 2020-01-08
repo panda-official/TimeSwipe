@@ -21,7 +21,6 @@ project(TimeSwipeDriver C CXX)
 
 add_library(${TARGET_NAME}  STATIC ../3rdParty/BCMsrc/bcm2835.c
                                     RaspberryPi/bcmspi.cpp
-                                    Communication/SyncCom.cpp
                                     )
 
 target_include_directories(${TARGET_NAME} PUBLIC Interfaces)

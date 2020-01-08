@@ -164,7 +164,7 @@ bool CBcmSPI::send(CFIFO &msg)
 
 
     SPI_setCS(false);
-    return  (m_ComCntr.get_state()==CSyncSerComFSM::FSM::sendOK);
+    return true;
 }
 bool CBcmSPI::receive(CFIFO &msg)
 {
