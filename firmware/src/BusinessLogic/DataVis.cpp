@@ -11,6 +11,8 @@ Copyright (c) 2019 Panda Team
 #include "View.h"
 #include <math.h>
 
+#include "board_type.h"
+
 CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
 {
     m_pADC=pADC;

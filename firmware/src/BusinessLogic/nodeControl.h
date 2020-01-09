@@ -25,6 +25,7 @@ Copyright (c) 2019 Panda Team
  * The class object has an ability for receiving JSON events from other objects and generate own JSON events
  * when basic board settings are changed
  */
+
 class nodeControl : public std::enable_shared_from_this<nodeControl>, public CJSONEvCP,  public IJSONEvent{
 protected:
 
@@ -93,6 +94,7 @@ public:
             m_pMUX=pMUX;
             m_pZeroCal=pZeroCal;
         }
+
 
         /*!
          * \brief Creates a new data visualization object

@@ -31,6 +31,7 @@ protected:
     //! The lower visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to min. brightness. 
     unsigned int meas_min;
     //! Min. visualization range. Is set around actual measurement value after startup and after a reset. 
+
     unsigned int min_wind = 100;
     //! Proportional factor for the adjustment of the visualization range boundaries 
     const float k_range = 0.004;

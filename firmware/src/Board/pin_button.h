@@ -42,7 +42,7 @@ protected:
     /*!
      * \brief 1st order digital filter time constant, seconds
      */
-	float m_filter_t_Sec=0.08f;
+	float m_filter_t_Sec=0.018f;
 	
     /*!
      * \brief A filtered signal level
