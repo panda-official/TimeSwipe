@@ -23,6 +23,7 @@ Copyright (c) 2019 Panda Team
 #include "menu_logic.h"
 #include "SAMbutton.h"
 #include "nodeLED.h"
+#include "View.h"
 #include "zerocal_man.h"
 
 #include "cmd.h"
@@ -58,7 +59,6 @@ int main(void)
         auto pLED2      =std::make_shared<CLED>(typeLED::LED2);
         auto pLED3      =std::make_shared<CLED>(typeLED::LED3);
         auto pLED4      =std::make_shared<CLED>(typeLED::LED4);
-        nodeLED::blinkLED(typeLED::LED1, CMenuLogic::RESET_COLOR);
 
         //step 1 - creating QSPI bus:
         CSamQSPI objQSPI;
@@ -226,8 +226,13 @@ int main(void)
         pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this());
         //--------------------------------------------------------------------------------------------------------------
 
-
+        //setup bridge voltage
         pADmux->SetUBRvoltage(true);
+
+
+        //blink at start:
+        CView::Instance().BlinkAtStart();
+
         while(1) //endless loop ("super loop")
         {
              //update calproc:

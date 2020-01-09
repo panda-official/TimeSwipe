@@ -23,15 +23,6 @@ Copyright (c) 2019 Panda Team
 class CDataVis
 {
 protected:
-    //! Color code for DMS board
-    unsigned int col_DMS[3] = {24, 250, 208};
-
-    //! Color code for IEPE board
-    unsigned int col_IEPE[3] = {50, 151, 247};
-
-    //! The actual board color that will be displayed (either DMS or IEPE)
-    unsigned int col_act[3];
-
     //! A brightness constant for calculating the actual LED brightness for visualization
     const float b_brght = 55.0;
 
