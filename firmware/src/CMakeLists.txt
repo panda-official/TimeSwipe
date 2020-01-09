@@ -26,6 +26,7 @@ add_subdirectory(Procs)
 add_subdirectory(Communication)
 add_subdirectory(BusinessLogic)
 add_subdirectory(JSONstuff)
+add_subdirectory(HATS_EEPROM)
 add_subdirectory(Board)
 add_subdirectory(LEDs)
 add_subdirectory(CortexMX)
@@ -44,7 +45,7 @@ target_include_directories(${TARGET_NAME} PUBLIC Board)
 target_include_directories(${TARGET_NAME} PUBLIC SAMe54)
 
 #linking upper layer:
-target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib)
+target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib HATS_EEPROM_lib)
 
 #linking lower layer:
 target_link_libraries(${TARGET_NAME} SAME54_lib CORTEXMX_lib COMM_lib ADCDAC_lib BOARD_lib)
