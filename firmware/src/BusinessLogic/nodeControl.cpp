@@ -67,11 +67,10 @@ void nodeControl::StartRecord(const bool how)
 
     static unsigned long count_mark=0;
     //make a stamp:
-    typeLEDcol rstamp=nodeLED::gen_rnd_col();
     count_mark++;
 
     //generate an event:
-    nlohmann::json v=rstamp;
+    nlohmann::json v=count_mark;
     Instance().Fire_on_event("Record", v);
 
     nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, LEDrgb(255, 10, 10));
