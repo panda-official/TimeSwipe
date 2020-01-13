@@ -5,8 +5,6 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//SAM's regular SPI:
-
 #include "os.h"
 #include "SamSPI.h"
 #include "sam.h"
@@ -16,7 +14,6 @@ Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 
 CSamSPI::CSamSPI(typeSamSercoms nSercom, bool bMaster) : CSamSercom(nSercom)
 {
-    //m_nSercom=nSercom;
     m_bMaster=bMaster;
     m_bIRQmode=false;
 	
@@ -27,8 +24,6 @@ CSamSPI::CSamSPI(typeSamSercoms nSercom, bool bMaster) : CSamSercom(nSercom)
 	//---------------enable main clock to drive SPI bus------------------
     CSamSercom::EnableSercomBus(nSercom, true);
 
-
-    //if constructed as a master, need to connect a clock source: 03.06.2019
     if(bMaster)
     {
         m_pCLK=CSamCLK::Factory();
@@ -36,36 +31,35 @@ CSamSPI::CSamSPI(typeSamSercoms nSercom, bool bMaster) : CSamSercom(nSercom)
         //connect:
         ConnectGCLK(m_nSercom, m_pCLK->CLKind());
 
-        //m_pCLK->SetDiv(8); //???
         m_pCLK->Enable(true);
 
-       // pSPI->CTRLB.bit.MSSEN=1; //auto CS
         pSPI->BAUD.bit.BAUD=0xff; //lowest possible by default
     }
 
     pSPI->CTRLA.bit.MODE=bMaster ? 0x03: 0x02;
 	//-------------------------------------------------------------------
 }
-CSamSPI::~CSamSPI() //24.06.2019
+CSamSPI::~CSamSPI()
 {
     EnableIRQs(false); //disable all IRQs to prevent possible crash from unhandled IRQ
 }
 
-//24.06.2019: IRQ handlers:
 void CSamSPI::IRQhandler()
 {
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    if(pSPI->INTFLAG.bit.RXC)
+    {
+        typeSChar ch=pSPI->DATA.bit.DATA;
+        m_ComCntr.proc(ch, m_recFIFO);
+        return;
+    }
     if(pSPI->INTFLAG.bit.SSL) //start of frame
     {
        m_bCSactive=true;
        m_recFIFO.reset();
        m_ComCntr.start(CSyncSerComFSM::FSM::recLengthMSB);
-        pSPI->INTFLAG.bit.SSL=1;
-    }
-    if(pSPI->INTFLAG.bit.RXC)
-    {
-        typeSChar ch=pSPI->DATA.bit.DATA;
-        m_ComCntr.proc(ch, m_recFIFO);
+       pSPI->INTFLAG.bit.SSL=1;
+       return;
     }
     if(pSPI->INTFLAG.bit.ERROR)
     {
@@ -85,11 +79,11 @@ void CSamSPI::OnIRQ1()  //RX
 {
     IRQhandler();
 }
-void CSamSPI::OnIRQ2()  //error?
+void CSamSPI::OnIRQ2()
 {
     IRQhandler();
 }
-void CSamSPI::OnIRQ3() //ssl?
+void CSamSPI::OnIRQ3()
 {
     IRQhandler();
 }
@@ -109,7 +103,7 @@ void CSamSPI::EnableIRQs(bool how)
     else
     {
         //clear all:
-        pSPI->INTENCLR.reg=SERCOM_SPI_INTENCLR_MASK; //(SERCOM_SPI_INTENCLR_DRE|SERCOM_SPI_INTENCLR_TXC|SERCOM_SPI_INTENCLR_RXC|SERCOM_SPI_INTENCLR_SSL);
+        pSPI->INTENCLR.reg=SERCOM_SPI_INTENCLR_MASK;
     }
 
     //tune NVIC:
@@ -130,8 +124,7 @@ void CSamSPI::Update()
     __disable_irq();
         if(m_ComCntr.get_state()==CSyncSerComFSM::FSM::recOK)
         {
-            m_recFIFOhold.reset();
-            m_recFIFOhold.swap(m_recFIFO);
+            m_recFIFO.dumpres(m_recFIFOhold);
             m_ComCntr.start(CSyncSerComFSM::FSM::halted);
             bProc=true;
         }
@@ -148,7 +141,6 @@ void CSamSPI::Update()
     }
 }
 
-//04.06.2019:
 bool CSamSPI::send_char(typeSChar ch)
 {
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
@@ -174,8 +166,8 @@ bool CSamSPI::send(CFIFO &msg)
 
     //blocking mode:
     typeSChar ch;
-    CSyncSerComFSM cntr;    //??? separate, IRQ influence? YES!!! It is still rec clocks!!!
-    cntr.start(CSyncSerComFSM::FSM::sendSilenceFrame); //21.05.2019 - start with silent frame
+    CSyncSerComFSM cntr;
+    cntr.start(CSyncSerComFSM::FSM::sendSilenceFrame);
     while(cntr.proc(ch, msg))
     {
        if(!send_char(ch))
@@ -188,12 +180,8 @@ bool CSamSPI::send(CFIFO &msg)
 
 bool CSamSPI::receive(CFIFO &msg)
 {
-    //????????????????
-    //................
     return false;
 }
-
-//10.05.2019:
 bool CSamSPI::send(typeSChar ch)
 {
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
@@ -207,7 +195,6 @@ bool CSamSPI::receive(typeSChar &ch)
 {
     return false;
 }
-
 
 //specific:
 void CSamSPI::set_phpol(bool bPhase, bool bPol)

@@ -16,26 +16,14 @@ CMenuLogic::CMenuLogic()
 	m_CurrentMenu=typeMenu::none;
 	m_nTimerCnt=0;
 	m_bPreview=false;
-    m_LastButtonState=typeButtonState::released; //17.05.2019!!!!
+    m_LastButtonState=typeButtonState::released;
 }
 
 //helpers:
 void CMenuLogic::update_menu(typeMenu menu)
 {
 	switch(menu)
-	{
-       /* case typeMenu::none:
-		{
-            if(nodeControl::IsRecordStarted())
-                nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, RECORD_COLOR);
-			else
-                nodeLED::resetALL();
-
-            nodeLED::resetALL();
-
-		}
-        break;*/
-				
+	{			
 		case typeMenu::gain:
 		{
             nodeLED::selectLED(static_cast<typeLED>(nodeControl::GetGain()), GAIN_COLOR_ACTIVE, typeLED::LED1, typeLED::LED4, GAIN_COLOR);
@@ -73,20 +61,15 @@ void CMenuLogic::select_menu(typeMenu menu, bool bPreview)
 	std::cout<<std::endl;
 #endif
 
-    //19.06.2019: generate an event:
+    //generate an event:
     nlohmann::json v=static_cast<int>(m_CurrentMenu);
     Fire_on_event("Menu", v);
-
-/*    if(typeMenu::none==menu)                      //removed: 25.06.2019 (it is not inf now)
-    {
-        nodeControl::SetZero(false); //stop cal proc
-    }*/
 	update_menu(menu);
 }
 
 
 //events:
-void CMenuLogic::on_event(const char *key, nlohmann::json &val) //15.07.2019 now can rec an event
+void CMenuLogic::on_event(const char *key, nlohmann::json &val)
 {
     if(0==strcmp("Zero", key))
     {
@@ -119,9 +102,7 @@ void CMenuLogic::OnButtonState(typeButtonState nState)
 		{
 			case typeMenu::none:
 			{
-                //nodeControl::StartRecord(!nodeControl::IsRecordStarted());
                 nodeControl::StartRecord(true);
-                //nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 3, 300);
 			}
 			break;
 			

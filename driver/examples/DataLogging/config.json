@@ -1,0 +1,20 @@
+{
+    "NORM": {
+        "U_BRIDGE": 0,
+        "SENSOR_OFFSET": [0,0,0,0],
+        "SENSOR_GAIN": [1,1,1,1],
+        "SENSOR_TRANSMISSION": [1,1,1,1]
+    },
+    "IEPE": {
+        "U_BRIDGE": 1,
+        "SENSOR_OFFSET": [0,0,0,0],
+        "SENSOR_GAIN": [1,1,1,1],
+        "SENSOR_TRANSMISSION": [1,1,1,1]
+    },
+    "DMS": {
+        "U_BRIDGE": 2,
+        "SENSOR_OFFSET": [0,0,0,0],
+        "SENSOR_GAIN": [1,1,1,1],
+        "SENSOR_TRANSMISSION": [1,1,1,1]
+    }
+}

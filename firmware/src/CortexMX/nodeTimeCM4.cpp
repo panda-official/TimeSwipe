@@ -11,7 +11,12 @@ Copyright (c) 2019 Panda Team
 //timer func for M4:
 static unsigned long sys_time_mS;
 
-extern "C"{		//01.09.2019
+extern "C"{
+
+/*!
+ * \brief A CortexMX system timer interrupt handler
+ * \details Increments a system time counter by one every millisecond
+ */
 void SysTick_Handler(void)
 {
 	sys_time_mS++;
