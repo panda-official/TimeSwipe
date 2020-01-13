@@ -7,7 +7,106 @@ Copyright (c) 2019 Panda Team
 
 
 #include <stdint.h>
+#include <string.h>
 #include "HatsMemMan.h"
+
+bool CHatAtomVendorInfo::load(CFIFO &buf)
+{
+    //special deserialization:
+    int nDSize=buf.in_avail();
+    if(nDSize<22)
+        return false;
+    //const char *pData=buf.data();
+
+    typeSChar ch;
+    uint8_t   *pBuf=(uint8_t *)(m_uuid);
+    for(int i=0; i<20; i++)
+    {
+        buf>>ch;
+        pBuf[i]=(uint8_t)ch;
+    }
+    int vslen, pslen;
+    buf>>vslen>>pslen;
+
+    m_vstr.reserve(vslen);
+    m_pstr.reserve(pslen);
+
+    for(int i=0; i<vslen; i++)
+    {
+        buf>>ch;
+        m_vstr+=ch;
+    }
+    for(int i=0; i<pslen; i++)
+    {
+        buf>>ch;
+        m_pstr+=ch;
+    }
+    return true;
+
+}
+bool CHatAtomVendorInfo::store(CFIFO &buf)
+{
+    //special serialization:
+    int vslen=m_vstr.length();
+    int pslen=m_pstr.length();
+    buf.reserve(22+vslen+pslen); //minimum size
+    uint8_t   *pBuf=(uint8_t *)(m_uuid);
+    for(int i=0; i<20; i++)
+    {
+        buf<<pBuf[i];
+    }
+    buf<<vslen<<pslen;
+    for(int i=0; i<vslen; i++)
+    {
+        buf<<m_vstr[i];
+    }
+    for(int i=0; i<pslen; i++)
+    {
+        buf<<m_pstr[i];
+    }
+    return true;
+}
+void CHatAtomVendorInfo::reset()
+{
+    memset(m_uuid, 0, 20);
+    m_vstr.erase();
+    m_pstr.erase();
+}
+
+
+bool CHatAtomGPIOmap::load(CFIFO &buf)
+{
+    //special deserialization:
+    int nDSize=buf.in_avail();
+    if(nDSize<30)
+        return false;
+
+    typeSChar ch;
+    uint8_t   *pBuf=(uint8_t *)(&m_bank_drive);
+    for(int i=0; i<30; i++)
+    {
+        buf>>ch;
+        pBuf[i]=(uint8_t)ch;
+    }
+    return true;
+}
+bool CHatAtomGPIOmap::store(CFIFO &buf)
+{
+    //special serialization:
+    buf.reserve(30);
+
+    uint8_t   *pBuf=(uint8_t *)(&m_bank_drive);
+    for(int i=0; i<30; i++)
+    {
+        buf<<pBuf[i];
+    }
+    return true;
+}
+void CHatAtomGPIOmap::reset()
+{
+    memset(&m_bank_drive, 0, 30);
+}
+
 
 namespace  {
 
@@ -20,6 +119,8 @@ struct atom_header {
    // char data_begin;
 };
 
+#define SIGNATURE 0x69502d52
+#define VERSION 1
 CHatsMemMan::op_result FindAtomHeader(unsigned int nAtom, const char *pMemBuf, const int MemBufSize, struct atom_header **pHeaderBegin)
 {
     struct header_t *pHeader=(struct header_t *)(pMemBuf);
@@ -50,6 +151,64 @@ CHatsMemMan::op_result FindAtomHeader(unsigned int nAtom, const char *pMemBuf, c
     return rv;
 }
 
+CHatsMemMan::op_result VerifyAtom(struct atom_header *pAtom)
+{
+    //check the atom CRC:
+    const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
+    const char *pData=(const char*)pAtom + sizeof(struct atom_header);
+
+    uint16_t calc_crc=getcrc((char*)pAtom, dlen+sizeof(atom_header) );
+    uint16_t *pCRC=(uint16_t*)(pData+dlen);
+    if(calc_crc!=*pCRC)
+        return CHatsMemMan::op_result::atom_is_corrupted;
+
+    return CHatsMemMan::op_result::OK;
+}
+
+CHatsMemMan::op_result VerifyStorage(const char *pMemBuf, const int MemBufSize)
+{
+    if(MemBufSize<sizeof(struct header_t))
+        return CHatsMemMan::op_result::storage_is_corrupted;
+
+    struct header_t *pHeader=(struct header_t *)(pMemBuf);
+    const char *pMemLimit=(pMemBuf+MemBufSize);
+
+    if(SIGNATURE!=pHeader->signature || VERSION!=pHeader->ver || pHeader->res!=0 || pHeader->eeplen!=MemBufSize)
+       return  CHatsMemMan::op_result::storage_is_corrupted;
+
+    //verify all atoms:
+    int nAtoms=pHeader->numatoms;
+    const char *pAtomPtr=(pMemBuf+sizeof (struct header_t));
+    for(int i=0; i<nAtoms; i++)
+    {
+        CHatsMemMan::op_result res=VerifyAtom( (struct atom_header *)pAtomPtr );
+        if(CHatsMemMan::op_result::OK!=res)
+            return res;
+        pAtomPtr+=(sizeof(struct atom_header) + ((struct atom_header *)pAtomPtr)->dlen);
+        if(pAtomPtr>pMemLimit)
+        {
+            //return memory violation
+            return CHatsMemMan::op_result::storage_is_corrupted;
+        }
+    }
+    return CHatsMemMan::op_result::OK;
+}
+
+CHatsMemMan::op_result  ResetStorage(const char *pMemBuf, const int MemBufSize)
+{
+    if(MemBufSize<sizeof(struct header_t))
+        return CHatsMemMan::op_result::storage_is_corrupted;
+
+    struct header_t *pHeader=(struct header_t *)(pMemBuf);
+
+    pHeader->signature=SIGNATURE;
+    pHeader->ver=VERSION;
+    pHeader->res=0;
+    pHeader->numatoms=0;
+    pHeader->eeplen=sizeof(struct header_t);
+    return CHatsMemMan::op_result::OK;
+}
+
 }
 
 CHatsMemMan::CHatsMemMan(std::shared_ptr<CFIFO> &pFIFObuf)
@@ -62,9 +221,24 @@ unsigned int CHatsMemMan::GetAtomsCount()
   struct header_t *pHeader=(struct header_t *)GetMemBuf();
   return pHeader->numatoms;
 }
+CHatsMemMan::op_result CHatsMemMan::Verify()
+{
+    op_result res=VerifyStorage(GetMemBuf(), GetMemBufSize());
+    m_StorageState=res;
+    return res;
+}
+void CHatsMemMan::Reset()
+{
+    SetMemBufSize(sizeof(struct header_t));
+    m_StorageState=ResetStorage(GetMemBuf(), GetMemBufSize());
+}
+
 
 CHatsMemMan::op_result CHatsMemMan::ReadAtom(unsigned int nAtom, typeHatsAtom &nAtomType, CFIFO &rbuf)
 {
+    if(OK!=m_StorageState)
+        return m_StorageState;
+
     struct atom_header *pAtom;
     op_result res=FindAtomHeader(nAtom, GetMemBuf(), GetMemBufSize(), &pAtom);
     if(op_result::OK!=res)
@@ -89,6 +263,9 @@ CHatsMemMan::op_result CHatsMemMan::ReadAtom(unsigned int nAtom, typeHatsAtom &n
 }
 CHatsMemMan::op_result CHatsMemMan::WriteAtom(unsigned int nAtom, typeHatsAtom nAtomType, CFIFO &wbuf)
 {
+    if(OK!=m_StorageState)
+        return m_StorageState;
+
 
     struct atom_header *pAtom;
 
@@ -168,6 +345,10 @@ int  CHatsMemMan::GetMemBufSize()
 {
     return m_pFIFObuf->size();
 }
+void CHatsMemMan::SetMemBufSize(int size)
+{
+    m_pFIFObuf->resize(size);
+}
 void CHatsMemMan::AdjustMemBuf(const char *pStart, int nAdjustVal)
 {
     if(0==nAdjustVal)
@@ -183,6 +364,5 @@ void CHatsMemMan::AdjustMemBuf(const char *pStart, int nAdjustVal)
     {
         m_pFIFObuf->erase(req_ind, -nAdjustVal);
     }
-    size=GetMemBufSize();
 }
 
