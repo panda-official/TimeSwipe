@@ -15,6 +15,11 @@ The procedure is explained in the [firmware/README.md](https://github.com/panda-
 
 The procedure is explained in the [driver/README.md](https://github.com/panda-official/TimeSwipe/blob/master/driver/README.md) section.
 
+# Documentation
+
+The communication protocol is described in the file [docs/CommunicationProtocol.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/CommunicationProtocol.md), a description of the event system can be found in [docs/EventSystem.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/EventSystem.md).
+Software dependencies are listed in [docs/SoftwareDependencies.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/SoftwareDependencies.md).
+
 # Product versioning
 
 The product consists of several modules using semantic versioning.
