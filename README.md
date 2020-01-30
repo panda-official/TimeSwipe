@@ -9,11 +9,11 @@ Instructions can be found in the driver and firmware subdirectories.
 
 # Flashing the firmware
 
-The procedure is explained in the [firmware/README.md](https://github.com/panda-official/TimeSwipe/firmware/README.md) section.
+The procedure is explained in the [firmware/README.md](https://github.com/panda-official/TimeSwipe/blob/master/firmware/README.md) section.
 
 # Installing the driver
 
-The procedure is explained in the [driver/README.md](https://github.com/panda-official/TimeSwipe/driver/README.md) section.
+The procedure is explained in the [driver/README.md](https://github.com/panda-official/TimeSwipe/blob/master/driver/README.md) section.
 
 # Product versioning
 
