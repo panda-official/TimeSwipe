@@ -42,7 +42,7 @@ add_library(timeswipeStatic STATIC ${SRC})
 set_target_properties(timeswipeStatic PROPERTIES OUTPUT_NAME "timeswipe")
 set_target_properties(timeswipeStatic PROPERTIES PUBLIC_HEADER include/timeswipe.hpp)
 set_target_properties(timeswipeStatic PROPERTIES VERSION ${PROJECT_VERSION})
-SET(timeswipe_include_dirs src src/RaspberryPi src/Interfaces src/Communication 3rdParty 3rdParty/BCMsrc 3rdParty/nlohmann/include include)
+SET(timeswipe_include_dirs src src/RaspberryPi src/Interfaces src/Communication 3rdParty 3rdParty/BCMsrc 3rdParty/nlohmann/single_include include)
 target_include_directories(timeswipeStatic PRIVATE ${timeswipe_include_dirs})
 set_target_properties(timeswipeStatic PROPERTIES CXX_STANDARD 17)
 
