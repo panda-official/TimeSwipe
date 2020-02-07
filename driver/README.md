@@ -5,9 +5,11 @@ Supported operating systems on the Raspberry Pi are Raspbian Buster (and to an e
 You can also cross-compile the driver on other host systems.
 The `examples` folder contains two example programs which use the driver.
 
+
 ## Installing a Pre-Built Driver
 
 The simplest way to install the TimeSwipe Driver is to download the prebuilt packages.
+
 
 ### Raspbian Buster
 
@@ -54,6 +56,7 @@ pacman -R timeswipe
 ## Building the Driver
 
 This section describes how to build the driver on your own Raspberry Pi.
+
 
 ### Raspbian Buster
 
@@ -126,15 +129,24 @@ To optionally create your own `pkg.tar.xz` driver package, run `makepkg` from th
 
 ## Cross-Compiling the Driver
 
+This section shows how you can build the TimeSwipe driver on a computer other than a Raspberry Pi.
+Supported cross-compilation architectures are Ubuntu 18.04 and OSX.
+
+
 ### Ubuntu 18.04
 
-### Arch Linux 64
+tbd.
+
 
 ### OSX
+
+tbd.
+
 
 ## Compiling Applications Using the Driver
 
 This section describes how to compile the `DataLogging` example application using the TimeSwipe driver.
+
 
 ### Raspbian Buster
 
