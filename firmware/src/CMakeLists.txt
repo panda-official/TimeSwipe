@@ -15,7 +15,7 @@ ENDIF()
 
 #obtain JSON settings: 05.09.2019
 #include(ObtainJSONsettings.cmake)
-include_directories(../../driver/3rdParty/nlohmann/single_include)
+include_directories(../../driver/3rdParty/)
 
 SET(CMAKE_CXX_FLAGS "-Wno-psabi")
 
