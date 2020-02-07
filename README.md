@@ -7,11 +7,11 @@ The [releases section](https://github.com/panda-official/TimeSwipe/releases) con
 You can also compile these yourself.
 Instructions can be found in the driver and firmware subdirectories.
 
-## Flashing the firmware
+## Building and Flashing the Firmware
 
 The procedure is explained in the [firmware/README.md](https://github.com/panda-official/TimeSwipe/blob/master/firmware/README.md) section.
 
-## Installing the driver
+## Building and Installing the Driver
 
 The procedure is explained in the [driver/README.md](https://github.com/panda-official/TimeSwipe/blob/master/driver/README.md) section.
 
