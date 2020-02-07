@@ -1,19 +1,55 @@
 # TimeSwipe Driver
 
 The driver is used for the communication between the TimeSwipe board and the Raspberry Pi.
-Supported operating systems on the Raspberry Pi are Raspbian Buster (and to an extent, any Debian-based OS), and Arch Linux.
+Supported operating systems on the Raspberry Pi are Raspbian Buster (and to an extent, any Debian-based OS), and Arch Linux ARMv8 AArch64.
 You can also cross-compile the driver on other host systems.
 The `examples` folder contains two example programs which use the driver.
 
 ## Installing a Pre-Built Driver
 
+The simplest way to install the TimeSwipe Driver is to download the prebuilt packages.
+
 ### Raspbian Buster
 
-tbd.
+If you are running Raspbian Buster (or any other Debian-based OS), simply download the package:
 
-### Arch Linux 64
+```
+wget https://github.com/panda-official/TimeSwipe/releases/download/v0.0.6/timeswipe_0.0.6.armv7l.deb
+```
 
-tbd.
+Then simply install with:
+
+```
+sudo dpkg -i timeswipe_0.0.6.armv7l.deb
+```
+
+You can also uninstall the driver with the command:
+
+```
+sudo dpkg -r timeswipe
+```
+
+
+### Arch Linux ARMv8 AArch64
+
+On Arch Linux, similarly download the appropriate package:
+
+```
+wget https://github.com/panda-official/TimeSwipe/releases/download/v0.0.6/timeswipe-0.0.6-1-any.pkg.tar.xz
+```
+
+And then as `root` install with:
+
+```
+pacman -U timeswipe_0.0.6-any.pkg.tar.xz
+```
+
+The package can be uninstalled with:
+
+```
+pacman -R timeswipe
+```
+
 
 ## Building the Driver
 
@@ -46,11 +82,47 @@ sudo make install
 ```
 
 The TimeSwipe driver should now be installed on your system.
+You can optionally create your own Debian package with `dpkg-deb --build .`.
 
 
-### Arch Linux 64
+### Arch Linux ARMv8 AArch64
 
-tbd.
+On a vanilla installation of Arch Linux, as `root` run the commands:
+
+```
+pacman-key --init
+pacman-key --populate archlinuxarm
+pacman -Syu
+pacman -S make gcc boost-libs boost pkgconfig
+```
+
+to update your system and install the needed packages.
+
+You can then clone this repository, if you haven't done that already:
+
+```
+git clone --recursive https://github.com/panda-official/timeswipe.git
+```
+
+Navigate to the `driver` directory, build and install the driver:
+
+```
+cd timeswipe/driver
+mkdir -p build
+cd build
+cmake ..
+make -j$(nproc)
+```
+
+As `root` then install the driver:
+
+```
+make install
+```
+
+The TimeSwipe driver should now be installed on your system.
+To optionally create your own `pkg.tar.xz` driver package, run `makepkg` from the `build` directory.
+
 
 ## Cross-Compiling the Driver
 
@@ -87,124 +159,31 @@ To run the data logging example from the `build` directory, execute the command:
 sudo ./main --config ../config.json --input IEPE --output temp.txt
 ```
 
-This will gather data according to the configuration file specified, from the `IEPE` inputs and will save the data in CSV format to the file `temp.txt`.
-
-### Arch Linux 64
-
-tbd.
+This will gather data for 10 seconds according to the configuration file specified, from the `IEPE` inputs and will save the data in CSV format to the file `temp.txt`.
 
 
+### Arch Linux ARMv8 AArch64
 
+Navigate to the `DataLogging` directory:
 
-
-
-# Legacy Information:
-
-### Build package for Arch
-docker image timeswipe:arch should be available created by command:
 ```
-docker build -t timeswipe:arch -f Dockerfile.arch .
+cd timeswipe/driver/examples/DataLogging
 ```
 
-build package command:
-```
-git submodule update --init
-docker run --rm -v "$PWD/..":/usr/src  timeswipe:arch /usr/src/driver/build_arch.sh
-```
+You can then build the application with `cmake`:
 
-Output package file is `timeswipe-x.x.x-x-any.pkg.tar.xz`
-
-### Install package for Arch
-install with command:
 ```
-sudo pacman -U timeswipe-x.x.x-x-any.pkg.tar.xz
-```
-
-uninstall with command:
-```
-sudo pacman -R timeswipe
-```
-
-### Build package for Debian/Ubuntu
-docker image timeswipe:arch should be available created by command:
-```
-docker build -t timeswipe:deb -f Dockerfile.ubuntu .
-```
-
-build package command:
-```
-git submodule update --init
-docker run --rm -v "$PWD/..":/usr/src  timeswipe:deb /usr/src/driver/build_deb.sh
-```
-
-Output package file is `timeswipe_x.x.x.deb`
-
-### Install package for Debian/Ubuntu
-install with command:
-```
-sudo dpkg -i timeswipe_x.x.x.deb
-```
-
-uninstall with command:
-```
-sudo dpkg -r timeswipe
-```
-
-### Applications development
-
-Cross-compiler aarch64 must be available in development environment
-
-for ubuntu:
-```
-sudo apt install g++-aarch64-linux-gnu g++-arm-linux-gnueabihf libboost-all-dev
-```
-
-for Arch:
-```
-sudo pacman -Sy aarch64-linux-gnu-gcc arm-none-eabi-binutils community/arm-none-eabi-gcc extra/boost-libs extra/boost
-```
-
-for target platform:
-```
-cd driver
-mkdir build
+mkdir -p build
 cd build
 cmake ..
-make
+make -j$(nproc)
 ```
 
-for OSX:
-[README.md](contrib/OSX/README.md)
+To run the data logging example from the `build` directory, as `root` execute the command:
 
-install on target platform:
 ```
-sudo make install
+./main --config ../config.json --input IEPE --output temp.txt
 ```
 
-Library package should be installed:
+This will gather data for 10 seconds according to the configuration file specified, from the `IEPE` inputs and will save the data in CSV format to the file `temp.txt`.
 
-`timeswipe-x.x.x-x-any.pkg.tar.xz` for Arch
-
-`timeswipe_x.x.x.aarch64.deb` for Ubuntu aarch64
-`timeswipe_x.x.x.armv7l.deb` for Ubuntu/Raspbian armv7l
-
-There is a DataLogging sample application with cmake configuration in ./examples/DataLogging directory:
-```
-cd examples/DataLogging
-mkdir build
-cd build
-cmake ..
-make
-```
-
-DataLogging cross-platform armv7l build:
-```
-cd examples/DataLogging
-mkdir build
-cd build
-cmake -DARM32=True ..
-make
-```
-
-### Python3 driver wrapper:
-[README.md](python3/README.md)
