@@ -63,7 +63,7 @@ git clone git://git.code.sf.net/p/openocd/code openocd
 cd openocd
 ./bootstrap
 ./configure --enable-sysfsgpio --enable-bcm2835gpio
-make
+make -j$(nproc)
 sudo make install
 ```
 
