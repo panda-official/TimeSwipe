@@ -33,3 +33,6 @@
 
 # OSX directories
 *.DS_Store
+
+# Build directories
+build

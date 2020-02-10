@@ -8,14 +8,12 @@ cmake_minimum_required(VERSION 3.1)
 SET(TARGET_NAME "firmware.elf")
 
 IF(NOT CMAKE_TOOLCHAIN_FILE)
-    message(STATUS "User toolchain is not found. Setting default toolchan...")
+    message(STATUS "User toolchain is not found. Setting default toolchain...")
     SET(CMAKE_TOOLCHAIN_FILE gnuarm_toolchain.cmake)
     include (${CMAKE_TOOLCHAIN_FILE})
 ENDIF()
 
-#obtain JSON settings: 05.09.2019
-#include(ObtainJSONsettings.cmake)
-include_directories(../../driver/3rdParty/)
+include_directories(../../3rdParty/)
 
 SET(CMAKE_CXX_FLAGS "-Wno-psabi")
 
@@ -34,7 +32,7 @@ add_subdirectory(CortexMX)
 add_subdirectory(SAMe54)
 
 
-add_executable(${TARGET_NAME}  main.cpp ${PATH_FIRMWARE}/3rdParty/prj_templ/Custom/startup_ARMCM4.S)
+add_executable(${TARGET_NAME}  main.cpp ${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/startup_ARMCM4.S)
 
 target_include_directories(${TARGET_NAME} PUBLIC Interfaces)
 target_include_directories(${TARGET_NAME} PUBLIC ADCDAC)
