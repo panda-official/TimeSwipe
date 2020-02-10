@@ -140,7 +140,65 @@ tbd.
 
 ### OSX
 
-tbd.
+For corss-compilation on OSX, `ct-ng` and some extra dependencies are needed:
+
+```
+brew install crosstool-ng help2man bison
+```
+
+Using `Disk Utility` create an APFS (case-sensitive) disk named `xtool-build-env`.
+
+
+### Build crosstool-ng toolchain
+change variables in `.config` file form this directory if disk name is different:
+
+```
+CT_WORK_DIR="/Volumes/xtool-build-env/.build"
+CT_PREFIX_DIR="/Volumes/xtool-build-env/${CT_TARGET}"
+```
+
+change user limit to build:
+
+```
+ulimit -n 1024
+```
+
+copy file `.config` from this direcory to `/Volumes/xtool-build-env` :
+
+```
+cp .config /Volumes/xtool-build-env
+```
+
+build toolchain:
+```
+cd /Volumes/xtool-build-env
+ct-ng build
+```
+
+After toolchain built successfully change PATH variable:
+```
+export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin/:$PATH
+```
+
+### Building driver
+
+Build driver:
+```
+cd library
+mkdir build
+cd build
+cmake ..
+make
+```
+
+Build example:
+```
+cd library/example
+mkdir build
+cd build
+cmake ..
+make
+```
 
 
 ## Compiling Applications Using the Driver
