@@ -33,7 +33,7 @@ include(GNUInstallDirs)
 SET(SRC
     src/timeswipe.cpp
     src/board_iface.cpp
-	3rdParty/BCMsrc/bcm2835.c
+	../3rdParty/BCMsrc/bcm2835.c
 	src/RaspberryPi/bcmspi.cpp
 )
 
@@ -42,7 +42,7 @@ add_library(timeswipeStatic STATIC ${SRC})
 set_target_properties(timeswipeStatic PROPERTIES OUTPUT_NAME "timeswipe")
 set_target_properties(timeswipeStatic PROPERTIES PUBLIC_HEADER include/timeswipe.hpp)
 set_target_properties(timeswipeStatic PROPERTIES VERSION ${PROJECT_VERSION})
-SET(timeswipe_include_dirs src src/RaspberryPi src/Interfaces src/Communication 3rdParty 3rdParty/BCMsrc 3rdParty/nlohmann/single_include include)
+SET(timeswipe_include_dirs src src/RaspberryPi src/Interfaces src/Communication ../3rdParty ../3rdParty/BCMsrc ../3rdParty/nlohmann/single_include include)
 target_include_directories(timeswipeStatic PRIVATE ${timeswipe_include_dirs})
 set_target_properties(timeswipeStatic PROPERTIES CXX_STANDARD 17)
 
