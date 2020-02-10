@@ -7,29 +7,18 @@ cmake_minimum_required(VERSION 3.1)
 
 SET(TARGET_NAME "rPIspi")
 
-IF(NOT CMAKE_TOOLCHAIN_FILE)
-    message(STATUS "User toolchain is not found. Setting default toolchan...")
-    SET(CMAKE_TOOLCHAIN_FILE ../../src/gnua_toolchain.cmake)    #???
-    include (${CMAKE_TOOLCHAIN_FILE})
-ENDIF()
-
-
 project(SPIterminal C CXX)
 
+SET(CMAKE_C_FLAGS "-lpthread -O3 -latomic")
+SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3 -Wno-psabi -latomic")
 
 add_executable(${TARGET_NAME} main.cpp console.cpp)
 
-
 target_include_directories(${TARGET_NAME} PUBLIC /usr/local/include/TimeSwipeDriver)
-#target_include_directories(${TARGET_NAME} PUBLIC /usr/local/lib)
 target_include_directories(${TARGET_NAME} PUBLIC ../../src/Interfaces)
 target_include_directories(${TARGET_NAME} PUBLIC ../../src/Communication)
 target_include_directories(${TARGET_NAME} PUBLIC ../../src/RaspberryPi)
 
-
-find_library(LIB_PATH TimeSwipeDriver HINTS /usr/local/lib) #thats the right way!!!
-message(STATUS "Found lib: ${LIB_PATH}" )
-
-target_link_libraries(${TARGET_NAME} PUBLIC ${LIB_PATH})
+target_link_libraries(${TARGET_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/../../build/libtimeswipe.a ${timeswipe_LIBRARIES})
 
 
