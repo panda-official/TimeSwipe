@@ -66,7 +66,7 @@ else ()
 SET(CMAKE_C_FLAGS "-lpthread -O3 -fPIC -Wall")
 SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3 -fPIC -std=gnu++17 -Wall")
 SET(CMAKE_INSTALL_PREFIX "/usr")
-install(TARGETS timeswipe
+install(TARGETS timeswipe timeswipeStatic
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
