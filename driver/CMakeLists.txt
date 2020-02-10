@@ -71,9 +71,5 @@ install(TARGETS timeswipe
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-configure_file(contrib/timeswipe.pc.in timeswipe.pc @ONLY)
-configure_file(contrib/DEBIAN/control.in DEBIAN/control @ONLY)
-configure_file(contrib/arch/PKGBUILD.in PKGBUILD @ONLY)
-
 install(FILES ${CMAKE_BINARY_DIR}/timeswipe.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 endif()
