@@ -7,7 +7,7 @@ The firmware can either be downloaded from [the releases section](https://github
 
 ## Building the Firmware
 
-For building the firmware, Raspbian Buster (and to an extent, all Debian-based systems) and Arch Linux 64 are supported.
+For building the firmware, Raspbian Buster (and to an extent, all Debian-based systems) and Arch Linux ARMv8 AArch64 are supported.
 
 
 ### Building on Raspbian Buster

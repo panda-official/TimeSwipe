@@ -135,46 +135,58 @@ Supported cross-compilation architectures are Ubuntu 18.04 and OSX.
 
 ### Ubuntu 18.04
 
-tbd.
+To cross-compile on Ubuntu 18.04, you will need to install some extra packages:
+
+```
+sudo apt-get install gcc-arm-none-eabi libboost-dev gcc-aarch64-linux-gnu cmake git gcc
+```
+
+You can then clone this repository, if you haven't done that already:
+
+```
+git clone --recursive https://github.com/panda-official/timeswipe.git
+```
+
+Then simply navigate to the driver directory and build:
+
+```
+cd timeswipe/driver
+mkdir -p build
+cd build
+cmake ..
+make -j$(nproc)
+```
 
 
 ### OSX
 
-For corss-compilation on OSX, `ct-ng` and some extra dependencies are needed:
+For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed.
+In a terminal, enter the commands:
 
 ```
 brew install crosstool-ng help2man bison
 ```
 
 Using `Disk Utility` create an APFS (case-sensitive) disk named `xtool-build-env`.
-
-
-### Build crosstool-ng toolchain
-change variables in `.config` file form this directory if disk name is different:
-
-```
-CT_WORK_DIR="/Volumes/xtool-build-env/.build"
-CT_PREFIX_DIR="/Volumes/xtool-build-env/${CT_TARGET}"
-```
-
-change user limit to build:
+Change the limit of file descriptors:
 
 ```
 ulimit -n 1024
 ```
 
-copy file `.config` from this direcory to `/Volumes/xtool-build-env` :
+And copy the file `config_osx` from this direcory to `/Volumes/xtool-build-env`, renaming the file in the process:
 
 ```
-cp .config /Volumes/xtool-build-env
+cp config_osx /Volumes/xtool-build-env/.config
 ```
 
-build toolchain:
+Then you can build the toolchain:
 ```
 cd /Volumes/xtool-build-env
 ct-ng build
 ```
 
+This will take a while.
 After toolchain built successfully change PATH variable:
 ```
 export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin/:$PATH
@@ -199,61 +211,3 @@ cd build
 cmake ..
 make
 ```
-
-
-## Compiling Applications Using the Driver
-
-This section describes how to compile the `DataLogging` example application using the TimeSwipe driver.
-
-
-### Raspbian Buster
-
-Navigate to the `DataLogging` directory:
-
-```
-cd timeswipe/driver/examples/DataLogging
-```
-
-You can then build the application with `cmake`:
-
-```
-mkdir -p build
-cd build
-cmake ..
-make -j$(nproc)
-```
-
-To run the data logging example from the `build` directory, execute the command:
-
-```
-sudo ./main --config ../config.json --input IEPE --output temp.txt
-```
-
-This will gather data for 10 seconds according to the configuration file specified, from the `IEPE` inputs and will save the data in CSV format to the file `temp.txt`.
-
-
-### Arch Linux ARMv8 AArch64
-
-Navigate to the `DataLogging` directory:
-
-```
-cd timeswipe/driver/examples/DataLogging
-```
-
-You can then build the application with `cmake`:
-
-```
-mkdir -p build
-cd build
-cmake ..
-make -j$(nproc)
-```
-
-To run the data logging example from the `build` directory, as `root` execute the command:
-
-```
-./main --config ../config.json --input IEPE --output temp.txt
-```
-
-This will gather data for 10 seconds according to the configuration file specified, from the `IEPE` inputs and will save the data in CSV format to the file `temp.txt`.
-
