@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
     const auto& trans = configitem["SENSOR_TRANSMISSION"];
     tswipe.SetSensorTransmissions(trans[0], trans[1], trans[2], trans[3]);
 
+    tswipe.SetBurstSize(48000);
 
     // Board Shutdown on signals
 
