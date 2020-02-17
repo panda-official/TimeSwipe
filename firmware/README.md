@@ -65,6 +65,7 @@ cd openocd
 ./configure --enable-sysfsgpio --enable-bcm2835gpio
 make -j$(nproc)
 sudo make install
+cd ..
 ```
 
 After installation, run openOCD with the `PandaOCD.cfg` file located in the firmware directory:
