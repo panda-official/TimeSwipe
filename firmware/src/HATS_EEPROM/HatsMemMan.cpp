@@ -173,7 +173,7 @@ CHatsMemMan::op_result VerifyStorage(const char *pMemBuf, const int MemBufSize)
     struct header_t *pHeader=(struct header_t *)(pMemBuf);
     const char *pMemLimit=(pMemBuf+MemBufSize);
 
-    if(SIGNATURE!=pHeader->signature || VERSION!=pHeader->ver || pHeader->res!=0 || pHeader->eeplen!=MemBufSize)
+    if(SIGNATURE!=pHeader->signature || VERSION!=pHeader->ver || pHeader->res!=0 || pHeader->eeplen>MemBufSize)
        return  CHatsMemMan::op_result::storage_is_corrupted;
 
     //verify all atoms:

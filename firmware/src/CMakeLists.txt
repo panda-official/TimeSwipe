@@ -43,6 +43,7 @@ target_include_directories(${TARGET_NAME} PUBLIC Communication)
 target_include_directories(${TARGET_NAME} PUBLIC BusinessLogic)
 target_include_directories(${TARGET_NAME} PUBLIC Board)
 target_include_directories(${TARGET_NAME} PUBLIC SAMe54)
+target_include_directories(${TARGET_NAME} PUBLIC HATS_EEPROM)
 
 #linking upper layer:
 target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib HATS_EEPROM_lib)

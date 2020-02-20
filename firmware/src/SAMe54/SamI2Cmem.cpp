@@ -89,15 +89,33 @@ void CSamI2Cmem::IRQhandler()
              *   start"
              *
              */
-            if(pI2C->STATUS.bit.RXNACK && !pI2C->STATUS.bit.SR) //! check RXNACK only when it is not repeated start
+
+            if(pI2C->STATUS.bit.RXNACK) //! check RXNACK only when it is not repeated start
             {
-                m_MState=FSM::halted;
-                pI2C->CTRLB.bit.CMD=2;
+                 //m_MState=FSM::halted;
+                 //pI2C->CTRLB.bit.CMD=2;
+                 if(m_nMemCurInd)
+                 {
+                     m_nMemCurInd--;
+                     //pI2C->DATA.reg=m_pMem[m_nMemCurInd-1];
+                 }
+                    // m_nMemCurInd--;
+
+               //  pI2C->CTRLB.bit.CMD=2;
+                // return;
             }
-            else
-            {
-                pI2C->DATA.reg=readB();
-            }
+
+            //{
+                //pI2C->DATA.reg=readB();
+                if(m_nMemCurInd<m_nMemSize)
+                {
+                    pI2C->DATA.reg=m_pMem[m_nMemCurInd++];
+                }
+                else {
+
+                    pI2C->DATA.reg=0; //???
+                }
+            //}
             return;
         }
         if(FSM::addrHb==m_MState)

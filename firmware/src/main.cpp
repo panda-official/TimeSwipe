@@ -31,6 +31,8 @@ Copyright (c) 2019 Panda Team
 #include "std_port.h"
 #include "jsondisp.h"
 
+#include "HatsMemMan.h"
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -61,23 +63,10 @@ int main(void)
         auto pLED3      =std::make_shared<CLED>(typeLED::LED3);
         auto pLED4      =std::make_shared<CLED>(typeLED::LED4);
 
-        //step 1 - creating QSPI bus:
-        CSamQSPI objQSPI;
-
-
-        auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
-        pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
-
-
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
         auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
         pEEPROM_MemBuf->reserve(1024); //reserve 1kb for an EEPROM data
-
-        //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
-        auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
-        pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
-        pEEPROM_HAT->EnableIRQs(true);
 
         //creating an I2C EEPROM master to operate with an external chip:
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
@@ -87,7 +76,38 @@ int main(void)
         pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
         pEEPROM_MasterBus->SetDeviceAddr(0xA0);
         pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
+
+        //verifing the image:
+        CHatsMemMan HatMan(pEEPROM_MemBuf);
+        if(CHatsMemMan::op_result::OK!=HatMan.Verify()) //image is corrupted
+        {
+            //make default image:
+            HatMan.Reset();
+
+            CHatAtomVendorInfo vinf;
+
+            vinf.m_PID=0;
+            vinf.m_pver=2;
+            vinf.m_vstr="PANDA";
+            vinf.m_pstr="TimeSwipe";
+
+            HatMan.Store(vinf); //storage is ready
+        }
+
+        //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
+        auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
+        pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
+        pEEPROM_HAT->EnableIRQs(true);
         //----------------------------------------------------------
+
+
+        //step 1 - creating QSPI bus:
+        CSamQSPI objQSPI;
+
+
+        auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
+        pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
+
 
 
          //step 2 - creating ADC0:
