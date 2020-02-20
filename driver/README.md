@@ -138,7 +138,7 @@ Supported cross-compilation architectures are Ubuntu 18.04 and OSX.
 To cross-compile on Ubuntu 18.04, you will need to install some extra packages:
 
 ```
-sudo apt-get install gcc-arm-none-eabi libboost-dev gcc-aarch64-linux-gnu cmake git gcc
+sudo apt-get install gcc-arm-none-eabi libboost-dev gcc-aarch64-linux-gnu cmake git gcc g++-aarch64-linux-gnu g++ pkg-config
 ```
 
 You can then clone this repository, if you haven't done that already:
