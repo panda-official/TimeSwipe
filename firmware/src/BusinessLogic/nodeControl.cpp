@@ -8,6 +8,7 @@ Copyright (c) 2019 Panda Team
 #include "nodeControl.h"
 #include "DataVis.h"
 
+
 std::shared_ptr<CADmux>  nodeControl::m_pMUX;
 std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 
@@ -64,18 +65,17 @@ void nodeControl::StartRecord(const bool how)
 {
     StartDataVis(false);
 
+    static unsigned long count_mark=0;
     //make a stamp:
-    typeLEDcol rstamp=nodeLED::gen_rnd_col();
+    count_mark++;
 
     //generate an event:
-    nlohmann::json v=rstamp;
+    nlohmann::json v=count_mark;
     Instance().Fire_on_event("Record", v);
 
-    //blink:
-    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, rstamp, 3, 300);
+    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, LEDrgb(255, 10, 10));
 
-    //restart data vis:
-    StartDataVis(true, 1800);
+    StartDataVis(true, 300);
 }
 
 int nodeControl::gain_out(int val)

@@ -8,7 +8,10 @@ Copyright (c) 2019 Panda Team
 
 #include "os.h"
 #include "DataVis.h"
+#include "View.h"
 #include <math.h>
+
+#include "board_type.h"
 
 CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
 {
@@ -34,9 +37,6 @@ void CDataVis::reset()
 
 void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
 {
-    for (int i = 0; i < 3; ++i) {
-        col_act[i]=col_IEPE[i];
-    }
     m_bStarted=bHow;
     m_upd_tspan_mS=nDelay_mS;
 
@@ -99,6 +99,6 @@ void CDataVis::Update()
 
 
     float intens1=(pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0;
-    unsigned int col_intens[3] = {static_cast<unsigned int>(col_act[0] * intens1/255), static_cast<unsigned int>(col_act[1] * intens1/255), static_cast<unsigned int>(col_act[2] * intens1/255)};
-    m_pLED->SetColor(col_intens[0]*65536 + col_intens[1]*256 + col_intens[2]);
+    m_pLED->SetColor( (CView::Instance().GetBasicColor() * (intens1/255)) );
 }
+

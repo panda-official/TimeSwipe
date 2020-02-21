@@ -23,15 +23,6 @@ Copyright (c) 2019 Panda Team
 class CDataVis
 {
 protected:
-    //! Color code for DMS board
-    unsigned int col_DMS[3] = {24, 250, 208};
-
-    //! Color code for IEPE board
-    unsigned int col_IEPE[3] = {50, 151, 247};
-
-    //! The actual board color that will be displayed (either DMS or IEPE)
-    unsigned int col_act[3];
-
     //! A brightness constant for calculating the actual LED brightness for visualization
     const float b_brght = 55.0;
 
@@ -40,6 +31,7 @@ protected:
     //! The lower visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to min. brightness. 
     unsigned int meas_min;
     //! Min. visualization range. Is set around actual measurement value after startup and after a reset. 
+
     unsigned int min_wind = 100;
     //! Proportional factor for the adjustment of the visualization range boundaries 
     const float k_range = 0.004;
