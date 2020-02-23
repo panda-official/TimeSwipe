@@ -23,6 +23,8 @@ public:
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
 
+    void SetBurstSize(size_t burst);
+
 private:
     bool _isStarted();
     void _fetcherLoop();
@@ -35,6 +37,9 @@ private:
     static const unsigned constexpr BUFFER_SIZE = 48000/32*2;
     boost::lockfree::spsc_queue<std::vector<Record>, boost::lockfree::capacity<BUFFER_SIZE>> recordBuffer;
     std::atomic_uint64_t recordErrors = 0;
+
+    std::vector<Record> burstBuffer;
+    size_t burstSize = 0;
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
     boost::lockfree::spsc_queue<std::pair<std::string,std::string>, boost::lockfree::capacity<1024>> _outSPI;
@@ -214,6 +219,10 @@ void TimeSwipe::SetSecondary(int number) {
     SetBridge(number);
 }
 
+void TimeSwipe::SetBurstSize(size_t burst) {
+    return _impl->SetBurstSize(burst);
+}
+
 bool TimeSwipe::Start(TimeSwipe::ReadCallback cb) {
     return _impl->Start(cb);
 }
@@ -257,12 +266,27 @@ void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
             continue;
         }
 
-        for (size_t i = 1; i < num; i++) {
-            records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
-        }
         if (errors && onErrorCb) onErrorCb(errors);
-        cb(std::move(records[0]), errors);
+
+        if (burstBuffer.empty() && burstSize <= records[0].size()) {
+            // optimization if burst buffer not used or smaller than first buffer
+            for (size_t i = 1; i < num; i++) {
+                records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
+            }
+            cb(std::move(records[0]), errors);
+        } else {
+            // burst buffer mode
+            for (size_t i = 0; i < num; i++) {
+                burstBuffer.insert(std::end(burstBuffer), std::begin(records[i]), std::end(records[i]));
+            }
+            if (burstBuffer.size() >= burstSize)
+                cb(std::move(burstBuffer), errors);
+        }
     }
+}
+
+void TimeSwipeImpl::SetBurstSize(size_t burst) {
+    burstSize = burst;
 }
 
 bool TimeSwipe::Stop() {

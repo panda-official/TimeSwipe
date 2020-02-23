@@ -120,7 +120,8 @@ CBcmSPI::CBcmSPI(iSPI nSPI)
         
     
     //set default rate:
-    SPI_set_speed_hz(100000);
+    //SPI_set_speed_hz(100000);
+    SPI_set_speed_hz(50000);
     
 }
 CBcmSPI::~CBcmSPI()
