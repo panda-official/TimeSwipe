@@ -17,6 +17,7 @@ Copyright (c) 2019 Panda Team
 #include "ADmux.h"
 #include "SamADCcntr.h"
 #include "SamDACcntr.h"
+#include "SamService.h"
 #include "DACmax5715.h"
 #include "DACdecor.h"
 
@@ -86,6 +87,7 @@ int main(void)
 
             CHatAtomVendorInfo vinf;
 
+            vinf.m_uuid=CSamService::GetSerial();
             vinf.m_PID=0;
             vinf.m_pver=2;
             vinf.m_vstr="PANDA";

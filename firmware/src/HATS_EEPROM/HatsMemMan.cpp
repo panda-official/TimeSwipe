@@ -19,12 +19,25 @@ bool CHatAtomVendorInfo::load(CFIFO &buf)
     //const char *pData=buf.data();
 
     typeSChar ch;
-    uint8_t   *pBuf=(uint8_t *)(m_uuid);
+  /*  uint8_t   *pBuf=(uint8_t *)(m_uuid);
     for(int i=0; i<20; i++)
     {
         buf>>ch;
         pBuf[i]=(uint8_t)ch;
+    }*/
+
+    uint8_t   *pBuf=(uint8_t *)m_uuid.data();
+    for(int i=0; i<16; i++)
+    {
+        buf>>ch;
+        pBuf[i]=(uint8_t)ch;
     }
+    typeSChar b0, b1;
+    buf>>b0>>b1;
+    *((uint8_t*)&m_PID)=b0; *( ((uint8_t*)&m_PID) +1 )=b1;
+    buf>>b0>>b1;
+    *((uint8_t*)&m_pver)=b0; *( ((uint8_t*)&m_pver) +1 )=b1;
+
     int vslen, pslen;
     buf>>vslen>>pslen;
 
@@ -50,11 +63,21 @@ bool CHatAtomVendorInfo::store(CFIFO &buf)
     int vslen=m_vstr.length();
     int pslen=m_pstr.length();
     buf.reserve(22+vslen+pslen); //minimum size
-    uint8_t   *pBuf=(uint8_t *)(m_uuid);
+   /* uint8_t   *pBuf=(uint8_t *)(m_uuid);
     for(int i=0; i<20; i++)
     {
         buf<<pBuf[i];
+    }*/
+
+    uint8_t   *pBuf=(uint8_t *)m_uuid.data();
+    for(int i=0; i<16; i++)
+    {
+        buf<<pBuf[i];
     }
+    buf<<*((uint8_t*)&m_PID)<<*( ((uint8_t*)&m_PID) +1 );
+    buf<<*((uint8_t*)&m_pver)<<*( ((uint8_t*)&m_pver) +1 );
+
+
     buf<<vslen<<pslen;
     for(int i=0; i<vslen; i++)
     {
@@ -68,7 +91,10 @@ bool CHatAtomVendorInfo::store(CFIFO &buf)
 }
 void CHatAtomVendorInfo::reset()
 {
-    memset(m_uuid, 0, 20);
+    //memset(m_uuid, 0, 20);
+    m_uuid.fill(0);
+    m_PID=0;
+    m_pver=0;
     m_vstr.erase();
     m_pstr.erase();
 }

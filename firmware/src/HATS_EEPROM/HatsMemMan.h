@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-
+#include <array>
 #include "Serial.h"
 enum class typeHatsAtom:int {VendorInfo=1, GPIOmap, LinuxDTB, Custom};
 
@@ -26,7 +26,8 @@ struct CHatAtomVendorInfo
 {
 friend class CHatsMemMan;
 
-    uint32_t    m_uuid[4];  //represented as 4 32-bit words
+    //uint32_t    m_uuid[4];  //represented as 4 32-bit words
+    std::array<uint32_t, 4> m_uuid;
     uint16_t    m_PID;
     uint16_t    m_pver;
     std::string m_vstr;
