@@ -23,7 +23,8 @@ void usage(const char* name)
     std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>]'" << std::endl;
     std::cerr << "default for <configname> is ./config.json" << std::endl;
     std::cerr << "default for <input_type> is the first one from <configname>" << std::endl;
-    std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
+    std::cerr << "if --output given then <outname> is target directory without closing '/'" << std::endl;
+
 }
 
 int main(int argc, char *argv[])
@@ -129,8 +130,12 @@ int main(int argc, char *argv[])
                 {
                     data_log.close();
                 }
-                data_log.open(std::to_string(now) + ".log", std::ios::out | std::ios::binary);
-                // data_log.open(std::to_string(now) + ".log");
+				if(dump)
+                {
+                    data_log.open(dumpname + "/" + std::to_string(now) + ".log", std::ios::out | std::ios::binary);
+                } else {
+                    data_log.open(std::to_string(now) + ".log", std::ios::out | std::ios::binary);
+                }                // data_log.open(std::to_string(now) + ".log");
                 latest = now;
             }
 
