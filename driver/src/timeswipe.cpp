@@ -6,11 +6,14 @@
 #include <future>
 #include "timeswipe.hpp"
 #include "reader.hpp"
+#include "timeswipe_resampler.hpp"
 
+bool TimeSwipe::resample_log = false;
 
 class TimeSwipeImpl {
     static std::mutex startStopMtx;
     static TimeSwipeImpl* startedInstance;
+    static const int constexpr BASE_SAMPLE_RATE = 48000;
 public:
     ~TimeSwipeImpl();
     void SetBridge(int bridge);
@@ -18,6 +21,7 @@ public:
     void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
     void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
     bool Start(TimeSwipe::ReadCallback);
+    bool SetSampleRate(int rate);
     bool onButton(TimeSwipe::OnButtonCallback cb);
     bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
@@ -47,6 +51,8 @@ private:
     bool _work = false;
     std::thread _fetcherThread;
     std::thread _pollerThread;
+
+    std::unique_ptr<TimeSwipeResampler> resampler;
 };
 
 std::mutex TimeSwipeImpl::startStopMtx;
@@ -81,6 +87,14 @@ void TimeSwipeImpl::SetSensorTransmissions(double trans1, double trans2, double 
     Rec.transmission[3] = trans4;
 }
 
+
+bool TimeSwipeImpl::SetSampleRate(int rate) {
+    if (rate < 1 || rate > BASE_SAMPLE_RATE) return false;
+    resampler.reset(nullptr);
+    if (rate != BASE_SAMPLE_RATE)
+        resampler = std::make_unique<TimeSwipeResampler>(rate, BASE_SAMPLE_RATE);
+    return true;
+}
 
 bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     {
@@ -214,6 +228,10 @@ void TimeSwipe::SetSecondary(int number) {
     SetBridge(number);
 }
 
+bool TimeSwipe::SetSampleRate(int rate) {
+    return _impl->SetSampleRate(rate);
+}
+
 bool TimeSwipe::Start(TimeSwipe::ReadCallback cb) {
     return _impl->Start(cb);
 }
@@ -240,8 +258,8 @@ void TimeSwipeImpl::_fetcherLoop() {
         auto data = Rec.read();
         if (!recordBuffer.push(data))
             ++recordErrors;
-        _receiveEvents(now);
-        _processSPIRequests();
+        //_receiveEvents(now);
+        //_processSPIRequests();
     }
 }
 
@@ -261,7 +279,12 @@ void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
             records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
         }
         if (errors && onErrorCb) onErrorCb(errors);
-        cb(std::move(records[0]), errors);
+        if (resampler) {
+            auto&& samples = resampler->Resample(std::move(records[0]));
+            cb(std::move(samples), errors);
+        } else {
+            cb(std::move(records[0]), errors);
+        }
     }
 }
 
