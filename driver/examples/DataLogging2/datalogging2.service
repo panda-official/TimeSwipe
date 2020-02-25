@@ -6,7 +6,7 @@ After=multi-user.target
 Type=idle
 User=root
 Group=root
-ExecStart=/home/pi/timeswipe/driver/examples/DataLogging2/build/main --config /home/pi/timeswipe/driver/examples/DataLogging2/config.json --output /mnt/data
+ExecStart=/home/pi/timeswipe/driver/examples/DataLogging2/build/main --config /home/pi/timeswipe/driver/examples/DataLogging2/config.json --input IEPE --output /mnt/data
 
 [Install]
 WantedBy=multi-user.target
