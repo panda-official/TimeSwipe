@@ -4,8 +4,10 @@
 #include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
 #include <future>
+#include <iostream>
 #include "timeswipe.hpp"
 #include "reader.hpp"
+#include "timeswipe_eeprom.hpp"
 
 
 class TimeSwipeImpl {
@@ -94,6 +96,12 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
             return false;
         }
         startedInstance = this;
+        std::string err;
+        if (!TimeSwipeEEPROM::Read(err)) {
+            std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
+            //TODO: uncomment once parsing implemented
+            //return false;
+        }
     }
 
     Rec.setup();
@@ -215,7 +223,7 @@ void TimeSwipe::Init(int bridge, int offsets[4], int gains[4], double transmissi
 }
 
 void TimeSwipe::SetSecondary(int number) {
-    //TODO: complete on ontegration
+    //TODO: complete on integration
     SetBridge(number);
 }
 
