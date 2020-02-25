@@ -1,5 +1,5 @@
 #include "timeswipe_resampler.hpp"
-#include "upfirdn.h"
+#include "Upfirdn/upfirdn.h"
 #include <boost/math/special_functions/bessel.hpp>
 
 static unsigned getPad(unsigned samples) {
