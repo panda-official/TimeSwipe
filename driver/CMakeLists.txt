@@ -29,12 +29,16 @@ SET(CMAKE_INSTALL_LIBDIR lib)
 
 include(GNUInstallDirs)
 
+SET(firmware_dir ../firmware)
+SET(firmware_includes ${firmware_dir}/src/Interfaces ${firmware_dir}/src/Communication ${firmware_dir}/src/HATS_EEPROM ${firmware_dir}/3rdParty/HATS_EEPROM)
 
 SET(SRC
     src/timeswipe.cpp
+    src/timeswipe_eeprom.cpp
     src/board_iface.cpp
 	3rdParty/BCMsrc/bcm2835.c
 	src/RaspberryPi/bcmspi.cpp
+    ${firmware_dir}/src/HATS_EEPROM/HatsMemMan.cpp
 )
 
 
@@ -42,7 +46,7 @@ add_library(timeswipeStatic STATIC ${SRC})
 set_target_properties(timeswipeStatic PROPERTIES OUTPUT_NAME "timeswipe")
 set_target_properties(timeswipeStatic PROPERTIES PUBLIC_HEADER include/timeswipe.hpp)
 set_target_properties(timeswipeStatic PROPERTIES VERSION ${PROJECT_VERSION})
-SET(timeswipe_include_dirs src src/RaspberryPi src/Interfaces src/Communication 3rdParty 3rdParty/BCMsrc 3rdParty/nlohmann/include include)
+SET(timeswipe_include_dirs src src/RaspberryPi ${firmware_includes} 3rdParty 3rdParty/BCMsrc 3rdParty/nlohmann/include include)
 target_include_directories(timeswipeStatic PRIVATE ${timeswipe_include_dirs})
 set_target_properties(timeswipeStatic PROPERTIES CXX_STANDARD 17)
 
