@@ -20,6 +20,7 @@ Copyright (c) 2019 Panda Team
 #include "SamService.h"
 #include "DACmax5715.h"
 #include "DACdecor.h"
+#include "DACPWM.h"
 
 #include "menu_logic.h"
 #include "SAMbutton.h"
@@ -126,7 +127,6 @@ int main(void)
         auto pDACC=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACC, 0.0f, 4095.0f);
         auto pDACD=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACD, 0.0f, 4095.0f);
 
-        //23.05.2019
         auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
         auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
 #else
@@ -142,7 +142,6 @@ int main(void)
         auto pDACC=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACC, -10.0f, +10.0f);
         auto pDACD=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACD, -10.0f, +10.0f);
 
-        //23.05.2019
         auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, -10, +10);
         auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, -10, +10);
 #endif
@@ -159,6 +158,11 @@ int main(void)
         pZeroCal->Add(pADC4, pDACD, pLED4);
 
         nodeControl::SetControlItems(pADmux, pZeroCal);
+
+
+        //2 DAC PWMs:
+        auto pPWM1=std::make_shared<CDacPWM>(pSamDAC0, pADmux);
+        auto pPWM2=std::make_shared<CDacPWM>(pSamDAC1, pADmux);
 
 
 
@@ -216,9 +220,27 @@ int main(void)
         pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetZeroRunSt,  &nodeControl::SetZero) );
 
         pDisp->Add("Zero.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) ); //18.07.2019 - a getter is added
+        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) );
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
+
+
+        //PWM:
+        pDisp->Add("PWM1", std::make_shared< CCmdSGHandler<CDacPWM, bool> >(pPWM1, &CDacPWM::IsStarted,  &CDacPWM::Start) );
+        pDisp->Add("PWM1.repeats", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM1, &CDacPWM::GetRepeats,  &CDacPWM::SetRepeats) );
+        pDisp->Add("PWM1.duty", std::make_shared< CCmdSGHandler<CDacPWM, float> >(pPWM1, &CDacPWM::GetDutyCycle,  &CDacPWM::SetDutyCycle) );
+        pDisp->Add("PWM1.freq", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM1, &CDacPWM::GetFrequency,  &CDacPWM::SetFrequency) );
+        pDisp->Add("PWM1.high", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM1, &CDacPWM::GetHighLevel,  &CDacPWM::SetHighLevel) );
+        pDisp->Add("PWM1.low", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM1, &CDacPWM::GetLowLevel,  &CDacPWM::SetLowLevel) );
+
+
+        pDisp->Add("PWM2", std::make_shared< CCmdSGHandler<CDacPWM, bool> >(pPWM2, &CDacPWM::IsStarted,  &CDacPWM::Start) );
+        pDisp->Add("PWM2.repeats", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM2, &CDacPWM::GetRepeats,  &CDacPWM::SetRepeats) );
+        pDisp->Add("PWM2.duty", std::make_shared< CCmdSGHandler<CDacPWM, float> >(pPWM2, &CDacPWM::GetDutyCycle,  &CDacPWM::SetDutyCycle) );
+        pDisp->Add("PWM2.freq", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM2, &CDacPWM::GetFrequency,  &CDacPWM::SetFrequency) );
+        pDisp->Add("PWM2.high", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM2, &CDacPWM::GetHighLevel,  &CDacPWM::SetHighLevel) );
+        pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM2, &CDacPWM::GetLowLevel,  &CDacPWM::SetLowLevel) );
+
 
         //--------------------menu+button+detection of a master----------------
         auto pMenu=std::make_shared<CMenuLogic>();
@@ -277,5 +299,8 @@ int main(void)
              }
 
              pSPIsc2->Update();
+
+             pPWM1->Update();
+             pPWM2->Update();
         }
 }

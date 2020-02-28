@@ -15,7 +15,8 @@ protected:
 
     unsigned long m_HalfPeriod_mS[2];
     unsigned long m_HalfPeriodStartTime;
-    int m_CurHalfPeriodIndex;
+    unsigned int m_CurHalfPeriodIndex;
+    unsigned int m_PeriodsCnt;
 
     bool m_bStarted=false;
 
@@ -30,11 +31,23 @@ protected:
     int m_prmLevelLowLim=0;
     //-------------
 
-    void obtain_half_periods();
+    void obtain_half_periods(){
+
+        m_HalfPeriod_mS[0]=(1000.0f*m_prmDutyCycle)/m_prmFrequency;
+        m_HalfPeriod_mS[0]=(1000.0f*(10.0f-m_prmDutyCycle))/m_prmFrequency;
+
+        static_cast<T*>(this)->on_obtain_half_periods();
+    }
 
 public:
     unsigned int GetFrequency(){ return m_prmFrequency; }
-    void SetFrequency(unsigned int Freq){m_prmFrequency=Freq; obtain_half_periods(); }
+    void SetFrequency(unsigned int Freq){
+        if(Freq<1)
+            Freq=1;
+        if(Freq>1000)
+            Freq=1000;
+        m_prmFrequency=Freq; obtain_half_periods();
+    }
     unsigned int GetRepeats(){ return m_prmRepeats; }
     void SetRepeats(unsigned int Repeats){ m_prmRepeats=Repeats; }
     float GetDutyCycle(){ return m_prmDutyCycle; }
@@ -60,7 +73,10 @@ public:
         {
             obtain_half_periods();
             m_CurHalfPeriodIndex=0;
+            m_PeriodsCnt=0;
             m_HalfPeriodStartTime=os::get_tick_mS();
+
+            static_cast<T*>(this)->impl_Start(How);
         }
     }
     long GetHalfPeriodTimeLeft(){
@@ -69,8 +85,20 @@ public:
     }
     void LoadNextHalfPeriod(){
 
+        if(m_prmRepeats){
+
+            if(m_CurHalfPeriodIndex)
+                if(++m_PeriodsCnt>=m_prmRepeats){
+
+                    Start(false);
+                    return;
+                }
+        }
+
         ++m_CurHalfPeriodIndex&=1;
         m_HalfPeriodStartTime=os::get_tick_mS();
+
+        static_cast<T*>(this)->impl_LoadNextHalfPeriod();
     }
     void Update(){
 
