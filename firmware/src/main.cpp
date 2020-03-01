@@ -33,6 +33,7 @@ Copyright (c) 2019 Panda Team
 #include "jsondisp.h"
 
 #include "HatsMemMan.h"
+#include "RawBinStorage.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -252,11 +253,19 @@ int main(void)
         pADmux->SetUBRvoltage(true);
 
 
+        //NVM storage:
+        CRawBinStorage NVMstorage;
+        NVMstorage.AddItem(pADmux);
+        NVMstorage.Load();
+
+
         //blink at start:
         CView::Instance().BlinkAtStart();
 
         while(1) //endless loop ("super loop")
         {
+             NVMstorage.Update();
+
              //update calproc:
              pZeroCal->Update();
 
