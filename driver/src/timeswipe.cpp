@@ -254,7 +254,7 @@ std::string TimeSwipe::GetSettings(const std::string& request, std::string& erro
 
 void TimeSwipeImpl::_fetcherLoop() {
     while (_work) {
-        auto now = std::chrono::steady_clock::now();
+        //auto now = std::chrono::steady_clock::now();
         auto data = Rec.read();
         if (!recordBuffer.push(data))
             ++recordErrors;

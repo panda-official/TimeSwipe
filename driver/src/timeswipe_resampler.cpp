@@ -41,7 +41,7 @@ std::vector<Record> TimeSwipeResampler::Resample(std::vector<Record>&& records) 
             buffers[i].push_back(r.Sensors[i]);
         }
     }
-    int inputSize = buffers[0].size();
+    size_t inputSize = buffers[0].size();
     //process input data with constant slice
     size_t slice_size = 1000;
     if (inputSize < slice_size+2*pad) return std::vector<Record>();
