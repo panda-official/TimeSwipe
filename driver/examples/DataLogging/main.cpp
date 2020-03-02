@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     // Board Start
 	
-	tswipe.SetSampleRate(4800);
+	tswipe.SetSampleRate(48000);
 
     bool ret = tswipe.onButton([&](bool pressed, unsigned count) {
         std::cout << "Button: " <<  (pressed ? "pressed":"released") << std::endl;
