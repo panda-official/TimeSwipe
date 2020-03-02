@@ -1,5 +1,6 @@
 #include "timeswipe_resampler.hpp"
 #include "Upfirdn/upfirdn.h"
+#include <boost/math/special_functions/bessel.hpp>
 
 static unsigned getPad(unsigned samples) {
     if (samples >= 24000) return 20;

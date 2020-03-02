@@ -22,7 +22,6 @@ public:
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
     void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
     void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
-    bool SetSampleRate(int rate);
     bool Start(TimeSwipe::ReadCallback);
     bool SetSampleRate(int rate);
     bool onButton(TimeSwipe::OnButtonCallback cb);

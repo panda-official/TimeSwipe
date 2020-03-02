@@ -109,14 +109,6 @@ public:
     bool SetSampleRate(int rate);
 
     /**
-     * \brief Set sample rate. Default value is 48000
-     *
-     * @param rate - new sample rate
-     * @return false on wrong rate value requested
-     */
-    bool SetSampleRate(int rate);
-
-    /**
      * \brief Read sensors callback function pointer
      */
     using ReadCallback = std::function<void(std::vector<Record>, uint64_t errors)>;

@@ -1,17 +1,23 @@
 /*
 Copyright (c) 2009, Motorola, Inc
+
 All Rights Reserved.
+
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions are
 met:
+
 * Redistributions of source code must retain the above copyright notice,
 this list of conditions and the following disclaimer.
+
 * Redistributions in binary form must reproduce the above copyright 
 notice, this list of conditions and the following disclaimer in the 
 documentation and/or other materials provided with the distribution.
+
 * Neither the name of Motorola nor the names of its contributors may be 
 used to endorse or promote products derived from this software without 
 specific prior written permission.
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
 IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,  
 THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
@@ -45,7 +51,7 @@ public:
     int        apply(S1* in, int inCount, S2* out, int outCount);
     int        neededOutCount(int inCount);
     int        coefsPerPhase() { return _coefsPerPhase; }
-
+    
 private:
     int        _upRate;
     int        _downRate;
@@ -53,13 +59,13 @@ private:
     coefType   *_transposedCoefs;
     inputType  *_state;
     inputType  *_stateEnd;
-
+    
     int        _paddedCoefCount;  // ceil(len(coefs)/upRate)*upRate
     int        _coefsPerPhase;    // _paddedCoefCount / upRate
-
+    
     int        _t;                // "time" (modulo upRate)
     int        _xOffset;
-
+    
 };
 
 
@@ -69,6 +75,7 @@ private:
 /*
 using std::cout;
 using std::endl;
+
 using std::fill;
 using std::copy;
 */
@@ -94,7 +101,7 @@ Resampler<S1, S2, C>::Resampler(int upRate, int downRate, C *coefs,
         _paddedCoefCount++;
     }
     _coefsPerPhase = _paddedCoefCount / _upRate;
-
+    
     _transposedCoefs = new coefType[_paddedCoefCount];
     fill(_transposedCoefs, _transposedCoefs + _paddedCoefCount, 0.);
 
@@ -197,10 +204,12 @@ This template function provides a one-shot resampling.  Extra samples
 are padded to the end of the input in order to capture all of the non-zero 
 output samples.
 The output is in the "results" vector which is modified by the function.
+
 Note, I considered returning a vector instead of taking one on input, but
 then the C++ compiler has trouble with implicit template instantiation
 (e.g. have to say upfirdn<float, float, float> every time - this
 way we can let the compiler infer the template types).
+
 Thanks to Lewis Anderson (lkanders@ucsd.edu) at UCSD for
 the original version of this function.
 */
@@ -218,7 +227,6 @@ the original version of this function.
             inputPadded[i] = 0;
     }
 
-    //printf("inLength: %d padding: %d\n", inLength, padding);fflush(stdout);
     // calc size of output
     int resultsCount = theResampler.neededOutCount(inLength + padding); 
 
@@ -230,6 +238,37 @@ the original version of this function.
     delete[] inputPadded;
 }
 
+// Another implementation of above function for random-access containers
+template<class s1, class S1>
+void upfirdn2(int upRate, int downRate, 
+             const S1& input, int inLength, vector<s1>& filter, int filterLength, 
+             vector<s1> &results)
+{
+    // Create the Resampler
+    Resampler<s1, s1, s1> theResampler(upRate, downRate, &filter[0], filterLength);
+
+    // pad input by length of one polyphase of filter to flush all values out
+    int padding = theResampler.coefsPerPhase() - 1;
+    s1 *inputPadded = new s1[inLength + padding];
+    for (int i = 0; i < inLength + padding; i++) {
+        if (i < inLength)
+            inputPadded[i] = input[i];
+        else
+            inputPadded[i] = 0;
+    }
+
+    // calc size of output
+    int resultsCount = theResampler.neededOutCount(inLength + padding); 
+
+    results.resize(resultsCount);
+
+    // run filtering
+    /*int numSamplesComputed =*/ theResampler.apply(inputPadded, 
+            inLength + padding, &results[0], resultsCount);
+    delete[] inputPadded;
+}
+
+
 template<class S1, class S2, class C>
 void upfirdn(int upRate, int downRate, 
              vector<S1> &input, vector<C> &filter, vector<S2> &results)
@@ -240,7 +279,6 @@ In this version, the input and filter are vectors as opposed to
 pointer/count pairs.
 */
 {
-    //printf("UP: %d DOWN: %d\n", upRate, downRate);fflush(stdout);
     upfirdn<S1, S2, C>(upRate, downRate, &input[0], input.size(), &filter[0], 
                        filter.size(), results);
 }
