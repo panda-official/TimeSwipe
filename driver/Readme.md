@@ -64,7 +64,7 @@ for Arch:
 sudo pacman -Sy aarch64-linux-gnu-gcc arm-none-eabi-binutils community/arm-none-eabi-gcc extra/boost-libs extra/boost
 ```
 
-for target platform:
+build on target platform(RPi3):
 ```
 cd driver
 mkdir build
@@ -73,13 +73,33 @@ cmake ..
 make
 ```
 
-for OSX:
-[README.md](contrib/OSX/README.md)
+cross-platform build build Arch linux or Ubuntu:
 
-install on target platform:
+32bit (armv7l):
+```
+cd driver
+mkdir build
+cd build
+cmake -DARM32=True ..
+make
+```
+
+64bit (aarch64):
+```
+cd driver
+mkdir build
+cd build
+cmake ..
+make
+```
+
+driver install on target or cross-build:
 ```
 sudo make install
 ```
+
+for OSX:
+[README.md](contrib/OSX/README.md)
 
 Library package should be installed:
 

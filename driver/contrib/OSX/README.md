@@ -41,6 +41,16 @@ cd /Volumes/xtool-build-env
 ct-ng build
 ```
 
+Install boost with brew:
+```
+brew install boost
+```
+
+Check if path is available:
+```
+brew --prefix boost
+```
+
 After toolchain built successfully change PATH variable:
 ```
 export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin/:$PATH
@@ -50,16 +60,16 @@ export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin/:$PATH
 
 Build driver:
 ```
-cd library
+cd driver
 mkdir build
 cd build
 cmake ..
 make
 ```
 
-Build example:
+Build DataLogging example:
 ```
-cd library/example
+cd driver/examples/DataLogging
 mkdir build
 cd build
 cmake ..
