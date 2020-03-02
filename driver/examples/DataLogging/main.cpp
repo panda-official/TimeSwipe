@@ -20,7 +20,7 @@ void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [--log-resample]'" << std::endl;
     std::cerr << "default for <configname> is ./config.json" << std::endl;
     std::cerr << "default for <input_type> is the first one from <configname>" << std::endl;
     std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
@@ -57,6 +57,8 @@ int main(int argc, char *argv[])
             }
             dumpname = argv[i+1];
             ++i;
+        } else if (!strcmp(argv[i],"--log-resample")) {
+            TimeSwipe::resample_log = true;
         } else {
             usage(argv[0]);
             return 1;
@@ -99,8 +101,8 @@ int main(int argc, char *argv[])
     };
 
     // Board Start
-	
-	tswipe.SetSampleRate(48000);
+    tswipe.SetSampleRate(48000);
+
 
     bool ret = tswipe.onButton([&](bool pressed, unsigned count) {
         std::cout << "Button: " <<  (pressed ? "pressed":"released") << std::endl;
@@ -117,6 +119,12 @@ int main(int argc, char *argv[])
         std::cerr << "onError init failed" << std::endl;
         return 1;
     }
+
+    tswipe.SetBurstSize(24000);
+
+    tswipe.SetSampleRate(24000);
+
+    // Board Start
 
     ret = tswipe.Start([&](auto&& records, uint64_t errors) {
             for (size_t i = 0; i < records.size(); i++) {

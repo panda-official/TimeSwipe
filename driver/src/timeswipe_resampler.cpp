@@ -1,6 +1,5 @@
 #include "timeswipe_resampler.hpp"
 #include "Upfirdn/upfirdn.h"
-#include <boost/math/special_functions/bessel.hpp>
 
 static unsigned getPad(unsigned samples) {
     if (samples >= 24000) return 20;
@@ -12,13 +11,6 @@ static unsigned getPad(unsigned samples) {
     else if (samples >= 2000) return 300;
 
     return 500;
-}
-
-TimeSwipeResampler::TimeSwipeResampler(int up, int down)
-    : upFactor(up)
-    , downFactor(down)
-{
-    pad = getPad(upFactor);
 }
 
 static int getGCD ( int num1, int num2 )
@@ -33,44 +25,48 @@ static int getGCD ( int num1, int num2 )
   return num2;
 }
 
+TimeSwipeResampler::TimeSwipeResampler(int up, int down)
+    : upFactor(up)
+    , downFactor(down)
+{
+    pad = getPad(upFactor);
+
+    //process input data with constant slice
+    sliceSize = 1000;
+    sliceSizePad = sliceSize + 2*pad;
+    state = std::make_unique<ResamplerState>(upFactor, downFactor, sliceSizePad);
+}
+
 std::vector<Record> TimeSwipeResampler::Resample(std::vector<Record>&& records) {
     if (records.empty()) return std::vector<Record>();
-    // TODO: optimization: eliminate copying
-    for (const auto& r: records) {
-        for (int i = 0; i < 4; i++) {
-            buffers[i].push_back(r.Sensors[i]);
-        }
-    }
-    size_t inputSize = buffers[0].size();
-    //process input data with constant slice
-    size_t slice_size = 1000;
-    if (inputSize < slice_size+2*pad) return std::vector<Record>();
-    inputSize = slice_size + 2*pad;
-    //fprintf(stderr, "inputSize: %d\n", inputSize);
-    //TODO: limit size of states
-    auto ret = states.emplace(buffers[0].size(), nullptr);
-    if (ret.second) {
-        ret.first->second = std::make_unique<ResamplerState>(upFactor, downFactor, inputSize);
-    }
-    auto& state = ret.first->second;
+    std::move(records.begin(), records.end(), std::back_inserter(buffer.recs));
+    size_t inputSize = buffer.recs.size();
+
+    if (inputSize < sliceSizePad) return std::vector<Record>();
+    inputSize = sliceSizePad;
 
     std::vector<float> y[4];
-    for (int j = 0; j < 4; j++) {
-        std::vector<float> yy;
-          int gcd = getGCD ( upFactor, downFactor );
-          int upf = upFactor / gcd;
-          int downf = downFactor / gcd;
-        upfirdn(upf, downf, &buffers[j][0], inputSize, &state->h[0], state->h.size(), yy);
-        for (int i = state->delay; i < state->outputSize + state->delay; i++) {
-            y[j].push_back ( yy[i] );
-        }
-    }
+    int gcd = getGCD ( upFactor, downFactor );
+    int upf = upFactor / gcd;
+    int downf = downFactor / gcd;
+
+    std::vector<float> yy;
+#define RESAMPLE_ONE(x) \
+    yy.clear(); \
+    upfirdn2(upf, downf, *reinterpret_cast<Records<x>*>(&buffer), inputSize, state->h, state->h.size(), yy); \
+    for (int i = state->delay; i < state->outputSize + state->delay; i++) { y[x].push_back ( yy[i] ); }
+
+    RESAMPLE_ONE(0);
+    RESAMPLE_ONE(1);
+    RESAMPLE_ONE(2);
+    RESAMPLE_ONE(3);
+#undef RESAMPLE_ONE
+
+    // remove processed slice from input data
+    buffer.recs.erase(buffer.recs.begin(), buffer.recs.begin() + sliceSize);
+
     std::vector<Record> out;
     auto sz = y[0].size();
-    // remove processed slice from input data
-    for (int j = 0; j < 4; j++) {
-        buffers[j].erase(buffers[j].begin(), buffers[j].begin() + slice_size);
-    }
     // Remove results related to pad
     int rem_pad = state->outputSize * pad / inputSize;
     for(int i=0; i < rem_pad;i++) if (sz > 0)--sz;
@@ -222,7 +218,7 @@ ResamplerState::ResamplerState(int upFactor, int downFactor, size_t inputSize) {
   vector<double> coefficients;
   firls ( length - 1, firlsFreqsV, firlsAmplitudeV, coefficients );
   if (TimeSwipe::resample_log) {
-      printf("resample: up: %d down: %d inputSize: %lu coefficients(%lu):", upFactor, downFactor, inputSize, coefficients.size());
+      printf("resample: up: %d down: %d inputSize: %zu coefficients(%zu):", upFactor, downFactor, inputSize, coefficients.size());
       for (const auto& c: coefficients) printf(" %f",c);
       printf("\n");
   }

@@ -91,6 +91,22 @@ public:
      */
     void Init(int bridge, int offsets[4], int gains[4], double transmissions[4]);
 
+    /**
+     * \brief Setup Burst buffer size
+     *
+     * This method notifies the driver to return at least burstNum records to the cb of @ref Start function per each call
+     *
+     * @param burstNum - number of records in burst buffer
+     */
+    void SetBurstSize(size_t burstNum);
+
+    /**
+     * \brief Set sample rate. Default value is 48000
+     *
+     * @param rate - new sample rate
+     * @return false on wrong rate value requested
+     */
+    bool SetSampleRate(int rate);
 
     /**
      * \brief Set sample rate. Default value is 48000

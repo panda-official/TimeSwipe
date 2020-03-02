@@ -4,8 +4,10 @@
 #include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
 #include <future>
+#include <iostream>
 #include "timeswipe.hpp"
 #include "reader.hpp"
+#include "timeswipe_eeprom.hpp"
 #include "timeswipe_resampler.hpp"
 
 bool TimeSwipe::resample_log = false;
@@ -20,12 +22,15 @@ public:
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
     void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
     void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
+    bool SetSampleRate(int rate);
     bool Start(TimeSwipe::ReadCallback);
     bool SetSampleRate(int rate);
     bool onButton(TimeSwipe::OnButtonCallback cb);
     bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
+
+    void SetBurstSize(size_t burst);
 
 private:
     bool _isStarted();
@@ -39,6 +44,9 @@ private:
     static const unsigned constexpr BUFFER_SIZE = 48000/32*2;
     boost::lockfree::spsc_queue<std::vector<Record>, boost::lockfree::capacity<BUFFER_SIZE>> recordBuffer;
     std::atomic_uint64_t recordErrors = 0;
+
+    std::vector<Record> burstBuffer;
+    size_t burstSize = 0;
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
     boost::lockfree::spsc_queue<std::pair<std::string,std::string>, boost::lockfree::capacity<1024>> _outSPI;
@@ -103,6 +111,12 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
             return false;
         }
         startedInstance = this;
+        std::string err;
+        if (!TimeSwipeEEPROM::Read(err)) {
+            std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
+            //TODO: uncomment once parsing implemented
+            //return false;
+        }
     }
 
     Rec.setup();
@@ -224,8 +238,12 @@ void TimeSwipe::Init(int bridge, int offsets[4], int gains[4], double transmissi
 }
 
 void TimeSwipe::SetSecondary(int number) {
-    //TODO: complete on ontegration
+    //TODO: complete on integration
     SetBridge(number);
+}
+
+void TimeSwipe::SetBurstSize(size_t burst) {
+    return _impl->SetBurstSize(burst);
 }
 
 bool TimeSwipe::SetSampleRate(int rate) {
@@ -275,17 +293,41 @@ void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
             continue;
         }
 
-        for (size_t i = 1; i < num; i++) {
-            records[0].insert(std::end(records[0]), std::begin(records[i]), std::end(records[i]));
-        }
         if (errors && onErrorCb) onErrorCb(errors);
+
+        std::vector<Record>* records_ptr = nullptr;
+        std::vector<Record> samples;
         if (resampler) {
-            auto&& samples = resampler->Resample(std::move(records[0]));
-            cb(std::move(samples), errors);
+            for (size_t i = 0; i < num; i++) {
+                auto s = resampler->Resample(std::move(records[i]));
+                std::move(s.begin(), s.end(), std::back_inserter(samples));
+            }
+            records_ptr = &samples;
         } else {
-            cb(std::move(records[0]), errors);
+            for (size_t i = 1; i < num; i++) {
+                std::move(records[i].begin(), records[i].end(), std::back_inserter(records[0]));
+            }
+            records_ptr = &records[0];
+        }
+
+        if (burstBuffer.empty() && burstSize <= records_ptr->size()) {
+            // optimization if burst buffer not used or smaller than first buffer
+            cb(std::move(*records_ptr), errors);
+            records_ptr->clear();
+        } else {
+            // burst buffer mode
+            std::move(records_ptr->begin(), records_ptr->end(), std::back_inserter(burstBuffer));
+            records_ptr->clear();
+            if (burstBuffer.size() >= burstSize) {
+                cb(std::move(burstBuffer), errors);
+                burstBuffer.clear();
+            }
         }
     }
+}
+
+void TimeSwipeImpl::SetBurstSize(size_t burst) {
+    burstSize = burst;
 }
 
 bool TimeSwipe::Stop() {
