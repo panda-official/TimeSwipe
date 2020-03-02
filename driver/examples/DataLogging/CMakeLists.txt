@@ -29,7 +29,7 @@ else ()
 find_package(PkgConfig REQUIRED)
 pkg_search_module(timeswipe REQUIRED timeswipe)
 
-include_directories(${timeswipe_INCLUDE_DIRS} ../../3rdParty ../../3rdParty/nlohmann/include)
+include_directories(../../include ${timeswipe_INCLUDE_DIRS} ../../3rdParty ../../3rdParty/nlohmann/include)
 link_directories(${timeswipe_LIBRARY_DIRS})
 endif ()
 
