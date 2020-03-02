@@ -222,7 +222,7 @@ ResamplerState::ResamplerState(int upFactor, int downFactor, size_t inputSize) {
   vector<double> coefficients;
   firls ( length - 1, firlsFreqsV, firlsAmplitudeV, coefficients );
   if (TimeSwipe::resample_log) {
-      printf("resample: up: %d down: %d inputSize: %lu coefficients(%lu):", upFactor, downFactor, inputSize, coefficients.size());
+      printf("resample: up: %d down: %d inputSize: %zu coefficients(%lu):", upFactor, downFactor, inputSize, coefficients.size());
       for (const auto& c: coefficients) printf(" %f",c);
       printf("\n");
   }
