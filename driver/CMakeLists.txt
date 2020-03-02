@@ -35,6 +35,7 @@ SET(firmware_includes ${firmware_dir}/src/Interfaces ${firmware_dir}/src/Communi
 SET(SRC
     src/timeswipe.cpp
     src/timeswipe_eeprom.cpp
+    src/timeswipe_resampler.cpp
     src/board_iface.cpp
 	3rdParty/BCMsrc/bcm2835.c
 	src/RaspberryPi/bcmspi.cpp
