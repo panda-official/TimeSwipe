@@ -122,8 +122,6 @@ int main(int argc, char *argv[])
 
     tswipe.SetBurstSize(24000);
 
-    tswipe.SetSampleRate(24000);
-
     // Board Start
 
     ret = tswipe.Start([&](auto&& records, uint64_t errors) {
