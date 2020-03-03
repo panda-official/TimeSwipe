@@ -9,6 +9,7 @@
 #include "reader.hpp"
 #include "timeswipe_eeprom.hpp"
 #include "timeswipe_resampler.hpp"
+#include "pidfile.hpp"
 
 bool TimeSwipe::resample_log = false;
 
@@ -17,6 +18,7 @@ class TimeSwipeImpl {
     static TimeSwipeImpl* startedInstance;
     static const int constexpr BASE_SAMPLE_RATE = 48000;
 public:
+    TimeSwipeImpl();
     ~TimeSwipeImpl();
     void SetBridge(int bridge);
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
@@ -59,10 +61,16 @@ private:
     std::thread _pollerThread;
 
     std::unique_ptr<TimeSwipeResampler> resampler;
+
+    PidFile pidfile;
 };
 
 std::mutex TimeSwipeImpl::startStopMtx;
 TimeSwipeImpl* TimeSwipeImpl::startedInstance = nullptr;
+
+TimeSwipeImpl::TimeSwipeImpl()
+  : pidfile("timeswipe") {
+}
 
 TimeSwipeImpl::~TimeSwipeImpl() {
     Stop();
@@ -108,8 +116,14 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
         if (_work || startedInstance) {
             return false;
         }
-        startedInstance = this;
         std::string err;
+        // lock at the start
+        // second locke from the same instance is allowed and returns success
+        if (!pidfile.Lock(err)) {
+            std::cerr << "pid file lock failed: \"" << err << "\"" << std::endl;
+            return false;
+        }
+        startedInstance = this;
         if (!TimeSwipeEEPROM::Read(err)) {
             std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
             //TODO: uncomment once parsing implemented
