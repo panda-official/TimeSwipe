@@ -20,8 +20,8 @@ public:
     ~TimeSwipeImpl();
     void SetBridge(int bridge);
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
-    void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
-    void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
+    void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
+    void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
     bool SetSampleRate(int rate);
     bool Start(TimeSwipe::ReadCallback);
     bool onButton(TimeSwipe::OnButtonCallback cb);
@@ -79,18 +79,18 @@ void TimeSwipeImpl::SetSensorOffsets(int offset1, int offset2, int offset3, int 
     Rec.offset[3] = offset4;
 }
 
-void TimeSwipeImpl::SetSensorGains(int gain1, int gain2, int gain3, int gain4) {
-    Rec.gain[0] = gain1;
-    Rec.gain[1] = gain2;
-    Rec.gain[2] = gain3;
-    Rec.gain[3] = gain4;
+void TimeSwipeImpl::SetSensorGains(float gain1, float gain2, float gain3, float gain4) {
+    Rec.gain[0] = 1.0 / gain1;
+    Rec.gain[1] = 1.0 / gain2;
+    Rec.gain[2] = 1.0 / gain3;
+    Rec.gain[3] = 1.0 / gain4;
 }
 
-void TimeSwipeImpl::SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4) {
-    Rec.transmission[0] = trans1;
-    Rec.transmission[1] = trans2;
-    Rec.transmission[2] = trans3;
-    Rec.transmission[3] = trans4;
+void TimeSwipeImpl::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4) {
+    Rec.transmission[0] = 1.0 / trans1;
+    Rec.transmission[1] = 1.0 / trans2;
+    Rec.transmission[2] = 1.0 / trans3;
+    Rec.transmission[3] = 1.0 / trans4;
 }
 
 
@@ -220,15 +220,15 @@ void TimeSwipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offs
     return _impl->SetSensorOffsets(offset1, offset2, offset3, offset4);
 }
 
-void TimeSwipe::SetSensorGains(int gain1, int gain2, int gain3, int gain4) {
+void TimeSwipe::SetSensorGains(float gain1, float gain2, float gain3, float gain4) {
     return _impl->SetSensorGains(gain1, gain2, gain3, gain4);
 }
 
-void TimeSwipe::SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4) {
+void TimeSwipe::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4) {
     return _impl->SetSensorTransmissions(trans1, trans2, trans3, trans4);
 }
 
-void TimeSwipe::Init(int bridge, int offsets[4], int gains[4], double transmissions[4]) {
+void TimeSwipe::Init(int bridge, int offsets[4], float gains[4], float transmissions[4]) {
     SetBridge(bridge);
     SetSensorOffsets(offsets[0], offsets[1], offsets[2], offsets[3]);
     SetSensorGains(gains[0], gains[1], gains[2], gains[3]);

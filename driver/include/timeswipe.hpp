@@ -58,7 +58,7 @@ public:
      * @param gain3
      * @param gain4
      */
-    void SetSensorGains(int gain1, int gain2, int gain3, int gain4);
+    void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
 
     /**
      * \brief Setup Sensor transmissions
@@ -70,7 +70,7 @@ public:
      * @param trans3
      * @param trans4
      */
-    void SetSensorTransmissions(double trans1, double trans2, double trans3, double trans4);
+    void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
 
     /**
      * \brief Setup secondary number
@@ -89,7 +89,7 @@ public:
      * @param gains - sensor gains @ref SetSensorGains
      * @param transmissions - sensor transmissions - @ref SetSensorTransmissions
      */
-    void Init(int bridge, int offsets[4], int gains[4], double transmissions[4]);
+    void Init(int bridge, int offsets[4], float gains[4], float transmissions[4]);
 
     /**
      * \brief Setup Burst buffer size
