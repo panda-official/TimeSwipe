@@ -82,6 +82,10 @@ public:
      */
 	CADmux();
 
+    /*!
+     * \brief Provides the serialization of the object content
+     * \param st A reference to the storage from which the object content is downloading or uploading to
+     */
      virtual void Serialize(CStorage &st);
 
 	

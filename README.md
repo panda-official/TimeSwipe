@@ -9,20 +9,26 @@ In the "releases" section there are built files for the firmware and the driver,
 
 ...
 
-# Flashing the firmware
+# Flashing the firmware and programming CPU fuses
 
 For flashing a programmer or debugger like the Atmel ICE can be used. More conveniently, since usually the board is plugged onto a Raspberry Pi, the Raspberry Pi can be used as a programmer. How this can be done is described in "Using the Raspberry Pi as programmer with openOCD" in the "docs" folder. <br />
 
-The flashing procedure depends on the programmer which is being used. It usually consists of deleting old data/software in the flash memory of the chip and writing the new software. The flashing procedure is shown for flashing via Raspberry Pi with openOCD as an example:
+The flashing procedure depends on the programmer which is being used. It usually consists of deleting old data/software in the flash memory of the chip and writing the new software.
+The CPU fuses programming is required to enable some of the CPU features like SmartEEPROM. 
+The flashing procedure and SmartEEPROM fuses programming are shown for flashing via Raspberry Pi with openOCD as an example:
 
-|                             |                                                   | 
-|-----------------------------|  -------------------------------------------------|                       
-|1. atsame5 chip-erase	      |   delete old firmware in the flash                |
-|2. reset                     |   reset the chip                                  |
-|3. halt      		            |   halt the firmware                               |
-|4. reset halt                |   reset the chip and keep it in the halted state  |
-|5. flash erase_check 0		    |   look for erased/filled sectors                  |
-|6. flash write_image xxx.elf	|   flash new firmware (elf-file)                   |
+|                                                 |                                                   | 
+|-------------------------------------------------|  -------------------------------------------------|                       
+|1. atsame5 chip-erase	                          |   delete old firmware in the flash                |
+|2. reset                                         |   reset the chip                                  |
+|3. halt      		                              |   halt the firmware                               |
+|4. reset halt                                    |   reset the chip and keep it in the halted state  |
+|5. flash erase_check 0		                      |   look for erased/filled sectors                  |
+|6. flash write_image xxx.elf	                  |   flash new firmware (elf-file)                   |
+|7. atsame5 userpage                              |   read CPU fuses configuration from the user page |
+|8. atsame5 userpage 0x3100000000 0x7f00000000    |   enable SmartEEPROM of 4096 bytes size           | 
+
+Please note, to make board able to store its settings after power loss the SmartEEPROM must be enabled!
 
 # Product version
 
@@ -31,3 +37,4 @@ Compatibility is defined as follows: for the driver and firmware, compatibility 
 For example, firmware 1.2.1 is compatible with driver 1.3.5 and 1.4.1 and not compatible with driver 2.0.1
 For the compatibility between the submodules of the driver the minor number is also taken into account: for example,
 python driver submodule 1.3.9 is compatible with driver 1.3.5 and not compatible with  driver 1.4.1
+

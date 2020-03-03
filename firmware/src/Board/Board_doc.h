@@ -23,6 +23,7 @@
  *
  * CSamI2Cmem8Pin - a hardware-dependent realization of CAT2430 EEPROM chip emulation for external 8-Pin plug outputs
  * 
+ * CRawBinStorage - provides a mechanism for persistent storing all board settings in the SmartEEPROM
  */
  
  

@@ -10,7 +10,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "RawBinStorage.h"
 #include "SamNVMCTRL.h"
 
-#define STORAGE_STAMP 01032020
+#define STORAGE_STAMP 03032020
 CRawBinStorage::CRawBinStorage()
 {
     m_Dict.reserve(10);
@@ -69,7 +69,8 @@ void CRawBinStorage::Update()
 
     for(const auto &item : m_Items)
     {
-        CSamNVMCTRL::Instance().WriteSmartEEPROM(offset, item.m_pRawData, item.m_RawDataSize);
+        if(!CSamNVMCTRL::Instance().WriteSmartEEPROM(offset, item.m_pRawData, item.m_RawDataSize))
+            return;
         offset+=item.m_RawDataSize;
     }
 

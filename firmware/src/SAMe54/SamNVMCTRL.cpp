@@ -9,33 +9,31 @@ Copyright (c) 2019-2020 Panda Team
 #include "SamNVMCTRL.h"
 #include "sam.h"
 
+/*from SAM D5x/E5x - SmartEEPROM Code Example:
+  "User needs to configure SBLK and PSZ fuses,
+  to define the SmartEEPROM total size and size of each page.
+  User can access SmartEEPROM using it's virtual address.
+  Virtual address of SmartEEPROM starts from 0x44000000 to 0x45000000"
+*/
+
+#define SEEPROM_ADDR 0x44000000
+
 CSamNVMCTRL::CSamNVMCTRL()
 {
-    Nvmctrl *pNVM=NVMCTRL;
-
-    m_pSmartEEPROM= (uint8_t*)(NVMCTRL->PARAM.bit.NVMP*512
-            - 2*NVMCTRL->SEESTAT.bit.SBLK*8192);
+    //Nvmctrl *pNVM=NVMCTRL;
     m_nSmartEEPROMsize= 2*NVMCTRL->SEESTAT.bit.SBLK*8192;
-
     NVMCTRL->SEECFG.bit.WMODE=1; //set buffered mode
 }
 
 bool CSamNVMCTRL::ReadSmartEEPROM(unsigned int nOffs, uint8_t *pBuf, unsigned int nRead)
 {
-   // Nvmctrl *pNVM=NVMCTRL;
-
-    //protection:
-   // if( (nOffs+nRead) > m_nSmartEEPROMsize )
-    //    return false;
-
     unsigned int lim=nOffs+nRead;
     if(lim>m_nSmartEEPROMsize)
     {
         return false;
     }
 
-    uint8_t *pSrc=m_pSmartEEPROM+nOffs;
-
+    volatile uint8_t *pSrc=(uint8_t *)SEEPROM_ADDR+nOffs;
     for(int i=0; i<nRead; i++, pSrc++, pBuf++)
     {
         while (NVMCTRL->SEESTAT.bit.BUSY){}
@@ -45,21 +43,19 @@ bool CSamNVMCTRL::ReadSmartEEPROM(unsigned int nOffs, uint8_t *pBuf, unsigned in
 }
 bool CSamNVMCTRL::WriteSmartEEPROM(unsigned int nOffs, const uint8_t *pBuf, unsigned int nWrite, bool bCompareMode)
 {
-    //Nvmctrl *pNVM=NVMCTRL;
-
-    //protection:
-   // if( (nOffs+nWrite) > m_nSmartEEPROMsize )
-    //    return false;
-
     unsigned int lim=nOffs+nWrite;
     if(lim>m_nSmartEEPROMsize)
     {
         return false;
     }
 
+    if(NVMCTRL->INTFLAG.bit.SEESOVF)
+    {
+        NVMCTRL->INTFLAG.bit.SEESOVF=1; //clear last error
+    }
 
-    uint8_t *pSrc=m_pSmartEEPROM+nOffs;
 
+    volatile uint8_t *pSrc=(uint8_t *)SEEPROM_ADDR+nOffs;
     for(int i=0; i<nWrite; i++, pSrc++, pBuf++)
     {
         if(bCompareMode)
@@ -69,6 +65,9 @@ bool CSamNVMCTRL::WriteSmartEEPROM(unsigned int nOffs, const uint8_t *pBuf, unsi
                 continue;
         }
         while (NVMCTRL->SEESTAT.bit.BUSY){}
+        if(NVMCTRL->INTFLAG.bit.SEESOVF)
+            return false;
+
         *pSrc=*pBuf;
 
     }
@@ -76,7 +75,7 @@ bool CSamNVMCTRL::WriteSmartEEPROM(unsigned int nOffs, const uint8_t *pBuf, unsi
 }
 void CSamNVMCTRL::FlushSmartEEPROM()
 {
-    Nvmctrl *pNVM=NVMCTRL;
+    //Nvmctrl *pNVM=NVMCTRL;
     if(!NVMCTRL->SEECFG.bit.WMODE)
         return;
 
