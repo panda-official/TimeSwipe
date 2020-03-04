@@ -21,10 +21,10 @@ The flashing procedure and SmartEEPROM fuses programming are shown for flashing 
 |-------------------------------------------------|  --------------------------------------------------------------|              
 |1. reset halt                                    |   reset the chip and keep it in the halted state               |
 |2. atsame5 chip-erase	                          |   delete old firmware in the flash                             |
-|5. flash erase_check 0		                      |   look for erased/filled sectors (optional)                    |
-|6. flash write_image xxx.elf	                  |   flash new firmware (elf-file)                                |
-|7. atsame5 userpage                              |   read CPU fuses configuration from the user page(optional)    |
-|8. atsame5 userpage 0x3100000000 0x7f00000000    |   enable SmartEEPROM of 4096 bytes size                        |         
+|3. flash erase_check 0		                      |   look for erased/filled sectors (optional)                    |
+|4. flash write_image xxx.elf	                  |   flash new firmware (elf-file)                                |
+|5. atsame5 userpage                              |   read CPU fuses configuration from the user page(optional)    |
+|6. atsame5 userpage 0x3100000000 0x7f00000000    |   enable SmartEEPROM of 4096 bytes size                        |         
 |                                                 |   (required only once since chip-erase doesn't affect fuses)   | 
 
 Please note, to make board able to store its settings after power loss the SmartEEPROM must be enabled!
