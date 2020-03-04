@@ -29,7 +29,6 @@ The flashing procedure and SmartEEPROM fuses programming are shown for flashing 
 
 Please note, to make board able to store its settings after power loss the SmartEEPROM must be enabled!
 
-1. atsame5 chip-erase	                          |   delete old firmware in the flash               
 
 # Product version
 
