@@ -119,11 +119,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    unsigned long logRate = 600000; // 10 min in ms
-    unsigned long latest = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    unsigned long logRate = 600; // 10 min in s
+    unsigned long latest = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     ret = tswipe.Start([&](auto&& records, uint64_t errors) {
-            unsigned long now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            long now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             if (!data_log.is_open() || (now - latest > logRate))
             {
                 if (data_log.is_open())
