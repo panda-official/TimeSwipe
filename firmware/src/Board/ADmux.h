@@ -16,6 +16,8 @@ Copyright (c) 2019 Panda Team
 *
 */
 
+#include "Storage.h"
+
 
 /*!
  * \brief A possible board's amplifier gain values
@@ -44,7 +46,7 @@ enum class typeDACmode : int
  * \details implements hardware-dependent realization of setting gain, bridge voltage, enabling ADC measurements and so on
  *
  */
-class CADmux
+class CADmux : public ISerialize
 {
 protected:
 
@@ -79,6 +81,13 @@ public:
      * \brief The class constructor: the implementation contains the PINs function setup
      */
 	CADmux();
+
+    /*!
+     * \brief Provides the serialization of the object content
+     * \param st A reference to the storage from which the object content is downloading or uploading to
+     */
+     virtual void Serialize(CStorage &st);
+
 	
     /*!
      * \brief Enable or disable ADC measurements on the board

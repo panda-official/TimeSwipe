@@ -12,6 +12,19 @@ Copyright (c) 2019 Panda Team
 #include "menu_logic.h"
 unsigned long get_tick_mS(void);
 
+void CCalMan::Serialize(CStorage &st)
+{
+    bool bSet=st.IsDownloading();
+    for(auto &ch : m_ChanCal)
+    {
+        st.ser( (ch.m_PrmOffset) );
+        if(bSet)
+        {
+            ch.m_pDAC->SetRawOutput(ch.m_PrmOffset);
+        }
+    }
+}
+
 void CCalMan::Start()
 {
     nlohmann::json v=true;
