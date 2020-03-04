@@ -13,8 +13,6 @@
 #include <chrono>
 #include "timeswipe.hpp"
 
-// #include <chrono>
-
 std::function<void(int)> shutdown_handler;
 void signal_handler(int signal) { shutdown_handler(signal); }
 
@@ -121,11 +119,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    long logRate = 600000; // 10 min in ms
-    long latest = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    unsigned long logRate = 600000; // 10 min in ms
+    unsigned long latest = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     ret = tswipe.Start([&](auto&& records, uint64_t errors) {
-            long now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            unsigned long now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             if (!data_log.is_open() || (now - latest > logRate))
             {
                 if (data_log.is_open())
