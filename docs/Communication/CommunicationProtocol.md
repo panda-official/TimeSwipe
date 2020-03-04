@@ -82,7 +82,7 @@ LED4.col <br />
 
 ### Type PWM:
 
-This access point type is used to control board's DAC3 & DAC4 PWMs.
+This access point type is used to control board's AOUT3 & AOUT4 PWMs.
 
 Root domain:            Holds the PWMx ON/OFF state (boolen, false:true, r/w) <br />
 Sub domain (.repeats):  Holds a number of periods to generate (unsigned int, 0:0xffffffff, r/w, 0=infinite generation) <br />
