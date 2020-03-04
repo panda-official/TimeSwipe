@@ -121,6 +121,9 @@ struct RecordReader
     size_t bytesRead{0};
     bool isFirst{true};
 
+    static constexpr int clearFirst = 1000;
+    int clearSamples = 0;
+
     int sensorType;
     std::array<int, 4> offset;
     std::array<int, 4> gain;
@@ -165,7 +168,8 @@ struct RecordReader
         // discard first read - thats any old data in RAM!
         if (isFirst)
         {
-            isFirst = false;
+            clearSamples += out.size();
+            if (clearSamples >= clearFirst) isFirst = false;
             out.clear();
         }
 
