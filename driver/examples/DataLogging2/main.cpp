@@ -118,11 +118,17 @@ int main(int argc, char *argv[])
         std::cerr << "onError init failed" << std::endl;
         return 1;
     }
+        int thecount = -1;
+    std::fstream countfile ("/home/pi/count.txt" );
+    countfile >> thecount;
+    std::cout << thecount << std::endl;
 
     unsigned long logRate = 600; // 10 min in s
     unsigned long latest = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     ret = tswipe.Start([&](auto&& records, uint64_t errors) {
+        thecount++;
+
             long now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             if (!data_log.is_open() || (now - latest > logRate))
             {
@@ -133,8 +139,12 @@ int main(int argc, char *argv[])
 				if(dump)
                 {
                     data_log.open(dumpname + "/" + std::to_string(now) + ".log", std::ios::out | std::ios::binary);
+                    data_log.write(reinterpret_cast<const char *>(&thecount), sizeof(thecount));
+                    countfile << thecount;
                 } else {
                     data_log.open(std::to_string(now) + ".log", std::ios::out | std::ios::binary);
+                    data_log.write(reinterpret_cast<const char *>(&thecount), sizeof(thecount));
+                    countfile << thecount;
                 }                // data_log.open(std::to_string(now) + ".log");
                 latest = now;
             }
@@ -152,6 +162,8 @@ int main(int argc, char *argv[])
     }
 
     std::this_thread::sleep_for(std::chrono::hours(8760)); //runs for a year if not interrupted
+        countfile.close();
+
 
     // Board Stop
     if (!tswipe.Stop()) {
