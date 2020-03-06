@@ -93,9 +93,11 @@ unsigned int readAllGPIO()
     return (*(gpio + 13) & ALL_32_BITS_ON); 
 }
 
+static std::mutex boardMtx;
 
 BoardEvents readBoardEvents()
 {
+    std::lock_guard<std::mutex> lock(boardMtx);
     BoardEvents ret;
     std::string data;
     if (BoardInterface::get()->getEvents(data) && !data.empty()) {
@@ -120,9 +122,30 @@ BoardEvents readBoardEvents()
 }
 
 std::string readBoardGetSettings(const std::string& request, std::string& error) {
+    std::lock_guard<std::mutex> lock(boardMtx);
     return BoardInterface::get()->getGetSettings(request, error);
 }
 
 std::string readBoardSetSettings(const std::string& request, std::string& error) {
+    std::lock_guard<std::mutex> lock(boardMtx);
     return BoardInterface::get()->getSetSettings(request, error);
+}
+
+bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
+    std::lock_guard<std::mutex> lock(boardMtx);
+    return BoardInterface::get()->startPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+bool BoardStopPWM(uint8_t num) {
+    std::lock_guard<std::mutex> lock(boardMtx);
+    return BoardInterface::get()->stopPWM(num);
+}
+
+bool BoardGetPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+    std::lock_guard<std::mutex> lock(boardMtx);
+    return BoardInterface::get()->getPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+void BoardTraceSPI(bool val) {
+    BoardInterface::trace_spi = val;
 }

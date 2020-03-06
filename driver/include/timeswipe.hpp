@@ -92,6 +92,46 @@ public:
     void Init(int bridge, int offsets[4], int gains[4], double transmissions[4]);
 
     /**
+     * \brief Start PWM generator
+     * Method can be called in any time.
+     *
+     * @param num - output number - possible values are 0 or 1
+     * @param frequency - periods per second - possible values between 1 and 1000
+     * @param high - PWM signal high value - possible values are 0..4095 high >= low, default is 4095
+     * @param low - PWM signal low value - possible values are 0..4095 low <= high, default is 0
+     * @param repeats - number of periods to repeat. PWM generator will work (repeats/frequency) seconds
+     *                  after repeats number get exhausted PWM goes to stop state and StartPWM can be called again
+     *                  0 is for unlimited repeats (default)
+     * @param duty_cycle - part of PWM period when signal is in high state. 0.001 duty_cycle <= 0.999. default value is 0.5
+     *
+     * @return false if at least one wrong parameter given or generator already in start state
+     */
+    bool StartPWM(uint8_t num, uint32_t frequency, uint32_t high = 4095, uint32_t low = 0, uint32_t repeats = 0, float duty_cycle = 0.5);
+
+    /**
+     * \brief Stop PWM generator
+     * Method can be called in any time.
+     *
+     * @param numb - output number - possible values 0 or 1
+     *
+     * @return false if at least wrong parameter given or generator already in stop state
+     */
+    bool StopPWM(uint8_t num);
+
+    /**
+     * \brief Get PWM generator state if it is in a Start state
+     * Method can be called in any time.
+     *
+     * @param[in] num - output number - possible values 0 or 1
+     * other parameters are output references to paramteres with same names in @ref StartPWM
+     * they are valid only if true returned
+     *
+     * @return false if num parameter is wrong or generator is in stop state
+     */
+
+    bool GetPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
+
+    /**
      * \brief Setup Burst buffer size
      *
      * This method notifies the driver to return at least burstNum records to the cb of @ref Start function per each call
@@ -169,6 +209,9 @@ public:
      * @return true is stop succeeded, false otherwise
      */
     bool Stop();
+
+    // Debug
+    void TraceSPI(bool val); 
 
 private:
     std::unique_ptr<TimeSwipeImpl> _impl;

@@ -24,6 +24,9 @@ public:
     bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
+    bool StartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle);
+    bool StopPWM(uint8_t num);
+    bool GetPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
     void SetBurstSize(size_t burst);
 
@@ -126,6 +129,18 @@ bool TimeSwipeImpl::Stop() {
 
     _work = false;
     return true;
+}
+
+bool TimeSwipeImpl::StartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
+    return BoardStartPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+bool TimeSwipeImpl::StopPWM(uint8_t num) {
+    return BoardStopPWM(num);
+}
+
+bool TimeSwipeImpl::GetPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+    return BoardGetPWM(num, frequency, high, low, repeats, duty_cycle);
 }
 
 void TimeSwipeImpl::_waitThreads() {
@@ -301,3 +316,26 @@ bool TimeSwipe::Stop() {
     return _impl->Stop();
 }
 
+bool TimeSwipe::StartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
+    if (num > 1) return false;
+    else if (frequency < 1 || frequency > 1000) return false;
+    else if (high > 4096) return false;
+    else if (low > 4096) return false;
+    else if (low > high) return false;
+    else if (duty_cycle < 0.001 || duty_cycle > 0.999) return false;
+    return _impl->StartPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+bool TimeSwipe::StopPWM(uint8_t num) {
+    if (num > 1) return false;
+    return _impl->StopPWM(num);
+}
+
+bool TimeSwipe::GetPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+    if (num > 1) return false;
+    return _impl->GetPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+void TimeSwipe::TraceSPI(bool val) {
+    BoardTraceSPI(val);
+}
