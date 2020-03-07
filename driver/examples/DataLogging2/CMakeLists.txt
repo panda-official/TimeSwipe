@@ -38,6 +38,8 @@ set(SOURCE_FILES main.cpp)
 add_executable(main ${SOURCE_FILES})
 add_executable(main_static ${SOURCE_FILES})
 
+add_executable(read read.cpp)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries(main ${CMAKE_SOURCE_DIR}/../../build/libtimeswipe.a)
 set(CMAKE_LD_FLAGS "")
