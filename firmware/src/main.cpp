@@ -33,6 +33,7 @@ Copyright (c) 2019 Panda Team
 #include "jsondisp.h"
 
 #include "HatsMemMan.h"
+#include "RawBinStorage.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -161,14 +162,6 @@ int main(void)
         nodeControl::SetControlItems(pADmux, pZeroCal);
 
 
-
-        //Setup initial offset for the amplifier
-        pDACA->SetRawOutput(2048);
-        pDACB->SetRawOutput(2048);
-        pDACC->SetRawOutput(2048);
-        pDACD->SetRawOutput(2048);
-
-
         //---------------------------------------------------command system------------------------------------------------------
         auto pDisp=         std::make_shared<CCmdDispatcher>();
         auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
@@ -248,8 +241,12 @@ int main(void)
         pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this());
         //--------------------------------------------------------------------------------------------------------------
 
-        //setup bridge voltage
-        pADmux->SetUBRvoltage(true);
+
+        //NVM storage:
+        CRawBinStorage NVMstorage;
+        NVMstorage.AddItem(pADmux);
+        NVMstorage.AddItem(pZeroCal);
+        NVMstorage.Load();
 
 
         //blink at start:
@@ -257,6 +254,8 @@ int main(void)
 
         while(1) //endless loop ("super loop")
         {
+             NVMstorage.Update();
+
              //update calproc:
              pZeroCal->Update();
 

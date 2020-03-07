@@ -49,6 +49,9 @@
  *
  * NVMscpage - an interface for reading SAME54 factory calibration settings
  * 
+ * <H4> Nonvolatile Memory Controller </H4>
+ *
+ * CSamNVMCTRL - implements SAM's Nonvolatile Memory Controller with an interface for SmartEEPROM
  */
  
  

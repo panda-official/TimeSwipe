@@ -44,6 +44,17 @@ CADmux::CADmux()
 
 }
 
+void CADmux::Serialize(CStorage &st)
+{
+    st.ser( *((int*)&m_CurGain) ).ser(m_UBRVoltage);
+
+    if(st.IsDownloading())
+    {
+        SetGain(m_CurGain);
+        SetUBRvoltage(m_UBRVoltage);
+    }
+}
+
 void CADmux::StartFan(bool how)
 {
     m_bFanIsStarted=how;

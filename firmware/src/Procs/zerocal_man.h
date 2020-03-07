@@ -20,13 +20,14 @@ Copyright (c) 2019 Panda Team
 #include "nodeLED.h"
 #include "ADpointSearch.h"
 #include "json_evsys.h"
+#include "Storage.h"
 
 /*!
  * \brief A container for collection of CADpointSearch class objects
  * \details Provides a group control over a collection of CADpointSearch class objects
  */
 
-class CCalMan : public CJSONEvCP
+class CCalMan : public CJSONEvCP, public ISerialize
 {
 protected:
 
@@ -65,6 +66,13 @@ protected:
     FSM m_PState=FSM::halted;
 
 public:
+    /*!
+     * \brief Provides the serialization of the object content
+     * \param st A reference to the storage from which the object content is downloading or uploading to
+     */
+     virtual void Serialize(CStorage &st);
+
+
     /*!
      * \brief Creates a new object in the collection and binds corresponding LED indicator
      * \param pADC A signal source to be controlled
