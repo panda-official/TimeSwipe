@@ -141,9 +141,9 @@ bool BoardStopPWM(uint8_t num) {
     return BoardInterface::get()->stopPWM(num);
 }
 
-bool BoardGetPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
     std::lock_guard<std::mutex> lock(boardMtx);
-    return BoardInterface::get()->getPWM(num, frequency, high, low, repeats, duty_cycle);
+    return BoardInterface::get()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);
 }
 
 void BoardTraceSPI(bool val) {

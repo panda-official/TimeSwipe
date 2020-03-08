@@ -1,5 +1,7 @@
 #include "bcmspi.h"
 #include <iostream>
+#include <thread>
+#include <sstream>
 
 static void stripAnswer(std::string& str) {
     if (str.length() && str[str.length()-1] == 0x0A) // strip \n
@@ -32,7 +34,7 @@ private:
         }
         if (trace_spi) {
             std::cerr << "spi: receive failed" << std::endl;
-         }
+        }
         return false;
     }
     bool receiveAnswer(std::string& ans, std::string& error) {
@@ -56,11 +58,17 @@ private:
     void sendSetCommand(const std::string& variable, const std::string& value) {
         sendCommand(variable + "<" + value + "\n");
     }
-    bool sendSetCommandCheck(const std::string& variable, const std::string& value) {
-        sendSetCommand(variable, value);
+    template <class NUMBER>
+    bool sendSetCommandCheck(const std::string& variable, const NUMBER& value) {
+        sendSetCommand(variable, std::to_string(value));
+        // XXX: if sleep disable and trace_spi=false spi.receive fails sometimes
+        //std::this_thread::sleep_for(std::chrono::nanoseconds(1));
         std::string answer;
         receiveStripAnswer(answer);
-        return answer == value;
+        NUMBER num;
+        std::istringstream ss(answer);
+        ss >> num;
+        return num == value;
     }
 
     void sendGetCommand(const std::string& variable) {
@@ -148,15 +156,15 @@ public:
         sendGetCommand(pwm);
         std::string answer;
         if (!receiveStripAnswer(answer)) return false;
-        if (answer == "true") return false; // Already started
+        if (answer == "1") return false; // Already started
 
-        if (!sendSetCommandCheck(pwm + ".freq", std::to_string(frequency))) return false;
-        if (!sendSetCommandCheck(pwm + ".high", std::to_string(high))) return false;
-        if (!sendSetCommandCheck(pwm + ".low", std::to_string(low))) return false;
-        if (!sendSetCommandCheck(pwm + ".repeats", std::to_string(repeats))) return false;
-        if (!sendSetCommandCheck(pwm + ".duty", std::to_string(duty_cycle))) return false;
-        
-        return sendSetCommandCheck(pwm, "true");
+        if (!sendSetCommandCheck(pwm + ".freq", frequency)) return false;
+        if (!sendSetCommandCheck(pwm + ".high", high)) return false;
+        if (!sendSetCommandCheck(pwm + ".low", low)) return false;
+        if (!sendSetCommandCheck(pwm + ".repeats", repeats)) return false;
+        if (!sendSetCommandCheck(pwm + ".duty", duty_cycle)) return false;
+
+        return sendSetCommandCheck(pwm, 1);
     }
 
     // num == 0 -> PWM1  num == 1 -> PWM2
@@ -165,18 +173,19 @@ public:
         sendGetCommand(pwm);
         std::string answer;
         receiveStripAnswer(answer);
-        if (answer == "false") return false; // Already stopped
+        if (answer == "0") return false; // Already stopped
 
-        return sendSetCommandCheck(pwm, "false");
+        return sendSetCommandCheck(pwm, 0);
     }
 
     // num == 0 -> PWM1  num == 1 -> PWM2
-    bool getPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+    bool getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
         std::string pwm = std::string("PWM") + std::to_string(num+1);
         sendGetCommand(pwm);
         std::string answer;
         if (!receiveStripAnswer(answer)) return false;
-        if (answer == "false") return false; // Stopped, other parameters can be not valid
+        active = answer == "1";
+        if (answer == "0") return true; // Stopped, other parameters can be not valid
 
         sendGetCommand(pwm + ".freq");
         if(!receiveStripAnswer(answer)) return false;

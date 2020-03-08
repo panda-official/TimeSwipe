@@ -123,13 +123,14 @@ public:
      * Method can be called in any time.
      *
      * @param[in] num - output number - possible values 0 or 1
+     * @param[out] active - pwm active flag, if active is false other parameters can not be considered valid
      * other parameters are output references to paramteres with same names in @ref StartPWM
      * they are valid only if true returned
      *
      * @return false if num parameter is wrong or generator is in stop state
      */
 
-    bool GetPWM(uint8_t num, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
+    bool GetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
     /**
      * \brief Setup Burst buffer size
@@ -211,7 +212,7 @@ public:
     bool Stop();
 
     // Debug
-    void TraceSPI(bool val); 
+    void TraceSPI(bool val);
 
 private:
     std::unique_ptr<TimeSwipeImpl> _impl;

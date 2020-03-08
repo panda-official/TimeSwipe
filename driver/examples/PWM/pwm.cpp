@@ -96,15 +96,18 @@ int main(int argc, char *argv[])
                 return 1;
             }
             repeats = atoi(argv[i+1]);
+            ++i;
         } else if (!strcmp(argv[i],"--duty")) {
             if (i+1 > argc) {
                 usage(argv[0]);
                 return 1;
             }
             duty = atof(argv[i+1]);
+            ++i;
         } else if (!strcmp(argv[i],"--trace-spi")) {
             tswipe.TraceSPI(true);
         } else {
+            std::cerr << "unkown argument \"" << argv[i] << "\"" << std::endl;
             usage(argv[0]);
             return 1;
         }
@@ -128,10 +131,15 @@ int main(int argc, char *argv[])
             }
         } else if (get) {
             std::cout << "get " << i << std::endl;
-            if (!tswipe.StartPWM(i, freq, high, low, repeats, duty)) {
+            bool active;
+            if (!tswipe.GetPWM(i, active, freq, high, low, repeats, duty)) {
                 std::cout << "get " << i << " failed" << std::endl;
             } else {
-                std::cout << "get " << i <<" freq: " << freq << " high: " << high << " low: " << low << " repeats: " << repeats << " duty: " << duty << std::endl;
+                if (active) {
+                    std::cout << "get " << i << " active: " << active <<" freq: " << freq << " high: " << high << " low: " << low << " repeats: " << repeats << " duty: " << duty << std::endl;
+                } else {
+                    std::cout << "get " << i << " active: " << active << std::endl;
+                }
             }
         }
     }
