@@ -39,7 +39,13 @@ enum class typePTsrcState
  */
 class CADpointSearch
 {
+friend class CCalMan;
 protected:
+
+    /*!
+     * \brief A valid offset for the channel
+     */
+    int m_PrmOffset;
 
     /*!
      * \brief Holding the current FSM (Finite State)
@@ -102,6 +108,7 @@ public:
         m_pADC=pADC;
         m_pDAC=pDAC;
         m_TargErrTolerance=25;
+        m_PrmOffset=2048;
     }
 
     /*!

@@ -9,6 +9,7 @@
 #include "reader.hpp"
 #include "timeswipe_eeprom.hpp"
 #include "timeswipe_resampler.hpp"
+#include "pidfile.hpp"
 
 bool TimeSwipe::resample_log = false;
 
@@ -17,6 +18,7 @@ class TimeSwipeImpl {
     static TimeSwipeImpl* startedInstance;
     static const int constexpr BASE_SAMPLE_RATE = 48000;
 public:
+    TimeSwipeImpl();
     ~TimeSwipeImpl();
     void SetBridge(int bridge);
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
@@ -36,7 +38,6 @@ private:
     void _fetcherLoop();
     void _pollerLoop(TimeSwipe::ReadCallback cb);
     void _receiveEvents(const std::chrono::steady_clock::time_point& now);
-    void _waitThreads();
 
     RecordReader Rec;
     // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
@@ -60,10 +61,16 @@ private:
     std::thread _pollerThread;
 
     std::unique_ptr<TimeSwipeResampler> resampler;
+
+    PidFile pidfile;
 };
 
 std::mutex TimeSwipeImpl::startStopMtx;
 TimeSwipeImpl* TimeSwipeImpl::startedInstance = nullptr;
+
+TimeSwipeImpl::TimeSwipeImpl()
+  : pidfile("timeswipe") {
+}
 
 TimeSwipeImpl::~TimeSwipeImpl() {
     Stop();
@@ -109,8 +116,14 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
         if (_work || startedInstance) {
             return false;
         }
-        startedInstance = this;
         std::string err;
+        // lock at the start
+        // second locke from the same instance is allowed and returns success
+        if (!pidfile.Lock(err)) {
+            std::cerr << "pid file lock failed: \"" << err << "\"" << std::endl;
+            return false;
+        }
+        startedInstance = this;
         if (!TimeSwipeEEPROM::Read(err)) {
             std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
             //TODO: uncomment once parsing implemented
@@ -124,7 +137,6 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     _work = true;
     _fetcherThread = std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop, this));
     _pollerThread = std::thread(std::bind(&TimeSwipeImpl::_pollerLoop, this, cb));
-    std::thread(std::bind(&TimeSwipeImpl::_waitThreads, this)).detach();
 
     return true;
 }
@@ -139,10 +151,7 @@ bool TimeSwipeImpl::Stop() {
     }
 
     _work = false;
-    return true;
-}
 
-void TimeSwipeImpl::_waitThreads() {
     if(_fetcherThread.joinable())
         _fetcherThread.join();
     if(_pollerThread.joinable())
@@ -153,6 +162,8 @@ void TimeSwipeImpl::_waitThreads() {
     while (_outSPI.pop());
 
     Rec.stop();
+
+    return true;
 }
 
 bool TimeSwipeImpl::onButton(TimeSwipe::OnButtonCallback cb) {
@@ -211,7 +222,9 @@ TimeSwipe::TimeSwipe() {
     _impl = std::make_unique<TimeSwipeImpl>();
 }
 
-TimeSwipe::~TimeSwipe() {}
+TimeSwipe::~TimeSwipe() {
+    Stop();
+}
 
 void TimeSwipe::SetBridge(int bridge) {
     return _impl->SetBridge(bridge);
