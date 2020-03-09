@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string.h>
 #include <stdio.h>
-#include <array> 
+#include <array>
 #include <vector>
 
 void usage ( const char* name )
@@ -12,7 +12,7 @@ void usage ( const char* name )
 
 struct Record
 {
-	array < float, 4 > Sensors { 0 };
+	std::array < float, 4 > Sensors { 0 };
 };
 
 int main ( int argc, char *argv[] )
@@ -26,7 +26,7 @@ int main ( int argc, char *argv[] )
 
 	std::string inputname = argv[1];
 
-	ifstream rf ( inputname );
+	std::ifstream rf ( inputname );
 	if ( !rf )
 	{
 		std::cout << "Cannot open file: " << inputname << " !" << std::endl;
@@ -57,10 +57,11 @@ int main ( int argc, char *argv[] )
 		return 1;
 	}
 
-	size_t lastindex = inputname.find_last_of ( "." ); 
-	string outputname = inputname.substr ( 0, lastindex ); 
+	size_t lastindex = inputname.find_last_of ( "." );
+	std::string outputname = inputname.substr ( 0, lastindex );
+	outputname += ".csv";
 
-	ofstream wf ( outputname );
+	std::ofstream wf ( outputname );
 	if ( !wf )
 	{
 		std::cout << "Cannot open output file!" << std::endl;
