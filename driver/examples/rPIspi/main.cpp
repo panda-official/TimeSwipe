@@ -38,11 +38,11 @@ int main ( int argc, char *argv[] )
 	}
 	if ( argc > 2 )
 	{
-		std::cout << "Using non-interactive mode. Command-line arguments are sent as SPI command." << std::endl;
+		//std::cout << "Using non-interactive mode. Command-line arguments are sent as SPI command." << std::endl;
 		interactive = false;
 	}
 
-	std::cout << "+++SPI terminal+++" << std::endl;
+	//std::cout << "+++SPI terminal+++" << std::endl;
 
 	if ( bMasterMode )
 	{
@@ -89,13 +89,13 @@ int main ( int argc, char *argv[] )
 		}
 		else
 		{
-			std::cout << "Sending " << argv[2] << " !" << std::endl;
+			//std::cout << "Sending " << argv[2] << " !" << std::endl;
 			cio.receive2 ( msg, argv[2] );
 			spi.send ( msg );
-			std::cout << "Got: ";
+			//std::cout << "Got: ";
 			if ( spi.receive ( answer ) )
 			{
-				std::cout << answer << std::endl;
+				std::cout << answer;
 			}
 		}
 	}
