@@ -29,7 +29,7 @@ int main ( int argc, char *argv[] )
 	}
 	else
 	{
-		std::cout << "Usage: sudo ./" << argv[0] << " <SPI> <optional commands for non-interactive mode>" << std::endl;
+		std::cout << "Usage: sudo " << argv[0] << " <SPI> <optional commands for non-interactive mode>" << std::endl;
 		return 0;
 	}
 	if ( nSPI == 2 )
@@ -38,7 +38,7 @@ int main ( int argc, char *argv[] )
 	}
 	if ( argc > 2 )
 	{
-		std::cout << "Using non-interactive mode. Command-line arguments are sent as message." << std::endl;
+		std::cout << "Using non-interactive mode. Command-line arguments are sent as SPI command." << std::endl;
 		interactive = false;
 	}
 
