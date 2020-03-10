@@ -69,7 +69,7 @@ constexpr bool getBit(uint8_t byte, uint8_t N)
     return (byte & (1UL << N));
 }
 
-Record convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk, const std::array<int, 4> &offset, const std::array<int, 4> &gain, const std::array<double, 4> &transmission)
+Record convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk, const std::array<int, 4> &offset, const std::array<float, 4> &mfactor)
 {
     size_t count = 0;
     std::vector<uint16_t> sensors(4, 0);
@@ -92,11 +92,6 @@ Record convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk
 
     Record data;
 
-    // data.Sensors[0] = (float)(sensors[0] - offset[0]) / gain[0] / transmission[0];
-    // data.Sensors[1] = (float)(sensors[1] - offset[1]) / gain[1] / transmission[1];
-    // data.Sensors[2] = (float)(sensors[2] - offset[2]) / gain[2] / transmission[2];
-    // data.Sensors[3] = (float)(sensors[3] - offset[3]) / gain[3] / transmission[3];
-
     for (size_t i = 0; i < 4; ++i)
     {
         //##########################//
@@ -109,7 +104,7 @@ Record convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk
         sensorOld[i] = sensors[i];
         //##########################//
 
-        data.Sensors[i] = (float)(sensors[i] - offset[i]) / gain[i] / transmission[i];
+        data.Sensors[i] = (float)(sensors[i] - offset[i]) * mfactor[i];
     }
 
     return data;
@@ -123,8 +118,9 @@ struct RecordReader
 
     int sensorType;
     std::array<int, 4> offset;
-    std::array<int, 4> gain;
-    std::array<double, 4> transmission;
+    std::array<float, 4> gain;
+    std::array<float, 4> transmission;
+    std::array<float, 4> mfactor;
 
     // read records from hardware buffer
     std::vector<Record> read()
@@ -152,7 +148,7 @@ struct RecordReader
 
             if (bytesRead == CHUNK_SIZE_IN_BYTE)
             {
-                out.push_back(convertChunkToRecord(currentChunk, offset, gain, transmission));
+                out.push_back(convertChunkToRecord(currentChunk, offset, mfactor));
                 bytesRead = 0;
             }
 
@@ -189,6 +185,10 @@ struct RecordReader
 
     void start()
     {
+        for (size_t i = 0; i < mfactor.size(); i++)
+        {
+            mfactor[i] = gain[i] * transmission[i];
+        }
         init(sensorType);
     }
 
