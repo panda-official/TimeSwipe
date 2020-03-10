@@ -186,7 +186,9 @@ struct RecordReader
     void start()
     {
         for (size_t i = 0; i < mfactor.size(); i++)
+        {
             mfactor[i] = gain[i] * transmission[i];
+        }
         init(sensorType);
     }
 
