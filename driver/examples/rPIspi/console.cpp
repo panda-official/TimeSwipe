@@ -7,6 +7,8 @@ Copyright (c) 2019 Panda Team
 
 #include <iostream>
 #include "console.h"
+#include <string>
+#include <sstream>
 
 CNixConsole::CNixConsole()
 {
@@ -28,8 +30,11 @@ bool CNixConsole::receive(CFIFO &msg)
     return true;
 }
 
-bool CNixConsole::receive2 ( CFIFO &msg )
+bool CNixConsole::receive2 ( CFIFO &msg, char * input )
 {
+    msg.reset();
+    std::istringstream is ( input);
+    std::getline(is, msg);
     msg << '\n';
     for ( auto ch : msg )
     {

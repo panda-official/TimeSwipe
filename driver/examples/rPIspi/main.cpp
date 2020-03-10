@@ -89,10 +89,14 @@ int main ( int argc, char *argv[] )
 		}
 		else
 		{
-			msg << atoi ( argv[2] );
-			cio.receive2 ( msg );
-			std::cout << "Got: ";
+			std::cout << "Sending " << argv[2] << " !" << std::endl;
+			cio.receive2 ( msg, argv[2] );
 			spi.send ( msg );
+			std::cout << "Got: ";
+			if ( spi.receive ( answer ) )
+			{
+				std::cout << answer << std::endl;
+			}
 		}
 	}
     else
