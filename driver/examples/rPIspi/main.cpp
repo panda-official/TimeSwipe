@@ -27,6 +27,11 @@ int main ( int argc, char *argv[] )
 			return 0;
 		}
 	}
+	else
+	{
+		std::cout << "Usage: sudo ./" << argv[0] << " <SPI> <optional commands for non-interactive mode>" << std::endl;
+		return 0;
+	}
 	if ( nSPI == 2 )
 	{
 		bMasterMode = false;
@@ -84,9 +89,9 @@ int main ( int argc, char *argv[] )
 		}
 		else
 		{
-			//msg << argv[2];
 			msg << atoi ( argv[2] );
 			cio.receive2 ( msg );
+			std::cout << "Got: ";
 			spi.send ( msg );
 		}
 	}
