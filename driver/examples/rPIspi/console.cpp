@@ -28,6 +28,16 @@ bool CNixConsole::receive(CFIFO &msg)
     return true;
 }
 
+bool CNixConsole::receive2 ( CFIFO &msg )
+{
+    msg << '\n';
+    for ( auto ch : msg )
+    {
+        Fire_on_rec_char ( ch );
+    }
+    return true;
+}
+
 bool CNixConsole::send(typeSChar ch)
 {
     return false;

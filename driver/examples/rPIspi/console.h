@@ -17,6 +17,7 @@ public:
 
     virtual bool send(CFIFO &msg);
     virtual bool receive(CFIFO &msg);
+    virtual bool receive2(CFIFO &msg);
     virtual bool send(typeSChar ch);
     virtual bool receive(typeSChar &ch);
 };
