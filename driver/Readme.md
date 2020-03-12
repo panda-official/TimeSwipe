@@ -1,12 +1,14 @@
 # TimeSwipe Library
 
-### Release new driver version
+### Release new driver version on the master branch:
 
 - Update version number in [version](version) file
 - execute commands:
 ```
+git add version
+git commit -m v`cat version`
 git tag v`cat version`
-git push origin v`cat version`
+git push --tags
 ```
 
 ### Build package for Arch
