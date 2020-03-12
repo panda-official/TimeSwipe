@@ -5,6 +5,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 #include <future>
 #include <iostream>
+#include <list>
 #include "timeswipe.hpp"
 #include "reader.hpp"
 #include "timeswipe_eeprom.hpp"
@@ -21,9 +22,11 @@ public:
     TimeSwipeImpl();
     ~TimeSwipeImpl();
     void SetBridge(int bridge);
+
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
     void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
     void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
+
     bool SetSampleRate(int rate);
     bool Start(TimeSwipe::ReadCallback);
     bool onButton(TimeSwipe::OnButtonCallback cb);
@@ -37,7 +40,8 @@ private:
     bool _isStarted();
     void _fetcherLoop();
     void _pollerLoop(TimeSwipe::ReadCallback cb);
-    void _receiveEvents(const std::chrono::steady_clock::time_point& now);
+    void _spiLoop();
+    void _receiveEvents();
 
     RecordReader Rec;
     // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
@@ -50,15 +54,14 @@ private:
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
     boost::lockfree::spsc_queue<std::pair<std::string,std::string>, boost::lockfree::capacity<1024>> _outSPI;
+    boost::lockfree::spsc_queue<BoardEvents, boost::lockfree::capacity<128>> _events;
     void _processSPIRequests();
 
     TimeSwipe::OnButtonCallback onButtonCb;
     TimeSwipe::OnErrorCallback onErrorCb;
 
-    std::chrono::steady_clock::time_point _lastButtonCheck;
     bool _work = false;
-    std::thread _fetcherThread;
-    std::thread _pollerThread;
+    std::list<std::thread> _serviceThreads;
 
     std::unique_ptr<TimeSwipeResampler> resampler;
 
@@ -135,8 +138,9 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     Rec.start();
 
     _work = true;
-    _fetcherThread = std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop, this));
-    _pollerThread = std::thread(std::bind(&TimeSwipeImpl::_pollerLoop, this, cb));
+    _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop, this)));
+    _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_pollerLoop, this, cb)));
+    _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_spiLoop, this)));
 
     return true;
 }
@@ -152,10 +156,9 @@ bool TimeSwipeImpl::Stop() {
 
     _work = false;
 
-    if(_fetcherThread.joinable())
-        _fetcherThread.join();
-    if(_pollerThread.joinable())
-        _pollerThread.join();
+    for (auto& th: _serviceThreads)
+        if(th.joinable())
+            th.join();
 
     while (recordBuffer.pop());
     while (_inSPI.pop());
@@ -199,13 +202,10 @@ bool TimeSwipeImpl::_isStarted() {
     return startedInstance != nullptr;
 }
 
-void TimeSwipeImpl::_receiveEvents(const std::chrono::steady_clock::time_point& now) {
-    if (std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastButtonCheck).count() > 100) {
-        _lastButtonCheck = now;
-        auto event = readBoardEvents();
-        if (event.button && onButtonCb) {
-            onButtonCb(event.buttonCounter % 2, event.buttonCounter);
-        }
+void TimeSwipeImpl::_receiveEvents() {
+    auto event = readBoardEvents();
+    if (event.button) {
+        _events.push(event);
     }
 }
 
@@ -284,12 +284,24 @@ std::string TimeSwipe::GetSettings(const std::string& request, std::string& erro
 
 void TimeSwipeImpl::_fetcherLoop() {
     while (_work) {
-        auto now = std::chrono::steady_clock::now();
         auto data = Rec.read();
         if (!recordBuffer.push(data))
             ++recordErrors;
-        _receiveEvents(now);
+
+        BoardEvents event;
+        while (_events.pop(event)) {
+            if (event.button && onButtonCb) {
+                onButtonCb(event.buttonCounter % 2, event.buttonCounter);
+            }
+        }
+    }
+}
+
+void TimeSwipeImpl::_spiLoop() {
+    while (_work) {
+        _receiveEvents();
         _processSPIRequests();
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
 
