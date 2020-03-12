@@ -1,5 +1,14 @@
 # TimeSwipe Library
 
+### Release new driver version
+
+- Update version number in [version](version) file
+- execute commands:
+```
+git tag v`cat version`
+git push origin v`cat version`
+```
+
 ### Build package for Arch
 docker image timeswipe:arch should be available created by command:
 ```
@@ -127,4 +136,4 @@ make
 ```
 
 ### Python3 driver wrapper:
-[README.md](python3/README.md)
+[README.md](https://github.com/panda-official/TimeSwipe.js/README.md)
