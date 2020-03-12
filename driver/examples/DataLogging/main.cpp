@@ -65,8 +65,22 @@ int main(int argc, char *argv[])
         }
     }
 
-    std::ifstream iconfigname(configname);
-    iconfigname >> config;
+    std::ifstream iconfigname;
+    iconfigname.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    try {
+        iconfigname.open(configname);
+        iconfigname >> config;
+    } catch (std::system_error& e) {
+        std::cerr << "Open config file \"" << configname << "\" failed: " << e.code().message() << std::endl;
+        std::cerr << "Check file exists and has read access permissions" << std::endl;
+        return 2;
+    } catch (nlohmann::json::parse_error& e) {
+        std::cerr << "config file \"" << configname << "\" parse failed" << std::endl
+                  << "\tmessage: " << e.what() << std::endl
+                  << "\texception id: " << e.id << std::endl
+                  << "\tbyte position of error: " << e.byte << std::endl;
+        return 2;
+    }
     auto& configitem = *config.begin();
     if (input.length()) configitem = *config.find(input);
     if(dumpname.length()) {
