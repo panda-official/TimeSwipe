@@ -1,3 +1,5 @@
+![](https://github.com/panda-official/TimeSwipe/workflows/Workflow/badge.svg)
+
 # TimeSwipe
 Firmware and Drivers for PANDA TimeSwipe Boards
 
