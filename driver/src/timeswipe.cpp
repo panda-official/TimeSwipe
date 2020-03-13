@@ -26,7 +26,6 @@ public:
     void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
     bool SetSampleRate(int rate);
     bool Start(TimeSwipe::ReadCallback);
-    bool SetSampleRate(int rate);
     bool onButton(TimeSwipe::OnButtonCallback cb);
     bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
