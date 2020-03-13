@@ -72,6 +72,7 @@ int main ( int argc, char *argv[] )
 		else if ( !strcmp ( argv[i], "--binary" ) )
 		{
 			binary = true;
+			std::cout << "Using binary mode!" << std::endl;
 		}
 		else
 		{
@@ -162,11 +163,11 @@ int main ( int argc, char *argv[] )
 			{
 				if ( binary )
 				{
-					data_log.open ( dumpname + "/" + std::to_string ( thecount ) + std::to_string ( now ) + "_" + ".log", std::ios::out | std::ios::binary );
+					data_log.open ( dumpname + "/" + std::to_string ( thecount ) + "_" + std::to_string ( now ) + ".log", std::ios::out | std::ios::binary );
 				}
 				else
 				{
-					data_log.open ( dumpname + "/" + std::to_string ( thecount ) + std::to_string ( now ) + "_" + ".log", std::ios::out );
+					data_log.open ( dumpname + "/" + std::to_string ( thecount ) + "_" + std::to_string ( now ) + ".log", std::ios::out );
 				}
 				std::ofstream mywrite;
 				mywrite.open ( "/home/pi/count.txt" );
@@ -178,11 +179,11 @@ int main ( int argc, char *argv[] )
 			{
 				if ( binary )
 				{
-					data_log.open ( std::to_string ( thecount ) + std::to_string ( now ) + "_" + ".log", std::ios::out | std::ios::binary );
+					data_log.open ( std::to_string ( thecount ) + "_" + std::to_string ( now ) + ".log", std::ios::out | std::ios::binary );
 				}
 				else
 				{
-					data_log.open ( std::to_string ( thecount ) + std::to_string ( now ) + "_" + ".log", std::ios::out );
+					data_log.open ( std::to_string ( thecount ) + "_" + std::to_string ( now ) + ".log", std::ios::out );
 				}
 				std::ofstream mywrite;
 				mywrite.open ( "/home/pi/count.txt" );
@@ -194,8 +195,15 @@ int main ( int argc, char *argv[] )
 
 		for ( size_t i = 0; i < records.size ( ); i++ )
 		{
-			data_log.write ( ( char * ) &records[i], sizeof ( Record ) );
-			const auto& rec = records[i];
+                        const auto& rec = records[i];
+			if ( binary )
+			{
+				data_log.write ( ( char * ) &records[i], sizeof ( Record ) );
+			}
+			else
+			{
+				data_log << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
+			}
 		}
 	} );
 	if ( !ret )
