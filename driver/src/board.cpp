@@ -19,7 +19,7 @@ void initGPIOOutput(unsigned pin)
     pullGPIO(pin, 0);
 }
 
-void init(int sensorType)
+void init(int mode)
 {
     initGPIOInput(DATA0);
     initGPIOInput(DATA1);
@@ -44,8 +44,8 @@ void init(int sensorType)
     setGPIOHigh(RESET);
 
     // SPI Communication
-    // // Select Sensor type
-    BoardInterface::get()->setBridge(sensorType);
+    // // Select Mode
+    BoardInterface::get()->setMode(mode);
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     // // Start Measurement

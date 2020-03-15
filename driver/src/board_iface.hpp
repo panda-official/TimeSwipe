@@ -52,9 +52,10 @@ public:
         if (_instance) delete _instance;
     }
 
-    void setBridge(int num) {
-        sendSetCommand("Bridge", std::to_string(num));
+    void setMode(int num) {
+        sendSetCommand("Mode", std::to_string(num));
         std::string answer;
+        //TODO: check answer
         receiveAnswer(answer);
     }
 

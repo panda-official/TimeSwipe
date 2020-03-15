@@ -21,7 +21,7 @@ class TimeSwipeImpl {
 public:
     TimeSwipeImpl();
     ~TimeSwipeImpl();
-    void SetBridge(int bridge);
+    void SetMode(int number);
 
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
     void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
@@ -79,8 +79,8 @@ TimeSwipeImpl::~TimeSwipeImpl() {
     Stop();
 }
 
-void TimeSwipeImpl::SetBridge(int bridge) {
-    Rec.sensorType = bridge;
+void TimeSwipeImpl::SetMode(int number) {
+    Rec.mode = number;
 }
 
 void TimeSwipeImpl::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4) {
@@ -226,10 +226,6 @@ TimeSwipe::~TimeSwipe() {
     Stop();
 }
 
-void TimeSwipe::SetBridge(int bridge) {
-    return _impl->SetBridge(bridge);
-}
-
 void TimeSwipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4) {
     return _impl->SetSensorOffsets(offset1, offset2, offset3, offset4);
 }
@@ -242,17 +238,16 @@ void TimeSwipe::SetSensorTransmissions(float trans1, float trans2, float trans3,
     return _impl->SetSensorTransmissions(trans1, trans2, trans3, trans4);
 }
 
-void TimeSwipe::Init(int bridge, int offsets[4], float gains[4], float transmissions[4]) {
-    SetBridge(bridge);
-    SetSensorOffsets(offsets[0], offsets[1], offsets[2], offsets[3]);
-    SetSensorGains(gains[0], gains[1], gains[2], gains[3]);
-    SetSensorTransmissions(transmissions[0], transmissions[1], transmissions[2], transmissions[3]);
+void TimeSwipe::SetMode(Mode number) {
+    return _impl->SetMode(int(number));
 }
 
-void TimeSwipe::SetSecondary(int number) {
-    //TODO: complete on integration
-    SetBridge(number);
+//TODO:
+/*
+Mode TimeSwipe::GetMode() {
+    return TimeSwipe::Mode(_impl->GetMode());
 }
+*/
 
 void TimeSwipe::SetBurstSize(size_t burst) {
     return _impl->SetBurstSize(burst);
@@ -270,7 +265,7 @@ bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb) {
     return _impl->onError(cb);
 }
 
-bool TimeSwipe::onButton(TimeSwipe::OnButtonCallback cb) {
+bool TimeSwipe::onEvent(TimeSwipe::OnButtonCallback cb) {
     return _impl->onButton(cb);
 }
 

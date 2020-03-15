@@ -27,19 +27,36 @@ public:
     TimeSwipe();
     ~TimeSwipe();
     TimeSwipe(const TimeSwipe&) = delete;
-    /**
-     * \brief Setup bridge number
+
+    /** @enum TimeSwipe::Mode
      *
-     * It is mandatory to setup the bridge before @ref Start
+     * \brief Input mode
      *
-     * @param bridge bridge number
      */
-    void SetBridge(int bridge);
+    enum class Mode {
+        Primary,
+        Norm,
+        Digital
+    };
+
+    /**
+     * \brief Setup hardware mode
+     *
+     * @param number - one of @ref Mode
+     */
+    void SetMode(Mode number);
+
+    /**
+     * \brief Get current hardware mode
+     *
+     * @return current mode
+     */
+    Mode GetMode();
 
     /**
      * \brief Setup Sensor offsets
      *
-     * It is mandatory to setup offsets before @ref Start
+     * Default offsets are all 0
      *
      * @param offset1
      * @param offset2
@@ -73,25 +90,6 @@ public:
     void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
 
     /**
-     * \brief Setup secondary number
-     *
-     * @param number - secondary number
-     */
-    void SetSecondary(int number);
-
-    /**
-     * \brief Initialize sensors
-     *
-     * This method is all-in-one replacement for @ref SetBridge @ref SetSensorOffsets @ref SetSensorGains @ref SetSensorTransmissions
-     *
-     * @param bridge - bridge number
-     * @param offsets - sensor offsets @ref SetSensorOffsets
-     * @param gains - sensor gains @ref SetSensorGains
-     * @param transmissions - sensor transmissions - @ref SetSensorTransmissions
-     */
-    void Init(int bridge, int offsets[4], float gains[4], float transmissions[4]);
-
-    /**
      * \brief Setup Burst buffer size
      *
      * This method notifies the driver to return at least burstNum records to the cb of @ref Start function per each call
@@ -115,8 +113,6 @@ public:
 
     /**
      * \brief Start reading Sensor loop
-     *
-     * It is mandatory to setup @ref SetBridge @ref SetSensorOffsets @ref SetSensorGains and @ref SetSensorTransmissions before start.
      *
      * Only one instance of @ref TimeSwipe can be running each moment of the time
      *
@@ -153,12 +149,12 @@ public:
     /**
      * \brief Register callback for button pressed/released
      *
-     * onButton must be called before @ref Start called, otherwise register fails
+     * onEvent must be called before @ref Start called, otherwise register fails
      *
      * @param cb callback called with true when button pressed and with false when button released, button counter (odd - pressed, even - released)
      * @return false if register callback failed, true otherwise
      */
-    bool onButton(OnButtonCallback cb);
+    bool onEvent(OnButtonCallback cb);
 
     using OnErrorCallback = std::function<void(uint64_t)>;
     /**
