@@ -110,8 +110,8 @@ public:
     void SetFrequency(unsigned int Freq){
         if(Freq<1)
             Freq=1;
-        if(Freq>1000)
-            Freq=1000;
+        if(Freq>20000)
+            Freq=20000;
         m_prmFrequency=Freq; obtain_half_periods();
     }
 
@@ -125,7 +125,7 @@ public:
      * \brief Sets number of periods to generate
      * \param Repeats The number of periods: 0=infinite, otherwise generate a burst of pulses=Repeats and then stop
      */
-    void SetRepeats(unsigned int Repeats){ m_prmRepeats=Repeats; }
+    void SetRepeats(unsigned int Repeats){ m_prmRepeats=Repeats; static_cast<T*>(this)->on_settings_changed(); }
 
     /*!
      * \brief Returns duty cycle (pulse width) setting
@@ -153,6 +153,7 @@ public:
         if(Level<m_prmLevelLowLim) Level=m_prmLevelLowLim;
         if(Level>m_prmLevelHighLim) Level=m_prmLevelHighLim;
         m_prmHighLevel=Level;
+        static_cast<T*>(this)->on_settings_changed();
     }
 
     /*!
@@ -169,6 +170,7 @@ public:
         if(Level<m_prmLevelLowLim) Level=m_prmLevelLowLim;
         if(Level>m_prmLevelHighLim) Level=m_prmLevelHighLim;
         m_prmLowLevel=Level;
+        static_cast<T*>(this)->on_settings_changed();
     }
 
     /*!
@@ -183,14 +185,17 @@ public:
      */
     void Start(bool How){
 
-        m_bStarted=How;
         if(How)
         {
+            if(How==m_bStarted) //little opt
+                return;
+
             obtain_half_periods();
             m_CurHalfPeriodIndex=0;
             m_PeriodsCnt=0;
             m_HalfPeriodStartTime=os::get_tick_mS();
         }
+        m_bStarted=How;
         static_cast<T*>(this)->impl_Start(How);
     }
 

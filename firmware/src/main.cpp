@@ -20,7 +20,7 @@ Copyright (c) 2019 Panda Team
 #include "SamService.h"
 #include "DACmax5715.h"
 #include "DACdecor.h"
-#include "DACPWM.h"
+#include "DACPWMht.h"
 
 #include "menu_logic.h"
 #include "SAMbutton.h"
@@ -161,8 +161,11 @@ int main(void)
 
 
         //2 DAC PWMs:
-        auto pPWM1=std::make_shared<CDacPWM>(pSamDAC0, pADmux);
-        auto pPWM2=std::make_shared<CDacPWM>(pSamDAC1, pADmux);
+        //auto pPWM1=std::make_shared<CDacPWM>(pSamDAC0, pADmux);
+        //auto pPWM2=std::make_shared<CDacPWM>(pSamDAC1, pADmux);
+
+        auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pADmux);
+        auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pADmux);
 
 
 
@@ -226,20 +229,20 @@ int main(void)
 
 
         //PWM:
-        pDisp->Add("PWM1", std::make_shared< CCmdSGHandler<CDacPWM, bool> >(pPWM1, &CDacPWM::IsStarted,  &CDacPWM::Start) );
-        pDisp->Add("PWM1.repeats", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM1, &CDacPWM::GetRepeats,  &CDacPWM::SetRepeats) );
-        pDisp->Add("PWM1.duty", std::make_shared< CCmdSGHandler<CDacPWM, float> >(pPWM1, &CDacPWM::GetDutyCycle,  &CDacPWM::SetDutyCycle) );
-        pDisp->Add("PWM1.freq", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM1, &CDacPWM::GetFrequency,  &CDacPWM::SetFrequency) );
-        pDisp->Add("PWM1.high", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM1, &CDacPWM::GetHighLevel,  &CDacPWM::SetHighLevel) );
-        pDisp->Add("PWM1.low", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM1, &CDacPWM::GetLowLevel,  &CDacPWM::SetLowLevel) );
+        pDisp->Add("PWM1", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM1, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
+        pDisp->Add("PWM1.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
+        pDisp->Add("PWM1.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM1, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
+        pDisp->Add("PWM1.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
+        pDisp->Add("PWM1.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
+        pDisp->Add("PWM1.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
 
 
-        pDisp->Add("PWM2", std::make_shared< CCmdSGHandler<CDacPWM, bool> >(pPWM2, &CDacPWM::IsStarted,  &CDacPWM::Start) );
-        pDisp->Add("PWM2.repeats", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM2, &CDacPWM::GetRepeats,  &CDacPWM::SetRepeats) );
-        pDisp->Add("PWM2.duty", std::make_shared< CCmdSGHandler<CDacPWM, float> >(pPWM2, &CDacPWM::GetDutyCycle,  &CDacPWM::SetDutyCycle) );
-        pDisp->Add("PWM2.freq", std::make_shared< CCmdSGHandler<CDacPWM, unsigned int> >(pPWM2, &CDacPWM::GetFrequency,  &CDacPWM::SetFrequency) );
-        pDisp->Add("PWM2.high", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM2, &CDacPWM::GetHighLevel,  &CDacPWM::SetHighLevel) );
-        pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWM, int> >(pPWM2, &CDacPWM::GetLowLevel,  &CDacPWM::SetLowLevel) );
+        pDisp->Add("PWM2", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM2, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
+        pDisp->Add("PWM2.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
+        pDisp->Add("PWM2.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM2, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
+        pDisp->Add("PWM2.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
+        pDisp->Add("PWM2.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
+        pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
 
 
         //--------------------menu+button+detection of a master----------------
@@ -300,7 +303,7 @@ int main(void)
 
              pSPIsc2->Update();
 
-             pPWM1->Update();
-             pPWM2->Update();
+          //   pPWM1->Update();
+           //  pPWM2->Update();
         }
 }
