@@ -11,8 +11,9 @@ protected:
     bool                 m_bFirstBlock;
     unsigned char        *m_pDescriptor;
 
-//public:
     CSamDMABlock(CSamDMAChannel *pCont, bool bFirstBlock);
+
+public:
     ~CSamDMABlock();
 
 //interface:
@@ -26,11 +27,11 @@ class CSamDMAChannel
 protected:
     std::vector<CSamDMABlock> m_Transfer;
 
-//public:
     CSamDMAChannel(CSamDMAC *pCont);
+
+public:
     ~CSamDMAChannel();
 
-protected:
     CSamDMABlock &AddBlock();
     CSamDMABlock &GetBlock(int nInd){ return m_Transfer[nInd]; }
 
@@ -46,7 +47,7 @@ protected:
        nMaxChannels=2
     };
 
-    std::list<CSamDMAChannel *> m_Channels;
+  //  std::list<CSamDMAChannel *> m_Channels;
 
     const unsigned char *m_pBaseAddr;
     const unsigned char *m_pWrbAddr;

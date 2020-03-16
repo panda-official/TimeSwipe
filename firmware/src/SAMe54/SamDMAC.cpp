@@ -31,10 +31,10 @@ CSamDMAChannel::CSamDMAChannel(CSamDMAC *pCont)
 {
 
 }
-CSamDMAChannel::~CSamDMAChannel()
+/*CSamDMAChannel::~CSamDMAChannel()
 {
 
-}
+}*/
 
 
 CSamDMAC::CSamDMAC()
