@@ -1,3 +1,10 @@
+/*
+This Source Code Form is subject to the terms of the GNU General Public License v3.0.
+If a copy of the GPL was not distributed with this
+file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
+Copyright (c) 2019-2020 Panda Team
+*/
+
 #include "DACPWMht.h"
 #include "sam.h"
 
@@ -26,9 +33,9 @@ void TC0_Handler(void)
     }
     TC0->COUNT32.INTFLAG.reg=0xff; //clear
 }
-void TC4_Handler(void)
+void TC2_Handler(void)
 {
-    if(TC4->COUNT32.INTFLAG.reg & TC_INTFLAG_MC1 ) //high level
+    if(TC2->COUNT32.INTFLAG.reg & TC_INTFLAG_MC1 ) //high level
     {
         DAC->DATA[1].reg=LowLevel2;
     }
@@ -41,29 +48,31 @@ void TC4_Handler(void)
                 pPWM[1]->Start(false);
         }
     }
-    TC4->COUNT32.INTFLAG.reg=0xff; //clear
+    TC2->COUNT32.INTFLAG.reg=0xff; //clear
 }
 }
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
 CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX) :
-    CSamTC(PWM1==nPWM ? typeSamTC::Tc0 : typeSamTC::Tc4)
+    CSamTC(PWM1==nPWM ? typeSamTC::Tc0 : typeSamTC::Tc2)
 {
     m_nPWM=nPWM;
     m_pMUX=pMUX;
 
     pPWM[nPWM]=this;
 
-    //tune the timer:
+    //tune the timer (32 bit, pair)
     CSamTC::EnableAPBbus(true);
+    CSamTC::EnableAPBbus(static_cast<typeSamTC>(static_cast<int>(m_nTC)+1), true);
 
     //get clock:
     if(!m_pCLK)
     {
         m_pCLK=CSamCLK::Factory();
-        CSamTC::ConnectGCLK(m_pCLK->CLKind());
+        m_pCLK->Enable(true); //???
     }
+    CSamTC::ConnectGCLK(m_pCLK->CLKind());
 
     Tc *pTc=glob_GetTcPtr(m_nTC);
 
@@ -74,7 +83,6 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX) :
 
     pTc->COUNT32.CTRLA.bit.ENABLE=1; //enable
     pTc->COUNT32.CTRLBSET.bit.CMD=2; //keep it in the stopped state!
-    m_pCLK->Enable(true);
 }
 
 void CDacPWMht::on_obtain_half_periods()

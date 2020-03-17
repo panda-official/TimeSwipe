@@ -14,12 +14,14 @@ class CSamTC
 protected:
     typeSamTC m_nTC;
 
+    void EnableAPBbus(typeSamTC nTC, bool how);
+
 public:
     CSamTC(typeSamTC nTC);
 
     void EnableIRQ(bool how);
 
-    void EnableAPBbus(bool how);
+    void EnableAPBbus(bool how){ EnableAPBbus(m_nTC, how); }
 
     void ConnectGCLK(typeSamCLK nCLK);
 };

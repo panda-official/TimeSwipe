@@ -26,10 +26,10 @@ void CSamTC::EnableIRQ(bool how)
         __NVIC_DisableIRQ(nIRQ);
     }
 }
-void CSamTC::EnableAPBbus(bool how)
+void CSamTC::EnableAPBbus(typeSamTC nTC, bool how)
 {
     unsigned int set=how ? 1:0;
-    switch(m_nTC)
+    switch(nTC)
     {
         case typeSamTC::Tc0 : MCLK->APBAMASK.bit.TC0_=set; break;
         case typeSamTC::Tc1 : MCLK->APBAMASK.bit.TC1_=set; break;
