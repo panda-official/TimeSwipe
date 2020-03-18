@@ -15,6 +15,8 @@ std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 static bool brecord=false;
 static std::vector<CDataVis>  m_DataVis;
 
+nodeControl::MesModes nodeControl::m_OpMode=nodeControl::IEPE;
+
 void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
 {
     m_DataVis.emplace_back(pADC, pLED);
@@ -125,6 +127,27 @@ int nodeControl::GetSecondary()
 {
     return m_pMUX->GetUBRVoltage();
 }
+
+
+void nodeControl::SetMode(int nMode)
+{
+    m_pMUX->SetUBRvoltage(nMode ? true:false);
+
+    m_OpMode=static_cast<MesModes>(nMode);
+    if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
+    if(m_OpMode>MesModes::Digital){ m_OpMode=MesModes::Digital; }
+
+
+    //generate an event:
+    nlohmann::json v=nMode;
+    Instance().Fire_on_event("SetMode", v);
+
+}
+int nodeControl::GetMode()
+{
+    return static_cast<int>(m_OpMode);
+}
+
 
 void nodeControl::SetZero(bool how)
 {

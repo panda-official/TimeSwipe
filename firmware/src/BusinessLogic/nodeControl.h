@@ -53,6 +53,7 @@ protected:
          */
         virtual void on_event(const char *key, nlohmann::json &val);
 
+
 public:
         /*!
          * \brief Returns the reference to the created class object instance. (The object created only once)
@@ -80,8 +81,14 @@ public:
         enum MesModes
         {
             IEPE=0,         //!<IEPE mode
-            Normsignal      //!<Normal signal
+            Normsignal,     //!<Normal signal
+            Digital
         };
+
+protected:
+        static MesModes m_OpMode;
+
+public:
 
         /*!
          * \brief Binds board's digital multiplexer and controller object of finding amplifier offsets routine
@@ -180,6 +187,18 @@ public:
          * \return 0 = IEPE; 1 = Normsignal
          */
         static int GetSecondary();
+
+        /*!
+         * \brief Sets the board opearation mode
+         * \param nMode: 0 = IEPE; 1 = Normsignal
+         */
+        static void SetMode(int nMode);
+
+        /*!
+         * \brief Gets current board operation mode
+         * \return 0 = IEPE; 1 = Normsignal
+         */
+        static int GetMode();
 	
         /*!
          * \brief Starts/stops finding amplifier offsets procedure
