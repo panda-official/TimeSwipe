@@ -10,11 +10,48 @@
 #include <string>
 
 /**
- * \brief Sensor read primitive
+ * \brief Sensors container
  */
-struct Record
-{
-    std::array<float, 4> Sensors{0};
+class SensorsData {
+    static constexpr size_t SENSORS = 4;
+    using CONTAINER = std::array<std::vector<float>, SENSORS>;
+public:
+    /**
+     * \brief Get number of sensors
+     *
+     *
+     * @return number of sensors
+     */
+    size_t SensorsSize();
+
+    /**
+     * \brief Get number of data entries
+     *
+     *
+     * @return number of data entries each sensor has
+     */
+    size_t DataSize();
+
+    /**
+     * \brief Access sensor data
+     *
+     * @param num - sensor number. Valid values from 0 to @ref SensorsSize-1
+     *
+     * @return number of data entries each sensor has
+     */
+
+    std::vector<float>& operator[](size_t num);
+
+    CONTAINER& data();
+    void reserve(size_t num);
+    void clear();
+    bool empty();
+    void append(SensorsData&& other);
+    void erase_front(size_t num);
+    void erase_back(size_t num);
+
+private:
+    CONTAINER _data;
 };
 
 class TimeSwipeImpl;
@@ -111,7 +148,7 @@ public:
     /**
      * \brief Read sensors callback function pointer
      */
-    using ReadCallback = std::function<void(std::vector<Record>, uint64_t errors)>;
+    using ReadCallback = std::function<void(SensorsData, uint64_t errors)>;
 
     /**
      * \brief Start reading Sensor loop
@@ -120,7 +157,7 @@ public:
      *
      * Only one instance of @ref TimeSwipe can be running each moment of the time
      *
-     * After each sensor read complete cb called with vector of @ref Record
+     * After each sensor read complete cb called with vector of @ref SensorsData
      *
      * Buffer is for 1 second data if \p cb works longer than 1 second, next data can be loosed and next callback called with non-zero errors
      *
