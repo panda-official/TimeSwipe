@@ -17,6 +17,7 @@ class CSamDMABlock
 protected:
     bool                 m_bFirstBlock;
     unsigned char        *m_pDescriptor;
+    unsigned char        *m_pDescrMemBlock;
 
     CSamDMABlock(CSamDMAChannel *pCont, bool bFirstBlock);
 
@@ -31,10 +32,15 @@ public:
 
 class CSamDMAChannel
 {
+friend class CSamDMABlock;
 protected:
+    int m_nInd;
+    CSamDMAC    *m_pCont;
     std::vector<CSamDMABlock> m_Transfer;
 
-    CSamDMAChannel(CSamDMAC *pCont);
+    inline unsigned char *get_descr_base_addr(); //{ return m_pCont->get_chan_descr_base_addr(this); }
+
+    CSamDMAChannel(CSamDMAC *pCont, int nInd);
 
 public:
     ~CSamDMAChannel();
@@ -49,6 +55,7 @@ public:
 
 class CSamDMAC
 {
+friend class CSamDMAChannel;
 protected:
     enum{
        nMaxChannels=2
@@ -56,8 +63,12 @@ protected:
 
   //  std::list<CSamDMAChannel *> m_Channels;
 
-    const unsigned char *m_pBaseAddr;
-    const unsigned char *m_pWrbAddr;
+    bool m_bChannelOcupied[nMaxChannels]={false};
+
+    unsigned char *m_pBaseAddr;
+    unsigned char *m_pWrbAddr;
+
+    unsigned char *get_chan_descr_base_addr(CSamDMAChannel &chan);
 
 public:
     std::shared_ptr<CSamDMAChannel> Factory();

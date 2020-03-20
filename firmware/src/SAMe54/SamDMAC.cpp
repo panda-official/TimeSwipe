@@ -8,9 +8,9 @@ Copyright (c) 2019-2020 Panda Team
 #include "SamDMACc.h"
 #include "sam.h"
 
-static const unsigned char *MemAlign128(const unsigned char *pMem)
+static unsigned char *MemAlign128(unsigned char *pMem)
 {
-    const unsigned char *pAligned=(const unsigned char*)(((unsigned int)pMem>>4)<<4); //16
+    unsigned char *pAligned=(unsigned char*)(((unsigned int)pMem>>4)<<4); //16
     if(pAligned<pMem)
     {
         pAligned+=16;
@@ -22,21 +22,26 @@ CSamDMABlock::CSamDMABlock(CSamDMAChannel *pCont, bool bFirstBlock)
 {
     if(bFirstBlock)
     {
-
+        m_pDescriptor=pCont->get_descr_base_addr();
+        m_pDescrMemBlock=nullptr;
     }
     else
     {
-
+        m_pDescrMemBlock=new unsigned char [sizeof(DmacDescriptor) + 16];
+        m_pDescriptor=MemAlign128( m_pDescrMemBlock);
     }
 }
 CSamDMABlock::~CSamDMABlock()
 {
-
+    if(m_pDescrMemBlock)
+        delete [] m_pDescrMemBlock;
 }
 
-CSamDMAChannel::CSamDMAChannel(CSamDMAC *pCont)
+unsigned char *CSamDMAChannel::get_descr_base_addr(){ return m_pCont->get_chan_descr_base_addr(*this); }
+CSamDMAChannel::CSamDMAChannel(CSamDMAC *pCont, int nInd)
 {
-
+    m_pCont=pCont;
+    m_nInd=nInd;
 }
 /*CSamDMAChannel::~CSamDMAChannel()
 {
@@ -49,7 +54,7 @@ CSamDMAC::CSamDMAC()
     static unsigned char BaseAddressMem[16*(nMaxChannels+2)];
     static unsigned char WrbAddressMem[16*(nMaxChannels+2)];
 
-    m_pBaseAddr=MemAlign128((const unsigned char*)BaseAddressMem);
-    m_pWrbAddr=MemAlign128((const unsigned char*)WrbAddressMem);
+    m_pBaseAddr=MemAlign128(BaseAddressMem);
+    m_pWrbAddr=MemAlign128(WrbAddressMem);
 }
 
