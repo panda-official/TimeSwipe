@@ -75,30 +75,36 @@ void CDataVis::Update()
         m_bStartInitOder=false;
     }
 
-
     //obtaining color val:
     unsigned int meas1=m_pADC->DirectMeasure();
 
 
+
     if(meas1 > meas_max){
         meas_max = meas1;
-        if((meas1-meas_min) > 100)
+        senscon_chan[(m_pLED->get_zerob_ind())] = true;
+        if((meas1-meas_min) > min_dist)
             meas_min = meas_min + (k_range *(meas1 - meas_min));
     }
     else if(meas1 < meas_min){
         meas_min = meas1;
-        if((meas_max-meas1) > 100)
+        senscon_chan[(m_pLED->get_zerob_ind())] = true;
+        if((meas_max-meas1) > min_dist)
             meas_max = meas_max - (k_range *(meas_max - meas1));
     }
-    else {
-        if((meas_max-meas1) > 100)
-            meas_max = meas_max - (k_range *(meas_max - meas1));
-        if((meas1-meas_min) > 100)
-            meas_min = meas_min + (k_range *(meas1 - meas_min));
+    else{
+        if(senscon_chan[m_pLED->get_zerob_ind()]){
+           if((meas_max-meas1) > min_dist)
+                meas_max = meas_max - (k_range *(meas_max - meas1));
+           if((meas1-meas_min) > min_dist)
+                meas_min = meas_min + (k_range *(meas1 - meas_min));
+        }
     }
+    
 
-
-    float intens1=(pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0;
-    m_pLED->SetColor( (CView::Instance().GetBasicColor() * (intens1/255)) );
+    if(senscon_chan[m_pLED->get_zerob_ind()]){
+        float intens1=(pow(b_brght, static_cast<float>(meas1-meas_min)/(meas_max-meas_min+1))-1)/(b_brght-1) * 256.0;
+        m_pLED->SetColor( (CView::Instance().GetBasicColor() * (intens1/255)) );
+    }
 }
 

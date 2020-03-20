@@ -27,14 +27,18 @@ protected:
     const float b_brght = 55.0;
 
     //! The upper visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to max. brightness. 
-    unsigned int meas_max;
+    float meas_max;
     //! The lower visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to min. brightness. 
-    unsigned int meas_min;
-    //! Min. visualization range. Is set around actual measurement value after startup and after a reset. 
-
+    float meas_min;
+    //! Min. visualization range at start. Is set around actual measurement value after startup and after a reset. The measurement value has to surpass this range (+/-50) one time, for the visualization to become active for this channel.
     unsigned int min_wind = 100;
+    //! Min. distance of the lower and upper boarder to the actual measurement value. Two times this value gives the min. range, when the visualization is in progress. The reset of the visualization boarders stops at this distance from the measurment value. 
+    unsigned int min_dist = 30;
     //! Proportional factor for the adjustment of the visualization range boundaries 
     const float k_range = 0.004;
+    //! Boolean variable for saving the activation status of the visualization for the four measurement channels.
+    bool senscon_chan[4] = {0, 0, 0, 0};
+
 
     /*!
      * \brief A time stamp when object state has been updated last time
