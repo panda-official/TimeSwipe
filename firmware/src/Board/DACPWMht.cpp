@@ -18,6 +18,8 @@ static unsigned int Repeats2, LowLevel2, HighLevel2;
 extern "C"{
 void TC0_Handler(void)
 {
+    Dmac *pDMA=DMAC;
+
     if(TC0->COUNT32.INTFLAG.reg & TC_INTFLAG_MC1 ) //low level
     {
         DAC->DATA[0].reg=LowLevel1;
@@ -50,12 +52,25 @@ void TC2_Handler(void)
     }
     TC2->COUNT32.INTFLAG.reg=0xff; //clear
 }
+
+void TC4_Handler(void)
+{
+    pPWM[0]->Start(false);
+    TC4->COUNT16.INTFLAG.reg=0xff; //clear
+}
+void TC5_Handler(void)
+{
+    pPWM[1]->Start(false);
+    TC5->COUNT16.INTFLAG.reg=0xff; //clear
+}
+
 }
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
-CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX) :
-    CSamTC(PWM1==nPWM ? typeSamTC::Tc0 : typeSamTC::Tc2)
+CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX, mode nOpMode) :
+    CSamTC(PWM1==nPWM ? typeSamTC::Tc0 : typeSamTC::Tc2),
+    m_PeriodsCounter(PWM1==nPWM ? typeSamTC::Tc4 : typeSamTC::Tc5)
 {
     m_nPWM=nPWM;
     m_pMUX=pMUX;
@@ -74,15 +89,65 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX) :
     }
     CSamTC::ConnectGCLK(m_pCLK->CLKind());
 
+    //dma support:
+   /* m_pHLevDMAch=CSamDMAC::Instance().Factory();
+    m_pHLevDMAch->SetupTrigger(CSamDMAChannel::trigact::BLOCK, PWM1==nPWM ? CSamDMAChannel::trigsrc::TC0MC1 : CSamDMAChannel::trigsrc::TC2MC1);
+    CSamDMABlock &b=(m_pHLevDMAch->AddBlock());
+    b.Setup(&Repeats1, &Repeats2, 1, CSamDMABlock::beatsize::WORD32); //test only
+    m_pHLevDMAch->SetLoopMode();
+    m_pHLevDMAch->Enable(true);*/
+
+    if(mode::DMA==nOpMode)
+    {
+        CSamDMAC &dmac=CSamDMAC::Instance();
+
+        m_pHLevDMAch=dmac.Factory();
+        m_pHLevDMAch->SetupTrigger(CSamDMAChannel::trigact::BLOCK, PWM1==nPWM ? CSamDMAChannel::trigsrc::TC0MC0 : CSamDMAChannel::trigsrc::TC2MC0);
+        m_pHLevDMAch->AddBlock().Setup(&m_prmHighLevel16, (const void*)&(DAC->DATA[nPWM]), 1, CSamDMABlock::beatsize::HWORD16);
+        m_pHLevDMAch->SetLoopMode();
+        m_pHLevDMAch->Enable(true);
+
+        m_pLLevDMAch=dmac.Factory();
+        m_pLLevDMAch->SetupTrigger(CSamDMAChannel::trigact::BLOCK, PWM1==nPWM ? CSamDMAChannel::trigsrc::TC0MC1 : CSamDMAChannel::trigsrc::TC2MC1);
+        m_pLLevDMAch->AddBlock().Setup(&m_prmLowLevel16, (const void*)&(DAC->DATA[nPWM]), 1, CSamDMABlock::beatsize::HWORD16);
+        m_pLLevDMAch->SetLoopMode();
+        m_pLLevDMAch->Enable(true);
+    }
+
+
     Tc *pTc=glob_GetTcPtr(m_nTC);
 
     pTc->COUNT32.CTRLA.bit.MODE=2; //32bit
     pTc->COUNT32.WAVE.bit.WAVEGEN=1; //MFRQ: CC0=TOP
-    pTc->COUNT32.INTENSET.reg=(TC_INTFLAG_MC0|TC_INTFLAG_MC1);
-    CSamTC::EnableIRQ(true);
+    if(mode::IRQ==nOpMode)
+    {
+        pTc->COUNT32.INTENSET.reg=(TC_INTFLAG_MC0|TC_INTFLAG_MC1);
+        CSamTC::EnableIRQ(true);
+    }
 
+    pTc->COUNT32.EVCTRL.bit.MCEO1=1;
     pTc->COUNT32.CTRLA.bit.ENABLE=1; //enable
     pTc->COUNT32.CTRLBSET.bit.CMD=2; //keep it in the stopped state!
+
+    //period counter:
+    m_PeriodsCounter.EnableAPBbus(true);
+    //m_PeriodsCounter.ConnectGCLK(m_pCLK->CLKind());
+    Tc *pTc2=glob_GetTcPtr(m_PeriodsCounter.GetID());
+    pTc2->COUNT16.EVCTRL.bit.EVACT=2; //count on event
+    pTc2->COUNT16.EVCTRL.bit.TCEI=1;  //input event enable
+    pTc2->COUNT16.WAVE.bit.WAVEGEN=1; //MFRQ: CC0=TOP
+
+    pTc2->COUNT16.INTENSET.reg=(TC_INTFLAG_MC0);
+    m_PeriodsCounter.EnableIRQ(true);
+    pTc2->COUNT16.CTRLA.bit.ENABLE=1;
+    pTc2->COUNT16.CTRLBSET.bit.CMD=2;
+
+    //interconnect them with an event system:
+    MCLK->APBBMASK.bit.EVSYS_=1;
+    EVSYS->USER[ static_cast<int>(m_PeriodsCounter.GetID())+44 ].bit.CHANNEL=nPWM;
+    EVSYS->Channel[nPWM].CHANNEL.bit.EVGEN=(PWM1==nPWM ? 0x4B:0x51);
+    EVSYS->Channel[nPWM].CHANNEL.bit.PATH=2; //assync
+    EVSYS->Channel[nPWM].CHANNEL.bit.EDGSEL=1; //rising
 }
 
 void CDacPWMht::on_obtain_half_periods()
@@ -139,7 +204,10 @@ void CDacPWMht::synced_DAC_set(unsigned int nLevel)
 void CDacPWMht::impl_Start(bool bHow)
 {
     Tc *pTc=glob_GetTcPtr(m_nTC);
+    Tc *pTc2=glob_GetTcPtr(m_PeriodsCounter.GetID());
     while(pTc->COUNT32.SYNCBUSY.bit.CTRLB){}
+  //  while(pTc2->COUNT16.SYNCBUSY.bit.CTRLB){}
+
     if(bHow)
     {
         on_settings_changed();
@@ -147,16 +215,30 @@ void CDacPWMht::impl_Start(bool bHow)
         synced_DAC_set(m_prmHighLevel); //start with high
         pTc->COUNT32.CTRLBSET.bit.CMD=1;    //start
 
+        if(m_prmRepeats)
+        {
+            pTc2->COUNT16.CC[0].reg=m_prmRepeats;
+            pTc2->COUNT16.CTRLBSET.bit.CMD=1;    //start
+        }
+        else {
+            pTc2->COUNT16.CTRLBSET.bit.CMD=2; //stop
+        }
+
     }
     else
     {
         pTc->COUNT32.CTRLBSET.bit.CMD=2;    //stop
+        pTc2->COUNT16.CTRLBSET.bit.CMD=2; //stop
         synced_DAC_set(0);      //clear
     }
 }
 
 void CDacPWMht::on_settings_changed()
 {
+    m_prmHighLevel16=static_cast<uint16_t>(m_prmHighLevel);
+    m_prmLowLevel16=static_cast<uint16_t>(m_prmLowLevel);
+
+
     if(PWM1==m_nPWM)
     {
         Repeats1=m_prmRepeats;

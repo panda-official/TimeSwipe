@@ -19,6 +19,8 @@ protected:
 public:
     CSamTC(typeSamTC nTC);
 
+    typeSamTC GetID(){return m_nTC;}
+
     void EnableIRQ(bool how);
 
     void EnableAPBbus(bool how){ EnableAPBbus(m_nTC, how); }

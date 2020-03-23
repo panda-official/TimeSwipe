@@ -14,25 +14,37 @@ class CSamDMAChannel;
 class CSamDMAC;
 class CSamDMABlock
 {
+friend class CSamDMAChannel;
+//friend class new_allocator<CSamDMABlock>;
 protected:
     bool                 m_bFirstBlock;
     unsigned char        *m_pDescriptor;
     unsigned char        *m_pDescrMemBlock;
 
-    CSamDMABlock(CSamDMAChannel *pCont, bool bFirstBlock);
+public:
+    CSamDMABlock(CSamDMAChannel *pCont, int nInd);
 
 public:
     ~CSamDMABlock();
 
 //interface:
 public:
-    void Setup(const void *pSourceAddres, const void *pDestAddress, unsigned int nBlockSize);
+    enum beatsize{
+
+        BYTE=0,
+        HWORD16,
+        WORD32
+    };
+
+    void Setup(const void *pSourceAddres, const void *pDestAddress, unsigned int nBeats=1,
+               CSamDMABlock::beatsize nBsize= CSamDMABlock::beatsize::BYTE);
 
 };
 
 class CSamDMAChannel
 {
 friend class CSamDMABlock;
+friend class CSamDMAC;
 protected:
     int m_nInd;
     CSamDMAC    *m_pCont;
@@ -43,12 +55,37 @@ protected:
     CSamDMAChannel(CSamDMAC *pCont, int nInd);
 
 public:
+    enum trigact{
+
+        BLOCK=0,
+        BURST=2,
+        TRANSACTION=3
+    };
+
+    enum trigsrc{
+
+        TC0OVF=0x2C,
+        TC0MC0=0x2E,
+        TC0MC1=0x2D,
+
+        TC1OVF=0x2F,
+        TC1MC0=0x30,
+        TC1MC1=0x31,
+
+        TC2OVF=0x32,
+        TC2MC0=0x33,
+        TC2MC1=0x34
+    };
+
     ~CSamDMAChannel();
 
     CSamDMABlock &AddBlock();
     CSamDMABlock &GetBlock(int nInd){ return m_Transfer[nInd]; }
 
     void StartTransfer(bool how);
+    void SetupTrigger(CSamDMAChannel::trigact act, CSamDMAChannel::trigsrc src);
+    void SetLoopMode(bool how=true);
+    void Enable(bool how);
 
 };
 
@@ -58,13 +95,10 @@ class CSamDMAC
 friend class CSamDMAChannel;
 protected:
     enum{
-       nMaxChannels=2
+       nMaxChannels=4
     };
 
-  //  std::list<CSamDMAChannel *> m_Channels;
-
     bool m_bChannelOcupied[nMaxChannels]={false};
-
     unsigned char *m_pBaseAddr;
     unsigned char *m_pWrbAddr;
 

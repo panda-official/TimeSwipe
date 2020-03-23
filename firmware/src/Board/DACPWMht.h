@@ -7,12 +7,14 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
+#include <stdint.h>
 #include <memory>
 #include "DAC.h"
 #include "PWM.h"
 #include "ADmux.h"
 #include "SamCLK.h"
 #include "SamTC.h"
+#include "SamDMAC.h"
 
 
 class CDacPWMht : public CPWM<CDacPWMht>, public CSamTC
@@ -25,9 +27,23 @@ public:
         PWM2
     };
 
+    enum mode{
+
+        DMA,
+        IRQ
+    };
+
 protected:
     PWM m_nPWM;
     std::shared_ptr<CADmux>  m_pMUX;
+
+    uint16_t m_prmHighLevel16;
+    uint16_t m_prmLowLevel16;
+    std::shared_ptr<CSamDMAChannel> m_pHLevDMAch;
+    std::shared_ptr<CSamDMAChannel> m_pLLevDMAch;
+
+    CSamTC m_PeriodsCounter;
+
 
     /*!
      * \brief An associated clock generator
@@ -56,6 +72,6 @@ protected:
 
 
 public:
-    CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX);
+    CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
 };
 
