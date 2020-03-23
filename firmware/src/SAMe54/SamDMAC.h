@@ -65,8 +65,8 @@ public:
     enum trigsrc{
 
         TC0OVF=0x2C,
-        TC0MC0=0x2E,
-        TC0MC1=0x2D,
+        TC0MC0=0x2D,
+        TC0MC1=0x2E,
 
         TC1OVF=0x2F,
         TC1MC0=0x30,
