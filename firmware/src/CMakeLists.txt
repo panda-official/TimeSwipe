@@ -49,7 +49,10 @@ target_include_directories(${TARGET_NAME} PUBLIC HATS_EEPROM)
 target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib HATS_EEPROM_lib)
 
 #linking lower layer:
-target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib) # CORTEXMX_lib)
+target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib)
 
 target_link_libraries(${TARGET_NAME} SAME54_lib CORTEXMX_lib)
+
+target_link_libraries(${TARGET_NAME} BOARD_lib)
+
 

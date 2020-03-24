@@ -406,3 +406,26 @@ bool TimeSwipe::Stop() {
     return _impl->Stop();
 }
 
+bool TimeSwipe::StartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
+    if (num > 1) return false;
+    else if (frequency < 1 || frequency > 1000) return false;
+    else if (high > 4096) return false;
+    else if (low > 4096) return false;
+    else if (low > high) return false;
+    else if (duty_cycle < 0.001 || duty_cycle > 0.999) return false;
+    return BoardStartPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+bool TimeSwipe::StopPWM(uint8_t num) {
+    if (num > 1) return false;
+    return BoardStopPWM(num);
+}
+
+bool TimeSwipe::GetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+    if (num > 1) return false;
+    return BoardGetPWM(num, active, frequency, high, low, repeats, duty_cycle);
+}
+
+void TimeSwipe::TraceSPI(bool val) {
+    BoardTraceSPI(val);
+}
