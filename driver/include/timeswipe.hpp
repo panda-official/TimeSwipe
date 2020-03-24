@@ -256,6 +256,11 @@ public:
      */
     bool Stop();
 
+    /*!
+     * \brief TraceSPI
+     * \param val true=on
+     */
+    void TraceSPI(bool val);
 
     static bool resample_log;
 private:
