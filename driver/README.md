@@ -192,22 +192,20 @@ After toolchain built successfully change PATH variable:
 export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin/:$PATH
 ```
 
-### Building driver
+You can then clone this repository, if you haven't done that already:
 
-Build driver:
 ```
-cd library
-mkdir build
-cd build
-cmake ..
-make
+git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Build example:
+Then simply navigate to the driver directory and build:
+
 ```
-cd library/example
-mkdir build
+cd timeswipe/driver
+mkdir -p build
 cd build
 cmake ..
-make
+make -j$(nproc)
 ```
+
+

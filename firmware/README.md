@@ -50,7 +50,7 @@ tbd.
 
 ## Flashing the Firmware with openOCD on a Raspberry Pi
 
-tbd.
+The easiest way to flash the firmware, is to use a Raspberry Pi.
 
 
 ### Flashing with Raspbian Buster
@@ -103,7 +103,6 @@ To reset the chip and keep it in the `halt`state, use:
 reset halt
 ```
 
-
 To delete any old firmware in the flash memory of the TimeSwipe board, enter the command:
 
 ```
@@ -155,4 +154,6 @@ Shutdown the Raspberry Pi and the TimeSwipe board and power on again to start us
 
 
 ### Flashing with Arch Linux ARMv8 AArch64
+
+tbd.
 
