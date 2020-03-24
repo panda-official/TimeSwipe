@@ -15,8 +15,6 @@ std::shared_ptr<CSamCLK> CDacPWMht::m_pCLK;
 static CDacPWMht *pPWM[2]={nullptr};
 static unsigned int LowLevel1, HighLevel1;
 static unsigned int LowLevel2, HighLevel2;
-//static unsigned int Repeats1, LowLevel1, HighLevel1;
-//static unsigned int Repeats2, LowLevel2, HighLevel2;
 extern "C"{
 void TC0_Handler(void)
 {
@@ -29,11 +27,6 @@ void TC0_Handler(void)
     else                             //high level
     {
         DAC->DATA[0].reg=HighLevel1;
-        /*if(Repeats1)
-        {
-            if(--Repeats1==0)
-                pPWM[0]->Start(false);
-        }*/
     }
     TC0->COUNT32.INTFLAG.reg=0xff; //clear
 }
@@ -46,11 +39,6 @@ void TC2_Handler(void)
     else                             //high level
     {
         DAC->DATA[1].reg=HighLevel2;
-        /*if(Repeats2)
-        {
-            if(--Repeats2==0)
-                pPWM[1]->Start(false);
-        }*/
     }
     TC2->COUNT32.INTFLAG.reg=0xff; //clear
 }
@@ -127,15 +115,11 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX, mode nOpMod
     pTc->COUNT32.CTRLA.bit.ENABLE=1; //enable
     pTc->COUNT32.CTRLBSET.bit.CMD=2; //keep it in the stopped state!
 
-
     //interconnect them with an event system:
     MCLK->APBBMASK.bit.EVSYS_=1;
     EVSYS->USER[ static_cast<int>(m_PeriodsCounter.GetID())+44 ].bit.CHANNEL=nPWM+13;//+1 !!!
     EVSYS->Channel[nPWM+12].CHANNEL.bit.EVGEN=(PWM1==nPWM ? 0x4B:0x51);
     EVSYS->Channel[nPWM+12].CHANNEL.bit.PATH=2; //assync
-    //EVSYS->Channel[nPWM].CHANNEL.bit.EDGSEL=1; //rising
-   // GCLK->PCHCTRL[11+nPWM].bit.GEN=(uint32_t)m_pCLK->CLKind();
-   // GCLK->PCHCTRL[11+nPWM].bit.CHEN=1; //add
 
     //period counter:
     m_PeriodsCounter.EnableAPBbus(true);
@@ -148,9 +132,6 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX, mode nOpMod
 
     m_PeriodsCounter.ConnectGCLK(m_pCLK->CLKind()); //clock is always required
     m_PeriodsCounter.EnableIRQ(true);
-    //pTc2->COUNT16.CTRLA.bit.ENABLE=1;
-   // pTc2->COUNT16.CTRLBSET.bit.CMD=2;
-
 }
 
 void CDacPWMht::on_obtain_half_periods()
@@ -237,7 +218,6 @@ void CDacPWMht::impl_Start(bool bHow)
     else
     {
         pTc->COUNT32.CTRLBSET.bit.CMD=2;    //stop
-       // pTc2->COUNT16.CTRLBSET.bit.CMD=2; //stop
         synced_DAC_set(0);      //clear
     }
 }

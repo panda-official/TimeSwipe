@@ -18,6 +18,10 @@
  *  but require a clock generator to be properly tuned and connected. For this purpose a CSamCLK was designed.
  *  A CSamCLK::Factory() used to find free clock generator, reserve it and provide class methods for setup.
  *
+ * <H4> Timers/Counters </H4>
+ *
+ *  CSamTC - a realization os SAM's TC
+ *
  * <H4> ADC & DAC </H4>
  *
  *  CSamADCchan and CSamADCcntr are used to control SAME54's ADCs.
@@ -48,6 +52,10 @@
  * <H4> Factory calibration settings </H4>
  *
  * NVMscpage - an interface for reading SAME54 factory calibration settings
+ *
+ * <H4> DMA </H4>
+ *
+ * CSamDMABlock, CSamDMAChannel, CSamDMAC - implement basic DMA functionality
  * 
  */
  

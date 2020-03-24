@@ -82,3 +82,4 @@ Tc *glob_GetTcPtr(typeSamTC nTc)
     }
     return nullptr;
 }
+

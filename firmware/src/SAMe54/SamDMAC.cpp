@@ -117,7 +117,7 @@ CSamDMAC::CSamDMAC()
     m_pBaseAddr=MemAlign128(BaseAddressMem);
     m_pWrbAddr=MemAlign128(WrbAddressMem);
 
-    MCLK->AHBMASK.bit.DMAC_=1; //enable clock!!!
+    MCLK->AHBMASK.bit.DMAC_=1;
 
     DMAC->BASEADDR.reg=(uint32_t)m_pBaseAddr;
     DMAC->WRBADDR.reg=(uint32_t)m_pWrbAddr;
