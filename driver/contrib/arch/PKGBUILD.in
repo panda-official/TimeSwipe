@@ -27,3 +27,4 @@ validpgpkeys=()
 package() {
 	make -C .. DESTDIR="$pkgdir" install
 }
+

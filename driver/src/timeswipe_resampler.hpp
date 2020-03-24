@@ -23,4 +23,3 @@ public:
     TimeSwipeResampler(int up, int down);
     SensorsData Resample(SensorsData&& records);
 };
-

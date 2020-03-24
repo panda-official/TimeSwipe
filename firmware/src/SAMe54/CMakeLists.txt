@@ -22,7 +22,7 @@ target_include_directories(SAME54_lib PUBLIC ../Interfaces)
 target_include_directories(SAME54_lib PUBLIC ../ADCDAC)
 target_include_directories(SAME54_lib PUBLIC ../Communication)
 
-target_include_directories(SAME54_lib PRIVATE ../../3rdParty/prj_templ/include)
-target_include_directories(SAME54_lib PRIVATE ../../3rdParty/prj_templ/CMSIS/Include)
+target_include_directories(SAME54_lib PRIVATE ../../../3rdParty/prj_templ/include)
+target_include_directories(SAME54_lib PRIVATE ../../../3rdParty/prj_templ/CMSIS/Include)
 
 

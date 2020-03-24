@@ -12,7 +12,7 @@ add_library(CORTEXMX_lib STATIC nodeTimeCM4.cpp)
 
 target_include_directories(CORTEXMX_lib PUBLIC ../Interfaces)
 target_compile_definitions(CORTEXMX_lib PRIVATE -D__SAME54P20A__)
-target_include_directories(CORTEXMX_lib PRIVATE ../../3rdParty/prj_templ/include)
-target_include_directories(CORTEXMX_lib PRIVATE ../../3rdParty/prj_templ/CMSIS/Include)
+target_include_directories(CORTEXMX_lib PRIVATE ../../../3rdParty/prj_templ/include)
+target_include_directories(CORTEXMX_lib PRIVATE ../../../3rdParty/prj_templ/CMSIS/Include)
 
 

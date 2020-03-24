@@ -141,7 +141,7 @@ bool CBcmSPI::send(CFIFO &msg)
     bcm2835_delay(1);
 
     //flow control:
-    typeSChar ch;
+    typeSChar ch=0;
     m_ComCntr.start(CSyncSerComFSM::FSM::sendLengthMSB);
     while(m_ComCntr.proc(ch, msg))
     {

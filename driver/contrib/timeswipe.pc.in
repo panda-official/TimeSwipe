@@ -10,3 +10,4 @@ Version: @PROJECT_VERSION@
 Requires:
 Libs: -L${libdir} -ltimeswipe -lpthread -latomic
 Cflags: -I${includedir}
+

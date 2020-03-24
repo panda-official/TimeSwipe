@@ -1,3 +1,0 @@
-[submodule "driver/3rdParty/nlohmann"]
-	path = driver/3rdParty/nlohmann
-	url = https://github.com/nlohmann/json
