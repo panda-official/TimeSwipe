@@ -3,7 +3,6 @@
 #include <atomic>
 #include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
-#include <future>
 #include <iostream>
 #include <list>
 #include "timeswipe.hpp"
@@ -13,6 +12,52 @@
 #include "pidfile.hpp"
 
 bool TimeSwipe::resample_log = false;
+
+std::vector<float>& SensorsData::operator[](size_t num) {
+    return _data[num];
+}
+
+size_t SensorsData::SensorsSize() {
+    return SENSORS;
+}
+
+size_t SensorsData::DataSize() {
+    return _data[0].size();
+}
+
+SensorsData::CONTAINER& SensorsData::data() {
+    return _data;
+}
+
+void SensorsData::reserve(size_t num) {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].reserve(num);
+}
+
+void SensorsData::clear() {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].clear();
+}
+
+bool SensorsData::empty() {
+    return DataSize() == 0;
+}
+
+void SensorsData::append(SensorsData&& other) {
+    for (size_t i = 0; i < SENSORS; i++)
+        std::move(other._data[i].begin(), other._data[i].end(), std::back_inserter(_data[i]));
+    other.clear();
+}
+
+void SensorsData::erase_front(size_t num) {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].erase(_data[i].begin(), _data[i].begin() + num);
+}
+
+void SensorsData::erase_back(size_t num) {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].resize(_data[i].size()-num);
+}
 
 class TimeSwipeImpl {
     static std::mutex startStopMtx;
@@ -46,10 +91,10 @@ private:
     RecordReader Rec;
     // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
     static const unsigned constexpr BUFFER_SIZE = 48000/32*2;
-    boost::lockfree::spsc_queue<std::vector<Record>, boost::lockfree::capacity<BUFFER_SIZE>> recordBuffer;
+    boost::lockfree::spsc_queue<SensorsData, boost::lockfree::capacity<BUFFER_SIZE>> recordBuffer;
     std::atomic_uint64_t recordErrors = 0;
 
-    std::vector<Record> burstBuffer;
+    SensorsData burstBuffer;
     size_t burstSize = 0;
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
@@ -308,9 +353,8 @@ void TimeSwipeImpl::_spiLoop() {
 void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
     while (_work)
     {
-        std::vector<Record> empty;
-        std::vector<Record> records[4096];
-        auto num = recordBuffer.pop(&records[0], 4096);
+        SensorsData records[10];
+        auto num = recordBuffer.pop(&records[0], 10);
         uint64_t errors = recordErrors.fetch_and(0UL);
         if (num == 0 && errors == 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -319,34 +363,38 @@ void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
 
         if (errors && onErrorCb) onErrorCb(errors);
 
-        std::vector<Record>* records_ptr = nullptr;
-        std::vector<Record> samples;
+        SensorsData* records_ptr = nullptr;
+        SensorsData samples;
         if (resampler) {
             for (size_t i = 0; i < num; i++) {
                 auto s = resampler->Resample(std::move(records[i]));
-                std::move(s.begin(), s.end(), std::back_inserter(samples));
+                samples.append(std::move(s));
             }
             records_ptr = &samples;
         } else {
             for (size_t i = 1; i < num; i++) {
-                std::move(records[i].begin(), records[i].end(), std::back_inserter(records[0]));
+                records[0].append(std::move(records[i]));
             }
             records_ptr = &records[0];
         }
 
-        if (burstBuffer.empty() && burstSize <= records_ptr->size()) {
+        if (burstBuffer.empty() && burstSize <= records_ptr->DataSize()) {
             // optimization if burst buffer not used or smaller than first buffer
             cb(std::move(*records_ptr), errors);
             records_ptr->clear();
         } else {
             // burst buffer mode
-            std::move(records_ptr->begin(), records_ptr->end(), std::back_inserter(burstBuffer));
+            burstBuffer.append(std::move(*records_ptr));
             records_ptr->clear();
-            if (burstBuffer.size() >= burstSize) {
+            if (burstBuffer.DataSize() >= burstSize) {
                 cb(std::move(burstBuffer), errors);
                 burstBuffer.clear();
             }
         }
+    }
+    if (burstBuffer.DataSize()) {
+        cb(std::move(burstBuffer), 0);
+        burstBuffer.clear();
     }
 }
 
