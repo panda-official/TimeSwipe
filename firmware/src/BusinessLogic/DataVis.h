@@ -19,25 +19,38 @@ Copyright (c) 2019 Panda Team
 
 /*!
  * \brief Data visualization class: displays the measured signal levels of the ADC channel using the LED indicator. Like this it visualizes the actual measurement values.
- */
+ * \details The intensity normalized value is calculated as I=(B^x-1)/(B-1), where x [0, 1]
+ *
+ * https://www.mikrocontroller.net/articles/LED-Fading
+ *
+ * To get Intensity in the middle x=0.5 the equation I=(B^0.5-1)/(B-1) has to be solved.
+ * The roots are: B=( ( 1+- sqrt(1- 4I(1-I)) )/2I )^2
+ * For I=0.4 the larger root is 2.25
+*/
 class CDataVis
 {
 protected:
     //! A brightness constant for calculating the actual LED brightness for visualization
-    const float b_brght = 55.0;
+    static const constexpr float b_brght = 2.25f;
+    static const constexpr float bright_factor=1/(b_brght-1.0f);
+
+    const float ILowLim=0.08f;
 
     //! The upper visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to max. brightness. 
-    float meas_max;
+    int meas_max;
     //! The lower visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to min. brightness. 
-    float meas_min;
+    int meas_min;
     //! Min. visualization range at start. Is set around actual measurement value after startup and after a reset. The measurement value has to surpass this range (+/-50) one time, for the visualization to become active for this channel.
-    unsigned int min_wind = 100;
+    int min_wind = 100;
     //! Min. distance of the lower and upper boarder to the actual measurement value. Two times this value gives the min. range, when the visualization is in progress. The reset of the visualization boarders stops at this distance from the measurment value. 
-    unsigned int min_dist = 30;
+    int min_dist = 30;
     //! Proportional factor for the adjustment of the visualization range boundaries 
     const float k_range = 0.004;
     //! Boolean variable for saving the activation status of the visualization for the four measurement channels.
-    bool senscon_chan[4] = {0, 0, 0, 0};
+    bool senscon_chan=false;
+
+    //! Drop-out factor: used to determine the sensor is disconnected
+    const float drop_out_factor=2.0f;
 
 
     /*!
