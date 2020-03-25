@@ -67,12 +67,12 @@ protected:
     /*!
      * \brief Output high level
      */
-    int m_prmHighLevel=2000;
+    int m_prmHighLevel=3072;
 
     /*!
      * \brief Output low level
      */
-    int m_prmLowLevel=0;
+    int m_prmLowLevel=2048;
 
     /*!
      * \brief Output maximum possible value (setting limiter)

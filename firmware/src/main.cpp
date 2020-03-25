@@ -130,6 +130,11 @@ int main(void)
 
         auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
         auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
+
+        //set default level:
+        pSamDAC0->SetRawBinVal(2048);
+        pSamDAC1->SetRawBinVal(2048);
+
 #else
          auto pSamADC0   =std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
          auto pADC1      =std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none, -2.5f, 2.5f);

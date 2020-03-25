@@ -75,6 +75,7 @@ CSamDMAChannel::~CSamDMAChannel()
 CSamDMABlock &CSamDMAChannel::AddBlock()
 {
     m_Transfer.emplace_back(this, m_Transfer.size());
+    return m_Transfer.back();
 }
 
 void CSamDMAChannel::StartTransfer(bool how)

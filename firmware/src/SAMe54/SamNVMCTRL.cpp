@@ -16,7 +16,7 @@ Copyright (c) 2019-2020 Panda Team
   Virtual address of SmartEEPROM starts from 0x44000000 to 0x45000000"
 */
 
-#define SEEPROM_ADDR 0x44000000
+//#define SEEPROM_ADDR 0x44000000
 
 CSamNVMCTRL::CSamNVMCTRL()
 {
@@ -83,7 +83,7 @@ void CSamNVMCTRL::FlushSmartEEPROM()
     {
         while(!NVMCTRL->STATUS.bit.READY){}
 
-        NVMCTRL->CTRLB.bit.CMD=(NVMCTRL_CTRLB_CMDEX_KEY|NVMCTRL_CTRLB_CMD_SEEFLUSH);
+        NVMCTRL->CTRLB.reg=(NVMCTRL_CTRLB_CMDEX_KEY|NVMCTRL_CTRLB_CMD_SEEFLUSH);
     }
 }
 

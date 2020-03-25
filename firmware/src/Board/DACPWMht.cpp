@@ -196,8 +196,8 @@ void CDacPWMht::impl_Start(bool bHow)
     if(bHow)
     {
         on_settings_changed();
-        m_pMUX->SetDACmode(typeDACmode::SamAndExtDACs);
         synced_DAC_set(m_prmHighLevel); //start with high
+        m_pMUX->SetDACmode(typeDACmode::SamAndExtDACs);
 
         while(pTc2->COUNT16.SYNCBUSY.bit.ENABLE){}
         if(m_prmRepeats)
@@ -218,7 +218,7 @@ void CDacPWMht::impl_Start(bool bHow)
     else
     {
         pTc->COUNT32.CTRLBSET.bit.CMD=2;    //stop
-        synced_DAC_set(0);      //clear
+        synced_DAC_set(2048);      //clear
     }
 }
 
