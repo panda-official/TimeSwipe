@@ -8,14 +8,14 @@ cmake_minimum_required(VERSION 3.1)
 SET(TARGET_NAME "firmware.elf")
 
 IF(NOT CMAKE_TOOLCHAIN_FILE)
-    message(STATUS "User toolchain is not found. Setting default toolchan...")
+    message(STATUS "User toolchain is not found. Setting default toolchain...")
     SET(CMAKE_TOOLCHAIN_FILE gnuarm_toolchain.cmake)
     include (${CMAKE_TOOLCHAIN_FILE})
 ENDIF()
 
-#obtain JSON settings: 05.09.2019
-include(ObtainJSONsettings.cmake)
+include_directories(../../3rdParty/)
 
+SET(CMAKE_CXX_FLAGS "-Wno-psabi")
 
 #enabling langs inside:
 project(firmware C CXX ASM)
@@ -33,7 +33,7 @@ add_subdirectory(CortexMX)
 add_subdirectory(SAMe54)
 
 
-add_executable(${TARGET_NAME}  main.cpp ${PATH_FIRMWARE}/3rdParty/prj_templ/Custom/startup_ARMCM4.S)
+add_executable(${TARGET_NAME}  main.cpp ${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/startup_ARMCM4.S)
 
 target_include_directories(${TARGET_NAME} PUBLIC Interfaces)
 target_include_directories(${TARGET_NAME} PUBLIC ADCDAC)
@@ -49,7 +49,10 @@ target_include_directories(${TARGET_NAME} PUBLIC HATS_EEPROM)
 target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib HATS_EEPROM_lib)
 
 #linking lower layer:
-target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib) # CORTEXMX_lib)
+target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib)
 
 target_link_libraries(${TARGET_NAME} SAME54_lib CORTEXMX_lib)
+
+target_link_libraries(${TARGET_NAME} BOARD_lib)
+
 

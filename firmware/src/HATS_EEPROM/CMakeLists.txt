@@ -20,6 +20,6 @@ target_include_directories(HATS_EEPROM_lib PUBLIC ../Interfaces)
 #target_include_directories(SAME54_lib PUBLIC ../ADCDAC)
 #target_include_directories(SAME54_lib PUBLIC ../Communication)
 
-target_include_directories(HATS_EEPROM_lib PRIVATE ../../3rdParty/HATS_EEPROM)
+target_include_directories(HATS_EEPROM_lib PRIVATE ../../../3rdParty/HATS_EEPROM)
 
 

@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# OSX directories
+*.DS_Store
+
+# Build directories
+build

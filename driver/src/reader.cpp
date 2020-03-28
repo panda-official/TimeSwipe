@@ -69,7 +69,8 @@ constexpr bool getBit(uint8_t byte, uint8_t N)
     return (byte & (1UL << N));
 }
 
-Record convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk, const std::array<int, 4> &offset, const std::array<float, 4> &mfactor)
+template <class T>
+void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk, const std::array<int, 4> &offset, const std::array<float, 4> &mfactor, T& data)
 {
     size_t count = 0;
     std::vector<uint16_t> sensors(4, 0);
@@ -90,8 +91,6 @@ Record convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk
         count++;
     }
 
-    Record data;
-
     for (size_t i = 0; i < 4; ++i)
     {
         //##########################//
@@ -104,10 +103,8 @@ Record convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE> &chunk
         sensorOld[i] = sensors[i];
         //##########################//
 
-        data.Sensors[i] = (float)(sensors[i] - offset[i]) * mfactor[i];
+        data[i].push_back((float)(sensors[i] - offset[i]) * mfactor[i]);
     }
-
-    return data;
 }
 
 struct RecordReader
@@ -115,6 +112,7 @@ struct RecordReader
     std::array<uint8_t, CHUNK_SIZE_IN_BYTE> currentChunk;
     size_t bytesRead{0};
     bool isFirst{true};
+    size_t lastRead = 0;
 
     int mode = 0;
     std::array<int, 4> offset = {0, 0, 0, 0};
@@ -123,9 +121,10 @@ struct RecordReader
     std::array<float, 4> mfactor;
 
     // read records from hardware buffer
-    std::vector<Record> read()
+    SensorsData read()
     {
-        std::vector<Record> out;
+        SensorsData out;
+        out.reserve(lastRead*2);
         int lastTCO;
         int currentTCO;
 
@@ -148,7 +147,7 @@ struct RecordReader
 
             if (bytesRead == CHUNK_SIZE_IN_BYTE)
             {
-                out.push_back(convertChunkToRecord(currentChunk, offset, mfactor));
+                convertChunkToRecord(currentChunk, offset, mfactor, out.data());
                 bytesRead = 0;
             }
 
@@ -169,6 +168,7 @@ struct RecordReader
         sleep55ns();
         sleep55ns();
 
+        lastRead = out.DataSize();
         return out;
     }
 

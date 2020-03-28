@@ -70,5 +70,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS} -std=c++17"  CACHE INT
 set(CMAKE_ASM_FLAGS "${COMPILER_FLAGS} -x assembler-with-cpp" CACHE INTERNAL "")
 
 #linker flags:
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections  -mthumb -mcpu=cortex-m4 --specs=nosys.specs -T${PATH_FIRMWARE}/3rdParty/prj_templ/Custom/gcc.ld" CACHE INTERNAL "")
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections  -mthumb -mcpu=cortex-m4 --specs=nosys.specs -T${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/gcc.ld" CACHE INTERNAL "")
 

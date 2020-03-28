@@ -3,7 +3,6 @@
 #include <atomic>
 #include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
-#include <future>
 #include <iostream>
 #include <list>
 #include "timeswipe.hpp"
@@ -13,6 +12,52 @@
 #include "pidfile.hpp"
 
 bool TimeSwipe::resample_log = false;
+
+std::vector<float>& SensorsData::operator[](size_t num) {
+    return _data[num];
+}
+
+size_t SensorsData::SensorsSize() {
+    return SENSORS;
+}
+
+size_t SensorsData::DataSize() {
+    return _data[0].size();
+}
+
+SensorsData::CONTAINER& SensorsData::data() {
+    return _data;
+}
+
+void SensorsData::reserve(size_t num) {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].reserve(num);
+}
+
+void SensorsData::clear() {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].clear();
+}
+
+bool SensorsData::empty() {
+    return DataSize() == 0;
+}
+
+void SensorsData::append(SensorsData&& other) {
+    for (size_t i = 0; i < SENSORS; i++)
+        std::move(other._data[i].begin(), other._data[i].end(), std::back_inserter(_data[i]));
+    other.clear();
+}
+
+void SensorsData::erase_front(size_t num) {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].erase(_data[i].begin(), _data[i].begin() + num);
+}
+
+void SensorsData::erase_back(size_t num) {
+    for (size_t i = 0; i < SENSORS; i++)
+        _data[i].resize(_data[i].size()-num);
+}
 
 class TimeSwipeImpl {
     static std::mutex startStopMtx;
@@ -46,10 +91,10 @@ private:
     RecordReader Rec;
     // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
     static const unsigned constexpr BUFFER_SIZE = 48000/32*2;
-    boost::lockfree::spsc_queue<std::vector<Record>, boost::lockfree::capacity<BUFFER_SIZE>> recordBuffer;
+    boost::lockfree::spsc_queue<SensorsData, boost::lockfree::capacity<BUFFER_SIZE>> recordBuffer;
     std::atomic_uint64_t recordErrors = 0;
 
-    std::vector<Record> burstBuffer;
+    SensorsData burstBuffer;
     size_t burstSize = 0;
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
@@ -57,10 +102,13 @@ private:
     boost::lockfree::spsc_queue<BoardEvents, boost::lockfree::capacity<128>> _events;
     void _processSPIRequests();
 
+    void _clearThreads();
+
     TimeSwipe::OnButtonCallback onButtonCb;
     TimeSwipe::OnErrorCallback onErrorCb;
 
     bool _work = false;
+    bool _inCallback = false;
     std::list<std::thread> _serviceThreads;
 
     std::unique_ptr<TimeSwipeResampler> resampler;
@@ -77,6 +125,7 @@ TimeSwipeImpl::TimeSwipeImpl()
 
 TimeSwipeImpl::~TimeSwipeImpl() {
     Stop();
+    _clearThreads();
 }
 
 void TimeSwipeImpl::SetMode(int number) {
@@ -116,7 +165,7 @@ bool TimeSwipeImpl::SetSampleRate(int rate) {
 bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     {
         std::lock_guard<std::mutex> lock(startStopMtx);
-        if (_work || startedInstance) {
+        if (_work || startedInstance || _inCallback) {
             return false;
         }
         std::string err;
@@ -133,6 +182,7 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
             //return false;
         }
     }
+    _clearThreads();
 
     Rec.setup();
     Rec.start();
@@ -148,6 +198,7 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
 bool TimeSwipeImpl::Stop() {
     {
         std::lock_guard<std::mutex> lock(startStopMtx);
+
         if (!_work || startedInstance != this) {
             return false;
         }
@@ -156,9 +207,7 @@ bool TimeSwipeImpl::Stop() {
 
     _work = false;
 
-    for (auto& th: _serviceThreads)
-        if(th.joinable())
-            th.join();
+    _clearThreads();
 
     while (recordBuffer.pop());
     while (_inSPI.pop());
@@ -218,12 +267,25 @@ void TimeSwipeImpl::_processSPIRequests() {
     }
 }
 
+void TimeSwipeImpl::_clearThreads() {
+    auto it = _serviceThreads.begin();
+    while (it != _serviceThreads.end()) {
+        if (it->get_id() == std::this_thread::get_id()) {
+            ++it;
+            continue;
+        }
+        if(it->joinable()) {
+            it->join();
+        }
+        it = _serviceThreads.erase(it);
+    }
+}
+
 TimeSwipe::TimeSwipe() {
     _impl = std::make_unique<TimeSwipeImpl>();
 }
 
 TimeSwipe::~TimeSwipe() {
-    Stop();
 }
 
 void TimeSwipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4) {
@@ -286,7 +348,9 @@ void TimeSwipeImpl::_fetcherLoop() {
         BoardEvents event;
         while (_events.pop(event)) {
             if (event.button && onButtonCb) {
+                _inCallback = true;
                 onButtonCb(event.buttonCounter % 2, event.buttonCounter);
+                _inCallback = false;
             }
         }
     }
@@ -303,45 +367,58 @@ void TimeSwipeImpl::_spiLoop() {
 void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
     while (_work)
     {
-        std::vector<Record> empty;
-        std::vector<Record> records[4096];
-        auto num = recordBuffer.pop(&records[0], 4096);
+        SensorsData records[10];
+        auto num = recordBuffer.pop(&records[0], 10);
         uint64_t errors = recordErrors.fetch_and(0UL);
         if (num == 0 && errors == 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             continue;
         }
 
-        if (errors && onErrorCb) onErrorCb(errors);
+        if (errors && onErrorCb) {
+            _inCallback = true;
+            onErrorCb(errors);
+            _inCallback = false;
+        }
 
-        std::vector<Record>* records_ptr = nullptr;
-        std::vector<Record> samples;
+        SensorsData* records_ptr = nullptr;
+        SensorsData samples;
         if (resampler) {
             for (size_t i = 0; i < num; i++) {
                 auto s = resampler->Resample(std::move(records[i]));
-                std::move(s.begin(), s.end(), std::back_inserter(samples));
+                samples.append(std::move(s));
             }
             records_ptr = &samples;
         } else {
             for (size_t i = 1; i < num; i++) {
-                std::move(records[i].begin(), records[i].end(), std::back_inserter(records[0]));
+                records[0].append(std::move(records[i]));
             }
             records_ptr = &records[0];
         }
 
-        if (burstBuffer.empty() && burstSize <= records_ptr->size()) {
+        if (burstBuffer.empty() && burstSize <= records_ptr->DataSize()) {
             // optimization if burst buffer not used or smaller than first buffer
+            _inCallback = true;
             cb(std::move(*records_ptr), errors);
+            _inCallback = false;
             records_ptr->clear();
         } else {
             // burst buffer mode
-            std::move(records_ptr->begin(), records_ptr->end(), std::back_inserter(burstBuffer));
+            burstBuffer.append(std::move(*records_ptr));
             records_ptr->clear();
-            if (burstBuffer.size() >= burstSize) {
+            if (burstBuffer.DataSize() >= burstSize) {
+                _inCallback = true;
                 cb(std::move(burstBuffer), errors);
+                _inCallback = false;
                 burstBuffer.clear();
             }
         }
+    }
+    if (!_inCallback && burstBuffer.DataSize()) {
+        _inCallback = true;
+        cb(std::move(burstBuffer), 0);
+        _inCallback = false;
+        burstBuffer.clear();
     }
 }
 
@@ -353,3 +430,26 @@ bool TimeSwipe::Stop() {
     return _impl->Stop();
 }
 
+bool TimeSwipe::StartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
+    if (num > 1) return false;
+    else if (frequency < 1 || frequency > 1000) return false;
+    else if (high > 4096) return false;
+    else if (low > 4096) return false;
+    else if (low > high) return false;
+    else if (duty_cycle < 0.001 || duty_cycle > 0.999) return false;
+    return BoardStartPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+bool TimeSwipe::StopPWM(uint8_t num) {
+    if (num > 1) return false;
+    return BoardStopPWM(num);
+}
+
+bool TimeSwipe::GetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+    if (num > 1) return false;
+    return BoardGetPWM(num, active, frequency, high, low, repeats, duty_cycle);
+}
+
+void TimeSwipe::TraceSPI(bool val) {
+    BoardTraceSPI(val);
+}

@@ -136,17 +136,29 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    tswipe.SetBurstSize(24000);
-
     tswipe.SetSampleRate(24000);
+    tswipe.SetBurstSize(24000);
 
     // Board Start
 
+    int counter = 0;
     ret = tswipe.Start([&](auto&& records, uint64_t errors) {
-            for (size_t i = 0; i < records.size(); i++) {
-                const auto& rec = records[i];
-                if (i==0) std::cout << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
-                if (dump) data_log << rec.Sensors[0] << "\t" << rec.Sensors[1] << "\t" << rec.Sensors[2] << "\t" << rec.Sensors[3] << "\n";
+        counter += records.DataSize();
+            for (size_t i = 0; i < records.DataSize(); i++) {
+                if (i == 0) {
+                    for (size_t j = 0; j < records.SensorsSize(); j++) {
+                        if (j != 0) std::cout << "\t";
+                        std::cout << records[j][i];
+                    }
+                    std::cout << '\n';
+                }
+                if (dump) {
+                    for (size_t j = 0; j < records.SensorsSize(); j++) {
+                        if (j != 0) data_log << "\t";
+                        data_log << records[j][i];
+                    }
+                    data_log << '\n';
+                }
             }
     });
     if (!ret) {
@@ -154,6 +166,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    auto start = std::chrono::system_clock::now();
     std::this_thread::sleep_for(std::chrono::seconds(10));
 
     // Board Stop
@@ -161,6 +174,9 @@ int main(int argc, char *argv[])
         std::cerr << "timeswipe stop failed" << std::endl;
         return -1;
     }
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<float> diff = end - start;
+    std::cout << "time: " << diff.count() << "s records: " << counter << " rec/sec: " << counter / diff.count() << "\n";
 
     return 0;
 }

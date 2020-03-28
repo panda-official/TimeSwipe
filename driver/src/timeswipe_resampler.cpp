@@ -1,5 +1,5 @@
 #include "timeswipe_resampler.hpp"
-#include "upfirdn.h"
+#include "Upfirdn/upfirdn.h"
 #include <boost/math/special_functions/bessel.hpp>
 
 static unsigned getPad(unsigned samples) {
@@ -38,15 +38,15 @@ TimeSwipeResampler::TimeSwipeResampler(int up, int down)
     state = std::make_unique<ResamplerState>(upFactor, downFactor, sliceSizePad);
 }
 
-std::vector<Record> TimeSwipeResampler::Resample(std::vector<Record>&& records) {
-    if (records.empty()) return std::vector<Record>();
-    std::move(records.begin(), records.end(), std::back_inserter(buffer.recs));
-    size_t inputSize = buffer.recs.size();
+SensorsData TimeSwipeResampler::Resample(SensorsData&& records) {
+    if (records.empty()) return SensorsData();
+    buffer.append(std::move(records));
+    size_t inputSize = buffer.DataSize();
 
-    if (inputSize < sliceSizePad) return std::vector<Record>();
+    if (inputSize < sliceSizePad) return SensorsData();
     inputSize = sliceSizePad;
 
-    std::vector<float> y[4];
+    SensorsData out;
     int gcd = getGCD ( upFactor, downFactor );
     int upf = upFactor / gcd;
     int downf = downFactor / gcd;
@@ -54,8 +54,8 @@ std::vector<Record> TimeSwipeResampler::Resample(std::vector<Record>&& records) 
     std::vector<float> yy;
 #define RESAMPLE_ONE(x) \
     yy.clear(); \
-    upfirdn2(upf, downf, *reinterpret_cast<Records<x>*>(&buffer), inputSize, state->h, state->h.size(), yy); \
-    for (int i = state->delay; i < state->outputSize + state->delay; i++) { y[x].push_back ( yy[i] ); }
+    upfirdn2(upf, downf, buffer[x], inputSize, state->h, state->h.size(), yy); \
+    for (int i = state->delay; i < state->outputSize + state->delay; i++) { out[x].push_back ( yy[i] ); }
 
     RESAMPLE_ONE(0);
     RESAMPLE_ONE(1);
@@ -64,16 +64,12 @@ std::vector<Record> TimeSwipeResampler::Resample(std::vector<Record>&& records) 
 #undef RESAMPLE_ONE
 
     // remove processed slice from input data
-    buffer.recs.erase(buffer.recs.begin(), buffer.recs.begin() + sliceSize);
+    buffer.erase_front(sliceSize);
 
-    std::vector<Record> out;
-    auto sz = y[0].size();
     // Remove results related to pad
-    int rem_pad = state->outputSize * pad / inputSize;
-    for(int i=0; i < rem_pad;i++) if (sz > 0)--sz;
-    for (size_t i = rem_pad; i < sz; i++) {
-        out.push_back({y[0][i], y[1][i], y[2][i], y[3][i]});
-    }
+    size_t rem_pad = state->outputSize * pad / inputSize;
+    out.erase_front(std::min(rem_pad, out.DataSize()));
+    out.erase_back(std::min(rem_pad, out.DataSize()));
     return out;
 }
 
@@ -219,7 +215,7 @@ ResamplerState::ResamplerState(int upFactor, int downFactor, size_t inputSize) {
   vector<double> coefficients;
   firls ( length - 1, firlsFreqsV, firlsAmplitudeV, coefficients );
   if (TimeSwipe::resample_log) {
-      printf("resample: up: %d down: %d inputSize: %u coefficients(%u):", upFactor, downFactor, inputSize, coefficients.size());
+      printf("resample: up: %d down: %d inputSize: %zu coefficients(%zu):", upFactor, downFactor, inputSize, coefficients.size());
       for (const auto& c: coefficients) printf(" %f",c);
       printf("\n");
   }

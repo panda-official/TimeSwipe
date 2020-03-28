@@ -137,11 +137,11 @@ bool CBcmSPI::send(CFIFO &msg)
     SPI_setCS(true);
     m_recFIFO.reset();
 
-    //a delay is required:
-    bcm2835_delay(1);
+    //a delay is required for CS to fall:
+    bcm2835_delay(20); //corresponding to 50KHz
 
     //flow control:
-    typeSChar ch;
+    typeSChar ch=0;
     m_ComCntr.start(CSyncSerComFSM::FSM::sendLengthMSB);
     while(m_ComCntr.proc(ch, msg))
     {
@@ -165,6 +165,10 @@ bool CBcmSPI::send(CFIFO &msg)
 
 
     SPI_setCS(false);
+    //a delay is required for CS to rise:
+    bcm2835_delay(20); //corresponding to 50KHz
+
+
     return true;
 }
 bool CBcmSPI::receive(CFIFO &msg)

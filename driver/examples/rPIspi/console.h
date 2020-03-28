@@ -9,6 +9,8 @@ Copyright (c) 2019 Panda Team
 #define NIXCONSOLE_H
 
 #include "Serial.h"
+#include <string>
+#include <fstream>
 
 class CNixConsole : public CSerial
 {
@@ -17,6 +19,7 @@ public:
 
     virtual bool send(CFIFO &msg);
     virtual bool receive(CFIFO &msg);
+    virtual bool receive2(CFIFO &msg, char * input);
     virtual bool send(typeSChar ch);
     virtual bool receive(typeSChar &ch);
 };
