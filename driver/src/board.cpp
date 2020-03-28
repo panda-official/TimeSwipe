@@ -105,17 +105,21 @@ BoardEvents readBoardEvents()
 
         if (data.empty()) return ret;
 
-        //XXX: SPI sometimes returns errors like "!obj_not_found!", "!protocol_error!" - fix this:
-        if (data[0] == '!') return ret;
-
-        auto j = nlohmann::json::parse(data);
-        auto it_btn = j.find("Button");
-        if (it_btn != j.end() && it_btn->is_boolean() && it_btn->get<bool>()) {
-            auto it_cnt = j.find("ButtonStateCnt");
-            if (it_cnt != j.end() && it_cnt->is_number()) {
-                ret.button = true;
-                ret.buttonCounter = it_cnt->get<unsigned>();
+        try {
+            auto j = nlohmann::json::parse(data);
+            auto it_btn = j.find("Button");
+            if (it_btn != j.end() && it_btn->is_boolean() && it_btn->get<bool>()) {
+                auto it_cnt = j.find("ButtonStateCnt");
+                if (it_cnt != j.end() && it_cnt->is_number()) {
+                    ret.button = true;
+                    ret.buttonCounter = it_cnt->get<unsigned>();
+                }
             }
+        }
+        catch (nlohmann::json::parse_error& e)
+        {
+            // output exception information
+            std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
         }
     }
     return ret;

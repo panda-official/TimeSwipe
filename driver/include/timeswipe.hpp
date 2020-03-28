@@ -204,6 +204,8 @@ public:
      *
      * Function starts two threads: one thread reads sensor values to the ring buffer, second thread polls ring buffer and calls @ref cb
      *
+     * Function can not be called from callback
+     *
      * @param cb
      * @return false if reading procedure start failed, otherwise true
      */
