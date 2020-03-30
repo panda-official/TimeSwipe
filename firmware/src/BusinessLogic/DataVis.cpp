@@ -60,8 +60,9 @@ void CDataVis::Update()
     if(first_update == true){
         CDataVis::reset();
         first_update = false;
-        m_upd_tspan_mS=17; //some default value for a fast updation
     }
+
+    m_upd_tspan_mS=17; //some default value for a fast updation(reset!)
     last_time_vis=os::get_tick_mS();
 
     if(!m_bStarted)
@@ -109,6 +110,10 @@ void CDataVis::Update()
     if(Inorm<ILowLim)
     {
         Inorm=ILowLim; //prevent flickering
+    }
+    if(Inorm>1.0f)
+    {
+        Inorm=1.0f;
     }
     m_pLED->SetColor( CView::Instance().GetBasicColor()*Inorm );
 
