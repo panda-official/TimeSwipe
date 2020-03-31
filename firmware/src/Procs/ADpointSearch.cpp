@@ -36,6 +36,15 @@ void CADpointSearch::Update()
     m_pDAC->SetRawOutput(CurSetPoint);
     if(0==m_ProcBits--)
     {
-        m_State=(std::abs(err) < m_TargErrTolerance) ? typePTsrcState::found : typePTsrcState::error;
+        //m_State=(std::abs(err) < m_TargErrTolerance) ? typePTsrcState::found : typePTsrcState::error;
+        if(std::abs(err) < m_TargErrTolerance)
+        {
+            m_State=typePTsrcState::found;
+            m_PrmOffset=CurSetPoint;
+        }
+        else
+        {
+            m_State=typePTsrcState::error;
+        }
     }
 }

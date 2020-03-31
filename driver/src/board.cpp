@@ -93,9 +93,11 @@ unsigned int readAllGPIO()
     return (*(gpio + 13) & ALL_32_BITS_ON); 
 }
 
+static std::mutex boardMtx;
 
 BoardEvents readBoardEvents()
 {
+    std::lock_guard<std::mutex> lock(boardMtx);
     BoardEvents ret;
     std::string data;
     if (BoardInterface::get()->getEvents(data) && !data.empty()) {
@@ -103,26 +105,51 @@ BoardEvents readBoardEvents()
 
         if (data.empty()) return ret;
 
-        //XXX: SPI sometimes returns errors like "!obj_not_found!", "!protocol_error!" - fix this:
-        if (data[0] == '!') return ret;
-
-        auto j = nlohmann::json::parse(data);
-        auto it_btn = j.find("Button");
-        if (it_btn != j.end() && it_btn->is_boolean() && it_btn->get<bool>()) {
-            auto it_cnt = j.find("ButtonStateCnt");
-            if (it_cnt != j.end() && it_cnt->is_number()) {
-                ret.button = true;
-                ret.buttonCounter = it_cnt->get<unsigned>();
+        try {
+            auto j = nlohmann::json::parse(data);
+            auto it_btn = j.find("Button");
+            if (it_btn != j.end() && it_btn->is_boolean() && it_btn->get<bool>()) {
+                auto it_cnt = j.find("ButtonStateCnt");
+                if (it_cnt != j.end() && it_cnt->is_number()) {
+                    ret.button = true;
+                    ret.buttonCounter = it_cnt->get<unsigned>();
+                }
             }
+        }
+        catch (nlohmann::json::parse_error& e)
+        {
+            // output exception information
+            std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
         }
     }
     return ret;
 }
 
 std::string readBoardGetSettings(const std::string& request, std::string& error) {
+    std::lock_guard<std::mutex> lock(boardMtx);
     return BoardInterface::get()->getGetSettings(request, error);
 }
 
 std::string readBoardSetSettings(const std::string& request, std::string& error) {
+    std::lock_guard<std::mutex> lock(boardMtx);
     return BoardInterface::get()->getSetSettings(request, error);
+}
+
+bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
+    std::lock_guard<std::mutex> lock(boardMtx);
+    return BoardInterface::get()->startPWM(num, frequency, high, low, repeats, duty_cycle);
+}
+
+bool BoardStopPWM(uint8_t num) {
+    std::lock_guard<std::mutex> lock(boardMtx);
+    return BoardInterface::get()->stopPWM(num);
+}
+
+bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+    std::lock_guard<std::mutex> lock(boardMtx);
+    return BoardInterface::get()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);
+}
+
+void BoardTraceSPI(bool val) {
+    BoardInterface::trace_spi = val;
 }

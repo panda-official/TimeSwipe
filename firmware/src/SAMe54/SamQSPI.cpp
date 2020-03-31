@@ -62,6 +62,8 @@ bool CSamQSPI::send(CFIFO &msg)
 		while( 0==(QSPI->INTFLAG.bit.DRE) ){}
 	}
     QSPI->CTRLA.reg=0x1000002; //deselect
+
+    return true;
 }
 bool CSamQSPI::receive(CFIFO &msg){return false;} //stub
 bool CSamQSPI::send(typeSChar ch){ return false;} //stub

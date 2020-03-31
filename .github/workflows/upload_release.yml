@@ -1,0 +1,128 @@
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+
+name: Workflow
+
+jobs:
+  build_deb:
+    runs-on: ubuntu-latest
+    container: pandaofficial/timeswipe_ubuntu
+    name: Build deb
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build project
+        id: build_project
+        run: |
+          git clone https://github.com/nlohmann/json driver/3rdParty/nlohmann #XXX: until submodule issue resolved in actions
+          cd driver
+          mkdir build64
+          cd build64
+          cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ..
+          make
+          export destdir="$PWD"/timeswipe_`cat ../version`.aarch64
+          make -j DESTDIR=$destdir install
+          cp -p -r DEBIAN $destdir
+          dpkg-deb --build $destdir
+          echo ::set-output name=deb64::$(ls *.deb)
+          cd ..
+          mkdir build32
+          cd build32
+          cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -DARM32=True ..
+          make
+          export destdir="$PWD"/timeswipe_`cat ../version`.armv7l
+          make -j DESTDIR=$destdir install
+          cp -p -r DEBIAN $destdir
+          dpkg-deb --build $destdir
+          echo ::set-output name=deb32::$(ls *.deb)
+          cd ..
+      - name: Save deb32
+        uses: actions/upload-artifact@v1
+        with:
+          name: deb32
+          path: ./driver/build32/${{ steps.build_project.outputs.deb32 }}
+      - name: Save deb64
+        uses: actions/upload-artifact@v1
+        with:
+          name: deb64
+          path: ./driver/build64/${{ steps.build_project.outputs.deb64 }}
+
+  build_arch:
+    name: Build arch
+    runs-on: ubuntu-latest
+    container: pandaofficial/timeswipe_arch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build project
+        id: build_project
+        run: |
+          git clone https://github.com/nlohmann/json driver/3rdParty/nlohmann #XXX: until submodule issue resolved in actions
+          cd driver
+          mkdir build64
+          cd build64
+          cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ..
+          make
+          export destdir="$PWD"/timeswipe_`cat ../version`
+          cd ..
+          chown -R build build64
+          cd build64
+          sudo -u build makepkg
+          echo ::set-output name=arch64::$(ls *.xz)
+      - name: Save arch64
+        uses: actions/upload-artifact@v1
+        with:
+          name: arch64
+          path: ./driver/build64/${{ steps.build_project.outputs.arch64 }}
+
+  release:
+    name: Create Github Release
+    if: contains(github.ref, 'tags/v')
+    needs: [build_deb, build_arch]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Load deb32
+      uses: actions/download-artifact@v1
+      with:
+        name: deb32
+    - name: Load deb64
+      uses: actions/download-artifact@v1
+      with:
+        name: deb64
+    - name: Load arch64
+      uses: actions/download-artifact@v1
+      with:
+        name: arch64
+    - name: Publish deb32
+      uses: csexton/release-asset-action@v2
+      with:
+        pattern: "deb32/*"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        release-url: ${{ steps.create_release.outputs.upload_url }}
+    - name: Publish deb64
+      uses: csexton/release-asset-action@v2
+      with:
+        pattern: "deb64/*"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        release-url: ${{ steps.create_release.outputs.upload_url }}
+    - name: Publish arch64
+      uses: csexton/release-asset-action@v2
+      with:
+        pattern: "arch64/*"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        release-url: ${{ steps.create_release.outputs.upload_url }}
+

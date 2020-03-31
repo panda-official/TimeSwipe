@@ -1,33 +1,36 @@
+![](https://github.com/panda-official/TimeSwipe/workflows/Workflow/badge.svg)
+
 # TimeSwipe
 Firmware and Drivers for PANDA TimeSwipe Boards
 
-# Building firmware and driver
 
-In the "releases" section there are built files for the firmware and the driver, which are ready for flashing. These can be used. Alternatively the procedure of building the firmware or/and the driver from source is described in "Building the firmware" and "Building the driver" in the "docs" folder. 
+## Pre-Built Files
 
-# Flashing the driver
+The [releases section](https://github.com/panda-official/TimeSwipe/releases) contains pre-built driver and firmware files for various architectures.
+You can also compile these yourself.
+Instructions can be found in the driver and firmware subdirectories.
 
-...
 
-# Flashing the firmware
+## Building and Flashing the Firmware
 
-For flashing a programmer or debugger like the Atmel ICE can be used. More conveniently, since usually the board is plugged onto a Raspberry Pi, the Raspberry Pi can be used as a programmer. How this can be done is described in "Using the Raspberry Pi as programmer with openOCD" in the "docs" folder. <br />
+The procedure is explained in the [firmware/README.md](https://github.com/panda-official/TimeSwipe/blob/master/firmware/README.md) section.
 
-The flashing procedure depends on the programmer which is being used. It usually consists of deleting old data/software in the flash memory of the chip and writing the new software. The flashing procedure is shown for flashing via Raspberry Pi with openOCD as an example:
 
-|                             |                                                   | 
-|-----------------------------|  -------------------------------------------------|                       
-|1. atsame5 chip-erase	      |   delete old firmware in the flash                |
-|2. reset                     |   reset the chip                                  |
-|3. halt      		            |   halt the firmware                               |
-|4. reset halt                |   reset the chip and keep it in the halted state  |
-|5. flash erase_check 0		    |   look for erased/filled sectors                  |
-|6. flash write_image xxx.elf	|   flash new firmware (elf-file)                   |
+## Building and Installing the Driver
 
-# Product version
+The procedure is explained in the [driver/README.md](https://github.com/panda-official/TimeSwipe/blob/master/driver/README.md) section.
 
-The product consists of several modules. Semantic Versioning is used for modules.
+
+## Documentation
+
+The communication protocol is described in the file [docs/CommunicationProtocol.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/CommunicationProtocol.md), a description of the event system can be found in [docs/EventSystem.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/EventSystem.md).
+Software dependencies are listed in [docs/SoftwareDependencies.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/SoftwareDependencies.md).
+
+
+## Product versioning
+
+The product consists of several modules using semantic versioning.
 Compatibility is defined as follows: for the driver and firmware, compatibility is determined by the major version number.
-For example, firmware 1.2.1 is compatible with driver 1.3.5 and 1.4.1 and not compatible with driver 2.0.1
-For the compatibility between the submodules of the driver the minor number is also taken into account: for example,
-python driver submodule 1.3.9 is compatible with driver 1.3.5 and not compatible with  driver 1.4.1
+For example, firmware 1.2.1 is compatible with driver 1.3.5 and 1.4.1 and not compatible with driver 2.0.1.
+For the compatibility between the submodules of the driver the minor number is also taken into account:
+for example, python driver submodule 1.3.9 is compatible with driver 1.3.5 and not compatible with  driver 1.4.1.

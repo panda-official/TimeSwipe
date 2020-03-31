@@ -61,6 +61,10 @@ unsigned int readAllGPIO();
 BoardEvents readBoardEvents();
 std::string readBoardGetSettings(const std::string& request, std::string& error);
 std::string readBoardSetSettings(const std::string& request, std::string& error);
+bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle);
+bool BoardStopPWM(uint8_t num);
+bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
+void BoardTraceSPI(bool val);
 
 #include "board.cpp"
 

@@ -36,6 +36,7 @@ std::shared_ptr<CSamCLK> CSamCLK::Factory()
             return std::shared_ptr<CSamCLK>(pClk);
         }
     }
+    return nullptr;
 }
 CSamCLK::~CSamCLK()
 {

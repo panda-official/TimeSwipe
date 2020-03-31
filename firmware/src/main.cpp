@@ -20,6 +20,7 @@ Copyright (c) 2019 Panda Team
 #include "SamService.h"
 #include "DACmax5715.h"
 #include "DACdecor.h"
+#include "DACPWMht.h"
 
 #include "menu_logic.h"
 #include "SAMbutton.h"
@@ -33,6 +34,7 @@ Copyright (c) 2019 Panda Team
 #include "jsondisp.h"
 
 #include "HatsMemMan.h"
+#include "RawBinStorage.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -126,9 +128,13 @@ int main(void)
         auto pDACC=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACC, 0.0f, 4095.0f);
         auto pDACD=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACD, 0.0f, 4095.0f);
 
-        //23.05.2019
         auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
         auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
+
+        //set default level:
+        pSamDAC0->SetRawBinVal(2048);
+        pSamDAC1->SetRawBinVal(2048);
+
 #else
          auto pSamADC0   =std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
          auto pADC1      =std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none, -2.5f, 2.5f);
@@ -142,7 +148,6 @@ int main(void)
         auto pDACC=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACC, -10.0f, +10.0f);
         auto pDACD=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACD, -10.0f, +10.0f);
 
-        //23.05.2019
         auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, -10, +10);
         auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, -10, +10);
 #endif
@@ -161,12 +166,9 @@ int main(void)
         nodeControl::SetControlItems(pADmux, pZeroCal);
 
 
-
-        //Setup initial offset for the amplifier
-        pDACA->SetRawOutput(2048);
-        pDACB->SetRawOutput(2048);
-        pDACC->SetRawOutput(2048);
-        pDACD->SetRawOutput(2048);
+        //2 DAC PWMs:
+        auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pADmux);
+        auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pADmux);
 
 
         //---------------------------------------------------command system------------------------------------------------------
@@ -216,9 +218,27 @@ int main(void)
         pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetZeroRunSt,  &nodeControl::SetZero) );
 
         pDisp->Add("Zero.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) ); //18.07.2019 - a getter is added
+        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) );
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
+
+
+        //PWM:
+        pDisp->Add("PWM1", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM1, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
+        pDisp->Add("PWM1.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
+        pDisp->Add("PWM1.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM1, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
+        pDisp->Add("PWM1.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
+        pDisp->Add("PWM1.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
+        pDisp->Add("PWM1.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
+
+
+        pDisp->Add("PWM2", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM2, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
+        pDisp->Add("PWM2.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
+        pDisp->Add("PWM2.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM2, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
+        pDisp->Add("PWM2.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
+        pDisp->Add("PWM2.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
+        pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
+
 
         //--------------------menu+button+detection of a master----------------
         auto pMenu=std::make_shared<CMenuLogic>();
@@ -248,8 +268,12 @@ int main(void)
         pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this());
         //--------------------------------------------------------------------------------------------------------------
 
-        //setup bridge voltage
-        pADmux->SetUBRvoltage(true);
+
+        //NVM storage:
+        CRawBinStorage NVMstorage;
+        NVMstorage.AddItem(pADmux);
+        NVMstorage.AddItem(pZeroCal);
+        NVMstorage.Load();
 
 
         //blink at start:
@@ -257,6 +281,8 @@ int main(void)
 
         while(1) //endless loop ("super loop")
         {
+             NVMstorage.Update();
+
              //update calproc:
              pZeroCal->Update();
 

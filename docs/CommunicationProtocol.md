@@ -80,6 +80,37 @@ LED4 <br />
 LED4.blink <br />
 LED4.col <br />
 
+### Type PWM:
+
+This access point type is used to control board's AOUT3 & AOUT4 PWMs.
+
+Root domain:            Holds the PWMx ON/OFF state (boolen, false:true, r/w) <br />
+Sub domain (.repeats):  Holds a number of periods to generate (unsigned int, 0:0xffffffff, r/w, 0=infinite generation) <br />
+Sub domain (.duty):     Holds the PWM duty cycle(pulse width) (float, 0.001:0.999, r/w) <br />
+Sub domain (.freq):     Holds a frequency to generate (unsigned int, 1:1000, r/w) <br />
+Sub domain (.high):     Holds the high PWM output level (unsigned int, 0:4095, r/w) <br />
+Sub domain (.low):      Holds the low PWM output level (unsigned int, 0:4095, r/w) <br />
+
+Here is a list of all possible PWM's access points:
+
+PWM1 <br />
+PWM1.repeats <br />
+PWM1.duty <br />
+PWM1.freq <br />
+PWM1.high <br />
+PWM1.low <br />
+
+PWM2 <br />
+PWM2.repeats <br />
+PWM2.duty <br />
+PWM2.freq <br />
+PWM2.high <br />
+PWM2.low <br />
+
+
+
+
+
 ### Access points with only one root domain name:
 
  Access Point   |       Function
