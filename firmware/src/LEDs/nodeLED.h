@@ -176,6 +176,10 @@ protected:
     static bool              m_bLEDisChanged;
 
 public:
+    enum{
+        maxLEDs=4
+    };
+
 
     /*!
       * \brief Generates a random color

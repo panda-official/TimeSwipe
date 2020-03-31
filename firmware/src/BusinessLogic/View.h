@@ -17,6 +17,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "board_type.h"
 #include "rgbacol.h"
 #include "nodeLED.h"
+#include "os.h"
 
 /*!
  * \brief The application View class
@@ -29,6 +30,9 @@ Copyright (c) 2019-2020 Panda Team
  * The CView::Instance() that returns current view must remain.
  *
  */
+class CView;
+typedef void (CView::*pfn_ViewProc)();
+
 class CView
 {
 protected:
@@ -39,6 +43,22 @@ protected:
 
     //! current board basic color
     typeLEDcol m_BasicBoardCol;
+    typeLEDcol m_LastBackGroundCol[nodeLED::maxLEDs];
+
+    enum vismode{
+
+        background,
+        UI
+    };
+
+    vismode      m_VisMode=background;
+    pfn_ViewProc m_CurStep=nullptr;
+    void NextStep(pfn_ViewProc pNext){m_CurStep=pNext;}
+    void EndProc(){
+
+        m_CurStep=nullptr;
+        m_VisMode=background;
+    }
 
 public:
 

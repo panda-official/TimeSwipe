@@ -31,10 +31,10 @@ class CDataVis
 {
 protected:
     //! A brightness constant for calculating the actual LED brightness for visualization
-    static const constexpr float b_brght = 2.25f;
+    static const constexpr float b_brght = 7.0f;//2.25f;
     static const constexpr float bright_factor=1/(b_brght-1.0f);
 
-    const float ILowLim=0.08f;
+    const float ILowLim=0.02f;
 
     //! The upper visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to max. brightness. 
     int meas_max;
