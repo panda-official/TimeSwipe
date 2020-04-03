@@ -72,6 +72,11 @@ friend class CViewChannel;
 public:
     enum menu
     {
+       Gains=0,
+       Bridge,
+       Offsets,
+       SetSecondary,
+
        total=4
     };
 
@@ -83,12 +88,13 @@ protected:
 
     static const constexpr typeLEDcol MARKER_COLOR = LEDrgb(255, 10, 10);
     static const constexpr typeLEDcol RESET_COLOR = LEDrgb(255, 255, 255);
+    static const constexpr typeLEDcol ERROR_COLOR = LEDrgb(255, 0, 0);
     static const constexpr typeLEDcol MENU_COLORS[menu::total][2]={
 
         { LEDrgb(10, 0, 0), LEDrgb(255, 0, 0) },
         { LEDrgb(0, 10, 0), LEDrgb(0, 255, 0) },
         { LEDrgb(0, 0, 10), LEDrgb(0, 0, 255) },
-        { LEDrgb(10, 10, 10), LEDrgb(250, 250, 250) }
+        { LEDrgb(10, 10, 0), LEDrgb(250, 250, 0) }
     };
 
     //! current board basic color
@@ -98,23 +104,38 @@ protected:
     unsigned long m_WaitBeginTime_mS;
     unsigned long m_SetDelay;
     pfn_ViewProc m_CurStep=nullptr;
+    void EndProc(){ m_CurStep=nullptr; }
     void NextStep(pfn_ViewProc pNext){m_CurStep=pNext;}
+    pfn_ViewProc m_procDelayEnd=&CView::EndProc;
+
     void SelectVisMode(CViewChannel::vismode nMode)
     {
         for(auto &ch : m_Channels)
             ch.SelectVisMode(nMode);
     }
-    void EndProc(){
-
-        m_CurStep=nullptr;
-        SelectVisMode(CViewChannel::vismode::background);
-    }
-
     void procDelay()
     {
         if( (os::get_tick_mS()-m_WaitBeginTime_mS)<m_SetDelay  )
             return;
+        NextStep(m_procDelayEnd);
+    }
+    void Delay(unsigned long nDelay_mS, pfn_ViewProc EndProc)
+    {
+        m_SetDelay=nDelay_mS;
+        m_WaitBeginTime_mS=os::get_tick_mS();
+        m_procDelayEnd=EndProc;
+        NextStep(&CView::procDelay);
+    }
+    void procResetSettingsEnd()
+    {
+        SelectMenuPrevew(menu::total);
+        EndProc();
+    }
 
+    unsigned int m_ActSelMenu, m_ActSelElement;
+    void procApplySettingsEnd()
+    {
+        SelectMenu(m_ActSelMenu, m_ActSelElement);
         EndProc();
     }
 
@@ -127,6 +148,12 @@ public:
         ch4
     };
     CViewChannel & GetChannel(vischan nCh){ return m_Channels[nCh]; }
+
+    void ExitMenu()
+    {
+        EndProc();
+        SelectVisMode(CViewChannel::vismode::background);
+    }
 
 
     /*!
@@ -155,40 +182,6 @@ public:
      */
     CRGBAcol GetBasicColor() const {return m_BasicBoardCol;}
 
-
-    //API:
-    void SetDefaultModeAfter(unsigned long nDelay_mS)
-    {
-        m_SetDelay=nDelay_mS;
-        m_WaitBeginTime_mS=os::get_tick_mS();
-        NextStep(&CView::procDelay);
-    }
-
-
-    /*!
-     * \brief The view routine: "Hello" blinking at board startup
-     */
-    void BlinkAtStart()
-    {
-        SelectVisMode(CViewChannel::vismode::UI);
-        nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, m_BasicBoardCol, 2, 300);
-        SetDefaultModeAfter(800);
-    }
-
-    void SetRecordMarker()
-    {
-        SelectVisMode(CViewChannel::vismode::UI);
-        nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, MARKER_COLOR, 1, 300);
-        SetDefaultModeAfter(400);
-    }
-
-    void SelectMenuPrevew(unsigned int nMenu);
-    void SelectMenu(unsigned int nMenu, unsigned int nActive);
-    void ApplyMenu(unsigned int nMenu);
-    void ResetSettings();
-
-    void ExitMenu(){EndProc();}
-
     void Update()
     {
         if(m_CurStep)
@@ -197,6 +190,23 @@ public:
         }
         nodeLED::Update();
     }
+
+    //API:
+    void SetDefaultModeAfter(unsigned long nDelay_mS)
+    {
+        Delay(nDelay_mS, &CView::ExitMenu);
+    }
+
+
+    /*!
+     * \brief The view routine: "Hello" blinking at board startup
+     */
+    void BlinkAtStart();
+    void SetRecordMarker();
+    void SelectMenuPrevew(unsigned int nMenu);
+    void SelectMenu(unsigned int nMenu, unsigned int nActive);
+    void ApplyMenu();
+    void ResetSettings();
 
 private:
         /*!
@@ -212,8 +222,6 @@ private:
             m_Channels.emplace_back(typeLED::LED2);
             m_Channels.emplace_back(typeLED::LED3);
             m_Channels.emplace_back(typeLED::LED4);
-
-            EndProc(); //re-init LEDS
         }
 
         //! Forbid copy constructor

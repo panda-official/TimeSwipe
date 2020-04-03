@@ -33,15 +33,42 @@ void CViewChannel::SetSensorIntensity(float normI)
 
 void CViewChannel::SetZeroSearchingMark()
 {
+    if(vismode::UI!=m_VisMode)
+        return;
 
+    m_LED.SetBlinkMode(true);
+    m_LED.SetColor(CView::MENU_COLORS[CView::menu::Offsets][1]);
+    m_LED.ON(true);
 }
 void CViewChannel::SetZeroFoundMark()
 {
+    if(vismode::UI!=m_VisMode)
+        return;
 
+    m_LED.SetBlinkMode(false);
+    m_LED.SetColor(CView::MENU_COLORS[CView::menu::Offsets][1]);
 }
 void CViewChannel::SetZeroSearchErrorMark()
 {
+    if(vismode::UI!=m_VisMode)
+        return;
 
+    m_LED.SetBlinkMode(false);
+    m_LED.SetColor(CView::ERROR_COLOR);
+}
+
+void CView::BlinkAtStart()
+{
+    SelectVisMode(CViewChannel::vismode::UI);
+    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, m_BasicBoardCol, 2, 300);
+    SetDefaultModeAfter(1200);
+}
+
+void CView::SetRecordMarker()
+{
+    SelectVisMode(CViewChannel::vismode::UI);
+    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, MARKER_COLOR, 1, 300);
+    SetDefaultModeAfter(400);
 }
 
 void CView::SelectMenuPrevew(unsigned int nMenu)
@@ -63,20 +90,25 @@ void CView::SelectMenuPrevew(unsigned int nMenu)
 }
 void CView::SelectMenu(unsigned int nMenu, unsigned int nActive)
 {
+    m_ActSelMenu=nMenu; m_ActSelElement=nActive;
     SelectVisMode(CViewChannel::vismode::UI);
     for(unsigned int i=0; i<m_Channels.size(); i++)
     {
         m_Channels[i].m_LED.SetColor(MENU_COLORS[nMenu][i==nActive ? 1:0]);
     }
 }
-void CView::ApplyMenu(unsigned int nMenu)
+void CView::ApplyMenu()
 {
     SelectVisMode(CViewChannel::vismode::UI);
-    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, MENU_COLORS[nMenu][0], 1, 300);
+    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, MENU_COLORS[m_ActSelMenu][1], 1, 300);
+
+    Delay(400, &CView::procApplySettingsEnd);
 }
 void CView::ResetSettings()
 {
     SelectVisMode(CViewChannel::vismode::UI);
-    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, RESET_COLOR, 1, 300);
+    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, RESET_COLOR, 2, 300);
+
+    Delay(1200, &CView::procResetSettingsEnd);
 }
 

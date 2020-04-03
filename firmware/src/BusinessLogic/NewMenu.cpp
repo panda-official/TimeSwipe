@@ -90,7 +90,7 @@ void CNewMenu::OnButtonState(typeButtonState nState)
             return;
 
             case typeButtonState::long_click:
-                v.ApplyMenu(m_PreviewInd);
+                v.ApplyMenu();
             return;
 
             default: return;

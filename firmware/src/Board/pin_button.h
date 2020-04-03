@@ -27,6 +27,8 @@ Copyright (c) 2019 Panda Team
  * it must provide an overridden send_event(typeButtonState nState) virtual function
  */
 
+#define LONG_CLICK_ON_PRESS
+
 template <class T>
 class CPinButton{
 protected:
@@ -44,7 +46,8 @@ protected:
     /*!
      * \brief 1st order digital filter time constant, seconds
      */
-    float m_filter_t_Sec=0.009f;
+    //float m_filter_t_Sec=0.018f;
+    float m_filter_factor=1.0f/(0.018*1000.0f);
 	
     /*!
      * \brief A filtered signal level
@@ -62,9 +65,10 @@ protected:
     unsigned long m_interclick_time_span_mS;
 
     bool m_bFirstClickOfDouble=false;
+    bool m_bLongClickIsSet=false;
 
-    unsigned long m_short_click_max_duration_mS=1000;
-    unsigned long m_double_click_trhold_mS=500;
+    unsigned long m_short_click_max_duration_mS=1200;
+    unsigned long m_double_click_trhold_mS=400;
 
     /*!
      * \brief Minimum time between two consecutive updates
@@ -116,7 +120,7 @@ public:
         m_last_time_upd=os::get_tick_mS();
 			
         //! get the signal level and apply a 1-st order digital filter
-        m_level+=( (get_signal() ? 1.0f:0.0f) - m_level ) * ( (float)elapsed ) / (m_filter_t_Sec*1000.0f);
+        m_level+=( (get_signal() ? 1.0f:0.0f) - m_level ) * ( (float)elapsed ) * m_filter_factor;
 
         //! determine the button state based on filtered signal level
 		if(m_level>=m_high_trhold)
@@ -137,6 +141,17 @@ public:
             }
         }
 
+#ifdef LONG_CLICK_ON_PRESS
+        if(!m_bLongClickIsSet)
+        {
+            if(typeButtonState::pressed==m_prev_state && (os::get_tick_mS()-m_press_time_stamp_mS)>m_short_click_max_duration_mS)
+            {
+                m_bLongClickIsSet=true;
+                on_state_changed(typeButtonState::long_click);
+            }
+        }
+#endif
+
 
         //! if the state differs from previous state, generate a button event
 		if(m_prev_state!=m_cur_state)
@@ -148,6 +163,7 @@ public:
             }
             else
             {
+                m_bLongClickIsSet=false;
                 m_release_time_stamp_mS=os::get_tick_mS();
                 m_click_duration_mS=m_release_time_stamp_mS-m_press_time_stamp_mS;
 
@@ -175,11 +191,13 @@ public:
                         m_bFirstClickOfDouble=false;
                     }
                 }
+#ifndef LONG_CLICK_ON_PRESS
                 else
                 {
                     on_state_changed(typeButtonState::long_click);
                     m_bFirstClickOfDouble=false;
                 }
+#endif
 
             }
 

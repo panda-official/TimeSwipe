@@ -34,7 +34,7 @@ void nodeControl::StartRecord(const bool how)
     //generate an event:
     nlohmann::json v=count_mark;
     Instance().Fire_on_event("Record", v);
-    CView::Instance().SetRecordMarker();
+    //CView::Instance().SetRecordMarker();
 }
 
 int nodeControl::gain_out(int val)
