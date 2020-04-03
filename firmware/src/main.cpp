@@ -22,7 +22,8 @@ Copyright (c) 2019 Panda Team
 #include "DACdecor.h"
 #include "DACPWMht.h"
 
-#include "menu_logic.h"
+//#include "menu_logic.h"
+#include "NewMenu.h"
 #include "SAMbutton.h"
 #include "nodeLED.h"
 #include "View.h"
@@ -35,6 +36,8 @@ Copyright (c) 2019 Panda Team
 
 #include "HatsMemMan.h"
 #include "RawBinStorage.h"
+
+#include "View.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -58,13 +61,9 @@ int sys_clock_init(void);
 int main(void)
 {
         //step 0: clock init:
-        unsigned long last_time_upd=os::get_tick_mS();
+        //unsigned long last_time_upd=os::get_tick_mS();
         sys_clock_init(); //->120MHz
-        nodeLED::init();
-        auto pLED1      =std::make_shared<CLED>(typeLED::LED1);
-        auto pLED2      =std::make_shared<CLED>(typeLED::LED2);
-        auto pLED3      =std::make_shared<CLED>(typeLED::LED3);
-        auto pLED4      =std::make_shared<CLED>(typeLED::LED4);
+
 
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
@@ -158,10 +157,10 @@ int main(void)
 
         //calibrator:
         auto pZeroCal=std::make_shared<CCalMan>();
-        pZeroCal->Add(pADC1, pDACA, pLED1);
-        pZeroCal->Add(pADC2, pDACB, pLED2);
-        pZeroCal->Add(pADC3, pDACC, pLED3);
-        pZeroCal->Add(pADC4, pDACD, pLED4);
+        pZeroCal->Add(pADC1, pDACA, CView::ch1);
+        pZeroCal->Add(pADC2, pDACB, CView::ch2);
+        pZeroCal->Add(pADC3, pDACC, CView::ch3);
+        pZeroCal->Add(pADC4, pDACD, CView::ch4);
 
         nodeControl::SetControlItems(pADmux, pZeroCal);
 
@@ -194,7 +193,7 @@ int main(void)
 
 
         //LEDs control:
-        pDisp->Add("LED1", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED1, nullptr,  &CLED::ON) );
+   /*     pDisp->Add("LED1", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED1, nullptr,  &CLED::ON) );
         pDisp->Add("LED1.blink", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED1, nullptr,  &CLED::SetBlinkMode) );
         pDisp->Add("LED1.col", std::make_shared< CCmdSGHandler<CLED, typeLEDcol> >(pLED1, nullptr,  &CLED::SetColor) );
 
@@ -208,7 +207,7 @@ int main(void)
 
         pDisp->Add("LED4", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED4, nullptr,  &CLED::ON) );
         pDisp->Add("LED4.blink", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED4, nullptr,  &CLED::SetBlinkMode) );
-        pDisp->Add("LED4.col", std::make_shared< CCmdSGHandler<CLED, typeLEDcol> >(pLED4, nullptr,  &CLED::SetColor) );
+        pDisp->Add("LED4.col", std::make_shared< CCmdSGHandler<CLED, typeLEDcol> >(pLED4, nullptr,  &CLED::SetColor) );*/
 
         //Node control:
         pDisp->Add("Gain", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetGain, &nodeControl::SetGain) );
@@ -241,14 +240,13 @@ int main(void)
 
 
         //--------------------menu+button+detection of a master----------------
-        auto pMenu=std::make_shared<CMenuLogic>();
-        SAMButton button(*pMenu);
+        CNewMenu menu;
+        SAMButton button(menu);
 
-        nodeControl::CreateDataVis(pADC1, pLED1);
-        nodeControl::CreateDataVis(pADC2, pLED2);
-        nodeControl::CreateDataVis(pADC3, pLED3);
-        nodeControl::CreateDataVis(pADC4, pLED4);
-        nodeControl::StartDataVis(true, 1200);
+        nodeControl::CreateDataVis(pADC1, CView::ch1);
+        nodeControl::CreateDataVis(pADC2, CView::ch2);
+        nodeControl::CreateDataVis(pADC3, CView::ch3);
+        nodeControl::CreateDataVis(pADC4, CView::ch4);
 
 
         //--------------------JSON- ---------------------
@@ -259,15 +257,9 @@ int main(void)
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
         pDisp->Add("je", pJE);
         button.AdviseSink(pJE);
-        pMenu->AdviseSink(pJE);
-        pMenu->AdviseSink(nodeControl::Instance().shared_from_this());
         nodeControl::Instance().AdviseSink(pJE);
-
         pZeroCal->AdviseSink(pJE);
-        pZeroCal->AdviseSink(pMenu);
-        pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this());
         //--------------------------------------------------------------------------------------------------------------
-
 
         //NVM storage:
         CRawBinStorage NVMstorage;
@@ -283,24 +275,10 @@ int main(void)
         {
              NVMstorage.Update();
 
-             //update calproc:
              pZeroCal->Update();
-
-
-             nodeControl::Instance().Update();
-
-             //update LEDs:
-             nodeLED::Update();
-
-             //upd button:
              button.update();
-
-             //upd menu object:
-             if( (os::get_tick_mS()-last_time_upd)>=1000 )	//to do: add an event!!!
-             {
-                     last_time_upd=os::get_tick_mS();
-                     pMenu->OnTimer(0);
-             }
+             nodeControl::Instance().Update();
+             CView::Instance().Update();
 
              pSPIsc2->Update();
         }

@@ -15,7 +15,8 @@ Copyright (c) 2019 Panda Team
 
 #include <memory>
 #include "ADC.h"
-#include "nodeLED.h"
+//#include "nodeLED.h"
+#include "View.h"
 
 /*!
  * \brief Data visualization class: displays the measured signal levels of the ADC channel using the LED indicator. Like this it visualizes the actual measurement values.
@@ -66,13 +67,13 @@ protected:
     /*!
      * \brief The visualisation process is started
      */
-    bool          m_bStarted=true;
+    //bool          m_bStarted=true;
 
     /*!
      * \brief "Start" order for initialization - to be executed in CDataVis::Update() method
      * \details Preparing/re-initialize object internals for visualization after issuing a CDataVis::Start method
      */
-    bool          m_bStartInitOder=false;
+  //  bool          m_bStartInitOder=false;
 
     /*!
      * \brief State updation/recalculation period (for CDataVis::Update())
@@ -87,7 +88,8 @@ protected:
     /*!
      * \brief A pointer to visualization LED to display processed data
      */
-    std::shared_ptr<CLED> m_pLED;
+    //std::shared_ptr<CLED> m_pLED;
+    CView::vischan m_nCh;
 
 public:
     /*!
@@ -101,14 +103,14 @@ public:
      * \param pADC A pointer to an ADC channel
      * \param pLED A pointer to a LED
      */
-    CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
+    CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh); //const std::shared_ptr<CLED> &pLED);
 
     /*!
      * \brief Starts/Stops the data visualization process
      * \param bHow true=Start, false=Stop
      * \param nDelay_mS A delay before process will be started after calling this method with bHow=true
      */
-    void Start(bool bHow, unsigned long nDelay_mS);
+    //void Start(bool bHow, unsigned long nDelay_mS);
 
     /*!
      * \brief The object state update method

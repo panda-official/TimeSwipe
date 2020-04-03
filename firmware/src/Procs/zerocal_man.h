@@ -17,10 +17,11 @@ Copyright (c) 2019 Panda Team
 #include <vector>
 #include "ADC.h"
 #include "DAC.h"
-#include "nodeLED.h"
+//#include "nodeLED.h"
 #include "ADpointSearch.h"
 #include "json_evsys.h"
 #include "Storage.h"
+#include "View.h"
 
 /*!
  * \brief A container for collection of CADpointSearch class objects
@@ -39,7 +40,9 @@ protected:
     /*!
      * \brief A collection of corresponding LEDs for state indication
      */
-    std::vector< std::shared_ptr<CLED> >    m_pLED;
+    //std::vector< std::shared_ptr<CLED> >    m_pLED;
+
+    std::vector<CView::vischan> m_VisChan;
 
     /*!
      * \brief A collection of CADpointSearch algorithm states to detect change of the state and forcing a LED action
@@ -79,10 +82,11 @@ public:
      * \param pDAC A control signal
      * \param pLED A LED indicator to bind
      */
-    void Add(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<CLED> &pLED)
+    void Add(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC, CView::vischan nCh) //const std::shared_ptr<CLED> &pLED)
     {
         m_ChanCal.emplace_back(pADC, pDAC);
-        m_pLED.emplace_back(pLED);
+        //m_pLED.emplace_back(pLED);
+        m_VisChan.emplace_back(nCh);
         m_State.emplace_back(typePTsrcState::idle);
     }
 

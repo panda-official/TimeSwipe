@@ -15,6 +15,7 @@ Copyright (c) 2019 Panda Team
 
 #include <memory>
 #include "ADmux.h"
+#include "View.h"
 #include "zerocal_man.h"
 #include "json_evsys.h"
 
@@ -26,7 +27,7 @@ Copyright (c) 2019 Panda Team
  * when basic board settings are changed
  */
 
-class nodeControl : public std::enable_shared_from_this<nodeControl>, public CJSONEvCP,  public IJSONEvent{
+class nodeControl : public CJSONEvCP{ //public std::enable_shared_from_this<nodeControl>, public CJSONEvCP{ //,  public IJSONEvent{
 protected:
 
         /*!
@@ -51,7 +52,7 @@ protected:
          * \param key An object string name (key)
          * \param val A JSON event
          */
-        virtual void on_event(const char *key, nlohmann::json &val);
+      //  virtual void on_event(const char *key, nlohmann::json &val);
 
 public:
         /*!
@@ -60,8 +61,11 @@ public:
          */
         static nodeControl& Instance()
         {
-           static std::shared_ptr<nodeControl> ptr(new nodeControl);
-           return *ptr;
+            static nodeControl singleton;
+            return singleton;
+
+           //static std::shared_ptr<nodeControl> ptr(new nodeControl);
+           //return *ptr;
         }
 private:
         //! Forbid creating other instances of the class object
@@ -101,7 +105,7 @@ public:
          * \param pADC An ADC channel to bind with the new object
          * \param pLED A LED object to bind with the new object
          */
-        static void CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
+        static void CreateDataVis(const std::shared_ptr<CAdc> &pADC,  CView::vischan nCh); //const std::shared_ptr<CLED> &pLED);
 
         /*!
          * \brief Turns on/off the data visualization process

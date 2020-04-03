@@ -14,6 +14,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
+#include <vector>
 #include "board_type.h"
 #include "rgbacol.h"
 #include "nodeLED.h"
@@ -33,34 +34,100 @@ Copyright (c) 2019-2020 Panda Team
 class CView;
 typedef void (CView::*pfn_ViewProc)();
 
-class CView
+class CViewChannel
 {
+friend class CView;
 protected:
-
-    //! board basic colours in a compressed form:
-    static const constexpr typeLEDcol DMS_COLOR = LEDrgb(24, 250, 208);
-    static const constexpr typeLEDcol IEPE_COLOR = LEDrgb(73, 199, 255);
-
-    //! current board basic color
-    typeLEDcol m_BasicBoardCol;
-    typeLEDcol m_LastBackGroundCol[nodeLED::maxLEDs];
+    CLED m_LED;
+    typeLEDcol m_LastBackgroundCol;
 
     enum vismode{
 
         background,
         UI
     };
+    vismode m_VisMode;
+    void SelectVisMode(vismode nMode);
 
-    vismode      m_VisMode=background;
-    pfn_ViewProc m_CurStep=nullptr;
-    void NextStep(pfn_ViewProc pNext){m_CurStep=pNext;}
-    void EndProc(){
-
-        m_CurStep=nullptr;
+public:
+    CViewChannel(typeLED nLED) : m_LED(nLED)
+    {
+        m_LastBackgroundCol=0;
         m_VisMode=background;
     }
 
+    //Background API:
+    void SetSensorIntensity(float normI); //visualization
+
+    //UI API:
+    void SetZeroSearchingMark();
+    void SetZeroFoundMark();
+    void SetZeroSearchErrorMark();
+};
+
+class CView
+{
+friend class CViewChannel;
+
 public:
+    enum menu
+    {
+       total=4
+    };
+
+
+protected:
+    //! board basic colours in a compressed form:
+    static const constexpr typeLEDcol DMS_COLOR = LEDrgb(24, 250, 208);
+    static const constexpr typeLEDcol IEPE_COLOR = LEDrgb(73, 199, 255);
+
+    static const constexpr typeLEDcol MARKER_COLOR = LEDrgb(255, 10, 10);
+    static const constexpr typeLEDcol RESET_COLOR = LEDrgb(255, 255, 255);
+    static const constexpr typeLEDcol MENU_COLORS[menu::total][2]={
+
+        { LEDrgb(10, 0, 0), LEDrgb(255, 0, 0) },
+        { LEDrgb(0, 10, 0), LEDrgb(0, 255, 0) },
+        { LEDrgb(0, 0, 10), LEDrgb(0, 0, 255) },
+        { LEDrgb(10, 10, 10), LEDrgb(250, 250, 250) }
+    };
+
+    //! current board basic color
+    typeLEDcol m_BasicBoardCol;
+    std::vector<CViewChannel> m_Channels;
+
+    unsigned long m_WaitBeginTime_mS;
+    unsigned long m_SetDelay;
+    pfn_ViewProc m_CurStep=nullptr;
+    void NextStep(pfn_ViewProc pNext){m_CurStep=pNext;}
+    void SelectVisMode(CViewChannel::vismode nMode)
+    {
+        for(auto &ch : m_Channels)
+            ch.SelectVisMode(nMode);
+    }
+    void EndProc(){
+
+        m_CurStep=nullptr;
+        SelectVisMode(CViewChannel::vismode::background);
+    }
+
+    void procDelay()
+    {
+        if( (os::get_tick_mS()-m_WaitBeginTime_mS)<m_SetDelay  )
+            return;
+
+        EndProc();
+    }
+
+public:
+    enum vischan{
+
+        ch1=0,
+        ch2,
+        ch3,
+        ch4
+    };
+    CViewChannel & GetChannel(vischan nCh){ return m_Channels[nCh]; }
+
 
     /*!
      * \brief The current view access interface
@@ -89,19 +156,65 @@ public:
     CRGBAcol GetBasicColor() const {return m_BasicBoardCol;}
 
 
+    //API:
+    void SetDefaultModeAfter(unsigned long nDelay_mS)
+    {
+        m_SetDelay=nDelay_mS;
+        m_WaitBeginTime_mS=os::get_tick_mS();
+        NextStep(&CView::procDelay);
+    }
+
+
     /*!
      * \brief The view routine: "Hello" blinking at board startup
      */
-    void BlinkAtStart() const
+    void BlinkAtStart()
     {
+        SelectVisMode(CViewChannel::vismode::UI);
         nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, m_BasicBoardCol, 2, 300);
+        SetDefaultModeAfter(800);
+    }
+
+    void SetRecordMarker()
+    {
+        SelectVisMode(CViewChannel::vismode::UI);
+        nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, MARKER_COLOR, 1, 300);
+        SetDefaultModeAfter(400);
+    }
+
+    void SelectMenuPrevew(unsigned int nMenu);
+    void SelectMenu(unsigned int nMenu, unsigned int nActive);
+    void ApplyMenu(unsigned int nMenu);
+    void ResetSettings();
+
+    void ExitMenu(){EndProc();}
+
+    void Update()
+    {
+        if(m_CurStep)
+        {
+            (this->*(m_CurStep))();
+        }
+        nodeLED::Update();
     }
 
 private:
         /*!
          * \brief Private class constructor
          */
-        CView(){SetupBoardType(typeBoard::IEPEBoard);}
+        CView(){
+
+            SetupBoardType(typeBoard::IEPEBoard);
+
+            nodeLED::init();
+            m_Channels.reserve(4);
+            m_Channels.emplace_back(typeLED::LED1);
+            m_Channels.emplace_back(typeLED::LED2);
+            m_Channels.emplace_back(typeLED::LED3);
+            m_Channels.emplace_back(typeLED::LED4);
+
+            EndProc(); //re-init LEDS
+        }
 
         //! Forbid copy constructor
         CView(const CView&)=delete;

@@ -23,7 +23,7 @@ Copyright (c) 2019 Panda Team
  * \brief A hardware-dependent realization of the board's button with ability of generation a JSON event from the button state
  */
 
-class SAMButton: public CPinButton, public CJSONEvCP
+class SAMButton: public CPinButton<SAMButton>, public CJSONEvCP
 {
 protected:
 
@@ -40,18 +40,19 @@ protected:
          */
         CButtonEvent &m_sink;
 
+public:
+
         /*!
          * \brief Obtains a button's pin state
          * \return true if the button is pressed, false - if released
          */
-        virtual bool get_signal(void);
+        bool impl_get_signal(void);
 
         /*!
          * \brief Generates both CButtonEvent::OnButtonState and IJSONEvent::on_event event callbacks
          * \param nState the current button state
          */
-        virtual void send_event(typeButtonState nState);
-public:
+        void impl_on_state_changed(typeButtonState nState);
 
         /*!
          * \brief The class constructor. The implementation contains the button PINs function setup

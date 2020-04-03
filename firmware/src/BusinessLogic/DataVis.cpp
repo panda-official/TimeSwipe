@@ -13,10 +13,11 @@ Copyright (c) 2019 Panda Team
 
 #include "board_type.h"
 
-CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
+CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh) //const std::shared_ptr<CLED> &pLED)
 {
     m_pADC=pADC;
-    m_pLED=pLED;
+    //m_pLED=pLED;
+    m_nCh=nCh;
     last_time_vis=os::get_tick_mS(); //set initial delay of 1 sec...
 }
 
@@ -36,7 +37,7 @@ void CDataVis::reset()
     senscon_chan=false;
 }
 
-void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
+/*void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
 {
     m_bStarted=bHow;
     m_upd_tspan_mS=nDelay_mS;
@@ -49,7 +50,7 @@ void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
     {
         m_pLED->ON(false);
     }
-}
+}*/
 
 void CDataVis::Update()
 {
@@ -65,16 +66,16 @@ void CDataVis::Update()
     m_upd_tspan_mS=17; //some default value for a fast updation(reset!)
     last_time_vis=os::get_tick_mS();
 
-    if(!m_bStarted)
-        return;
+ //   if(!m_bStarted)
+   //     return;
 
-    if(m_bStartInitOder)
+   /* if(m_bStartInitOder)
     {
         m_pLED->SetBlinkMode(false);
         m_pLED->SetColor(0);
         m_pLED->ON(true);
         m_bStartInitOder=false;
-    }
+    }*/
 
     //obtaining color val:
     int meas1=m_pADC->DirectMeasure();
@@ -115,7 +116,8 @@ void CDataVis::Update()
     {
         Inorm=1.0f;
     }
-    m_pLED->SetColor( CView::Instance().GetBasicColor()*Inorm );
+    //m_pLED->SetColor( CView::Instance().GetBasicColor()*Inorm );
+    CView::Instance().GetChannel(m_nCh).SetSensorIntensity(Inorm);
 
 }
 

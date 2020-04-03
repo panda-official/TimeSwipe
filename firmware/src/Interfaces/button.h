@@ -19,7 +19,11 @@ Copyright (c) 2019 Panda Team
 enum class typeButtonState
 {
     pressed,     //!<button is pressed
-    released     //!<button is released
+    released,     //!<button is released
+
+    short_click,
+    long_click,
+    double_click
 };
 
 /*!

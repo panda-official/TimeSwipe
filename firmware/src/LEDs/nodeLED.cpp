@@ -181,7 +181,7 @@ void nodeLED::blinkLED(typeLEDind sel, typeLEDcol blink_color)
 }
 void nodeLED::blinkMultipleLED(typeLEDind firstLED,  typeLEDind lastLED, typeLEDcol blink_color, int replication, int duration)
 {
-    for(const auto pLED:m_LEDs) if (pLED->m_nLED>=firstLED && pLED->m_nLED<=lastLED)
+    for(const auto pLED:m_LEDs) if(pLED->m_nLED>=firstLED && pLED->m_nLED<=lastLED)
     {
         pLED->m_BlinkPeriod_mS=duration;
         pLED->SetColor(blink_color);

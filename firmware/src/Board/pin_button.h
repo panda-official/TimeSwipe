@@ -26,6 +26,8 @@ Copyright (c) 2019 Panda Team
  * The generation of the corresponding event is delegated to the derived class -
  * it must provide an overridden send_event(typeButtonState nState) virtual function
  */
+
+template <class T>
 class CPinButton{
 protected:
 
@@ -42,7 +44,7 @@ protected:
     /*!
      * \brief 1st order digital filter time constant, seconds
      */
-	float m_filter_t_Sec=0.018f;
+    float m_filter_t_Sec=0.009f;
 	
     /*!
      * \brief A filtered signal level
@@ -53,6 +55,16 @@ protected:
      * \brief Last time when update() method was called, mSec
      */
     unsigned long m_last_time_upd=os::get_tick_mS();
+
+    unsigned long m_press_time_stamp_mS;
+    unsigned long m_release_time_stamp_mS;
+    unsigned long m_click_duration_mS;
+    unsigned long m_interclick_time_span_mS;
+
+    bool m_bFirstClickOfDouble=false;
+
+    unsigned long m_short_click_max_duration_mS=1000;
+    unsigned long m_double_click_trhold_mS=500;
 
     /*!
      * \brief Minimum time between two consecutive updates
@@ -73,13 +85,19 @@ protected:
      * \brief Acquires a raw signal level from a pin. The function must be implemented in derived class
      * \return The signal level: true=pressed, false=released.
      */
-	virtual bool get_signal(void)=0;
+    bool get_signal(void)
+    {
+        return static_cast<T*>(this)->impl_get_signal();
+    }
 
     /*!
      * \brief Generates a button event. The function must be implemented in derived class
      * \param nState The button state: pressed=typeButtonState::pressed or released=typeButtonState::released
      */
-	virtual void send_event(typeButtonState nState)=0;
+    void on_state_changed(typeButtonState nState)
+    {
+        static_cast<T*>(this)->impl_on_state_changed(nState);
+    }
 	
 public:
 
@@ -110,11 +128,63 @@ public:
 			m_cur_state=typeButtonState::released;
 		}	
 
+        if(m_bFirstClickOfDouble)
+        {
+            if( (os::get_tick_mS()-m_release_time_stamp_mS)>m_double_click_trhold_mS )
+            {
+                m_bFirstClickOfDouble=false;
+                on_state_changed(typeButtonState::short_click);
+            }
+        }
+
+
         //! if the state differs from previous state, generate a button event
 		if(m_prev_state!=m_cur_state)
-		{
-			m_prev_state=m_cur_state;
-			send_event(m_cur_state);
+        {
+            if(typeButtonState::pressed==m_cur_state)
+            {
+                m_press_time_stamp_mS=os::get_tick_mS();
+                m_interclick_time_span_mS=m_press_time_stamp_mS-m_release_time_stamp_mS;
+            }
+            else
+            {
+                m_release_time_stamp_mS=os::get_tick_mS();
+                m_click_duration_mS=m_release_time_stamp_mS-m_press_time_stamp_mS;
+
+                //this is a click:
+                if(m_click_duration_mS<m_short_click_max_duration_mS)
+                {
+                    if(m_click_duration_mS<m_double_click_trhold_mS)
+                    {
+                        if(m_bFirstClickOfDouble)
+                        {
+                            if(m_interclick_time_span_mS<m_double_click_trhold_mS)
+                            {
+                                on_state_changed(typeButtonState::double_click);
+                            }
+                            m_bFirstClickOfDouble=false;
+                        }
+                        else
+                        {
+                            m_bFirstClickOfDouble=true;
+                        }
+                    }
+                    else
+                    {
+                        on_state_changed(typeButtonState::short_click);
+                        m_bFirstClickOfDouble=false;
+                    }
+                }
+                else
+                {
+                    on_state_changed(typeButtonState::long_click);
+                    m_bFirstClickOfDouble=false;
+                }
+
+            }
+
+            on_state_changed(m_cur_state);
+            m_prev_state=m_cur_state;
 		}
 	}
 };
