@@ -33,6 +33,8 @@ protected:
      */
     bool m_bDownloading=false;
 
+    bool m_bDefaultSettingsOrder=false;
+
     /*!
      * \brief The virtual method must be overridden to provide an implementation of storing primitive data type
      * \param pVar a pointer to the data primitive
@@ -54,6 +56,8 @@ public:
      * \return true=data is downloading, false=data is uploading
      */
     bool IsDownloading(){ return m_bDownloading; }
+
+    bool IsDefaultSettingsOrder(){ return m_bDefaultSettingsOrder; }
 
     /*!
      * \brief The serialization method for a bool

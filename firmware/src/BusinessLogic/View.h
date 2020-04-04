@@ -207,6 +207,7 @@ public:
     void SelectMenu(unsigned int nMenu, unsigned int nActive);
     void ApplyMenu();
     void ResetSettings();
+    void ZeroSearchCompleted();
 
 private:
         /*!

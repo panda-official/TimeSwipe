@@ -32,7 +32,12 @@ public:
 protected:
     mode m_CurMode=mode::def;
 
-    unsigned int m_PreviewInd=0;
     unsigned int m_MenuInd=0;
+    unsigned int m_MenuEl=0;
+    unsigned int m_MenuElMin;
+    unsigned int m_MenuElMax;
+
+    void ObtainMenuElRange();
+    void ApplyMenuSetting();
 
 };

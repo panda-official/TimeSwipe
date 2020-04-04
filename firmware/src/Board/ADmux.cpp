@@ -41,11 +41,16 @@ CADmux::CADmux()
 
     PORT->Group[3].DIRSET.reg=(1L<<10);
     PORT->Group[3].OUTSET.reg=(1L<<10);
-
 }
 
 void CADmux::Serialize(CStorage &st)
 {
+    if(st.IsDefaultSettingsOrder())
+    {
+        SetGain(typeADgain::gainX1);
+        SetUBRvoltage(false);
+    }
+
     st.ser( *((int*)&m_CurGain) ).ser(m_UBRVoltage);
 
     if(st.IsDownloading())

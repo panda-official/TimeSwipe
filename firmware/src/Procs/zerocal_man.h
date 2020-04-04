@@ -17,7 +17,6 @@ Copyright (c) 2019 Panda Team
 #include <vector>
 #include "ADC.h"
 #include "DAC.h"
-//#include "nodeLED.h"
 #include "ADpointSearch.h"
 #include "json_evsys.h"
 #include "Storage.h"
@@ -28,7 +27,7 @@ Copyright (c) 2019 Panda Team
  * \details Provides a group control over a collection of CADpointSearch class objects
  */
 
-class CCalMan : public CJSONEvCP, public ISerialize
+class CCalMan : public ISerialize //public CJSONEvCP
 {
 protected:
 
@@ -40,8 +39,6 @@ protected:
     /*!
      * \brief A collection of corresponding LEDs for state indication
      */
-    //std::vector< std::shared_ptr<CLED> >    m_pLED;
-
     std::vector<CView::vischan> m_VisChan;
 
     /*!
@@ -69,6 +66,13 @@ protected:
     FSM m_PState=FSM::halted;
 
 public:
+    CCalMan()
+    {
+        m_ChanCal.reserve(4);
+        m_VisChan.reserve(4);
+        m_State.reserve(4);
+    }
+
     /*!
      * \brief Provides the serialization of the object content
      * \param st A reference to the storage from which the object content is downloading or uploading to
@@ -82,10 +86,9 @@ public:
      * \param pDAC A control signal
      * \param pLED A LED indicator to bind
      */
-    void Add(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC, CView::vischan nCh) //const std::shared_ptr<CLED> &pLED)
+    void Add(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC, CView::vischan nCh)
     {
         m_ChanCal.emplace_back(pADC, pDAC);
-        //m_pLED.emplace_back(pLED);
         m_VisChan.emplace_back(nCh);
         m_State.emplace_back(typePTsrcState::idle);
     }
@@ -99,7 +102,7 @@ public:
     /*!
      * \brief Starts all searching algorithms in collection
      */
-    void Start();
+    void Start(int val=2048);
 
     /*!
      * \brief Stops all searching and resets internal states of the objects

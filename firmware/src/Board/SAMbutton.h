@@ -59,4 +59,6 @@ public:
          * \param sink A reference to a CButtonEvent events listener
          */
         SAMButton(CButtonEvent &sink);
+
+        void TurnButtonLED(bool how);
 };

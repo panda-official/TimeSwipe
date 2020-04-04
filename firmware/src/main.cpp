@@ -258,27 +258,21 @@ int main(void)
         pDisp->Add("je", pJE);
         button.AdviseSink(pJE);
         nodeControl::Instance().AdviseSink(pJE);
-        pZeroCal->AdviseSink(pJE);
+        //pZeroCal->AdviseSink(pJE);
         //--------------------------------------------------------------------------------------------------------------
 
         //NVM storage:
-        CRawBinStorage NVMstorage;
-        NVMstorage.AddItem(pADmux);
-        NVMstorage.AddItem(pZeroCal);
-        NVMstorage.Load();
-
-
-        //blink at start:
-        CView::Instance().BlinkAtStart();
+        nodeControl &nc=nodeControl::Instance();
+        CView &view=CView::Instance();
+        nc.LoadSettings();
+        view.BlinkAtStart();
 
         while(1) //endless loop ("super loop")
         {
-             NVMstorage.Update();
-
              pZeroCal->Update();
              button.update();
-             nodeControl::Instance().Update();
-             CView::Instance().Update();
+             nc.Update();
+             view.Update();
 
              pSPIsc2->Update();
         }

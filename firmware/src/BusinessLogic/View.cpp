@@ -57,6 +57,17 @@ void CViewChannel::SetZeroSearchErrorMark()
     m_LED.SetColor(CView::ERROR_COLOR);
 }
 
+void CView::ZeroSearchCompleted()
+{
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetBlinkMode(false);
+        m_Channels[i].m_LED.ON(true);
+    }
+    Delay(2000, &CView::procApplySettingsEnd);
+}
+
+
 void CView::BlinkAtStart()
 {
     SelectVisMode(CViewChannel::vismode::UI);
@@ -100,7 +111,7 @@ void CView::SelectMenu(unsigned int nMenu, unsigned int nActive)
 void CView::ApplyMenu()
 {
     SelectVisMode(CViewChannel::vismode::UI);
-    nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, MENU_COLORS[m_ActSelMenu][1], 1, 300);
+    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, MENU_COLORS[m_ActSelMenu][1]);
 
     Delay(400, &CView::procApplySettingsEnd);
 }

@@ -15,13 +15,20 @@ std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 static bool brecord=false;
 static std::vector<CDataVis>  m_DataVis;
 
-void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh) //const std::shared_ptr<CLED> &pLED)
+nodeControl::nodeControl()
+{
+    m_DataVis.reserve(4);
+}
+
+void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh)
 {
     m_DataVis.emplace_back(pADC, nCh); //pLED);
 }
 void nodeControl::Update()
 {
     for(auto &el : m_DataVis) el.Update();
+
+    Instance().m_PersistStorage.Update();
 }
 
 bool nodeControl::IsRecordStarted(){ return brecord;}
@@ -34,7 +41,6 @@ void nodeControl::StartRecord(const bool how)
     //generate an event:
     nlohmann::json v=count_mark;
     Instance().Fire_on_event("Record", v);
-    //CView::Instance().SetRecordMarker();
 }
 
 int nodeControl::gain_out(int val)
@@ -92,3 +98,19 @@ void nodeControl::SetZero(bool how)
     else
         m_pZeroCal->StopReset();
 }
+
+void nodeControl::SearchNegativeRange(bool how)
+{
+    if(how)
+        m_pZeroCal->Start(4000);
+    else
+        m_pZeroCal->StopReset();
+}
+void nodeControl::SearchPositiveRange(bool how)
+{
+    if(how)
+        m_pZeroCal->Start(100);
+    else
+        m_pZeroCal->StopReset();
+}
+

@@ -17,6 +17,9 @@ void CCalMan::Serialize(CStorage &st)
     bool bSet=st.IsDownloading();
     for(auto &ch : m_ChanCal)
     {
+        if(st.IsDefaultSettingsOrder())
+            ch.m_PrmOffset=2048;
+
         st.ser( (ch.m_PrmOffset) );
         if(bSet)
         {
@@ -25,16 +28,16 @@ void CCalMan::Serialize(CStorage &st)
     }
 }
 
-void CCalMan::Start()
+void CCalMan::Start(int val)
 {
-    nlohmann::json v=true;
-    Fire_on_event("Zero", v);
+    //nlohmann::json v=true;
+    //Fire_on_event("Zero", v);
 
     m_PState=FSM::running;
     unsigned int nSize=m_ChanCal.size();
     for(unsigned int i=0; i<nSize; i++)
     {
-        m_ChanCal[i].Search(2048);
+        m_ChanCal[i].Search(val);
         CView::Instance().GetChannel(m_VisChan[i]).SetZeroSearchingMark();
     }
     m_LastTimeUpd=os::get_tick_mS();
@@ -47,12 +50,12 @@ void CCalMan::Start()
      for(unsigned int i=0; i<nSize; i++)
      {
          m_ChanCal[i].StopReset();
-         //CView::Instance().ExitMenu();
      }
      m_PState=FSM::halted;
+     CView::Instance().ZeroSearchCompleted();
 
-     nlohmann::json v=false;
-     Fire_on_event("Zero", v);
+     //nlohmann::json v=false;
+     //Fire_on_event("Zero", v);
  }
 void CCalMan::Update()
 {
@@ -94,12 +97,7 @@ void CCalMan::Update()
     }
     if(!bRunning)
     {
-        m_UpdSpan=1000; //1 sec delay
-        m_PState=FSM::delay;
-    }
-    }
-    else
-    {
         StopReset();
-    }
+
+    } }
 }

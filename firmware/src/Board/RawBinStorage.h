@@ -106,6 +106,8 @@ public:
      */
     void Load();
 
+    void SetDefaults();
+
     /*!
      * \brief Tracks changes in  serializable objects and overwrites SmartEEPROM when changed
      */

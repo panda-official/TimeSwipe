@@ -47,23 +47,19 @@ ELSE()
     IF(NOT CMAKE_CXX_COMPILER)
         SET(CMAKE_CXX_COMPILER "${TC_BIN_PATH}/${GPP_COMPILER_EXEC}")
     ENDIF()
-    SET(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)               #this is very important for gnuarm!!!
+    SET(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 ENDIF()
 
-SET(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER}) #05.09.2019
-
+SET(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
 
 
 #fetch firmware dir:
-#string(REPLACE "src" "" PATH_FIRMWARE ${CMAKE_CURRENT_SOURCE_DIR})
 string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "firmware" ROOT_PATH_POS)
-#message(STATUS ${ROOT_PATH_POS} )
 string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} 0 ${ROOT_PATH_POS} PATH_FIRMWARE)
 string(APPEND PATH_FIRMWARE "firmware")
-#message(STATUS ${PATH_FIRMWARE} )
 
 #compiler flags:
-set(COMPILER_FLAGS "-O0  -ffunction-sections -fdata-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
+set(COMPILER_FLAGS "-ffunction-sections -fdata-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}" CACHE INTERNAL "")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS} -std=c++17"  CACHE INTERNAL "")

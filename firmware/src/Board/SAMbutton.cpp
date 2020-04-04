@@ -8,7 +8,7 @@ Copyright (c) 2019 Panda Team
 #include "SAMbutton.h"
 #include "sam.h"
 
-//#define TIME_SWIPE_BRD_V0
+#define TIME_SWIPE_BRD_V0
 
 SAMButton::SAMButton(CButtonEvent &sink) : m_sink(sink)
 {
@@ -17,7 +17,21 @@ SAMButton::SAMButton(CButtonEvent &sink) : m_sink(sink)
  #else
     PORT->Group[0].PINCFG[18].bit.INEN=1;
  #endif
+
+    //enable button LED (PC16):
+    PORT->Group[2].DIRSET.reg=(1L<<16);
+    PORT->Group[2].OUTSET.reg=(1L<<16);
+
 }
+void SAMButton::TurnButtonLED(bool how)
+{
+    if(how)
+        PORT->Group[2].OUTCLR.reg=(1L<<16);
+    else
+        PORT->Group[2].OUTSET.reg=(1L<<16);
+}
+
+
 bool SAMButton::impl_get_signal(void){
 
 #ifdef EMU
@@ -39,8 +53,6 @@ void SAMButton::impl_on_state_changed(typeButtonState nState)
      if(typeButtonState::pressed==nState || typeButtonState::released==nState){
 
      m_nStateCounter++;
-
-     //14.06.2019:
      nlohmann::json v=typeButtonState::pressed==nState ? true:false;
      nlohmann::json stcnt=m_nStateCounter;
      Fire_on_event("Button", v);
