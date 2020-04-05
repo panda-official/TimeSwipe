@@ -10,7 +10,7 @@ Copyright (c) 2019 Panda Team
 
 #define TIME_SWIPE_BRD_V0
 
-SAMButton::SAMButton(CButtonEvent &sink) : m_sink(sink)
+SAMButton::SAMButton()
 {
  #ifdef TIME_SWIPE_BRD_V0
     PORT->Group[0].PINCFG[16].bit.INEN=1;
@@ -30,6 +30,10 @@ void SAMButton::TurnButtonLED(bool how)
     else
         PORT->Group[2].OUTSET.reg=(1L<<16);
 }
+bool SAMButton::IsButtonLEDon()
+{
+    return ( PORT->Group[2].OUT.reg & (1L<<16) ) ? true:false;
+}
 
 
 bool SAMButton::impl_get_signal(void){
@@ -48,7 +52,7 @@ bool SAMButton::impl_get_signal(void){
 
 void SAMButton::impl_on_state_changed(typeButtonState nState)
 {
-     m_sink.OnButtonState(nState);
+     m_pSink->OnButtonState(nState);
 
      if(typeButtonState::pressed==nState || typeButtonState::released==nState){
 

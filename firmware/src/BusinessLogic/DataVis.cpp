@@ -13,17 +13,16 @@ Copyright (c) 2019 Panda Team
 
 #include "board_type.h"
 
-CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh) //const std::shared_ptr<CLED> &pLED)
+CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh)
 {
     m_pADC=pADC;
-    //m_pLED=pLED;
     m_nCh=nCh;
-    last_time_vis=os::get_tick_mS(); //set initial delay of 1 sec...
+    last_time_vis=os::get_tick_mS();
 }
 
 void CDataVis::reset()
 {
-    int meas1=m_pADC->DirectMeasure();
+    int meas1=m_pADC->GetRawBinVal();
 
     meas_max = meas1 + min_wind/2;
     if(meas_max > 4095){
@@ -36,50 +35,21 @@ void CDataVis::reset()
     }
     senscon_chan=false;
 }
-
-/*void CDataVis::Start(bool bHow, unsigned long nDelay_mS)
-{
-    m_bStarted=bHow;
-    m_upd_tspan_mS=nDelay_mS;
-
-    if(bHow)
-    {
-        m_bStartInitOder=true;
-    }
-    else
-    {
-        m_pLED->ON(false);
-    }
-}*/
-
 void CDataVis::Update()
 {
     //quataion:
     if( (os::get_tick_mS()-last_time_vis)<m_upd_tspan_mS )
         return;
+    last_time_vis=os::get_tick_mS();
 
     if(first_update == true){
         CDataVis::reset();
         first_update = false;
+        m_upd_tspan_mS=17;
     }
 
-    m_upd_tspan_mS=17; //some default value for a fast updation(reset!)
-    last_time_vis=os::get_tick_mS();
-
- //   if(!m_bStarted)
-   //     return;
-
-   /* if(m_bStartInitOder)
-    {
-        m_pLED->SetBlinkMode(false);
-        m_pLED->SetColor(0);
-        m_pLED->ON(true);
-        m_bStartInitOder=false;
-    }*/
-
     //obtaining color val:
-    int meas1=m_pADC->DirectMeasure();
-
+    int meas1=m_pADC->GetRawBinVal();
     int cur_window=meas_max-meas_min+1;
 
     //check drop-out:
@@ -116,8 +86,6 @@ void CDataVis::Update()
     {
         Inorm=1.0f;
     }
-    //m_pLED->SetColor( CView::Instance().GetBasicColor()*Inorm );
     CView::Instance().GetChannel(m_nCh).SetSensorIntensity(Inorm);
-
 }
 

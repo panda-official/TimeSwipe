@@ -29,6 +29,8 @@ void nodeControl::Update()
     for(auto &el : m_DataVis) el.Update();
 
     Instance().m_PersistStorage.Update();
+
+    m_pZeroCal->Update();
 }
 
 bool nodeControl::IsRecordStarted(){ return brecord;}

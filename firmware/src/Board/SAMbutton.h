@@ -38,9 +38,15 @@ protected:
          * \deprecated Initialy it was used to subscribe a menu object for button events
          * \todo Use only IJSONEvent instead?
          */
-        CButtonEvent &m_sink;
+        //CButtonEvent &m_sink;
+        std::shared_ptr<CButtonEvent> m_pSink;
 
 public:
+
+        void AdviseSink(const std::shared_ptr<CButtonEvent> &sink)
+        {
+            m_pSink=sink;
+        }
 
         /*!
          * \brief Obtains a button's pin state
@@ -58,7 +64,30 @@ public:
          * \brief The class constructor. The implementation contains the button PINs function setup
          * \param sink A reference to a CButtonEvent events listener
          */
-        SAMButton(CButtonEvent &sink);
+       // SAMButton(CButtonEvent &sink);
 
         void TurnButtonLED(bool how);
+        bool IsButtonLEDon();
+
+        /*!
+         * \brief The current view access interface
+         * \return The current view
+         */
+        static SAMButton& Instance()
+        {
+           static SAMButton singleton;
+           return singleton;
+        }
+
+private:
+        /*!
+         * \brief Private class constructor
+         */
+        SAMButton();
+
+        //! Forbid copy constructor
+        SAMButton(const SAMButton&)=delete;
+
+        //! Forbid copying
+        SAMButton& operator=(const SAMButton&)=delete;
 };

@@ -103,7 +103,7 @@ public:
      * \param pADC A pointer to an ADC channel
      * \param pLED A pointer to a LED
      */
-    CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh); //const std::shared_ptr<CLED> &pLED);
+    CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh);
 
     /*!
      * \brief Starts/Stops the data visualization process

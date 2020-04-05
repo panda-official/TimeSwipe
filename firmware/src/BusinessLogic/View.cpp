@@ -123,3 +123,42 @@ void CView::ResetSettings()
     Delay(1200, &CView::procResetSettingsEnd);
 }
 
+void CView::SetButtonHeartbeat(bool how)
+{
+    m_ButtonLEDphase=how;
+    m_ButtonLEDphaseBeginTime_mS=os::get_tick_mS();
+    SAMButton::Instance().TurnButtonLED(how);
+}
+
+void CView::Update()
+{
+    if(m_CurStep)
+    {
+        (this->*(m_CurStep))();
+    }
+    nodeLED::Update();
+
+    if(m_ButtonLEDphase)
+    {
+        unsigned long time_now=os::get_tick_mS();
+        if(m_ButtonLEDphase>=4)
+        {
+            if( (time_now - m_ButtonLEDphaseBeginTime_mS)<10000)
+                return;
+
+            m_ButtonLEDphase=1;
+        }
+        else
+        {
+            if( (time_now - m_ButtonLEDphaseBeginTime_mS)<500)
+                return;
+
+            m_ButtonLEDphase++;
+        }
+
+        m_ButtonLEDphaseBeginTime_mS=time_now;
+        SAMButton::Instance().TurnButtonLED(m_ButtonLEDphase&1);
+
+    }
+}
+

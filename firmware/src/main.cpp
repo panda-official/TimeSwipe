@@ -61,9 +61,7 @@ int sys_clock_init(void);
 int main(void)
 {
         //step 0: clock init:
-        //unsigned long last_time_upd=os::get_tick_mS();
         sys_clock_init(); //->120MHz
-
 
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
@@ -106,10 +104,8 @@ int main(void)
 
         //step 1 - creating QSPI bus:
         CSamQSPI objQSPI;
-
-
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
-        pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
+        pSPIsc2->EnableIRQs(true);
 
 
 
@@ -215,9 +211,10 @@ int main(void)
         pDisp->Add("Bridge", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetBridge,  &nodeControl::SetBridge) );
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
         pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetZeroRunSt,  &nodeControl::SetZero) );
+        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsMeasurementsEnabled,  &nodeControl::EnableMeasurements) );
 
         pDisp->Add("Zero.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) );
+        //pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) );
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
 
@@ -239,15 +236,14 @@ int main(void)
         pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
 
 
-        //--------------------menu+button+detection of a master----------------
-        CNewMenu menu;
-        SAMButton button(menu);
-
         nodeControl::CreateDataVis(pADC1, CView::ch1);
         nodeControl::CreateDataVis(pADC2, CView::ch2);
         nodeControl::CreateDataVis(pADC3, CView::ch3);
         nodeControl::CreateDataVis(pADC4, CView::ch4);
 
+
+        SAMButton &button=SAMButton::Instance();
+        button.AdviseSink( std::make_shared<CNewMenu>() );
 
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -256,12 +252,12 @@ int main(void)
         //------------------JSON EVENTS-------------------
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
         pDisp->Add("je", pJE);
-        button.AdviseSink(pJE);
+        button.CJSONEvCP::AdviseSink(pJE);
         nodeControl::Instance().AdviseSink(pJE);
         //pZeroCal->AdviseSink(pJE);
         //--------------------------------------------------------------------------------------------------------------
 
-        //NVM storage:
+
         nodeControl &nc=nodeControl::Instance();
         CView &view=CView::Instance();
         nc.LoadSettings();
@@ -269,11 +265,11 @@ int main(void)
 
         while(1) //endless loop ("super loop")
         {
-             pZeroCal->Update();
              button.update();
              nc.Update();
              view.Update();
 
              pSPIsc2->Update();
+             pSamADC0->Update();
         }
 }

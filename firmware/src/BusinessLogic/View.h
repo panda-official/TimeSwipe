@@ -19,6 +19,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "rgbacol.h"
 #include "nodeLED.h"
 #include "os.h"
+#include "SAMbutton.h"
 
 /*!
  * \brief The application View class
@@ -101,6 +102,9 @@ protected:
     typeLEDcol m_BasicBoardCol;
     std::vector<CViewChannel> m_Channels;
 
+    unsigned int m_ButtonLEDphase;
+    unsigned long m_ButtonLEDphaseBeginTime_mS;
+
     unsigned long m_WaitBeginTime_mS;
     unsigned long m_SetDelay;
     pfn_ViewProc m_CurStep=nullptr;
@@ -182,14 +186,6 @@ public:
      */
     CRGBAcol GetBasicColor() const {return m_BasicBoardCol;}
 
-    void Update()
-    {
-        if(m_CurStep)
-        {
-            (this->*(m_CurStep))();
-        }
-        nodeLED::Update();
-    }
 
     //API:
     void SetDefaultModeAfter(unsigned long nDelay_mS)
@@ -208,6 +204,9 @@ public:
     void ApplyMenu();
     void ResetSettings();
     void ZeroSearchCompleted();
+    void SetButtonHeartbeat(bool how);
+
+    void Update();
 
 private:
         /*!

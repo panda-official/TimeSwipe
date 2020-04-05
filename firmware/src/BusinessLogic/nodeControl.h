@@ -210,6 +210,15 @@ public:
         static void SearchNegativeRange(bool how);
         static void SearchPositiveRange(bool how);
 
+        static void EnableMeasurements(bool how)
+        {
+            m_pMUX->EnableADmes(how);
+            CView::Instance().SetButtonHeartbeat(how);
+        }
+        static bool IsMeasurementsEnabled()
+        {
+            return m_pMUX->IsADmesEnabled();
+        }
 
 
         /*!
