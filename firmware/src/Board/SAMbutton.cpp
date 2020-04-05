@@ -8,7 +8,7 @@ Copyright (c) 2019 Panda Team
 #include "SAMbutton.h"
 #include "sam.h"
 
-#define TIME_SWIPE_BRD_V0
+//#define TIME_SWIPE_BRD_V0
 
 SAMButton::SAMButton()
 {
