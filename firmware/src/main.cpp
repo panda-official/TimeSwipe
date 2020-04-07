@@ -36,6 +36,10 @@ Copyright (c) 2019 Panda Team
 #include "HatsMemMan.h"
 #include "RawBinStorage.h"
 
+//#include "SamTempSensor.h"
+//#include "PINPWM.h"
+#include "FanControl.h"
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -275,12 +279,19 @@ int main(void)
         NVMstorage.AddItem(pZeroCal);
         NVMstorage.Load();
 
+        //temp sensor+ PIN PWM:
+        auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
+        auto pFanPWM=std::make_shared<CPinPWM>(CSamPORT::group::A, CSamPORT::pin::P09);
+        auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
+
 
         //blink at start:
         CView::Instance().BlinkAtStart();
 
         while(1) //endless loop ("super loop")
         {
+             pFanControl->Update();
+
              NVMstorage.Update();
 
              //update calproc:
