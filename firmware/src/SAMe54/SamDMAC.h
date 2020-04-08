@@ -208,7 +208,7 @@ protected:
      *  \brief maximum channels number
      */
     enum{
-       nMaxChannels=4
+       nMaxChannels=8
     };
 
     /*!

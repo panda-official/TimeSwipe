@@ -34,7 +34,7 @@ CPinPWM::CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin) : CSamTC(typeSamTC:
 
     m_pLLevDMAch=dmac.Factory();
     m_pLLevDMAch->SetupTrigger(CSamDMAChannel::trigact::BLOCK, CSamDMAChannel::trigsrc::TC6MC1);
-    m_pLLevDMAch->AddBlock().Setup(&m_prmPortMask, (const void*)&(PORT->Group[nGroup].OUTSET.reg), 1, CSamDMABlock::beatsize::WORD32);
+    m_pLLevDMAch->AddBlock().Setup(&m_prmPortMask, (const void*)&(PORT->Group[nGroup].OUTCLR.reg), 1, CSamDMABlock::beatsize::WORD32);
     m_pLLevDMAch->SetLoopMode();
     m_pLLevDMAch->Enable(true);
 
