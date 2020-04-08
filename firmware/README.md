@@ -1,4 +1,4 @@
-# TimeSwipe Firmware
+﻿# TimeSwipe Firmware
 
 The TimeSwipe firmware can be flashed onto the TimeSwipe board a programmer or a debugger like the Atmel ICE.
 The most convenient variant however is to use a Raspberry Pi with openOCD.
@@ -133,21 +133,7 @@ flash erase_check 0
 You should see 48 outputs of `... not erased`.
 This indicates a successful write process.
 
-`CPU fuses` programming is required to enable some of the CPU features like SmartEEPROM.
-To read the configuration from the user page, enter:
 
-```
-atsame5 userpage
-```
-
-To enable the SmartEEPROM with 4096 bytes size, use the command:
-
-```
-atsame5 userpage 0x3100000000 0x7f00000000
-```
-
-This is only required once, since erasing the chip doesn't affect fuses.
-SmartEEPROM must be activated for the board to retain its settings after a power loss.
 Type `exit` to disconnect the telnet session and again `exit` to log out of the second console.
 Switch to the first console with `Ctrl + Alt + F1` and exit openOCD with `Ctrl + c`.
 Shutdown the Raspberry Pi and the TimeSwipe board and power on again to start using the firmware.

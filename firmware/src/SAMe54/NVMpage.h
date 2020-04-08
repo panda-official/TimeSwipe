@@ -68,4 +68,54 @@ struct NVMscpage{
     uint32_t VCH                :12; //!<Temperature calibration parameter4
 };
 
+struct NVMfuses{
+
+    //32-bit block1:
+    uint32_t BOD33_Disable                  :1;
+    uint32_t BOD33_Level                    :8;
+    uint32_t BOD33_Action                   :2;
+    uint32_t BOD33_Hysteresis               :4;
+    uint32_t BOD12_CalibrationParameters    :11;
+    uint32_t NVM_BOOT                       :4;
+    uint32_t FactorySettings1               :2;
+
+    //32-bit block2:
+    uint32_t SEESBLK                        :4;
+    uint32_t SEEPSZ                         :3;
+    uint32_t RAM_ECCDIS                     :1;
+    uint32_t FactorySettings2               :8;
+    uint32_t WDT_Enable                     :1;
+    uint32_t WDT_AlwaysON                   :1;
+    uint32_t WDT_Period                     :4;
+    uint32_t WDT_Window                     :4;
+    uint32_t WDT_EWOFFSET                   :4;
+    uint32_t WDT_WEN                        :1;
+    uint32_t FactorySettings3               :1;
+
+    //32-bit block3:
+    uint32_t NVM_LOCKS;
+
+    //32-bit block4:
+    uint32_t UserPage;
+
+    //----------------QWORD BOUND-------------//
+
+    //32-bit block5:
+    uint32_t FactorySettings4;
+
+    //32-bit block6:
+    uint32_t FactorySettings5;
+
+    //32-bit block7:
+    uint32_t FactorySettings6;
+
+    //32-bit block8:
+    uint32_t FactorySettings7;
+};
+
+struct NVM_UserPage
+{
+    struct NVMfuses Fuses;
+    uint32_t UserPages[120];
+};
 

@@ -8,6 +8,7 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include <stdint.h>
+#include "NVMpage.h"
 
 /*!
 *   @file
@@ -55,6 +56,9 @@ public:
      *  so that all buffered data is actually stored in SamrtEEPROM flash memory
      */
     void FlushSmartEEPROM();
+
+    bool ReadUserPage(struct NVM_UserPage &page);
+    bool WriteUserPage(struct NVM_UserPage &page);
 
 
     /*!
