@@ -208,4 +208,36 @@ cmake ..
 make -j$(nproc)
 ```
 
+## Build the Driver emulator for Ubuntu 18.04 x86_64
 
+To build on Ubuntu 18.04, you will need to install some extra packages:
+
+```
+sudo apt-get install gcc-arm-none-eabi libboost-dev cmake git gcc g++ pkg-config
+```
+
+Clone this repository, if you haven't done that already:
+
+```
+git clone --recursive https://github.com/panda-official/timeswipe.git
+```
+
+Then simply navigate to the driver directory and build:
+
+```
+cd timeswipe/driver
+mkdir -p build
+cd build
+cmake .. -DEMUL=1
+make -j$(nproc)
+```
+
+Then build the example:
+
+```
+cd timeswipe/driver/examples/DataLogging
+mkdir -p build
+cd build
+cmake .. -DEMUL=1
+make -j$(nproc) main_static
+```

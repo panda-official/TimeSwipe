@@ -5,11 +5,13 @@
 #include <boost/lockfree/spsc_queue.hpp>
 #include <iostream>
 #include <list>
+#include <stdexcept>
 #include "timeswipe.hpp"
 #include "reader.hpp"
 #include "timeswipe_eeprom.hpp"
 #include "timeswipe_resampler.hpp"
 #include "pidfile.hpp"
+#include "defs.h"
 
 bool TimeSwipe::resample_log = false;
 
@@ -87,6 +89,11 @@ private:
     void _pollerLoop(TimeSwipe::ReadCallback cb);
     void _spiLoop();
     void _receiveEvents();
+#if NOT_RPI
+    int emulButtonPressed = 0;
+    int emulButtonSent = 0;
+    void _emulLoop();
+#endif
 
     RecordReader Rec;
     // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
@@ -121,6 +128,15 @@ TimeSwipeImpl* TimeSwipeImpl::startedInstance = nullptr;
 
 TimeSwipeImpl::TimeSwipeImpl()
   : pidfile("timeswipe") {
+
+    std::lock_guard<std::mutex> lock(startStopMtx);
+    std::string err;
+    // lock at the constructor
+    // second lock from the same process is allowed and returns success
+    if (!pidfile.Lock(err)) {
+        std::cerr << "pid file lock failed: \"" << err << "\"" << std::endl;
+        throw std::runtime_error("pid file lock failed");
+    }
 }
 
 TimeSwipeImpl::~TimeSwipeImpl() {
@@ -166,16 +182,12 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     {
         std::lock_guard<std::mutex> lock(startStopMtx);
         if (_work || startedInstance || _inCallback) {
-            return false;
-        }
-        std::string err;
-        // lock at the start
-        // second locke from the same instance is allowed and returns success
-        if (!pidfile.Lock(err)) {
-            std::cerr << "pid file lock failed: \"" << err << "\"" << std::endl;
+            std::cerr << "TimeSwipe already started or other instance started or called from callback function" << std::endl;
             return false;
         }
         startedInstance = this;
+
+        std::string err;
         if (!TimeSwipeEEPROM::Read(err)) {
             std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
             //TODO: uncomment once parsing implemented
@@ -191,6 +203,9 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop, this)));
     _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_pollerLoop, this, cb)));
     _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_spiLoop, this)));
+#if NOT_RPI
+    _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_emulLoop, this)));
+#endif
 
     return true;
 }
@@ -252,7 +267,15 @@ bool TimeSwipeImpl::_isStarted() {
 }
 
 void TimeSwipeImpl::_receiveEvents() {
+#if NOT_RPI
+    BoardEvents event;
+    if (emulButtonSent < emulButtonPressed) {
+        event.button = true;
+        event.buttonCounter = emulButtonSent = emulButtonPressed;
+    }
+#else
     auto event = readBoardEvents();
+#endif
     if (event.button) {
         _events.push(event);
     }
@@ -426,6 +449,36 @@ void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
         burstBuffer.clear();
     }
 }
+
+#if NOT_RPI
+void TimeSwipeImpl::_emulLoop() {
+    emulButtonPressed = 0;
+    emulButtonSent = 0;
+    while (_work) {
+        timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(0, &read_fds);
+
+        auto result = select(1, &read_fds, NULL, NULL, &tv);
+        if (result == -1 && errno != EINTR) {
+            std::cerr << "_emulLoop: error select" << std::endl;
+            return;
+        } else if (result == -1 && errno == EINTR) {
+            std::cerr << "_emulLoop: EINTR select" << std::endl;
+            return;
+        } else {
+            if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+                emulButtonPressed += 2; // press and release
+                std::string buf;
+                std::getline(std::cin, buf);
+            }
+        }
+    }
+}
+#endif
 
 void TimeSwipeImpl::SetBurstSize(size_t burst) {
     burstSize = burst;

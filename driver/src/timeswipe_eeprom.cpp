@@ -1,9 +1,13 @@
 #include "timeswipe_eeprom.hpp"
 #include "HatsMemMan.h"
+#include "defs.h"
 #include <memory>
 #include <fstream>
 
 bool TimeSwipeEEPROM::Read(std::string& error) {
+#if NOT_RPI
+    return true;
+#endif
     const char* i2c_file = "/sys/class/i2c-adapter/i2c-0/0-0050/eeprom";
     std::ifstream i2c(i2c_file);
     if (!i2c.is_open()) {
