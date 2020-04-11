@@ -9,6 +9,19 @@ Copyright (c) 2019-2020 Panda Team
 #include "PINPWM.h"
 #include "sam.h"
 
+/*extern "C"{
+void TC6_Handler(void)
+{
+    static unsigned long LastTimeIRQ_mS;
+    Port *pPort=PORT;
+
+    LastTimeIRQ_mS=os::get_tick_mS();
+
+
+    TC6->COUNT32.INTFLAG.reg=0xff; //clear
+}
+}*/
+
 Tc *glob_GetTcPtr(typeSamTC nTc);
 CPinPWM::CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin) : CSamTC(typeSamTC::Tc6)
 {
@@ -44,6 +57,9 @@ CPinPWM::CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin) : CSamTC(typeSamTC:
     pTc->COUNT32.WAVE.bit.WAVEGEN=1; //MFRQ: CC0=TOP
     pTc->COUNT32.CC[0].reg=0xffff; //prevent IRQ on start
     pTc->COUNT32.CC[1].reg=0xffff;
+
+  //  pTc->COUNT32.INTENSET.reg=(TC_INTFLAG_MC0|TC_INTFLAG_MC1);
+    //CSamTC::EnableIRQ(true);
 
     pTc->COUNT32.CTRLA.bit.ENABLE=1; //enable
     pTc->COUNT32.CTRLBSET.bit.CMD=2; //keep it in the stopped state!

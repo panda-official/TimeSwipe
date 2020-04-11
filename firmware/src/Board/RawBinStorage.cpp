@@ -10,7 +10,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "RawBinStorage.h"
 #include "SamNVMCTRL.h"
 
-#define STORAGE_STAMP 03032020
+#define STORAGE_STAMP 10042020
 CRawBinStorage::CRawBinStorage()
 {
     m_Dict.reserve(10);

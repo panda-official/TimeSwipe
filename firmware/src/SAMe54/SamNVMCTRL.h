@@ -59,12 +59,16 @@ public:
 
     bool ReadUserPage(struct NVM_UserPage &page);
     bool WriteUserPage(struct NVM_UserPage &page);
+    bool SetUserPageDefaults();
+
+    bool EraseBlock(unsigned int nBlock);
 
 
     /*!
      * \brief Returns the reference to the created class object instance. (The object created only once)
      * \return
      */
+
     static CSamNVMCTRL& Instance()
     {
        static CSamNVMCTRL instance;

@@ -36,9 +36,8 @@ Copyright (c) 2019 Panda Team
 #include "HatsMemMan.h"
 #include "RawBinStorage.h"
 
-//#include "SamTempSensor.h"
-//#include "PINPWM.h"
-#include "FanControl.h"
+#include "FanControlSimple.h"
+#include "SamNVMCTRL.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -61,6 +60,8 @@ int sys_clock_init(void);
 
 int main(void)
 {
+        CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
+
         //step 0: clock init:
         unsigned long last_time_upd=os::get_tick_mS();
         sys_clock_init(); //->120MHz
@@ -174,6 +175,10 @@ int main(void)
         auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pADmux);
         auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pADmux);
 
+        //temp sens+fan control:
+        auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
+        auto pFanControl=std::make_shared<CFanControlSimple>(pTempSens, CSamPORT::group::A, CSamPORT::pin::P09);
+
 
         //---------------------------------------------------command system------------------------------------------------------
         auto pDisp=         std::make_shared<CCmdDispatcher>();
@@ -279,24 +284,20 @@ int main(void)
         NVMstorage.AddItem(pZeroCal);
         NVMstorage.Load();
 
-        //temp sensor+ PIN PWM:
-        auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
-        auto pFanPWM=std::make_shared<CPinPWM>(CSamPORT::group::A, CSamPORT::pin::P09);
-        auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
-
 
         //blink at start:
         CView::Instance().BlinkAtStart();
 
         while(1) //endless loop ("super loop")
         {
-             pFanControl->Update();
 
              NVMstorage.Update();
 
              //update calproc:
              pZeroCal->Update();
 
+             //fan control:
+             pFanControl->Update();
 
              nodeControl::Instance().Update();
 

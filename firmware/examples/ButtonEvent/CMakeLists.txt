@@ -15,8 +15,10 @@ IF(NOT CMAKE_TOOLCHAIN_FILE)
     include (${CMAKE_TOOLCHAIN_FILE})
 ENDIF()
 
-#obtain JSON settings: 05.09.2019
-include(../../src/ObtainJSONsettings.cmake)
+include_directories(../../../3rdParty/)
+
+SET(CMAKE_CXX_FLAGS "-Wno-psabi")
+
 
 #fetch firmware dir:
 string(REPLACE "examples/ButtonEvent" "" PATH_FIRMWARE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -38,7 +40,7 @@ add_subdirectory(../../src/CortexMX ${BINARY_DIR}/CortexMX )
 add_subdirectory(../../src/SAMe54 ${BINARY_DIR}/SAMe54)
 
 
-add_executable(${TARGET_NAME}  main.cpp button_logic.cpp ${PATH_FIRMWARE}/3rdParty/prj_templ/Custom/startup_ARMCM4.S)
+add_executable(${TARGET_NAME}  main.cpp button_logic.cpp ${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/startup_ARMCM4.S)
 
 target_include_directories(${TARGET_NAME} PUBLIC ../../src/Interfaces)
 target_include_directories(${TARGET_NAME} PUBLIC ../../src/ADCDAC)
@@ -49,8 +51,6 @@ target_include_directories(${TARGET_NAME} PUBLIC ../../src/Communication)
 target_include_directories(${TARGET_NAME} PUBLIC ../../src/Board)
 target_include_directories(${TARGET_NAME} PUBLIC ../../src/SAMe54)
 
-#linking upper layer:
-#target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib)
 
 target_link_libraries(${TARGET_NAME}  LEDS_lib JSON_lib)
 

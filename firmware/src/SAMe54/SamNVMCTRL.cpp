@@ -21,36 +21,60 @@ Copyright (c) 2019-2020 Panda Team
 #include <string.h>
 CSamNVMCTRL::CSamNVMCTRL()
 {
+    Nvmctrl *pNVM=NVMCTRL;
+
     //initial check of the user page:
     NVM_UserPage up;
     ReadUserPage(up);
 
     if(3!=up.Fuses.SEEPSZ || 1!=up.Fuses.SEESBLK)
     {
-        //default:
-        uint32_t def_fuses[]={0xe9a9239, 0xaeecffb1, 0xffffffff, 0xffffffff, 0x00804010, 0xffffffff, 0xffffffff, 0xffffffff};
-        memcpy(&up, def_fuses, sizeof(def_fuses));
-
         up.Fuses.SEEPSZ=3;
         up.Fuses.SEESBLK=1;
         WriteUserPage(up);
     }
-
-    //Nvmctrl *pNVM=NVMCTRL;
-    m_nSmartEEPROMsize= 2*NVMCTRL->SEESTAT.bit.SBLK*8192;
+    m_nSmartEEPROMsize=4096;
     NVMCTRL->SEECFG.bit.WMODE=1; //set buffered mode
+}
+
+bool CSamNVMCTRL::EraseBlock(unsigned int nBlock)
+{
+    Nvmctrl *pNVM=NVMCTRL;
+
+    while(!NVMCTRL->STATUS.bit.READY){}
+    NVMCTRL->INTFLAG.bit.DONE=1;
+    NVMCTRL->ADDR.bit.ADDR=(nBlock<<15);
+
+    NVMCTRL->CTRLB.reg=(NVMCTRL_CTRLB_CMDEX_KEY|NVMCTRL_CTRLB_CMD_UR);
+
+    while(!NVMCTRL->STATUS.bit.READY){}
+    NVMCTRL->INTFLAG.bit.DONE=1;
+    NVMCTRL->CTRLB.reg=(NVMCTRL_CTRLB_CMDEX_KEY|NVMCTRL_CTRLB_CMD_EB);
+
+    return (!NVMCTRL->INTFLAG.bit.NVME);
 }
 
 bool CSamNVMCTRL::ReadUserPage(struct NVM_UserPage &page)
 {
     page=*(  (struct NVM_UserPage *)NVMCTRL_USER );
 }
+bool CSamNVMCTRL::SetUserPageDefaults()
+{
+    static const uint32_t def_fuses[]={0xFE9A9239, 0xAEECFFB1, 0xffffffff, 0xffffffff, 0x00804010, 0xffffffff, 0xffffffff, 0xffffffff};
+
+    NVM_UserPage up;
+    memset(&up, 0xff, sizeof(up));
+    memcpy(&up, def_fuses, sizeof(def_fuses));
+    return WriteUserPage(up);
+}
+
 bool CSamNVMCTRL::WriteUserPage(struct NVM_UserPage &page)
 {
     Nvmctrl *pNVM=NVMCTRL;
 
     //1: erase the page:
     while(!NVMCTRL->STATUS.bit.READY){}
+    NVMCTRL->ADDR.bit.ADDR=NVMCTRL_USER;
     NVMCTRL->CTRLB.reg=(NVMCTRL_CTRLB_CMDEX_KEY|NVMCTRL_CTRLB_CMD_EP);
 
     //2: clear page bufer:
@@ -77,7 +101,6 @@ bool CSamNVMCTRL::WriteUserPage(struct NVM_UserPage &page)
         {
             *pDest++=*pSource++;
         }
-
     }
     return true;
 }
