@@ -103,6 +103,13 @@ To reset the chip and keep it in the `halt`state, use:
 reset halt
 ```
 
+To prepare the chip for flash erase/write operations, use:
+
+```
+reset init
+```
+
+
 To delete any old firmware in the flash memory of the TimeSwipe board, enter the command:
 
 ```
@@ -132,6 +139,12 @@ flash erase_check 0
 
 You should see 48 outputs of `... not erased`.
 This indicates a successful write process.
+
+After the firmware has been written, it can be started by:
+
+```
+reset
+```
 
 
 Type `exit` to disconnect the telnet session and again `exit` to log out of the second console.
