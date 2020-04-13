@@ -63,6 +63,7 @@ void CNewMenu::ApplyMenuSetting()
         break;
      }
     CView::Instance().ApplyMenu();
+    m_CurMode=mode::preview;
 }
 
 void CNewMenu::OnButtonState(typeButtonState nState)
@@ -77,6 +78,7 @@ void CNewMenu::OnButtonState(typeButtonState nState)
             return;
 
             case typeButtonState::long_click:
+            case typeButtonState::very_long_click:
                 m_CurMode=mode::preview;
                 v.SelectMenuPrevew(m_MenuInd);
             return;
@@ -94,7 +96,7 @@ void CNewMenu::OnButtonState(typeButtonState nState)
             return;
 
             case typeButtonState::short_click:
-                if(++m_MenuInd>(CView::menu::total))
+                if(++m_MenuInd>=(CView::menu::total))
                     m_MenuInd=0;
 
                 v.SelectMenuPrevew(m_MenuInd);
@@ -105,13 +107,14 @@ void CNewMenu::OnButtonState(typeButtonState nState)
                 {
                      m_CurMode=mode::inside_menu;
                      ObtainMenuElRange();
-                     v.SelectMenu(m_MenuInd, m_MenuEl);
+                     v.SelectMenu(m_MenuInd, m_MenuEl, m_MenuElMin, m_MenuElMax);
                 }
-                else
-                {
-                    nodeControl::Instance().SetDefaultSettings();
-                    v.ResetSettings();
-                }
+            return;
+
+            case typeButtonState::very_long_click:
+                 nodeControl::Instance().SetDefaultSettings();
+                 m_CurMode=mode::def;
+                 v.ResetSettings();
             return;
 
             default: return;
@@ -130,10 +133,11 @@ void CNewMenu::OnButtonState(typeButtonState nState)
                 if(++m_MenuEl>m_MenuElMax)
                     m_MenuEl=m_MenuElMin;
 
-                v.SelectMenu(m_MenuInd, m_MenuEl);
+                v.SelectMenu(m_MenuInd, m_MenuEl, m_MenuElMin, m_MenuElMax);
             return;
 
             case typeButtonState::long_click:
+            case typeButtonState::very_long_click:
                 ApplyMenuSetting();
             return;
 

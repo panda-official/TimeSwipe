@@ -132,14 +132,16 @@ protected:
     }
     void procResetSettingsEnd()
     {
-        SelectMenuPrevew(menu::total);
+        SelectMenuPrevew(m_ActSelMenu);
         EndProc();
     }
 
     unsigned int m_ActSelMenu, m_ActSelElement;
+    unsigned int m_nSelRangeMin, m_nSelRangeMax;
     void procApplySettingsEnd()
     {
-        SelectMenu(m_ActSelMenu, m_ActSelElement);
+        //SelectMenu(m_ActSelMenu, m_ActSelElement, m_nSelRangeMin, m_nSelRangeMax);
+        SelectMenuPrevew(m_ActSelMenu);
         EndProc();
     }
 
@@ -200,7 +202,7 @@ public:
     void BlinkAtStart();
     void SetRecordMarker();
     void SelectMenuPrevew(unsigned int nMenu);
-    void SelectMenu(unsigned int nMenu, unsigned int nActive);
+    void SelectMenu(unsigned int nMenu, unsigned int nActive, unsigned int nSelMin, unsigned int nSelMax);
     void ApplyMenu();
     void ResetSettings();
     void ZeroSearchCompleted();

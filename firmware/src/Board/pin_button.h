@@ -47,7 +47,7 @@ protected:
      * \brief 1st order digital filter time constant, seconds
      */
     //float m_filter_t_Sec=0.018f;
-    float m_filter_factor=1.0f/(0.018*1000.0f);
+    float m_filter_factor=1.0f/(0.018f*1000.0f);
 	
     /*!
      * \brief A filtered signal level
@@ -65,10 +65,11 @@ protected:
     unsigned long m_interclick_time_span_mS;
 
     bool m_bFirstClickOfDouble=false;
-    bool m_bLongClickIsSet=false;
+   // bool m_bVeryLongClickIsSet=false;
 
     unsigned long m_short_click_max_duration_mS=1200;
     unsigned long m_double_click_trhold_mS=400;
+    unsigned long m_very_long_click_duration_mS=6000;
 
     /*!
      * \brief Minimum time between two consecutive updates
@@ -141,16 +142,14 @@ public:
             }
         }
 
-#ifdef LONG_CLICK_ON_PRESS
-        if(!m_bLongClickIsSet)
+   /*     if(!m_bVeryLongClickIsSet)
         {
-            if(typeButtonState::pressed==m_prev_state && (os::get_tick_mS()-m_press_time_stamp_mS)>m_short_click_max_duration_mS)
+            if(typeButtonState::pressed==m_prev_state && (os::get_tick_mS()-m_press_time_stamp_mS) > m_very_long_click_duration_mS)
             {
-                m_bLongClickIsSet=true;
-                on_state_changed(typeButtonState::long_click);
+                m_bVeryLongClickIsSet=true;
+                on_state_changed(typeButtonState::very_long_click);
             }
-        }
-#endif
+        }*/
 
 
         //! if the state differs from previous state, generate a button event
@@ -163,7 +162,7 @@ public:
             }
             else
             {
-                m_bLongClickIsSet=false;
+               // m_bVeryLongClickIsSet=false;
                 m_release_time_stamp_mS=os::get_tick_mS();
                 m_click_duration_mS=m_release_time_stamp_mS-m_press_time_stamp_mS;
 
@@ -191,13 +190,11 @@ public:
                         m_bFirstClickOfDouble=false;
                     }
                 }
-#ifndef LONG_CLICK_ON_PRESS
                 else
                 {
-                    on_state_changed(typeButtonState::long_click);
+                    on_state_changed(m_click_duration_mS<m_very_long_click_duration_mS ?  typeButtonState::long_click : typeButtonState::very_long_click);
                     m_bFirstClickOfDouble=false;
                 }
-#endif
 
             }
 

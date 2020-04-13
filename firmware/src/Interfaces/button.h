@@ -23,7 +23,8 @@ enum class typeButtonState
 
     short_click,
     long_click,
-    double_click
+    double_click,
+    very_long_click
 };
 
 /*!

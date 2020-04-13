@@ -85,7 +85,7 @@ void CView::SetRecordMarker()
 void CView::SelectMenuPrevew(unsigned int nMenu)
 {
     SelectVisMode(CViewChannel::vismode::UI);
-    if(nMenu>=menu::total) //this is reset
+    /*if(nMenu>=menu::total) //this is reset
     {
         m_Channels[0].m_LED.SetColor(RESET_COLOR);
         for(unsigned int i=1; i<m_Channels.size(); i++)
@@ -93,34 +93,57 @@ void CView::SelectMenuPrevew(unsigned int nMenu)
             m_Channels[i].m_LED.SetColor(0);
         }
         return;
-    }
+    }*/
     for(unsigned int i=0; i<m_Channels.size(); i++)
     {
-        m_Channels[i].m_LED.SetColor(MENU_COLORS[i][i==nMenu ? 1:0]);
+        //m_Channels[i].m_LED.SetColor(MENU_COLORS[i][i==nMenu ? 1:0]);
+        m_Channels[i].m_LED.SetColor(MENU_COLORS[i][1]);
+        m_Channels[i].m_LED.SetBlinkMode( i==nMenu );
+        m_Channels[i].m_LED.SetBlinkPeriodAndCount(500);
+        m_Channels[i].m_LED.ON(true);
+
     }
 }
-void CView::SelectMenu(unsigned int nMenu, unsigned int nActive)
+void CView::SelectMenu(unsigned int nMenu, unsigned int nActive, unsigned int nSelMin, unsigned int nSelMax)
 {
     m_ActSelMenu=nMenu; m_ActSelElement=nActive;
+    m_nSelRangeMin=nSelMin;  m_nSelRangeMax=nSelMax;
+
     SelectVisMode(CViewChannel::vismode::UI);
     for(unsigned int i=0; i<m_Channels.size(); i++)
     {
-        m_Channels[i].m_LED.SetColor(MENU_COLORS[nMenu][i==nActive ? 1:0]);
+        //m_Channels[i].m_LED.SetColor(MENU_COLORS[nMenu][i==nActive ? 1:0]);
+
+        m_Channels[i].m_LED.SetColor( (i>=nSelMin && i<=nSelMax) ? MENU_COLORS[nMenu][1] :0);
+        m_Channels[i].m_LED.SetBlinkMode( i==nActive );
+        m_Channels[i].m_LED.SetBlinkPeriodAndCount(500);
+        m_Channels[i].m_LED.ON(true);
+
     }
 }
 void CView::ApplyMenu()
 {
     SelectVisMode(CViewChannel::vismode::UI);
-    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, MENU_COLORS[m_ActSelMenu][1]);
+    //nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, MENU_COLORS[m_ActSelMenu][1]);
 
-    Delay(400, &CView::procApplySettingsEnd);
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor( (i>=m_nSelRangeMin && i<=m_nSelRangeMax) ? MENU_COLORS[m_ActSelMenu][1] :0);
+        m_Channels[i].m_LED.SetBlinkMode( true );
+        m_Channels[i].m_LED.SetBlinkPeriodAndCount(100, 2);
+        m_Channels[i].m_LED.ON(true);
+    }
+
+
+    Delay(500, &CView::procApplySettingsEnd);
 }
 void CView::ResetSettings()
 {
     SelectVisMode(CViewChannel::vismode::UI);
     nodeLED::blinkMultipleLED(typeLED::LED1, typeLED::LED4, RESET_COLOR, 2, 300);
 
-    Delay(1200, &CView::procResetSettingsEnd);
+    //Delay(1200, &CView::procResetSettingsEnd);
+    SetDefaultModeAfter(1200);
 }
 
 void CView::SetButtonHeartbeat(bool how)
