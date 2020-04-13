@@ -20,9 +20,9 @@ void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [--log-resample]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [--log-resample] [--trace-spi]'" << std::endl;
     std::cerr << "default for <configname> is ./config.json" << std::endl;
-    std::cerr << "default for <input_type> is the first one from <configname>" << std::endl;
+    std::cerr << "possible values: PRIMARY NORM DIGITAL. default for <input_type> is the first one from <configname>" << std::endl;
     std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
 }
 
@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     std::string configname = "config.json";
     std::string dumpname;
     std::string input;
+    bool trace_spi = false;
 
     for (unsigned i = 1; i < argc; i++) {
         if (!strcmp(argv[i],"--config")) {
@@ -59,11 +60,19 @@ int main(int argc, char *argv[])
             ++i;
         } else if (!strcmp(argv[i],"--log-resample")) {
             TimeSwipe::resample_log = true;
+        } else if (!strcmp(argv[i],"--trace-spi")) {
+            trace_spi = true;
         } else {
             usage(argv[0]);
             return 1;
         }
     }
+
+    static std::unordered_map<std::string,TimeSwipe::Mode> const modes = {
+        {"PRIMARY",TimeSwipe::Mode::Primary},
+        {"NORM",TimeSwipe::Mode::Norm},
+        {"DIGITAL",TimeSwipe::Mode::Digital},
+    };
 
     std::ifstream iconfigname;
     iconfigname.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -90,10 +99,11 @@ int main(int argc, char *argv[])
 
 
     TimeSwipe tswipe;
+    tswipe.TraceSPI(trace_spi);
 
     // Board Preparation
 
-    tswipe.SetBridge(configitem["U_BRIDGE"]);
+    tswipe.SetMode(modes.at(configitem["MODE"]));
 
     const auto& offs = configitem["SENSOR_OFFSET"];
     tswipe.SetSensorOffsets(offs[0], offs[1], offs[2], offs[3]);
@@ -114,15 +124,11 @@ int main(int argc, char *argv[])
         exit(1);
     };
 
-    // Board Start
-    tswipe.SetSampleRate(48000);
-
-
-    bool ret = tswipe.onButton([&](bool pressed, unsigned count) {
+    bool ret = tswipe.onEvent([&](bool pressed, unsigned count) {
         std::cout << "Button: " <<  (pressed ? "pressed":"released") << std::endl;
     });
     if (!ret) {
-        std::cerr << "onButton init failed" << std::endl;
+        std::cerr << "onEvent init failed" << std::endl;
         return 1;
     }
 
@@ -134,6 +140,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    tswipe.SetSampleRate(24000);
     tswipe.SetBurstSize(24000);
 
     // Board Start

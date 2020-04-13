@@ -50,12 +50,13 @@ void CNewMenu::ApplyMenuSetting()
         break;
 
         case CView::menu::Offsets:
-            switch(m_MenuEl)
+            /*switch(m_MenuEl)
             {
                 case 0: nc.SearchNegativeRange(true); return;
                 case 1: nc.SetZero(true); return;
                 case 2: nc.SearchPositiveRange(true); return;
-            }
+            }*/
+            nc.SetOffset(m_MenuEl+1);
         return;
 
         case CView::menu::SetSecondary:
@@ -74,6 +75,7 @@ void CNewMenu::OnButtonState(typeButtonState nState)
         switch(nState)
         {
             case typeButtonState::short_click:
+                nodeControl::Instance().StartRecord(true);
                 v.SetRecordMarker();
             return;
 

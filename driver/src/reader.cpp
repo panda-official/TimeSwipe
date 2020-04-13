@@ -114,10 +114,10 @@ struct RecordReader
     bool isFirst{true};
     size_t lastRead = 0;
 
-    int sensorType;
-    std::array<int, 4> offset;
-    std::array<float, 4> gain;
-    std::array<float, 4> transmission;
+    int mode = 0;
+    std::array<int, 4> offset = {0, 0, 0, 0};
+    std::array<float, 4> gain = {1.0, 1.0, 1.0, 1.0};
+    std::array<float, 4> transmission = {1.0, 1.0, 1.0, 1.0};
     std::array<float, 4> mfactor;
 
     // read records from hardware buffer
@@ -189,7 +189,7 @@ struct RecordReader
         {
             mfactor[i] = gain[i] * transmission[i];
         }
-        init(sensorType);
+        init(mode);
     }
 
     void stop()

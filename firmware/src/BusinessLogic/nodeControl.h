@@ -65,6 +65,7 @@ protected:
             }
         }*/
 
+
 public:
         /*!
          * \brief Returns the reference to the created class object instance. (The object created only once)
@@ -96,11 +97,14 @@ public:
         enum MesModes
         {
             IEPE=0,         //!<IEPE mode
-            Normsignal      //!<Normal signal
+            Normsignal,     //!<Normal signal
+            Digital
         };
+        static MesModes m_OpMode;
 
         void LoadSettings(){m_PersistStorage.Load();}
         void SetDefaultSettings(){ m_PersistStorage.SetDefaults(); }
+
 
         /*!
          * \brief Binds board's digital multiplexer and controller object of finding amplifier offsets routine
@@ -201,14 +205,28 @@ public:
          * \return 0 = IEPE; 1 = Normsignal
          */
         static int GetSecondary();
+
+        /*!
+         * \brief Sets the board opearation mode
+         * \param nMode: 0 = IEPE; 1 = Normsignal
+         */
+        static void SetMode(int nMode);
+
+        /*!
+         * \brief Gets current board operation mode
+         * \return 0 = IEPE; 1 = Normsignal
+         */
+        static int GetMode();
 	
         /*!
          * \brief Starts/stops finding amplifier offsets procedure
          * \param how true=start the procedure, false=stop
          */
-        static void SetZero(bool how);
+        /*static void SetZero(bool how);
         static void SearchNegativeRange(bool how);
-        static void SearchPositiveRange(bool how);
+        static void SearchPositiveRange(bool how);*/
+
+        static void SetOffset(int nOffs);
 
         static void EnableMeasurements(bool how)
         {
@@ -225,7 +243,7 @@ public:
          * \brief Returns current finding amplifier offsets procedure state
          * \return true=the procedure is running, false=the procedure is finished
          */
-        inline static bool GetZeroRunSt(){ return m_pZeroCal->IsStarted(); }
+        inline static int GetOffsetRunSt(){ return m_pZeroCal->IsStarted(); }
 
         /*!
          * \brief The object state update method
