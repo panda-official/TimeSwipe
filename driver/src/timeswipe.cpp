@@ -74,7 +74,7 @@ public:
 
     bool SetSampleRate(int rate);
     bool Start(TimeSwipe::ReadCallback);
-    bool onButton(TimeSwipe::OnButtonCallback cb);
+    bool onEvent(TimeSwipe::OnEventCallback cb);
     bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
@@ -99,12 +99,12 @@ private:
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
     boost::lockfree::spsc_queue<std::pair<std::string,std::string>, boost::lockfree::capacity<1024>> _outSPI;
-    boost::lockfree::spsc_queue<BoardEvents, boost::lockfree::capacity<128>> _events;
+    boost::lockfree::spsc_queue<TimeSwipeEvent, boost::lockfree::capacity<128>> _events;
     void _processSPIRequests();
 
     void _clearThreads();
 
-    TimeSwipe::OnButtonCallback onButtonCb;
+    TimeSwipe::OnEventCallback onEventCb;
     TimeSwipe::OnErrorCallback onErrorCb;
 
     bool _work = false;
@@ -218,9 +218,9 @@ bool TimeSwipeImpl::Stop() {
     return true;
 }
 
-bool TimeSwipeImpl::onButton(TimeSwipe::OnButtonCallback cb) {
+bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb) {
     if (_isStarted()) return false;
-    onButtonCb = cb;
+    onEventCb = cb;
     return true;
 }
 
@@ -252,8 +252,7 @@ bool TimeSwipeImpl::_isStarted() {
 }
 
 void TimeSwipeImpl::_receiveEvents() {
-    auto event = readBoardEvents();
-    if (event.button) {
+    for (auto&& event: readBoardEvents()) {
         _events.push(event);
     }
 }
@@ -327,8 +326,8 @@ bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb) {
     return _impl->onError(cb);
 }
 
-bool TimeSwipe::onEvent(TimeSwipe::OnButtonCallback cb) {
-    return _impl->onButton(cb);
+bool TimeSwipe::onEvent(TimeSwipe::OnEventCallback cb) {
+    return _impl->onEvent(cb);
 }
 
 std::string TimeSwipe::SetSettings(const std::string& request, std::string& error) {
@@ -345,13 +344,11 @@ void TimeSwipeImpl::_fetcherLoop() {
         if (!recordBuffer.push(data))
             ++recordErrors;
 
-        BoardEvents event;
+        TimeSwipeEvent event;
         while (_events.pop(event)) {
-            if (event.button && onButtonCb) {
-                _inCallback = true;
-                onButtonCb(event.buttonCounter % 2, event.buttonCounter);
-                _inCallback = false;
-            }
+            _inCallback = true;
+            onEventCb(event);
+            _inCallback = false;
         }
     }
 }

@@ -54,6 +54,150 @@ private:
     CONTAINER _data;
 };
 
+class TimeSwipeEventImpl;
+
+/**
+ * TimeSwipe events
+ */
+class TimeSwipeEvent {
+public:
+
+    /**
+      * \brief Button press event
+      */
+    class Button {
+    public:
+        Button() = default;
+        Button(bool _pressed, unsigned _count);
+        /**
+          * \brief returns true when pressed and false if released
+          */
+        bool pressed();
+        /**
+          * \brief returns press/release counter,
+          * odd value is pressed, even value is released
+          */
+        unsigned count();
+    private:
+        bool _pressed;
+        unsigned _count;
+    };
+
+    /**
+      * \brief Gain value event
+      */
+    class Gain {
+    public:
+        Gain() = default;
+        Gain(int _value);
+        /**
+          * \brief returns Gain value as number
+          */
+        int value();
+    private:
+        int _value;
+    };
+
+    /**
+      * \brief SetSecondary value event
+      */
+    class SetSecondary {
+    public:
+        SetSecondary() = default;
+        SetSecondary(int _value);
+        /**
+          * \brief returns SetSecondary value as number
+          */
+        int value();
+    private:
+        int _value;
+    };
+
+    /**
+      * \brief Bridge value event
+      */
+    class Bridge {
+    public:
+        Bridge() = default;
+        Bridge(int _value);
+        /**
+          * \brief returns Bridge value as number
+          */
+        int value();
+    private:
+        int _value;
+    };
+
+
+    /**
+      * \brief Record value event
+      */
+    class Record {
+    public:
+        Record() = default;
+        Record(int _value);
+        /**
+          * \brief returns Record value as number
+          */
+        int value();
+    private:
+        int _value;
+    };
+
+    /**
+      * \brief Offset value event
+      */
+    class Offset {
+    public:
+        Offset() = default;
+        Offset(int _value);
+        /**
+          * \brief returns Offset value as number
+          */
+        int value();
+    private:
+        int _value;
+    };
+
+    /**
+      * \brief Mode value event
+      */
+    class Mode {
+    public:
+        Mode() = default;
+        Mode(int _value);
+        /**
+          * \brief returns Mode value as number
+          */
+        int value();
+    private:
+        int _value;
+    };
+
+    /**
+      * \brief Check for interested event
+      */
+    template <class EVENT>
+    bool is() const;
+
+    /**
+      * \brief get interested event
+      */
+    template <class EVENT>
+    const EVENT& get() const;
+
+    TimeSwipeEvent();
+    ~TimeSwipeEvent();
+    template <class EVENT>
+    TimeSwipeEvent(EVENT&& ev);
+    TimeSwipeEvent(TimeSwipeEvent&& ev) = default;
+    TimeSwipeEvent(const TimeSwipeEvent& ev) = default;
+    TimeSwipeEvent& operator=(const TimeSwipeEvent&) = default;
+private:
+    std::shared_ptr<TimeSwipeEventImpl> _impl;
+};
+
+
 class TimeSwipeImpl;
 
 /**
@@ -244,7 +388,7 @@ public:
      */
     std::string GetSettings(const std::string& request, std::string& error);
 
-    using OnButtonCallback = std::function<void(bool, unsigned)>;
+    using OnEventCallback = std::function<void(const TimeSwipeEvent& event)>;
     /**
      * \brief Register callback for button pressed/released
      *
@@ -253,7 +397,7 @@ public:
      * @param cb callback called with true when button pressed and with false when button released, button counter (odd - pressed, even - released)
      * @return false if register callback failed, true otherwise
      */
-    bool onEvent(OnButtonCallback cb);
+    bool onEvent(OnEventCallback cb);
 
     using OnErrorCallback = std::function<void(uint64_t)>;
     /**

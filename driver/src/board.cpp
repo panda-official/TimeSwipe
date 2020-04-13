@@ -95,25 +95,54 @@ unsigned int readAllGPIO()
 
 static std::mutex boardMtx;
 
-BoardEvents readBoardEvents()
+std::list<TimeSwipeEvent> readBoardEvents()
 {
     std::lock_guard<std::mutex> lock(boardMtx);
-    BoardEvents ret;
+    std::list<TimeSwipeEvent> events;
     std::string data;
     if (BoardInterface::get()->getEvents(data) && !data.empty()) {
         if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
-        if (data.empty()) return ret;
+        if (data.empty()) return events;
 
         try {
             auto j = nlohmann::json::parse(data);
             auto it_btn = j.find("Button");
-            if (it_btn != j.end() && it_btn->is_boolean() && it_btn->get<bool>()) {
+            if (it_btn != j.end() && it_btn->is_boolean()) {
                 auto it_cnt = j.find("ButtonStateCnt");
                 if (it_cnt != j.end() && it_cnt->is_number()) {
-                    ret.button = true;
-                    ret.buttonCounter = it_cnt->get<unsigned>();
+                    events.push_back(TimeSwipeEvent::Button(it_btn->get<bool>(), it_cnt->get<int>()));
                 }
+            }
+
+            auto it = j.find("Gain");
+            if (it != j.end() && it->is_number()) {
+                events.push_back(TimeSwipeEvent::Gain(it->get<int>()));
+            }
+
+            it = j.find("SetSecondary");
+            if (it != j.end() && it->is_number()) {
+                events.push_back(TimeSwipeEvent::SetSecondary(it->get<int>()));
+            }
+
+            it = j.find("Bridge");
+            if (it != j.end() && it->is_number()) {
+                events.push_back(TimeSwipeEvent::Bridge(it->get<int>()));
+            }
+
+            it = j.find("Record");
+            if (it != j.end() && it->is_number()) {
+                events.push_back(TimeSwipeEvent::Record(it->get<int>()));
+            }
+
+            it = j.find("Offset");
+            if (it != j.end() && it->is_number()) {
+                events.push_back(TimeSwipeEvent::Offset(it->get<int>()));
+            }
+
+            it = j.find("Mode");
+            if (it != j.end() && it->is_number()) {
+                events.push_back(TimeSwipeEvent::Mode(it->get<int>()));
             }
         }
         catch (nlohmann::json::parse_error& e)
@@ -122,7 +151,7 @@ BoardEvents readBoardEvents()
             std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
         }
     }
-    return ret;
+    return events;
 }
 
 std::string readBoardGetSettings(const std::string& request, std::string& error) {
