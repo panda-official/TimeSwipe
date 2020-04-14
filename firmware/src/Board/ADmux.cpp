@@ -63,6 +63,10 @@ void CADmux::StartFan(bool how)
     else
         PORT->Group[0].OUTCLR.reg=(1L<<9);	//off
 }
+bool CADmux::IsFanStarted()
+{
+    return (PORT->Group[0].OUT.reg & (1L<<9) ) ? true:false;
+}
 
 void CADmux::EnableADmes(bool how)
 {
