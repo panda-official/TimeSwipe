@@ -10,6 +10,7 @@ project(BLOGIC_lib)
 
 add_library(BLOGIC_lib STATIC nodeControl.cpp DataVis.cpp View.cpp NewMenu.cpp)
 
+target_include_directories(BLOGIC_lib PUBLIC ../Math)
 target_include_directories(BLOGIC_lib PUBLIC ../Interfaces)
 target_include_directories(BLOGIC_lib PUBLIC ../ADCDAC)
 target_include_directories(BLOGIC_lib PUBLIC ../JSONstuff)
