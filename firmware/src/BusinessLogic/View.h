@@ -19,6 +19,10 @@ Copyright (c) 2019-2020 Panda Team
 #include "nodeLED.h"
 #include "os.h"
 
+
+class CView;
+typedef void (CView::*pfn_ViewProc)();
+
 /*!
  * \brief The application View class
  * \details The class can be considered as somewhat usually called "view" in MCV pattern.
@@ -30,9 +34,6 @@ Copyright (c) 2019-2020 Panda Team
  * The CView::Instance() that returns current view must remain.
  *
  */
-class CView;
-typedef void (CView::*pfn_ViewProc)();
-
 class CView
 {
 protected:

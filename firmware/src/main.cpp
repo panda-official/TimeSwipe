@@ -36,6 +36,9 @@ Copyright (c) 2019 Panda Team
 #include "HatsMemMan.h"
 #include "RawBinStorage.h"
 
+#include "FanControlSimple.h"
+#include "SamNVMCTRL.h"
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -57,6 +60,8 @@ int sys_clock_init(void);
 
 int main(void)
 {
+        CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
+
         //step 0: clock init:
         unsigned long last_time_upd=os::get_tick_mS();
         sys_clock_init(); //->120MHz
@@ -170,6 +175,10 @@ int main(void)
         auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pADmux);
         auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pADmux);
 
+        //temp sens+fan control:
+        auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
+        auto pFanControl=std::make_shared<CFanControlSimple>(pTempSens, CSamPORT::group::A, CSamPORT::pin::P09);
+
 
         //---------------------------------------------------command system------------------------------------------------------
         auto pDisp=         std::make_shared<CCmdDispatcher>();
@@ -221,6 +230,8 @@ int main(void)
         pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) );
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
+
+        pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );
 
 
         //PWM:
@@ -281,11 +292,14 @@ int main(void)
 
         while(1) //endless loop ("super loop")
         {
+
              NVMstorage.Update();
 
              //update calproc:
              pZeroCal->Update();
 
+             //fan control:
+             pFanControl->Update();
 
              nodeControl::Instance().Update();
 

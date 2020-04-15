@@ -22,10 +22,15 @@
  *
  *  CSamTC - a realization os SAM's TC
  *
+ * <H4> PORT(digital pins IO) control </H4>
+ *
+ *  CSamPORT - defines Port Groups and Port Pins
+ *
  * <H4> ADC & DAC </H4>
  *
  *  CSamADCchan and CSamADCcntr are used to control SAME54's ADCs.
  *  CSamDACcntr is used to control SAME54's DACs
+ *  CSamTempSensor is used to measure SAME54's core temperature
  *
  * <H4> QSPI </H4>
  *

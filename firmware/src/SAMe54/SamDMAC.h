@@ -143,7 +143,11 @@ public:
 
         TC2OVF=0x32,    //!<TC2 counter overflow
         TC2MC0=0x33,    //!<TC2 counter match0
-        TC2MC1=0x34     //!<TC2 counter match1
+        TC2MC1=0x34,     //!<TC2 counter match1
+
+        TC6OVF=0x3E,    //!<TC6 counter overflow
+        TC6MC0=0x3F,    //!<TC6 counter match0
+        TC6MC1=0x40     //!<TC6 counter match1
     };
 
     /*!
@@ -204,7 +208,7 @@ protected:
      *  \brief maximum channels number
      */
     enum{
-       nMaxChannels=4
+       nMaxChannels=8
     };
 
     /*!

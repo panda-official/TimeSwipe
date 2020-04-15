@@ -36,7 +36,7 @@ __enable_irq();
     __ISB();
 
 
-    SysTick_Config(120000); //1mS
+   // SysTick_Config(120000); //1mS
 }
 #endif
 }
@@ -74,6 +74,7 @@ int sys_clock_init(void){
  
 #endif
 
+    SysTick_Config(120000); //1mS
 	return 0;
 }
 

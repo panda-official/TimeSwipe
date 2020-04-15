@@ -63,12 +63,16 @@ string(APPEND PATH_FIRMWARE "firmware")
 #message(STATUS ${PATH_FIRMWARE} )
 
 #compiler flags:
-set(COMPILER_FLAGS "-O0  -ffunction-sections -fdata-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
+set(COMPILER_FLAGS "-O0 -ffunction-sections -fdata-sections -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}" CACHE INTERNAL "")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS} -std=c++17"  CACHE INTERNAL "")
 set(CMAKE_ASM_FLAGS "${COMPILER_FLAGS} -x assembler-with-cpp" CACHE INTERNAL "")
 
 #linker flags:
+IF(RAM_IMAGE)
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections  -mthumb -mcpu=cortex-m4 --specs=nosys.specs --specs=nano.specs -T${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/gcc_RAM.ld" CACHE INTERNAL "")
+ELSE()
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections  -mthumb -mcpu=cortex-m4 --specs=nosys.specs -T${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/gcc.ld" CACHE INTERNAL "")
+ENDif()
 

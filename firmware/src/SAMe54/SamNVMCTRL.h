@@ -8,6 +8,7 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include <stdint.h>
+#include "NVMpage.h"
 
 /*!
 *   @file
@@ -56,11 +57,39 @@ public:
      */
     void FlushSmartEEPROM();
 
+    /*!
+     * \brief Reads the User Page
+     * \param page - User Page reference
+     * \return true if reading was successful otherwise false
+     */
+    bool ReadUserPage(struct NVM_UserPage &page);
+
+    /*!
+     * \brief Writes the User Page
+     * \param page - User Page reference
+     * \return true if writing was successful otherwise false
+     */
+    bool WriteUserPage(struct NVM_UserPage &page);
+
+    /*!
+     * \brief Sets factory User Page with default values
+     * \details Use this method if User Page has been damaged. The default settings are snapshots from boards with factory settings
+     * \return true on success, otherwise false
+     */
+    bool SetUserPageDefaults();
+
+    /*!
+     * \brief Erases a block of flash memory
+     * \param nBlock - the block number to erase
+     * \return
+     */
+    bool EraseBlock(unsigned int nBlock);
 
     /*!
      * \brief Returns the reference to the created class object instance. (The object created only once)
      * \return
      */
+
     static CSamNVMCTRL& Instance()
     {
        static CSamNVMCTRL instance;

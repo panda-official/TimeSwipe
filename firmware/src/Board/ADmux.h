@@ -143,7 +143,7 @@ public:
      * \return true=on, false=off
      * \deprecated
      */
-    bool IsFanStarted(){ return m_bFanIsStarted; }
+    bool IsFanStarted();
 
     /*!
      * \brief Setup the DACs mapping mode from integer type
