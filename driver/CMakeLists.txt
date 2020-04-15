@@ -7,7 +7,7 @@ SET(CMAKE_CXX_FLAGS "-fpermissive -lpthread -O3 -Wall")
 
 file (STRINGS "version" BUILD_NUMBER)
 project(timeswipe VERSION ${BUILD_NUMBER} DESCRIPTION "timeswipe driver")
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "armv7l")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "armv7l" OR ${EMUL})
 SET(CMAKE_C_COMPILER gcc )
 SET(CMAKE_CXX_COMPILER g++ )
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -26,6 +26,13 @@ SET(CMAKE_C_COMPILER aarch64-linux-gnu-gcc )
 SET(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++ )
 endif ()
 SET(CMAKE_INSTALL_LIBDIR lib)
+
+if(DEFINED CC)
+    SET(CMAKE_C_COMPILER ${CC})
+endif()
+if(DEFINED CXX)
+    SET(CMAKE_CXX_COMPILER ${CXX})
+endif()
 
 include(GNUInstallDirs)
 

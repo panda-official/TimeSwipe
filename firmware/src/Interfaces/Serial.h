@@ -9,6 +9,7 @@ Copyright (c) 2019 Panda Team
 
 #include <vector>
 #include <memory>
+#include <string>
 
 /*!
 *   @file

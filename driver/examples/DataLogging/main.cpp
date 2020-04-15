@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
 
     bool ret = tswipe.onButton([&](bool pressed, unsigned count) {
-        std::cout << "Button: " <<  (pressed ? "pressed":"released") << std::endl;
+        std::cout << "Button: " <<  (pressed ? "pressed":"released") << " " << count << std::endl;
     });
     if (!ret) {
         std::cerr << "onButton init failed" << std::endl;

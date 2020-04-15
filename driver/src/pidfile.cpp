@@ -1,4 +1,6 @@
 #include "pidfile.hpp"
+#include "defs.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,7 +12,11 @@
 
 PidFile::PidFile(const std::string& name)
 : fname (name) {
+#if NOT_RPI
+    fname = std::string("./") + name + std::string(".pid");
+#else
     fname = std::string("/var/run/") + name + std::string(".pid");
+#endif
 }
 
 bool PidFile::Lock(std::string& err) {

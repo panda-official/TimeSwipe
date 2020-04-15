@@ -151,63 +151,22 @@ public:
     }
 
     // num == 0 -> PWM1  num == 1 -> PWM2
-    bool startPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
-        std::string pwm = std::string("PWM") + std::to_string(num+1);
-        sendGetCommand(pwm);
-        std::string answer;
-        if (!receiveStripAnswer(answer)) return false;
-        if (answer == "1") return false; // Already started
-
-        if (!sendSetCommandCheck(pwm + ".freq", frequency)) return false;
-        if (!sendSetCommandCheck(pwm + ".high", high)) return false;
-        if (!sendSetCommandCheck(pwm + ".low", low)) return false;
-        if (!sendSetCommandCheck(pwm + ".repeats", repeats)) return false;
-        if (!sendSetCommandCheck(pwm + ".duty", duty_cycle)) return false;
-
-        return sendSetCommandCheck(pwm, 1);
-    }
+    bool startPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle);
 
     // num == 0 -> PWM1  num == 1 -> PWM2
     bool stopPWM(uint8_t num) {
         std::string pwm = std::string("PWM") + std::to_string(num+1);
+        /*
         sendGetCommand(pwm);
         std::string answer;
         receiveStripAnswer(answer);
         if (answer == "0") return false; // Already stopped
+         */
 
         return sendSetCommandCheck(pwm, 0);
     }
 
     // num == 0 -> PWM1  num == 1 -> PWM2
-    bool getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
-        std::string pwm = std::string("PWM") + std::to_string(num+1);
-        sendGetCommand(pwm);
-        std::string answer;
-        if (!receiveStripAnswer(answer)) return false;
-        active = answer == "1";
-        if (answer == "0") return true; // Stopped, other parameters can be not valid
-
-        sendGetCommand(pwm + ".freq");
-        if(!receiveStripAnswer(answer)) return false;
-        frequency = std::atoi(answer.c_str());
-
-        sendGetCommand(pwm + ".high");
-        if(!receiveStripAnswer(answer)) return false;
-        high = std::atoi(answer.c_str());
-
-        sendGetCommand(pwm + ".low");
-        if(!receiveStripAnswer(answer)) return false;
-        low = std::atoi(answer.c_str());
-
-        sendGetCommand(pwm + ".repeats");
-        if(!receiveStripAnswer(answer)) return false;
-        repeats = std::atoi(answer.c_str());
-
-        sendGetCommand(pwm + ".duty");
-        if(!receiveStripAnswer(answer)) return false;
-        duty_cycle = std::atof(answer.c_str());
-
-        return true;
-    }
+    bool getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
 };

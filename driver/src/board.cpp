@@ -1,4 +1,5 @@
 #include "board.hpp"
+#include "defs.h"
 #include <nlohmann/json.hpp>
 
 // RPI GPIO FUNCTIONS
@@ -99,6 +100,9 @@ BoardEvents readBoardEvents()
 {
     std::lock_guard<std::mutex> lock(boardMtx);
     BoardEvents ret;
+#if NOT_RPI
+    return ret;
+#endif
     std::string data;
     if (BoardInterface::get()->getEvents(data) && !data.empty()) {
         if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
@@ -127,26 +131,41 @@ BoardEvents readBoardEvents()
 
 std::string readBoardGetSettings(const std::string& request, std::string& error) {
     std::lock_guard<std::mutex> lock(boardMtx);
+#if NOT_RPI
+    return request;
+#endif
     return BoardInterface::get()->getGetSettings(request, error);
 }
 
 std::string readBoardSetSettings(const std::string& request, std::string& error) {
     std::lock_guard<std::mutex> lock(boardMtx);
+#if NOT_RPI
+    return request;
+#endif
     return BoardInterface::get()->getSetSettings(request, error);
 }
 
 bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
     std::lock_guard<std::mutex> lock(boardMtx);
+#if NOT_RPI
+    return false;
+#endif
     return BoardInterface::get()->startPWM(num, frequency, high, low, repeats, duty_cycle);
 }
 
 bool BoardStopPWM(uint8_t num) {
     std::lock_guard<std::mutex> lock(boardMtx);
+#if NOT_RPI
+    return false;
+#endif
     return BoardInterface::get()->stopPWM(num);
 }
 
 bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
     std::lock_guard<std::mutex> lock(boardMtx);
+#if NOT_RPI
+    return false;
+#endif
     return BoardInterface::get()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);
 }
 
