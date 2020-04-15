@@ -36,12 +36,10 @@ void CSamTempSensor::Update()
     //select TP:
     SUPC->VREF.bit.TSSEL=0;
     float TP=m_VTP.DirectMeasure(20, 0.7);
-   // float TP=m_VTP.GetRealVal();
 
     //select TC:
     SUPC->VREF.bit.TSSEL=1;
     float TC=m_VTC.DirectMeasure(20, 0.7);
-    //float TC=m_VTC.GetRealVal();
 
     //calculation:
     m_MeasuredTempCD=( TC*m_TLVPH_THVPL + TP*m_THVCL_TLVCH )/( TP*m_VCL_VCH + TC*m_VPH_VPL );

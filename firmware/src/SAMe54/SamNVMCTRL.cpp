@@ -21,7 +21,7 @@ Copyright (c) 2019-2020 Panda Team
 #include <string.h>
 CSamNVMCTRL::CSamNVMCTRL()
 {
-    Nvmctrl *pNVM=NVMCTRL;
+    //Nvmctrl *pNVM=NVMCTRL;
 
     //initial check of the user page:
     NVM_UserPage up;
@@ -39,7 +39,7 @@ CSamNVMCTRL::CSamNVMCTRL()
 
 bool CSamNVMCTRL::EraseBlock(unsigned int nBlock)
 {
-    Nvmctrl *pNVM=NVMCTRL;
+    //Nvmctrl *pNVM=NVMCTRL;
 
     while(!NVMCTRL->STATUS.bit.READY){}
     NVMCTRL->INTFLAG.bit.DONE=1;
@@ -70,7 +70,7 @@ bool CSamNVMCTRL::SetUserPageDefaults()
 
 bool CSamNVMCTRL::WriteUserPage(struct NVM_UserPage &page)
 {
-    Nvmctrl *pNVM=NVMCTRL;
+    //Nvmctrl *pNVM=NVMCTRL;
 
     //1: erase the page:
     while(!NVMCTRL->STATUS.bit.READY){}

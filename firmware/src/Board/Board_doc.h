@@ -24,6 +24,12 @@
  * CSamI2Cmem8Pin - a hardware-dependent realization of CAT2430 EEPROM chip emulation for external 8-Pin plug outputs
  *
  * CDacPWMht - the class implements a PWM which output is controlled by the DAC with DMA or timer IRQ support
+ *
+ * CPinPWM - the class implements a PWM which output is controlled by the SAM's pin with DMA support
+ *
+ * CFanControl - the class implements control of fan in PWM mode with several fixed speeds
+ *
+ * CFanControlSimple - the class implements simple control of fan in ON/OFF mode
  * 
  * CRawBinStorage - provides a mechanism for persistent storing all board settings in the SmartEEPROM
  */

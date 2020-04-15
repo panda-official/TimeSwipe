@@ -16,9 +16,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <stdint.h>
 #include <memory>
-//#include "DAC.h"
 #include "PWM.h"
-//#include "ADmux.h"
 #include "SamCLK.h"
 #include "SamTC.h"
 #include "SamDMAC.h"
@@ -32,16 +30,24 @@ class CPinPWM : public CPWM<CPinPWM>, public CSamTC
 {
 friend class CPWM;
 public:
+
+    /*!
+     * \brief The class constructor
+     * \param nGroup - Port Group of the fan control pin
+     * \param nPin - Port Pin of the fan control pin
+     */
     CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin);
 
 protected:
     /*!
-     * \brief The 32-bit variable holding the PWM output mask
+     * \brief The 32-bit variable holding the PORT output mask
      */
     uint32_t m_prmPortMask;
 
+    /*!
+     * \brief Port Group of the fan control pin
+     */
     CSamPORT::group m_prmPortGroup;
-
 
     /*!
      * \brief The DMA channel used to map m_prmHighLevel16 onto the DAC
@@ -79,6 +85,9 @@ protected:
      */
     void impl_LoadNextHalfPeriod();
 
+    /*!
+     * \brief Turns the fan control pin ON/OFF
+     * \param how - ON=true, OFF=false
+     */
     void set_pin(bool how);
-
 };

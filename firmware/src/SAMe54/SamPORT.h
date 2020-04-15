@@ -5,7 +5,17 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
+/*!
+*   \file
+*   \brief A definition file for
+*   CSamPORT
+*/
 
+#pragma once
+
+/*!
+ * \brief The SAME54 PORT control implementation
+ */
 class CSamPORT
 {
 public:

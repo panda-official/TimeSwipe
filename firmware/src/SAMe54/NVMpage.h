@@ -10,7 +10,7 @@ Copyright (c) 2019 Panda Team
 
 /*!
 *   \file
-*   \brief A definition file for NVMscpage struct: NVM Software Calibration Area Mapping
+*   \brief A definition file for NVMscpage (NVM Software Calibration Area Mapping) CPU "fuses" and User Page
 *
 */
 
@@ -68,6 +68,9 @@ struct NVMscpage{
     uint32_t VCH                :12; //!<Temperature calibration parameter4
 };
 
+/*!
+ * \brief The CPU "fuses" (essential settings surviving chip-erase operation)
+ */
 struct NVMfuses{
 
     //32-bit block1:
@@ -113,6 +116,9 @@ struct NVMfuses{
     uint32_t FactorySettings7;
 };
 
+/*!
+ * \brief The User Page description
+ */
 struct NVM_UserPage
 {
     struct NVMfuses Fuses;
