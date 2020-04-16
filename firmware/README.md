@@ -109,7 +109,6 @@ To prepare the chip for flash erase/write operations, use:
 reset init
 ```
 
-
 To delete any old firmware in the flash memory of the TimeSwipe board, enter the command:
 
 ```
@@ -137,7 +136,8 @@ Verify the write process by again entering:
 flash erase_check 0
 ```
 
-You should see 48 outputs of `... not erased`.
+You should see several outputs of `... not erased`.
+The exact count will depend on the size of the firmware image, and thus the amount of memory it occupies in the flash memory.
 This indicates a successful write process.
 
 After the firmware has been written, it can be started by:
