@@ -24,10 +24,10 @@ make -j$(nproc)
 To run the SPI terminal example from the `build` directory, execute the command:
 
 ```
-sudo ./rPIspi 1
+sudo ./rPIspi 0
 ```
 
-This will open a `SPI` terminal to the TimeSwipe board on `SPI` bus 1.
+This will open a `SPI` terminal to the TimeSwipe board on `SPI` bus 0.
 Attach commands to run in a non-interactive mode, answers will be printed on `stdout`.
 `Ctrl + c` exits the application.
 
@@ -55,6 +55,6 @@ To run the SPI terminal example from the `build` directory, as `root` execute th
 ./rPIspi
 ```
 
-This will open a `SPI` terminal to the TimeSwipe board on `SPI` bus 1.
+This will open a `SPI` terminal to the TimeSwipe board on `SPI` bus 0.
 Attach commands to run in a non-interactive mode, answers will be printed on `stdout`.
 `Ctrl + c` exits the application.
