@@ -13,16 +13,16 @@ The simplest way to install the TimeSwipe Driver is to download the prebuilt pac
 
 ### Raspbian Buster
 
-If you are running Raspbian Buster (or any other Debian-based OS), simply download the package:
+If you are running Raspbian Buster (or any other Debian-based OS), simply download the package - find latest in [Release Section](https://github.com/panda-official/TimeSwipe/releases):
 
 ```
-wget https://github.com/panda-official/TimeSwipe/releases/download/v0.0.6/timeswipe_0.0.6.armv7l.deb
+wget https://github.com/panda-official/TimeSwipe/releases/download/vX.Y.Z/timeswipe_X.Y.Z.armv7l.deb
 ```
 
 Then simply install with:
 
 ```
-sudo dpkg -i timeswipe_0.0.6.armv7l.deb
+sudo dpkg -i timeswipe_X.Y.Z.armv7l.deb
 ```
 
 You can also uninstall the driver with the command:
@@ -37,13 +37,13 @@ sudo dpkg -r timeswipe
 On Arch Linux, similarly download the appropriate package:
 
 ```
-wget https://github.com/panda-official/TimeSwipe/releases/download/v0.0.6/timeswipe-0.0.6-1-any.pkg.tar.xz
+wget https://github.com/panda-official/TimeSwipe/releases/download/vX.Y.Z/timeswipe-X.Y.Z-1-any.pkg.tar.xz
 ```
 
 And then as `root` install with:
 
 ```
-pacman -U timeswipe_0.0.6-any.pkg.tar.xz
+pacman -U timeswipe_X.Y.Z-any.pkg.tar.xz
 ```
 
 The package can be uninstalled with:
