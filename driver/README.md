@@ -13,7 +13,7 @@ The simplest way to install the TimeSwipe Driver is to download the prebuilt pac
 
 ### Raspbian Buster
 
-If you are running Raspbian Buster (or any other Debian-based OS), simply download the package - find latest in [Release Section](https://github.com/panda-official/TimeSwipe/releases):
+If you are running Raspbian Buster (or any other Debian-based OS), simply download the package - you can find the latest in the [Release Section](https://github.com/panda-official/TimeSwipe/releases):
 
 ```
 wget https://github.com/panda-official/TimeSwipe/releases/download/vX.Y.Z/timeswipe_X.Y.Z.armv7l.deb
@@ -160,7 +160,7 @@ make -j$(nproc)
 
 ### OSX
 
-For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed. If brew is not installed so far follow [instructions](https://brew.sh).
+For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed. If brew is not installed so far, follow the [instructions](https://brew.sh).
 In a terminal, enter the commands:
 
 ```
@@ -174,20 +174,29 @@ Change the limit of file descriptors:
 ulimit -n 1024
 ```
 
-And copy the file `config_osx` from this direcory to `/Volumes/xtool-build-env`, renaming the file in the process:
+And copy the file `config_osx` from the `contrib/OSX` direcory to `/Volumes/xtool-build-env`, renaming the file in the process:
 
 ```
-cp config_osx /Volumes/xtool-build-env/.config
+cp contrib/OSX/config_osx /Volumes/xtool-build-env/.config
 ```
 
 Then you can build the toolchain:
+
 ```
 cd /Volumes/xtool-build-env
 ct-ng build
 ```
 
 This will take a while.
-After toolchain built successfully change PATH variable:
+Then, with `brew, install `boost` and verify the availability of its path:
+
+```
+brew install boost
+brew --prefix boost
+```
+
+After the toolchain built successfully, change the PATH variable:
+
 ```
 export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin/:$PATH
 ```
