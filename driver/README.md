@@ -160,7 +160,7 @@ make -j$(nproc)
 
 ### OSX
 
-For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed.
+For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed. If brew is not installed so far follow [instructions](https://brew.sh).
 In a terminal, enter the commands:
 
 ```
