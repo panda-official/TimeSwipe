@@ -15,6 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <array>
 #include <stdint.h>
+#include <string>
 
 /*!
  * \brief An implementation of some SAM's service functions
@@ -23,6 +24,9 @@ Copyright (c) 2019-2020 Panda Team
 
 class CSamService
 {
+protected:
+    static std::string m_SerialString;
+
 public:
 
     /*!
@@ -30,5 +34,7 @@ public:
      * \return An array containing UUID in a form of four 32-bit words
      */
     static std::array<uint32_t, 4> GetSerial();
+
+    static std::string GetSerialString();
 };
 

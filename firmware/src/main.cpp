@@ -39,6 +39,8 @@ Copyright (c) 2019 Panda Team
 #include "FanControlSimple.h"
 #include "SamNVMCTRL.h"
 
+#include "SemVer.h"
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -60,6 +62,8 @@ int sys_clock_init(void);
 
 int main(void)
 {
+        auto pVersion=std::make_shared<CSemVer>(0,0,10);
+
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
         //step 0: clock init:
@@ -249,6 +253,11 @@ int main(void)
         pDisp->Add("PWM2.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
         pDisp->Add("PWM2.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
         pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
+
+        //chip serial:
+        pDisp->Add("ARMID", std::make_shared< CCmdSGHandlerF<std::string> >(&CSamService::GetSerialString) );
+        pDisp->Add("fwVersion", std::make_shared< CCmdSGHandler<CSemVer, std::string> >(pVersion, &CSemVer::GetVersionString) );
+
 
 
         //--------------------menu+button+detection of a master----------------
