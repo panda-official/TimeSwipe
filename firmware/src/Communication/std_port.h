@@ -122,6 +122,9 @@ public:
     {
         m_pDisp=pDisp;
         m_pBus=pBus;
+
+        m_In.reserve(1024);
+        m_Out.reserve(1024);
     }
 
 };
