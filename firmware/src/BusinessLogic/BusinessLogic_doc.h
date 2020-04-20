@@ -5,7 +5,6 @@
  * \page BusinessLogic_page BusinessLogic
  *
  *  The basic functionality of the board is provided by the nodeControl class object.
- *  The object can be considered as somewhat usually called "controller" in MCV pattern for example.
  *  The only one controller object can exist thats why its designed as "singleton" class.
  *
  *  The following basic board functionality is implemented by a nodeControl:
