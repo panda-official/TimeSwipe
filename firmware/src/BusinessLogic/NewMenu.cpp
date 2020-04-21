@@ -70,6 +70,15 @@ void CNewMenu::ApplyMenuSetting()
 void CNewMenu::OnButtonState(typeButtonState nState)
 {
     CView &v=CView::Instance();
+
+    if(typeButtonState::very_long_click==nState)
+    {
+        nodeControl::Instance().SetDefaultSettings();
+        m_CurMode=mode::def;
+        v.ResetSettings();
+        return;
+    }
+
     if(mode::def==m_CurMode)
     {
         switch(nState)
@@ -80,7 +89,7 @@ void CNewMenu::OnButtonState(typeButtonState nState)
             return;
 
             case typeButtonState::long_click:
-            case typeButtonState::very_long_click:
+           // case typeButtonState::very_long_click:
                 m_CurMode=mode::preview;
                 v.SelectMenuPrevew(m_MenuInd);
             return;
@@ -113,11 +122,11 @@ void CNewMenu::OnButtonState(typeButtonState nState)
                 }
             return;
 
-            case typeButtonState::very_long_click:
+           /* case typeButtonState::very_long_click:
                  nodeControl::Instance().SetDefaultSettings();
                  m_CurMode=mode::def;
                  v.ResetSettings();
-            return;
+            return;*/
 
             default: return;
         }
@@ -139,7 +148,7 @@ void CNewMenu::OnButtonState(typeButtonState nState)
             return;
 
             case typeButtonState::long_click:
-            case typeButtonState::very_long_click:
+            //case typeButtonState::very_long_click:
                 ApplyMenuSetting();
             return;
 

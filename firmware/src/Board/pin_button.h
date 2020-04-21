@@ -36,18 +36,18 @@ protected:
     /*!
      * \brief Low threshold level of a filtered signal level to detect "released" state
      */
-	float m_low_trhold=0.2f;
+    float m_low_trhold=0.05f;
 
     /*!
      * \brief High threshold level of a filtered signal level to detect "pressed" state
      */
-	float m_high_trhold=0.8f;
+    float m_high_trhold=0.95f;
 
     /*!
      * \brief 1st order digital filter time constant, seconds
      */
     //float m_filter_t_Sec=0.018f;
-    float m_filter_factor=1.0f/(0.018f*1000.0f);
+    float m_filter_factor=1.0f/(0.013f*1000.0f);
 	
     /*!
      * \brief A filtered signal level
@@ -65,7 +65,9 @@ protected:
     unsigned long m_interclick_time_span_mS;
 
     bool m_bFirstClickOfDouble=false;
-   // bool m_bVeryLongClickIsSet=false;
+
+    bool m_bLongClickIsSet=false;
+    bool m_bVeryLongClickIsSet=false;
 
     unsigned long m_short_click_max_duration_mS=1200;
     unsigned long m_double_click_trhold_mS=400;
@@ -74,7 +76,7 @@ protected:
     /*!
      * \brief Minimum time between two consecutive updates
      */
-	unsigned long m_upd_quant=10;
+    unsigned long m_upd_quant=4;
 	
     /*!
      * \brief Current state of the button
@@ -133,7 +135,30 @@ public:
 			m_cur_state=typeButtonState::released;
 		}	
 
-        if(m_bFirstClickOfDouble)
+
+        if(typeButtonState::pressed==m_prev_state)
+        {
+            unsigned long pressing_time=os::get_tick_mS()-m_press_time_stamp_mS;
+            if(!m_bLongClickIsSet)
+            {
+                if(pressing_time>m_short_click_max_duration_mS)
+                {
+                    m_bFirstClickOfDouble=false;
+                    m_bLongClickIsSet=true;
+                    on_state_changed(typeButtonState::long_click);
+                }
+            }
+            if(!m_bVeryLongClickIsSet)
+            {
+                if(pressing_time>m_very_long_click_duration_mS)
+                {
+                    m_bFirstClickOfDouble=false;
+                    m_bVeryLongClickIsSet=true;
+                    on_state_changed(typeButtonState::very_long_click);
+                }
+            }
+        }
+        else if(m_bFirstClickOfDouble)
         {
             if( (os::get_tick_mS()-m_release_time_stamp_mS)>m_double_click_trhold_mS )
             {
@@ -141,15 +166,6 @@ public:
                 on_state_changed(typeButtonState::short_click);
             }
         }
-
-   /*     if(!m_bVeryLongClickIsSet)
-        {
-            if(typeButtonState::pressed==m_prev_state && (os::get_tick_mS()-m_press_time_stamp_mS) > m_very_long_click_duration_mS)
-            {
-                m_bVeryLongClickIsSet=true;
-                on_state_changed(typeButtonState::very_long_click);
-            }
-        }*/
 
 
         //! if the state differs from previous state, generate a button event
@@ -162,7 +178,9 @@ public:
             }
             else
             {
-               // m_bVeryLongClickIsSet=false;
+                m_bLongClickIsSet=false;
+                m_bVeryLongClickIsSet=false;
+
                 m_release_time_stamp_mS=os::get_tick_mS();
                 m_click_duration_mS=m_release_time_stamp_mS-m_press_time_stamp_mS;
 
@@ -192,10 +210,8 @@ public:
                 }
                 else
                 {
-                    on_state_changed(m_click_duration_mS<m_very_long_click_duration_mS ?  typeButtonState::long_click : typeButtonState::very_long_click);
                     m_bFirstClickOfDouble=false;
                 }
-
             }
 
             on_state_changed(m_cur_state);
