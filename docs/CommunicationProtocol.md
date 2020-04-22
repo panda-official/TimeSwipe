@@ -123,8 +123,14 @@ Zero.errtol     |   Holds a zero calibration process error tolerance value (inte
 EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false:true, r/w)
 DACsw           |   Determines the mode of controlling analog outputs #3-4 (0 - default (amplified input signal), 1 - manual via AOUT3, AOUT4) (integer value, 0:1, r/w)
 Temp            |   Returns the current core temperature of SAME54 in degrees Celsius
-ARMID		|   Returns Hardware Chip ID
-fwVersion	|   Returns firmware Version in the SemVer format
+ARMID		|   Returns Hardware Chip ID (string, r)
+fwVersion	|   Returns firmware Version in the SemVer format (string, r)
+CalStatus       |   Holds board calibration status (boolean, false:true, r)
+Voltage         |   Holds Output Voltage value (float, r/w) (mockup)
+Current         |   Holds Current Setting (float, 0-MaxCurrent, r/w) (mockup)
+MaxCurrent      |   Holds MaxCurrent Setting (Current max range) (float, r/w) (mockup)
+
+
 
 
 ### JSON controlled access points:

@@ -15,6 +15,10 @@ std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 static bool brecord=false;
 static std::vector<CDataVis>  m_DataVis;
 
+float nodeControl::m_Voltage=0;
+float nodeControl::m_Current=0;
+float nodeControl::m_MaxCurrent=1000;  //mA
+
 void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
 {
     m_DataVis.emplace_back(pADC, pLED);

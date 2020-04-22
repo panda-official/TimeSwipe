@@ -193,6 +193,61 @@ public:
          */
         inline static bool GetZeroRunSt(){ return m_pZeroCal->IsStarted(); }
 
+        inline static bool GetCalStatus(){ return 0;}
+
+protected:
+        /*!
+         * \brief Holds Voltage Setting (mockup)
+         */
+        static  float m_Voltage;
+
+        /*!
+         * \brief Holds Current Setting (mockup)
+         */
+        static  float m_Current;
+
+        /*!
+         * \brief Holds MaxCurrent Setting (mockup)
+         */
+        static  float m_MaxCurrent;  //mA
+
+public:
+        /*!
+         * \brief Sets Voltage Setting
+         * \param val - the voltage to set
+         */
+        static void SetVoltage(float val){m_Voltage=val;}
+
+        /*!
+         * \brief Returns actual Voltage Setting
+         * \return the Voltage Setting
+         */
+        static float GetVoltage(){return m_Voltage;}
+
+        /*!
+         * \brief Sets Current Setting
+         * \param val - the current to set
+         */
+        static void SetCurrent(float val){ if(val<0) val=0; if(val>m_MaxCurrent) val=m_MaxCurrent; m_Current=val;}
+
+        /*!
+         * \brief Returns actual Current Setting
+         * \return the Current Setting
+         */
+        static float GetCurrent(){ return m_Current; }
+
+        /*!
+         * \brief Sets MaxCurrent (current limiter) Setting
+         * \param val - the current value to set
+         */
+        static void SetMaxCurrent(float val){if(val<0) val=0; m_MaxCurrent=val; }
+
+        /*!
+         * \brief Returns actual MaxCurrent Setting
+         * \return the MaxCurrent Setting
+         */
+        static float GetMaxCurrent(){return m_MaxCurrent; }
+
         /*!
          * \brief The object state update method
          * \details Gets the CPU time to update internal state of the object.
