@@ -271,13 +271,6 @@ public:
     void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
 
     /**
-     * \brief Setup secondary number
-     *
-     * @param number - secondary number
-     */
-    void SetSecondary(int number);
-
-    /**
      * \brief Initialize sensors
      *
      * This method is all-in-one replacement for @ref SetBridge @ref SetSensorOffsets @ref SetSensorGains @ref SetSensorTransmissions
