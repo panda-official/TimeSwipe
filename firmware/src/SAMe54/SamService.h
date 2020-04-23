@@ -37,7 +37,7 @@ public:
 
     /*!
      * \brief Fetches the UUID of SAM CPU as the string
-     * \return A string containing UUID in a form of "0xXXXXXXXX-0xXXXXXXXX-0xXXXXXXXX-0xXXXXXXXX"
+     * \return A string containing UUID in a form of "XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
      */
     static std::string GetSerialString();
 };

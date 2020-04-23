@@ -258,6 +258,13 @@ int main(void)
         pDisp->Add("ARMID", std::make_shared< CCmdSGHandlerF<std::string> >(&CSamService::GetSerialString) );
         pDisp->Add("fwVersion", std::make_shared< CCmdSGHandler<CSemVer, std::string> >(pVersion, &CSemVer::GetVersionString) );
 
+        //cal status:
+        pDisp->Add("CalStatus", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetCalStatus) );
+
+        //extended settings:
+        pDisp->Add("Voltage", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetVoltage, &nodeControl::SetVoltage) );
+        pDisp->Add("Current", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetCurrent, &nodeControl::SetCurrent) );
+        pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
 
 
         //--------------------menu+button+detection of a master----------------
