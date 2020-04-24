@@ -50,13 +50,8 @@ void CNewMenu::ApplyMenuSetting()
         break;
 
         case CView::menu::Offsets:
-            /*switch(m_MenuEl)
-            {
-                case 0: nc.SearchNegativeRange(true); return;
-                case 1: nc.SetZero(true); return;
-                case 2: nc.SearchPositiveRange(true); return;
-            }*/
             nc.SetOffset(m_MenuEl+1);
+            m_CurMode=mode::preview;
         return;
 
         case CView::menu::SetSecondary:
@@ -89,7 +84,6 @@ void CNewMenu::OnButtonState(typeButtonState nState)
             return;
 
             case typeButtonState::long_click:
-           // case typeButtonState::very_long_click:
                 m_CurMode=mode::preview;
                 v.SelectMenuPrevew(m_MenuInd);
             return;
@@ -97,6 +91,12 @@ void CNewMenu::OnButtonState(typeButtonState nState)
         default: return;
         }
     }
+
+    //block buttons while calibration is running:
+    if(nodeControl::Instance().GetOffsetRunSt())
+        return;
+
+
     if(mode::preview==m_CurMode)
     {
         switch(nState)
@@ -122,12 +122,6 @@ void CNewMenu::OnButtonState(typeButtonState nState)
                 }
             return;
 
-           /* case typeButtonState::very_long_click:
-                 nodeControl::Instance().SetDefaultSettings();
-                 m_CurMode=mode::def;
-                 v.ResetSettings();
-            return;*/
-
             default: return;
         }
     }
@@ -148,7 +142,6 @@ void CNewMenu::OnButtonState(typeButtonState nState)
             return;
 
             case typeButtonState::long_click:
-            //case typeButtonState::very_long_click:
                 ApplyMenuSetting();
             return;
 

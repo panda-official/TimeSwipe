@@ -37,6 +37,7 @@ void CViewChannel::SetZeroSearchingMark()
         return;
 
     m_LED.SetBlinkMode(true);
+    m_LED.SetBlinkPeriodAndCount(100);
     m_LED.SetColor(CView::MENU_COLORS[CView::menu::Offsets][1]);
     m_LED.ON(true);
 }
