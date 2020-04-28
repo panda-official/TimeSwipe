@@ -347,7 +347,7 @@ void TimeSwipeImpl::_fetcherLoop() {
         TimeSwipeEvent event;
         while (_events.pop(event)) {
             _inCallback = true;
-            onEventCb(event);
+            if(onEventCb) onEventCb(event);
             _inCallback = false;
         }
     }
