@@ -58,7 +58,6 @@ void CLED::Update()
 void CLED::Blink(int nPeriods)
 {
     m_bBlinking=true;
-    m_CurBlinkingPeriod=0;
     m_BlinkingPeriodLimit=nPeriods;
     ON(true);
 }
@@ -66,16 +65,17 @@ void CLED::Blink(int nPeriods)
 void CLED::ON(bool how)
 {
     m_bON=how;
+    m_CurBlinkingPeriod=0;
     if(how)
     {
         m_LastTimeUpd=os::get_tick_mS();
         m_bPhase=true;
     }
-    else
+   /* else
     {
         m_BlinkingPeriodLimit=0;
          m_BlinkPeriod_mS=400;
-    }
+    }*/
 
     typeLEDCntr &pixels=glob_NeoPix;
     pixels.setPixelColor( get_zerob_ind(), m_bON ? m_Clr:0);
@@ -181,7 +181,7 @@ void nodeLED::blinkLED(typeLEDind sel, typeLEDcol blink_color)
 }
 void nodeLED::blinkMultipleLED(typeLEDind firstLED,  typeLEDind lastLED, typeLEDcol blink_color, int replication, int duration)
 {
-    for(const auto pLED:m_LEDs) if (pLED->m_nLED>=firstLED && pLED->m_nLED<=lastLED)
+    for(const auto pLED:m_LEDs) if(pLED->m_nLED>=firstLED && pLED->m_nLED<=lastLED)
     {
         pLED->m_BlinkPeriod_mS=duration;
         pLED->SetColor(blink_color);

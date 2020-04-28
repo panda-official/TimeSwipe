@@ -14,72 +14,41 @@ std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 
 static bool brecord=false;
 static std::vector<CDataVis>  m_DataVis;
+nodeControl::MesModes nodeControl::m_OpMode=nodeControl::IEPE;
+
 
 float nodeControl::m_Voltage=0;
 float nodeControl::m_Current=0;
 float nodeControl::m_MaxCurrent=1000;  //mA
 
-void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED)
+nodeControl::nodeControl()
 {
-    m_DataVis.emplace_back(pADC, pLED);
-}
-void nodeControl::StartDataVis(bool bHow, unsigned long nDelay_mS)
-{
-    for(auto &el : m_DataVis) el.Start(bHow, nDelay_mS);
-}
-void nodeControl::on_event(const char *key, nlohmann::json &val)
-{
-    if(0==strcmp("Zero", key))
-    {
-        if(val) //proc started
-        {
-            StartDataVis(false);
-        }
-        else
-        {
-            //reset:
-            for(auto &el : m_DataVis) el.reset();
-
-            StartDataVis(true);
-        }
-        return;
-    }
-
-    //menu selection:
-    if(0==strcmp("Menu", key))
-    {
-        if(val>0) //menu is selected
-        {
-            StartDataVis(false);
-        }
-        else
-        {
-             StartDataVis(true, 2000);
-        }
-    }
+    m_DataVis.reserve(4);
 }
 
+void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh)
+{
+    m_DataVis.emplace_back(pADC, nCh);
+}
 void nodeControl::Update()
 {
     for(auto &el : m_DataVis) el.Update();
+
+    Instance().m_PersistStorage.Update();
+
+    m_pZeroCal->Update();
 }
 
 bool nodeControl::IsRecordStarted(){ return brecord;}
 void nodeControl::StartRecord(const bool how)
 {
-    StartDataVis(false);
-
-    static unsigned long count_mark=0;
     //make a stamp:
+    static unsigned long count_mark=0;
     count_mark++;
 
     //generate an event:
     nlohmann::json v=count_mark;
     Instance().Fire_on_event("Record", v);
-
-    nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, LEDrgb(255, 10, 10));
-
-    StartDataVis(true, 300);
 }
 
 int nodeControl::gain_out(int val)
@@ -130,10 +99,48 @@ int nodeControl::GetSecondary()
     return m_pMUX->GetUBRVoltage();
 }
 
-void nodeControl::SetZero(bool how)
+
+void nodeControl::SetMode(int nMode)
 {
-    if(how)
-        m_pZeroCal->Start();
-    else
-        m_pZeroCal->StopReset();
+    m_pMUX->SetUBRvoltage(nMode ? true:false);
+
+    m_OpMode=static_cast<MesModes>(nMode);
+    if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
+    if(m_OpMode>MesModes::Digital){ m_OpMode=MesModes::Digital; }
+
+
+    //generate an event:
+    nlohmann::json v=nMode;
+    Instance().Fire_on_event("Mode", v);
+
+}
+int nodeControl::GetMode()
+{
+    return static_cast<int>(m_OpMode);
+}
+
+void nodeControl::SetOffset(int nOffs)
+{
+    switch(nOffs)
+    {
+        case 1: //negative
+            m_pZeroCal->Start(4000);
+        break;
+
+        case 2: //zero
+            m_pZeroCal->Start();
+        break;
+
+        case 3: //positive
+            m_pZeroCal->Start(100);
+        break;
+
+        default:
+            nOffs=0;
+            m_pZeroCal->StopReset();
+        return;
+    }
+
+    nlohmann::json v=nOffs;
+    Instance().Fire_on_event("Offset", v);
 }

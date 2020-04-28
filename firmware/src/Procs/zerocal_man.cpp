@@ -17,6 +17,9 @@ void CCalMan::Serialize(CStorage &st)
     bool bSet=st.IsDownloading();
     for(auto &ch : m_ChanCal)
     {
+        if(st.IsDefaultSettingsOrder())
+            ch.m_PrmOffset=2048;
+
         st.ser( (ch.m_PrmOffset) );
         if(bSet)
         {
@@ -25,19 +28,17 @@ void CCalMan::Serialize(CStorage &st)
     }
 }
 
-void CCalMan::Start()
+void CCalMan::Start(int val)
 {
-    nlohmann::json v=true;
-    Fire_on_event("Zero", v);
+    //nlohmann::json v=true;
+    //Fire_on_event("Zero", v);
 
     m_PState=FSM::running;
     unsigned int nSize=m_ChanCal.size();
     for(unsigned int i=0; i<nSize; i++)
     {
-        m_ChanCal[i].Search(2048);
-        m_pLED[i]->ON(true); //!!!!
-        m_pLED[i]->SetBlinkMode(true);
-        m_pLED[i]->SetColor(CMenuLogic::SETZERO_COLOR_ACTIVE);
+        m_ChanCal[i].Search(val);
+        CView::Instance().GetChannel(m_VisChan[i]).SetZeroSearchingMark();
     }
     m_LastTimeUpd=os::get_tick_mS();
     m_UpdSpan=100;
@@ -49,12 +50,12 @@ void CCalMan::Start()
      for(unsigned int i=0; i<nSize; i++)
      {
          m_ChanCal[i].StopReset();
-         m_pLED[i]->ON(false);
      }
      m_PState=FSM::halted;
+     CView::Instance().ZeroSearchCompleted();
 
-     nlohmann::json v=false;
-     Fire_on_event("Zero", v);
+     //nlohmann::json v=false;
+     //Fire_on_event("Zero", v);
  }
 void CCalMan::Update()
 {
@@ -81,27 +82,22 @@ void CCalMan::Update()
         if(tstate!=m_State[i])
         {
             m_State[i]=tstate;
+            CViewChannel &ch=CView::Instance().GetChannel(m_VisChan[i]);
             switch (tstate)
             {
                 case typePTsrcState::error:
-                    m_pLED[i]->SetBlinkMode(false);
-                    m_pLED[i]->SetColor(LEDrgb(255,0,0));
+                    ch.SetZeroSearchErrorMark();
                 break;
 
                 case typePTsrcState::found:
-                    m_pLED[i]->SetBlinkMode(false);
-                    m_pLED[i]->SetColor(CMenuLogic::SETZERO_COLOR_ACTIVE);
+                    ch.SetZeroFoundMark();
+                break;
             }
         }
     }
     if(!bRunning)
     {
-        m_UpdSpan=1000; //1 sec delay
-        m_PState=FSM::delay;
-    }
-    }
-    else
-    {
         StopReset();
-    }
+
+    } }
 }

@@ -68,7 +68,7 @@ class TimeSwipeImpl {
 public:
     TimeSwipeImpl();
     ~TimeSwipeImpl();
-    void SetBridge(int bridge);
+    void SetMode(int number);
 
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
     void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
@@ -76,7 +76,7 @@ public:
 
     bool SetSampleRate(int rate);
     bool Start(TimeSwipe::ReadCallback);
-    bool onButton(TimeSwipe::OnButtonCallback cb);
+    bool onEvent(TimeSwipe::OnEventCallback cb);
     bool onError(TimeSwipe::OnErrorCallback cb);
     std::string Settings(uint8_t set_or_get, const std::string& request, std::string& error);
     bool Stop();
@@ -106,12 +106,12 @@ private:
 
     boost::lockfree::spsc_queue<std::pair<uint8_t,std::string>, boost::lockfree::capacity<1024>> _inSPI;
     boost::lockfree::spsc_queue<std::pair<std::string,std::string>, boost::lockfree::capacity<1024>> _outSPI;
-    boost::lockfree::spsc_queue<BoardEvents, boost::lockfree::capacity<128>> _events;
+    boost::lockfree::spsc_queue<TimeSwipeEvent, boost::lockfree::capacity<128>> _events;
     void _processSPIRequests();
 
     void _clearThreads();
 
-    TimeSwipe::OnButtonCallback onButtonCb;
+    TimeSwipe::OnEventCallback onEventCb;
     TimeSwipe::OnErrorCallback onErrorCb;
 
     bool _work = false;
@@ -144,8 +144,8 @@ TimeSwipeImpl::~TimeSwipeImpl() {
     _clearThreads();
 }
 
-void TimeSwipeImpl::SetBridge(int bridge) {
-    Rec.sensorType = bridge;
+void TimeSwipeImpl::SetMode(int number) {
+    Rec.mode = number;
 }
 
 void TimeSwipeImpl::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4) {
@@ -233,9 +233,9 @@ bool TimeSwipeImpl::Stop() {
     return true;
 }
 
-bool TimeSwipeImpl::onButton(TimeSwipe::OnButtonCallback cb) {
+bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb) {
     if (_isStarted()) return false;
-    onButtonCb = cb;
+    onEventCb = cb;
     return true;
 }
 
@@ -267,6 +267,7 @@ bool TimeSwipeImpl::_isStarted() {
 }
 
 void TimeSwipeImpl::_receiveEvents() {
+<<<<<<< HEAD
 #if NOT_RPI
     BoardEvents event;
     if (emulButtonSent < emulButtonPressed) {
@@ -277,6 +278,9 @@ void TimeSwipeImpl::_receiveEvents() {
     auto event = readBoardEvents();
 #endif
     if (event.button) {
+=======
+    for (auto&& event: readBoardEvents()) {
+>>>>>>> refs/heads/NewMenu
         _events.push(event);
     }
 }
@@ -311,10 +315,6 @@ TimeSwipe::TimeSwipe() {
 TimeSwipe::~TimeSwipe() {
 }
 
-void TimeSwipe::SetBridge(int bridge) {
-    return _impl->SetBridge(bridge);
-}
-
 void TimeSwipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4) {
     return _impl->SetSensorOffsets(offset1, offset2, offset3, offset4);
 }
@@ -327,17 +327,16 @@ void TimeSwipe::SetSensorTransmissions(float trans1, float trans2, float trans3,
     return _impl->SetSensorTransmissions(trans1, trans2, trans3, trans4);
 }
 
-void TimeSwipe::Init(int bridge, int offsets[4], float gains[4], float transmissions[4]) {
-    SetBridge(bridge);
-    SetSensorOffsets(offsets[0], offsets[1], offsets[2], offsets[3]);
-    SetSensorGains(gains[0], gains[1], gains[2], gains[3]);
-    SetSensorTransmissions(transmissions[0], transmissions[1], transmissions[2], transmissions[3]);
+void TimeSwipe::SetMode(Mode number) {
+    return _impl->SetMode(int(number));
 }
 
-void TimeSwipe::SetSecondary(int number) {
-    //TODO: complete on integration
-    SetBridge(number);
+//TODO:
+/*
+Mode TimeSwipe::GetMode() {
+    return TimeSwipe::Mode(_impl->GetMode());
 }
+*/
 
 void TimeSwipe::SetBurstSize(size_t burst) {
     return _impl->SetBurstSize(burst);
@@ -355,8 +354,8 @@ bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb) {
     return _impl->onError(cb);
 }
 
-bool TimeSwipe::onButton(TimeSwipe::OnButtonCallback cb) {
-    return _impl->onButton(cb);
+bool TimeSwipe::onEvent(TimeSwipe::OnEventCallback cb) {
+    return _impl->onEvent(cb);
 }
 
 std::string TimeSwipe::SetSettings(const std::string& request, std::string& error) {
@@ -373,13 +372,11 @@ void TimeSwipeImpl::_fetcherLoop() {
         if (!recordBuffer.push(data))
             ++recordErrors;
 
-        BoardEvents event;
+        TimeSwipeEvent event;
         while (_events.pop(event)) {
-            if (event.button && onButtonCb) {
-                _inCallback = true;
-                onButtonCb(event.buttonCounter % 2, event.buttonCounter);
-                _inCallback = false;
-            }
+            _inCallback = true;
+            if(onEventCb) onEventCb(event);
+            _inCallback = false;
         }
     }
 }

@@ -15,7 +15,8 @@ Copyright (c) 2019 Panda Team
 
 #include <memory>
 #include "ADC.h"
-#include "nodeLED.h"
+#include "View.h"
+#include "mav.h"
 
 /*!
  * \brief Data visualization class: displays the measured signal levels of the ADC channel using the LED indicator. Like this it visualizes the actual measurement values.
@@ -37,7 +38,7 @@ protected:
     const float ILowLim=0.02f;
 
     //! The upper visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to max. brightness. 
-    int meas_max;
+   /* int meas_max;
     //! The lower visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to min. brightness. 
     int meas_min;
     //! Min. visualization range at start. Is set around actual measurement value after startup and after a reset. The measurement value has to surpass this range (+/-50) one time, for the visualization to become active for this channel.
@@ -50,7 +51,7 @@ protected:
     bool senscon_chan=false;
 
     //! Drop-out factor: used to determine the sensor is disconnected
-    const float drop_out_factor=2.0f;
+    const float drop_out_factor=2.0f;*/
 
 
     /*!
@@ -63,21 +64,11 @@ protected:
      */
     bool first_update = true;
 
-    /*!
-     * \brief The visualisation process is started
-     */
-    bool          m_bStarted=true;
-
-    /*!
-     * \brief "Start" order for initialization - to be executed in CDataVis::Update() method
-     * \details Preparing/re-initialize object internals for visualization after issuing a CDataVis::Start method
-     */
-    bool          m_bStartInitOder=false;
 
     /*!
      * \brief State updation/recalculation period (for CDataVis::Update())
      */
-    unsigned long m_upd_tspan_mS=1000;
+     long m_upd_tspan_mS=25;
 
     /*!
      * \brief A pointer to input data source
@@ -87,9 +78,20 @@ protected:
     /*!
      * \brief A pointer to visualization LED to display processed data
      */
-    std::shared_ptr<CLED> m_pLED;
+    CView::vischan m_nCh;
 
-public:
+    CMA<float> m_MA;
+    float m_CurStdDev;
+    float m_HalfRange;
+    const float m_InflationFactor=1.5f;
+    const int m_StdDevPer=20;
+    int m_StdDevRecalcCountDown=0;
+    bool m_bSensorDetected=false;
+    const float m_DetectThrhold=70.0f;
+    const float m_DropThrhold=70.0f;
+
+    float m_ZeroLevel=2048.0f;
+
     /*!
      * \brief Resets internal state of the object by setting the min. visualization range (min_wind) around the actual measurement value
      */
@@ -101,14 +103,7 @@ public:
      * \param pADC A pointer to an ADC channel
      * \param pLED A pointer to a LED
      */
-    CDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
-
-    /*!
-     * \brief Starts/Stops the data visualization process
-     * \param bHow true=Start, false=Stop
-     * \param nDelay_mS A delay before process will be started after calling this method with bHow=true
-     */
-    void Start(bool bHow, unsigned long nDelay_mS);
+    CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh);
 
     /*!
      * \brief The object state update method

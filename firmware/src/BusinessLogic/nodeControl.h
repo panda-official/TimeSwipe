@@ -17,6 +17,7 @@ Copyright (c) 2019 Panda Team
 #include "ADmux.h"
 #include "zerocal_man.h"
 #include "json_evsys.h"
+#include "RawBinStorage.h"
 
 /*!
  * \brief Provides the basic functionality of the board
@@ -26,7 +27,7 @@ Copyright (c) 2019 Panda Team
  * when basic board settings are changed
  */
 
-class nodeControl : public std::enable_shared_from_this<nodeControl>, public CJSONEvCP,  public IJSONEvent{
+class nodeControl : public CJSONEvCP{ //public std::enable_shared_from_this<nodeControl>
 protected:
 
         /*!
@@ -51,7 +52,19 @@ protected:
          * \param key An object string name (key)
          * \param val A JSON event
          */
-        virtual void on_event(const char *key, nlohmann::json &val);
+
+        /*virtual void Serialize(CStorage &st)
+        {
+            if(st.IsDefaultSettingsOrder())
+            {
+
+            }
+            if(st.IsDownloading())
+            {
+
+            }
+        }*/
+
 
 public:
         /*!
@@ -60,12 +73,14 @@ public:
          */
         static nodeControl& Instance()
         {
-           static std::shared_ptr<nodeControl> ptr(new nodeControl);
-           return *ptr;
+            static nodeControl singleton;
+            return singleton;
+           //static std::shared_ptr<nodeControl> ptr(new nodeControl);
+           //return *ptr;
         }
 private:
         //! Forbid creating other instances of the class object
-        nodeControl() {}
+        nodeControl();
 
         //! Forbid copy constructor
         nodeControl(const nodeControl&)=delete;
@@ -74,14 +89,22 @@ private:
         nodeControl& operator=(const nodeControl&)=delete;
 	
 public:
+        CRawBinStorage m_PersistStorage;
+
         /*!
          * \brief The possible values for IEPE measure modes
          */
         enum MesModes
         {
             IEPE=0,         //!<IEPE mode
-            Normsignal      //!<Normal signal
+            Normsignal,     //!<Normal signal
+            Digital
         };
+        static MesModes m_OpMode;
+
+        void LoadSettings(){m_PersistStorage.Load();}
+        void SetDefaultSettings(){ m_PersistStorage.SetDefaults(); }
+
 
         /*!
          * \brief Binds board's digital multiplexer and controller object of finding amplifier offsets routine
@@ -93,6 +116,8 @@ public:
         {
             m_pMUX=pMUX;
             m_pZeroCal=pZeroCal;
+            Instance().m_PersistStorage.AddItem(pMUX);
+            Instance().m_PersistStorage.AddItem(pZeroCal);
         }
 
 
@@ -101,7 +126,7 @@ public:
          * \param pADC An ADC channel to bind with the new object
          * \param pLED A LED object to bind with the new object
          */
-        static void CreateDataVis(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CLED> &pLED);
+        static void CreateDataVis(const std::shared_ptr<CAdc> &pADC,  CView::vischan nCh);
 
         /*!
          * \brief Turns on/off the data visualization process
@@ -180,18 +205,45 @@ public:
          * \return 0 = IEPE; 1 = Normsignal
          */
         static int GetSecondary();
+
+        /*!
+         * \brief Sets the board opearation mode
+         * \param nMode: 0 = IEPE; 1 = Normsignal
+         */
+        static void SetMode(int nMode);
+
+        /*!
+         * \brief Gets current board operation mode
+         * \return 0 = IEPE; 1 = Normsignal
+         */
+        static int GetMode();
 	
         /*!
          * \brief Starts/stops finding amplifier offsets procedure
          * \param how true=start the procedure, false=stop
          */
-        static void SetZero(bool how);
+        /*static void SetZero(bool how);
+        static void SearchNegativeRange(bool how);
+        static void SearchPositiveRange(bool how);*/
+
+        static void SetOffset(int nOffs);
+
+        static void EnableMeasurements(bool how)
+        {
+            m_pMUX->EnableADmes(how);
+            CView::Instance().SetButtonHeartbeat(how);
+        }
+        static bool IsMeasurementsEnabled()
+        {
+            return m_pMUX->IsADmesEnabled();
+        }
+
 
         /*!
          * \brief Returns current finding amplifier offsets procedure state
          * \return true=the procedure is running, false=the procedure is finished
          */
-        inline static bool GetZeroRunSt(){ return m_pZeroCal->IsStarted(); }
+        inline static int GetOffsetRunSt(){ return m_pZeroCal->IsStarted(); }
 
         inline static bool GetCalStatus(){ return 0;}
 

@@ -66,7 +66,7 @@ protected:
     /*!
      * \brief The LED blinking period, milliseconds
      */
-    unsigned int  m_BlinkPeriod_mS=400;
+    unsigned long  m_BlinkPeriod_mS=400;
 
     /*!
      * \brief Setpoint color of the LED
@@ -143,6 +143,11 @@ public:
     void SetBlinkMode(bool how)
     {
         m_bBlinking=how;
+    }
+    void SetBlinkPeriodAndCount(unsigned long  BlinkPeriod_mS, unsigned long BlinkCount=0)
+    {
+        m_BlinkPeriod_mS=BlinkPeriod_mS;
+        m_BlinkingPeriodLimit=BlinkCount;
     }
 
     /*!

@@ -22,7 +22,8 @@ Copyright (c) 2019 Panda Team
 #include "DACdecor.h"
 #include "DACPWMht.h"
 
-#include "menu_logic.h"
+//#include "menu_logic.h"
+#include "NewMenu.h"
 #include "SAMbutton.h"
 #include "nodeLED.h"
 #include "View.h"
@@ -38,8 +39,8 @@ Copyright (c) 2019 Panda Team
 
 #include "FanControlSimple.h"
 #include "SamNVMCTRL.h"
-
 #include "SemVer.h"
+#include "View.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -67,13 +68,7 @@ int main(void)
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
         //step 0: clock init:
-        unsigned long last_time_upd=os::get_tick_mS();
         sys_clock_init(); //->120MHz
-        nodeLED::init();
-        auto pLED1      =std::make_shared<CLED>(typeLED::LED1);
-        auto pLED2      =std::make_shared<CLED>(typeLED::LED2);
-        auto pLED3      =std::make_shared<CLED>(typeLED::LED3);
-        auto pLED4      =std::make_shared<CLED>(typeLED::LED4);
 
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
@@ -116,10 +111,8 @@ int main(void)
 
         //step 1 - creating QSPI bus:
         CSamQSPI objQSPI;
-
-
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
-        pSPIsc2->EnableIRQs(true);  //no working in IRQ mode....
+        pSPIsc2->EnableIRQs(true);
 
 
 
@@ -167,10 +160,10 @@ int main(void)
 
         //calibrator:
         auto pZeroCal=std::make_shared<CCalMan>();
-        pZeroCal->Add(pADC1, pDACA, pLED1);
-        pZeroCal->Add(pADC2, pDACB, pLED2);
-        pZeroCal->Add(pADC3, pDACC, pLED3);
-        pZeroCal->Add(pADC4, pDACD, pLED4);
+        pZeroCal->Add(pADC1, pDACA, CView::ch1);
+        pZeroCal->Add(pADC2, pDACB, CView::ch2);
+        pZeroCal->Add(pADC3, pDACC, CView::ch3);
+        pZeroCal->Add(pADC4, pDACD, CView::ch4);
 
         nodeControl::SetControlItems(pADmux, pZeroCal);
 
@@ -206,32 +199,17 @@ int main(void)
         pDisp->Add("ADC4.raw", std::make_shared< CCmdSGHandler<CAdc, int> >(pADC4, &CAdc::DirectMeasure) );
 
 
-        //LEDs control:
-        pDisp->Add("LED1", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED1, nullptr,  &CLED::ON) );
-        pDisp->Add("LED1.blink", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED1, nullptr,  &CLED::SetBlinkMode) );
-        pDisp->Add("LED1.col", std::make_shared< CCmdSGHandler<CLED, typeLEDcol> >(pLED1, nullptr,  &CLED::SetColor) );
-
-        pDisp->Add("LED2", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED2, nullptr,  &CLED::ON) );
-        pDisp->Add("LED2.blink", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED2, nullptr,  &CLED::SetBlinkMode) );
-        pDisp->Add("LED2.col", std::make_shared< CCmdSGHandler<CLED, typeLEDcol> >(pLED2, nullptr,  &CLED::SetColor) );
-
-        pDisp->Add("LED3", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED3, nullptr,  &CLED::ON) );
-        pDisp->Add("LED3.blink", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED3, nullptr,  &CLED::SetBlinkMode) );
-        pDisp->Add("LED3.col", std::make_shared< CCmdSGHandler<CLED, typeLEDcol> >(pLED3, nullptr,  &CLED::SetColor) );
-
-        pDisp->Add("LED4", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED4, nullptr,  &CLED::ON) );
-        pDisp->Add("LED4.blink", std::make_shared< CCmdSGHandler<CLED, bool> >(pLED4, nullptr,  &CLED::SetBlinkMode) );
-        pDisp->Add("LED4.col", std::make_shared< CCmdSGHandler<CLED, typeLEDcol> >(pLED4, nullptr,  &CLED::SetColor) );
-
         //Node control:
         pDisp->Add("Gain", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetGain, &nodeControl::SetGain) );
         pDisp->Add("SetSecondary", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetSecondary,  &nodeControl::SetSecondary) );
         pDisp->Add("Bridge", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetBridge,  &nodeControl::SetBridge) );
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
-        pDisp->Add("Zero", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetZeroRunSt,  &nodeControl::SetZero) );
+        pDisp->Add("Offset", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetOffsetRunSt,  &nodeControl::SetOffset) );
+        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsMeasurementsEnabled,  &nodeControl::EnableMeasurements) );
+        pDisp->Add("Mode", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetMode,  &nodeControl::SetMode) );
 
-        pDisp->Add("Zero.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-        pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsADmesEnabled,  &CADmux::EnableADmes) );
+
+        pDisp->Add("Offset.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
         pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
 
@@ -267,16 +245,14 @@ int main(void)
         pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
 
 
-        //--------------------menu+button+detection of a master----------------
-        auto pMenu=std::make_shared<CMenuLogic>();
-        SAMButton button(*pMenu);
+        nodeControl::CreateDataVis(pADC1, CView::ch1);
+        nodeControl::CreateDataVis(pADC2, CView::ch2);
+        nodeControl::CreateDataVis(pADC3, CView::ch3);
+        nodeControl::CreateDataVis(pADC4, CView::ch4);
 
-        nodeControl::CreateDataVis(pADC1, pLED1);
-        nodeControl::CreateDataVis(pADC2, pLED2);
-        nodeControl::CreateDataVis(pADC3, pLED3);
-        nodeControl::CreateDataVis(pADC4, pLED4);
-        nodeControl::StartDataVis(true, 1200);
 
+        SAMButton &button=SAMButton::Instance();
+        button.AdviseSink( std::make_shared<CNewMenu>() );
 
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -285,53 +261,23 @@ int main(void)
         //------------------JSON EVENTS-------------------
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
         pDisp->Add("je", pJE);
-        button.AdviseSink(pJE);
-        pMenu->AdviseSink(pJE);
-        pMenu->AdviseSink(nodeControl::Instance().shared_from_this());
+        button.CJSONEvCP::AdviseSink(pJE);
         nodeControl::Instance().AdviseSink(pJE);
-
-        pZeroCal->AdviseSink(pJE);
-        pZeroCal->AdviseSink(pMenu);
-        pZeroCal->AdviseSink(nodeControl::Instance().shared_from_this());
         //--------------------------------------------------------------------------------------------------------------
 
 
-        //NVM storage:
-        CRawBinStorage NVMstorage;
-        NVMstorage.AddItem(pADmux);
-        NVMstorage.AddItem(pZeroCal);
-        NVMstorage.Load();
-
-
-        //blink at start:
-        CView::Instance().BlinkAtStart();
+        nodeControl &nc=nodeControl::Instance();
+        CView &view=CView::Instance();
+        nc.LoadSettings();
+        view.BlinkAtStart();
 
         while(1) //endless loop ("super loop")
         {
-
-             NVMstorage.Update();
-
-             //update calproc:
-             pZeroCal->Update();
-
-             //fan control:
-             pFanControl->Update();
-
-             nodeControl::Instance().Update();
-
-             //update LEDs:
-             nodeLED::Update();
-
-             //upd button:
              button.update();
-
-             //upd menu object:
-             if( (os::get_tick_mS()-last_time_upd)>=1000 )	//to do: add an event!!!
-             {
-                     last_time_upd=os::get_tick_mS();
-                     pMenu->OnTimer(0);
-             }
+             nc.Update();
+             view.Update();
 
              pSPIsc2->Update();
+             pSamADC0->Update();
         }
 }
