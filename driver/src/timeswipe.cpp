@@ -235,7 +235,7 @@ bool TimeSwipeImpl::Stop() {
 
 bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb) {
     if (_isStarted()) return false;
-    onEventCb = cb;
+    if(onEventCb) onEventCb = cb;
     return true;
 }
 
@@ -267,22 +267,18 @@ bool TimeSwipeImpl::_isStarted() {
 }
 
 void TimeSwipeImpl::_receiveEvents() {
-<<<<<<< HEAD
 #if NOT_RPI
     BoardEvents event;
     if (emulButtonSent < emulButtonPressed) {
         event.button = true;
         event.buttonCounter = emulButtonSent = emulButtonPressed;
-    }
-#else
-    auto event = readBoardEvents();
-#endif
-    if (event.button) {
-=======
-    for (auto&& event: readBoardEvents()) {
->>>>>>> refs/heads/NewMenu
         _events.push(event);
     }
+#else
+    for (auto&& event: readBoardEvents()) {
+        _events.push(event);
+    }
+#endif
 }
 
 void TimeSwipeImpl::_processSPIRequests() {
@@ -375,7 +371,7 @@ void TimeSwipeImpl::_fetcherLoop() {
         TimeSwipeEvent event;
         while (_events.pop(event)) {
             _inCallback = true;
-            if(onEventCb) onEventCb(event);
+            onEventCb(event);
             _inCallback = false;
         }
     }

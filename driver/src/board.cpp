@@ -98,15 +98,11 @@ static std::mutex boardMtx;
 
 std::list<TimeSwipeEvent> readBoardEvents()
 {
-    std::lock_guard<std::mutex> lock(boardMtx);
-<<<<<<< HEAD
-    BoardEvents ret;
-#if NOT_RPI
-    return ret;
-#endif
-=======
     std::list<TimeSwipeEvent> events;
->>>>>>> refs/heads/NewMenu
+    std::lock_guard<std::mutex> lock(boardMtx);
+#if NOT_RPI
+    return events;
+#endif
     std::string data;
     if (BoardInterface::get()->getEvents(data) && !data.empty()) {
         if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);

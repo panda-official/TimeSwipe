@@ -206,16 +206,12 @@ struct RecordReader
         {
             mfactor[i] = gain[i] * transmission[i];
         }
-<<<<<<< HEAD
 #if NOT_RPI
         emulPointBegin = std::chrono::steady_clock::now();
         emulSent = 0;
         return;
 #endif
-        init(sensorType);
-=======
         init(mode);
->>>>>>> refs/heads/NewMenu
     }
 
     void stop()
