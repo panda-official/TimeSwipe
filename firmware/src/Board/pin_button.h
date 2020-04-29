@@ -17,8 +17,12 @@ Copyright (c) 2019 Panda Team
 #include "os.h"
 #include "button.h"
 
+
+#define LONG_CLICK_ON_PRESS
+
+template <class T>
 /*!
- * \brief An implementation template of a button which uses digital pin state as an input signal with a debouncing code
+ * \brief The template of a button which uses digital pin state as an input signal with a debouncing code
  * \details A raw signal is acquired via pure virtual function bool get_signal(void) which must be overridden
  * in the derived class. To remove the signal noise (debouncing) a simple 1st order digital filter is used.
  * When filtered signal level drops down below m_low_trhold the "released" state is established.
@@ -26,10 +30,6 @@ Copyright (c) 2019 Panda Team
  * The generation of the corresponding event is delegated to the derived class -
  * it must provide an overridden send_event(typeButtonState nState) virtual function
  */
-
-#define LONG_CLICK_ON_PRESS
-
-template <class T>
 class CPinButton{
 protected:
 
@@ -44,9 +44,8 @@ protected:
     float m_high_trhold=0.95f;
 
     /*!
-     * \brief 1st order digital filter time constant, seconds
+     * \brief 1st order digital filter pre-calculated factor
      */
-    //float m_filter_t_Sec=0.018f;
     float m_filter_factor=1.0f/(0.013f*1000.0f);
 	
     /*!
@@ -59,18 +58,54 @@ protected:
      */
     unsigned long m_last_time_upd=os::get_tick_mS();
 
+    /*!
+     * \brief The timestamp of last button press, mSec
+     */
     unsigned long m_press_time_stamp_mS;
+
+    /*!
+     * \brief The timestamp of last button release, mSec
+     */
     unsigned long m_release_time_stamp_mS;
+
+    /*!
+     * \brief The current click (press/release) duration, mSec
+     */
     unsigned long m_click_duration_mS;
+
+    /*!
+     * \brief The time interval between two consecutive clicks
+     */
     unsigned long m_interclick_time_span_mS;
 
+    /*!
+     * \brief The first short click of double-click detection flag
+     */
     bool m_bFirstClickOfDouble=false;
 
+    /*!
+     * \brief "Long Click" was set
+     */
     bool m_bLongClickIsSet=false;
+
+    /*!
+     * \brief "Very Long Click" was set
+     */
     bool m_bVeryLongClickIsSet=false;
 
+    /*!
+     * \brief The maximum duration of the Short Click (minimum duration of the Long Click)
+     */
     unsigned long m_short_click_max_duration_mS=1200;
+
+    /*!
+     * \brief The Double Click maximum duration (single click + interclick time span)
+     */
     unsigned long m_double_click_trhold_mS=400;
+
+    /*!
+     * \brief The Very Long Click minimum duration, mSec
+     */
     unsigned long m_very_long_click_duration_mS=6000;
 
     /*!

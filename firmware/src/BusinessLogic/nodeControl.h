@@ -21,13 +21,13 @@ Copyright (c) 2019 Panda Team
 
 /*!
  * \brief Provides the basic functionality of the board
- * \details The class can be considered as somewhat usually called "controller" in MCV pattern.
+ * \details The class can be considered as somewhat usually called "controller"
  * The only one controller object can exist. This is a "singleton" class
  * The class object has an ability for receiving JSON events from other objects and generate own JSON events
  * when basic board settings are changed
  */
 
-class nodeControl : public CJSONEvCP{ //public std::enable_shared_from_this<nodeControl>
+class nodeControl : public CJSONEvCP{
 protected:
 
         /*!
@@ -53,18 +53,6 @@ protected:
          * \param val A JSON event
          */
 
-        /*virtual void Serialize(CStorage &st)
-        {
-            if(st.IsDefaultSettingsOrder())
-            {
-
-            }
-            if(st.IsDownloading())
-            {
-
-            }
-        }*/
-
 
 public:
         /*!
@@ -75,8 +63,6 @@ public:
         {
             static nodeControl singleton;
             return singleton;
-           //static std::shared_ptr<nodeControl> ptr(new nodeControl);
-           //return *ptr;
         }
 private:
         //! Forbid creating other instances of the class object
@@ -89,6 +75,10 @@ private:
         nodeControl& operator=(const nodeControl&)=delete;
 	
 public:
+
+        /*!
+         * \brief Persistent storage controller
+         */
         CRawBinStorage m_PersistStorage;
 
         /*!
@@ -98,11 +88,19 @@ public:
         {
             IEPE=0,         //!<IEPE mode
             Normsignal,     //!<Normal signal
-            Digital
+            Digital         //!<Digital mode
         };
         static MesModes m_OpMode;
 
+        /*!
+         * \brief Loads all settings from the persist storage. Should be called once at startup
+         */
         void LoadSettings(){m_PersistStorage.Load();}
+
+
+        /*!
+         * \brief Brings all settings to their factory default values
+         */
         void SetDefaultSettings(){ m_PersistStorage.SetDefaults(); }
 
 
@@ -220,19 +218,24 @@ public:
 	
         /*!
          * \brief Starts/stops finding amplifier offsets procedure
-         * \param how true=start the procedure, false=stop
+         * \param nOffs 0- stop/reset, 1- negative offset search, 2- zero offset search, 3- positive offset search
          */
-        /*static void SetZero(bool how);
-        static void SearchNegativeRange(bool how);
-        static void SearchPositiveRange(bool how);*/
-
         static void SetOffset(int nOffs);
 
+        /*!
+         * \brief Enables board ADC measurements
+         * \param how true=enable,false=disable
+         */
         static void EnableMeasurements(bool how)
         {
             m_pMUX->EnableADmes(how);
             CView::Instance().SetButtonHeartbeat(how);
         }
+
+        /*!
+         * \brief Returns board ADC measurements enabled flag
+         * \return true=enabled, false=disabled
+         */
         static bool IsMeasurementsEnabled()
         {
             return m_pMUX->IsADmesEnabled();
@@ -245,7 +248,11 @@ public:
          */
         inline static int GetOffsetRunSt(){ return m_pZeroCal->IsStarted(); }
 
-        inline static bool GetCalStatus(){ return 0;}
+        /*!
+         * \brief Returns board calibration status
+         * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
+         */
+        inline static bool GetCalStatus(){ return false;}
 
 protected:
         /*!

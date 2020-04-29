@@ -31,36 +31,27 @@ Copyright (c) 2019 Panda Team
 class CDataVis
 {
 protected:
-    //! A brightness constant for calculating the actual LED brightness for visualization
-    static const constexpr float b_brght = 7.0f;//2.25f;
+    //! The brightness constant for calculating the actual LED brightness for visualization
+    static const constexpr float b_brght = 7.0f;
+
+    /*!
+     * \brief Pre-calculated brightness factor
+     */
     static const constexpr float bright_factor=1/(b_brght-1.0f);
 
+    /*!
+     * \brief Normalized intensity low limit (prevents LED flickering)
+     */
     const float ILowLim=0.02f;
-
-    //! The upper visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to max. brightness. 
-   /* int meas_max;
-    //! The lower visualization range boundary. The actual measuerement values are visualized within this range, which is constantly adapted. Correlates to min. brightness. 
-    int meas_min;
-    //! Min. visualization range at start. Is set around actual measurement value after startup and after a reset. The measurement value has to surpass this range (+/-50) one time, for the visualization to become active for this channel.
-    int min_wind = 100;
-    //! Min. distance of the lower and upper boarder to the actual measurement value. Two times this value gives the min. range, when the visualization is in progress. The reset of the visualization boarders stops at this distance from the measurment value. 
-    int min_dist = 30;
-    //! Proportional factor for the adjustment of the visualization range boundaries 
-    const float k_range = 0.004;
-    //! Boolean variable for saving the activation status of the visualization for the four measurement channels.
-    bool senscon_chan=false;
-
-    //! Drop-out factor: used to determine the sensor is disconnected
-    const float drop_out_factor=2.0f;*/
 
 
     /*!
-     * \brief A time stamp when object state has been updated last time
+     * \brief The time stamp when object state has been updated last time
      */
     unsigned long last_time_vis = 0;
 
     /*!
-     * \brief A bool variable for initializing the visualization range with reset() function after startup
+     * \brief The bool variable for initializing the visualization range with reset() function after startup
      */
     bool first_update = true;
 
@@ -71,25 +62,64 @@ protected:
      long m_upd_tspan_mS=25;
 
     /*!
-     * \brief A pointer to input data source
+     * \brief The pointer to input data source
      */
     std::shared_ptr<CAdc> m_pADC;
 
     /*!
-     * \brief A pointer to visualization LED to display processed data
+     * \brief The pointer to visualization LED to display processed data
      */
     CView::vischan m_nCh;
 
+    /*!
+     * \brief The moving average of the input signal
+     */
     CMA<float> m_MA;
+
+    /*!
+     * \brief Current Standard Deviation of the input signal
+     */
     float m_CurStdDev;
+
+    /*!
+     * \brief The half range of the signal range dynamic window = Standard Deviation x Inflation Factor
+     */
     float m_HalfRange;
+
+
+    /*!
+     * \brief The Inflation factor used to calculate signal range dynamic window
+     */
     const float m_InflationFactor=1.5f;
+
+    /*!
+     * \brief The period of the Standard Deviation
+     */
     const int m_StdDevPer=20;
+
+    /*!
+     * \brief The countdown to Standard Deviation calculation (to not calculate it on every update, but after some updates)
+     */
     int m_StdDevRecalcCountDown=0;
+
+    /*!
+     * \brief The sensor detected flag
+     */
     bool m_bSensorDetected=false;
+
+    /*!
+     * \brief The sensor detection threshold: abs(Signal-SignalMA)>m_DetectThrhold
+     */
     const float m_DetectThrhold=70.0f;
+
+    /*!
+     * \brief The sensor drop out threshold: abs(ZeroLevel-SignalMA)<m_DropThrhold && Standard Deviation<m_DropThrhold
+     */
     const float m_DropThrhold=70.0f;
 
+    /*!
+     * \brief Assumed default(Zero) signal level when no sensor is connected
+     */
     float m_ZeroLevel=2048.0f;
 
     /*!

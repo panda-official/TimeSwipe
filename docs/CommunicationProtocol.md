@@ -57,29 +57,6 @@ ADC3.raw <br />
 ADC4.raw <br />
 
 
-### Type LED: 
-
-This access point type is used to control board's LEDs.
-
-Root domain:        Holds a LED ON/OFF state (boolen, false:true, w) <br />
-Sub domain (.blink):   Holds a LED blinking mode (ON or OFF) (boolen, false:true, w) <br />
-Sub domain (.col):     Holds a LED color value (integer RGB value 0:0xffffff, w)
-
-Here is a list of all possible LED's access points:
-
-LED1 <br />
-LED1.blink <br />
-LED1.col <br />
-LED2 <br />
-LED2.blink <br />
-LED2.col <br />
-LED3 <br />
-LED3.blink <br />
-LED3.col <br />
-LED4 <br />
-LED4.blink <br />
-LED4.col <br />
-
 ### Type PWM:
 
 This access point type is used to control board's AOUT3 & AOUT4 PWMs.
@@ -118,8 +95,8 @@ PWM2.low <br />
 Gain            |   Holds a gain value (integer value 1:4, r/w)
 Bridge          |   Holds a bridge switch state (ON or OFF) (boolean, false:true, r/w)
 Record          |   Writing "true" to this variable initiates/restarts a record process (boolean, false:true, r/w) 
-Zero            |   Start/stop zero calibration process (boolean, false:true, w)
-Zero.errtol     |   Holds a zero calibration process error tolerance value (integer r/w)
+Offset          |   Starts/stops offset searching process (int, 0 - stop, 1- negative offset, 2- zero offset, 3- positive offset, r/w)
+Offset.errtol   |   Holds a calibration process error tolerance value (integer r/w)
 EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false:true, r/w)
 DACsw           |   Determines the mode of controlling analog outputs #3-4 (0 - default (amplified input signal), 1 - manual via AOUT3, AOUT4) (integer value, 0:1, r/w)
 Temp            |   Returns the current core temperature of SAME54 in degrees Celsius

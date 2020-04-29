@@ -16,7 +16,7 @@ Copyright (c) 2019 Panda Team
 #define GCLK_ADC1   41
 
 
-CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax)
+CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax, bool bAutoUpd)
 {
     m_pCont=pCont;
     m_posIN=posIN;
@@ -24,7 +24,10 @@ CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos p
     m_IntRange=4095;
     SetRange(RangeMin, RangeMax);
 
-    pCont->m_Chans.push_back(this);
+    if(bAutoUpd)
+    {
+        pCont->m_Chans.push_back(this);
+    }
 }
 CSamADCchan::~CSamADCchan()
 {
@@ -77,6 +80,7 @@ void CSamADCcntr::SelectInput(typeSamADCmuxpos nPos, typeSamADCmuxneg nNeg)
     //select ptr:
     Adc *pADC=SELECT_SAMADC(m_nADC);
 
+    while(pADC->SYNCBUSY.bit.INPUTCTRL){}
     ADC_INPUTCTRL_Type treg;
     treg.reg=pADC->INPUTCTRL.reg;
 
@@ -91,11 +95,7 @@ void CSamADCcntr::SelectInput(typeSamADCmuxpos nPos, typeSamADCmuxneg nNeg)
         treg.bit.MUXNEG=0;
         treg.bit.DIFFMODE=0;
     }
-
     pADC->INPUTCTRL.reg=treg.reg;
-     while(pADC->SYNCBUSY.bit.INPUTCTRL){}
-
-
 }
 short CSamADCcntr::SingleConv()
 {
@@ -103,8 +103,9 @@ short CSamADCcntr::SingleConv()
     Adc *pADC=SELECT_SAMADC(m_nADC);
 
     //trigger the sconv:
-    pADC->SWTRIG.bit.START=1;
     while(pADC->SYNCBUSY.bit.SWTRIG){}
+    pADC->SWTRIG.bit.START=1;
+
 
     //wait until finished:
     while(0==pADC->INTFLAG.bit.RESRDY && 0==pADC->INTFLAG.bit.OVERRUN){}

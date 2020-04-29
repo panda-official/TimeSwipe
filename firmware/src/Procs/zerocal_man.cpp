@@ -9,9 +9,6 @@ Copyright (c) 2019 Panda Team
 #include "zerocal_man.h"
 
 
-#include "menu_logic.h"
-unsigned long get_tick_mS(void);
-
 void CCalMan::Serialize(CStorage &st)
 {
     bool bSet=st.IsDownloading();

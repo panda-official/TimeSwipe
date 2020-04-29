@@ -279,5 +279,6 @@ int main(void)
 
              pSPIsc2->Update();
              pSamADC0->Update();
+             pFanControl->Update();
         }
 }

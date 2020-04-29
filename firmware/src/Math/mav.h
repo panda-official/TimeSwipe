@@ -6,28 +6,62 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 
+/*!
+*   \file
+*   \brief A definition file for
+*   CMA
+*/
+
+
 #pragma once
 
 #include <math.h>
 #include "ringbuffer.h"
 
 template <typename T>
+/*!
+ * \brief The implementation of Moving Average(MA) with Standard Deviation(StdDev) function
+ */
 class CMA
 {
 protected:
+
+    /*!
+     * \brief The initialized flag: shows the raw data ring buffer is filled and MA can be calculated
+     */
     bool m_bInitialized=false;
+
+    /*!
+     * \brief The Moving Average period
+     */
     int  m_nPeriod;
 
+    /*!
+     * \brief The ring buffer of raw data
+     */
     CRingBuffer<T> m_RawData;
+
+    /*!
+     * \brief The ring buffer of MA data (used to calculate StdDev)
+     */
     CRingBuffer<T> m_MA;
 
 
 public:
+
+    /*!
+     * \brief Returns the current size of  MA buffer
+     * \return the current size of  MA buffer
+     */
     int GetCurSize()
     {
         return m_MA.GetCurSize();
     }
 
+    /*!
+     * \brief Sets MA period
+     * \param nPeriod - a period to set
+     */
     void SetPeriod(int nPeriod)
     {
         m_nPeriod=nPeriod;
@@ -39,6 +73,11 @@ public:
         m_bInitialized=false;
     }
 
+    /*!
+     * \brief Calculates MA.
+     * \param val - incoming raw data (signal)
+     * \return current MA value
+     */
     T ObtainMA(const T &val)
     {
         T CurMA=0;
@@ -60,6 +99,11 @@ public:
         return CurMA;
     }
 
+    /*!
+     * \brief Calcultes StdDev
+     * \param nPeriod - a period to calculate StdDev
+     * \return StdDev value ащк the period
+     */
     T ObtainStdDev(int nPeriod)
     {
         int size=m_MA.GetCurSize();

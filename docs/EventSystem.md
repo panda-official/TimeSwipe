@@ -9,13 +9,16 @@ Here is the table of all possible events of the current firmware:
 
 <br />
 
-Event name      |   Value type                |   Description
---------------- | ----------------------------|------------------------------------------------------------------------------------- 
-Button          |  boolean(true, false)       |   Notifies that user has pressed(true) or released(false) the button             |
-ButtonStateCnt  |  integer(32bit)             |   A counter of button state changes (odd value means the button is pressed, even means it is released)
-Menu            |  integer(32bit)             |   Notifies that menu has been selected (0 - none, 1 -gain menu , 2 - bridge menu, 3 - zero-calibration menu)
-Zero            |  boolean(true, false)       |   Notifies that zero-calibration routine has been started(true) of finished(false)
-Record          |  integer(32bit), RGBcolor   |   Notifies that a new record stamp has been created (random RGB color value)
+Event name      |   Value type                      |   Description
+--------------- | ----------------------------------|-------------------------------------------------------------------------------------
+Button          |  boolean(true, false)             |   Notifies that user has pressed(true) or released(false) the button
+ButtonStateCnt  |  integer(32bit)                   |   A counter of button state changes (odd value means the button is pressed, even means it is released)
+Record          |  integer(32bit)                   |   Notifies that a new record stamp has been created (record count)
+Gain            |  integer(32bit)                   |   Notifies the Gain setting has been changed
+Bridge          |  boolean(true, false)             |   Notifies the Bridge setting has been changed
+SetSecondary    |  integer(32bit)                   |   Notifies the SetSecondary setting has been changed
+Mode            |  integer(32bit)                   |   Notifies the Mode setting has been changed
+Offset          |  integer(32bit)                   |   Notifies that offset search routine has been started (1- negative offset search, 2- zero offset search, 3- positive offset search)
 
 <br />
 

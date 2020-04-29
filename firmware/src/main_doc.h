@@ -61,4 +61,6 @@
  * \ref Procs_page - Implementation of several routines like finding offsets routine for example
  *
  * \ref SAMe54_page - A class library for controlling SAME54 chip hardware components
+ *
+ * \ref Math_page - Some mathematical methods used for signal processing
  */
