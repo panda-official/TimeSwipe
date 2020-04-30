@@ -21,6 +21,9 @@ SET(CMAKE_CXX_FLAGS "-Wno-psabi")
 #enabling langs inside:
 project(firmware C CXX ASM)
 
+#override JSON formatting:
+add_compile_definitions(NLOHMANN_JSON_CUSTOM_STDIO_FRM)
+
 #adding modules:
 add_subdirectory(ADCDAC)
 add_subdirectory(Procs)

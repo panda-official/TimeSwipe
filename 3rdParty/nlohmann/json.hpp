@@ -14449,7 +14449,11 @@ class serializer
     void dump_float(number_float_t x, std::true_type /*is_ieee_single_or_double*/)
     {
         char* begin = number_buffer.data();
+#ifdef NLOHMANN_JSON_CUSTOM_STDIO_FRM
+        char* end=begin+std::sprintf(begin, "%.2f", x+0.000001);
+#else
         char* end = ::nlohmann::detail::to_chars(begin, begin + number_buffer.size(), x);
+#endif
 
         o->write_characters(begin, static_cast<size_t>(end - begin));
     }
