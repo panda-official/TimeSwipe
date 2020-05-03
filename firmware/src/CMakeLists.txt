@@ -37,7 +37,7 @@ add_subdirectory(CortexMX)
 add_subdirectory(SAMe54)
 
 
-add_executable(${TARGET_NAME}  main.cpp ${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/startup_ARMCM4.S)
+add_executable(${TARGET_NAME}  CalFW.cpp ${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/startup_ARMCM4.S)
 
 target_include_directories(${TARGET_NAME} PUBLIC Interfaces)
 target_include_directories(${TARGET_NAME} PUBLIC ADCDAC)
