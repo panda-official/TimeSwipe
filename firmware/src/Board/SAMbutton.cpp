@@ -52,7 +52,8 @@ bool SAMButton::impl_get_signal(void){
 
 void SAMButton::impl_on_state_changed(typeButtonState nState)
 {
-     m_pSink->OnButtonState(nState);
+    if(m_pSink)
+        m_pSink->OnButtonState(nState);
 
      if(typeButtonState::pressed==nState || typeButtonState::released==nState){
 
