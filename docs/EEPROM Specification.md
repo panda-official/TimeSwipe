@@ -9,8 +9,7 @@
   ATOM1   <- Vendor info atom (Required)
   ATOM2   <- GPIO map atom (Required)
   ATOM3   <- DT blob atom (Required for compliance with the HAT specification)
-  ATOM4   <- Calibration Status Atom
-  ATOM5   <- Calibration Atom
+  ATOM4   <- Status & Calibration Atom
   ...
   ATOMn
 ```
@@ -97,21 +96,22 @@ Binary data (the name or contents of a `.dtbo` overlay, for board hardware).
 For more information on the Device Tree atom contents, see the [Device Tree Guide](devicetree-guide.md).
 
 
-### Calibration Status Atom (type=0x0004, ATOM4):
+### Status & Calibration Atom (type=0x0004, ATOM4):
+
+Status & Calibration Atom consists of Header containing the timestamp of the calibration procedure and Body containing calibration information.
+The board considered calibrated if the Atom exists AND it is valid (by its CRC)
+
 
 ```
   Bytes   Field
-  2       status    0xFEED=board is calibrated, other value=not calibrated
+  1       minute_tst       minute timestamp of the calibration (0-59)
+  1       hour_tst         hour timestamp of the calibration (0-23)
+  1       day_tst          day of the month of the calibration (1-31)
+  1       month_tst        month of the calibration (1-12)
+  2       year_tst         year of the calibration (0-65535)
 
-```
-
-
-### Calibration Atom (type=0x0004, ATOM5):
-
-```
-  Bytes   Field
-
-  Has to be defined...
+  Calibration Atom body: has to be defined
+  ........................................
 
 ```
 
