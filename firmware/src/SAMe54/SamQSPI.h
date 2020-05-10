@@ -13,6 +13,7 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 #include "SPI.h"
+#include "Pin.h"
 
 /*!
  * \brief An implementation of SAM E54 QSPI bus
@@ -27,7 +28,7 @@ public:
      * \details The constructor does the following:
      * setups corresponding PINs and its multiplexing
      */
-    CSamQSPI();
+    CSamQSPI(std::shared_ptr<IPin> pCS);
 	
 	virtual bool send(CFIFO &msg);
 	virtual bool receive(CFIFO &msg);
@@ -40,4 +41,7 @@ public:
 
     //! The virtual destructor of the class
     virtual ~CSamQSPI(){}
+
+protected:
+    std::shared_ptr<IPin> m_pCS;
 };

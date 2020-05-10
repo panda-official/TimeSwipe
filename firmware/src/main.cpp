@@ -42,6 +42,9 @@ Copyright (c) 2019 Panda Team
 #include "SemVer.h"
 #include "View.h"
 
+#include "ShiftReg.h"
+#include "SamPORT.h"
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -109,8 +112,33 @@ int main(void)
         //----------------------------------------------------------
 
 
+        //setup pins:
+        typeBoard ThisBoard=typeBoard::DMSBoard;
+        std::shared_ptr<IPin> pDAConPin;
+        std::shared_ptr<IPin> pUB1onPin;
+        std::shared_ptr<IPin> pQSPICS0Pin;
+
+        if(typeBoard::DMSBoard==ThisBoard)
+        {
+            auto pDMSsr=std::make_shared<CDMSsr>(
+                        CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P05, true),
+                        CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P06, true),
+                        CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P07, true) );
+
+            pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
+            pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
+            pQSPICS0Pin=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0);
+        }
+        else
+        {
+            pDAConPin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P04, true);
+            pUB1onPin=CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P07, true);
+            pQSPICS0Pin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P11, true);
+        }
+
+
         //step 1 - creating QSPI bus:
-        CSamQSPI objQSPI;
+        CSamQSPI objQSPI(pQSPICS0Pin);
         auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
         pSPIsc2->EnableIRQs(true);
 
@@ -210,7 +238,8 @@ int main(void)
 
 
         pDisp->Add("Offset.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-        pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
+      //  pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
+        pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<IPin, bool> >(pDAConPin, &IPin::Get, &IPin::Set) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
 
         pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );

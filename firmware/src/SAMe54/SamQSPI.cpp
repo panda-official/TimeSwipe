@@ -11,7 +11,7 @@ Copyright (c) 2019 Panda Team
 #include "sam.h"
 
 //ctor:
-CSamQSPI::CSamQSPI()
+CSamQSPI::CSamQSPI(std::shared_ptr<IPin> pCS)
 {
 	//setup QSPI outputs: PA08, PA09, PB10, PB11
 
@@ -24,10 +24,13 @@ CSamQSPI::CSamQSPI()
     PORT->Group[1].PINCFG[10].bit.PMUXEN=1; //enable
 
     //PB11 -> group 1, odd,  function "H"(qspi)=0x07
-    PORT->Group[1].PMUX[5].bit.PMUXO=0x07;
+    /*PORT->Group[1].PMUX[5].bit.PMUXO=0x07;
     PORT->Group[1].PINCFG[11].bit.PMUXEN=1; //enable
     
-    QSPI->CTRLB.bit.CSMODE=0x01; //keep CS active during whole transfer
+    QSPI->CTRLB.bit.CSMODE=0x01; //keep CS active during whole transfer*/
+
+    m_pCS=pCS;
+
     QSPI->CTRLA.bit.ENABLE=1; //enble QSPI
 }
 
@@ -49,9 +52,11 @@ void CSamQSPI::set_tprofile_divs(unsigned char CSminDel, unsigned char Intertran
 }
 
 //serial impl:
-void Wait(unsigned long time_mS);
+//void Wait(unsigned long time_mS);
 bool CSamQSPI::send(CFIFO &msg)
 {
+    m_pCS->Set(true);
+
     while(msg.in_avail())
     {
         typeSChar b;
@@ -61,7 +66,9 @@ bool CSamQSPI::send(CFIFO &msg)
 		QSPI->TXDATA.bit.DATA=b;
 		while( 0==(QSPI->INTFLAG.bit.DRE) ){}
 	}
-    QSPI->CTRLA.reg=0x1000002; //deselect
+    //QSPI->CTRLA.reg=0x1000002; //deselect
+
+    m_pCS->Set(false);
 
     return true;
 }

@@ -13,11 +13,18 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
+#include <memory>
+#include "Pin.h"
+
+
+
 /*!
  * \brief The SAME54 PORT control implementation
  */
+class CSamPin;
 class CSamPORT
 {
+friend class CSamPin;
 public:
     enum group{
 
@@ -64,4 +71,43 @@ public:
         P30,
         P31
     };
+    static std::shared_ptr<CSamPin> FactoryPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bOutput=false);
+
+protected:
+    static void SetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bHow);
+    static bool RbSetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+    static bool GetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+    static void ReleasePin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+
+};
+
+class CSamPin : public IPin
+{
+friend class CSamPORT;
+public:
+    virtual void Set(bool bHow)
+    {
+        CSamPORT::SetPin(m_nGroup, m_nPin, bHow);
+    }
+    virtual bool RbSet()
+    {
+        return CSamPORT::RbSetPin(m_nGroup, m_nPin);
+    }
+    virtual bool Get()
+    {
+        return CSamPORT::GetPin(m_nGroup, m_nPin);
+    }
+
+    virtual ~CSamPin()
+    {
+        CSamPORT::ReleasePin(m_nGroup, m_nPin);
+    }
+protected:
+    CSamPin(CSamPORT::group nGroup, CSamPORT::pin  nPin)
+    {
+        m_nGroup=nGroup;
+        m_nPin=nPin;
+    }
+    CSamPORT::group m_nGroup;
+    CSamPORT::pin   m_nPin;
 };
