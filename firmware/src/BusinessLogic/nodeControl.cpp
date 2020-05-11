@@ -72,11 +72,12 @@ int nodeControl::gain_out(int val)
 int nodeControl::GetGain(){ return (int)m_pMUX->GetGain(); }
 bool nodeControl::GetBridge()
 {
-    return m_pMUX->GetUBRVoltage();
+    //return m_pMUX->GetUBRVoltage();
+    return false;
 }
 void nodeControl::SetBridge(bool how)
 {
-    m_pMUX->SetUBRvoltage(how);
+    //m_pMUX->SetUBRvoltage(how);
 
     //generate an event:
     nlohmann::json v=how;
@@ -87,36 +88,34 @@ void nodeControl::SetSecondary(int nMode)
 {
     nMode&=1; //fit the value
 
-    m_pMUX->SetUBRvoltage(nMode);
-
-    //generate an event:
-    nlohmann::json v=nMode;
-    Instance().Fire_on_event("SetSecondary", v);
-
-}
-int nodeControl::GetSecondary()
-{
-    return m_pMUX->GetUBRVoltage();
-}
-
-
-void nodeControl::SetMode(int nMode)
-{
-    m_pMUX->SetUBRvoltage(nMode ? true:false);
-
-    m_OpMode=static_cast<MesModes>(nMode);
-    if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
-    if(m_OpMode>MesModes::Digital){ m_OpMode=MesModes::Digital; }
-
+    m_pMUX->SetUBRvoltage(nMode ? false:true);
 
     //generate an event:
     nlohmann::json v=nMode;
     Instance().Fire_on_event("Mode", v);
 
 }
+int nodeControl::GetSecondary()
+{
+    return m_pMUX->GetUBRVoltage() ? 0:1;
+}
+
+
+void nodeControl::SetMode(int nMode)
+{
+    m_OpMode=static_cast<MesModes>(nMode);
+    if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
+    if(m_OpMode>MesModes::Normsignal){ m_OpMode=MesModes::Normsignal; }
+
+    SetSecondary(m_OpMode);
+
+    //generate an event:
+   /* nlohmann::json v=nMode;
+    Instance().Fire_on_event("Mode", v);*/
+}
 int nodeControl::GetMode()
 {
-    return static_cast<int>(m_OpMode);
+    return GetSecondary();
 }
 
 void nodeControl::SetOffset(int nOffs)

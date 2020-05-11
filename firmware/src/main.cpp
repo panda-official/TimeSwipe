@@ -201,7 +201,6 @@ int main(void)
 
         //Node control:
         pDisp->Add("Gain", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetGain, &nodeControl::SetGain) );
-        pDisp->Add("SetSecondary", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetSecondary,  &nodeControl::SetSecondary) );
         pDisp->Add("Bridge", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetBridge,  &nodeControl::SetBridge) );
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
         pDisp->Add("Offset", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetOffsetRunSt,  &nodeControl::SetOffset) );

@@ -27,12 +27,12 @@ CADmux::CADmux()
     //ADC control measure switch PIN PB13:
     PORT->Group[1].DIRSET.reg=(1L<<13);
     PORT->Group[1].OUTCLR.reg=(1L<<13);
-    m_bADmesEnabled=false; //18.06.2019
+    m_bADmesEnabled=false;
 
     //set UBR PC07 pin to zero:
     PORT->Group[2].DIRSET.reg=(1L<<7);
-    PORT->Group[2].OUTCLR.reg=(1L<<7);
-    m_UBRVoltage=false;
+    PORT->Group[2].OUTSET.reg=(1L<<7);
+    m_UBRVoltage=true; //default
 
     //setup fan pins(ventilator) PA09
     PORT->Group[0].DIRSET.reg=(1L<<9);
@@ -48,7 +48,7 @@ void CADmux::Serialize(CStorage &st)
     if(st.IsDefaultSettingsOrder())
     {
         SetGain(typeADgain::gainX1);
-        SetUBRvoltage(false);
+        SetUBRvoltage(true); //default=true;
     }
 
     st.ser( *((int*)&m_CurGain) ).ser(m_UBRVoltage);
