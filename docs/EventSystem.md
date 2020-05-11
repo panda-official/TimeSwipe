@@ -16,8 +16,7 @@ ButtonStateCnt  |  integer(32bit)                   |   A counter of button stat
 Record          |  integer(32bit)                   |   Notifies that a new record stamp has been created (record count)
 Gain            |  integer(32bit)                   |   Notifies the Gain setting has been changed
 Bridge          |  boolean(true, false)             |   Notifies the Bridge setting has been changed
-SetSecondary    |  integer(32bit)                   |   Notifies the SetSecondary setting has been changed
-Mode            |  integer(32bit)                   |   Notifies the Mode setting has been changed
+Mode            |  integer(32bit)                   |   Notifies the Mode setting has been changed ( 0 - IEPE, 1 - Normal Signal, 2 - Digital)
 Offset          |  integer(32bit)                   |   Notifies that offset search routine has been started (1- negative offset search, 2- zero offset search, 3- positive offset search)
 
 <br />

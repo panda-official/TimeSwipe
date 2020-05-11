@@ -92,17 +92,18 @@ PWM2.low <br />
 
  Access Point   |       Function
 --------------  |    ------------------------------------------------------------------------------------------------------- 
-Gain            |   Holds a gain value (integer value 1:4, r/w)
-Bridge          |   Holds a bridge switch state (ON or OFF) (boolean, false:true, r/w)
-Record          |   Writing "true" to this variable initiates/restarts a record process (boolean, false:true, r/w) 
-Offset          |   Starts/stops offset searching process (int, 0 - stop, 1- negative offset, 2- zero offset, 3- positive offset, r/w)
+Gain            |   Holds Gain value (integer value, 1:4, r/w)
+Bridge          |   Holds Bridge Switch state (ON or OFF) (boolean, false(0):true(1), r/w)
+Record          |   Writing "1" to this variable initiates/restarts a record process (boolean, false(0):true(1), r/w)
+Mode            |   Sets working mode of the board (integer value, 0 - IEPE, 1 - Normal Signal, 2 - Digital, r/w )
+Offset          |   Starts/stops offset searching process (integer value, 0 - stop, 1- negative offset, 2- zero offset, 3- positive offset, r/w)
 Offset.errtol   |   Holds a calibration process error tolerance value (integer r/w)
-EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false:true, r/w)
+EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false(0):true(1), r/w)
 DACsw           |   Determines the mode of controlling analog outputs #3-4 (0 - default (amplified input signal), 1 - manual via AOUT3, AOUT4) (integer value, 0:1, r/w)
 Temp            |   Returns the current core temperature of SAME54 in degrees Celsius
 ARMID		|   Returns Hardware Chip ID (string, r)
 fwVersion	|   Returns firmware Version in the SemVer format (string, r)
-CalStatus       |   Holds board calibration status (boolean, false:true, r)
+CalStatus       |   Holds board calibration status (boolean, false(0):true(1), r)
 Voltage         |   Holds Output Voltage value (float, r/w) (mockup)
 Current         |   Holds Current Setting (float, 0-MaxCurrent, r/w) (mockup)
 MaxCurrent      |   Holds MaxCurrent Setting (Current max range) (float, r/w) (mockup)
@@ -252,6 +253,8 @@ Error message       |    Meaning
 !<_not_supported!   |   write operation is not supported
 !disabled!          |   the access point is disabled
 !protocol_error!    |   request message does not fit to protocol format (e.g. missing access point name, access operator or value)
+!stoi               |   string to integer value conversion error
+!stof               |   string to floating point conversion error
 
 <br />
 
