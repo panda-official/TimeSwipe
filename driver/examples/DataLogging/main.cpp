@@ -124,14 +124,7 @@ int main(int argc, char *argv[])
         exit(1);
     };
 
-<<<<<<< HEAD
-    // Board Start
-    tswipe.SetSampleRate(48000);
 
-
-    bool ret = tswipe.onButton([&](bool pressed, unsigned count) {
-        std::cout << "Button: " <<  (pressed ? "pressed":"released") << " " << count << std::endl;
-=======
     bool ret = tswipe.onEvent([&](const TimeSwipeEvent& event) {
         if (event.is<TimeSwipeEvent::Button>()) {
             auto button = event.get<TimeSwipeEvent::Button>();
@@ -155,7 +148,6 @@ int main(int argc, char *argv[])
             auto val = event.get<TimeSwipeEvent::Mode>();
             std::cout << "Mode event: " <<  val.value() << std::endl;
         }
->>>>>>> refs/heads/NewMenu
     });
     if (!ret) {
         std::cerr << "onEvent init failed" << std::endl;
