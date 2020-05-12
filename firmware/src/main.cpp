@@ -63,7 +63,7 @@ int sys_clock_init(void);
 
 int main(void)
 {
-        auto pVersion=std::make_shared<CSemVer>(0,0,11);
+        auto pVersion=std::make_shared<CSemVer>(0,0,12);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
