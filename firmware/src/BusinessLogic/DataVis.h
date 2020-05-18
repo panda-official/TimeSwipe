@@ -31,6 +31,10 @@ Copyright (c) 2019 Panda Team
 class CDataVis
 {
 protected:
+    //dbg:
+    float m_ds, m_out, m_Inorm;
+
+
     //! The brightness constant for calculating the actual LED brightness for visualization
     static const constexpr float b_brght = 7.0f;
 
@@ -59,7 +63,7 @@ protected:
     /*!
      * \brief State updation/recalculation period (for CDataVis::Update())
      */
-     long m_upd_tspan_mS=25;
+     long m_upd_tspan_mS=1; //25;
 
     /*!
      * \brief The pointer to input data source

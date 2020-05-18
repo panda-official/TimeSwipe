@@ -34,7 +34,7 @@ void CDataVis::Update()
     if(m_MA.GetCurSize()<m_StdDevPer)
         return;
 
-    float ds=rawval-ma;
+    float ds=rawval-ma; m_ds=ds;
     if(--m_StdDevRecalcCountDown<=0)
     {
         m_StdDevRecalcCountDown=m_StdDevPer;
@@ -51,7 +51,7 @@ void CDataVis::Update()
     {
         if( std::abs(ds) < m_DetectThrhold )
         {
-            m_ZeroLevel=ma; //set zero level
+           // m_ZeroLevel=ma; //set zero level
             return;
         }
 
@@ -60,19 +60,19 @@ void CDataVis::Update()
     //-----------------------------------------------------------------
 
     //--------------------drop detection-------------------------------
-    if( std::abs(m_ZeroLevel-ma) < m_DropThrhold &&  m_CurStdDev<m_DropThrhold )
+ /*   if( std::abs(m_ZeroLevel-ma) < m_DropThrhold &&  m_CurStdDev<m_DropThrhold )
     {
         m_bSensorDetected=false;
         CView::Instance().GetChannel(m_nCh).SetSensorIntensity(0);
         return;
-    }
+    }*/
     //-----------------------------------------------------------------
 
 
     //--------------calculate the signal level-------------------------
-    float out=(ds/m_HalfRange)*0.5f + 0.5f;
+    float out=(ds/m_HalfRange)*0.5f + 0.5f; m_out=out;
 
-    float Inorm=( pow(b_brght, out) -1.0f)*bright_factor;
+    float Inorm=( pow(b_brght, out) -1.0f)*bright_factor;  m_Inorm=Inorm;
     if(Inorm<ILowLim)
     {
         Inorm=ILowLim; //prevent flickering
