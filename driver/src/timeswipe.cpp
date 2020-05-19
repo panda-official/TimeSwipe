@@ -69,6 +69,7 @@ public:
     TimeSwipeImpl();
     ~TimeSwipeImpl();
     void SetMode(int number);
+    int GetMode();
 
     void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
     void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
@@ -146,6 +147,10 @@ TimeSwipeImpl::~TimeSwipeImpl() {
 
 void TimeSwipeImpl::SetMode(int number) {
     Rec.mode = number;
+}
+
+int TimeSwipeImpl::GetMode() {
+    return Rec.mode;
 }
 
 void TimeSwipeImpl::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4) {
@@ -235,7 +240,7 @@ bool TimeSwipeImpl::Stop() {
 
 bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb) {
     if (_isStarted()) return false;
-    if(onEventCb) onEventCb = cb;
+    onEventCb = cb;
     return true;
 }
 
@@ -268,11 +273,10 @@ bool TimeSwipeImpl::_isStarted() {
 
 void TimeSwipeImpl::_receiveEvents() {
 #if NOT_RPI
-    BoardEvents event;
     if (emulButtonSent < emulButtonPressed) {
-        event.button = true;
-        event.buttonCounter = emulButtonSent = emulButtonPressed;
-        _events.push(event);
+        TimeSwipeEvent::Button btn(true, emulButtonPressed);
+        emulButtonSent = emulButtonPressed;
+        _events.push(btn);
     }
 #else
     for (auto&& event: readBoardEvents()) {
@@ -327,12 +331,9 @@ void TimeSwipe::SetMode(Mode number) {
     return _impl->SetMode(int(number));
 }
 
-//TODO:
-/*
-Mode TimeSwipe::GetMode() {
+TimeSwipe::Mode TimeSwipe::GetMode() {
     return TimeSwipe::Mode(_impl->GetMode());
 }
-*/
 
 void TimeSwipe::SetBurstSize(size_t burst) {
     return _impl->SetBurstSize(burst);
@@ -371,7 +372,9 @@ void TimeSwipeImpl::_fetcherLoop() {
         TimeSwipeEvent event;
         while (_events.pop(event)) {
             _inCallback = true;
-            if(onEventCb) onEventCb(event);
+            if(onEventCb) {
+                onEventCb(std::move(event));
+            }
             _inCallback = false;
         }
     }

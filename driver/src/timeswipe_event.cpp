@@ -27,10 +27,10 @@ TimeSwipeEvent::Button::Button(bool _pressed, unsigned _count)
     , _count(_count)
 {
 }
-bool TimeSwipeEvent::Button::pressed() {
+bool TimeSwipeEvent::Button::pressed() const {
     return _pressed;
 }
-unsigned TimeSwipeEvent::Button::count() {
+unsigned TimeSwipeEvent::Button::count() const {
     return _count;
 }
 
@@ -38,7 +38,7 @@ TimeSwipeEvent::Gain::Gain(int _value)
     : _value(_value)
 {
 }
-int TimeSwipeEvent::Gain::value() {
+int TimeSwipeEvent::Gain::value() const {
     return _value;
 }
 
@@ -46,7 +46,7 @@ TimeSwipeEvent::SetSecondary::SetSecondary(int _value)
     : _value(_value)
 {
 }
-int TimeSwipeEvent::SetSecondary::value() {
+int TimeSwipeEvent::SetSecondary::value() const {
     return _value;
 }
 
@@ -54,7 +54,7 @@ TimeSwipeEvent::Bridge::Bridge(int _value)
     : _value(_value)
 {
 }
-int TimeSwipeEvent::Bridge::value() {
+int TimeSwipeEvent::Bridge::value() const {
     return _value;
 }
 
@@ -62,7 +62,7 @@ TimeSwipeEvent::Record::Record(int _value)
     : _value(_value)
 {
 }
-int TimeSwipeEvent::Record::value() {
+int TimeSwipeEvent::Record::value() const {
     return _value;
 }
 
@@ -70,7 +70,7 @@ TimeSwipeEvent::Offset::Offset(int _value)
     : _value(_value)
 {
 }
-int TimeSwipeEvent::Offset::value() {
+int TimeSwipeEvent::Offset::value() const {
     return _value;
 }
 
@@ -78,7 +78,7 @@ TimeSwipeEvent::Mode::Mode(int _value)
     : _value(_value)
 {
 }
-int TimeSwipeEvent::Mode::value() {
+int TimeSwipeEvent::Mode::value() const {
     return _value;
 }
 
@@ -120,3 +120,17 @@ template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Bridge&& ev);
 template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Record&& ev);
 template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Offset&& ev);
 template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Mode&& ev);
+
+template <class EVENT>
+TimeSwipeEvent::TimeSwipeEvent(const EVENT& ev)
+    : TimeSwipeEvent()
+{
+    _impl->events = ev;
+}
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Button& ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Gain& ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::SetSecondary& ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Bridge& ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Record& ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Offset& ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Mode& ev);

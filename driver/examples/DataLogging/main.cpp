@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     };
 
 
-    bool ret = tswipe.onEvent([&](const TimeSwipeEvent& event) {
+    bool ret = tswipe.onEvent([&](TimeSwipeEvent&& event) {
         if (event.is<TimeSwipeEvent::Button>()) {
             auto button = event.get<TimeSwipeEvent::Button>();
             std::cout << "Button event: " <<  (button.pressed() ? "pressed":"released") << " counter: " << button.count() << std::endl;
