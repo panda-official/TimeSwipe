@@ -31,17 +31,30 @@ Copyright (c) 2019 Panda Team
 class CDataVis
 {
 protected:
-    //dbg:
-    float m_ds, m_out, m_Inorm;
+
+    /*!
+     * \brief The sum of raw ADC values for m_AvPeriod
+     */
+    float m_AvSumm=0;
+
+    /*!
+     * \brief The counter used for initial averaging of raw ADC values
+     */
+    int   m_MesCounter=0;
+
+    /*!
+     * \brief The period of the initial averaging
+     */
+    static constexpr int m_AvPeriod=12;
 
 
     //! The brightness constant for calculating the actual LED brightness for visualization
-    static const constexpr float b_brght = 7.0f;
+    static constexpr float b_brght = 7.0f;
 
     /*!
      * \brief Pre-calculated brightness factor
      */
-    static const constexpr float bright_factor=1/(b_brght-1.0f);
+    static constexpr float bright_factor=1/(b_brght-1.0f);
 
     /*!
      * \brief Normalized intensity low limit (prevents LED flickering)
@@ -63,7 +76,7 @@ protected:
     /*!
      * \brief State updation/recalculation period (for CDataVis::Update())
      */
-     long m_upd_tspan_mS=1; //25;
+     long m_upd_tspan_mS=1;
 
     /*!
      * \brief The pointer to input data source
@@ -74,6 +87,7 @@ protected:
      * \brief The pointer to visualization LED to display processed data
      */
     CView::vischan m_nCh;
+
 
     /*!
      * \brief The moving average of the input signal

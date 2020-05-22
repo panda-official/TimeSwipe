@@ -28,13 +28,24 @@ void CDataVis::Update()
         return;
     last_time_vis=os::get_tick_mS();
 
+    //----------pre-averaging: reduces overall calculation work-------
+    m_AvSumm+=m_pADC->GetRawBinVal();
+    if(++m_MesCounter<m_AvPeriod)
+        return;
+
+
+    float rawval=m_AvSumm/m_AvPeriod;
+    m_MesCounter=0;
+    m_AvSumm=0;
+    //-----------------------------------------------------------------
+
+
     //--------------obtain MA/StdDev----------------------------------
-    float rawval=m_pADC->GetRawBinVal();
     float ma=m_MA.ObtainMA(rawval);
     if(m_MA.GetCurSize()<m_StdDevPer)
         return;
 
-    float ds=rawval-ma; m_ds=ds;
+    float ds=rawval-ma;
     if(--m_StdDevRecalcCountDown<=0)
     {
         m_StdDevRecalcCountDown=m_StdDevPer;
@@ -60,7 +71,7 @@ void CDataVis::Update()
     //-----------------------------------------------------------------
 
     //--------------------drop detection-------------------------------
- /*   if( std::abs(m_ZeroLevel-ma) < m_DropThrhold &&  m_CurStdDev<m_DropThrhold )
+    /*if( std::abs(m_ZeroLevel-ma) < m_DropThrhold &&  m_CurStdDev<m_DropThrhold )
     {
         m_bSensorDetected=false;
         CView::Instance().GetChannel(m_nCh).SetSensorIntensity(0);
@@ -70,9 +81,9 @@ void CDataVis::Update()
 
 
     //--------------calculate the signal level-------------------------
-    float out=(ds/m_HalfRange)*0.5f + 0.5f; m_out=out;
+    float out=(ds/m_HalfRange)*0.5f + 0.5f;
 
-    float Inorm=( pow(b_brght, out) -1.0f)*bright_factor;  m_Inorm=Inorm;
+    float Inorm=( pow(b_brght, out) -1.0f)*bright_factor;
     if(Inorm<ILowLim)
     {
         Inorm=ILowLim; //prevent flickering
