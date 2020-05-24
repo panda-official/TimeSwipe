@@ -32,6 +32,8 @@ unsigned long get_tick_mS(void);
  */
 void wait(unsigned long time_mS);
 
+void uwait(unsigned long time_uS);
+
 /*!
  * \brief Set an error for this thread
  * \param perrtxt a pointer to the error string

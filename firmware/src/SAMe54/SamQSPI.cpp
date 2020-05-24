@@ -7,6 +7,7 @@ Copyright (c) 2019 Panda Team
 
 //SAM QSPI implementation:
 
+#include "os.h"
 #include "SamQSPI.h"
 #include "sam.h"
 
@@ -56,6 +57,7 @@ void CSamQSPI::set_tprofile_divs(unsigned char CSminDel, unsigned char Intertran
 bool CSamQSPI::send(CFIFO &msg)
 {
     m_pCS->Set(true);
+    os::uwait(80);
 
     while(msg.in_avail())
     {
@@ -69,6 +71,7 @@ bool CSamQSPI::send(CFIFO &msg)
     //QSPI->CTRLA.reg=0x1000002; //deselect
 
     m_pCS->Set(false);
+    os::uwait(80);
 
     return true;
 }
