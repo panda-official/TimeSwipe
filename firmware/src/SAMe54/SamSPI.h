@@ -121,14 +121,7 @@ public:
          * \return false
          */
         virtual bool receive(CFIFO &msg);
-        virtual bool send(typeSChar ch);
 
-        /*!
-         * \brief Does nothing
-         * \param msg Ignored
-         * \return false
-         */
-        virtual bool receive(typeSChar &ch);
 	
         virtual void set_phpol(bool bPhase, bool bPol);
         virtual void set_baud_div(unsigned char div);

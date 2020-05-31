@@ -48,6 +48,7 @@ protected:
     }
 
     std::shared_ptr<CShiftRegPin> FactoryPin(std::size_t nBit);
+
 };
 
 class CShiftRegPin : public IPin
@@ -113,6 +114,18 @@ public:
     inline std::shared_ptr<CShiftRegPin> FactoryPin(pins nPin)
     {
         return CShiftReg::FactoryPin(nPin);
+    }
+
+public:
+    //debug functions for testing:
+    inline void SetShiftReg(unsigned int nVal)
+    {
+        m_RegValue=nVal;
+        CShiftReg::SetShiftReg(m_RegValue, m_BitsInUse);
+    }
+    inline unsigned int GetShiftReg()
+    {
+        return m_RegValue.to_ulong();
     }
 };
 

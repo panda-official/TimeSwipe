@@ -186,23 +186,6 @@ struct ISerial
      */
 	virtual bool receive(CFIFO &msg)=0;
 
-    /*!
-     * \brief send a single character to this class object
-     * \param ch a character to send
-     * \return operation result: true if successful otherwise - false
-     * \details deprecated
-     */
-
-    virtual bool send(typeSChar ch)=0;
-
-    /*!
-     * \brief receive a single character from this class object
-     * \param ch a character to receive
-     * \return operation result: true if successful otherwise - false
-     * \details deprecated
-     */
-
-    virtual bool receive(typeSChar &ch)=0;
 
      //! default constructor
      ISerial()=default;

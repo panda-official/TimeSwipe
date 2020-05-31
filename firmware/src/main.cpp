@@ -8,6 +8,7 @@ Copyright (c) 2019 Panda Team
 //build for ADCs-DACs:
 
 #include "os.h"
+#include "SamSPIbase.h"
 #include "SamQSPI.h"
 #include "SamSPIsc2.h"
 #include "SamSPIsc7.h"
@@ -21,6 +22,8 @@ Copyright (c) 2019 Panda Team
 #include "DACmax5715.h"
 #include "DACdecor.h"
 #include "DACPWMht.h"
+#include "ShiftReg.h"
+#include "PGA280.h"
 
 //#include "menu_logic.h"
 #include "NewMenu.h"
@@ -41,9 +44,6 @@ Copyright (c) 2019 Panda Team
 #include "SamNVMCTRL.h"
 #include "SemVer.h"
 #include "View.h"
-
-#include "ShiftReg.h"
-#include "SamPORT.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -66,7 +66,7 @@ int sys_clock_init(void);
 
 int main(void)
 {
-        auto pVersion=std::make_shared<CSemVer>(0,0,11);
+        auto pVersion=std::make_shared<CSemVer>(0,0,12);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
@@ -112,6 +112,14 @@ int main(void)
         //----------------------------------------------------------
 
 
+        //communication bus:
+        auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
+        pSPIsc2->EnableIRQs(true);
+        auto pDisp=         std::make_shared<CCmdDispatcher>();
+        auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
+        pSPIsc2->AdviseSink(pStdPort);
+
+
         //setup pins:
         typeBoard ThisBoard=typeBoard::DMSBoard;
         std::shared_ptr<IPin> pDAConPin;
@@ -128,6 +136,21 @@ int main(void)
             pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
             pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
             pQSPICS0Pin=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0);
+
+            //create PGA280 extension bus:
+            auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
+                                                       CSamPORT::pxy::PB16, CSamPORT::pxy::PB19, CSamPORT::pxy::PB17, CSamPORT::pxy::PB18);
+
+            auto pPGA280=std::make_shared<CPGA280>(pInaSpi);
+
+
+            //for testing:
+            pDisp->Add("SR", std::make_shared< CCmdSGHandler<CDMSsr, unsigned int> >(pDMSsr, &CDMSsr::GetShiftReg, &CDMSsr::SetShiftReg) );
+
+            pDisp->Add("PGA.rsel", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::GetSelectedReg, &CPGA280::SelectReg) );
+            pDisp->Add("PGA.rval", std::make_shared< CCmdSGHandler<CPGA280, int> >(pPGA280, &CPGA280::ReadSelectedReg, &CPGA280::WriteSelectedReg) );
+
+
         }
         else
         {
@@ -139,8 +162,6 @@ int main(void)
 
         //step 1 - creating QSPI bus:
         CSamQSPI objQSPI(pQSPICS0Pin);
-        auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
-        pSPIsc2->EnableIRQs(true);
 
 
 
@@ -206,9 +227,9 @@ int main(void)
 
 
         //---------------------------------------------------command system------------------------------------------------------
-        auto pDisp=         std::make_shared<CCmdDispatcher>();
+       /* auto pDisp=         std::make_shared<CCmdDispatcher>();
         auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
-        pSPIsc2->AdviseSink(pStdPort);
+        pSPIsc2->AdviseSink(pStdPort);*/
 
         // adding offsets control commands DAC 1-4
         pDisp->Add("DAC1.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACA, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
@@ -229,7 +250,6 @@ int main(void)
 
         //Node control:
         pDisp->Add("Gain", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetGain, &nodeControl::SetGain) );
-        pDisp->Add("SetSecondary", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetSecondary,  &nodeControl::SetSecondary) );
         pDisp->Add("Bridge", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetBridge,  &nodeControl::SetBridge) );
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
         pDisp->Add("Offset", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetOffsetRunSt,  &nodeControl::SetOffset) );
@@ -238,8 +258,7 @@ int main(void)
 
 
         pDisp->Add("Offset.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-      //  pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
-        pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<IPin, bool> >(pDAConPin, &IPin::Get, &IPin::Set) );
+        pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
 
         pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );

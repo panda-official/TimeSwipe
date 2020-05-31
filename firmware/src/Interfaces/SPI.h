@@ -39,23 +39,9 @@ public:
      */
     virtual bool receive(CFIFO &msg)=0;
 
-    /*!
-     * \brief Sends a single character to this class object
-     * \param ch A character to send
-     * \return The operation result: true if successful otherwise - false
-     * \deprecated
-     */
 
-    virtual bool send(typeSChar ch)=0;
+    virtual bool transfer(CFIFO &out_msg, CFIFO &in_msg){return false;} //dbg
 
-    /*!
-     * \brief Receives a single character from this class object
-     * \param ch A character to receive
-     * \return The operation result: true if successful otherwise - false
-     * \deprecated
-     */
-
-    virtual bool receive(typeSChar &ch)=0;
 	
     /*!
      * \brief Setups phase & polarity

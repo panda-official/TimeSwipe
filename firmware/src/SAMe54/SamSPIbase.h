@@ -16,14 +16,70 @@ class CSamSPIbase : public CSamSercom, public CSPI
 {
 protected:
     /*!
+     * \brief Is acting as master or as slave?
+     */
+    bool           m_bMaster;
+
+    /*!
+     * \brief Are SERCOM interrupt lines enabled?
+     */
+    bool           m_bIRQmode;
+
+    /*!
+     * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)
+     * \return true=interrupt mode is enabled, false=disabled
+     */
+    inline bool    isIRQmode(){return m_bIRQmode;}
+
+    /*!
      * \brief An associated clock generator: used only in a master mode
      */
     std::shared_ptr<CSamCLK> m_pCLK;
 
+    static constexpr unsigned long m_SendCharTmt_mS=100;
+
+    std::shared_ptr<CSamPin> m_pCS;
+
+    inline void chip_select(bool bHow)
+    {
+        if(!m_bMaster)
+            return;
+
+        if(!m_pCS)
+            return;
+        m_pCS->Set(bHow);
+        //some delay here:
+        //...............
+    }
     uint32_t transfer_char(uint32_t nChar);
+    bool send_char(uint32_t ch);
 
 public:
-    CSamSPIbase(bool bMaster, typeSamSercoms nSercom, CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none);
+    CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
+                CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none,
+                std::shared_ptr<CSamCLK> pCLK=nullptr);
+
+
+    virtual bool send(CFIFO &msg);
+
+    /*!
+     * \brief Does nothing
+     * \param msg Ignored
+     * \return false
+     */
+    virtual bool receive(CFIFO &msg){ return false;}
+
 
     virtual bool transfer(CFIFO &out_msg, CFIFO &in_msg);
+
+
+    virtual void set_phpol(bool bPhase, bool bPol);
+    virtual void set_baud_div(unsigned char div);
+    virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel);
+
+    /*!
+     * \brief Enables IRQ mode
+     * \param how true=enable, false=disable
+     */
+    void EnableIRQs(bool how);
 };

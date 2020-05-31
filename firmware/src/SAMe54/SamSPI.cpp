@@ -89,7 +89,6 @@ void CSamSPI::OnIRQ3()
 }
 
 
-//24.06.2019:
 void CSamSPI::EnableIRQs(bool how)
 {
     //select ptr:
@@ -182,19 +181,7 @@ bool CSamSPI::receive(CFIFO &msg)
 {
     return false;
 }
-bool CSamSPI::send(typeSChar ch)
-{
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
 
-    //send:
-    pSPI->DATA.bit.DATA=ch;
-    while( 0==(pSPI->INTFLAG.bit.DRE) ){}
-    return true;
-}
-bool CSamSPI::receive(typeSChar &ch)
-{
-    return false;
-}
 
 //specific:
 void CSamSPI::set_phpol(bool bPhase, bool bPol)
