@@ -20,7 +20,7 @@ void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [--log-resample] [--trace-spi]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [-- time <runtime>] [--log-resample] [--trace-spi]'" << std::endl;
     std::cerr << "default for <configname> is ./config.json" << std::endl;
     std::cerr << "possible values: PRIMARY NORM DIGITAL. default for <input_type> is the first one from <configname>" << std::endl;
     std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     std::string configname = "config.json";
     std::string dumpname;
     std::string input;
+    int runtime = 10;
     bool trace_spi = false;
 
     for (unsigned i = 1; i < argc; i++) {
@@ -57,6 +58,13 @@ int main(int argc, char *argv[])
                 return 1;
             }
             dumpname = argv[i+1];
+            ++i;
+        } else if (!strcmp(argv[i],"--time")) {
+            if (i+1 > argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            runtime = std::stoi (argv[i+1] );
             ++i;
         } else if (!strcmp(argv[i],"--log-resample")) {
             TimeSwipe::resample_log = true;
@@ -193,7 +201,7 @@ int main(int argc, char *argv[])
     }
 
     auto start = std::chrono::system_clock::now();
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(runtime));
 
     // Board Stop
     if (!tswipe.Stop()) {
