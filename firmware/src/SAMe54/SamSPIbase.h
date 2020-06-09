@@ -62,6 +62,10 @@ public:
                 CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none,
                 std::shared_ptr<CSamCLK> pCLK=nullptr);
 
+    std::shared_ptr<CSamPin> GetCSpin(){
+
+        return m_pCS;
+    }
 
     virtual bool send(CFIFO &msg);
 

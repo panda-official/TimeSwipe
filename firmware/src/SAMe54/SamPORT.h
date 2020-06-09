@@ -293,20 +293,27 @@ friend class CSamPORT;
 public:
     virtual void Set(bool bHow)
     {
-        CSamPORT::SetPin(m_nGroup, m_nPin, bHow);
+        CSamPORT::SetPin(m_nGroup, m_nPin, m_bInvertedBehaviour ? !bHow:bHow);
     }
     virtual bool RbSet()
     {
-        return CSamPORT::RbSetPin(m_nGroup, m_nPin);
+        bool rv=CSamPORT::RbSetPin(m_nGroup, m_nPin);
+        return m_bInvertedBehaviour ? !rv:rv;
     }
     virtual bool Get()
     {
-        return CSamPORT::GetPin(m_nGroup, m_nPin);
+        bool rv=CSamPORT::GetPin(m_nGroup, m_nPin);
+        return m_bInvertedBehaviour ? !rv:rv;
     }
 
     virtual ~CSamPin()
     {
         CSamPORT::ReleasePin(m_nGroup, m_nPin);
+    }
+
+    void SetInvertedBehaviour(bool how)
+    {
+        m_bInvertedBehaviour=how;
     }
 
     //SAM specific:
@@ -329,4 +336,6 @@ protected:
     CSamPORT::group m_nGroup;
     CSamPORT::pin   m_nPin;
     CSamPORT::pad   m_nPinPAD;
+
+    bool m_bInvertedBehaviour=false;
 };

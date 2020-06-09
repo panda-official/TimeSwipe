@@ -6,9 +6,10 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "PGA280.h"
+#include "os.h"
 
 
-bool CPGA280cmdBuf::transfer(CSPI &spi_bus)
+bool CPGA280cmdBuf::transfer(CSPI &spi_bus, IPin &CS)
 {
     size_t sz=m_cmd.size();
     for(size_t i=0; i<sz; i++)
@@ -16,7 +17,17 @@ bool CPGA280cmdBuf::transfer(CSPI &spi_bus)
         m_cmd[i].PushToStream(m_ostr, m_bCSmode, i==(sz-1));
     }
 
-    if(!spi_bus.transfer(m_ostr, m_istr))
+    //setup the bus:
+    spi_bus.set_phpol(false, true);
+    CS.Set(true);
+    os::uwait(80);
+
+    bool tres=spi_bus.transfer(m_ostr, m_istr);
+
+    CS.Set(false);
+    os::uwait(80);
+
+    if(!tres)
         return false;
 
     for(size_t i=0; i<sz; i++)
@@ -28,16 +39,17 @@ bool CPGA280cmdBuf::transfer(CSPI &spi_bus)
     return true;
 }
 
-CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus)
+CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
 {
     m_pSPIbus=pSPIbus;
+    m_pCS=pCS;
 }
 
 bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
 {
     m_CmdBuf.reset();
     m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::read, nReg, 0);
-    if( !m_CmdBuf.transfer(*m_pSPIbus) )
+    if( !m_CmdBuf.transfer(*m_pSPIbus, *m_pCS) )
         return false;
 
     RegValue=m_CmdBuf.m_cmd[0].m_InData;
@@ -48,7 +60,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue)
 {
     m_CmdBuf.reset();
     m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::write, nReg, RegValue);
-    return m_CmdBuf.transfer(*m_pSPIbus);
+    return m_CmdBuf.transfer(*m_pSPIbus, *m_pCS);
 }
 
 

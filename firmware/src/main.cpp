@@ -66,7 +66,7 @@ int sys_clock_init(void);
 
 int main(void)
 {
-        auto pVersion=std::make_shared<CSemVer>(0,0,12);
+        auto pVersion=std::make_shared<CSemVer>(0,0,15);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
@@ -144,7 +144,10 @@ int main(void)
             auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
                                                        CSamPORT::pxy::PB16, CSamPORT::pxy::PB19, CSamPORT::pxy::PB17, CSamPORT::pxy::PB18);
 
-            auto pPGA280=std::make_shared<CPGA280>(pInaSpi);
+            auto pInaSpiCSpin=pInaSpi->GetCSpin();
+            pInaSpiCSpin->SetInvertedBehaviour(true);
+            pInaSpiCSpin->Set(false);
+            auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pInaSpiCSpin);
 
 
             //for testing:
@@ -184,6 +187,7 @@ int main(void)
 
         auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACA, 2.5f, 24.0f);
         pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
+        pDAC2A->SetVal(0);
         /*auto pDAC2B=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACB, 0.0f, 4095.0f);
         auto pDAC2C=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACC, 0.0f, 4095.0f);
         auto pDAC2D=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACD, 0.0f, 4095.0f);*/

@@ -152,7 +152,7 @@ bool CSamSPIbase::transfer(CFIFO &out_msg, CFIFO &in_msg)
     in_msg.reset(); //???
 
     //cs on:
-    chip_select(true);
+    //chip_select(true);
 
     while(out_msg.in_avail())
     {
@@ -163,7 +163,7 @@ bool CSamSPIbase::transfer(CFIFO &out_msg, CFIFO &in_msg)
 
 
     //cs off:
-    chip_select(false);
+    //chip_select(false);
 
     return true;
 }

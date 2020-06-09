@@ -16,6 +16,7 @@ Copyright (c) 2019-2020 Panda Team
 #include <stdint.h>
 #include <vector>
 #include "SPI.h"
+#include "Pin.h"
 
 class CPGA280cmd
 {
@@ -57,13 +58,24 @@ public:
         if(cmd::write==m_Command)
         {
             frame[1]=m_OutData;
-            nSend=3;
+            /*nSend=3;
             if(bCSmode)
+                frame[2]=(uint8_t)(CHKsum+frame[0]+frame[1]);*/
+
+            if(bCSmode)
+            {
                 frame[2]=(uint8_t)(CHKsum+frame[0]+frame[1]);
+                nSend=3;
+            }
+            else
+            {
+                nSend=bLastCmdInChain ? 2:3;
+            }
+
         }
         if(cmd::read==m_Command)
         {
-            if(bCSmode)
+            /*if(bCSmode)
             {
                 nSend=4;
                 frame[1]=(uint8_t)(CHKsum+frame[0]);
@@ -72,17 +84,38 @@ public:
             else
             {
                nSend=3;
+            }*/
+
+            if(bCSmode)
+            {
+                nSend=4;
+                frame[1]=(uint8_t)(CHKsum+frame[0]);
             }
+            else
+            {
+                nSend=3; //always fetch SC???
+            }
+
         }
         else
         {
-            nSend=2;
+            /*nSend=2;
             if(bCSmode)
+                frame[1]=(uint8_t)(CHKsum+frame[0]);*/
+
+            if(bCSmode)
+            {
                 frame[1]=(uint8_t)(CHKsum+frame[0]);
+                nSend=2;
+            }
+            else
+            {
+                 nSend=1;
+            }
         }
 
-        if(bLastCmdInChain && !bCSmode)
-            nSend--;
+        //if(bLastCmdInChain && !bCSmode)
+          //  nSend--;
 
         m_CmdLen=nSend;
         for(int i=0; i<nSend; i++)
@@ -123,7 +156,7 @@ public:
     CFIFO m_ostr;
     std::vector<CPGA280cmd> m_cmd;
 
-    bool transfer(CSPI &spi_bus);
+    bool transfer(CSPI &spi_bus, IPin &CS);
     void reset()
     {
         m_istr.reset();
@@ -165,6 +198,7 @@ public:
 
 protected:
     std::shared_ptr<CSPI> m_pSPIbus;
+    std::shared_ptr<IPin> m_pCS;
     CPGA280cmdBuf m_CmdBuf;
 
     bool ReadRegister(reg nReg, uint8_t &RegValue);
@@ -198,7 +232,7 @@ public:
     bool SetGains(ogain og, igain ig);
     bool GetGains(ogain &og, igain &ig);
 
-    CPGA280(std::shared_ptr<CSPI> pSPIbus);
+    CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS);
 
     //for testing:
     void SelectReg(unsigned int nReg)
