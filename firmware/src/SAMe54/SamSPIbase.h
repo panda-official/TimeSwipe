@@ -10,6 +10,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "SamPORT.h"
 #include "SPI.h"
 #include "SamSercom.h"
+#include "os.h"
 
 
 class CSamSPIbase : public CSamSercom, public CSPI
@@ -38,6 +39,8 @@ protected:
 
     static constexpr unsigned long m_SendCharTmt_mS=100;
 
+    unsigned long CSminDel_uS=70;
+
     std::shared_ptr<CSamPin> m_pCS;
 
     inline void chip_select(bool bHow)
@@ -48,8 +51,8 @@ protected:
         if(!m_pCS)
             return;
         m_pCS->Set(bHow);
-        //some delay here:
-        //...............
+
+        os::uwait(CSminDel_uS);
     }
     uint32_t transfer_char(uint32_t nChar);
     bool send_char(uint32_t ch);
@@ -75,7 +78,10 @@ public:
 
     virtual void set_phpol(bool bPhase, bool bPol);
     virtual void set_baud_div(unsigned char div);
-    virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel);
+    virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel)
+    {
+        CSminDel_uS=CSminDel;
+    }
 
     /*!
      * \brief Enables IRQ mode

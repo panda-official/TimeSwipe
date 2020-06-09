@@ -125,6 +125,7 @@ int main(void)
         std::shared_ptr<IPin> pDAConPin;
         std::shared_ptr<IPin> pUB1onPin;
         std::shared_ptr<IPin> pQSPICS0Pin;
+        std::shared_ptr<IPin> pQSPICS1Pin;
 
         if(typeBoard::DMSBoard==ThisBoard)
         {
@@ -135,7 +136,9 @@ int main(void)
 
             pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
             pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
-            pQSPICS0Pin=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0);
+
+            auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->SetInvertedBehaviour(true);  pQSPICS0Pin=pCS0; pCS0->Set(false);
+            auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->SetInvertedBehaviour(true);  pQSPICS1Pin=pCS1; pCS1->Set(false);
 
             //create PGA280 extension bus:
             auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
@@ -174,10 +177,16 @@ int main(void)
         auto pADC4      =std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none, 0.0f, 4095.0f);
 
         //step 3 - creating DAC channels:
-        auto pDACA=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACA, 0.0f, 4095.0f);
-        auto pDACB=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACB, 0.0f, 4095.0f);
-        auto pDACC=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACC, 0.0f, 4095.0f);
-        auto pDACD=std::make_shared<CDac5715sa>(&objQSPI, typeDac5715chan::DACD, 0.0f, 4095.0f);
+        auto pDACA=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACA, 0.0f, 4095.0f);
+        auto pDACB=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACB, 0.0f, 4095.0f);
+        auto pDACC=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACC, 0.0f, 4095.0f);
+        auto pDACD=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACD, 0.0f, 4095.0f);
+
+        auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACA, 2.5f, 24.0f);
+        pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
+        /*auto pDAC2B=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACB, 0.0f, 4095.0f);
+        auto pDAC2C=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACC, 0.0f, 4095.0f);
+        auto pDAC2D=std::make_shared<CDac5715sa>(&objQSPI, pQSPICS1Pin, typeDac5715chan::DACD, 0.0f, 4095.0f);*/
 
         auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
         auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
@@ -214,7 +223,7 @@ int main(void)
         pZeroCal->Add(pADC3, pDACC, CView::ch3);
         pZeroCal->Add(pADC4, pDACD, CView::ch4);
 
-        nodeControl::SetControlItems(pADmux, pZeroCal);
+        nodeControl::SetControlItems(pADmux, pZeroCal, pUB1onPin, pDAC2A);
 
 
         //2 DAC PWMs:
@@ -236,6 +245,11 @@ int main(void)
         pDisp->Add("DAC2.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACB, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
         pDisp->Add("DAC3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACC, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
         pDisp->Add("DAC4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDACD, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+
+     /*   pDisp->Add("DAC21.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2A, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("DAC22.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2B, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("DAC23.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2C, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("DAC24.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2D, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );*/
 
         // adding commands for analog outputs 3-4 control
         pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC0, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );

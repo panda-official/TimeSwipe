@@ -57,20 +57,24 @@ friend class CShiftReg;
 public:
     virtual void Set(bool bHow)
     {
-        m_pCont->SetBit(m_nPin, bHow);
+        m_pCont->SetBit(m_nPin, m_bInvertedBehaviour ? !bHow:bHow);
     }
     virtual bool RbSet()
     {
-        return m_pCont->GetBit(m_nPin);
+        //return m_pCont->GetBit(m_nPin);
+        return Get();
     }
     virtual bool Get()
     {
-        return m_pCont->GetBit(m_nPin);
+        bool rv=m_pCont->GetBit(m_nPin);
+        return m_bInvertedBehaviour ? !rv:rv;
     }
 
 protected:
     std::shared_ptr<CShiftReg> m_pCont;
     std::size_t                m_nPin;
+
+    bool m_bInvertedBehaviour=false;
 
     CShiftRegPin(const std::shared_ptr<CShiftReg> &pCont, std::size_t nPin)
     {
@@ -81,6 +85,11 @@ public:
     virtual ~CShiftRegPin()
     {
         m_pCont->m_OccupiedBitsMask[m_nPin]=false;
+    }
+
+    void SetInvertedBehaviour(bool how)
+    {
+        m_bInvertedBehaviour=how;
     }
 };
 

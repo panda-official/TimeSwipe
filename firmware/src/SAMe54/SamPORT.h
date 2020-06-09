@@ -251,7 +251,24 @@ public:
         fN
     };
 
+    static inline CSamPORT::group pxy2group(pxy pin){
+        return static_cast<CSamPORT::group>(pin/32);
+    }
+    static inline CSamPORT::pin pxy2pin(pxy pin){
+        return static_cast<CSamPORT::pin>(pin%32);
+    }
+    static inline CSamPORT::pxy make_pxy(CSamPORT::group group, CSamPORT::pin pin){
+
+        return static_cast<CSamPORT::pxy>(group*32+pin);
+    }
+
+
     static std::shared_ptr<CSamPin> FactoryPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bOutput=false);
+
+    static inline std::shared_ptr<CSamPin> FactoryPin(CSamPORT::pxy nPin, bool bOutput=false){
+
+        return FactoryPin(pxy2group(nPin), pxy2pin(nPin), bOutput);
+    }
 
 protected:
     static void SetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bHow);
@@ -291,12 +308,25 @@ public:
     {
         CSamPORT::ReleasePin(m_nGroup, m_nPin);
     }
+
+    //SAM specific:
+    inline bool MUX(typeSamSercoms nSercom)
+    {
+        return CSamPORT::MUX( CSamPORT::make_pxy(m_nGroup, m_nPin), nSercom, m_nPinPAD);
+    }
+    inline CSamPORT::pad GetPAD() const
+    {
+        return m_nPinPAD;
+    }
+
 protected:
     CSamPin(CSamPORT::group nGroup, CSamPORT::pin  nPin)
     {
         m_nGroup=nGroup;
         m_nPin=nPin;
+        m_nPinPAD=CSamPORT::pad::PAD0;
     }
     CSamPORT::group m_nGroup;
     CSamPORT::pin   m_nPin;
+    CSamPORT::pad   m_nPinPAD;
 };

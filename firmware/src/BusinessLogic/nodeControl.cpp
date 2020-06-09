@@ -11,13 +11,16 @@ Copyright (c) 2019 Panda Team
 
 std::shared_ptr<CADmux>  nodeControl::m_pMUX;
 std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
+std::shared_ptr<IPin>    nodeControl::m_pUBRswitch;
+std::shared_ptr<CDac>    nodeControl::m_pVoltageDAC;
+
 
 static bool brecord=false;
 static std::vector<CDataVis>  m_DataVis;
 nodeControl::MesModes nodeControl::m_OpMode=nodeControl::IEPE;
 
 
-float nodeControl::m_Voltage=0;
+//float nodeControl::m_Voltage=0;
 float nodeControl::m_Current=0;
 float nodeControl::m_MaxCurrent=1000;  //mA
 
@@ -72,11 +75,17 @@ int nodeControl::gain_out(int val)
 int nodeControl::GetGain(){ return (int)m_pMUX->GetGain(); }
 bool nodeControl::GetBridge()
 {
-    return m_pMUX->GetUBRVoltage();
+    //return m_pMUX->GetUBRVoltage();
+    assert(m_pUBRswitch);
+    return m_pUBRswitch->Get();
+
 }
 void nodeControl::SetBridge(bool how)
 {
-    m_pMUX->SetUBRvoltage(how);
+    //m_pMUX->SetUBRvoltage(how);
+     assert(m_pUBRswitch);
+     m_pUBRswitch->Set(how);
+
 
     //generate an event:
     nlohmann::json v=how;
@@ -87,37 +96,35 @@ void nodeControl::SetSecondary(int nMode)
 {
     nMode&=1; //fit the value
 
-    m_pMUX->SetUBRvoltage(nMode);
-
-    //generate an event:
-    nlohmann::json v=nMode;
-    Instance().Fire_on_event("SetSecondary", v);
-
-}
-int nodeControl::GetSecondary()
-{
-    return m_pMUX->GetUBRVoltage();
-}
-
-
-void nodeControl::SetMode(int nMode)
-{
-    m_pMUX->SetUBRvoltage(nMode ? true:false);
-
-    m_OpMode=static_cast<MesModes>(nMode);
-    if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
-    if(m_OpMode>MesModes::Digital){ m_OpMode=MesModes::Digital; }
-
+    //m_pMUX->SetUBRvoltage(nMode ? false:true);
+    assert(m_pUBRswitch);
+    m_pUBRswitch->Set(nMode);
 
     //generate an event:
     nlohmann::json v=nMode;
     Instance().Fire_on_event("Mode", v);
 
 }
+int nodeControl::GetSecondary()
+{
+    //return m_pMUX->GetUBRVoltage() ? 0:1;
+    return GetBridge();
+}
+
+
+void nodeControl::SetMode(int nMode)
+{
+    m_OpMode=static_cast<MesModes>(nMode);
+    if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
+    if(m_OpMode>MesModes::Normsignal){ m_OpMode=MesModes::Normsignal; }
+
+    SetSecondary(m_OpMode);
+}
 int nodeControl::GetMode()
 {
-    return static_cast<int>(m_OpMode);
+    return GetSecondary();
 }
+
 
 void nodeControl::SetOffset(int nOffs)
 {

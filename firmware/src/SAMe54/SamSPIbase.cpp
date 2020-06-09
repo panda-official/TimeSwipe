@@ -33,7 +33,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     }
 
     bool bRes;
-    CSamPORT::pad DOpad, DIpad, CLOCKpad, CSpad;
+    CSamPORT::pad DOpad, DIpad, CLOCKpad; //, CSpad;
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
 
     bRes=CSamPORT::MUX(DO, nSercom, DOpad);
@@ -46,12 +46,15 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
 
     if(CSamPORT::pxy::none!=CS)
     {
-        bRes=CSamPORT::MUX(CS, nSercom, CSpad);
-        assert(bRes);
-        assert(CSamPORT::pad::PAD2==CSpad); //always
+        //bRes=CSamPORT::MUX(CS, nSercom, CSpad);
+
+        m_pCS=CSamPORT::FactoryPin(CS, bMaster);
+        assert(m_pCS);
+        bRes=m_pCS->MUX(nSercom);
+        assert(bRes && CSamPORT::pad::PAD2==m_pCS->GetPAD()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
-        pSPI->CTRLB.bit.MSSEN=1; //auto cs
+        //pSPI->CTRLB.bit.MSSEN=1; //auto cs
     }
 
 
@@ -197,10 +200,6 @@ void CSamSPIbase::set_baud_div(unsigned char div)
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
 
     pSPI->BAUD.bit.BAUD=div;
-
-}
-void CSamSPIbase::set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel)
-{
 
 }
 

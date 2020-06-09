@@ -18,6 +18,9 @@ Copyright (c) 2019 Panda Team
 #include "zerocal_man.h"
 #include "json_evsys.h"
 #include "RawBinStorage.h"
+#include "DAC.h"
+#include "Pin.h"
+
 
 /*!
  * \brief Provides the basic functionality of the board
@@ -29,6 +32,10 @@ Copyright (c) 2019 Panda Team
 
 class nodeControl : public CJSONEvCP{
 protected:
+
+        static std::shared_ptr<IPin> m_pUBRswitch;
+
+        static std::shared_ptr<CDac> m_pVoltageDAC;
 
         /*!
          * \brief A pointer to board's digital multiplexer object
@@ -110,10 +117,15 @@ public:
          * \param pMUX A pointer to the board's digital multiplexer
          * \param pZeroCal A pointer to the controller object of finding amplifier offsets routine
          */
-        static void SetControlItems(std::shared_ptr<CADmux>  &pMUX, std::shared_ptr<CCalMan> &pZeroCal)
+        static void SetControlItems(std::shared_ptr<CADmux>  pMUX, std::shared_ptr<CCalMan> pZeroCal,
+                                    std::shared_ptr<IPin> pUBRswitch, std::shared_ptr<CDac> pVoltageDAC)
         {
             m_pMUX=pMUX;
             m_pZeroCal=pZeroCal;
+            m_pUBRswitch=pUBRswitch;
+            m_pVoltageDAC=pVoltageDAC;
+
+
             Instance().m_PersistStorage.AddItem(pMUX);
             Instance().m_PersistStorage.AddItem(pZeroCal);
         }
@@ -258,7 +270,7 @@ protected:
         /*!
          * \brief Holds Voltage Setting (mockup)
          */
-        static  float m_Voltage;
+       // static  float m_Voltage;
 
         /*!
          * \brief Holds Current Setting (mockup)
@@ -275,13 +287,21 @@ public:
          * \brief Sets Voltage Setting
          * \param val - the voltage to set
          */
-        static void SetVoltage(float val){m_Voltage=val;}
+        static void SetVoltage(float val)
+        {
+            assert(m_pVoltageDAC);
+            return m_pVoltageDAC->SetVal(val);
+        }
 
         /*!
          * \brief Returns actual Voltage Setting
          * \return the Voltage Setting
          */
-        static float GetVoltage(){return m_Voltage;}
+        static float GetVoltage()
+        {
+            assert(m_pVoltageDAC);
+            return m_pVoltageDAC->GetRealVal();
+        }
 
         /*!
          * \brief Sets Current Setting
