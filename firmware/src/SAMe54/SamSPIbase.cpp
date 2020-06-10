@@ -122,7 +122,7 @@ uint32_t CSamSPIbase::transfer_char(uint32_t nChar)
 
     while( 0==(pSPI->INTFLAG.bit.DRE) ){}
     pSPI->DATA.bit.DATA=nChar;
-    while( 0==(pSPI->INTFLAG.bit.TXC) ){}
+    while( 0==(pSPI->INTFLAG.bit.TXC)  || 0==(pSPI->INTFLAG.bit.RXC)){}
     return pSPI->DATA.bit.DATA;
 }
 
@@ -192,8 +192,15 @@ void CSamSPIbase::set_phpol(bool bPhase, bool bPol)
 {
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
 
+    while( pSPI->SYNCBUSY.bit.ENABLE ){} //wait sync
+    pSPI->CTRLA.bit.ENABLE=0;
+
     pSPI->CTRLA.bit.CPHA=bPhase ? 1:0;
     pSPI->CTRLA.bit.CPOL=bPol ? 1:0;
+
+    pSPI->CTRLA.bit.ENABLE=1;
+    while( pSPI->SYNCBUSY.bit.ENABLE ){} //wait sync
+
 }
 void CSamSPIbase::set_baud_div(unsigned char div)
 {

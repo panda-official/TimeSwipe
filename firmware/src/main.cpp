@@ -145,7 +145,7 @@ int main(void)
                                                        CSamPORT::pxy::PB16, CSamPORT::pxy::PB19, CSamPORT::pxy::PB17, CSamPORT::pxy::PB18);
 
             auto pInaSpiCSpin=pInaSpi->GetCSpin();
-            pInaSpiCSpin->SetInvertedBehaviour(true);
+           // pInaSpiCSpin->SetInvertedBehaviour(true);
             pInaSpiCSpin->Set(false);
             auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pInaSpiCSpin);
 
