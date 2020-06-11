@@ -142,10 +142,11 @@ int main(void)
 
             //create PGA280 extension bus:
             auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
-                                                       CSamPORT::pxy::PB16, CSamPORT::pxy::PB19, CSamPORT::pxy::PB17, CSamPORT::pxy::PB18);
+                                                       CSamPORT::pxy::PB16, CSamPORT::pxy::PB19, CSamPORT::pxy::PB17, CSamPORT::none); //CSamPORT::pxy::PB18);
 
-            auto pInaSpiCSpin=pInaSpi->GetCSpin();
-           // pInaSpiCSpin->SetInvertedBehaviour(true);
+            //auto pInaSpiCSpin=pInaSpi->GetCSpin();
+            auto pInaSpiCSpin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P18, true);
+            pInaSpiCSpin->SetInvertedBehaviour(true);
             pInaSpiCSpin->Set(false);
             auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pInaSpiCSpin);
 

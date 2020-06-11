@@ -73,7 +73,7 @@ public:
             }
 
         }
-        if(cmd::read==m_Command)
+        else if(cmd::read==m_Command)
         {
             /*if(bCSmode)
             {
@@ -138,7 +138,7 @@ public:
         int roffs=m_CmdLen-2; //always 2 bytes???
 
         //check cs:
-        uint8_t CHKsum=0x9B+m_Command+frame[roffs];
+        uint8_t CHKsum=0x9B+(m_Command|m_Addr)+frame[roffs];
         m_InData=frame[roffs];
         if(CHKsum!=frame[roffs+1])
             return false;
