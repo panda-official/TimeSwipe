@@ -65,6 +65,8 @@ protected:
     virtual void OnIRQ2();
     virtual void OnIRQ3();
 
+    virtual bool send(CFIFO &msg);
+
 };
 
 #endif // SPICOMM_H

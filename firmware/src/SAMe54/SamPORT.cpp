@@ -115,6 +115,11 @@ bool CSamPORT::FindSercomPad(pxy nPin, typeSamSercoms nSercom, pad &nPad, muxf &
         {CSamPORT::pxy::PA06, CSamPORT::muxf::fD},  //sc1p2
         {CSamPORT::pxy::PA07, CSamPORT::muxf::fD},  //sc1p3
 
+        {CSamPORT::pxy::PA12, CSamPORT::muxf::fC},  //sc2p0
+        {CSamPORT::pxy::PA13, CSamPORT::muxf::fC},  //sc2p1
+        {CSamPORT::pxy::PA14, CSamPORT::muxf::fC},  //sc2p2
+        {CSamPORT::pxy::PA15, CSamPORT::muxf::fC},  //sc2p3
+
     };
 
 

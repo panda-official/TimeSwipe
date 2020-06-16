@@ -55,6 +55,20 @@ void CSPIcomm::OnIRQ3()
     IRQhandler();
 }
 
+bool CSPIcomm::send(CFIFO &msg)
+{
+    //blocking mode:
+    typeSChar ch;
+    CSyncSerComFSM cntr;
+    cntr.start(CSyncSerComFSM::FSM::sendSilenceFrame);
+    while(cntr.proc(ch, msg))
+    {
+       if(!send_char(ch))
+           return false;
+    }
+    return true;
+}
+
 void CSPIcomm::Update()
 {
     if(!isIRQmode()) //if not IRQ mode, poll

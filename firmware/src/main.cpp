@@ -157,6 +157,10 @@ int main(void)
             pDisp->Add("PGA.rsel", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::GetSelectedReg, &CPGA280::SelectReg) );
             pDisp->Add("PGA.rval", std::make_shared< CCmdSGHandler<CPGA280, int> >(pPGA280, &CPGA280::ReadSelectedReg, &CPGA280::WriteSelectedReg) );
 
+            pDisp->Add("PGA.mode", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetMode, &CPGA280::CmSetMode) );
+            pDisp->Add("PGA.igain", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetIGain, &CPGA280::CmSetIGain) );
+            pDisp->Add("PGA.ogain", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetOGain, &CPGA280::CmSetOGain) );
+
 
         }
         else

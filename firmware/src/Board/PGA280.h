@@ -269,23 +269,23 @@ public:
 
 
     //interface to the command system:
-    inline void SetMode(unsigned int nMode){
-        SetMode(nMode);
+    inline void CmSetMode(unsigned int nMode){
+        SetMode( static_cast<mode>(nMode) );
     }
-    inline unsigned int GetMode(){
+    inline unsigned int CmGetMode(){
         return m_nMode;
     }
-    inline void SetIGain(unsigned int nGain){
-        SetIGain(nGain);
+    inline void CmSetIGain(unsigned int nGain){
+        SetIGain( static_cast<igain>(nGain) );
     }
-    inline unsigned int GetIGain(){
+    inline unsigned int CmGetIGain(){
         return m_GainMuxReg.bit.IGAIN;
     }
-    inline void SetOGain(unsigned int nGain){
-        SetOGain(nGain);
+    inline void CmSetOGain(unsigned int nGain){
+        SetOGain( static_cast<ogain>(nGain) );
     }
-    inline unsigned int GetOGain(){
-        return m_GainMuxReg.bit.IGAIN;
+    inline unsigned int CmGetOGain(){
+        return m_GainMuxReg.bit.OGAIN;
     }
 
 

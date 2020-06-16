@@ -35,6 +35,10 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     bool bRes;
     CSamPORT::pad DOpad, DIpad, CLOCKpad; //, CSpad;
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+   // Port *pPort=PORT;
+
+    //enable sercom bus:
+    CSamSercom::EnableSercomBus(nSercom, true);
 
     bRes=CSamPORT::MUX(DO, nSercom, DOpad);
     assert(bRes);
@@ -52,16 +56,12 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
         assert(bRes && CSamPORT::pad::PAD2==m_pCS->GetPAD()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
-        pSPI->CTRLB.bit.MSSEN=1; //auto cs
+        pSPI->CTRLB.bit.MSSEN=bMaster; //auto cs
     }
 
 
-    //enable sercom bus:
-    CSamSercom::EnableSercomBus(nSercom, true);
-
-
     //config DIPO/DOPO depending on PAD:
-    assert(CSamPORT::pad::PAD0==DOpad || CSamPORT::pad::PAD3==DIpad);
+   // assert(CSamPORT::pad::PAD0==DOpad || CSamPORT::pad::PAD3==DIpad);
     if(CSamPORT::pad::PAD0==DOpad) //variant DOPO=0
     {
         //DI->PAD3
@@ -213,6 +213,7 @@ void CSamSPIbase::EnableIRQs(bool how)
 {
     //select ptr:
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+ //   Port *pPort=PORT;
 
     m_bIRQmode=how;
     if(how)

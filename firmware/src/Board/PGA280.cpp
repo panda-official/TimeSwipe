@@ -43,6 +43,9 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
 {
     m_pSPIbus=pSPIbus;
     m_pCS=pCS;
+
+    m_GainMuxReg.reg=0;
+    m_nMode=CPGA280::mode::Voltage; //def???
 }
 
 bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
@@ -96,7 +99,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      reg.reg=m_GainMuxReg.reg;
 
      reg.bit.IGAIN=ig;
-     if(!WriteRegister(reg::gain_mux, 0, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg, true))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
@@ -109,7 +112,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      reg.reg=m_GainMuxReg.reg;
 
      reg.bit.OGAIN=og;
-     if(!WriteRegister(reg::gain_mux, 0, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg, true))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
