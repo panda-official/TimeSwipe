@@ -10,8 +10,8 @@ Copyright (c) 2019 Panda Team
 #include "os.h"
 #include "SamSPIbase.h"
 #include "SamQSPI.h"
-#include "SamSPIsc2.h"
-#include "SamSPIsc7.h"
+#include "SPIcomm.h"
+
 #include "I2CmemHAT.h"
 #include "I2Cmem8Pin.h"
 #include "SamI2CeepromMaster.h"
@@ -113,7 +113,7 @@ int main(void)
 
 
         //communication bus:
-        auto pSPIsc2    =std::make_shared<CSamSPIsc2>();
+        auto pSPIsc2    =std::make_shared<CSPIcomm>(typeSamSercoms::Sercom2, CSamPORT::pxy::PA12, CSamPORT::pxy::PA15, CSamPORT::pxy::PA13, CSamPORT::pxy::PA14);
         pSPIsc2->EnableIRQs(true);
         auto pDisp=         std::make_shared<CCmdDispatcher>();
         auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
@@ -168,7 +168,7 @@ int main(void)
 
 
         //step 1 - creating QSPI bus:
-        CSamQSPI objQSPI(pQSPICS0Pin);
+        CSamQSPI objQSPI;
 
 
 

@@ -43,7 +43,7 @@ protected:
 
     std::shared_ptr<CSamPin> m_pCS;
 
-    inline void chip_select(bool bHow)
+  /*  inline void chip_select(bool bHow)
     {
         if(!m_bMaster)
             return;
@@ -53,11 +53,22 @@ protected:
         m_pCS->Set(bHow);
 
         os::uwait(CSminDel_uS);
-    }
+    }*/
     uint32_t transfer_char(uint32_t nChar);
     bool send_char(uint32_t ch);
 
 public:
+    /*!
+     * \brief CSamSPIbase
+     * \param bMaster
+     * \param nSercom
+     * \param MOSI
+     * \param MISO
+     * \param CLOCK
+     * \param CS - specify this only if you'd like CS pin to be automaically controlled by SAM's internal logic, otherwise specify CSamPORT::pxy::none
+     * \param pCLK
+     */
+
     CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
                 CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none,
                 std::shared_ptr<CSamCLK> pCLK=nullptr);

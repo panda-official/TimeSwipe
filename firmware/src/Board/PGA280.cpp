@@ -56,29 +56,62 @@ bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
     return true;
 
 }
-bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue)
+bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 {
     m_CmdBuf.reset();
-    m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::write, nReg, RegValue);
+    m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::write, nReg, RegValue, TBUF);
     return m_CmdBuf.transfer(*m_pSPIbus, *m_pCS);
 }
 
+ bool CPGA280::SetMode(mode nMode)
+ {
+     //switch1 (assuming all other switches are zero after reset)
+     typeCPGA280ISw1Reg sw1;
+     sw1.reg=0;
+     if(mode::Voltage==nMode)
+     {
+         sw1.bit.SW_A1=1;
+         sw1.bit.SW_A2=1;
+     }
+     else
+     {
+         sw1.bit.SW_B1=1;
+         sw1.bit.SW_B2=1;
+     }
+     if(!WriteRegister(reg::ISw1, sw1.reg))
+         return false;
 
-bool CPGA280::SetGains(ogain og, igain ig)
-{
-    typeCPGA280GainMuxReg reg;
-    reg.reg=0;
-    reg.bit.OGAIN=og;
-    reg.bit.IGAIN=ig;
 
-    return  WriteRegister(reg::gain_mux, reg.reg);
-}
-bool CPGA280::GetGains(ogain &og, igain &ig)
-{
-    typeCPGA280GainMuxReg reg;
+     //buf tmt to 0:
+     if(!WriteRegister(reg::BUFtmt, 0, true))
+         return false;
 
-    bool rv=ReadRegister(reg::gain_mux, reg.reg);
-    og=static_cast<ogain>(reg.bit.OGAIN);
-    ig=static_cast<igain>(reg.bit.IGAIN);
-    return rv;
-}
+     m_nMode=nMode;
+     return true;
+ }
+
+ bool CPGA280::SetIGain(igain ig)
+ {
+     typeCPGA280GainMuxReg reg;
+     reg.reg=m_GainMuxReg.reg;
+
+     reg.bit.IGAIN=ig;
+     if(!WriteRegister(reg::gain_mux, 0, true))
+         return false;
+
+     m_GainMuxReg.reg=reg.reg;
+     return true;
+
+ }
+ bool CPGA280::SetOGain(ogain og)
+ {
+     typeCPGA280GainMuxReg reg;
+     reg.reg=m_GainMuxReg.reg;
+
+     reg.bit.OGAIN=og;
+     if(!WriteRegister(reg::gain_mux, 0, true))
+         return false;
+
+     m_GainMuxReg.reg=reg.reg;
+     return true;
+ }

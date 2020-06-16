@@ -46,15 +46,13 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
 
     if(CSamPORT::pxy::none!=CS)
     {
-        //bRes=CSamPORT::MUX(CS, nSercom, CSpad);
-
         m_pCS=CSamPORT::FactoryPin(CS, bMaster);
         assert(m_pCS);
         bRes=m_pCS->MUX(nSercom);
         assert(bRes && CSamPORT::pad::PAD2==m_pCS->GetPAD()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
-        //pSPI->CTRLB.bit.MSSEN=1; //auto cs
+        pSPI->CTRLB.bit.MSSEN=1; //auto cs
     }
 
 
@@ -135,7 +133,7 @@ bool CSamSPIbase::send_char(uint32_t ch)
     {
         if( (os::get_tick_mS()-WaitBeginTime) >m_SendCharTmt_mS )
         {
-            chip_select(false);
+            //chip_select(false);
             return false;
         }
     }
@@ -169,7 +167,7 @@ bool CSamSPIbase::transfer(CFIFO &out_msg, CFIFO &in_msg)
 }
 bool CSamSPIbase::send(CFIFO &out_msg)
 {
-    chip_select(true);
+    //chip_select(true);
 
     //blocking mode:
     while(out_msg.in_avail())
@@ -178,12 +176,12 @@ bool CSamSPIbase::send(CFIFO &out_msg)
         out_msg>>b;
         if( !send_char( static_cast<uint32_t>(b)) )
         {
-            chip_select(false);
+            //chip_select(false);
             return false;
         }
     }
 
-    chip_select(false);
+    //chip_select(false);
     return true;
 }
 

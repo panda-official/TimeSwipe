@@ -58,10 +58,6 @@ public:
         if(cmd::write==m_Command)
         {
             frame[1]=m_OutData;
-            /*nSend=3;
-            if(bCSmode)
-                frame[2]=(uint8_t)(CHKsum+frame[0]+frame[1]);*/
-
             if(bCSmode)
             {
                 frame[2]=(uint8_t)(CHKsum+frame[0]+frame[1]);
@@ -75,17 +71,6 @@ public:
         }
         else if(cmd::read==m_Command)
         {
-            /*if(bCSmode)
-            {
-                nSend=4;
-                frame[1]=(uint8_t)(CHKsum+frame[0]);
-
-            }
-            else
-            {
-               nSend=3;
-            }*/
-
             if(bCSmode)
             {
                 nSend=4;
@@ -99,10 +84,6 @@ public:
         }
         else
         {
-            /*nSend=2;
-            if(bCSmode)
-                frame[1]=(uint8_t)(CHKsum+frame[0]);*/
-
             if(bCSmode)
             {
                 frame[1]=(uint8_t)(CHKsum+frame[0]);
@@ -113,9 +94,6 @@ public:
                  nSend=1;
             }
         }
-
-        //if(bLastCmdInChain && !bCSmode)
-          //  nSend--;
 
         m_CmdLen=nSend;
         for(int i=0; i<nSend; i++)
@@ -176,14 +154,53 @@ typedef union {
   } bit;
   uint8_t reg;
 
-} typeCPGA280GainMuxReg; //err clear reg 32bit
+} typeCPGA280GainMuxReg;
+
+typedef union {
+  struct {
+
+    uint8_t BUFTIM     :6;
+
+  } bit;
+  uint8_t reg;
+
+} typeCPGA280BufTimReg;
+
+typedef union {
+  struct {
+
+    uint8_t SW_D12     :1;
+    uint8_t SW_C2      :1;
+    uint8_t SW_C1      :1;
+    uint8_t SW_B2      :1;
+    uint8_t SW_B1      :1;
+    uint8_t SW_A2      :1;
+    uint8_t SW_A1      :1;
+
+  } bit;
+  uint8_t reg;
+
+} typeCPGA280ISw1Reg;
+
+
+typedef union {
+  struct {
+
+    uint8_t SW_G2      :1;
+    uint8_t SW_G1      :1;
+    uint8_t SW_F2      :1;
+    uint8_t SW_F1      :1;
+
+  } bit;
+  uint8_t reg;
+
+} typeCPGA280ISw2Reg;
+
+
 
 
 class CPGA280
 {
-//protected:
-  //  bool Transfer(CPGA280cmdBuf &buf);
-
 public:
 
     enum reg{
@@ -192,7 +209,10 @@ public:
         soft_reset,
         CP,
         BUFtmt,
-        error
+        error,
+        GPIO,
+        ISw1,
+        ISw2
     };
 
 
@@ -202,7 +222,7 @@ protected:
     CPGA280cmdBuf m_CmdBuf;
 
     bool ReadRegister(reg nReg, uint8_t &RegValue);
-    bool WriteRegister(reg nReg, uint8_t RegValue);
+    bool WriteRegister(reg nReg, uint8_t RegValue, bool TBUF=false);
 
     reg m_SelReg=gain_mux;
 
@@ -228,11 +248,49 @@ public:
         ig64,
         ig128
     };
+    enum mode{
 
-    bool SetGains(ogain og, igain ig);
-    bool GetGains(ogain &og, igain &ig);
+        Voltage=0,
+        Current
+    };
 
+    bool SetMode(mode nMode);
+    bool SetIGain(igain ig);
+    bool SetOGain(ogain og);
+
+
+protected: //cashed settings:
+    mode                    m_nMode;
+    typeCPGA280GainMuxReg   m_GainMuxReg;
+
+
+public:
     CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS);
+
+
+    //interface to the command system:
+    inline void SetMode(unsigned int nMode){
+        SetMode(nMode);
+    }
+    inline unsigned int GetMode(){
+        return m_nMode;
+    }
+    inline void SetIGain(unsigned int nGain){
+        SetIGain(nGain);
+    }
+    inline unsigned int GetIGain(){
+        return m_GainMuxReg.bit.IGAIN;
+    }
+    inline void SetOGain(unsigned int nGain){
+        SetOGain(nGain);
+    }
+    inline unsigned int GetOGain(){
+        return m_GainMuxReg.bit.IGAIN;
+    }
+
+
+
+
 
     //for testing:
     void SelectReg(unsigned int nReg)

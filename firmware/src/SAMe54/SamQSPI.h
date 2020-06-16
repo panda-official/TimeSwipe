@@ -28,7 +28,7 @@ public:
      * \details The constructor does the following:
      * setups corresponding PINs and its multiplexing
      */
-    CSamQSPI(std::shared_ptr<IPin> pCS);
+    CSamQSPI(bool bAutoCS=false);
 	
 	virtual bool send(CFIFO &msg);
 	virtual bool receive(CFIFO &msg);
@@ -41,7 +41,4 @@ public:
 
     //! The virtual destructor of the class
     virtual ~CSamQSPI(){}
-
-protected:
-    std::shared_ptr<IPin> m_pCS;
 };
