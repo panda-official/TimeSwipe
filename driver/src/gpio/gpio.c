@@ -67,9 +67,6 @@ void setup_io()
       exit(-1);
    }
 
-   printf("base: %X\n",base_address);
-   printf("size: %X\n",peri_size);
-
     /* mmap GPIO */
     gpio_map = mmap(
       NULL,                   //Any adddress in our space will do
@@ -77,7 +74,7 @@ void setup_io()
       PROT_READ | PROT_WRITE, //Enable reading & writting to mapped memory
       MAP_SHARED,             //Shared with other processes
       mem_fd,                 //File to map
-      (base_address + 0x200000)    //Offset to GPIO peripheral
+      (base_address + BCM2835_GPIO_BASE)    //Offset to GPIO peripheral
     );
 
    close(mem_fd); //No need to keep mem_fd open after mmap
