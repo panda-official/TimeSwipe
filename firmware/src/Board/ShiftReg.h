@@ -116,6 +116,14 @@ public:
        IEPE1_On=0
     };
 
+    enum pga_sel{
+
+        PGA1,
+        PGA2,
+        PGA3,
+        PGA4
+    };
+
     inline CDMSsr(const std::shared_ptr<IPin> &pDataPin, const std::shared_ptr<IPin> &pClockPin, const std::shared_ptr<IPin> &pStrobePin)
         :CShiftReg(pDataPin, pClockPin, pStrobePin, 16)
     {
@@ -123,6 +131,13 @@ public:
     inline std::shared_ptr<CShiftRegPin> FactoryPin(pins nPin)
     {
         return CShiftReg::FactoryPin(nPin);
+    }
+
+    inline void SelectPGA(pga_sel nPGA)
+    {
+        m_RegValue[pins::SPI_Ch1]=nPGA>>1;
+        m_RegValue[pins::SPI_Ch0]=nPGA&1;
+        CShiftReg::SetShiftReg(m_RegValue, m_BitsInUse);
     }
 
 public:
@@ -135,6 +150,38 @@ public:
     inline unsigned int GetShiftReg()
     {
         return m_RegValue.to_ulong();
+    }
+};
+
+class CPGA_CS : public CPin
+{
+protected:
+    CDMSsr::pga_sel m_nPGA;
+    std::shared_ptr<CDMSsr> m_pDMSsr;
+    std::shared_ptr<CPin> m_pCSpin;
+
+    virtual void impl_Set(bool bHow)
+    {
+        if(bHow)
+           m_pDMSsr->SelectPGA(m_nPGA);
+
+        m_pCSpin->Set(bHow);
+    }
+    virtual bool impl_RbSet()
+    {
+        return m_pCSpin->RbSet();
+    }
+    virtual bool impl_Get()
+    {
+        return m_pCSpin->Get();
+    }
+
+public:
+    CPGA_CS(CDMSsr::pga_sel nPGA, const std::shared_ptr<CDMSsr> pDMSsr, const std::shared_ptr<CPin> pCSpin)
+    {
+        m_nPGA=nPGA;
+        m_pDMSsr=pDMSsr;
+        m_pCSpin=pCSpin;
     }
 };
 

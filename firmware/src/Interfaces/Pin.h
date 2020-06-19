@@ -36,3 +36,52 @@ protected:
     virtual ~IPin()=default;
 };
 
+#include "os.h"
+class CPin
+{
+protected:
+    bool m_bInvertedBehaviour=false;
+    unsigned long m_SetupTime_uS=0;
+
+    virtual void impl_Set(bool bHow)=0;
+    virtual bool impl_RbSet()=0;
+    virtual bool impl_Get()=0;
+
+public:
+    inline void Set(bool bHow)
+    {
+        impl_Set(m_bInvertedBehaviour ? !bHow:bHow);
+
+        if(m_SetupTime_uS)
+            os::uwait(m_SetupTime_uS);
+    }
+    inline bool RbSet()
+    {
+        bool rv=impl_RbSet();
+        return m_bInvertedBehaviour ? !rv:rv;
+    }
+    inline bool Get()
+    {
+        bool rv=impl_Get();
+        return m_bInvertedBehaviour ? !rv:rv;
+    }
+
+    inline void SetInvertedBehaviour(bool how)
+    {
+        m_bInvertedBehaviour=how;
+    }
+    inline void SetPinSetupTime(unsigned long nSetupTime_uS)
+    {
+        m_SetupTime_uS=nSetupTime_uS;
+    }
+
+
+    CPin()=default;
+    CPin(const IPin&) = delete;
+    CPin& operator=(const IPin&) = delete;
+
+protected:
+    //! virtual destructor
+    virtual ~CPin()=default;
+};
+
