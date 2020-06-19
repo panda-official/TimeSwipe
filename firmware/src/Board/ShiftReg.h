@@ -51,45 +51,36 @@ protected:
 
 };
 
-class CShiftRegPin : public IPin
+class CShiftRegPin : public CPin
 {
 friend class CShiftReg;
-public:
-    virtual void Set(bool bHow)
-    {
-        m_pCont->SetBit(m_nPin, m_bInvertedBehaviour ? !bHow:bHow);
-    }
-    virtual bool RbSet()
-    {
-        //return m_pCont->GetBit(m_nPin);
-        return Get();
-    }
-    virtual bool Get()
-    {
-        bool rv=m_pCont->GetBit(m_nPin);
-        return m_bInvertedBehaviour ? !rv:rv;
-    }
-
 protected:
     std::shared_ptr<CShiftReg> m_pCont;
     std::size_t                m_nPin;
 
-    bool m_bInvertedBehaviour=false;
+    virtual void impl_Set(bool bHow)
+    {
+        m_pCont->SetBit(m_nPin, bHow);
+    }
+    virtual bool impl_RbSet()
+    {
+        return impl_Get();
+    }
+    virtual bool impl_Get()
+    {
+        return m_pCont->GetBit(m_nPin);
+    }
 
     CShiftRegPin(const std::shared_ptr<CShiftReg> &pCont, std::size_t nPin)
     {
         m_pCont=pCont;
         m_nPin=nPin;
+        m_SetupTime_uS=50;
     }
 public:
     virtual ~CShiftRegPin()
     {
         m_pCont->m_OccupiedBitsMask[m_nPin]=false;
-    }
-
-    void SetInvertedBehaviour(bool how)
-    {
-        m_bInvertedBehaviour=how;
     }
 };
 
@@ -177,7 +168,7 @@ protected:
     }
 
 public:
-    CPGA_CS(CDMSsr::pga_sel nPGA, const std::shared_ptr<CDMSsr> pDMSsr, const std::shared_ptr<CPin> pCSpin)
+    CPGA_CS(CDMSsr::pga_sel nPGA, const std::shared_ptr<CDMSsr> &pDMSsr, const std::shared_ptr<CPin> &pCSpin)
     {
         m_nPGA=nPGA;
         m_pDMSsr=pDMSsr;

@@ -7,6 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
+#if (0)
 struct IPin
 {
     virtual void Set(bool bHow)=0;
@@ -35,6 +36,7 @@ protected:
     //! virtual destructor
     virtual ~IPin()=default;
 };
+#endif
 
 #include "os.h"
 class CPin
@@ -77,11 +79,12 @@ public:
 
 
     CPin()=default;
-    CPin(const IPin&) = delete;
-    CPin& operator=(const IPin&) = delete;
+    CPin(const CPin&) = delete;
+    CPin& operator=(const CPin&) = delete;
 
 protected:
     //! virtual destructor
     virtual ~CPin()=default;
 };
+typedef CPin IPin;
 

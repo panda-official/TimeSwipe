@@ -144,23 +144,38 @@ int main(void)
             auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
                                                        CSamPORT::pxy::PB16, CSamPORT::pxy::PB19, CSamPORT::pxy::PB17, CSamPORT::none); //CSamPORT::pxy::PB18);
 
-            //auto pInaSpiCSpin=pInaSpi->GetCSpin();
+
             auto pInaSpiCSpin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P18, true);
             pInaSpiCSpin->SetInvertedBehaviour(true);
             pInaSpiCSpin->Set(false);
-            auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pInaSpiCSpin);
 
 
-            //for testing:
+            //create 4 PGAs:
+            for(int i=0; i<4; i++)
+            {
+                auto pPGA_CS=std::make_shared<CPGA_CS>(static_cast<CDMSsr::pga_sel>(i), pDMSsr, pInaSpiCSpin);
+                auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
+
+                //add commands to each:
+                char cmd[64];
+                int nInd=i+1;
+                std::sprintf(cmd, "PGA%d.mode", nInd);
+                pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetMode, &CPGA280::CmSetMode) );
+                std::sprintf(cmd, "PGA%d.igain", nInd);
+                pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetIGain, &CPGA280::CmSetIGain) );
+                std::sprintf(cmd, "PGA%d.ogain", nInd);
+                pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetOGain, &CPGA280::CmSetOGain) );
+
+                //for testing only:
+                std::sprintf(cmd, "PGA%d.rsel", nInd);
+                pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::GetSelectedReg, &CPGA280::SelectReg) );
+                std::sprintf(cmd, "PGA%d.rval", nInd);
+                pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, int> >(pPGA280, &CPGA280::ReadSelectedReg, &CPGA280::WriteSelectedReg) );
+
+            }
+
+            //for testing only:
             pDisp->Add("SR", std::make_shared< CCmdSGHandler<CDMSsr, unsigned int> >(pDMSsr, &CDMSsr::GetShiftReg, &CDMSsr::SetShiftReg) );
-
-            pDisp->Add("PGA.rsel", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::GetSelectedReg, &CPGA280::SelectReg) );
-            pDisp->Add("PGA.rval", std::make_shared< CCmdSGHandler<CPGA280, int> >(pPGA280, &CPGA280::ReadSelectedReg, &CPGA280::WriteSelectedReg) );
-
-            pDisp->Add("PGA.mode", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetMode, &CPGA280::CmSetMode) );
-            pDisp->Add("PGA.igain", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetIGain, &CPGA280::CmSetIGain) );
-            pDisp->Add("PGA.ogain", std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::CmGetOGain, &CPGA280::CmSetOGain) );
-
 
         }
         else

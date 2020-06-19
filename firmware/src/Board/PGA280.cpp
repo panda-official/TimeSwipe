@@ -20,12 +20,12 @@ bool CPGA280cmdBuf::transfer(CSPI &spi_bus, IPin &CS)
     //setup the bus:
     spi_bus.set_phpol(false, true);
     CS.Set(true);
-    os::uwait(80);
+   // os::uwait(80);
 
     bool tres=spi_bus.transfer(m_ostr, m_istr);
 
     CS.Set(false);
-    os::uwait(80);
+   // os::uwait(80);
 
     if(!tres)
         return false;
@@ -45,7 +45,8 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
     m_pCS=pCS;
 
     m_GainMuxReg.reg=0;
-    m_nMode=CPGA280::mode::Voltage; //def???
+    //m_nMode=CPGA280::mode::Voltage; //def???
+    SetMode(mode::Voltage);
 }
 
 bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)

@@ -287,33 +287,27 @@ public:
 
 };
 
-class CSamPin : public IPin
+class CSamPin : public CPin
 {
 friend class CSamPORT;
-public:
-    virtual void Set(bool bHow)
+protected:
+    virtual void impl_Set(bool bHow)
     {
-        CSamPORT::SetPin(m_nGroup, m_nPin, m_bInvertedBehaviour ? !bHow:bHow);
+        CSamPORT::SetPin(m_nGroup, m_nPin, bHow);
     }
-    virtual bool RbSet()
+    virtual bool impl_RbSet()
     {
-        bool rv=CSamPORT::RbSetPin(m_nGroup, m_nPin);
-        return m_bInvertedBehaviour ? !rv:rv;
+        return CSamPORT::RbSetPin(m_nGroup, m_nPin);
     }
-    virtual bool Get()
+    virtual bool impl_Get()
     {
-        bool rv=CSamPORT::GetPin(m_nGroup, m_nPin);
-        return m_bInvertedBehaviour ? !rv:rv;
+        return CSamPORT::GetPin(m_nGroup, m_nPin);
     }
 
+public:
     virtual ~CSamPin()
     {
         CSamPORT::ReleasePin(m_nGroup, m_nPin);
-    }
-
-    void SetInvertedBehaviour(bool how)
-    {
-        m_bInvertedBehaviour=how;
     }
 
     //SAM specific:
@@ -332,10 +326,10 @@ protected:
         m_nGroup=nGroup;
         m_nPin=nPin;
         m_nPinPAD=CSamPORT::pad::PAD0;
+
+        m_SetupTime_uS=50;
     }
     CSamPORT::group m_nGroup;
     CSamPORT::pin   m_nPin;
     CSamPORT::pad   m_nPinPAD;
-
-    bool m_bInvertedBehaviour=false;
 };
