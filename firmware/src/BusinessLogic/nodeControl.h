@@ -22,6 +22,30 @@ Copyright (c) 2019 Panda Team
 #include "Pin.h"
 
 
+class CMesChannel
+{
+public:
+
+    enum mes_mode{
+
+        Voltage=0,
+        Current
+    };
+
+    //interface:
+    void Enable(bool bHow);
+    int GetADCmesRawVal();
+    void SetMesMode(mes_mode nMode);
+    void SetAmpGain(float GainValue);
+    float GetActualAmpGain();
+
+protected:
+    //DataVis should be here now?
+    //..........................
+
+};
+
+
 /*!
  * \brief Provides the basic functionality of the board
  * \details The class can be considered as somewhat usually called "controller"
