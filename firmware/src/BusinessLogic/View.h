@@ -408,6 +408,28 @@ public:
     void SetButtonHeartbeat(bool how);
 
     /*!
+     * \brief Starts Calibration UI test
+     */
+    void CalUItest();
+    void BreakCalUItest()
+    {
+        m_bBreakCalUItest=true;
+    }
+
+protected:
+    bool m_bBreakCalUItest;
+
+    void CalUItest_stepLEDsGreen();
+    void CalUItest_stepLEDsBlue();
+    void CalUItest_stepButtonLEDon();
+    void CalUItest_stepButtonLEDoff();
+    void CalUItest_stepAwaitUserBreak();
+
+
+public:
+
+
+    /*!
      * \brief The object state update method. Drive micro-tasks and buttons LED heartbeat
      */
     void Update();

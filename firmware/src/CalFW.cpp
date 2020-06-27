@@ -23,7 +23,8 @@ Copyright (c) 2019 Panda Team
 #include "DACPWMht.h"
 
 //#include "menu_logic.h"
-#include "NewMenu.h"
+//#include "NewMenu.h"
+#include "CalFWbtnHandler.h"
 #include "SAMbutton.h"
 #include "nodeLED.h"
 #include "View.h"
@@ -227,7 +228,11 @@ int main(void)
         pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
 
 
+        auto pBtnHandler=std::make_shared<CCalFWbtnHandler>();
         SAMButton &button=SAMButton::Instance();
+        button.AdviseSink(pBtnHandler);
+
+        pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler, nullptr,  &CCalFWbtnHandler::StartUItest) );
 
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -244,6 +249,7 @@ int main(void)
         nodeControl &nc=nodeControl::Instance();
         CView &view=CView::Instance();
         nc.LoadSettings();
+        //view.CalUItest(); //dbg
 
         while(1) //endless loop ("super loop")
         {

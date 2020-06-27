@@ -6,6 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "View.h"
+#include "nodeControl.h"
 
 void CViewChannel::SelectVisMode(vismode nMode)
 {
@@ -153,6 +154,66 @@ void CView::SetButtonHeartbeat(bool how)
     m_ButtonLEDphaseBeginTime_mS=os::get_tick_mS();
     SAMButton::Instance().TurnButtonLED(how);
 }
+
+void CView::CalUItest()
+{
+    m_bBreakCalUItest=false;
+    SelectVisMode(CViewChannel::vismode::UI);
+
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor(LEDrgb(255, 0, 0));
+        m_Channels[i].m_LED.SetBlinkMode(false);
+        m_Channels[i].m_LED.ON(true);
+    }
+    Delay(1000, &CView::CalUItest_stepLEDsGreen);
+}
+void CView::CalUItest_stepLEDsGreen()
+{
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor(LEDrgb(0, 255, 0));
+    }
+    Delay(1000, &CView::CalUItest_stepLEDsBlue);
+}
+void CView::CalUItest_stepLEDsBlue()
+{
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor(LEDrgb(0, 0, 255));
+    }
+    Delay(1000, &CView::CalUItest_stepButtonLEDon);
+}
+void CView::CalUItest_stepButtonLEDon()
+{
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.ON(false);
+    }
+    SAMButton::Instance().TurnButtonLED(true);
+    Delay(1000, &CView::CalUItest_stepButtonLEDoff);
+}
+ void CView::CalUItest_stepButtonLEDoff()
+ {
+    SAMButton::Instance().TurnButtonLED(false);
+
+    //start fan here:
+    nodeControl::Instance().StartFan(true);
+
+    NextStep(&CView::CalUItest_stepAwaitUserBreak);
+ }
+ void CView::CalUItest_stepAwaitUserBreak()
+ {
+    if(!m_bBreakCalUItest)
+        return;
+
+    //stop fan here:
+    nodeControl::Instance().StartFan(false);
+
+    //exit proc:
+    SetDefaultModeAfter(0);
+ }
+
 
 void CView::Update()
 {

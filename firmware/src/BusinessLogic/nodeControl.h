@@ -307,6 +307,8 @@ public:
          */
         static float GetMaxCurrent(){return m_MaxCurrent; }
 
+        inline void StartFan(bool bHow){ m_pMUX->StartFan(bHow); }
+
         /*!
          * \brief The object state update method
          * \details Gets the CPU time to update internal state of the object.
