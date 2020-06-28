@@ -50,7 +50,7 @@ target_include_directories(${TARGET_NAME} PUBLIC SAMe54)
 target_include_directories(${TARGET_NAME} PUBLIC HATS_EEPROM)
 
 #linking upper layer:
-target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib HATS_EEPROM_lib)
+target_link_libraries(${TARGET_NAME}  BLOGIC_lib PROCS_lib LEDS_lib JSON_lib HATS_EEPROM_lib)
 
 #linking lower layer:
 target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib)

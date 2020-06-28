@@ -64,7 +64,7 @@ protected:
     /*!
      * \brief The pointer to input data source
      */
-    std::shared_ptr<CAdc> m_pADC;
+    //std::shared_ptr<CAdc> m_pADC;
 
     /*!
      * \brief The pointer to visualization LED to display processed data
@@ -133,12 +133,12 @@ public:
      * \param pADC A pointer to an ADC channel
      * \param pLED A pointer to a LED
      */
-    CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh);
+    CDataVis(CView::vischan nCh);
 
     /*!
      * \brief The object state update method
      * \details Gets the CPU time to update internal state of the object.
      *  Must be called from a "super loop" or from corresponding thread
      */
-    void Update();
+    void Update(float rawval);
 };

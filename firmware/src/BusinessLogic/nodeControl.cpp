@@ -9,7 +9,7 @@ Copyright (c) 2019 Panda Team
 #include "DataVis.h"
 
 
-std::shared_ptr<CADmux>  nodeControl::m_pMUX;
+/*std::shared_ptr<CADmux>  nodeControl::m_pMUX;
 std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
 std::shared_ptr<IPin>    nodeControl::m_pUBRswitch;
 std::shared_ptr<CDac>    nodeControl::m_pVoltageDAC;
@@ -22,28 +22,52 @@ nodeControl::MesModes nodeControl::m_OpMode=nodeControl::IEPE;
 
 //float nodeControl::m_Voltage=0;
 float nodeControl::m_Current=0;
-float nodeControl::m_MaxCurrent=1000;  //mA
+float nodeControl::m_MaxCurrent=1000;  //mA*/
 
 nodeControl::nodeControl()
 {
-    m_DataVis.reserve(4);
+    //m_DataVis.reserve(4);
+
+    m_pMesChans.reserve(4);
+
+    Instance().m_PersistStorage.AddItem(this->shared_from_this());
 }
 
-void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh)
+void nodeControl::Serialize(CStorage &st)
+{
+    m_OffsetSearch.Serialize(st);
+    if(st.IsDefaultSettingsOrder())
+    {
+    //    SetGain(typeADgain::gainX1);
+      //  SetUBRvoltage(false);
+    }
+
+    //st.ser( *((int*)&m_CurGain) ).ser(m_UBRVoltage);
+
+    if(st.IsDownloading())
+    {
+      //  SetGain(m_CurGain);
+        //SetUBRvoltage(m_UBRVoltage);
+    }
+}
+
+
+/*void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh)
 {
     m_DataVis.emplace_back(pADC, nCh);
-}
+}*/
 void nodeControl::Update()
 {
-    for(auto &el : m_DataVis) el.Update();
+    //for(auto &el : m_DataVis) el.Update();
 
     Instance().m_PersistStorage.Update();
+    m_OffsetSearch.Update();
 
-    m_pZeroCal->Update();
+    //m_pZeroCal->Update();
 }
 
-bool nodeControl::IsRecordStarted(){ return brecord;}
-void nodeControl::StartRecord(const bool how)
+//bool nodeControl::IsRecordStarted(){ return brecord;}
+void nodeControl::StartRecord(bool how)
 {
     //make a stamp:
     static unsigned long count_mark=0;
@@ -56,7 +80,7 @@ void nodeControl::StartRecord(const bool how)
 
 int nodeControl::gain_out(int val)
 {
-    typeADgain sgain=typeADgain::gainX1;
+    /*typeADgain sgain=typeADgain::gainX1;
      switch(val)
      {
         case 2: sgain=typeADgain::gainX2; break;
@@ -64,15 +88,32 @@ int nodeControl::gain_out(int val)
         case 4: sgain=typeADgain::gainX8;
      }
      m_pMUX->SetGain(sgain);
-     int rv=(int)m_pMUX->GetGain();
+     int rv=(int)m_pMUX->GetGain();*/
+
+     //int rv=val;
+
+     //set old IEPE gain:
+     if(nodeControl::IEPE==m_OpMode)
+     {
+         int gset=val-1;
+         m_pGain1pin->Set(gset>>1);
+         m_pGain0pin->Set(gset&1);
+     }
+     else //DMS board
+     {
+         //set individual gain for each chan:
+         //.................................
+
+     }
+
 
      //generate an event:
-     nlohmann::json v=rv;
+     nlohmann::json v=val;
      Instance().Fire_on_event("Gain", v);
 
-     return rv;
+     return val;
 }
-int nodeControl::GetGain(){ return (int)m_pMUX->GetGain(); }
+//int nodeControl::GetGain(){ return (int)m_pMUX->GetGain(); }
 bool nodeControl::GetBridge()
 {
     //return m_pMUX->GetUBRVoltage();
@@ -131,20 +172,20 @@ void nodeControl::SetOffset(int nOffs)
     switch(nOffs)
     {
         case 1: //negative
-            m_pZeroCal->Start(4000);
+            m_OffsetSearch.Start(4000);
         break;
 
         case 2: //zero
-            m_pZeroCal->Start();
+            m_OffsetSearch.Start();
         break;
 
         case 3: //positive
-            m_pZeroCal->Start(100);
+            m_OffsetSearch.Start(100);
         break;
 
         default:
             nOffs=0;
-            m_pZeroCal->StopReset();
+            m_OffsetSearch.StopReset();
         return;
     }
 

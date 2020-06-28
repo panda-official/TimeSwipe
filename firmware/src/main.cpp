@@ -241,13 +241,13 @@ int main(void)
         auto pADmux    =std::make_shared< CADmux >();
 
         //calibrator:
-        auto pZeroCal=std::make_shared<CCalMan>();
+       /* auto pZeroCal=std::make_shared<CCalMan>();
         pZeroCal->Add(pADC1, pDACA, CView::ch1);
         pZeroCal->Add(pADC2, pDACB, CView::ch2);
         pZeroCal->Add(pADC3, pDACC, CView::ch3);
-        pZeroCal->Add(pADC4, pDACD, CView::ch4);
+        pZeroCal->Add(pADC4, pDACD, CView::ch4);*/
 
-        nodeControl::SetControlItems(pADmux, pZeroCal, pUB1onPin, pDAC2A);
+      //  nodeControl::SetControlItems(pADmux, pZeroCal, pUB1onPin, pDAC2A);
 
 
         //2 DAC PWMs:
@@ -287,17 +287,17 @@ int main(void)
 
 
         //Node control:
-        pDisp->Add("Gain", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetGain, &nodeControl::SetGain) );
+      /*  pDisp->Add("Gain", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetGain, &nodeControl::SetGain) );
         pDisp->Add("Bridge", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetBridge,  &nodeControl::SetBridge) );
         pDisp->Add("Record", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
         pDisp->Add("Offset", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetOffsetRunSt,  &nodeControl::SetOffset) );
         pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::IsMeasurementsEnabled,  &nodeControl::EnableMeasurements) );
-        pDisp->Add("Mode", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetMode,  &nodeControl::SetMode) );
+        pDisp->Add("Mode", std::make_shared< CCmdSGHandlerF<int> >(&nodeControl::GetMode,  &nodeControl::SetMode) );*/
 
 
         pDisp->Add("Offset.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-        pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
-        pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
+     //   pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CADmux, int> >(pADmux, &CADmux::getDACsw,  &CADmux::setDACsw) );
+      //  pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CADmux, bool> >(pADmux,  &CADmux::IsFanStarted,  &CADmux::StartFan) );
 
         pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );
 
@@ -323,18 +323,18 @@ int main(void)
         pDisp->Add("fwVersion", std::make_shared< CCmdSGHandler<CSemVer, std::string> >(pVersion, &CSemVer::GetVersionString) );
 
         //cal status:
-        pDisp->Add("CalStatus", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetCalStatus) );
+     /*   pDisp->Add("CalStatus", std::make_shared< CCmdSGHandlerF<bool> >(&nodeControl::GetCalStatus) );
 
         //extended settings:
         pDisp->Add("Voltage", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetVoltage, &nodeControl::SetVoltage) );
         pDisp->Add("Current", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetCurrent, &nodeControl::SetCurrent) );
-        pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
+        pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );*/
 
 
-        nodeControl::CreateDataVis(pADC1, CView::ch1);
+      /*  nodeControl::CreateDataVis(pADC1, CView::ch1);
         nodeControl::CreateDataVis(pADC2, CView::ch2);
         nodeControl::CreateDataVis(pADC3, CView::ch3);
-        nodeControl::CreateDataVis(pADC4, CView::ch4);
+        nodeControl::CreateDataVis(pADC4, CView::ch4);*/
 
 
         SAMButton &button=SAMButton::Instance();
