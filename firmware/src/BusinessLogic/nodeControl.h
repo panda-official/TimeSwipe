@@ -65,8 +65,7 @@ protected:
     float m_ActualAmpGain=1.0f;
 
     std::shared_ptr<CAdc> m_pADC;
-
-    //DataVis should be here now?
+    std::shared_ptr<CDac> m_pDAC;
     CDataVis m_VisChan;
 
     void Update(){
@@ -75,9 +74,10 @@ protected:
     }
 
 public:
-    CMesChannel(const std::shared_ptr<CAdc> &pADC,  CView::vischan nCh) : m_VisChan(nCh){
+    CMesChannel(const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh) : m_VisChan(nCh){
 
         m_pADC=pADC;
+        m_pDAC=pDAC;
     }
 
 
@@ -94,6 +94,8 @@ public:
 
 class nodeControl : public CJSONEvCP, public ISerialize, std::enable_shared_from_this<nodeControl>{
 protected:
+        typeBoard m_BoardType=typeBoard::IEPEBoard; //???
+
 
         std::shared_ptr<CPin> m_pUBRswitch;
         std::shared_ptr<CPin> m_pDACon;
@@ -116,16 +118,16 @@ protected:
 
         int m_GainSetting=0;
 
+        /*!
+         * \brief Holds Current Setting (mockup)
+         */
+        float m_Current;
 
         /*!
-         * \brief A pointer to board's digital multiplexer object
+         * \brief Holds MaxCurrent Setting (mockup)
          */
-        //static std::shared_ptr<CADmux>  m_pMUX;
+        float m_MaxCurrent=1000.0f;  //mA
 
-        /*!
-         * \brief A pointer to the controller object of finding amplifier offsets routine.
-         */
-        //static std::shared_ptr<CCalMan> m_pZeroCal;
 
         /*!
          * \brief A helper function for setting amplifier gain output
@@ -133,13 +135,6 @@ protected:
          * \return The gain that was set
          */
         int gain_out(int val);
-
-        /*!
-         * \brief Receives JSON events from other objects
-         * \param key An object string name (key)
-         * \param val A JSON event
-         */
-
 
 public:
         /*!
@@ -156,7 +151,6 @@ public:
         {
            // static nodeControl singleton;
            // return singleton;
-
            static std::shared_ptr<nodeControl> pThis(new nodeControl);
            return *pThis;
 
@@ -183,6 +177,13 @@ public:
         };
         MesModes m_OpMode=nodeControl::IEPE;
 
+        void AddMesChannel(const std::shared_ptr<CMesChannel> &pChan)
+        {
+            m_pMesChans.emplace_back(pChan);
+            m_OffsetSearch.Add(pChan->m_pADC, pChan->m_pDAC, pChan->m_VisChan.GetVisChannel());
+        }
+
+
         /*!
          * \brief Loads all settings from the persist storage. Should be called once at startup
          */
@@ -194,40 +195,6 @@ public:
          */
         void SetDefaultSettings(){ m_PersistStorage.SetDefaults(); }
 
-
-        /*!
-         * \brief Binds board's digital multiplexer and controller object of finding amplifier offsets routine
-         * to this object
-         * \param pMUX A pointer to the board's digital multiplexer
-         * \param pZeroCal A pointer to the controller object of finding amplifier offsets routine
-         */
-     /*   static void SetControlItems(std::shared_ptr<CADmux>  pMUX, std::shared_ptr<CCalMan> pZeroCal,
-                                    std::shared_ptr<IPin> pUBRswitch, std::shared_ptr<CDac> pVoltageDAC)
-        {
-            m_pMUX=pMUX;
-            m_pZeroCal=pZeroCal;
-            m_pUBRswitch=pUBRswitch;
-            m_pVoltageDAC=pVoltageDAC;
-
-
-            Instance().m_PersistStorage.AddItem(pMUX);
-            Instance().m_PersistStorage.AddItem(pZeroCal);
-        }*/
-
-
-        /*!
-         * \brief Creates a new data visualization object
-         * \param pADC An ADC channel to bind with the new object
-         * \param pLED A LED object to bind with the new object
-         */
-        //static void CreateDataVis(const std::shared_ptr<CAdc> &pADC,  CView::vischan nCh);
-
-        /*!
-         * \brief Turns on/off the data visualization process
-         * \param bHow true=start data visualization process, false - stop
-         * \param nDelay_mS An optional parameter sets the delay before starting the visualization process
-         */
-        //static void StartDataVis(bool bHow, unsigned long nDelay_mS=0);
 
         /*!
          * \brief Sets a random 32-bit colour value as a new record stamp
@@ -357,22 +324,6 @@ public:
          * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
          */
         inline bool GetCalStatus(){ return false;}
-
-protected:
-        /*!
-         * \brief Holds Voltage Setting (mockup)
-         */
-       // static  float m_Voltage;
-
-        /*!
-         * \brief Holds Current Setting (mockup)
-         */
-        float m_Current;
-
-        /*!
-         * \brief Holds MaxCurrent Setting (mockup)
-         */
-        float m_MaxCurrent=1000.0f;  //mA
 
 public:
         /*!

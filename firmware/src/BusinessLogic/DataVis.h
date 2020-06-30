@@ -135,6 +135,8 @@ public:
      */
     CDataVis(CView::vischan nCh);
 
+    inline CView::vischan GetVisChannel(){ return m_nCh; }
+
     /*!
      * \brief The object state update method
      * \details Gets the CPU time to update internal state of the object.

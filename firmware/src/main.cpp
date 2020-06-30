@@ -237,22 +237,9 @@ int main(void)
 #endif
 
 
-        //step 4 - creating mux:
-        auto pADmux    =std::make_shared< CADmux >();
-
-        //calibrator:
-       /* auto pZeroCal=std::make_shared<CCalMan>();
-        pZeroCal->Add(pADC1, pDACA, CView::ch1);
-        pZeroCal->Add(pADC2, pDACB, CView::ch2);
-        pZeroCal->Add(pADC3, pDACC, CView::ch3);
-        pZeroCal->Add(pADC4, pDACD, CView::ch4);*/
-
-      //  nodeControl::SetControlItems(pADmux, pZeroCal, pUB1onPin, pDAC2A);
-
-
         //2 DAC PWMs:
-        auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pADmux);
-        auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pADmux);
+        auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pDAConPin);
+        auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pDAConPin);
 
         //temp sens+fan control:
         auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
@@ -330,11 +317,6 @@ int main(void)
         pDisp->Add("Current", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetCurrent, &nodeControl::SetCurrent) );
         pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandlerF<float> >(&nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );*/
 
-
-      /*  nodeControl::CreateDataVis(pADC1, CView::ch1);
-        nodeControl::CreateDataVis(pADC2, CView::ch2);
-        nodeControl::CreateDataVis(pADC3, CView::ch3);
-        nodeControl::CreateDataVis(pADC4, CView::ch4);*/
 
 
         SAMButton &button=SAMButton::Instance();
