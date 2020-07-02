@@ -20,16 +20,18 @@ void nodeControl::Serialize(CStorage &st)
     m_OffsetSearch.Serialize(st);
     if(st.IsDefaultSettingsOrder())
     {
-    //    SetGain(typeADgain::gainX1);
-      //  SetUBRvoltage(false);
+        SetGain(1);
+        SetBridge(false);
+        SetSecondary(0);
     }
 
-    //st.ser( *((int*)&m_CurGain) ).ser(m_UBRVoltage);
+    st.ser(m_GainSetting).ser(m_BridgeSetting).ser(m_SecondarySetting);
 
     if(st.IsDownloading())
     {
-      //  SetGain(m_CurGain);
-        //SetUBRvoltage(m_UBRVoltage);
+        SetGain(m_GainSetting);
+        SetBridge(m_BridgeSetting);
+        SetSecondary(m_SecondarySetting);
     }
 }
 
@@ -75,12 +77,14 @@ int nodeControl::gain_out(int val)
 }
 bool nodeControl::GetBridge()
 {
-    assert(m_pUBRswitch);
-    return m_pUBRswitch->Get();
+    //assert(m_pUBRswitch);
+    //return m_pUBRswitch->Get();
+    return m_BridgeSetting;
 
 }
 void nodeControl::SetBridge(bool how)
 {
+     m_BridgeSetting=how;
      assert(m_pUBRswitch);
      m_pUBRswitch->Set(how);
 
@@ -93,18 +97,21 @@ void nodeControl::SetBridge(bool how)
 void nodeControl::SetSecondary(int nMode)
 {
     nMode&=1; //fit the value
+    m_SecondarySetting=nMode;
 
-    assert(m_pUBRswitch);
+   /* assert(m_pUBRswitch);
     m_pUBRswitch->Set(nMode);
 
     //generate an event:
     nlohmann::json v=nMode;
-    Instance().Fire_on_event("Mode", v);
+    Instance().Fire_on_event("Mode", v);*/
 
 }
 int nodeControl::GetSecondary()
 {
-    return GetBridge();
+    //return GetBridge();
+
+    return m_SecondarySetting;
 }
 
 
@@ -114,11 +121,19 @@ void nodeControl::SetMode(int nMode)
     if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
     if(m_OpMode>MesModes::Normsignal){ m_OpMode=MesModes::Normsignal; }
 
-    SetSecondary(m_OpMode);
+    SetBridge(m_OpMode);
+
+    //generate an event:
+    nlohmann::json v=nMode;
+    Instance().Fire_on_event("Mode", v);
+
+    //SetSecondary(m_OpMode);
 }
 int nodeControl::GetMode()
 {
-    return GetSecondary();
+    //return GetSecondary();
+
+    return m_OpMode;
 }
 
 
