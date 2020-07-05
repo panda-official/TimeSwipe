@@ -28,9 +28,9 @@ Copyright (c) 2019 Panda Team
  * when basic board settings are changed
  */
 
-class nodeControl : public CJSONEvCP, public ISerialize, std::enable_shared_from_this<nodeControl>{
+class nodeControl : public CJSONEvCP, public ISerialize, public std::enable_shared_from_this<nodeControl>{
 protected:
-        typeBoard m_BoardType=typeBoard::IEPEBoard; //???
+        typeBoard m_BoardType=typeBoard::IEPEBoard;
 
 
         std::shared_ptr<CPin> m_pUBRswitch;
@@ -50,6 +50,7 @@ protected:
         /*!
          * \brief Persistent storage controller
          */
+        bool           m_bSettingsLoaded=false;
         CRawBinStorage m_PersistStorage;
 
         int m_GainSetting=0;
@@ -88,8 +89,8 @@ public:
          */
         static nodeControl& Instance()
         {
-           // static nodeControl singleton;
-           // return singleton;
+            //static nodeControl singleton;
+            //return singleton;
            static std::shared_ptr<nodeControl> pThis(new nodeControl);
            return *pThis;
 
@@ -114,7 +115,35 @@ public:
             Normsignal,     //!<Normal signal
             Digital         //!<Digital mode
         };
+protected:
         MesModes m_OpMode=nodeControl::IEPE;
+
+public:
+        inline void SetBoardType(typeBoard BoardType){
+            m_BoardType=BoardType;
+        }
+
+
+        inline void SetUBRpin(const std::shared_ptr<CPin> &pUBRswitch){
+            m_pUBRswitch=pUBRswitch;
+        }
+        inline void SetDAConPin(const std::shared_ptr<CPin> &pDACon){
+            m_pDACon=pDACon;
+        }
+        inline void SetEnableMesPin(const std::shared_ptr<CPin> &pEnableMes){
+            m_pEnableMes=pEnableMes;
+        }
+        inline void SetFanPin(const std::shared_ptr<CPin> &pFanOn){
+            m_pFanOn=pFanOn;
+        }
+        inline void SetIEPEboardGainSwitches(const std::shared_ptr<CPin> &pGain0pin, const std::shared_ptr<CPin> &pGain1pin){
+            m_pGain0pin=pGain0pin;
+            m_pGain1pin=pGain1pin;
+        }
+        inline void SetVoltageDAC(const std::shared_ptr<CDac> &pVoltageDAC){
+            m_pVoltageDAC=pVoltageDAC;
+        }
+
 
         void AddMesChannel(const std::shared_ptr<CMesChannel> &pChan)
         {
@@ -122,11 +151,27 @@ public:
             m_OffsetSearch.Add(pChan->m_pADC, pChan->m_pDAC, pChan->m_VisChan.GetVisChannel());
         }
 
+        std::shared_ptr<CMesChannel> GetMesChannel(size_t nCh)
+        {
+            if(nCh<m_pMesChans.size())
+                return m_pMesChans[nCh];
+            else
+                return nullptr;
+        }
+
 
         /*!
          * \brief Loads all settings from the persist storage. Should be called once at startup
          */
-        void LoadSettings(){m_PersistStorage.Load();}
+        void LoadSettings(){
+
+            if(!m_bSettingsLoaded)
+            {
+                m_PersistStorage.AddItem(this->shared_from_this());
+                m_PersistStorage.Load();
+                m_bSettingsLoaded=true;
+            }
+        }
 
 
         /*!
@@ -236,7 +281,7 @@ public:
          */
         void EnableMeasurements(bool bHow)
         {
-            //m_pMUX->EnableADmes(how);
+            assert(m_pEnableMes);
             m_pEnableMes->Set(bHow);
             CView::Instance().SetButtonHeartbeat(bHow);
         }
@@ -247,7 +292,7 @@ public:
          */
         bool IsMeasurementsEnabled()
         {
-            //return m_pMUX->IsADmesEnabled();
+            assert(m_pEnableMes);
             return m_pEnableMes->RbSet();
         }
 
@@ -256,7 +301,10 @@ public:
          * \brief Returns current finding amplifier offsets procedure state
          * \return true=the procedure is running, false=the procedure is finished
          */
-        inline int GetOffsetRunSt(){ return m_OffsetSearch.IsStarted(); }
+        inline int GetOffsetRunSt()
+        {
+            return m_OffsetSearch.IsStarted();
+        }
 
         /*!
          * \brief Returns board calibration status
@@ -264,7 +312,17 @@ public:
          */
         inline bool GetCalStatus(){ return false;}
 
-public:
+        inline void StartFan(bool bHow)
+        {
+            assert(m_pFanOn);
+            m_pFanOn->Set(bHow);
+        }
+        inline bool IsFanStarted()
+        {
+            assert(m_pFanOn);
+            return m_pFanOn->RbSet();
+        }
+
         /*!
          * \brief Sets Voltage Setting
          * \param val - the voltage to set

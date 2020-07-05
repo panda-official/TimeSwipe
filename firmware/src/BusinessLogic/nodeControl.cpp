@@ -12,7 +12,6 @@ Copyright (c) 2019 Panda Team
 nodeControl::nodeControl()
 {
     m_pMesChans.reserve(4);
-    Instance().m_PersistStorage.AddItem(this->shared_from_this());
 }
 
 void nodeControl::Serialize(CStorage &st)
@@ -77,16 +76,17 @@ int nodeControl::gain_out(int val)
 }
 bool nodeControl::GetBridge()
 {
-    //assert(m_pUBRswitch);
-    //return m_pUBRswitch->Get();
     return m_BridgeSetting;
-
 }
 void nodeControl::SetBridge(bool how)
 {
      m_BridgeSetting=how;
-     assert(m_pUBRswitch);
-     m_pUBRswitch->Set(how);
+
+     if(typeBoard::IEPEBoard!=m_BoardType)
+     {
+        assert(m_pUBRswitch);
+        m_pUBRswitch->Set(how);
+     }
 
 
     //generate an event:
@@ -98,19 +98,9 @@ void nodeControl::SetSecondary(int nMode)
 {
     nMode&=1; //fit the value
     m_SecondarySetting=nMode;
-
-   /* assert(m_pUBRswitch);
-    m_pUBRswitch->Set(nMode);
-
-    //generate an event:
-    nlohmann::json v=nMode;
-    Instance().Fire_on_event("Mode", v);*/
-
 }
 int nodeControl::GetSecondary()
 {
-    //return GetBridge();
-
     return m_SecondarySetting;
 }
 
@@ -121,18 +111,23 @@ void nodeControl::SetMode(int nMode)
     if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
     if(m_OpMode>MesModes::Normsignal){ m_OpMode=MesModes::Normsignal; }
 
-    SetBridge(m_OpMode);
+    if(typeBoard::IEPEBoard==m_BoardType) //old IEPE board setting
+    {
+        //SetBridge(m_OpMode);
+        assert(m_pUBRswitch);
+        m_pUBRswitch->Set(m_OpMode);
+    }
+
+    //switch all channels to IEPE:
+    for(auto &el : m_pMesChans) el->IEPEon(m_OpMode=MesModes::IEPE);
+
 
     //generate an event:
     nlohmann::json v=nMode;
     Instance().Fire_on_event("Mode", v);
-
-    //SetSecondary(m_OpMode);
 }
 int nodeControl::GetMode()
 {
-    //return GetSecondary();
-
     return m_OpMode;
 }
 

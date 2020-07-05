@@ -119,3 +119,20 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      m_GainMuxReg.reg=reg.reg;
      return true;
  }
+
+ bool CPGA280::SetGains(igain ig, ogain og)
+ {
+     typeCPGA280GainMuxReg reg;
+     reg.reg=m_GainMuxReg.reg;
+
+     reg.bit.IGAIN=ig;
+     reg.bit.OGAIN=og;
+     if(!WriteRegister(reg::gain_mux, reg.reg, true))
+         return false;
+
+     m_GainMuxReg.reg=reg.reg;
+     return true;
+ }
+
+
+

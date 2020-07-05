@@ -257,6 +257,7 @@ public:
     bool SetMode(mode nMode);
     bool SetIGain(igain ig);
     bool SetOGain(ogain og);
+    bool SetGains(igain ig, ogain og);
 
 
 protected: //cashed settings:

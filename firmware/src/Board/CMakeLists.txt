@@ -15,6 +15,9 @@ add_library(BOARD_lib STATIC ${BOARD_SRC})
 
 target_compile_definitions(BOARD_lib PRIVATE -D__SAME54P20A__)
 
+target_include_directories(BOARD_lib PUBLIC .)
+target_include_directories(BOARD_lib PUBLIC ../Math)
+target_include_directories(BOARD_lib PUBLIC ../LEDs)
 target_include_directories(BOARD_lib PUBLIC ../Interfaces)
 target_include_directories(BOARD_lib PUBLIC ../ADCDAC)
 target_include_directories(BOARD_lib PUBLIC ../JSONstuff)

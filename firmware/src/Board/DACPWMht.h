@@ -19,7 +19,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "Pin.h"
 #include "DAC.h"
 #include "PWM.h"
-#include "ADmux.h"
+//#include "ADmux.h"
 #include "SamCLK.h"
 #include "SamTC.h"
 #include "SamDMAC.h"

@@ -29,10 +29,13 @@ public:
 
         return m_pADC->GetRawBinVal();
     }
+    virtual void IEPEon(bool bHow){
 
-    virtual void Enable(bool bHow){
+        m_bIEPEon=bHow;
+    }
+    inline bool IsIEPEon(){
 
-        m_bEnabled=bHow;
+        return  m_bIEPEon;
     }
     virtual void SetMesMode(mes_mode nMode){
 
@@ -46,11 +49,23 @@ public:
     {
         return m_ActualAmpGain;
     }
+    inline unsigned int CmGetMesMode(){
+
+        return static_cast<int>(m_MesMode);
+    }
+    inline void CmSetMesMode(unsigned int nMode){
+
+        if(nMode>mes_mode::Current)
+            nMode=mes_mode::Current;
+
+        SetMesMode( static_cast<mes_mode>(nMode) );
+    }
 
 protected:
     nodeControl *m_pCont=nullptr;
 
-    bool m_bEnabled=false;
+   // bool m_bEnabled=false;
+    bool m_bIEPEon=false;
     mes_mode m_MesMode=mes_mode::Voltage;
     float m_ActualAmpGain=1.0f;
 
@@ -70,4 +85,7 @@ public:
         m_pDAC=pDAC;
     }
 };
+
+typedef CMesChannel CIEPEchannel;
+
 
