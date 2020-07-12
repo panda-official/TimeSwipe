@@ -53,7 +53,7 @@ protected:
         bool           m_bSettingsLoaded=false;
         CRawBinStorage m_PersistStorage;
 
-        int m_GainSetting=0;
+        int m_GainSetting=1;
 
         bool m_BridgeSetting=false;
         int  m_SecondarySetting=0;

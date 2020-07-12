@@ -56,6 +56,7 @@ int nodeControl::gain_out(int val)
 {
     //update channels gain setting:
     float gval=val;
+    m_GainSetting=val;
     for(auto &el : m_pMesChans) el->SetAmpGain(gval);
 
 
@@ -119,7 +120,7 @@ void nodeControl::SetMode(int nMode)
     }
 
     //switch all channels to IEPE:
-    for(auto &el : m_pMesChans) el->IEPEon(m_OpMode=MesModes::IEPE);
+    for(auto &el : m_pMesChans) el->IEPEon(MesModes::IEPE==m_OpMode);
 
 
     //generate an event:
