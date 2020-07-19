@@ -18,15 +18,18 @@ Copyright (c) 2019-2020 Panda Team
 #include "SamSercom.h"
 
 
-
+class CSamPin;
 /*!
  * \brief The SAME54 PORT control implementation
  */
-class CSamPin;
 class CSamPORT
 {
 friend class CSamPin;
 public:
+
+    /*!
+     * \brief The SAME54 pin groups
+     */
     enum group{
 
         A=0,
@@ -34,6 +37,10 @@ public:
         C,
         D
     };
+
+    /*!
+     * \brief The SAME54 pins in the group
+     */
     enum pin{
 
         P00=0,
@@ -73,6 +80,9 @@ public:
         P31
     };
 
+    /*!
+     * \brief All possible SAME54 pins in the GroupPin format
+     */
     enum pxy{
 
         PA00=0,
@@ -225,6 +235,9 @@ public:
         none=-1
     };
 
+    /*!
+     * \brief SAME54 pin pads
+     */
     enum pad{
 
         PAD0,
@@ -233,6 +246,9 @@ public:
         PAD3
     };
 
+    /*!
+     * \brief The list of possible multiplexer values for a pin
+     */
     enum muxf{
 
         fA=0,
@@ -251,42 +267,113 @@ public:
         fN
     };
 
+    /*!
+     * \brief Fetches pin group from the pxy(GroupPin) format
+     * \param pin - the pin number in the pxy format
+     * \return SAME54 pin's Group
+     */
     static inline CSamPORT::group pxy2group(pxy pin){
         return static_cast<CSamPORT::group>(pin/32);
     }
+
+    /*!
+     * \brief Fetches pin number in the current Group from the pxy(GroupPin) format
+     * \param pin  - the pin number in the pxy format
+     * \return SAME54 pin number in the current Group
+     */
     static inline CSamPORT::pin pxy2pin(pxy pin){
         return static_cast<CSamPORT::pin>(pin%32);
     }
+
+    /*!
+     * \brief Transforms pin's Group number and the pin number in the Group to the pxy(PinGroup) format
+     * \param group - SAME54 pin's Group
+     * \param pin - SAME54 pin number in the current Group
+     * \return pin number in the pxy(PinGroup) format
+     */
     static inline CSamPORT::pxy make_pxy(CSamPORT::group group, CSamPORT::pin pin){
 
         return static_cast<CSamPORT::pxy>(group*32+pin);
     }
 
-
+    /*!
+     * \brief Factory for CSamPin single pin control object
+     * \param nGroup - SAME54 pin's Group
+     * \param nPin - SAME54 pin number in the current Group
+     * \param bOutput - true=configure pin as output, false=configure pin as an input
+     * \return
+     */
     static std::shared_ptr<CSamPin> FactoryPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bOutput=false);
 
+    /*!
+     * \brief Factory for CSamPin single pin control object
+     * \param nPin - SAME54 pin number in the pxy(PinGroup) format
+     * \param bOutput
+     * \return
+     */
     static inline std::shared_ptr<CSamPin> FactoryPin(CSamPORT::pxy nPin, bool bOutput=false){
 
         return FactoryPin(pxy2group(nPin), pxy2pin(nPin), bOutput);
     }
 
 protected:
+
+    /*!
+     * \brief Sets logic state of the pin.
+     * \param nGroup - SAME54 pin's Group
+     * \param nPin - SAME54 pin number in the current Group
+     * \param bHow  - the logical state to be set
+     */
     static void SetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bHow);
+
+    /*!
+     * \brief Reads back set logical state of the pin
+     * \param nGroup  - SAME54 pin's Group
+     * \param nPin - SAME54 pin number in the current Group
+     * \return set logical value of the pin
+     */
     static bool RbSetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+
+    /*!
+     * \brief Returns measured logic state when pin acts as an input.
+     * \param nGroup   - SAME54 pin's Group
+     * \param nPin  - SAME54 pin number in the current Group
+     * \return measured logical value of the pin
+     */
     static bool GetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+
+    /*!
+     * \brief Releases previously occupied pin
+     * \param nGroup  - SAME54 pin's Group
+     * \param nPin  - SAME54 pin number in the current Group
+     */
     static void ReleasePin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
 
-
+    /*!
+     * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available
+     * \param nPin  - SAME54 pin number in the pxy(PinGroup) format
+     * \param nSercom - SAME54 Sercom number
+     * \param nPad - pin PAD to be searched
+     * \param nMuxF - required multiplexer setting for given configuration
+     * \return true if the given Sercom-Pin combination is available
+     */
     static bool FindSercomPad(pxy nPin, typeSamSercoms nSercom, pad &nPad, muxf &nMuxF);
 
 
 public:
-    //multiplexing:
+    /*!
+     * \brief MUX
+     * \param nPin
+     * \param nSercom
+     * \param nPad
+     * \return
+     */
     static bool MUX(pxy nPin, typeSamSercoms nSercom, pad &nPad);
-
-
 };
 
+/*!
+ * \brief The CSamPin class
+ */
 class CSamPin : public CPin
 {
 friend class CSamPORT;

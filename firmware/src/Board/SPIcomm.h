@@ -5,19 +5,38 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
+/*!
+*   \file
+*   \brief A definition file for
+*   CSPIcomm
+*/
+
+
 #ifndef SPICOMM_H
 #define SPICOMM_H
 
 #include "SamSPIbase.h"
 #include "SyncCom.h"
 
+/*!
+ * \brief The class providing functionality for external communication via SPI with integrated flow-control (CSyncSerComFSM)
+ * \details The external communication via SPI is based on a simple flow control protocol, please see CSyncSerComFSM description for details
+ */
 class CSPIcomm : public CSamSPIbase
 {
 public:
+
+    /*!
+     * \brief The class constructor
+     * \param nSercom - SAME54 Sercom unit to be used as SPI
+     * \param MOSI    - Master-Output-Slave-Input Pin of SAME54 for selected Sercom
+     * \param MISO    - Master-Input-Slave-Output Pin of SAME54 for selected Sercom
+     * \param CLOCK   - Clock input for selected Sercom
+     * \param CS      - Chip Select input for selected Sercom
+     */
     CSPIcomm(typeSamSercoms nSercom,
-                         CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none,
-                         std::shared_ptr<CSamCLK> pCLK=nullptr) :
-    CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, pCLK)
+                         CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none) :
+    CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, nullptr)
     {
 
     }
@@ -60,11 +79,31 @@ protected:
      */
     void IRQhandler();
 
+    /*!
+     * \brief The handler of the 1st IRQ line of the Sercom
+     */
     virtual void OnIRQ0();
+
+    /*!
+     * \brief The handler of the 2nd IRQ line of the Sercom
+     */
     virtual void OnIRQ1();
+
+    /*!
+     * \brief The handler of the 3rd IRQ line of the Sercom
+     */
     virtual void OnIRQ2();
+
+    /*!
+     * \brief The handler of the 4th IRQ line of the Sercom
+     */
     virtual void OnIRQ3();
 
+    /*!
+     * \brief Sends a serial message to the SPI bus
+     * \param msg  A message to send (output parameter)
+     * \return The operation result: true if successful otherwise - false
+     */
     virtual bool send(CFIFO &msg);
 
 };

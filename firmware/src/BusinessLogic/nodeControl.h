@@ -30,32 +30,80 @@ Copyright (c) 2019 Panda Team
 
 class nodeControl : public CJSONEvCP, public ISerialize, public std::enable_shared_from_this<nodeControl>{
 protected:
+
+        /*!
+         * \brief Holds current board type: IEPE or DMS
+         */
         typeBoard m_BoardType=typeBoard::IEPEBoard;
 
-
+        /*!
+         * \brief The pointer to the UBR switch (bridge voltage)
+         */
         std::shared_ptr<CPin> m_pUBRswitch;
+
+        /*!
+         * \brief The pointer to the DAC mode switch (when true AOUT3 & AOUT4 are enabled)
+         */
         std::shared_ptr<CPin> m_pDACon;
+
+        /*!
+         * \brief The pointer to the ADC measurements enable switch
+         */
         std::shared_ptr<CPin> m_pEnableMes;
+
+        /*!
+         * \brief The pointer to the fan cntrol Pin
+         */
         std::shared_ptr<CPin> m_pFanOn;
 
+        /*!
+         * \brief The pointer to the LSB gain select pin of the IEPE board
+         */
         std::shared_ptr<CPin> m_pGain0pin;
+
+        /*!
+         * \brief The pointer to the MSB gain select pin of the IEPE board
+         */
         std::shared_ptr<CPin> m_pGain1pin;
 
+        /*!
+         * \brief The pointer to the Voltage DAC controlled by the SetVoltage()
+         */
         std::shared_ptr<CDac> m_pVoltageDAC;
 
+        /*!
+         * \brief Control of the offset search
+         */
         CCalMan m_OffsetSearch;
 
+        /*!
+         * \brief The list of board channels to work with
+         */
         std::vector<std::shared_ptr<CMesChannel>>  m_pMesChans;
 
         /*!
-         * \brief Persistent storage controller
+         * \brief The persistent storage controller
          */
-        bool           m_bSettingsLoaded=false;
         CRawBinStorage m_PersistStorage;
 
+        /*!
+         * \brief true when settings are first loaded from the persist storage
+         */
+        bool           m_bSettingsLoaded=false;
+
+        /*!
+         * \brief Board Gain persistent setting
+         */
         int m_GainSetting=1;
 
+        /*!
+         * \brief Board Bridge persistent setting
+         */
         bool m_BridgeSetting=false;
+
+        /*!
+         * \brief Board Secondary persistent setting
+         */
         int  m_SecondarySetting=0;
 
         /*!
@@ -89,11 +137,8 @@ public:
          */
         static nodeControl& Instance()
         {
-            //static nodeControl singleton;
-            //return singleton;
            static std::shared_ptr<nodeControl> pThis(new nodeControl);
            return *pThis;
-
         }
 private:
         //! Forbid creating other instances of the class object
@@ -116,41 +161,87 @@ public:
             Digital         //!<Digital mode
         };
 protected:
+
+        /*!
+         * \brief The current measurement mode of the Board
+         */
         MesModes m_OpMode=nodeControl::IEPE;
 
 public:
+        /*!
+         * \brief Sets current board type: IEPE or DMS
+         * \param BoardType - IEPE or DMS
+         */
         inline void SetBoardType(typeBoard BoardType){
             m_BoardType=BoardType;
         }
 
 
+        /*!
+         * \brief Sets pointer to the the UBR switch (bridge voltage)
+         * \param pUBRswitch - the pointer to the the UBR switch (bridge voltage)
+         */
         inline void SetUBRpin(const std::shared_ptr<CPin> &pUBRswitch){
             m_pUBRswitch=pUBRswitch;
         }
+
+        /*!
+         * \brief Sets pointer to the DAC mode switch
+         * \param pDACon - the pointer to the DAC mode switch
+         */
         inline void SetDAConPin(const std::shared_ptr<CPin> &pDACon){
             m_pDACon=pDACon;
         }
+
+        /*!
+         * \brief Sets pointer to the ADC measurements enable switch
+         * \param pEnableMes -the pointer to the ADC measurements enable switch
+         */
         inline void SetEnableMesPin(const std::shared_ptr<CPin> &pEnableMes){
             m_pEnableMes=pEnableMes;
         }
+
+        /*!
+         * \brief Sets pointer to the fan cntrol pin
+         * \param pFanOn - the pointer to the fan cntrol pin
+         */
         inline void SetFanPin(const std::shared_ptr<CPin> &pFanOn){
             m_pFanOn=pFanOn;
         }
+
+        /*!
+         * \brief Sets pointers to the gain select pins of the IEPE board
+         * \param pGain0pin - the pointer to the LSB gain select pin
+         * \param pGain1pin - the pointer to the MSB gain select pin
+         */
         inline void SetIEPEboardGainSwitches(const std::shared_ptr<CPin> &pGain0pin, const std::shared_ptr<CPin> &pGain1pin){
             m_pGain0pin=pGain0pin;
             m_pGain1pin=pGain1pin;
         }
+
+        /*!
+         * \brief Sets pointer to the Voltage DAC controlled by the SetVoltage()
+         * \param pVoltageDAC - the pointer to the Voltage DAC
+         */
         inline void SetVoltageDAC(const std::shared_ptr<CDac> &pVoltageDAC){
             m_pVoltageDAC=pVoltageDAC;
         }
 
-
+        /*!
+         * \brief Adds Board measurement channel to the tracking list
+         * \param pChan - the pointer to the Board measurement channel
+         */
         void AddMesChannel(const std::shared_ptr<CMesChannel> &pChan)
         {
             m_pMesChans.emplace_back(pChan);
             m_OffsetSearch.Add(pChan->m_pADC, pChan->m_pDAC, pChan->m_VisChan.GetVisChannel());
         }
 
+        /*!
+         * \brief Returns the pointer to the Board measurement channel by its index
+         * \param nCh - the index of the channel
+         * \return the pointer to the channel on success, otherwise nullptr
+         */
         std::shared_ptr<CMesChannel> GetMesChannel(size_t nCh)
         {
             if(nCh<m_pMesChans.size())
