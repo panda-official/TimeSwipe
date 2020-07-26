@@ -85,6 +85,33 @@ PWM2.high <br />
 PWM2.low <br />
 
 
+### Type CH:
+
+This access point type isused to control board's channel.
+
+Root domain:            Can be used only with sub-domain <br />
+Sub domain (.mode):     Holds current measurement mode of the channel(unsigned int, 0:1, r/w, 0=Voltage mode, 1=Current mode) <br />
+Sub domain (.gain):     Holds current Gain setting of the channel(float, 1/8: 128*1.375, r/w)  <br />
+Sub domain (.iepe):     Holds the state of IEPE switch of the channel(bool, false:true, r/w) <br />
+
+Here is a list of all possible CH access points:
+
+CH1.mode <br />
+CH1.gain <br />
+CH1.iepe <br />
+
+CH2.mode <br />
+CH2.gain <br />
+CH2.iepe <br />
+
+CH3.mode <br />
+CH3.gain <br />
+CH3.iepe <br />
+
+CH4.mode <br />
+CH4.gain <br />
+CH4.iepe <br />
+
 
 
 

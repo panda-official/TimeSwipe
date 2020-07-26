@@ -362,52 +362,84 @@ protected:
 
 public:
     /*!
-     * \brief MUX
-     * \param nPin
-     * \param nSercom
-     * \param nPad
-     * \return
+     * \brief Connects given pin to the corresponding Sercom
+     * \param nPin - the pin to connect in the pxy format
+     * \param nSercom - SAME54 Sercom number
+     * \param nPad - pin PAD value to be filled after connection
+     * \return - true if connection is successful, false otherwise
      */
     static bool MUX(pxy nPin, typeSamSercoms nSercom, pad &nPad);
 };
 
 /*!
- * \brief The CSamPin class
+ * \brief The class implements CPin functionality for SAME54 single pin
  */
 class CSamPin : public CPin
 {
 friend class CSamPORT;
 protected:
+
+    /*!
+     * \brief Implements Set functionality of CPin
+     * \param bHow - the pin value to be set: logical true or false
+    */
     virtual void impl_Set(bool bHow)
     {
         CSamPORT::SetPin(m_nGroup, m_nPin, bHow);
     }
+
+    /*!
+    * \brief Implements RbSet (read back setup value) functionality of CPin
+    * \return the pin value that was set: logical true or false
+    */
     virtual bool impl_RbSet()
     {
         return CSamPORT::RbSetPin(m_nGroup, m_nPin);
     }
+
+    /*!
+     * \brief Implements Get functionality of CPin
+     * \return actual pin state: logical true or false
+     */
     virtual bool impl_Get()
     {
         return CSamPORT::GetPin(m_nGroup, m_nPin);
     }
 
 public:
+    /*!
+     * \brief The virtual destructor of the class
+     */
     virtual ~CSamPin()
     {
         CSamPORT::ReleasePin(m_nGroup, m_nPin);
     }
 
-    //SAM specific:
+    /*!
+     * \brief Connects the pin to the corresponding Sercom
+     * \param nSercom - SAME54 Sercom number
+     * \return - true if connection is successful, false otherwise
+     */
     inline bool MUX(typeSamSercoms nSercom)
     {
         return CSamPORT::MUX( CSamPORT::make_pxy(m_nGroup, m_nPin), nSercom, m_nPinPAD);
     }
+
+    /*!
+     * \brief Returns current PADindex for connected pin
+     * \return - the PADindex of the connected pin
+     */
     inline CSamPORT::pad GetPAD() const
     {
         return m_nPinPAD;
     }
 
 protected:
+    /*!
+     * \brief The protected constructor of the class. Called from CSamPORT factories.
+     * \param nGroup - the SAME54 pin's group
+     * \param nPin - the SAME54 pin number in the current Group
+     */
     CSamPin(CSamPORT::group nGroup, CSamPORT::pin  nPin)
     {
         m_nGroup=nGroup;
@@ -416,7 +448,19 @@ protected:
 
         m_SetupTime_uS=50;
     }
+
+    /*!
+     * \brief SAME54 group of the pin
+     */
     CSamPORT::group m_nGroup;
+
+    /*!
+     * \brief SAME54 pin number in the current group
+     */
     CSamPORT::pin   m_nPin;
+
+    /*!
+     * \brief Keeps current pin's PAD (the value is filled after connection to the specified peripheral)
+     */
     CSamPORT::pad   m_nPinPAD;
 };

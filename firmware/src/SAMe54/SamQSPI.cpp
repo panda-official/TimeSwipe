@@ -69,6 +69,4 @@ bool CSamQSPI::send(CFIFO &msg)
 
     return true;
 }
-bool CSamQSPI::receive(CFIFO &msg){return false;} //stub
-bool CSamQSPI::send(typeSChar ch){ return false;} //stub
-bool CSamQSPI::receive(typeSChar &ch){ return false; }//stub
+bool CSamQSPI::receive(CFIFO &msg){return false;}
