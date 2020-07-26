@@ -119,7 +119,11 @@ int main(void)
 
 
         //setup pins:
+#ifdef DMS_BOARD
         typeBoard ThisBoard=typeBoard::DMSBoard;
+#else
+        typeBoard ThisBoard=typeBoard::IEPEBoard;
+#endif
         const int nChannels=4;
 
         nodeControl &nc=nodeControl::Instance();
