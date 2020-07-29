@@ -7,6 +7,8 @@ cmake_minimum_required(VERSION 3.1)
 
 SET(TARGET_NAME "firmware.elf")
 
+option(DMS "Whether build firmware for the DMS board" ON)
+
 IF(NOT CMAKE_TOOLCHAIN_FILE)
     message(STATUS "User toolchain is not found. Setting default toolchain...")
     SET(CMAKE_TOOLCHAIN_FILE gnuarm_toolchain.cmake)
@@ -23,6 +25,10 @@ project(firmware C CXX ASM)
 
 #override JSON formatting:
 add_compile_definitions(NLOHMANN_JSON_CUSTOM_STDIO_FRM)
+
+IF(DMS)
+    add_compile_definitions(DMS_BOARD)
+ENDIF()
 
 #adding modules:
 add_subdirectory(ADCDAC)
@@ -50,7 +56,7 @@ target_include_directories(${TARGET_NAME} PUBLIC SAMe54)
 target_include_directories(${TARGET_NAME} PUBLIC HATS_EEPROM)
 
 #linking upper layer:
-target_link_libraries(${TARGET_NAME} PROCS_lib BLOGIC_lib LEDS_lib JSON_lib HATS_EEPROM_lib)
+target_link_libraries(${TARGET_NAME}  BLOGIC_lib PROCS_lib LEDS_lib JSON_lib HATS_EEPROM_lib)
 
 #linking lower layer:
 target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib)

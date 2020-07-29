@@ -38,7 +38,6 @@ protected:
          * \deprecated Initialy it was used to subscribe a menu object for button events
          * \todo Use only IJSONEvent instead?
          */
-        //CButtonEvent &m_sink;
         std::shared_ptr<CButtonEvent> m_pSink;
 
 public:
@@ -61,12 +60,15 @@ public:
         void impl_on_state_changed(typeButtonState nState);
 
         /*!
-         * \brief The class constructor. The implementation contains the button PINs function setup
-         * \param sink A reference to a CButtonEvent events listener
+         * \brief Turns buttol LED on/off
+         * \param how - true=LED ON, false=LED off
          */
-       // SAMButton(CButtonEvent &sink);
-
         void TurnButtonLED(bool how);
+
+        /*!
+         * \brief Returns actual state of the button LED
+         * \return true=LED ON, false=LED off
+         */
         bool IsButtonLEDon();
 
         /*!

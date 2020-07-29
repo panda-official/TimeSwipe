@@ -58,12 +58,12 @@ void TC5_Handler(void)
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
-CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX, mode nOpMode) :
+CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, mode nOpMode) :
     CSamTC(PWM1==nPWM ? typeSamTC::Tc0 : typeSamTC::Tc2),
     m_PeriodsCounter(PWM1==nPWM ? typeSamTC::Tc4 : typeSamTC::Tc5)
 {
     m_nPWM=nPWM;
-    m_pMUX=pMUX;
+    m_pDACsw=pDACsw;
 
     pPWM[nPWM]=this;
 
@@ -197,7 +197,7 @@ void CDacPWMht::impl_Start(bool bHow)
     {
         on_settings_changed();
         synced_DAC_set(m_prmHighLevel); //start with high
-        m_pMUX->SetDACmode(typeDACmode::SamAndExtDACs);
+        m_pDACsw->Set(true);
 
         while(pTc2->COUNT16.SYNCBUSY.bit.ENABLE){}
         if(m_prmRepeats)

@@ -20,11 +20,11 @@
  *
  * <H4> Timers/Counters </H4>
  *
- *  CSamTC - a realization os SAM's TC
+ *  CSamTC - a realization os SAM's TC (Timer-Counter)
  *
  * <H4> PORT(digital pins IO) control </H4>
  *
- *  CSamPORT - defines Port Groups and Port Pins
+ *  CSamPORT, CSamPin - defines Port Groups and Port Pins of the SAME54, single pin control class and methods for multiplexing pins to various peripherals like Sercom
  *
  * <H4> ADC & DAC </H4>
  *
@@ -44,11 +44,7 @@
  * CSamSercom provides the basic functionality of SERCOM mainly dealing with interrupt processing, enabling and connecting corresponding
  * CSamCLK (Generic Clock controller)
  *
- * CSamSPI is a basic class providing functionality for external communication via SPI with integrated flow-control (CSyncSerComFSM)
- *
- * CSamSPIsc2 - a concrete realizaion of CSamSPI for SERCOM2 and its pinout
- *
- * CSamSPIsc7 - a concrete realizaion of CSamSPI for SERCOM7 and its pinout
+ * CSamSPIbase - the class implements basic functionality of SAME54 Sercom SPI
  *
  * CSamI2Cmem - a realization of CAT2430 EEPROM chip emulation (realizations for concrete pinouts are CSamI2CmemHAT & CSamI2Cmem8Pin)
  *
@@ -64,7 +60,7 @@
  * 
  * <H4> Nonvolatile Memory Controller </H4>
  *
- * CSamNVMCTRL - implements SAM's Nonvolatile Memory Controller with an interface for SmartEEPROM
+ * CSamNVMCTRL - implements SAM's Nonvolatile Memory Controller with an interface to SmartEEPROM
  */
  
  

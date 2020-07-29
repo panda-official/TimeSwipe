@@ -13,15 +13,15 @@ Copyright (c) 2019 Panda Team
 
 #include "board_type.h"
 
-CDataVis::CDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh)
+CDataVis::CDataVis(CView::vischan nCh)
 {
-    m_pADC=pADC;
+   // m_pADC=pADC;
     m_nCh=nCh;
     last_time_vis=os::get_tick_mS()+1000;
     m_MA.SetPeriod(120);
 }
 
-void CDataVis::Update()
+void CDataVis::Update(float InputValue)
 {
     //quataion:
     if( static_cast<int>(os::get_tick_mS()-last_time_vis)<m_upd_tspan_mS )
@@ -29,7 +29,8 @@ void CDataVis::Update()
     last_time_vis=os::get_tick_mS();
 
     //----------pre-averaging: reduces overall calculation work-------
-    m_AvSumm+=m_pADC->GetRawBinVal();
+    m_AvSumm+=InputValue;
+
     if(++m_MesCounter<m_AvPeriod)
         return;
 
