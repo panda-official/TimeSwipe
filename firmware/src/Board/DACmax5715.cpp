@@ -7,10 +7,12 @@ Copyright (c) 2019 Panda Team
 //DAC max 5715 impl:
 
 #include "DACmax5715.h"
+#include "os.h"
 
-CDac5715sa::CDac5715sa(CSPI *pBus, typeDac5715chan nChan, float RangeMin, float RangeMax)
+CDac5715sa::CDac5715sa(CSPI *pBus, std::shared_ptr<IPin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax)
 {
 	m_pBus=pBus;
+    m_pCS=pCS;
 	m_chan=nChan;
 
     //! setup the raw-binary range and user defined user range
@@ -43,5 +45,12 @@ void CDac5715sa::DriverSetVal(float val, int out_bin)
     //! 3nd byte: control word low byte
 	CFIFO cmd;
 	cmd<<(0x30+(int)m_chan)<<((out_bin>>4)&0xff)<<((out_bin<<4)&0xff);
+
+    m_pCS->Set(true);
+    //os::uwait(80);
+
 	m_pBus->send(cmd);
+
+    m_pCS->Set(false);
+    //os::uwait(80);
 }

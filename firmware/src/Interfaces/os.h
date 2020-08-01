@@ -33,6 +33,13 @@ unsigned long get_tick_mS(void);
 void wait(unsigned long time_mS);
 
 /*!
+ * \brief Sleep for defined microseconds time
+ * \param time_mS sleep time in microseconds
+ * \details in case of the cooperative multitasking this call should be used to return the control to the OS scheduler
+ */
+void uwait(unsigned long time_uS);
+
+/*!
  * \brief Set an error for this thread
  * \param perrtxt a pointer to the error string
  */

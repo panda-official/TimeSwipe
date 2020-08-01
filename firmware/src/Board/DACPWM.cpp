@@ -7,10 +7,10 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "DACPWM.h"
 
-CDacPWM::CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<CADmux> &pMUX)
+CDacPWM::CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<CPin> &pDACsw)
 {
     m_pDAC=pDAC;
-    m_pMUX=pMUX;
+    m_pDACsw=pDACsw;
 }
 
 void CDacPWM::on_obtain_half_periods()
@@ -21,7 +21,7 @@ void CDacPWM::impl_Start(bool bHow)
 {
     if(bHow)
     {
-        m_pMUX->SetDACmode(typeDACmode::SamAndExtDACs); //auto switch
+        m_pDACsw->Set(true);
         m_pDAC->SetRawOutput(m_prmHighLevel);
     }
     else
