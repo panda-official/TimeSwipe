@@ -118,7 +118,7 @@ void nodeControl::SetMode(int nMode)
     {
         //SetBridge(m_OpMode);
         assert(m_pUBRswitch);
-        m_pUBRswitch->Set(m_OpMode);
+        m_pUBRswitch->Set(MesModes::IEPE==m_OpMode ? true:false);
     }
 
     //switch all channels to IEPE:

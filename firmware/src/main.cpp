@@ -155,7 +155,7 @@ int main(void)
         else
         {
             pDAConPin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P04, true);
-            pUB1onPin=CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P07, true); pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
+            pUB1onPin=CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
             pQSPICS0Pin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P11, true);
 
             //old IEPE gain switches:
@@ -224,6 +224,7 @@ int main(void)
             auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
             pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
             pDAC2A->SetVal(0);
+            nc.SetVoltageDAC(pDAC2A);
 
 
             //create 4 PGAs:
@@ -340,6 +341,7 @@ int main(void)
 
         CView &view=CView::Instance();
         nc.LoadSettings();
+        nc.SetMode(0); //set default mode
         view.BlinkAtStart();
 
         while(1) //endless loop ("super loop")

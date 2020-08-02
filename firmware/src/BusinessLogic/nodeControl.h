@@ -107,9 +107,14 @@ protected:
         int  m_SecondarySetting=0;
 
         /*!
+         * \brief Holds Voltage Setting (mockup for IEPE board)
+         */
+        float m_Voltage=0;
+
+        /*!
          * \brief Holds Current Setting (mockup)
          */
-        float m_Current;
+        float m_Current=0;
 
         /*!
          * \brief Holds MaxCurrent Setting (mockup)
@@ -420,8 +425,10 @@ public:
          */
         void SetVoltage(float val)
         {
-            assert(m_pVoltageDAC);
-            return m_pVoltageDAC->SetVal(val);
+            if(m_pVoltageDAC)
+                m_pVoltageDAC->SetVal(val);
+            else
+                m_Voltage=val;
         }
 
         /*!
@@ -430,8 +437,10 @@ public:
          */
         float GetVoltage()
         {
-            assert(m_pVoltageDAC);
-            return m_pVoltageDAC->GetRealVal();
+            if(m_pVoltageDAC)
+                return m_pVoltageDAC->GetRealVal();
+            else
+                return m_Voltage;
         }
 
         /*!
