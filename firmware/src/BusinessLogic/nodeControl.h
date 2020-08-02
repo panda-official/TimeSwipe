@@ -420,8 +420,9 @@ public:
          */
         void SetVoltage(float val)
         {
-            assert(m_pVoltageDAC);
-            return m_pVoltageDAC->SetVal(val);
+            //assert(m_pVoltageDAC);
+            if(m_pVoltageDAC)
+                m_pVoltageDAC->SetVal(val);
         }
 
         /*!
@@ -430,8 +431,9 @@ public:
          */
         float GetVoltage()
         {
-            assert(m_pVoltageDAC);
-            return m_pVoltageDAC->GetRealVal();
+            //assert(m_pVoltageDAC);
+            if(m_pVoltageDAC)
+                return m_pVoltageDAC->GetRealVal();
         }
 
         /*!

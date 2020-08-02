@@ -82,8 +82,21 @@ int main(void)
 
         //request data from an external chip:
         pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
-        pEEPROM_MasterBus->SetDeviceAddr(0xA0);
-        pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
+
+        for(int addr=0; addr<255; addr++){
+
+            pEEPROM_MemBuf->reset();
+        pEEPROM_MasterBus->SetDeviceAddr(addr); //0xA0);
+        pEEPROM_MasterBus->reset_chip_logic();
+        pEEPROM_MasterBus->setup_bus();
+        if(pEEPROM_MasterBus->receive(*pEEPROM_MemBuf))
+        {
+            while(1){
+
+            }
+        }
+
+        }
 
         //verifing the image:
         CHatsMemMan HatMan(pEEPROM_MemBuf);
@@ -224,6 +237,7 @@ int main(void)
             auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
             pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
             pDAC2A->SetVal(0);
+            nc.SetVoltageDAC(pDAC2A);
 
 
             //create 4 PGAs:
@@ -320,6 +334,10 @@ int main(void)
         pDisp->Add("Current", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetCurrent, &nodeControl::SetCurrent) );
         pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsFanStarted,  &nodeControl::StartFan) );
+
+        //testing Ext EEPROM:
+         pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<CSamI2CeepromMaster, bool> >(pEEPROM_MasterBus,
+                                                                                               &CSamI2CeepromMaster::GetSelfTestResult,  &CSamI2CeepromMaster::RunSelfTest) );
 
 
         SAMButton &button=SAMButton::Instance();
