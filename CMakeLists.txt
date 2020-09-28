@@ -63,7 +63,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 # Dependencies
 # ------------------------------------------------------------------------------
 
-find_package(Boost REQUIRED)
+find_package(Boost)
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "Boost not found.
 Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's installed.")
