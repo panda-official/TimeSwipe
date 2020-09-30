@@ -385,6 +385,7 @@ else()
   # Note: must follow add_{compile,link}_options()
   add_subdirectory(3rdParty)
 
+  # FIXME: firmware/src/HATS_EEPROM should be common library for both driver and firmware
   set(timeswipe_src
     driver/src/timeswipe.cpp
     driver/src/timeswipe_eeprom.cpp
@@ -393,12 +394,11 @@ else()
     driver/src/pidfile.cpp
     driver/src/board_iface.cpp
     driver/src/RaspberryPi/bcmspi.cpp
-    3rdParty/BCMsrc/bcm2835.c
-    firmware/src/HATS_EEPROM/HatsMemMan.cpp
+    firmware/src/HATS_EEPROM/HatsMemMan.cpp # KLUDGE: see FIXME above
     )
 
   add_library(timeswipe ${timeswipe_src})
-  target_link_libraries(timeswipe PUBLIC Boost::boost pthread 3rdparty_nlohmann_json)
+  target_link_libraries(timeswipe PUBLIC Boost::boost pthread 3rdparty_nlohmann_json 3rdparty_BCM)
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
   if (NOT CMAKE_CROSSCOMPILING)
