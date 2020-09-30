@@ -23,6 +23,9 @@ set(PANDA_BUILD_FIRMWARE Off CACHE BOOL
 set(PANDA_BUILD_FIRMWARE_DMS On CACHE BOOL
   "Build firmware for the DMS board?")
 
+set(PANDA_BUILD_FIRMWARE_EMU Off CACHE BOOL
+  "Build firmware emulator?")
+
 set(PANDA_BUILD_FIRMWARE_RAM_IMAGE Off CACHE BOOL
   "Build firmware as RAM image?")
 
@@ -95,6 +98,10 @@ if (PANDA_BUILD_FIRMWARE)
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc_RAM.ld")
   else()
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc.ld")
+  endif()
+
+  if (PANDA_BUILD_FIRMWARE_EMU)
+    add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
   endif()
 
   add_compile_options(
@@ -180,11 +187,14 @@ if (PANDA_BUILD_FIRMWARE)
     View.cpp
     View.h
     board_type.h
-    nodeControl.cpp
     nodeControl.h
-    # nodeControl_emu.cpp
     rgbacol.h
     )
+  if (NOT PANDA_BUILD_FIRMWARE_EMU)
+    list(APPEND BusinessLogic_src nodeControl.cpp)
+  else()
+    list(APPEND BusinessLogic_src nodeControl_emu.cpp)
+  endif()
 
   set(Communication_src
     Communication_doc.h

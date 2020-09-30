@@ -8,7 +8,7 @@ Copyright (c) 2019 Panda Team
 //implementing emulation of node control:
 
 #include "nodeControl.h"
-#ifdef EMU
+#ifdef PANDA_BUILD_FIRMWARE_EMU
 #include <iostream>
 #endif
 
@@ -18,34 +18,34 @@ static bool bridge=1;
 
 bool nodeControl::IsRecordStarted(){ return brecord;}
 bool nodeControl::StartRecord(const bool how)
-{ 
-	brecord=how;
-#ifdef EMU
-	std::cout<<(how ? "record started" : "record stopped")<<std::endl;
-#endif 
-	return brecord;
+{
+    brecord=how;
+#ifdef PANDA_BUILD_FIRMWARE_EMU
+    std::cout<<(how ? "record started" : "record stopped")<<std::endl;
+#endif
+    return brecord;
 }
 int nodeControl::gain_out(int val)
 {
-	 gain=val;
-#ifdef EMU
-	std::cout<<"gain="<<gain<<std::endl;
-#endif 
-	 return gain;
+     gain=val;
+#ifdef PANDA_BUILD_FIRMWARE_EMU
+    std::cout<<"gain="<<gain<<std::endl;
+#endif
+     return gain;
 }
 int nodeControl::GetGain(){ return gain;}
 bool nodeControl::GetBridge(){return bridge;}
 bool nodeControl::SetBridge(bool how)
-{ 
-	bridge=how;
-#ifdef EMU
-	std::cout<<"bridge="<<bridge<<std::endl;
-#endif 
-	return bridge;
+{
+    bridge=how;
+#ifdef PANDA_BUILD_FIRMWARE_EMU
+    std::cout<<"bridge="<<bridge<<std::endl;
+#endif
+    return bridge;
 }
 void nodeControl::SetZero(void)
 {
-#ifdef EMU
-	std::cout<<"zero was set"<<std::endl;
-#endif 
+#ifdef PANDA_BUILD_FIRMWARE_EMU
+    std::cout<<"zero was set"<<std::endl;
+#endif
 }
