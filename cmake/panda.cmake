@@ -16,7 +16,7 @@ macro(panda_setup_build)
     endif()
 
     if (WIN32)
-      foreach(tool default_asm default_c default_cpp)
+      foreach(tool default_c default_cpp)
         set(${tool} "${${tool}}.exe")
       endforeach()
     endif()
