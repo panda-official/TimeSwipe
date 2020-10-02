@@ -8,7 +8,10 @@ macro(panda_setup_build)
       set(default_sys_name "Generic")
       set(default_c "arm-none-eabi-gcc")
       set(default_cpp "arm-none-eabi-g++")
-      set(CMAKE_EXE_LINKER_FLAGS_INIT "--specs=nosys.specs") # retarget to avoid linkage issues upon compiler testing
+
+      # We CMAKE_EXE_LINKER_FLAGS instead of CMAKE_EXE_LINKER_FLAGS_INIT since this
+      # file is not actually pointed by CMAKE_TOOLCHAIN_FILE.
+      set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs") # retarget to avoid linkage issues upon compiler testing
     else()
       set(default_sys_name "Linux")
       set(default_c "arm-linux-gnueabihf-gcc")
