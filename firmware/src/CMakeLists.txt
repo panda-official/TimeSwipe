@@ -18,6 +18,7 @@ IF(NOT CMAKE_TOOLCHAIN_FILE)
 ENDIF()
 
 include_directories(../../3rdParty/)
+include_directories(../../3rdParty/nlohmann)
 include_directories(BusinessLogic)
 
 SET(CMAKE_CXX_FLAGS "-Wno-psabi")
