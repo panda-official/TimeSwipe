@@ -41,7 +41,7 @@ macro(panda_setup_build)
     # CMAKE_PREFIX_PATH may point to the root directory
     # where the cross-compiled stuff like Boost is installed.
     if (NOT DEFINED CMAKE_PREFIX_PATH)
-      list(PREPEND CMAKE_PREFIX_PATH "/opt/arm")
+      list(INSERT CMAKE_PREFIX_PATH 0 "/opt/arm")
     endif()
   endif()
   add_compile_options(-Wno-psabi)
