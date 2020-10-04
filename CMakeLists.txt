@@ -76,14 +76,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
 # ------------------------------------------------------------------------------
-# Dependencies
+# Common dependencies
 # ------------------------------------------------------------------------------
 
-find_package(Boost)
-if (NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost not found.
-Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's installed.")
-endif()
+# No common dependencies
 
 # ------------------------------------------------------------------------------
 # Targets
@@ -357,9 +353,9 @@ if (PANDA_BUILD_FIRMWARE)
   # Procs-specific
   target_link_libraries(Procs PUBLIC BusinessLogic)
 
-  # ------------
-  # firmware.elf
-  # ------------
+  # -------------------
+  # firmware.elf target
+  # -------------------
 
   set(firmware_src
     firmware/src/main.cpp
@@ -381,9 +377,23 @@ if (PANDA_BUILD_FIRMWARE)
 else()
   message(CHECK_START "Configuring the driver build.")
 
+  # ------------
+  # Dependencies
+  # ------------
+
+  find_package(Boost)
+  if (NOT Boost_FOUND)
+    message(FATAL_ERROR "Boost not found.
+Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's installed.")
+  endif()
+
   # Third-party bundled dependencies
   # Note: must follow add_{compile,link}_options()
   add_subdirectory(3rdParty)
+
+  # ----------------
+  # timeswipe target
+  # ----------------
 
   # FIXME: firmware/src/HATS_EEPROM should be common library for both driver and firmware
   set(timeswipe_src
@@ -407,7 +417,7 @@ else()
         find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS /usr/lib/gcc/arm-linux-gnueabihf/8)
         if (atomic_lib)
           message("Explicit Linking with atomic library")
-          target_link_libraries(timeswipe ${atomic_lib})
+          target_link_libraries(timeswipe PUBLIC ${atomic_lib})
         endif()
       endif()
     endif()
@@ -433,13 +443,17 @@ else()
     driver/include
     )
 
+  # -----------------------
+  # Package info generation
+  # -----------------------
+
   configure_file(driver/contrib/timeswipe.pc.in driver/timeswipe.pc @ONLY)
   configure_file(driver/contrib/DEBIAN/control.in driver/DEBIAN/control @ONLY)
   configure_file(driver/contrib/arch/PKGBUILD.in driver/PKGBUILD @ONLY)
 
-  # ----------------------------------------------------------------------------
+  # -------
   # Install
-  # ----------------------------------------------------------------------------
+  # -------
 
   include(GNUInstallDirs)
 
