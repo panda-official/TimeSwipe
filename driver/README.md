@@ -73,10 +73,10 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Navigate to the `driver` directory, build and install the driver:
+Navigate to the project directory, build and install the driver:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake ..
@@ -107,10 +107,10 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Navigate to the `driver` directory, build and install the driver:
+Navigate to the project directory, build and install the driver:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake ..
@@ -147,10 +147,10 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the driver directory and build:
+Then simply navigate to the project directory and build:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake ..
@@ -207,10 +207,10 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the driver directory and build:
+Then simply navigate to the project directory and build:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake ..
@@ -231,10 +231,10 @@ Clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the driver directory and build:
+Then simply navigate to the project directory and build:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake .. -DEMUL=1
