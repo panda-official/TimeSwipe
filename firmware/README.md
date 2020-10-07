@@ -85,7 +85,7 @@ cd ..
 After installation, run openOCD with the `PandaOCD.cfg` file located in the firmware directory:
 
 ```
-sudo openocd -f timeswipe/firmware/PandaOCD.cfg
+sudo openocd -f ../firmware/PandaOCD.cfg
 ```
 
 You should see something like:
@@ -139,7 +139,7 @@ You should see output along the lines of `Bank is erased`.
 To write a new firmware, enter:
 
 ```
-flash write_image timeswipe/firmware/src/build/firmware.elf
+flash write_image firmware.elf
 ```
 
 This assumes you are running openOCD from the home directory and the firmware has been built in the default path.
@@ -147,6 +147,7 @@ Change accordingly.
 Verify the write process by again entering:
 
 ```
+halt
 flash erase_check 0
 ```
 
