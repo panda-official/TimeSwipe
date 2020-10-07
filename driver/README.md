@@ -237,7 +237,7 @@ Then simply navigate to the project directory and build:
 cd timeswipe
 mkdir -p build
 cd build
-cmake .. -DEMUL=1
+cmake .. -DPANDA_BUILD_FIRMWARE_EMU=1
 make -j$(nproc)
 ```
 
@@ -247,6 +247,6 @@ Then build the example:
 cd timeswipe/driver/examples/DataLogging
 mkdir -p build
 cd build
-cmake .. -DEMUL=1
+cmake .. -DPANDA_BUILD_FIRMWARE_EMU=1
 make -j$(nproc) main_static
 ```

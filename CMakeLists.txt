@@ -85,6 +85,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 # Targets
 # ------------------------------------------------------------------------------
 
+if (PANDA_BUILD_FIRMWARE_EMU)
+  add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
+endif()
+
+
 if (PANDA_BUILD_FIRMWARE)
   message(CHECK_START "Configuring the firmware build.")
 
@@ -96,9 +101,9 @@ if (PANDA_BUILD_FIRMWARE)
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc.ld")
   endif()
 
-  if (PANDA_BUILD_FIRMWARE_EMU)
-    add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
-  endif()
+  #if (PANDA_BUILD_FIRMWARE_EMU)
+   # add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
+  #endif()
 
   add_compile_options(
     -ffunction-sections
