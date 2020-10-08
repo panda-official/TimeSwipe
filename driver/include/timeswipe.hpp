@@ -225,6 +225,19 @@ public:
         Digital
     };
 
+    /** @enum TimeSwipe::Channels
+     *
+     * \brief Board channel index
+     *
+     */
+    enum class Channel : int {
+        CH1,
+        CH2,
+        CH3,
+        CH4
+    };
+
+
     /**
      * \brief Setup hardware mode
      *
