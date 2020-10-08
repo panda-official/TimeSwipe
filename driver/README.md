@@ -164,6 +164,7 @@ For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed. If
 In a terminal, enter the commands:
 
 ```
+brew install cmake
 brew install crosstool-ng help2man bison
 ```
 
