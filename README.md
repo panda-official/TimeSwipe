@@ -25,7 +25,7 @@ The procedure is explained in the [driver/README.md](https://github.com/panda-of
 
 The communication protocol is described in the file [docs/CommunicationProtocol.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/CommunicationProtocol.md), a description of the event system can be found in [docs/EventSystem.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/EventSystem.md).
 Software dependencies are listed in [docs/SoftwareDependencies.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/SoftwareDependencies.md).
-Driver [API] (https://panda-official.github.io/TimeSwipe/index.html)
+Driver [API](https://panda-official.github.io/TimeSwipe/index.html)
 
 
 ## Product versioning
