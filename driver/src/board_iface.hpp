@@ -170,21 +170,21 @@ public:
     // num == 0 -> PWM1  num == 1 -> PWM2
     bool getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
-    std::string makeChCmd(uint8_t num, const char *pSubDomain){
+    std::string makeChCmd(unsigned int num, const char *pSubDomain){
 
         char buf[32];
         std::sprintf(buf, "CH%d.%s", num+1, pSubDomain);
         return buf;
     }
 
-    bool setChannelMode(uint8_t num, int nMode){
+    bool setChannelMode(unsigned int num, int nMode){
 
         sendSetCommand(makeChCmd(num, "mode"), std::to_string(nMode));
         std::string answer;
         if (!receiveStripAnswer(answer)) return false;
         return answer == std::to_string(nMode);
     }
-    bool getChannelMode(uint8_t num, int &nMode, std::string& error){
+    bool getChannelMode(unsigned int num, int &nMode, std::string& error){
 
         sendGetCommand(makeChCmd(num, "mode"));
         std::string answer;
@@ -196,14 +196,14 @@ public:
         return true;
 
     }
-    bool setChannelGain(uint8_t num, float Gain){
+    bool setChannelGain(unsigned int num, float Gain){
 
         sendSetCommand(makeChCmd(num, "gain"), std::to_string(Gain));
         std::string answer;
         if (!receiveStripAnswer(answer)) return false;
         return true;
     }
-    bool getChannelGain(uint8_t num, float &Gain, std::string& error){
+    bool getChannelGain(unsigned int num, float &Gain, std::string& error){
 
         sendGetCommand(makeChCmd(num, "gain"));
         std::string answer;
@@ -215,14 +215,14 @@ public:
         return true;
 
     }
-    bool setChannelIEPE(uint8_t num, bool bIEPE){
+    bool setChannelIEPE(unsigned int num, bool bIEPE){
 
         sendSetCommand(makeChCmd(num, "iepe"), std::to_string(bIEPE));
         std::string answer;
         if (!receiveStripAnswer(answer)) return false;
         return true;
     }
-    bool getChannelIEPE(uint8_t num, bool &bIEPE, std::string& error){
+    bool getChannelIEPE(unsigned int num, bool &bIEPE, std::string& error){
 
         sendGetCommand(makeChCmd(num, "iepe"));
         std::string answer;

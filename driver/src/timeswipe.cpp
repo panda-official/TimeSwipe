@@ -507,3 +507,39 @@ bool TimeSwipe::GetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t&
 void TimeSwipe::TraceSPI(bool val) {
     BoardTraceSPI(val);
 }
+
+bool TimeSwipe::SetChannelMode(Channel nCh, ChannelMesMode nMode){
+
+    return BoardInterface::get()->setChannelMode(static_cast<unsigned int>(nCh), static_cast<int>(nMode));
+}
+
+bool TimeSwipe::GetChannelMode(Channel nCh, ChannelMesMode &nMode){
+
+    std::string strErrMsg;
+    int rMode;
+    bool rv=BoardInterface::get()->getChannelMode(static_cast<unsigned int>(nCh), rMode, strErrMsg);
+    nMode=static_cast<ChannelMesMode>(rMode);
+    return rv;
+}
+
+bool TimeSwipe::SetChannelGain(Channel nCh, float Gain){
+
+    return BoardInterface::get()->setChannelGain(static_cast<unsigned int>(nCh), Gain);
+}
+
+bool TimeSwipe::GetChannelGain(Channel nCh, float &Gain){
+
+    std::string strErrMsg;
+    return BoardInterface::get()->getChannelGain(static_cast<unsigned int>(nCh), Gain, strErrMsg);
+}
+
+bool TimeSwipe::SetChannelIEPE(Channel nCh, bool bIEPEon){
+
+    return BoardInterface::get()->setChannelIEPE(static_cast<unsigned int>(nCh), bIEPEon);
+}
+
+bool TimeSwipe::GetChannelIEPE(Channel nCh, bool &bIEPEon){
+
+    std::string strErrMsg;
+    return BoardInterface::get()->getChannelIEPE(static_cast<unsigned int>(nCh), bIEPEon, strErrMsg);
+}

@@ -16,5 +16,13 @@
         "SENSOR_OFFSET": [0,0,0,0],
         "SENSOR_GAIN": [1.0,1.0,1.0,1.0],
         "SENSOR_TRANSMISSION": [1.0,1.0,1.0,1.0]
-    }
+    },
+    "CONFIG_SCRIPT":  [
+
+        {"CH1.mode" : 0,  "CH1.gain" : 1,  "CH1.iepe" : false},
+        {"CH2.mode" : 0,  "CH2.gain" : 1,  "CH2.iepe" : false},
+        {"CH3.mode" : 0,  "CH3.gain" : 1,  "CH3.iepe" : false},
+        {"CH4.mode" : 0,  "CH4.gain" : 1,  "CH4.iepe" : false}
+
+    ]
 }

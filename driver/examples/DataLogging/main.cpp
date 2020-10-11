@@ -99,6 +99,9 @@ int main(int argc, char *argv[])
         return 2;
     }
     auto& configitem = *config.begin();
+
+    auto& config_script=*config.find("CONFIG_SCRIPT");
+
     if (input.length()) configitem = *config.find(input);
     if(dumpname.length()) {
         data_log.open(dumpname);
@@ -172,6 +175,21 @@ int main(int argc, char *argv[])
 
     tswipe.SetSampleRate(24000);
     tswipe.SetBurstSize(24000);
+
+    //config the board:
+    if(!config_script.empty())
+    {
+        //configure the board before start:
+        std::string strErrMsg;
+        //std::cout<<config_script.dump()<< std::endl;
+        tswipe.SetSettings(config_script.dump(), strErrMsg);
+        if(!strErrMsg.empty())
+        {
+            std::cout << "Board configuration error: " << strErrMsg << std::endl;
+        }
+
+    }
+
 
     // Board Start
 
