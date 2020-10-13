@@ -19,10 +19,10 @@
     },
     "CONFIG_SCRIPT":  [
 
-        {"CH1.mode" : 0,  "CH1.gain" : 1,  "CH1.iepe" : false},
-        {"CH2.mode" : 0,  "CH2.gain" : 1,  "CH2.iepe" : false},
-        {"CH3.mode" : 0,  "CH3.gain" : 1,  "CH3.iepe" : false},
-        {"CH4.mode" : 0,  "CH4.gain" : 1,  "CH4.iepe" : false}
+        {"CH1.mode" : 0,  "CH1.gain" : 1,  "CH1.iepe" : true},
+        {"CH2.mode" : 0,  "CH2.gain" : 1,  "CH2.iepe" : true},
+        {"CH3.mode" : 0,  "CH3.gain" : 1,  "CH3.iepe" : true},
+        {"CH4.mode" : 0,  "CH4.gain" : 1,  "CH4.iepe" : true}
 
     ]
 }
