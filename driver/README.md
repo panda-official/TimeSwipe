@@ -133,7 +133,7 @@ This section shows how you can build the TimeSwipe driver on a computer other th
 Supported cross-compilation architectures are Ubuntu 18.04 and OSX.
 
 
-### Ubuntu 18.04
+### Ubuntu 18.04 / Debian Buster
 
 To cross-compile on Ubuntu 18.04 / Debian Buster, you will need to install some extra packages:
 
@@ -267,5 +267,9 @@ cmake .. -DPANDA_BUILD_FIRMWARE_EMU=1
 make -j$(nproc) main_static
 ```
 
-After building main_static can be started at your host PC for demo/testing purposes: ./main_static --config ../config.json
+After building main_static can be started at your host PC for demo/testing purposes:
+
+```
+./main_static --config ../config.json
+```
 
