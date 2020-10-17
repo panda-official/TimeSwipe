@@ -35,6 +35,9 @@ set(BUILD_SHARED_LIBS Off CACHE BOOL
 set(PANDA_BUILD_ARM Off CACHE BOOL
   "Build for ARM?")
 
+set(PANDA_BUILD_ARM64 Off CACHE BOOL
+  "Build for ARM64bit?")
+
 set(PANDA_BUILD_TESTS Off CACHE BOOL
   "Build tests?")
 

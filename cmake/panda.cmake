@@ -14,8 +14,16 @@ macro(panda_setup_build)
       set(CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs") # retarget to avoid linkage issues upon compiler testing
     else()
       set(default_sys_name "Linux")
-      set(default_c "arm-linux-gnueabihf-gcc")
-      set(default_cpp "arm-linux-gnueabihf-g++")
+
+      if(PANDA_BUILD_ARM64)
+          set(sys_proc "aarch64")
+          set(default_c "aarch64-linux-gnu-gcc")
+          set(default_cpp "aarch64-linux-gnu-g++")
+      else()
+          set(default_c "arm-linux-gnueabihf-gcc")
+          set(default_cpp "arm-linux-gnueabihf-g++")
+      endif()
+
     endif()
 
     if (WIN32)
