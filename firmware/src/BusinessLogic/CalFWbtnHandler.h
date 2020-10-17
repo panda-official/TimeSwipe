@@ -32,6 +32,9 @@ public:
         CView::Instance().BreakCalUItest();
     }
 
+    /*!
+     * \brief Starts Calibration UI test
+     */
     void StartUItest(bool bHow)
     {
         CView &v=CView::Instance();
@@ -39,6 +42,14 @@ public:
             v.CalUItest();
         else
             v.BreakCalUItest();
+    }
+
+    /*!
+     * \brief Shows whether Calibration UI test has been done(true) or not (false)
+     */
+    bool HasUItestBeenDone()
+    {
+        return CView::Instance().HasCalUItestBeenDone();
     }
 };
 

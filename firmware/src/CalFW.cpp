@@ -232,7 +232,9 @@ int main(void)
         SAMButton &button=SAMButton::Instance();
         button.AdviseSink(pBtnHandler);
 
-        pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler, nullptr,  &CCalFWbtnHandler::StartUItest) );
+        pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
+                                                                                       &CCalFWbtnHandler::HasUItestBeenDone,
+                                                                                       &CCalFWbtnHandler::StartUItest) );
 
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);

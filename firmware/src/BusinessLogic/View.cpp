@@ -158,6 +158,7 @@ void CView::SetButtonHeartbeat(bool how)
 void CView::CalUItest()
 {
     m_bBreakCalUItest=false;
+    m_bCalUItestDone=false;
     SelectVisMode(CViewChannel::vismode::UI);
 
     for(unsigned int i=0; i<m_Channels.size(); i++)
@@ -211,6 +212,7 @@ void CView::CalUItest_stepButtonLEDon()
     nodeControl::Instance().StartFan(false);
 
     //exit proc:
+    m_bCalUItestDone=true;
     SetDefaultModeAfter(0);
  }
 
