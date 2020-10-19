@@ -8,8 +8,9 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include <memory>
+#include "Pin.h"
 #include "DAC.h"
-#include "ADmux.h"
+//#include "ADmux.h"
 #include "PWM.h"
 
 /*!
@@ -33,9 +34,9 @@ protected:
     std::shared_ptr<CDac>    m_pDAC;
 
     /*!
-     * \brief The pointer to the board multiplexer instance
+     * \brief The pointer to the DAC mode switcher
      */
-    std::shared_ptr<CADmux>  m_pMUX;
+    std::shared_ptr<CPin>  m_pDACsw;
 
     /*!
      * \brief Called from the base class for additional specific actions for this class
@@ -57,7 +58,7 @@ public:
     /*!
      * \brief The class constructor
      * \param pDAC The pointer to the output controlling DAC
-     * \param pMUX The pointer to the board multiplexer
+     * \param pMUX The pointer to the DAC mode switcher
      */
-    CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<CADmux>  &pMUX);
+    CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<CPin> &pDACsw);
 };

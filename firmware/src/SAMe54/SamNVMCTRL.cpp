@@ -19,23 +19,53 @@ Copyright (c) 2019-2020 Panda Team
 //#define SEEPROM_ADDR 0x44000000
 //#define NVM_USER_PAGE 0x00804000
 #include <string.h>
+
+#define _PSZ 3
+#define _SBLK 1
+
 CSamNVMCTRL::CSamNVMCTRL()
 {
-    //Nvmctrl *pNVM=NVMCTRL;
+    Nvmctrl *pNVM=NVMCTRL;
 
     //initial check of the user page:
+    if(NVMCTRL->PARAM.bit.SEE){
     NVM_UserPage up;
     ReadUserPage(up);
 
-    if(3!=up.Fuses.SEEPSZ || 1!=up.Fuses.SEESBLK)
+    if(_PSZ!=up.Fuses.SEEPSZ || _SBLK!=up.Fuses.SEESBLK)
     {
-        up.Fuses.SEEPSZ=3;
-        up.Fuses.SEESBLK=1;
+        up.Fuses.SEEPSZ=_PSZ;
+        up.Fuses.SEESBLK=_SBLK;
         WriteUserPage(up);
-    }
-    m_nSmartEEPROMsize=4096;
+
+        //reset module to reload the registers:
+        while(!NVMCTRL->STATUS.bit.READY){}
+        NVMCTRL->CTRLB.reg=(NVMCTRL_CTRLB_CMDEX_KEY|NVMCTRL_CTRLB_CMD_SWRST);
+        while(!NVMCTRL->STATUS.bit.READY){}
+
+    }}
+    m_nSmartEEPROMsize=ObtainSmartEEPROMsize(); //4096;
     NVMCTRL->SEECFG.bit.WMODE=1; //set buffered mode
 }
+unsigned int CSamNVMCTRL::ObtainSmartEEPROMsize()
+{
+    if(!NVMCTRL->PARAM.bit.SEE) //EEPROM is not supported
+        return 0;
+
+    unsigned int psz=NVMCTRL->SEESTAT.bit.PSZ;
+    unsigned int sblck=NVMCTRL->SEESTAT.bit.SBLK;
+
+    if(0==sblck || sblck>10)
+        return 0;
+
+    const unsigned int plim_tab[10]={3,4,5, 5, 6,6,6,6, 7,7};
+    const unsigned int plim=plim_tab[sblck-1];
+    if(psz>plim)
+        psz=plim;
+
+    return (512UL<<psz);
+}
+
 
 bool CSamNVMCTRL::EraseBlock(unsigned int nBlock)
 {

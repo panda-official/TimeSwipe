@@ -16,9 +16,9 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <stdint.h>
 #include <memory>
+#include "Pin.h"
 #include "DAC.h"
 #include "PWM.h"
-#include "ADmux.h"
 #include "SamCLK.h"
 #include "SamTC.h"
 #include "SamDMAC.h"
@@ -58,9 +58,9 @@ protected:
     PWM m_nPWM;
 
     /*!
-     * \brief The pointer to the board's multiplexer
+     * \brief The pointer to the DAC mode switcher
      */
-    std::shared_ptr<CADmux>  m_pMUX;
+    std::shared_ptr<CPin>  m_pDACsw;
 
     /*!
      * \brief The 16-bit variable holding the HighLevel of PWM output to be mapped onto the DAC by the DMA
@@ -118,6 +118,6 @@ protected:
 
 
 public:
-    CDacPWMht(PWM nPWM, const std::shared_ptr<CADmux>  &pMUX, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
+    CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
 };
 

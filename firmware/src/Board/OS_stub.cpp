@@ -17,4 +17,26 @@ void wait(unsigned long time_mS)
 	unsigned long start_time=get_tick_mS();
 	while( (get_tick_mS()-start_time)<time_mS ){ asm("nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;"); }
 }
+
+void uwait(unsigned long time_uS)
+{
+    for(unsigned long t=0; t<time_uS; t++)
+    {
+        //1us @120MHZ
+        asm("nop; nop; nop; nop; nop; nop; nop; nop;" //80ns
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop; nop; nop; nop; nop;"
+            "nop; nop; nop; nop;");
+    }
+}
+
 }

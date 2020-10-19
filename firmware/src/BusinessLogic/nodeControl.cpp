@@ -9,38 +9,39 @@ Copyright (c) 2019 Panda Team
 #include "DataVis.h"
 
 
-std::shared_ptr<CADmux>  nodeControl::m_pMUX;
-std::shared_ptr<CCalMan> nodeControl::m_pZeroCal;
-
-static bool brecord=false;
-static std::vector<CDataVis>  m_DataVis;
-nodeControl::MesModes nodeControl::m_OpMode=nodeControl::IEPE;
-
-
-float nodeControl::m_Voltage=0;
-float nodeControl::m_Current=0;
-float nodeControl::m_MaxCurrent=1000;  //mA
-
 nodeControl::nodeControl()
 {
-    m_DataVis.reserve(4);
+    m_pMesChans.reserve(4);
 }
 
-void nodeControl::CreateDataVis(const std::shared_ptr<CAdc> &pADC, CView::vischan nCh)
+void nodeControl::Serialize(CStorage &st)
 {
-    m_DataVis.emplace_back(pADC, nCh);
+    m_OffsetSearch.Serialize(st);
+    if(st.IsDefaultSettingsOrder())
+    {
+        SetGain(1);
+        SetBridge(false);
+        SetSecondary(0);
+    }
+
+    st.ser(m_GainSetting).ser(m_BridgeSetting).ser(m_SecondarySetting);
+
+    if(st.IsDownloading())
+    {
+        SetGain(m_GainSetting);
+        SetBridge(m_BridgeSetting);
+        SetSecondary(m_SecondarySetting);
+    }
 }
+
 void nodeControl::Update()
 {
-    for(auto &el : m_DataVis) el.Update();
+    for(auto &el : m_pMesChans) el->Update();
 
-    Instance().m_PersistStorage.Update();
-
-    m_pZeroCal->Update();
+    m_PersistStorage.Update();
+    m_OffsetSearch.Update();
 }
-
-bool nodeControl::IsRecordStarted(){ return brecord;}
-void nodeControl::StartRecord(const bool how)
+void nodeControl::StartRecord(bool how)
 {
     //make a stamp:
     static unsigned long count_mark=0;
@@ -53,30 +54,41 @@ void nodeControl::StartRecord(const bool how)
 
 int nodeControl::gain_out(int val)
 {
-    typeADgain sgain=typeADgain::gainX1;
-     switch(val)
+    //update channels gain setting:
+    float gval=val;
+    m_GainSetting=val;
+    for(auto &el : m_pMesChans) el->SetAmpGain(gval);
+
+
+     //set old IEPE gain:
+     if(typeBoard::IEPEBoard==m_BoardType)
      {
-        case 2: sgain=typeADgain::gainX2; break;
-        case 3: sgain=typeADgain::gainX4; break;
-        case 4: sgain=typeADgain::gainX8;
+         int gset=val-1;
+         m_pGain1pin->Set(gset>>1);
+         m_pGain0pin->Set(gset&1);
      }
-     m_pMUX->SetGain(sgain);
-     int rv=(int)m_pMUX->GetGain();
+
 
      //generate an event:
-     nlohmann::json v=rv;
+     nlohmann::json v=val;
      Instance().Fire_on_event("Gain", v);
 
-     return rv;
+     return val;
 }
-int nodeControl::GetGain(){ return (int)m_pMUX->GetGain(); }
 bool nodeControl::GetBridge()
 {
-    return m_pMUX->GetUBRVoltage();
+    return m_BridgeSetting;
 }
 void nodeControl::SetBridge(bool how)
 {
-    m_pMUX->SetUBRvoltage(how);
+     m_BridgeSetting=how;
+
+     if(typeBoard::IEPEBoard!=m_BoardType)
+     {
+        assert(m_pUBRswitch);
+        m_pUBRswitch->Set(how);
+     }
+
 
     //generate an event:
     nlohmann::json v=how;
@@ -87,57 +99,63 @@ void nodeControl::SetSecondary(int nMode)
 {
     nMode&=1; //fit the value
 
-    m_pMUX->SetUBRvoltage(nMode);
-
-    //generate an event:
-    nlohmann::json v=nMode;
-    Instance().Fire_on_event("SetSecondary", v);
-
+    m_SecondarySetting=nMode;
 }
 int nodeControl::GetSecondary()
 {
-    return m_pMUX->GetUBRVoltage();
+    return m_SecondarySetting;
 }
 
 
 void nodeControl::SetMode(int nMode)
 {
-    m_pMUX->SetUBRvoltage(nMode ? true:false);
-
     m_OpMode=static_cast<MesModes>(nMode);
     if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
-    if(m_OpMode>MesModes::Digital){ m_OpMode=MesModes::Digital; }
+    if(m_OpMode>MesModes::Normsignal){ m_OpMode=MesModes::Normsignal; }
 
+
+    if(typeBoard::IEPEBoard==m_BoardType) //old IEPE board setting
+    {
+        //SetBridge(m_OpMode);
+        assert(m_pUBRswitch);
+        m_pUBRswitch->Set(MesModes::IEPE==m_OpMode ? true:false);
+    }
+
+    //switch all channels to IEPE:
+    for(auto &el : m_pMesChans) el->IEPEon(MesModes::IEPE==m_OpMode);
+
+    SetSecondary(m_OpMode);
 
     //generate an event:
+
     nlohmann::json v=nMode;
     Instance().Fire_on_event("Mode", v);
-
 }
 int nodeControl::GetMode()
 {
-    return static_cast<int>(m_OpMode);
+    return m_OpMode;
 }
+
 
 void nodeControl::SetOffset(int nOffs)
 {
     switch(nOffs)
     {
         case 1: //negative
-            m_pZeroCal->Start(4000);
+            m_OffsetSearch.Start(4000);
         break;
 
         case 2: //zero
-            m_pZeroCal->Start();
+            m_OffsetSearch.Start();
         break;
 
         case 3: //positive
-            m_pZeroCal->Start(100);
+            m_OffsetSearch.Start(100);
         break;
 
         default:
             nOffs=0;
-            m_pZeroCal->StopReset();
+            m_OffsetSearch.StopReset();
         return;
     }
 

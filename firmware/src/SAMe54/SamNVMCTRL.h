@@ -29,6 +29,12 @@ protected:
      */
     unsigned int m_nSmartEEPROMsize;
 
+    /*!
+     * \brief Obtains the current size of the SmartEEPROM from SEESTAT.PSZ & SEESTAT.SBLK
+     * \return the current size of SmartEEPROM in bytes
+     */
+    unsigned int ObtainSmartEEPROMsize();
+
 public:
 
     /*!

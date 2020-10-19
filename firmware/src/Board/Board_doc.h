@@ -4,16 +4,17 @@
  *  
  * \page Board_page Board
  *
- * This directory contains board's hardware specific components:
+ * This directory contains board's interfaces and hardware specific components:
  *
- * CADmux - The board's digital multiplexer that implements hardware-dependent realization of
- * setting gain, bridge voltage, enabling ADC measurements and so on.
- * So it provides hardware-dependent realization for some of the nodeControl methods
+ * CMesChannel (aka CIEPEchannel) - provides basic board measurement channel functionality and IEPE channel by default
+ *
+ * CDMSchannel - provides measurement channel functionality of the DMS board
+ *
+ * CShiftRegPin - controls Shift Register of the DMS board to provide pins extension
+ *
+ * CPGA280 - PGA280 channel amplifier control of the DMS board
  *
  * CDac5715sa - a class for controlling board-integrated 4-channel DAC chip.
- *
- * CDACdecor  - a pseudo-decorator class providing CDac-looking methods for overriding DAC behavior depending on CADmux DAC mode
- * (whether to use amplifier outputs for board analog outputs 3/4 or internal SAME54 DACs)
  *
  * CPinButton - an implementation of a button which uses digital pin state as an input signal with a debouncing code.
  *
@@ -32,6 +33,9 @@
  * CFanControlSimple - the class implements simple control of fan in ON/OFF mode
  * 
  * CRawBinStorage - provides a mechanism for persistent storing all board settings in the SmartEEPROM
+ *
+ * CSPIcomm - provides functionality for external communication via SPI with integrated flow-control (CSyncSerComFSM)
+ *
  */
  
  

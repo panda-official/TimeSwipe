@@ -58,8 +58,22 @@ void CFrmStream::get(void *pVar, const std::type_info &ti)
 
     if(ti==typeid(bool))
     {
-        bool bres=std::stoi(str) ? true:false;
-         *(static_cast<bool*>(pVar))=bres;
+        /*bool bres=std::stoi(str) ? true:false;
+         *(static_cast<bool*>(pVar))=bres;*/
+
+        bool bres=false;
+        if(str.length()>0)
+        {
+            if(std::isdigit(str[0]))
+            {
+                bres=str[0]-0x30;
+            }
+            else
+            {
+                bres=(str=="True" || str=="true");
+            }
+        }
+        *(static_cast<bool*>(pVar))=bres;
     }
     else if(ti==typeid(int))
     {

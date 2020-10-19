@@ -7,9 +7,28 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-// #define BCM2708_PERI_BASE        0x20000000
-#define BCM2708_PERI_BASE        0x3F000000
-#define GPIO_BASE                (BCM2708_PERI_BASE + 0x200000) /* GPIO controller */
+/*! On all recent OSs, the base of the peripherals is read from a /proc file */
+#define BMC2835_RPI2_DT_FILENAME "/proc/device-tree/soc/ranges"
+
+/*! Physical addresses for various peripheral register sets
+  Base Physical Address of the BCM 2835 peripheral registers
+  Note this is different for the RPi2 BCM2836, where this is derived from /proc/device-tree/soc/ranges
+  If /proc/device-tree/soc/ranges exists on a RPi 1 OS, it would be expected to contain the
+  following numbers:
+*/
+/*! Peripherals block base address on RPi 1 */
+#define BCM2835_PERI_BASE               0x20000000
+/*! Size of the peripherals block on RPi 1 */
+#define BCM2835_PERI_SIZE               0x01000000
+/*! Alternate base address for RPI  2 / 3 */
+#define BCM2835_RPI2_PERI_BASE          0x3F000000
+/*! Alternate base address for RPI  4 */
+#define BCM2835_RPI4_PERI_BASE          0xFE000000
+/*! Alternate size for RPI  4 */
+#define BCM2835_RPI4_PERI_SIZE          0x01800000
+
+/*! Base Address of the GPIO registers */
+#define BCM2835_GPIO_BASE               0x200000
 
 #define PAGE_SIZE (4*1024)
 #define BLOCK_SIZE (4*1024)

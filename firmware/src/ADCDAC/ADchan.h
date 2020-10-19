@@ -173,4 +173,10 @@ public:
               m_b=min;
               m_k=(max-min)/m_IntRange;
           }
+
+          inline void SetLinearFactors(float k, float b)
+          {
+              m_k=k;
+              m_b=b;
+          }
 };

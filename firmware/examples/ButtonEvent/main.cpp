@@ -197,7 +197,10 @@ int main(void)
 
         //--------------------menu+button-----------------------
         auto pMenu=std::make_shared<CButtonLogic>();
-        SAMButton button(*pMenu);
+        //SAMButton button;
+        //button.AdviseSink(pMenu);
+
+        SAMButton::Instance().AdviseSink(pMenu);
 
         //------------------JSON 10.06.2019---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -206,7 +209,7 @@ int main(void)
         //------------------EVENTS 14.06.2019-------------------
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp); //14.08.2019 - removed event pin
         pDisp->Add("je", pJE);
-        button.AdviseSink(pJE);
+   //     button.AdviseSink(pJE);
         pMenu->AdviseSink(pJE);
         /*pMenu->AdviseSink(nodeControl::Instance().shared_from_this()); //18.07.2019
         nodeControl::Instance().AdviseSink(pJE);
@@ -229,7 +232,8 @@ int main(void)
              nodeLED::Update();
 
              //upd button:
-             button.update();
+             //button.update();
+             SAMButton::Instance().update();
 
              pSPIsc2->Update();
         }

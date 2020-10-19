@@ -72,12 +72,12 @@ public:
         /**
           * \brief returns true when pressed and false if released
           */
-        bool pressed();
+        bool pressed() const;
         /**
           * \brief returns press/release counter,
           * odd value is pressed, even value is released
           */
-        unsigned count();
+        unsigned count() const;
     private:
         bool _pressed;
         unsigned _count;
@@ -93,7 +93,7 @@ public:
         /**
           * \brief returns Gain value as number
           */
-        int value();
+        int value() const;
     private:
         int _value;
     };
@@ -108,7 +108,7 @@ public:
         /**
           * \brief returns SetSecondary value as number
           */
-        int value();
+        int value() const;
     private:
         int _value;
     };
@@ -123,7 +123,7 @@ public:
         /**
           * \brief returns Bridge value as number
           */
-        int value();
+        int value() const;
     private:
         int _value;
     };
@@ -139,7 +139,7 @@ public:
         /**
           * \brief returns Record value as number
           */
-        int value();
+        int value() const;
     private:
         int _value;
     };
@@ -154,7 +154,7 @@ public:
         /**
           * \brief returns Offset value as number
           */
-        int value();
+        int value() const;
     private:
         int _value;
     };
@@ -169,7 +169,7 @@ public:
         /**
           * \brief returns Mode value as number
           */
-        int value();
+        int value() const;
     private:
         int _value;
     };
@@ -188,8 +188,13 @@ public:
 
     TimeSwipeEvent();
     ~TimeSwipeEvent();
+
     template <class EVENT>
     TimeSwipeEvent(EVENT&& ev);
+
+    template <class EVENT>
+    TimeSwipeEvent(const EVENT& ev);
+
     TimeSwipeEvent(TimeSwipeEvent&& ev) = default;
     TimeSwipeEvent(const TimeSwipeEvent& ev) = default;
     TimeSwipeEvent& operator=(const TimeSwipeEvent&) = default;
@@ -269,18 +274,6 @@ public:
      * @param trans4
      */
     void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
-
-    /**
-     * \brief Initialize sensors
-     *
-     * This method is all-in-one replacement for @ref SetBridge @ref SetSensorOffsets @ref SetSensorGains @ref SetSensorTransmissions
-     *
-     * @param bridge - bridge number
-     * @param offsets - sensor offsets @ref SetSensorOffsets
-     * @param gains - sensor gains @ref SetSensorGains
-     * @param transmissions - sensor transmissions - @ref SetSensorTransmissions
-     */
-    void Init(int bridge, int offsets[4], float gains[4], float transmissions[4]);
 
     /**
      * \brief Start PWM generator
@@ -381,13 +374,13 @@ public:
      */
     std::string GetSettings(const std::string& request, std::string& error);
 
-    using OnEventCallback = std::function<void(const TimeSwipeEvent& event)>;
+    using OnEventCallback = std::function<void(TimeSwipeEvent&& event)>;
     /**
-     * \brief Register callback for button pressed/released
+     * \brief Register callback for event
      *
      * onEvent must be called before @ref Start called, otherwise register fails
      *
-     * @param cb callback called with true when button pressed and with false when button released, button counter (odd - pressed, even - released)
+     * @param cb callback called with event received
      * @return false if register callback failed, true otherwise
      */
     bool onEvent(OnEventCallback cb);

@@ -16,6 +16,8 @@
  * The service interface of the operating system is described in the ::os
  * 
  * The interface for a persistent data storage and objects serialization interface are described in CStorage and ISerialize classes
+ *
+ * The generic pin control interface is declared in CPin class
  */
  
  
