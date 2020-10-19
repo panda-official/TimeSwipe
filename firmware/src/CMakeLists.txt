@@ -5,7 +5,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-SET(TARGET_NAME "firmware.elf")
+SET(TARGET_NAME "calibration_firmware.elf")
 
 option(DMS "Whether build firmware for the DMS board" ON)
 
@@ -22,6 +22,9 @@ SET(CMAKE_CXX_FLAGS "-Wno-psabi")
 
 #enabling langs inside:
 project(firmware C CXX ASM)
+
+#calibration station:
+add_compile_definitions(CALIBRATION_STATION)
 
 #override JSON formatting:
 add_compile_definitions(NLOHMANN_JSON_CUSTOM_STDIO_FRM)
@@ -43,7 +46,7 @@ add_subdirectory(CortexMX)
 add_subdirectory(SAMe54)
 
 
-add_executable(${TARGET_NAME}  CalFW.cpp ${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/startup_ARMCM4.S)
+add_executable(${TARGET_NAME}  main.cpp ${PATH_FIRMWARE}/../3rdParty/prj_templ/Custom/startup_ARMCM4.S)
 
 target_include_directories(${TARGET_NAME} PUBLIC Interfaces)
 target_include_directories(${TARGET_NAME} PUBLIC ADCDAC)

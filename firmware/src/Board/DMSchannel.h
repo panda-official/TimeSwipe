@@ -78,10 +78,11 @@ public:
      * \param nCh  - the visualization index of the channel
      * \param pIEPEswitch - the pointer to the IEPE switch pin
      * \param pPGA - the pointer to the PGA280 amplifier control instance
+     * \param bVisEnabled - The visualisation enable flag
      */
     CDMSchannel(const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh,
-                const std::shared_ptr<CPin> &pIEPEswitch, const std::shared_ptr<CPGA280> &pPGA) :
-        CMesChannel(pADC,  pDAC, nCh)
+                const std::shared_ptr<CPin> &pIEPEswitch, const std::shared_ptr<CPGA280> &pPGA, bool bVisEnabled) :
+        CMesChannel(pADC,  pDAC, nCh, bVisEnabled)
     {
         m_pIEPEswitch=pIEPEswitch;
         m_pPGA=pPGA;

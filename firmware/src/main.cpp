@@ -25,6 +25,7 @@ Copyright (c) 2019 Panda Team
 
 #include "NewMenu.h"
 #include "SAMbutton.h"
+#include "CalFWbtnHandler.h"
 #include "nodeLED.h"
 #include "View.h"
 #include "nodeControl.h"
@@ -64,7 +65,19 @@ int sys_clock_init(void);
 
 int main(void)
 {
-        auto pVersion=std::make_shared<CSemVer>(0,0,15);
+#ifdef CALIBRATION_STATION
+        bool bVisEnabled=false;
+#else
+        bool bVisEnabled=true;
+#endif
+
+#ifdef DMS_BOARD
+        typeBoard ThisBoard=typeBoard::DMSBoard;
+#else
+        typeBoard ThisBoard=typeBoard::IEPEBoard;
+#endif
+
+        auto pVersion=std::make_shared<CSemVer>(0,0,16);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
@@ -119,11 +132,6 @@ int main(void)
 
 
         //setup pins:
-#ifdef DMS_BOARD
-        typeBoard ThisBoard=typeBoard::DMSBoard;
-#else
-        typeBoard ThisBoard=typeBoard::IEPEBoard;
-#endif
         const int nChannels=4;
 
         nodeControl &nc=nodeControl::Instance();
@@ -235,7 +243,7 @@ int main(void)
                 auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
                 auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-                nc.AddMesChannel( std::make_shared<CDMSchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280) );
+                nc.AddMesChannel( std::make_shared<CDMSchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
 #ifdef DMS_TEST_MODE
 
                 //add commands to each:
@@ -254,7 +262,7 @@ int main(void)
         {
             for(int i=0; i<nChannels; i++)
             {
-                nc.AddMesChannel( std::make_shared<CIEPEchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i)) );
+                nc.AddMesChannel( std::make_shared<CIEPEchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled) );
             }
         }
 
@@ -284,6 +292,16 @@ int main(void)
         auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
         pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );
         auto pFanControl=std::make_shared<CFanControlSimple>(pTempSens, CSamPORT::group::A, CSamPORT::pin::P09);
+
+        //button:
+#ifdef CALIBRATION_STATION
+        auto pBtnHandler=std::make_shared<CCalFWbtnHandler>();
+#else
+        auto pBtnHandler=std::make_shared<CNewMenu>();
+#endif
+
+        SAMButton &button=SAMButton::Instance();
+        button.AdviseSink( pBtnHandler );
 
 
         //---------------------------------------------------command system------------------------------------------------------
@@ -322,9 +340,12 @@ int main(void)
         pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsFanStarted,  &nodeControl::StartFan) );
 
+#ifdef CALIBRATION_STATION
+        pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
+                                                                                       &CCalFWbtnHandler::HasUItestBeenDone,
+                                                                                       &CCalFWbtnHandler::StartUItest) );
+#endif
 
-        SAMButton &button=SAMButton::Instance();
-        button.AdviseSink( std::make_shared<CNewMenu>() );
 
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -342,7 +363,9 @@ int main(void)
         CView &view=CView::Instance();
         nc.LoadSettings();
         nc.SetMode(0); //set default mode
+#ifndef CALIBRATION_STATION
         view.BlinkAtStart();
+#endif
 
         while(1) //endless loop ("super loop")
         {
