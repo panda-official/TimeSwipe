@@ -182,6 +182,24 @@ public:
         m_pDAC=pDAC;
         m_bVisEnabled=bVisEnabled;
     }
+
+    /*!
+     * \brief Sets the color of the channel's  LED
+     * \param Clr A color to set
+     */
+    void SetColor(typeLEDcol col){
+
+        CView::Instance().GetChannel(m_VisChan.GetVisChannel()).SetColor(col);
+    }
+
+    /*!
+     * \brief Returns setpoint color of the channel's LED
+     * \return setpoint color of the LED
+     */
+    typeLEDcol GetColor(){
+
+        return CView::Instance().GetChannel(m_VisChan.GetVisChannel()).GetColor();
+    }
 };
 
 typedef CMesChannel CIEPEchannel;

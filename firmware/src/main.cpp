@@ -65,6 +65,8 @@ int sys_clock_init(void);
 
 int main(void)
 {
+        const int nChannels=4;
+
 #ifdef CALIBRATION_STATION
         bool bVisEnabled=false;
 #else
@@ -130,9 +132,6 @@ int main(void)
         auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
         pSPIsc2->AdviseSink(pStdPort);
 
-
-        //setup pins:
-        const int nChannels=4;
 
         nodeControl &nc=nodeControl::Instance();
         nc.SetBoardType(ThisBoard);
@@ -318,6 +317,12 @@ int main(void)
             pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, float> >(pCH, &CMesChannel::GetActualAmpGain, &CMesChannel::SetAmpGain) );
             std::sprintf(cmd, "CH%d.iepe", nInd);
             pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, bool> >(pCH, &CMesChannel::IsIEPEon, &CMesChannel::IEPEon) );
+
+#ifdef CALIBRATION_STATION
+            std::sprintf(cmd, "CH%d.clr", nInd);
+            pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, typeLEDcol> >(pCH, &CMesChannel::GetColor, &CMesChannel::SetColor) );
+#endif
+
         }
 
 
@@ -340,6 +345,8 @@ int main(void)
         pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsFanStarted,  &nodeControl::StartFan) );
 
+
+        CView &view=CView::Instance();
 #ifdef CALIBRATION_STATION
         pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
                                                                                        &CCalFWbtnHandler::HasUItestBeenDone,
@@ -359,8 +366,6 @@ int main(void)
         //--------------------------------------------------------------------------------------------------------------
 
 
-
-        CView &view=CView::Instance();
         nc.LoadSettings();
         nc.SetMode(0); //set default mode
 #ifndef CALIBRATION_STATION

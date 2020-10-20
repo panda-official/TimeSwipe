@@ -72,6 +72,14 @@ public:
         bool IsButtonLEDon();
 
         /*!
+         * \brief Toggles the button LED (ON->OFF, OFF->ON)
+         */
+        void ToggleButtonLED(){
+
+            TurnButtonLED(!IsButtonLEDon());
+        }
+
+        /*!
          * \brief The current view access interface
          * \return The current view
          */

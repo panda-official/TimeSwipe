@@ -97,6 +97,19 @@ public:
      * \brief Sets "Searching offset error" view for the channel
      */
     void SetZeroSearchErrorMark();
+
+    //Testing API:
+    /*!
+     * \brief Sets the color of the channel's  LED
+     * \param Clr A color to set
+     */
+    void SetColor(typeLEDcol col);
+
+    /*!
+     * \brief Returns setpoint color of the channel's LED
+     * \return setpoint color of the LED
+     */
+    typeLEDcol GetColor();
 };
 
 
@@ -440,11 +453,10 @@ protected:
      */
     bool m_bCalUItestDone;
 
+    void CalUItest_stepLEDsRed();
     void CalUItest_stepLEDsGreen();
     void CalUItest_stepLEDsBlue();
-    void CalUItest_stepButtonLEDon();
-    void CalUItest_stepButtonLEDoff();
-    void CalUItest_stepAwaitUserBreak();
+    bool CalUItest_IsBroken();
 
 
 public:
