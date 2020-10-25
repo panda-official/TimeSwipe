@@ -11,7 +11,10 @@ Copyright (c) 2019 Panda Team
 #include "SPI.h"
 #include "SyncCom.h"
 
-class CBcmLIB //a lib wrapper
+/*!
+ * \brief The BCM2835 library wrapper
+ */
+class CBcmLIB
 {
 protected:
     static bool m_bLibInitialized;
@@ -36,14 +39,15 @@ public:
 
 };
 
+/*!
+ * \brief The CBcmSPI - provides basic SPI communication interface for the TimeSwipe board
+ */
 class CBcmSPI : public CSPI, public CBcmLIB
 {
 protected:
-    //bool  m_bInitialized=false;
-
     iSPI m_nSPI;
-
     CFIFO m_recFIFO;
+
 public:
     CSyncSerComFSM m_ComCntr;
 

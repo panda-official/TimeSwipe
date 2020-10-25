@@ -142,7 +142,8 @@ bool CBcmSPI::send(CFIFO &msg)
 
     //flow control:
     typeSChar ch=0;
-    m_ComCntr.start(CSyncSerComFSM::FSM::sendLengthMSB);
+    //m_ComCntr.start(CSyncSerComFSM::FSM::sendLengthMSB);
+    m_ComCntr.start(CSyncSerComFSM::FSM::sendSilenceFrame);
     while(m_ComCntr.proc(ch, msg))
     {
        SPItransfer(ch);

@@ -44,6 +44,9 @@ public:
         sendLengthMSB,      //!<send a most significant byte of a message length to a destination device
         sendLengthLSB,      //!<send a least significant byte of a message length to a destination device
         sendBody,           //!<send message of given length to a destination device
+        sendCsMSB,          //!<send a most significant byte of a message CRC16 to a destination device
+        sendCsLSB,          //!<send a least significant byte of a message CRC16 to a destination device
+
         sendOK,             //!<sending operation was successfully finished
 
         //receiving:
@@ -51,11 +54,14 @@ public:
         recLengthMSB,       //!<receive a most significant byte of a message length from a destination device
         recLengthLSB,       //!<receive a least significant byte of a message length from a destination device
         recBody,            //!<receive message of given length from a destination device
+        recCsMSB,           //!<receive a most significant byte of a message CRC16 from a destination device
+        recCsLSB,           //!<receive a least significant byte of a message CRC16 from a destination device
         recOK,              //!<receiving operation was successfully finished
 
         //errors:
         errLine,            //!<a silence frame was disrupted (the byte other than zero was received during the silence frame)
-        errTimeout          //!<a message length bytes were not received after the silence frame
+        errTimeout,         //!<a message length bytes were not received after the silence frame
+        errCs               //!<a checksumm error
     };
 
 protected:
@@ -74,6 +80,42 @@ protected:
      * \brief Obtained message length
      */
     int    m_TargetLength=0;
+
+    /*!
+     * \brief Cashed checksumm value;
+     */
+    uint16_t m_tCS;
+
+    /*!
+     * \brief Calculates 16-bit checksum based on 0xa001 polynom
+     * \param pstr - the pointer to the message
+     * \param count - the message length
+     * \return 16-bit checksum value
+     */
+    uint16_t cs_hash(const char *pstr, int count) const
+    {
+        int n;
+        unsigned short carry, next, crc =0xffff;
+
+            while (count--)
+            {	next = (unsigned char)*pstr;
+                crc ^= next;
+                for(n=0;n<8;n++)
+                {	carry = (unsigned short) (crc & 1);
+                    crc >>= 1;
+                    if (carry)
+                        crc ^= 0xa001;
+                }	// for
+                pstr++;
+            }	// while
+            return crc;
+    }
+    template <typename typeFIFO>
+    uint16_t cs_hash(const typeFIFO &msg)
+    {
+        return cs_hash(msg.data(), msg.in_avail());
+    }
+
 
 public:
     /*!
@@ -98,6 +140,7 @@ public:
      */
     inline FSM get_state(){return  m_PState;}
 
+
     /*!
      * \brief Force execution of SPI flow-control.
      * \param ch In case of sending message operation: a character to send to SPI bus generated on flow-control logic and message
@@ -115,12 +158,18 @@ public:
 
            //sending:
            case FSM::sendSilenceFrame:
+            {
+               //pre-calc CS here:
+               msg.rewind();
+               m_tCS=cs_hash(msg);
+
                ch=0;
                if(m_FrameCnt++>3)
                {
                    m_FrameCnt=0;
                    m_PState=FSM::sendLengthMSB;
                }
+             }
            return true;
 
 
@@ -138,11 +187,18 @@ public:
 
            case FSM::sendBody:
                if(0==msg.in_avail())
-               {
-                   m_PState=FSM::sendOK;
-                   return false;
+               {   
+                   ch=m_tCS>>8;
+                   m_PState=FSM::sendCsLSB;
+                   return true;
                }
                msg>>ch;
+           return true;
+
+
+           case FSM::sendCsLSB:
+                ch=m_tCS&0xff;
+                m_PState=FSM::sendOK;
            return true;
 
 
@@ -190,11 +246,23 @@ public:
                msg<<ch;
                if(msg.in_avail()>=m_TargetLength)
                {
-                   m_PState=FSM::recOK;
-                   return false;
+                   m_PState=FSM::recCsMSB;
+                   return true;
                }
            return true;
 
+           case FSM::recCsMSB:
+                m_tCS=ch;
+                m_PState=FSM::recCsLSB;
+           return true;
+
+           case FSM::recCsLSB:
+                if( cs_hash(msg) == ((m_tCS<<8)|ch )  )
+                    m_PState=FSM::recOK;
+                else
+                    m_PState=FSM::errCs;
+
+           return false;
 
            default: return false;
 

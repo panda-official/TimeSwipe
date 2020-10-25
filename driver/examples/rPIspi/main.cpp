@@ -81,6 +81,9 @@ int main ( int argc, char *argv[] )
 							case CSyncSerComFSM::errTimeout:
 								std::cout << "!Timeout_err!";
 								break;
+                            case CSyncSerComFSM::errCs:
+                                std::cout << "!CRC_err!";
+                                break;
 						}
 					}
 					cout<<std::endl<<"->"<<std::endl;

@@ -160,6 +160,8 @@ public:
          * \brief restore all elements that have been exctracted form the bufer by >> extraction operator
          */
         inline void rewind(){ m_ReadInd=0; }
+
+        const char *data() const { return m_pBuf; }
 };
 
 
