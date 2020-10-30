@@ -225,6 +225,30 @@ public:
         Digital
     };
 
+    /** @enum TimeSwipe::Channels
+     *
+     * \brief Board channel index
+     *
+     */
+    enum class Channel : int {
+        CH1,
+        CH2,
+        CH3,
+        CH4
+    };
+
+    /** @enum TimeSwipe::ChannelMesMode
+     *
+     * @brief The channel measurement mode
+     *
+     */
+    enum class ChannelMesMode : int {
+
+        Voltage,
+        Current
+    };
+
+
     /**
      * \brief Setup hardware mode
      *
@@ -315,6 +339,75 @@ public:
      */
 
     bool GetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
+
+
+    /**
+     * @brief Sets the channel measurement mode: Voltage or Current
+     * @param[in] nCh - the channel to be set
+     * @param[in] nMode - the measurement mode: Voltage or Current
+     *
+     * @return true on operation success, false otherwise
+     */
+    bool SetChannelMode(Channel nCh, ChannelMesMode nMode);
+
+
+    /**
+     * @brief Requests the channel measurement mode
+     * @param[in] nCh - the channel to be requested
+     * @param[out] nMode - the actual measurement mode: Voltage or Current
+     *
+     * @return true on operation success, false otherwise
+     */
+    bool GetChannelMode(Channel nCh, ChannelMesMode &nMode);
+
+
+    /**
+     * @brief Sets the channel gain value
+     * @details Sets the gain value in the range [1/8 : 128*1.375].
+     *  If the value doesn't correspond to available gain it will be fitted to the closest available gain
+     *
+     * @param[in] nCh - the channel to be set
+     * @param[in] Gain - the gain value to be set
+     *
+     * @return true on operation success, false otherwise
+     */
+    bool SetChannelGain(Channel nCh, float Gain);
+
+
+    /**
+     * @brief Requests the channel gain value
+     *
+     * @param[in] nCh - the channel to be requested
+     * @param[out] Gain - the actual gain of the channel
+     *
+     * @return true on operation success, false otherwise
+     */
+    bool GetChannelGain(Channel nCh, float &Gain);
+
+
+    /**
+     * @brief Switches channel IEPE mode ON/OFF
+     *
+     * @param[in] nCh - the channel to be set
+     * @param[in] bIEPEon - the state of the IEPE switch to be set
+     *
+     * @return true on operation success, false otherwise
+     */
+    bool SetChannelIEPE(Channel nCh, bool bIEPEon);
+
+
+    /**
+     * @brief Requests the channel IEPE mode
+     *
+     * @param[in] nCh - the channel to be requested
+     * @param[out] bIEPEon - the actual state of the IEPE switch
+     *
+     * @return true on operation success, false otherwise
+     */
+    bool GetChannelIEPE(Channel nCh, bool &bIEPEon);
+
+
+
 
     /**
      * \brief Setup Burst buffer size
