@@ -80,6 +80,16 @@ Public Types</h2></td></tr>
 <b>Digital</b>
  }</td></tr>
 <tr class="separator:a7b429a83b9753b0e5c885b96f48e3e74"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6dcf984644e49df202ca8a2fd607f9c3"><td class="memItemLeft" align="right" valign="top"><a id="a6dcf984644e49df202ca8a2fd607f9c3"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>Channel</b> : int { <b>CH1</b>, 
+<b>CH2</b>, 
+<b>CH3</b>, 
+<b>CH4</b>
+ }</td></tr>
+<tr class="separator:a6dcf984644e49df202ca8a2fd607f9c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18c7baf1db89f49f9b034037fe9f308e"><td class="memItemLeft" align="right" valign="top"><a id="a18c7baf1db89f49f9b034037fe9f308e"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>ChannelMesMode</b> : int { <b>Voltage</b>, 
+<b>Current</b>
+ }</td></tr>
+<tr class="separator:a18c7baf1db89f49f9b034037fe9f308e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41fe6c3e9102c59c6ff3e0bf5ba5cc23"><td class="memItemLeft" align="right" valign="top"><a id="a41fe6c3e9102c59c6ff3e0bf5ba5cc23"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a41fe6c3e9102c59c6ff3e0bf5ba5cc23">ReadCallback</a> = std::function&lt; void(<a class="el" href="classSensorsData.html">SensorsData</a>, uint64_t errors)&gt;</td></tr>
 <tr class="memdesc:a41fe6c3e9102c59c6ff3e0bf5ba5cc23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sensors callback function pointer. <br /></td></tr>
@@ -120,6 +130,24 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af1938a1a0152ec33f6451ae62f8a7852"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#af1938a1a0152ec33f6451ae62f8a7852">GetPWM</a> (uint8_t num, bool &amp;active, uint32_t &amp;frequency, uint32_t &amp;high, uint32_t &amp;low, uint32_t &amp;repeats, float &amp;duty_cycle)</td></tr>
 <tr class="memdesc:af1938a1a0152ec33f6451ae62f8a7852"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PWM generator state if it is in a Start state Method can be called in any time.  <a href="classTimeSwipe.html#af1938a1a0152ec33f6451ae62f8a7852">More...</a><br /></td></tr>
 <tr class="separator:af1938a1a0152ec33f6451ae62f8a7852"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9551786ec55aca7c8b9d12ae35165d16"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a9551786ec55aca7c8b9d12ae35165d16">SetChannelMode</a> (Channel nCh, ChannelMesMode nMode)</td></tr>
+<tr class="memdesc:a9551786ec55aca7c8b9d12ae35165d16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the channel measurement mode: Voltage or Current.  <a href="classTimeSwipe.html#a9551786ec55aca7c8b9d12ae35165d16">More...</a><br /></td></tr>
+<tr class="separator:a9551786ec55aca7c8b9d12ae35165d16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59b40056bb199191f8215116fbdb24a2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2">GetChannelMode</a> (Channel nCh, ChannelMesMode &amp;nMode)</td></tr>
+<tr class="memdesc:a59b40056bb199191f8215116fbdb24a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requests the channel measurement mode.  <a href="classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2">More...</a><br /></td></tr>
+<tr class="separator:a59b40056bb199191f8215116fbdb24a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba609ad5adf2bde595af8ff71fd2d67d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#aba609ad5adf2bde595af8ff71fd2d67d">SetChannelGain</a> (Channel nCh, float Gain)</td></tr>
+<tr class="memdesc:aba609ad5adf2bde595af8ff71fd2d67d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the channel gain value.  <a href="classTimeSwipe.html#aba609ad5adf2bde595af8ff71fd2d67d">More...</a><br /></td></tr>
+<tr class="separator:aba609ad5adf2bde595af8ff71fd2d67d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a507544efad9cb78a65cafeb0ecc9176d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a507544efad9cb78a65cafeb0ecc9176d">GetChannelGain</a> (Channel nCh, float &amp;Gain)</td></tr>
+<tr class="memdesc:a507544efad9cb78a65cafeb0ecc9176d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requests the channel gain value.  <a href="classTimeSwipe.html#a507544efad9cb78a65cafeb0ecc9176d">More...</a><br /></td></tr>
+<tr class="separator:a507544efad9cb78a65cafeb0ecc9176d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f0aa2b8d7384fbb20705629791419a4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a5f0aa2b8d7384fbb20705629791419a4">SetChannelIEPE</a> (Channel nCh, bool bIEPEon)</td></tr>
+<tr class="memdesc:a5f0aa2b8d7384fbb20705629791419a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Switches channel IEPE mode ON/OFF.  <a href="classTimeSwipe.html#a5f0aa2b8d7384fbb20705629791419a4">More...</a><br /></td></tr>
+<tr class="separator:a5f0aa2b8d7384fbb20705629791419a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f71a47d965561ac29054459a1fea515"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a8f71a47d965561ac29054459a1fea515">GetChannelIEPE</a> (Channel nCh, bool &amp;bIEPEon)</td></tr>
+<tr class="memdesc:a8f71a47d965561ac29054459a1fea515"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requests the channel IEPE mode.  <a href="classTimeSwipe.html#a8f71a47d965561ac29054459a1fea515">More...</a><br /></td></tr>
+<tr class="separator:a8f71a47d965561ac29054459a1fea515"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f89bfb031afdfb24fcab134b93bd84c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a7f89bfb031afdfb24fcab134b93bd84c">SetBurstSize</a> (size_t burstNum)</td></tr>
 <tr class="memdesc:a7f89bfb031afdfb24fcab134b93bd84c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setup Burst buffer size.  <a href="classTimeSwipe.html#a7f89bfb031afdfb24fcab134b93bd84c">More...</a><br /></td></tr>
 <tr class="separator:a7f89bfb031afdfb24fcab134b93bd84c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -157,6 +185,120 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>resample_log</
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classTimeSwipe.html">TimeSwipe</a> interface for Sensor </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a507544efad9cb78a65cafeb0ecc9176d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a507544efad9cb78a65cafeb0ecc9176d">&#9670;&nbsp;</a></span>GetChannelGain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TimeSwipe::GetChannelGain </td>
+          <td>(</td>
+          <td class="paramtype">Channel&#160;</td>
+          <td class="paramname"><em>nCh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float &amp;&#160;</td>
+          <td class="paramname"><em>Gain</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Requests the channel gain value. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">nCh</td><td>- the channel to be requested </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Gain</td><td>- the actual gain of the channel</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true on operation success, false otherwise </dd></dl>
+
+</div>
+</div>
+<a id="a8f71a47d965561ac29054459a1fea515"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f71a47d965561ac29054459a1fea515">&#9670;&nbsp;</a></span>GetChannelIEPE()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TimeSwipe::GetChannelIEPE </td>
+          <td>(</td>
+          <td class="paramtype">Channel&#160;</td>
+          <td class="paramname"><em>nCh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &amp;&#160;</td>
+          <td class="paramname"><em>bIEPEon</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Requests the channel IEPE mode. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">nCh</td><td>- the channel to be requested </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">bIEPEon</td><td>- the actual state of the IEPE switch</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true on operation success, false otherwise </dd></dl>
+
+</div>
+</div>
+<a id="a59b40056bb199191f8215116fbdb24a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59b40056bb199191f8215116fbdb24a2">&#9670;&nbsp;</a></span>GetChannelMode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TimeSwipe::GetChannelMode </td>
+          <td>(</td>
+          <td class="paramtype">Channel&#160;</td>
+          <td class="paramname"><em>nCh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ChannelMesMode &amp;&#160;</td>
+          <td class="paramname"><em>nMode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Requests the channel measurement mode. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">nCh</td><td>- the channel to be requested </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">nMode</td><td>- the actual measurement mode: Voltage or Current</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true on operation success, false otherwise </dd></dl>
+
+</div>
+</div>
 <a id="a4ec38ce521ee83910fa2ee9d2c6851d9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4ec38ce521ee83910fa2ee9d2c6851d9">&#9670;&nbsp;</a></span>GetMode()</h2>
 
@@ -363,6 +505,121 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>resample_log</
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="aba609ad5adf2bde595af8ff71fd2d67d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba609ad5adf2bde595af8ff71fd2d67d">&#9670;&nbsp;</a></span>SetChannelGain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TimeSwipe::SetChannelGain </td>
+          <td>(</td>
+          <td class="paramtype">Channel&#160;</td>
+          <td class="paramname"><em>nCh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>Gain</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the channel gain value. </p>
+<p>Sets the gain value in the range [1/8 : 128*1.375]. If the value doesn't correspond to available gain it will be fitted to the closest available gain</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">nCh</td><td>- the channel to be set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Gain</td><td>- the gain value to be set</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true on operation success, false otherwise </dd></dl>
+
+</div>
+</div>
+<a id="a5f0aa2b8d7384fbb20705629791419a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f0aa2b8d7384fbb20705629791419a4">&#9670;&nbsp;</a></span>SetChannelIEPE()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TimeSwipe::SetChannelIEPE </td>
+          <td>(</td>
+          <td class="paramtype">Channel&#160;</td>
+          <td class="paramname"><em>nCh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>bIEPEon</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Switches channel IEPE mode ON/OFF. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">nCh</td><td>- the channel to be set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bIEPEon</td><td>- the state of the IEPE switch to be set</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true on operation success, false otherwise </dd></dl>
+
+</div>
+</div>
+<a id="a9551786ec55aca7c8b9d12ae35165d16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9551786ec55aca7c8b9d12ae35165d16">&#9670;&nbsp;</a></span>SetChannelMode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TimeSwipe::SetChannelMode </td>
+          <td>(</td>
+          <td class="paramtype">Channel&#160;</td>
+          <td class="paramname"><em>nCh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ChannelMesMode&#160;</td>
+          <td class="paramname"><em>nMode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the channel measurement mode: Voltage or Current. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">nCh</td><td>- the channel to be set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nMode</td><td>- the measurement mode: Voltage or Current</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true on operation success, false otherwise </dd></dl>
 
 </div>
 </div>
