@@ -44,6 +44,11 @@ set(PANDA_BUILD_TESTS Off CACHE BOOL
 if (PANDA_BUILD_FIRMWARE)
   set(PANDA_BUILD_ARM On)
   set(PANDA_BUILD_ARM_BARE_METAL On)
+
+  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+      set(CMAKE_BUILD_TYPE "Release")
+  endif()
+
 endif()
 
 # ------------------------------------------------------------------------------
