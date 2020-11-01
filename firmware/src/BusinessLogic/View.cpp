@@ -6,6 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "View.h"
+#include "nodeControl.h"
 
 void CViewChannel::SelectVisMode(vismode nMode)
 {
@@ -57,6 +58,18 @@ void CViewChannel::SetZeroSearchErrorMark()
     m_LED.SetBlinkMode(false);
     m_LED.SetColor(CView::ERROR_COLOR);
 }
+
+void CViewChannel::SetColor(typeLEDcol col)
+{
+    m_LED.SetBlinkMode(false);
+    m_LED.SetColor(col);
+    m_LED.ON(col);
+}
+typeLEDcol CViewChannel::GetColor()
+{
+    return m_LED.GetColor();
+}
+
 
 void CView::ZeroSearchCompleted()
 {
@@ -153,6 +166,76 @@ void CView::SetButtonHeartbeat(bool how)
     m_ButtonLEDphaseBeginTime_mS=os::get_tick_mS();
     SAMButton::Instance().TurnButtonLED(how);
 }
+
+void CView::CalUItest()
+{
+    m_bBreakCalUItest=false;
+    m_bCalUItestDone=false;
+    SelectVisMode(CViewChannel::vismode::UI);
+
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor(LEDrgb(255, 0, 0));
+        m_Channels[i].m_LED.SetBlinkMode(false);
+    }
+    SetButtonHeartbeat(false);
+    nodeControl::Instance().StartFan(true);
+    CalUItest_stepLEDsRed();
+}
+
+bool CView::CalUItest_IsBroken()
+{
+    if(!m_bBreakCalUItest)
+        return false;
+
+    //stop fan here:
+    nodeControl::Instance().StartFan(false);
+    SAMButton::Instance().TurnButtonLED(false);
+
+    //exit proc:
+    m_bCalUItestDone=true;
+    SetDefaultModeAfter(0);
+    return true;
+}
+
+void CView::CalUItest_stepLEDsRed()
+{
+    if(CalUItest_IsBroken())
+        return;
+
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor(LEDrgb(255, 0, 0));
+    }
+    SAMButton::Instance().ToggleButtonLED();
+    Delay(1000, &CView::CalUItest_stepLEDsGreen);
+}
+
+void CView::CalUItest_stepLEDsGreen()
+{
+    if(CalUItest_IsBroken())
+        return;
+
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor(LEDrgb(0, 255, 0));
+    }
+    SAMButton::Instance().ToggleButtonLED();
+    Delay(1000, &CView::CalUItest_stepLEDsBlue);
+}
+void CView::CalUItest_stepLEDsBlue()
+{
+    if(CalUItest_IsBroken())
+        return;
+
+    for(unsigned int i=0; i<m_Channels.size(); i++)
+    {
+        m_Channels[i].m_LED.SetColor(LEDrgb(0, 0, 255));
+    }
+    SAMButton::Instance().ToggleButtonLED();
+    Delay(1000, &CView::CalUItest_stepLEDsRed);
+}
+
 
 void CView::Update()
 {

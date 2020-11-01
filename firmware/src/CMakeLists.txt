@@ -7,7 +7,16 @@ cmake_minimum_required(VERSION 3.1)
 
 message(DEPRECATION "This CMakeLists is deprecated. Please, use ${CMAKE_SOURCE_DIR}/CMakeLists.txt")
 
-SET(TARGET_NAME "firmware.elf")
+set(PANDA_BUILD_CALIBRATION_FIRMWARE Off CACHE BOOL
+  "Build calibration firmware?")
+
+if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+    SET(TARGET_NAME "calibration_firmware.elf")
+    add_compile_definitions(CALIBRATION_STATION)
+else()
+    SET(TARGET_NAME "firmware.elf")
+endif()
+
 
 option(DMS "Whether build firmware for the DMS board" ON)
 
@@ -25,6 +34,7 @@ SET(CMAKE_CXX_FLAGS "-Wno-psabi")
 
 #enabling langs inside:
 project(firmware C CXX ASM)
+
 
 #override JSON formatting:
 add_compile_definitions(NLOHMANN_JSON_CUSTOM_STDIO_FRM)

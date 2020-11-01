@@ -29,6 +29,9 @@ set(PANDA_BUILD_FIRMWARE_EMU Off CACHE BOOL
 set(PANDA_BUILD_FIRMWARE_RAM_IMAGE Off CACHE BOOL
   "Build firmware as RAM image?")
 
+set(PANDA_BUILD_CALIBRATION_FIRMWARE Off CACHE BOOL
+  "Build calibration firmware?")
+
 set(BUILD_SHARED_LIBS Off CACHE BOOL
   "Build shared libraries?")
 
@@ -370,18 +373,26 @@ if (PANDA_BUILD_FIRMWARE)
   # firmware.elf target
   # -------------------
 
+  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+      SET(TARGET_NAME "calibration_firmware.elf")
+      add_compile_definitions(CALIBRATION_STATION)
+  else()
+      SET(TARGET_NAME "firmware.elf")
+  endif()
+
+
   set(firmware_src
     firmware/src/main.cpp
     3rdParty/prj_templ/Custom/startup_ARMCM4.S
     )
 
-  add_executable(firmware.elf ${firmware_src})
+  add_executable(${TARGET_NAME} ${firmware_src})
 
   if (PANDA_BUILD_FIRMWARE_DMS)
-    target_compile_definitions(firmware.elf PRIVATE DMS_BOARD)
+    target_compile_definitions(${TARGET_NAME} PRIVATE DMS_BOARD)
   endif()
 
-  target_link_libraries(firmware.elf ADCDAC Communication CortexMX
+  target_link_libraries(${TARGET_NAME} ADCDAC Communication CortexMX
     HATS_EEPROM SAMe54 Board BusinessLogic JSONstuff LEDs Procs
     3rdparty_Adafruit_NeoPixel)
 
