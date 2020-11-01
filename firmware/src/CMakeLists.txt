@@ -5,7 +5,18 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-SET(TARGET_NAME "calibration_firmware.elf")
+message(DEPRECATION "This CMakeLists is deprecated. Please, use ${CMAKE_SOURCE_DIR}/CMakeLists.txt")
+
+set(PANDA_BUILD_CALIBRATION_FIRMWARE Off CACHE BOOL
+  "Build calibration firmware?")
+
+if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+    SET(TARGET_NAME "calibration_firmware.elf")
+    add_compile_definitions(CALIBRATION_STATION)
+else()
+    SET(TARGET_NAME "firmware.elf")
+endif()
+
 
 option(DMS "Whether build firmware for the DMS board" ON)
 
@@ -16,6 +27,7 @@ IF(NOT CMAKE_TOOLCHAIN_FILE)
 ENDIF()
 
 include_directories(../../3rdParty/)
+include_directories(../../3rdParty/nlohmann)
 include_directories(BusinessLogic)
 
 SET(CMAKE_CXX_FLAGS "-Wno-psabi")
@@ -23,8 +35,6 @@ SET(CMAKE_CXX_FLAGS "-Wno-psabi")
 #enabling langs inside:
 project(firmware C CXX ASM)
 
-#calibration station:
-add_compile_definitions(CALIBRATION_STATION)
 
 #override JSON formatting:
 add_compile_definitions(NLOHMANN_JSON_CUSTOM_STDIO_FRM)
@@ -67,5 +77,3 @@ target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib)
 target_link_libraries(${TARGET_NAME} SAME54_lib CORTEXMX_lib)
 
 target_link_libraries(${TARGET_NAME} BOARD_lib)
-
-

@@ -99,6 +99,9 @@ int main(int argc, char *argv[])
         return 2;
     }
     auto& configitem = *config.begin();
+
+    auto& config_script=*config.find("CONFIG_SCRIPT");
+
     if (input.length()) configitem = *config.find(input);
     if(dumpname.length()) {
         data_log.open(dumpname);
@@ -110,6 +113,18 @@ int main(int argc, char *argv[])
     tswipe.TraceSPI(trace_spi);
 
     // Board Preparation
+    if(!config_script.empty())
+    {
+        //configure the board before start:
+        std::string strErrMsg;
+        tswipe.SetSettings(config_script.dump(), strErrMsg);
+        if(!strErrMsg.empty())
+        {
+            std::cout << "Board configuration error: " << strErrMsg << std::endl;
+        }
+    }
+
+
 
     tswipe.SetMode(modes.at(configitem["MODE"]));
 
@@ -173,8 +188,9 @@ int main(int argc, char *argv[])
     tswipe.SetSampleRate(24000);
     tswipe.SetBurstSize(24000);
 
-    // Board Start
 
+
+    // Board Start
     int counter = 0;
     ret = tswipe.Start([&](auto&& records, uint64_t errors) {
         counter += records.DataSize();
