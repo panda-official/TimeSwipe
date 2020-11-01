@@ -467,6 +467,7 @@ public:
          */
         float GetMaxCurrent(){return m_MaxCurrent; }
 
+
         /*!
          * \brief The object state update method
          * \details Gets the CPU time to update internal state of the object.

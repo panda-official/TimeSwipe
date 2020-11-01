@@ -137,6 +137,15 @@ public:
     void SetColor(typeLEDcol Clr);
 
     /*!
+     * \brief Returns setpoint color of the LED
+     * \return setpoint color of the LED
+     */
+    typeLEDcol GetColor(){
+
+        return m_Clr;
+    }
+
+    /*!
      * \brief Sets blinking mode: on or off
      * \param how true=blink when on, false=steady behaviour
      */

@@ -152,10 +152,18 @@ protected:
     CDataVis m_VisChan;
 
     /*!
+     * \brief The visualisation enable flag
+     */
+    bool m_bVisEnabled;
+
+    /*!
      * \brief The object state update method
      * \details Gets the CPU time to update internal state of the object.
      */
     void Update(){
+
+        if(!m_bVisEnabled)
+            return;
 
         m_VisChan.Update( m_pADC->GetRawBinVal() );
     }
@@ -166,11 +174,31 @@ public:
      * \param pADC - The pointer to channel's offset control DAC
      * \param pDAC - The pointer to the channel's ADC
      * \param nCh  - The visualization index of the channel
+     * \param bVisEnabled - The visualisation enable flag
      */
-    CMesChannel(const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh) : m_VisChan(nCh){
+    CMesChannel(const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh, bool bVisEnabled) : m_VisChan(nCh){
 
         m_pADC=pADC;
         m_pDAC=pDAC;
+        m_bVisEnabled=bVisEnabled;
+    }
+
+    /*!
+     * \brief Sets the color of the channel's  LED
+     * \param Clr A color to set
+     */
+    void SetColor(typeLEDcol col){
+
+        CView::Instance().GetChannel(m_VisChan.GetVisChannel()).SetColor(col);
+    }
+
+    /*!
+     * \brief Returns setpoint color of the channel's LED
+     * \return setpoint color of the LED
+     */
+    typeLEDcol GetColor(){
+
+        return CView::Instance().GetChannel(m_VisChan.GetVisChannel()).GetColor();
     }
 };
 

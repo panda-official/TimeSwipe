@@ -1,3 +1,5 @@
+message(DEPRECATION "This CMakeLists is deprecated. Please, use ${CMAKE_SOURCE_DIR}/CMakeLists.txt")
+
 cmake_minimum_required(VERSION 3.9)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -59,7 +61,7 @@ add_library(timeswipeStatic STATIC ${SRC})
 set_target_properties(timeswipeStatic PROPERTIES OUTPUT_NAME "timeswipe")
 set_target_properties(timeswipeStatic PROPERTIES PUBLIC_HEADER include/timeswipe.hpp)
 set_target_properties(timeswipeStatic PROPERTIES VERSION ${PROJECT_VERSION})
-SET(timeswipe_include_dirs src src/RaspberryPi ${firmware_includes} src/Interfaces src/Communication ../3rdParty ../3rdParty/BCMsrc ../3rdParty/nlohmann/single_include include)
+SET(timeswipe_include_dirs src src/RaspberryPi ${firmware_includes} src/Interfaces src/Communication ../3rdParty ../3rdParty/BCMsrc ../3rdParty/nlohmann include)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 execute_process(COMMAND brew --prefix boost OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE osx_boost)
 SET(timeswipe_include_dirs ${timeswipe_include_dirs} ${osx_boost}/include)

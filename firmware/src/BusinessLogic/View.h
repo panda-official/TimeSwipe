@@ -97,6 +97,19 @@ public:
      * \brief Sets "Searching offset error" view for the channel
      */
     void SetZeroSearchErrorMark();
+
+    //Testing API:
+    /*!
+     * \brief Sets the color of the channel's  LED
+     * \param Clr A color to set
+     */
+    void SetColor(typeLEDcol col);
+
+    /*!
+     * \brief Returns setpoint color of the channel's LED
+     * \return setpoint color of the LED
+     */
+    typeLEDcol GetColor();
 };
 
 
@@ -134,32 +147,32 @@ protected:
     /*!
      * \brief DMS board base color
      */
-    static const constexpr typeLEDcol DMS_COLOR = LEDrgb(24, 250, 208);
+    static constexpr typeLEDcol DMS_COLOR = LEDrgb(24, 250, 208);
 
     /*!
      * \brief IEPE board base color
      */
-    static const constexpr typeLEDcol IEPE_COLOR = LEDrgb(73, 199, 255);
+    static constexpr typeLEDcol IEPE_COLOR = LEDrgb(73, 199, 255);
 
     /*!
      * \brief MARKER color - used for "Record" view
      */
-    static const constexpr typeLEDcol MARKER_COLOR = LEDrgb(255, 10, 10);
+    static constexpr typeLEDcol MARKER_COLOR = LEDrgb(255, 10, 10);
 
     /*!
      * \brief Reset settings color
      */
-    static const constexpr typeLEDcol RESET_COLOR = LEDrgb(255, 255, 255);
+    static constexpr typeLEDcol RESET_COLOR = LEDrgb(255, 255, 255);
 
     /*!
      * \brief Error color
      */
-    static const constexpr typeLEDcol ERROR_COLOR = LEDrgb(255, 0, 0);
+    static constexpr typeLEDcol ERROR_COLOR = LEDrgb(255, 0, 0);
 
     /*!
      * \brief Menu colors
      */
-    static const constexpr typeLEDcol MENU_COLORS[menu::total][2]={
+    static constexpr typeLEDcol MENU_COLORS[menu::total][2]={
 
         { LEDrgb(10, 0, 0), LEDrgb(255, 0, 0) },
         { LEDrgb(0, 10, 0), LEDrgb(0, 255, 0) },
@@ -408,6 +421,48 @@ public:
     void SetButtonHeartbeat(bool how);
 
     /*!
+     * \brief Starts Calibration UI test
+     */
+    void CalUItest();
+
+    /*!
+     * \brief Breaks Calibration UI test
+     */
+    void BreakCalUItest()
+    {
+        m_bBreakCalUItest=true;
+    }
+
+    /*!
+     * \brief Shows whether Calibration UI test has been done(true) or not (false)
+     * \details getter of m_bCalUItestDone flag
+     */
+    bool HasCalUItestBeenDone()
+    {
+        return m_bCalUItestDone;
+    }
+
+protected:
+    /*!
+     * \brief Set the flag to break Calibration UI test
+     */
+    bool m_bBreakCalUItest;
+
+    /*!
+     * \brief Shows whether Calibration UI test has been done(true) or not (false)
+     */
+    bool m_bCalUItestDone;
+
+    void CalUItest_stepLEDsRed();
+    void CalUItest_stepLEDsGreen();
+    void CalUItest_stepLEDsBlue();
+    bool CalUItest_IsBroken();
+
+
+public:
+
+
+    /*!
      * \brief The object state update method. Drive micro-tasks and buttons LED heartbeat
      */
     void Update();
@@ -417,6 +472,8 @@ private:
          * \brief Private class constructor
          */
         CView(){
+
+            m_bCalUItestDone=false;
 
             SetupBoardType(typeBoard::IEPEBoard);
 
