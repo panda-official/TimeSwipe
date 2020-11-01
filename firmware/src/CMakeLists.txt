@@ -5,6 +5,8 @@
 
 cmake_minimum_required(VERSION 3.1)
 
+message(DEPRECATION "This CMakeLists is deprecated. Please, use ${CMAKE_SOURCE_DIR}/CMakeLists.txt")
+
 SET(TARGET_NAME "firmware.elf")
 
 option(DMS "Whether build firmware for the DMS board" ON)
@@ -16,6 +18,7 @@ IF(NOT CMAKE_TOOLCHAIN_FILE)
 ENDIF()
 
 include_directories(../../3rdParty/)
+include_directories(../../3rdParty/nlohmann)
 include_directories(BusinessLogic)
 
 SET(CMAKE_CXX_FLAGS "-Wno-psabi")
@@ -64,5 +67,3 @@ target_link_libraries(${TARGET_NAME} BOARD_lib COMM_lib ADCDAC_lib)
 target_link_libraries(${TARGET_NAME} SAME54_lib CORTEXMX_lib)
 
 target_link_libraries(${TARGET_NAME} BOARD_lib)
-
-

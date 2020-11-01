@@ -25,18 +25,32 @@ You can then clone this repository, if you haven't done that already:
 git clone https://github.com/panda-official/timeswipe.git
 ```
 
-Then navigate to the firmware's source directory:
+Then navigate to the project directory:
 
 ```
-cd firmware/src
+cd timeswipe
 ```
 
-We can then build the driver:
+We can then build the firmware.
+
+Please note, that at the moment two generation of board exist: DMS (actual version) and IEPE (legacy version).
+Each board requires different firmware binary.
+
+To build DMS firmware (DMS mode is enabled by default):
 
 ```
-mkdir -p build
-cd build
-cmake ..
+mkdir -p build_DMS
+cd build_DMS
+cmake .. -DPANDA_BUILD_FIRMWARE=1
+make -j$(nproc)
+```
+
+To build IEPE firmware:
+
+```
+mkdir -p build_IEPE
+cd build_IEPE
+cmake .. -DPANDA_BUILD_FIRMWARE=1 -DPANDA_BUILD_FIRMWARE_DMS=0
 make -j$(nproc)
 ```
 
@@ -71,7 +85,7 @@ cd ..
 After installation, run openOCD with the `PandaOCD.cfg` file located in the firmware directory:
 
 ```
-sudo openocd -f timeswipe/firmware/PandaOCD.cfg
+sudo openocd -f ../firmware/PandaOCD.cfg
 ```
 
 You should see something like:
@@ -125,7 +139,7 @@ You should see output along the lines of `Bank is erased`.
 To write a new firmware, enter:
 
 ```
-flash write_image timeswipe/firmware/src/build/firmware.elf
+flash write_image firmware.elf
 ```
 
 This assumes you are running openOCD from the home directory and the firmware has been built in the default path.
@@ -133,6 +147,7 @@ Change accordingly.
 Verify the write process by again entering:
 
 ```
+halt
 flash erase_check 0
 ```
 

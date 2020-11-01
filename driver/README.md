@@ -73,10 +73,10 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Navigate to the `driver` directory, build and install the driver:
+Navigate to the project directory, build and install the driver:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake ..
@@ -107,10 +107,10 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Navigate to the `driver` directory, build and install the driver:
+Navigate to the project directory, build and install the driver:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake ..
@@ -133,12 +133,13 @@ This section shows how you can build the TimeSwipe driver on a computer other th
 Supported cross-compilation architectures are Ubuntu 18.04 and OSX.
 
 
-### Ubuntu 18.04
+### Ubuntu 18.04 / Debian Buster
 
-To cross-compile on Ubuntu 18.04, you will need to install some extra packages:
+To cross-compile on Ubuntu 18.04 / Debian Buster, you will need to install some extra packages:
 
 ```
-sudo apt-get install gcc-arm-none-eabi libboost-dev gcc-aarch64-linux-gnu cmake git gcc g++-aarch64-linux-gnu g++ pkg-config
+sudo apt-get install gcc g++ gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+sudo apt-get install libboost-dev cmake git pkg-config
 ```
 
 You can then clone this repository, if you haven't done that already:
@@ -147,15 +148,29 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the driver directory and build:
+Then simply navigate to the project directory and build
+
+either the driver for the 32bit OS:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
-cmake ..
+cmake .. -DPANDA_BUILD_ARM=1
 make -j$(nproc)
 ```
+
+or the driver for the 64bit OS:
+
+```
+cd timeswipe
+mkdir -p build
+cd build
+cmake .. -DPANDA_BUILD_ARM=1 -DPANDA_BUILD_ARM64=1
+make -j$(nproc)
+```
+
+depending on OS installed on your Raspberry Pi.
 
 
 ### OSX
@@ -164,6 +179,7 @@ For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed. If
 In a terminal, enter the commands:
 
 ```
+brew install cmake
 brew install crosstool-ng help2man bison
 ```
 
@@ -207,22 +223,22 @@ You can then clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the driver directory and build:
+Then simply navigate to the project directory and build:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
 cmake ..
 make -j$(nproc)
 ```
 
-## Build the Driver emulator for Ubuntu 18.04 x86_64
+## Build the Driver emulator for Ubuntu 18.04  / Debian Buster x86_64
 
-To build on Ubuntu 18.04, you will need to install some extra packages:
+To build on Ubuntu 18.04  / Debian Buster, you will need to install some extra packages:
 
 ```
-sudo apt-get install gcc-arm-none-eabi libboost-dev cmake git gcc g++ pkg-config
+sudo apt-get install gcc g++ libboost-dev cmake git pkg-config
 ```
 
 Clone this repository, if you haven't done that already:
@@ -231,13 +247,13 @@ Clone this repository, if you haven't done that already:
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the driver directory and build:
+Then simply navigate to the project directory and build:
 
 ```
-cd timeswipe/driver
+cd timeswipe
 mkdir -p build
 cd build
-cmake .. -DEMUL=1
+cmake .. -DPANDA_BUILD_FIRMWARE_EMU=1
 make -j$(nproc)
 ```
 
@@ -247,6 +263,13 @@ Then build the example:
 cd timeswipe/driver/examples/DataLogging
 mkdir -p build
 cd build
-cmake .. -DEMUL=1
+cmake .. -DPANDA_BUILD_FIRMWARE_EMU=1
 make -j$(nproc) main_static
 ```
+
+After building main_static can be started at your host PC for demo/testing purposes:
+
+```
+./main_static --config ../config.json
+```
+
