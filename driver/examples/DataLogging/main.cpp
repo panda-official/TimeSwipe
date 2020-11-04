@@ -20,7 +20,7 @@ void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [-- time <runtime>] [--log-resample] [--trace-spi]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [-- time <runtime>] [--samplerate <hz>] [--log-resample] [--trace-spi]'" << std::endl;
     std::cerr << "default for <configname> is ./config.json" << std::endl;
     std::cerr << "possible values: PRIMARY NORM DIGITAL. default for <input_type> is the first one from <configname>" << std::endl;
     std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     std::string dumpname;
     std::string input;
     int runtime = 10;
+    int samplerate = 48000;
     bool trace_spi = false;
 
     for (unsigned i = 1; i < argc; i++) {
@@ -65,6 +66,13 @@ int main(int argc, char *argv[])
                 return 1;
             }
             runtime = std::stoi (argv[i+1] );
+            ++i;
+        } else if (!strcmp(argv[i],"--samplerate")) {
+            if (i+1 > argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            samplerate = std::stoi (argv[i+1] );
             ++i;
         } else if (!strcmp(argv[i],"--log-resample")) {
             TimeSwipe::resample_log = true;
@@ -185,8 +193,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    tswipe.SetSampleRate(24000);
-    tswipe.SetBurstSize(24000);
+    tswipe.SetSampleRate(samplerate);
+    tswipe.SetBurstSize(samplerate);
 
 
 
