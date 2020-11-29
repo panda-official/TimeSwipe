@@ -217,6 +217,8 @@ if (PANDA_BUILD_FIRMWARE)
     frm_stream.h
     std_port.cpp
     std_port.h
+    ftransfer.h
+  #  ftransfer.cpp
     )
 
   set(CortexMX_src
@@ -273,6 +275,8 @@ if (PANDA_BUILD_FIRMWARE)
     Procs_doc.h
     zerocal_man.cpp
     zerocal_man.h
+    bulkmes.h
+    bulkmes.cpp
     )
 
   set(SAMe54_src

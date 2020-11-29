@@ -51,10 +51,21 @@ protected:
    virtual void set(const void *pVar, const std::type_info &ti);
 
    //! start tocken used for string extraction
-   typeSChar m_chStartTocken=' ';
+ //  typeSChar m_chStartTocken=' ';
 
    //! end tocken used for string extraction
-   typeSChar m_chEndTocken='\0';
+  // typeSChar m_chEndTocken='\0';
+
+   inline bool is_tocken(typeSChar nCh, bool bEndTocken){
+
+       if(' '==nCh)
+           return true;
+       if(bEndTocken){
+           if('\0'==nCh)
+               return true;
+       }
+       return false;
+   }
 
    /*!
     * \brief Extract a string from the stream
@@ -82,6 +93,11 @@ public:
     CFrmStream(CFIFO *pBuf)
     {
         m_pBuf=pBuf;
+    }
+
+    void push(typeSChar ch){
+
+        *m_pBuf<<ch;
     }
 
     CFrmStream & operator <<(typeSChar ch)

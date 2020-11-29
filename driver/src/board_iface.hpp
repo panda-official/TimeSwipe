@@ -14,6 +14,9 @@ public:
     inline static bool trace_spi = false;
 
 private:
+    unsigned int packetSize=1024;
+    unsigned int packetMaxConsFails=5;
+
     CBcmSPI spi;
     void sendCommand(const std::string& cmd) {
         CFIFO command;
@@ -232,6 +235,66 @@ public:
         }
         bIEPE=std::stoi(answer);
         return true;
+    }
+
+    //file transfer:
+    int readFPacket(const char *pFname, std::vector<uint8_t> &input, unsigned int pos, unsigned int count, std::string& error){
+
+        CFIFO rbuf;
+        std::string cmd=std::string(pFname)+"> "+std::to_string(pos)+" "+std::to_string(count)+"\n";
+
+        sendCommand(cmd);
+        if(!spi.receive(rbuf))
+        {
+            if (trace_spi) {
+                std::cerr << "spi: failed to receive a packet" << std::endl;
+            }
+            return -1;
+        }
+
+        typeSChar ch;
+        rbuf>>ch;
+        if('!'==ch || 'f'!=ch)
+        {
+            error=rbuf;
+            if (trace_spi) {
+                std::cerr << error << std::endl;
+            }
+            return -1;
+        }
+
+        int cnt=rbuf.in_avail()-1; //exclude "\n"
+        for(int i=0; i<cnt; i++)
+        {
+            rbuf>>ch;
+            input.push_back(ch);
+        }
+        return cnt;
+    }
+    bool readFile(const char *pFname, std::vector<uint8_t>  &input, std::string& error)
+    {
+        input.clear();
+
+        //read packets:
+        int rv;
+        int fail_cnt=0;
+        do{
+
+            rv=readFPacket(pFname, input, input.size(), packetSize, error);
+            if(rv<0){
+
+                fail_cnt++;
+                if(fail_cnt>=packetMaxConsFails)
+                    return false;
+            }
+            else {
+
+                fail_cnt=0;
+            }
+
+        }while(0!=rv);
+
+        return  true;
     }
 
 };

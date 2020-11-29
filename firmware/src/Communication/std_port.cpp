@@ -46,20 +46,12 @@ void CStdPort::parser(typeSChar ch)
            out<<"!"<<ex.what();
         }
 
-        //send data:
-     /*if(typeCRes::OK!=cres) switch(cres){
-
-            case typeCRes::parse_err:           out<<"!parse_err!";       break;
-            case typeCRes::obj_not_found:       out<<"!obj_not_found!";   break;
-            case typeCRes::fget_not_supported:  out<<"!>_not_supported!";  break;
-            case typeCRes::fset_not_supported:  out<<"!<_not_supported!";  break;
-        }*/
         m_Out<<TERM_CHAR;
         m_pBus->send(m_Out);
 
         //reset:
         reset();
-        return; //!!!!
+        return;
     }
 
     switch(m_PState)

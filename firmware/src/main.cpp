@@ -44,6 +44,10 @@ Copyright (c) 2019 Panda Team
 #include "SemVer.h"
 #include "View.h"
 
+//calibration part:
+#include "bulkmes.h"
+#include "ftransfer.h"
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -302,6 +306,13 @@ int main(void)
         SAMButton &button=SAMButton::Instance();
         button.AdviseSink( pBtnHandler );
 
+        //bulk measurements:
+#ifdef CALIBRATION_STATION
+        auto pBulkMes=std::make_shared<CADbulkMes>();
+
+#endif
+
+
 
         //---------------------------------------------------command system------------------------------------------------------
         //channel commands:
@@ -351,6 +362,28 @@ int main(void)
         pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
                                                                                        &CCalFWbtnHandler::HasUItestBeenDone,
                                                                                        &CCalFWbtnHandler::StartUItest) );
+
+        //bulk mes:
+        pDisp->Add("MeasMode", std::make_shared< CCmdSGHandler<CADbulkMes, unsigned int> >(pBulkMes,
+                                                                                           &CADbulkMes::GetMeasMode,
+                                                                                           &CADbulkMes::SetMeasMode) );
+
+        pDisp->Add("MeasChannel", std::make_shared< CCmdSGHandler<CADbulkMes, unsigned int> >(pBulkMes,
+                                                                                           &CADbulkMes::GetMeasChanMask,
+                                                                                           &CADbulkMes::SetMeasChanMask) );
+
+        pDisp->Add("MeasRate", std::make_shared< CCmdSGHandler<CADbulkMes, unsigned int> >(pBulkMes,
+                                                                                           &CADbulkMes::GetMeasRateHz,
+                                                                                           &CADbulkMes::SetMeasRateHz) );
+
+        pDisp->Add("MeasStart", std::make_shared< CCmdSGHandler<CADbulkMes, unsigned int> >(pBulkMes,
+                                                                                            nullptr,
+                                                                                            &CADbulkMes::MeasStart) );
+
+
+        pDisp->Add("MeasResult", std::make_shared< CCmdFTransferHandler<CADbulkMes> >(pBulkMes,
+                                                                                            &CADbulkMes::ReadBuffer) );
+
 #endif
 
 

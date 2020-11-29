@@ -206,7 +206,6 @@ public:
 
                 (m_pObj.get()->*m_pSetter)(val);
 
-                //14.08.2019: feedback
                 if(m_pGetter)
                 {
                      *(d.m_pOut)<<(m_pObj.get()->*m_pGetter)();
@@ -272,7 +271,6 @@ public:
 
                     m_pSetter(val);
 
-                    //14.08.2019: feedback
                     if(m_pGetter)
                     {
                         *(d.m_pOut)<<m_pGetter();

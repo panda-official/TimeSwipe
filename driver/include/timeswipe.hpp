@@ -467,6 +467,17 @@ public:
      */
     std::string GetSettings(const std::string& request, std::string& error);
 
+
+    /**
+     * @brief Reads a binary file from the board
+     * @param pFname - a filename to read
+     * @param file - input buffer for the data
+     * @param error - the buffer for the error message
+     * @return true on success, false otherwise
+     */
+    bool readFile(const char *pFname, std::vector<uint8_t> &file, std::string& error);
+
+
     using OnEventCallback = std::function<void(TimeSwipeEvent&& event)>;
     /**
      * \brief Register callback for event

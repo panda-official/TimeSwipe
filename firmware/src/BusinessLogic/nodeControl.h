@@ -255,6 +255,15 @@ public:
                 return nullptr;
         }
 
+        /*!
+         * \brief Returns the count of measurement channels
+         * \return the count of measurement channels
+         */
+        size_t GetMesChannelsCount(){
+
+            return m_pMesChans.size();
+        }
+
 
         /*!
          * \brief Loads all settings from the persist storage. Should be called once at startup

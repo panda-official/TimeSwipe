@@ -13,7 +13,7 @@ Copyright (c) 2019 Panda Team
  bool CFrmStream::fetch_string(std::string &str)
  {
     bool bProcStr=false;
-    typeSChar Tocken=m_chStartTocken;
+   // typeSChar Tocken=m_chStartTocken;
 
     str.clear();
     while(m_pBuf->in_avail())
@@ -21,14 +21,14 @@ Copyright (c) 2019 Panda Team
         typeSChar ch;
         *m_pBuf>>ch;
 
-        if(ch==Tocken)
+        if(is_tocken(ch, bProcStr))
         {
             if(bProcStr)
                 return true;
         }
         else
         {
-            Tocken=m_chEndTocken;
+            //Tocken=m_chEndTocken;
             bProcStr=true;
             str+=(char)ch;
         }

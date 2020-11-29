@@ -40,7 +40,7 @@ void CSamADCchan::SetRawBinVal(int RawVal)
     m_FilteredRawVal+=((float)RawVal - m_FilteredRawVal ) * ( (float)data_age() ) / m_filter_t_mSec;
     m_MesTStamp=os::get_tick_mS();
 
-    CADchan::SetRawBinVal(m_FilteredRawVal);
+    CADchan::SetRawBinVal( static_cast<int>(m_FilteredRawVal) );
 }
 
 
@@ -50,12 +50,16 @@ void CSamADCchan::SetRawBinVal(int RawVal)
      m_pCont->SelectInput(m_posIN, m_negIN);
 
      //measure and average:
-     float val=m_pCont->SingleConv();
+     int raw_val=m_pCont->SingleConv();
+     if(averaging_mode::none==m_AvMode)
+         return raw_val;
+
+     float val=raw_val;
      for(int i=0; i<nMesCnt; i++)
      {
          val=alpha*val +(1.0f-alpha)*(m_pCont->SingleConv());
      }
-     return (int)val;
+     return static_cast<int>(val);
  }
 
 

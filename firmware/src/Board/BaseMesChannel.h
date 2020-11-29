@@ -49,6 +49,11 @@ public:
         return m_pADC->GetRawBinVal();
     }
 
+    inline CAdc &ADC() const{
+
+        return *m_pADC;
+    }
+
     /*!
      * \brief Turns IEPEmode on/off
      * \param bHow - true=IEPE mode ON, false=IEPE mode off
