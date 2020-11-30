@@ -103,3 +103,13 @@ The Real Setting is the actual gain, that is applied to the input signal.
   2       b        zero offset (16bit signed int)
 ```
 This atom is therefore (4+2)*22 = 132 bytes large.
+
+## Calibration JSON Command
+
+The JSON command to write calibration data to the EEPROM is only implemented in the calibration firmware.
+
+tbd...
+Request/Response              |  Command
+----------------------------- | -------------------------------------------------------------------------------------------------------------------------
+request message:              |   js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
