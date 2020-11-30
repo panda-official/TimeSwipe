@@ -99,47 +99,5 @@ For more information on the Device Tree atom contents, see the [Device Tree Guid
 ### Status & Calibration Atom (type=0x0004, ATOM4):
 
 Status & Calibration Atom consists of Header containing the timestamp of the calibration procedure and Body containing calibration information.
-The board considered calibrated if the Atom exists AND it is valid (by its CRC)
-
-#### Calibration Data Structure
-
-```
-  HEADER  <- Calibration header (Required)
-  C_ATOM1   <- V_In calibration atom
-  C_ATOM2   <- V_Supply calibration atom
-  C_ATOM3   <- C_In calibration atom
-  C_ATOM4   <- Ana_Out calibration atom
-  ...
-  C_ATOMn
-```
-
-#### Calibration Header Structure
-
-```
-  Bytes   Field
-  1       cversion     Calibration data format version (0x00 reserved, 0x01 = first version)
-  8.      timestamp.   64bit unix timestamp of calibration date
-  2       numcatoms    total c_atoms in Calibration Atom
-  4       callen       total length in bytes of all calibration data (including this header)
-```
-
-#### C_Atom Structure
-```
-  Bytes   Field
-  2       type        c_atom type
-  2       count       incrementing atom count
-  4       dlen        length in bytes of data
-  N       data        N bytes, N = dlen
-```
-
-#### C_Atom Types
-
-```
-  0x0000 = invalid
-  0x0001 = V_In
-  0x0002 = V_supply
-  0x0003 = C_In
-  0x0004 = Ana_Out
-  0x0005-0xfffe ...
-  0xffff = invalid
-```
+The board considered calibrated if the Atom exists AND it is valid (by its CRC).
+The specification can be found in Calibration Atom Specification.md
