@@ -46,29 +46,29 @@ Version 1 - 12/2020
 
 ### V_In Atom Type
 This atom is specific for the TimeSwipe 1.0 board. For each of the 22 different gain settings an error correction line is defined. 
-This line is defined by its zero offset and its steepness. y=m*x+b
+This line is defined by its zero offset and its slope. y=m*x+b
 
 ```
   Bytes   Field
-  4       m        steepness (float)
+  4       m        slope (float)
   2       b        zero offset (16bit signed int)
 ```
 This atom is therefore (4+2)*22 = 132 bytes large.
 
 ### V_Supply Atom Type
 This atom is specific for the TimeSwipe 1.0 board. An error correction line for V_Supply is defined.
-This line is defined by its zero offset and its steepness. y=m*x+b
+This line is defined by its zero offset and its slope. y=m*x+b
 
 ```
   Bytes   Field
-  4       m        steepness (float)
-  2       b        zero offset (16bit signed int)
+  4       m        slope (float)
+  2       b        zero offset (16bit signed int -32678..32767)
 ```
 This atom is therefore (4+2)*1 = 6 bytes large.
 
 ### C_In Atom Type
 This atom is specific for the TimeSwipe 1.0 board. For each of the 22 different gain settings a error correction line is defined. 
-This line is defined by its zero offset and its steepness. y=m*x+b
+This line is defined by its zero offset and its slope. y=m*x+b
 The 22 gain settings are defined by their firmware setting.
 The Real Setting is the actual gain, that is applied to the input signal.
 
@@ -99,7 +99,7 @@ The Real Setting is the actual gain, that is applied to the input signal.
 
 ```
   Bytes   Field
-  4       m        steepness (float)
+  4       m        slope (float)
   2       b        zero offset (16bit signed int)
 ```
 This atom is therefore (4+2)*22 = 132 bytes large.
