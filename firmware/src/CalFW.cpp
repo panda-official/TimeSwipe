@@ -83,7 +83,7 @@ int main(void)
         //request data from an external chip:
         pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
 
-        for(int addr=0; addr<255; addr++){
+       /* for(int addr=0; addr<255; addr++){
 
             pEEPROM_MemBuf->reset();
         pEEPROM_MasterBus->SetDeviceAddr(addr); //0xA0);
@@ -96,7 +96,11 @@ int main(void)
             }
         }
 
-        }
+        }*/
+
+        pEEPROM_MasterBus->SetDeviceAddr(0xA0);
+        pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
+
 
         //verifing the image:
         CHatsMemMan HatMan(pEEPROM_MemBuf);
