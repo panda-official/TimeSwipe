@@ -110,8 +110,10 @@ This atom is therefore (4+2)*22 = 132 bytes large.
 
 The JSON command to write calibration data to the EEPROM is only implemented in the calibration firmware.
 
-tbd...
+Write the array transmitted in "data" into the cAtom 2 (V_supply).
+The array will consist of an array of objects (dictionaries) of the data as defined above. e.g. for V_supply, it will be [{m:1.032,b:12000}].
+For other cAtoms there are multiple objects in the array in the order of the gain list.
 Request/Response              |  Command
 ----------------------------- | -------------------------------------------------------------------------------------------------------------------------
-request message:              |   js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
-successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+request message:              |   js<{ "cAtom" : 2, "data" : [{m: 1.23, b: 12000},{...},...]}\n
+successive response message:  |       {"cAtom" : 2, "data" : [{m: 1.23, b: 12000},{...},...]}\n
