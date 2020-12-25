@@ -19,6 +19,41 @@ Copyright (c) 2019-2020 Panda Team
 #include "Serial.h"
 enum class typeHatsAtom:int {VendorInfo=1, GPIOmap, LinuxDTB, Custom};
 
+struct CHatAtomStub
+{
+friend class CHatsMemMan;
+
+    CHatAtomStub(int nIndex){
+
+        m_index=nIndex;
+    }
+
+private:
+    typeHatsAtom m_type=typeHatsAtom::Custom;
+    int          m_index=0;
+
+    /*!
+     * \brief Fills data fields with zeros
+     */
+    void reset();
+
+    /*!
+     * \brief Loads data fields from an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool load(CFIFO &buf){return true;}
+
+    /*!
+     * \brief Stores data fields to an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool store(CFIFO &buf){return true;}
+
+};
+
+
 /*!
  * \brief The vendor info atom
  */
@@ -116,6 +151,313 @@ private:
     bool store(CFIFO &buf);
 };
 
+struct CCalAtomPair{
+
+    float m;
+    uint16_t b;
+
+    CCalAtomPair()
+    {
+        m=1.0f;
+        b=0;
+    }
+    CCalAtomPair(float _m, uint16_t _b){
+
+        m=_m;
+        b=_b;
+    }
+
+    /*!
+     * \brief Loads data fields from an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool load(CFIFO &buf){
+
+        typeSChar ch;
+        uint8_t   *pBuf=(uint8_t *)&m;
+        for(int i=0; i<6; i++)
+        {
+            buf>>ch;
+            pBuf[i]=(uint8_t)ch;
+        }
+        return true;
+    }
+
+    /*!
+     * \brief Stores data fields to an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool store(CFIFO &buf){
+
+        uint8_t   *pBuf=(uint8_t *)&m;
+        for(int i=0; i<6; i++)
+        {
+            buf<<pBuf[i];
+        }
+        return true;
+    }
+};
+struct CCalAtom{
+
+    enum atom_type{
+
+        invalid=0,
+        V_In,
+        V_supply,
+        C_In,
+        Ana_Out
+    };
+
+    struct header{
+
+        uint16_t  type;
+        uint16_t  count;
+        uint32_t  dlen;
+
+    }m_header;
+
+    std::vector<CCalAtomPair> m_data;
+
+
+    /*!
+     * \brief Loads data fields from an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool load(CFIFO &buf){
+
+        //load the header:
+        header theader;
+
+        typeSChar ch;
+        uint8_t   *pBuf=(uint8_t *)&theader;
+        for(int i=0; i<sizeof(header); i++)
+        {
+            buf>>ch;
+            pBuf[i]=(uint8_t)ch;
+        }
+
+        //load the rest:
+        for(auto &pair : m_data)
+        {
+            pair.load(buf);
+        }
+        return true;
+
+    }
+
+    /*!
+     * \brief Stores data fields to an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool store(CFIFO &buf){
+
+        //store the header:
+        uint8_t   *pBuf=(uint8_t *)&m_header;
+        for(int i=0; i<sizeof(header); i++)
+        {
+            buf<<pBuf[i];
+        }
+
+        //save the rest:
+        for(auto &pair : m_data)
+        {
+            pair.store(buf);
+        }
+        return true;
+    }
+
+    void Setup(atom_type nType, size_t nCount){
+
+         m_header.type=nType;
+         m_header.count=static_cast<uint16_t>(nCount);
+         m_header.dlen=nCount*sizeof(CCalAtomPair);
+         m_data.resize(nCount);
+    }
+
+    size_t GetSizeInBytes(){
+
+        return m_header.dlen + sizeof(header);
+    }
+
+
+};
+
+struct CHatAtomCalibration
+{
+friend class CHatsMemMan;
+
+    struct header{
+
+        uint8_t cversion;
+        uint64_t timestamp;
+        uint16_t numcatoms;
+        uint32_t callen;        //total length in bytes of all calibration data (including this header)
+
+    } __attribute__((packed)) m_header;
+
+    std::vector<CCalAtom> m_atoms;
+
+    CCalAtom &refAtom(size_t nAtomIndex){
+
+        return m_atoms[nAtomIndex-1];
+    }
+
+    void FillHeader(){
+
+        m_header.cversion=1;
+        m_header.timestamp=0; //???
+        m_header.numcatoms=static_cast<uint16_t>(m_atoms.size());
+
+        size_t sztotal=sizeof(header);
+        for(auto &atom : m_atoms)
+        {
+            sztotal+=atom.GetSizeInBytes();
+        }
+        m_header.callen=sztotal;
+    }
+
+    bool CheckAtomIndex(size_t nAtomIndex, std::string &strError, bool bCheckExistance=true){
+
+        if(0==nAtomIndex || 0xffff==nAtomIndex)
+        {
+            strError="invalid index";
+            return false;
+        }
+        if(bCheckExistance)
+        {
+            if(nAtomIndex>m_atoms.size())
+            {
+                strError="atom doesn't exist";
+                return false;
+            }
+        }
+        return true;
+    }
+    bool CheckPairIndex(size_t nAtomIndex, size_t nPairIndex, std::string &strError){
+
+        if(!CheckAtomIndex(nAtomIndex, strError))
+               return false;
+
+        if(nPairIndex>=refAtom(nAtomIndex).m_data.size())
+        {
+            strError="wrong pair index";
+            return false;
+        }
+        return true; //!!!!
+
+    }
+
+    bool GetPairsCount(size_t nAtomIndex, size_t &nCount, std::string &strError){
+
+        if(!CheckAtomIndex(nAtomIndex, strError))
+               return false;
+
+        nCount=refAtom(nAtomIndex).m_data.size();
+        return true;
+    }
+
+    bool SetCalPair(size_t nAtomIndex, size_t nPairIndex, CCalAtomPair Pair, std::string &strError){
+
+        if(!CheckPairIndex(nAtomIndex,  nPairIndex,  strError))
+            return false;
+
+        refAtom(nAtomIndex).m_data[nPairIndex]=Pair;
+        return true;
+    }
+    bool GetCalPair(size_t nAtomIndex, size_t nPairIndex, CCalAtomPair &Pair, std::string &strError){
+
+        if(!CheckPairIndex(nAtomIndex,  nPairIndex,  strError))
+            return false;
+
+        Pair=refAtom(nAtomIndex).m_data[nPairIndex];
+        return true;
+    }
+
+    CHatAtomCalibration(){
+
+        reset();
+    }
+
+
+private:
+    typeHatsAtom m_type=typeHatsAtom::Custom;
+    int          m_index=3;
+
+    /*!
+     * \brief Fills data fields with default data
+     */
+    void reset(){
+
+        m_atoms.resize(3);
+        m_atoms[0].Setup(CCalAtom::atom_type::V_In, 22);
+        m_atoms[1].Setup(CCalAtom::atom_type::V_supply, 1);
+        m_atoms[2].Setup(CCalAtom::atom_type::C_In, 22);
+
+        FillHeader();
+    }
+
+    /*!
+     * \brief Loads data fields from an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool load(CFIFO &buf){
+
+        //load the header:
+        header theader;
+
+        typeSChar ch;
+        uint8_t   *pBuf=(uint8_t *)&theader;
+        for(int i=0; i<sizeof(header); i++)
+        {
+            buf>>ch;
+            pBuf[i]=(uint8_t)ch;
+        }
+
+        //atom's template rules at the moment:
+        if(theader.callen!=m_header.callen)
+            return false;
+
+        //load the rest:
+        for(auto &atom : m_atoms)
+        {
+            atom.load(buf);
+        }
+
+
+    }
+
+
+    /*!
+     * \brief Stores data fields to an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool store(CFIFO &buf){
+
+        //save the header:
+        FillHeader();
+
+        uint8_t   *pBuf=(uint8_t *)&m_header;
+        for(int i=0; i<sizeof(header); i++)
+        {
+            buf<<pBuf[i];
+        }
+
+        //save the rest:
+        for(auto &atom : m_atoms)
+        {
+            atom.store(buf);
+        }
+    }
+
+};
+
+
 
 /*!
  * \brief A manager class for working with HATs-EEPROM binary image
@@ -127,7 +469,7 @@ public:
      * \brief A class constructor
      * \param pFIFObuf a buffer containing EEPROM binary image
      */
-    CHatsMemMan(std::shared_ptr<CFIFO> &pFIFObuf);
+    //CHatsMemMan(std::shared_ptr<CFIFO> &pFIFObuf);
 
     enum op_result{
 
@@ -161,6 +503,16 @@ protected:
     op_result WriteAtom(unsigned int nAtom, typeHatsAtom nAtomType, CFIFO &wbuf);
 
 public:
+
+    void SetBuf(const std::shared_ptr<CFIFO> &pBuf){
+
+        m_pFIFObuf=pBuf;
+    }
+    const std::shared_ptr<CFIFO> &GetBuf(){
+
+        return m_pFIFObuf;
+    }
+
 
     /*!
      * \brief Returns the total atoms count

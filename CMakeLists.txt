@@ -347,6 +347,13 @@ if (PANDA_BUILD_FIRMWARE)
 
   # JSONstuff-specific
   target_link_libraries(JSONstuff PUBLIC 3rdparty_nlohmann_json Communication)
+  target_include_directories(JSONstuff PRIVATE firmware/src/BusinessLogic)
+  target_include_directories(JSONstuff PRIVATE firmware/src/Board)
+  target_include_directories(JSONstuff PRIVATE firmware/src/ADCDAC)
+  target_include_directories(JSONstuff PRIVATE firmware/src/LEDs)
+  target_include_directories(JSONstuff PRIVATE firmware/src/Math)
+  target_include_directories(JSONstuff PRIVATE firmware/src/Procs)
+  target_include_directories(JSONstuff PRIVATE firmware/src/HATS_EEPROM)
 
   # LEDs-specific
   target_compile_definitions(LEDs PRIVATE  __arm__  __SAMD51__  __SAME54P20A__)
@@ -365,6 +372,7 @@ if (PANDA_BUILD_FIRMWARE)
   # FIXME: there is cyclical dependence: BusinessLogic <--> Procs!!!
   # KLUDGE: for now just include directory of Procs
   target_include_directories(BusinessLogic PRIVATE firmware/src/Procs)
+  target_include_directories(BusinessLogic PRIVATE firmware/src/HATS_EEPROM)
 
   # Procs-specific
   target_link_libraries(Procs PUBLIC BusinessLogic)

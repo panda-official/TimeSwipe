@@ -100,28 +100,14 @@ int main(void)
         pEEPROM_MasterBus->SetDeviceAddr(0xA0);
         pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
 
-        //verifing the image:
-        CHatsMemMan HatMan(pEEPROM_MemBuf);
-        if(CHatsMemMan::op_result::OK!=HatMan.Verify()) //image is corrupted
-        {
-            //make default image:
-            HatMan.Reset();
-
-            CHatAtomVendorInfo vinf;
-
-            vinf.m_uuid=CSamService::GetSerial();
-            vinf.m_PID=0;
-            vinf.m_pver=2;
-            vinf.m_vstr="PANDA";
-            vinf.m_pstr="TimeSwipe";
-
-            HatMan.Store(vinf); //storage is ready
-        }
-
         //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
         auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
         pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
         pEEPROM_HAT->EnableIRQs(true);
+
+        //set iface:
+        nodeControl &nc=nodeControl::Instance();
+        nc.SetEEPROMiface(pEEPROM_MasterBus, pEEPROM_MemBuf);
         //----------------------------------------------------------
 
 
@@ -133,7 +119,6 @@ int main(void)
         pSPIsc2->AdviseSink(pStdPort);
 
 
-        nodeControl &nc=nodeControl::Instance();
         nc.SetBoardType(ThisBoard);
         std::shared_ptr<IPin> pDAConPin;
         std::shared_ptr<IPin> pUB1onPin;

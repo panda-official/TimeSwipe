@@ -237,10 +237,10 @@ CHatsMemMan::op_result  ResetStorage(const char *pMemBuf, const int MemBufSize)
 
 }
 
-CHatsMemMan::CHatsMemMan(std::shared_ptr<CFIFO> &pFIFObuf)
+/*CHatsMemMan::CHatsMemMan(std::shared_ptr<CFIFO> &pFIFObuf)
 {
     m_pFIFObuf=pFIFObuf;
-}
+}*/
 
 unsigned int CHatsMemMan::GetAtomsCount()
 {

@@ -16,8 +16,11 @@ Copyright (c) 2019 Panda Team
 #include <memory>
 #include "BaseMesChannel.h"
 #include "zerocal_man.h"
+//#include "jsondisp.h"
+//#include "json_stream.h"
 #include "json_evsys.h"
 #include "RawBinStorage.h"
+#include "HatsMemMan.h"
 
 
 /*!
@@ -86,20 +89,26 @@ protected:
          */
         CRawBinStorage m_PersistStorage;
 
+        CHatsMemMan    m_EEPROMstorage;
+        std::shared_ptr<ISerial> m_pEEPROMbus;
+
+        CHatsMemMan::op_result m_CalStatus;
+
         /*!
          * \brief true when settings are first loaded from the persist storage
          */
-        bool           m_bSettingsLoaded=false;
+        bool  m_bSettingsLoaded=false;
 
-        /*!
-         * \brief Board Gain persistent setting
-         */
-        int m_GainSetting=1;
 
         /*!
          * \brief Board Bridge persistent setting
          */
         bool m_BridgeSetting=false;
+
+        /*!
+         * \brief Board Gain persistent setting
+         */
+        int m_GainSetting=1;
 
         /*!
          * \brief Board Secondary persistent setting
@@ -406,7 +415,15 @@ public:
          * \brief Returns board calibration status
          * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
          */
-        inline bool GetCalStatus(){ return false;}
+        inline bool GetCalStatus(){
+
+            return (CHatsMemMan::op_result::OK==m_CalStatus);
+        }
+
+        void SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf);
+
+        bool SetCalibrationData(CHatAtomCalibration &Data);
+        bool GetCalibrationData(CHatAtomCalibration &Data);
 
         inline void StartFan(bool bHow)
         {

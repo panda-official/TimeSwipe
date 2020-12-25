@@ -7,12 +7,57 @@ Copyright (c) 2019 Panda Team
 
 #include "nodeControl.h"
 #include "DataVis.h"
+#include "SamService.h"
 
 
 nodeControl::nodeControl()
 {
     m_pMesChans.reserve(4);
 }
+
+void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf)
+{
+    m_EEPROMstorage.SetBuf(pMemBuf);
+    m_pEEPROMbus=pBus;
+
+    if(CHatsMemMan::op_result::OK!=m_EEPROMstorage.Verify()) //image is corrupted
+    {
+        //make default image:
+        m_EEPROMstorage.Reset();
+
+        CHatAtomVendorInfo vinf;
+
+        vinf.m_uuid=CSamService::GetSerial();
+        vinf.m_PID=0;
+        vinf.m_pver=2;
+        vinf.m_vstr="PANDA";
+        vinf.m_pstr="TimeSwipe";
+
+        m_EEPROMstorage.Store(vinf); //storage is ready
+    }
+
+    //fill blank atoms with the stubs:
+    for(unsigned int i=m_EEPROMstorage.GetAtomsCount(); i<3; i++)
+    {
+        CHatAtomStub stub(i);
+        m_EEPROMstorage.Store( stub );
+    }
+
+    CHatAtomCalibration cal_data;
+    m_CalStatus=m_EEPROMstorage.Load(cal_data);
+}
+
+bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data)
+{
+     m_CalStatus=m_EEPROMstorage.Store(Data);
+
+    return (CHatsMemMan::op_result::OK==m_CalStatus);
+}
+bool nodeControl::GetCalibrationData(CHatAtomCalibration &Data)
+{
+    return (CHatsMemMan::op_result::OK==m_EEPROMstorage.Load(Data));
+}
+
 
 void nodeControl::Serialize(CStorage &st)
 {
