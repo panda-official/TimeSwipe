@@ -119,7 +119,7 @@ protected:
      /*!
      * \brief The data pattern to test single page
      */
-    CFIFO m_PageTestPattern;
+    //CFIFO m_PageTestPattern;
 
     /*!
      * \brief The handler of the 1st IRQ line of the Sercom
@@ -209,7 +209,7 @@ public:
      * \brief Self test process
      * \return true on succes, false on error
      */
-    bool self_test_proc();
+    bool self_test_proc(size_t nPatternSize=1024);
 
 
 public:

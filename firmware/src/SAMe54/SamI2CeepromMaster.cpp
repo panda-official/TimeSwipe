@@ -20,11 +20,11 @@ Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
 {
     //filling test pattern with default value:
-    m_PageTestPattern.reserve(m_nPageSize);
+    /*m_PageTestPattern.reserve(m_nPageSize);
     for(int i=0; i<m_nPageSize; i++)
     {
         m_PageTestPattern<<0xA5;
-    }
+    }*/
 
     PORT->Group[3].DIRSET.reg=(1L<<10);
     SetWriteProtection(true);
@@ -213,7 +213,7 @@ void CSamI2CeepromMaster::StartTranfer(bool how)
 }
 
 //self-test:
-bool CSamI2CeepromMaster::self_test_proc()
+/*bool CSamI2CeepromMaster::self_test_proc()
 {
     int nPages=m_nReadDataCountLim/m_nPageSize;
     CFIFO ReadBuf;
@@ -228,6 +228,9 @@ bool CSamI2CeepromMaster::self_test_proc()
         if(!__send(m_PageTestPattern))
             return false;
 
+        //a delay inbetween required:
+        os::uwait(500); //???
+
         if(!receive(ReadBuf))
             return false;
 
@@ -239,7 +242,53 @@ bool CSamI2CeepromMaster::self_test_proc()
         }
     }
     return true;
+}*/
+
+//fast self-test:
+bool CSamI2CeepromMaster::self_test_proc(size_t nPatternSize)
+{
+    CFIFO PageTestPattern, ReadBuf;
+    size_t nPages=static_cast<size_t>(m_nReadDataCountLim)/nPatternSize;
+
+
+    PageTestPattern.reserve(static_cast<size_t>(nPatternSize));
+    ReadBuf.reserve(static_cast<size_t>(nPatternSize));
+    m_nMemAddr=0; //from the beginning
+
+    for(int i=0; i<nPatternSize; i++)
+    {
+        PageTestPattern<<0xA5;
+    }
+
+
+    for(size_t i=0; i<nPages; i++, m_nMemAddr+=m_nPageSize){
+
+
+        ReadBuf.rewind();
+        PageTestPattern.rewind();
+
+        if(!__send(PageTestPattern))
+            return false;
+
+        //some delay is required:
+        os::wait(10);
+
+        if(!receive(ReadBuf))
+            return false;
+
+        //comare:
+        for(int k=0; k<nPatternSize; k++)
+        {
+            if(ReadBuf[k]!=PageTestPattern[k])
+                return false;
+        }
+    }
+    return true;
+
 }
+
+
+
 
 void CSamI2CeepromMaster::RunSelfTest(bool bHow)
 {
