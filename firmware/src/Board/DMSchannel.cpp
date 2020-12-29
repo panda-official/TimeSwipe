@@ -6,6 +6,8 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "DMSchannel.h"
+#include "HatsMemMan.h"
+#include "nodeControl.h"
 
 void CDMSchannel::SetAmpGain(float GainValue)
 {
@@ -48,5 +50,23 @@ void CDMSchannel::SetAmpGain(float GainValue)
 
 
     if(m_pPGA->SetGains( static_cast<CPGA280::igain>(el/2), static_cast<CPGA280::ogain>(el%2) ))
+    {
+        m_nGainIndex=el;
         m_ActualAmpGain=GainTab[el];
+        UpdateOffsets();
+    }
+}
+void CDMSchannel::UpdateOffsets()
+{
+    CHatAtomCalibration cdata;
+    m_pCont->GetCalibrationData(cdata);
+
+    std::string strError;
+    CCalAtomPair pair;
+    cdata.GetCalPair( (mes_mode::Voltage==m_MesMode ? CCalAtom::atom_type::V_In1 : CCalAtom::atom_type::C_In1) + static_cast<size_t>(m_nChanInd),
+
+                      m_nGainIndex, pair, strError);
+
+
+    m_pDAC->SetRawOutput(pair.b);
 }

@@ -16,8 +16,6 @@ Copyright (c) 2019 Panda Team
 #include <memory>
 #include "BaseMesChannel.h"
 #include "zerocal_man.h"
-//#include "jsondisp.h"
-//#include "json_stream.h"
 #include "json_evsys.h"
 #include "RawBinStorage.h"
 #include "HatsMemMan.h"
@@ -247,6 +245,7 @@ public:
          */
         void AddMesChannel(const std::shared_ptr<CMesChannel> &pChan)
         {
+            pChan->m_pCont=this;
             m_pMesChans.emplace_back(pChan);
             m_OffsetSearch.Add(pChan->m_pADC, pChan->m_pDAC, pChan->m_VisChan.GetVisChannel());
         }

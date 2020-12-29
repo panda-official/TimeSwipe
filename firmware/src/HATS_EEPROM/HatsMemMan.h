@@ -204,9 +204,15 @@ struct CCalAtom{
     enum atom_type{
 
         invalid=0,
-        V_In,
+        V_In1,
+        V_In2,
+        V_In3,
+        V_In4,
         V_supply,
-        C_In,
+        C_In1,
+        C_In2,
+        C_In3,
+        C_In4,
         Ana_Out
     };
 
@@ -392,10 +398,16 @@ private:
      */
     void reset(){
 
-        m_atoms.resize(3);
-        m_atoms[0].Setup(CCalAtom::atom_type::V_In, 22);
-        m_atoms[1].Setup(CCalAtom::atom_type::V_supply, 1);
-        m_atoms[2].Setup(CCalAtom::atom_type::C_In, 22);
+        m_atoms.resize(9);
+        m_atoms[0].Setup(CCalAtom::atom_type::V_In1, 22);
+        m_atoms[1].Setup(CCalAtom::atom_type::V_In2, 22);
+        m_atoms[2].Setup(CCalAtom::atom_type::V_In3, 22);
+        m_atoms[3].Setup(CCalAtom::atom_type::V_In4, 22);
+        m_atoms[4].Setup(CCalAtom::atom_type::V_supply, 1);
+        m_atoms[5].Setup(CCalAtom::atom_type::C_In1, 22);
+        m_atoms[6].Setup(CCalAtom::atom_type::C_In2, 22);
+        m_atoms[7].Setup(CCalAtom::atom_type::C_In3, 22);
+        m_atoms[8].Setup(CCalAtom::atom_type::C_In4, 22);
 
         FillHeader();
     }

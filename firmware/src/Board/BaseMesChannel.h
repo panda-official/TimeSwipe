@@ -117,6 +117,11 @@ public:
 
 protected:
     /*!
+     * \brief The channel index
+     */
+    int m_nChanInd;
+
+    /*!
      * \brief The pointer to the control class containing this channel
      */
     nodeControl *m_pCont=nullptr;
@@ -176,8 +181,9 @@ public:
      * \param nCh  - The visualization index of the channel
      * \param bVisEnabled - The visualisation enable flag
      */
-    CMesChannel(const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh, bool bVisEnabled) : m_VisChan(nCh){
+    CMesChannel(const int nChanInd, const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh, bool bVisEnabled) : m_VisChan(nCh){
 
+        m_nChanInd=nChanInd;
         m_pADC=pADC;
         m_pDAC=pDAC;
         m_bVisEnabled=bVisEnabled;

@@ -32,6 +32,8 @@ class CDMSchannel : public CMesChannel
 {
 protected:
 
+    size_t m_nGainIndex=0;
+
     /*!
      * \brief The pointer to the IEPE switch pin
      */
@@ -41,6 +43,8 @@ protected:
      * \brief The pointer to the PGA280 amplifier control instance
      */
     std::shared_ptr<CPGA280> m_pPGA;
+
+    void UpdateOffsets();
 
     /*!
      * \brief Turns IEPEmode on/off
@@ -60,6 +64,7 @@ protected:
 
         m_MesMode=nMode;
         m_pPGA->SetMode( static_cast<CPGA280::mode>(nMode) );
+        UpdateOffsets();
 
     }
 
@@ -80,9 +85,9 @@ public:
      * \param pPGA - the pointer to the PGA280 amplifier control instance
      * \param bVisEnabled - The visualisation enable flag
      */
-    CDMSchannel(const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh,
+    CDMSchannel(const int nChanInd, const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh,
                 const std::shared_ptr<CPin> &pIEPEswitch, const std::shared_ptr<CPGA280> &pPGA, bool bVisEnabled) :
-        CMesChannel(pADC,  pDAC, nCh, bVisEnabled)
+        CMesChannel(nChanInd, pADC,  pDAC, nCh, bVisEnabled)
     {
         m_pIEPEswitch=pIEPEswitch;
         m_pPGA=pPGA;

@@ -66,6 +66,7 @@ int sys_clock_init(void);
 int main(void)
 {
         const int nChannels=4;
+        const size_t EEPROMsize=2048;
 
 #ifdef CALIBRATION_STATION
         bool bVisEnabled=false;
@@ -89,14 +90,14 @@ int main(void)
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
         auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
-        pEEPROM_MemBuf->reserve(1024); //reserve 1kb for an EEPROM data
+        pEEPROM_MemBuf->reserve(EEPROMsize); //reserve 2kb for an EEPROM data
 
         //creating an I2C EEPROM master to operate with an external chip:
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
         pEEPROM_MasterBus->EnableIRQs(true);
 
         //request data from an external chip:
-        pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
+        pEEPROM_MasterBus->SetDataAddrAndCountLim(0, EEPROMsize);
         pEEPROM_MasterBus->SetDeviceAddr(0xA0);
         pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
 
@@ -227,7 +228,7 @@ int main(void)
                 auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
                 auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-                nc.AddMesChannel( std::make_shared<CDMSchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
+                nc.AddMesChannel( std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
 #ifdef DMS_TEST_MODE
 
                 //add commands to each:
@@ -246,7 +247,7 @@ int main(void)
         {
             for(int i=0; i<nChannels; i++)
             {
-                nc.AddMesChannel( std::make_shared<CIEPEchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled) );
+                nc.AddMesChannel( std::make_shared<CIEPEchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled) );
             }
         }
 
