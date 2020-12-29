@@ -446,6 +446,7 @@ public:
                 m_pVoltageDAC->SetVal(val);
             else
                 m_Voltage=val;
+
         }
 
         /*!

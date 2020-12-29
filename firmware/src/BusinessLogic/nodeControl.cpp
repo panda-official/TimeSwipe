@@ -51,7 +51,11 @@ bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data)
 {
      m_CalStatus=m_EEPROMstorage.Store(Data);
 
-    return (CHatsMemMan::op_result::OK==m_CalStatus);
+    if(CHatsMemMan::op_result::OK==m_CalStatus)
+    {
+        return m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf());
+    }
+    return false;
 }
 bool nodeControl::GetCalibrationData(CHatAtomCalibration &Data)
 {

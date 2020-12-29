@@ -15,11 +15,20 @@ Copyright (c) 2019 Panda Team
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMI2CM(nSercom) &(glob_GetSercomPtr(nSercom)->I2CM) //ptr to a master section
-#define SYNC_BUS(pBus) while(pBus->SYNCBUSY.bit.SYSOP){}
 
 
 CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
 {
+    //filling test pattern with default value:
+    /*m_PageTestPattern.reserve(m_nPageSize);
+    for(int i=0; i<m_nPageSize; i++)
+    {
+        m_PageTestPattern<<0xA5;
+    }*/
+
+    PORT->Group[3].DIRSET.reg=(1L<<10);
+    SetWriteProtection(true);
+
     CSamSercom::EnableSercomBus(m_nSercom, true);
     m_pCLK=CSamCLK::Factory();
 
@@ -28,6 +37,7 @@ CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
     m_pCLK->Enable(true);
 
     setup_bus();
+
 }
 
 void CSamI2CeepromMaster::reset_chip_logic()
@@ -37,7 +47,7 @@ void CSamI2CeepromMaster::reset_chip_logic()
     PORT->Group[3].PINCFG[8].bit.PMUXEN=0;
     PORT->Group[3].PINCFG[9].bit.PMUXEN=0;
 
-    //! performing a manual 10-period clock sequence - this will reset a chip
+    //! performing a manual 10-period clock sequence - this will reset the chip
 
     PORT->Group[3].OUTCLR.reg=(1L<<8);
     for(int i=0; i<10; i++)
@@ -48,6 +58,8 @@ void CSamI2CeepromMaster::reset_chip_logic()
         os::wait(1);
     }
 }
+
+#define SYNC_BUS(pBus) while(pBus->SYNCBUSY.bit.SYSOP){}
 void CSamI2CeepromMaster::setup_bus()
 {
     //SCL:
@@ -71,11 +83,15 @@ void CSamI2CeepromMaster::setup_bus()
     pI2Cm->CTRLA.bit.MODE=0x05;
 
     //setup:
+    //pI2Cm->CTRLB.bit.SMEN=1;    //smart mode is enabled
+    //pI2Cm->CTRLA.bit.SCLSM=1;
     pI2Cm->CTRLA.bit.INACTOUT=1;  //55uS shoud be enough
     pI2Cm->CTRLB.bit.ACKACT=0;    //sending ACK after the bit is received (auto)
     pI2Cm->BAUD.bit.BAUD=0xff;
+   // pI2Cm->BAUD.bit.BAUDLOW=0 ; //0xFF;
 
     //! if it was an IRQ mode don't forget to restart it:
+
     if(m_bIRQmode)
     {
         EnableIRQs(true);
@@ -95,7 +111,7 @@ void CSamI2CeepromMaster::check_reset()
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
 
-    if(3==pI2Cm->STATUS.bit.BUSSTATE) //chip hangs...
+    if(3==pI2Cm->STATUS.bit.BUSSTATE) //chip is hanging...
     {
         reset_chip_logic();
         setup_bus();
@@ -104,6 +120,66 @@ void CSamI2CeepromMaster::check_reset()
 
 
 
+void CSamI2CeepromMaster::SetWriteProtection(bool how)
+{
+    if(how)
+    {
+        PORT->Group[3].OUTSET.reg=(1L<<10);
+    }
+    else
+    {
+        PORT->Group[3].OUTCLR.reg=(1L<<10);
+    }
+    os::uwait(50); //wait till real voltage level rise of fall
+}
+
+bool CSamI2CeepromMaster::write_next_page() //since only 1 page can be written at once
+{
+    int pbl=m_nPageSize - m_nCurMemAddr%m_nPageSize;
+    m_nPageBytesLeft=pbl;
+    StartTranfer(true);
+    unsigned long StartWaitTime=os::get_tick_mS();
+    while(FSM::halted!=m_MState && errTransfer!=m_MState)
+    {
+        if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
+            return false;
+        os::wait(1); //regulate the cpu load here
+    }
+    if(FSM::halted==m_MState)
+    {
+        m_nCurMemAddr+=pbl;
+        return true;
+    }
+    return false;
+}
+
+bool CSamI2CeepromMaster::__send(CFIFO &msg)  //blocking call
+{
+    m_nCurMemAddr=m_nMemAddr; //rewind mem addr
+    m_pBuf=&msg;
+    bool bPageWriteResult;
+    unsigned long StartWaitTime=os::get_tick_mS();
+    do{
+
+        bPageWriteResult=write_next_page();
+        if(bPageWriteResult)
+        {
+            StartWaitTime=os::get_tick_mS();
+        }
+
+    }
+    while(msg.in_avail() && (os::get_tick_mS()-StartWaitTime)<m_OpTmt_mS);
+    m_pBuf=nullptr;
+    return bPageWriteResult;
+}
+
+bool CSamI2CeepromMaster::send(CFIFO &msg)  //blocking call
+{
+SetWriteProtection(false);
+    bool bPageWriteResult=__send(msg);
+SetWriteProtection(true);
+    return bPageWriteResult;
+}
 bool CSamI2CeepromMaster::receive(CFIFO &msg) //blocking call
 {
     m_nCurMemAddr=m_nMemAddr;
@@ -136,6 +212,93 @@ void CSamI2CeepromMaster::StartTranfer(bool how)
 
 }
 
+//self-test:
+/*bool CSamI2CeepromMaster::self_test_proc()
+{
+    int nPages=m_nReadDataCountLim/m_nPageSize;
+    CFIFO ReadBuf;
+    ReadBuf.reserve(m_nPageSize);
+    m_nMemAddr=0; //from the beginning
+
+
+    for(int i=0; i<nPages; i++, m_nMemAddr+=m_nPageSize)
+    {
+        ReadBuf.rewind();
+        m_PageTestPattern.rewind();
+        if(!__send(m_PageTestPattern))
+            return false;
+
+        //a delay inbetween required:
+        os::uwait(500); //???
+
+        if(!receive(ReadBuf))
+            return false;
+
+        //comare:
+        for(int k=0; k<m_nPageSize; k++)
+        {
+            if(ReadBuf[k]!=m_PageTestPattern[k])
+                return false;
+        }
+    }
+    return true;
+}*/
+
+//fast self-test:
+bool CSamI2CeepromMaster::self_test_proc(size_t nPatternSize)
+{
+    CFIFO PageTestPattern, ReadBuf;
+    size_t nPages=static_cast<size_t>(m_nReadDataCountLim)/nPatternSize;
+
+
+    PageTestPattern.reserve(static_cast<size_t>(nPatternSize));
+    ReadBuf.reserve(static_cast<size_t>(nPatternSize));
+    m_nMemAddr=0; //from the beginning
+
+    for(int i=0; i<nPatternSize; i++)
+    {
+        PageTestPattern<<0xA5;
+    }
+
+
+    for(size_t i=0; i<nPages; i++, m_nMemAddr+=m_nPageSize){
+
+
+        ReadBuf.rewind();
+        PageTestPattern.rewind();
+
+        if(!__send(PageTestPattern))
+            return false;
+
+        //some delay is required:
+        os::wait(10);
+
+        if(!receive(ReadBuf))
+            return false;
+
+        //comare:
+        for(int k=0; k<nPatternSize; k++)
+        {
+            if(ReadBuf[k]!=PageTestPattern[k])
+                return false;
+        }
+    }
+    return true;
+
+}
+
+
+
+
+void CSamI2CeepromMaster::RunSelfTest(bool bHow)
+{
+
+SetWriteProtection(false);
+    m_bSelfTestResult=self_test_proc();
+SetWriteProtection(true);
+
+}
+
 //IRQ handling:
 void CSamI2CeepromMaster::IRQhandler()
 {
@@ -150,7 +313,7 @@ void CSamI2CeepromMaster::IRQhandler()
         pI2Cm->STATUS.reg=0xff; //clear status ?
         pI2Cm->INTFLAG.bit.ERROR=1;
 
-        m_MState=errTransfer;
+        m_MState=errTransfer; //???
         return;
     }
 
@@ -162,9 +325,10 @@ void CSamI2CeepromMaster::IRQhandler()
             //stop the communication:
             m_MState=errTransfer;
             pI2Cm->CTRLB.bit.CMD=0x3; //stop
+            //pI2Cm->INTFLAG.bit.MB=1;
             return;
             //how the flags will be reset? by a new start?
-            //!"This bit is automatically cleared when writing to the ADDR register" (Manual)
+            //"This bit is automatically cleared when writing to the ADDR register" (Manual)
         }
 
         if(FSM::start==m_MState)
@@ -190,15 +354,29 @@ void CSamI2CeepromMaster::IRQhandler()
             //after setting the addres switch the direction: R or W
             if(m_IOdir) //write
             {
-                //nothing to do, stop:
-                m_MState=FSM::halted;
-                pI2Cm->CTRLB.bit.CMD=0x3; //stop
+                //nothing to do, just continue writing:
+                m_MState=FSM::write;
             }
             else
             {
                 //initiating a repeated start for read:
                 m_MState=FSM::read;
                 pI2Cm->ADDR.bit.ADDR=m_nDevAddr+1;
+            }
+            return;
+        }
+        if(FSM::write==m_MState)
+        {
+            //write data until the end
+            int val=readB();
+            if(val>=0)
+            {
+                pI2Cm->DATA.bit.DATA=val;
+            }
+            else {
+                //EOF:
+                m_MState=FSM::halted;
+                pI2Cm->CTRLB.bit.CMD=0x3; //stop
             }
             return;
         }
@@ -270,10 +448,24 @@ void CSamI2CeepromMaster::EnableIRQs(bool how)
     CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
 }
 
+//+++new mem int:
 void CSamI2CeepromMaster::rewindMemBuf()
 {
     if(m_pBuf)
         m_pBuf->rewind();
+}
+int CSamI2CeepromMaster::readB()
+{
+    if(!m_pBuf)
+        return -1;
+    if((m_nPageBytesLeft--)<=0)
+        return -1;
+    if(0==m_pBuf->in_avail())
+        return -1;
+
+    typeSChar ch;
+    (*m_pBuf)>>ch;
+    return ch;
 }
 int CSamI2CeepromMaster::writeB(int val)
 {

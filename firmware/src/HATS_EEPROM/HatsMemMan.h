@@ -233,7 +233,7 @@ struct CCalAtom{
 
         typeSChar ch;
         uint8_t   *pBuf=(uint8_t *)&theader;
-        for(int i=0; i<sizeof(header); i++)
+        for(size_t i=0; i<sizeof(header); i++)
         {
             buf>>ch;
             pBuf[i]=(uint8_t)ch;
@@ -257,7 +257,7 @@ struct CCalAtom{
 
         //store the header:
         uint8_t   *pBuf=(uint8_t *)&m_header;
-        for(int i=0; i<sizeof(header); i++)
+        for(size_t i=0; i<sizeof(header); i++)
         {
             buf<<pBuf[i];
         }
@@ -427,8 +427,7 @@ private:
         {
             atom.load(buf);
         }
-
-
+        return true;
     }
 
 
@@ -453,6 +452,7 @@ private:
         {
             atom.store(buf);
         }
+        return true;
     }
 
 };

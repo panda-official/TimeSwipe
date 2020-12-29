@@ -2,7 +2,7 @@
 This Source Code Form is subject to the terms of the GNU General Public License v3.0.
 If a copy of the GPL was not distributed with this
 file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
+Copyright (c) 2019-2020 Panda Team
 */
 
 //build for ADCs-DACs:
@@ -336,6 +336,10 @@ int main(void)
         pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
                                                                                        &CCalFWbtnHandler::HasUItestBeenDone,
                                                                                        &CCalFWbtnHandler::StartUItest) );
+        //testing Ext EEPROM:
+        pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<CSamI2CeepromMaster, bool> >(pEEPROM_MasterBus,
+                                                                                               &CSamI2CeepromMaster::GetSelfTestResult,  &CSamI2CeepromMaster::RunSelfTest) );
+
 #endif
 
 
