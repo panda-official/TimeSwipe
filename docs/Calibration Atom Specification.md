@@ -36,11 +36,17 @@ Version 1 - 12/2020
 
 ```
   0x0000 = invalid
-  0x0001 = V_In
-  0x0002 = V_supply
-  0x0003 = C_In
-  0x0004 = Ana_Out
-  0x0005-0xfffe ...
+  0x0001 = V_In1
+  0x0002 = V_In2
+  0x0003 = V_In3
+  0x0004 = V_In4
+  0x0005 = V_supply
+  0x0006 = C_In1
+  0x0007 = C_In2
+  0x0008 = C_In3
+  0x0009 = C_In4
+  0x000A = Ana_Out
+  0x000B-0xfffe ...
   0xffff = invalid
 ```
 
@@ -76,6 +82,7 @@ The Real Setting is the actual gain, that is applied to the input signal.
 ### V_In Atom Type
 This atom is specific for the TimeSwipe 1.0 board. For each of the 22 different gain settings an error correction line is defined. 
 This line is defined by its zero offset and its slope. y=m*x+b
+The definition of how to apply this data needs to be defined.
 
 ```
   Bytes   Field
@@ -87,6 +94,8 @@ This atom is therefore (4+2)*22 = 132 bytes large.
 ### V_Supply Atom Type
 This atom is specific for the TimeSwipe 1.0 board. An error correction line for V_Supply is defined.
 This line is defined by its zero offset and its slope. y=m*x+b
+The unit of the zero Offset value is the DAC Offset digits applied by the ARM Chip. At startup, the ARM Chip will read this value and applies it to the DAC accordingly.
+The unit of the slope is a float, which describes a simple y=f(x) translation curve. This data is read by the timeswipe driver on the Pi and is applied on the fly while processing the input data.
 
 ```
   Bytes   Field
@@ -98,6 +107,8 @@ This atom is therefore (4+2)*1 = 6 bytes large.
 ### C_In Atom Type
 This atom is specific for the TimeSwipe 1.0 board. For each of the 22 different gain settings a error correction line is defined. 
 This line is defined by its zero offset and its slope. y=m*x+b
+The unit of the zero Offset value is the DAC Offset digits applied by the ARM Chip. At startup, the ARM Chip will read this value and applies it to the DAC accordingly.
+The unit of the slope is a float, which describes a simple y=f(x) translation curve. This data is read by the timeswipe driver on the Pi and is applied on the fly while processing the input data.
 
 ```
   Bytes   Field
