@@ -16,7 +16,7 @@ void CDac::SetVal(float val)
 {
         SetRealVal(val);
 	
-	//call driver function:
+        //call driver function:
         DriverSetVal(m_RealVal, m_RawBinaryVal);
 }
 void CDac::SetRawOutput(int val)

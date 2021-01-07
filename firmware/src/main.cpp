@@ -215,9 +215,12 @@ int main(void)
             pInaSpiCSpin->Set(false);
 
             auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
-            pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
+           // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
             pDAC2A->SetVal(0);
             nc.SetVoltageDAC(pDAC2A);
+
+            //ability to control VSUP dac raw value:
+            pDisp->Add("VSUP.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2A, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
 
 
             //create 4 PGAs:

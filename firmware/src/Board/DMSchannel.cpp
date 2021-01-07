@@ -58,6 +58,10 @@ void CDMSchannel::SetAmpGain(float GainValue)
 }
 void CDMSchannel::UpdateOffsets()
 {
+
+    //apply offsets only in case of production firmware
+#ifndef CALIBRATION_STATION
+
     CHatAtomCalibration cdata;
     m_pCont->GetCalibrationData(cdata);
 
@@ -69,4 +73,7 @@ void CDMSchannel::UpdateOffsets()
 
 
     m_pDAC->SetRawOutput(pair.b);
+
+#endif
+
 }

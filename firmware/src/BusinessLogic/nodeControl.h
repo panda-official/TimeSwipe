@@ -87,9 +87,19 @@ protected:
          */
         CRawBinStorage m_PersistStorage;
 
+        /*!
+         * \brief The external EEPROM storage manager
+         */
         CHatsMemMan    m_EEPROMstorage;
+
+        /*!
+         * \brief The serial bus used to read/write EEPROM binary image placed in CFIFO
+         */
         std::shared_ptr<ISerial> m_pEEPROMbus;
 
+        /*!
+         * \brief The board calibration status
+         */
         CHatsMemMan::op_result m_CalStatus;
 
         /*!
@@ -178,6 +188,13 @@ protected:
          * \brief The current measurement mode of the Board
          */
         MesModes m_OpMode=nodeControl::IEPE;
+
+
+        /*!
+         * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
+         * \param Data
+         */
+        void ApplyCalibrationData(CHatAtomCalibration &Data);
 
 public:
         /*!

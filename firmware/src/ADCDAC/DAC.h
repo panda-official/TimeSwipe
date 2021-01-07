@@ -23,6 +23,8 @@ Copyright (c) 2019 Panda Team
 class CDac : public CADchan{
 	
 protected:
+
+
     /*!
      * \brief Sets the output value to the real DAC device
      * \param val A value to set in a real-unit format for devices that can accept it(some PCI boards for example)
@@ -44,5 +46,13 @@ public:
      * \param val A value in a raw binary format
      */
     void SetRawOutput(int val);
+
+    /*!
+     * \brief The class ctor
+     */
+    CDac(){
+
+        m_nConversionType=ConversionType::typeB;
+    }
     //virtual ~CDac(){}  //just to keep polymorphic behaviour, should be never called
 };

@@ -45,11 +45,29 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 
     CHatAtomCalibration cal_data;
     m_CalStatus=m_EEPROMstorage.Load(cal_data);
+    ApplyCalibrationData(cal_data);
+}
+
+void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
+{
+
+#ifndef CALIBRATION_STATION
+    if(m_pVoltageDAC){
+
+        std::string strError;
+        CCalAtomPair cpair;
+        Data.GetCalPair(CCalAtom::atom_type::V_supply, 0, cpair, strError);
+
+        m_pVoltageDAC->SetLinearFactors(cpair.m, cpair.b);
+    }
+#endif
+
 }
 
 bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data)
 {
      m_CalStatus=m_EEPROMstorage.Store(Data);
+     ApplyCalibrationData(Data);
 
     if(CHatsMemMan::op_result::OK==m_CalStatus)
     {

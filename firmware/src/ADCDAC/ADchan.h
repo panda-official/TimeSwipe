@@ -28,7 +28,16 @@ Copyright (c) 2019 Panda Team
  */
 class CADchan{
 
+public:
+    enum ConversionType{
+
+        typeA,
+        typeB
+    };
+
 protected:
+         ConversionType m_nConversionType=ConversionType::typeA;
+
 
          /*!
           * \brief Proportional convertion factor k: RealValue=RawValue*k + b
@@ -79,7 +88,14 @@ protected:
               if(RawVal>m_IntRange)
                   RawVal=m_IntRange;
 
-              return RawVal*m_k + m_b;
+              if(ConversionType::typeA==m_nConversionType)
+              {
+                 return RawVal*m_k + m_b;
+              }
+              else
+              {
+                 return (RawVal - m_b)/m_k;
+              }
           }
 
           /*!
@@ -89,7 +105,17 @@ protected:
            */
           int   Real2RawBinary(float  RealVal)
           {
-              int res=(int)((RealVal-m_b)/m_k);
+              int res;
+
+              if(ConversionType::typeA==m_nConversionType)
+              {
+                  res=static_cast<int>(((RealVal-m_b)/m_k));
+              }
+              else
+              {
+                  res=static_cast<int>(m_k*RealVal + m_b);
+              }
+
               if(res<0)
                       return 0;
               if(res>m_IntRange)
@@ -98,6 +124,8 @@ protected:
           }
 
 public:
+
+
           /*!
            * \brief Class constructor
            */
