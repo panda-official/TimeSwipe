@@ -436,16 +436,43 @@ public:
             return (CHatsMemMan::op_result::OK==m_CalStatus);
         }
 
+        /*!
+         * \brief Sets the interface for working with external EEPROM chip.
+         * \param pBus - the pointer to the EEPROM bus to send/receive EEPROM image
+         * \param pMemBuf - the pre-allocated RAM storage for the EEPROM image
+         */
         void SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf);
 
-        bool SetCalibrationData(CHatAtomCalibration &Data);
-        bool GetCalibrationData(CHatAtomCalibration &Data);
+        /*!
+         * \brief Applies the calibration data to all board items and stores the data in the EEPROM
+         * \param Data - the Calibration Atoms collection to strore
+         * \param strError - the operation error (if occurred)
+         * \return true on success, false otherwise (actual error is placed into the strError )
+         */
+        bool SetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
 
+        /*!
+         * \brief Retrieves the calibration data preloaded into the EEPROM image RAM storage
+         * \param Data - the Calibration Atoms collection
+         * \param strError - the operation error (if occurred)
+         * \return true on success, false otherwise (actual error is placed into the strError )
+         */
+        bool GetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
+
+        /*!
+         * \brief Starts/Stops the board cooler
+         * \param bHow: true=start, false=stop
+         */
         inline void StartFan(bool bHow)
         {
             assert(m_pFanOn);
             m_pFanOn->Set(bHow);
         }
+
+        /*!
+         * \brief Checks if board's cooler is running or not
+         * \return true=running, false=stopped
+         */
         inline bool IsFanStarted()
         {
             assert(m_pFanOn);

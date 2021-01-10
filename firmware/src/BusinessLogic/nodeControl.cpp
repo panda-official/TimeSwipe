@@ -64,20 +64,27 @@ void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
 
 }
 
-bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data)
+bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data, std::string &strError)
 {
      m_CalStatus=m_EEPROMstorage.Store(Data);
      ApplyCalibrationData(Data);
 
     if(CHatsMemMan::op_result::OK==m_CalStatus)
     {
-        return m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf());
+        if(m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf()))
+            return true;
+
+        strError="failed to write EEPROM";
     }
     return false;
 }
-bool nodeControl::GetCalibrationData(CHatAtomCalibration &Data)
+bool nodeControl::GetCalibrationData(CHatAtomCalibration &Data, std::string &strError)
 {
-    return (CHatsMemMan::op_result::OK==m_EEPROMstorage.Load(Data));
+    if (CHatsMemMan::op_result::OK==m_EEPROMstorage.Load(Data))
+        return true;
+
+    strError="EEPROM image is corrupted";
+    return false;
 }
 
 

@@ -165,7 +165,8 @@ bool CJSONDispatcher::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, co
 
     //load existing atom
     nodeControl &nc=nodeControl::Instance();
-    nc.GetCalibrationData(cal_atom);
+    if(!nc.GetCalibrationData(cal_atom, strError))
+        return false;
 
     size_t nAtom=jObj["cAtom"];
 
@@ -196,9 +197,9 @@ bool CJSONDispatcher::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, co
         }
 
         //save the atom:
-        if(!nc.SetCalibrationData(cal_atom))
+        if(!nc.SetCalibrationData(cal_atom, strError))
         {
-            strError="failed to save calibration data";
+            //strError="failed to save calibration data";
             return false;
         }
     }
