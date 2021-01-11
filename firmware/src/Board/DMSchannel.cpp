@@ -62,10 +62,10 @@ void CDMSchannel::UpdateOffsets()
     //apply offsets only in case of production firmware
 #ifndef CALIBRATION_STATION
 
-    CHatAtomCalibration cdata;
-    m_pCont->GetCalibrationData(cdata);
-
     std::string strError;
+    CHatAtomCalibration cdata;
+    m_pCont->GetCalibrationData(cdata, strError);
+
     CCalAtomPair pair;
     cdata.GetCalPair( (mes_mode::Voltage==m_MesMode ? CCalAtom::atom_type::V_In1 : CCalAtom::atom_type::C_In1) + static_cast<size_t>(m_nChanInd),
 
