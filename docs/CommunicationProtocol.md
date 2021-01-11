@@ -113,7 +113,14 @@ CH4.gain <br />
 CH4.iepe <br />
 
 
+### Type Fan:
 
+This access point type is used to control board's Fan output.
+
+Root domain:            Enables or disables Fan globally (boolean, true:false, r/w) <br />
+
+Sub domain (.duty):     Holds the Fan PWM duty cycle(pulse width) (float, 0.001:0.999, r) <br />
+Sub domain (.freq):     Holds the Fan PWM frequency (unsigned int, 1:20000, r/w) <br />
 
 ### Access points with only one root domain name:
 
