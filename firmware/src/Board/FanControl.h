@@ -40,24 +40,24 @@ protected:
     float m_TempRangeC0;
 
     /*!
-     * \brief The minimum PWM frequency of the controlling range
+     * \brief The minimum PWM Duty Cycle of the controlling range
      */
-    unsigned int m_MinFreqHz;
+    float m_MinDuty;
 
     /*!
-     * \brief The maximum PWM frequency of the controlling range
+     * \brief The maximum PWM Duty Cycle of the controlling range
      */
-    unsigned int m_MaxFreqHz;
+    float m_MaxDuty;
 
     /*!
-     * \brief The PWM frequency range (=max-min)
+     * \brief The PWM duty cycle range (=max-min)
      */
-    unsigned int m_FreqRangeHz;
+    float m_DutyRange;
 
     /*!
      * \brief The number of fan fixed speeds
      */
-    unsigned int m_FanSpeeds=4;
+    unsigned int m_FanSpeeds=10;
 
     /*!
      * \brief The actuall set fan speed
@@ -72,8 +72,10 @@ protected:
     /*!
      * \brief Minimum time between two consecutive updates
      */
-    unsigned long m_upd_quant_mS=200;
+    unsigned long m_upd_quant_mS=5000;
 
+
+    bool m_enabled = true;
 
     /*!
      * \brief The pointer to the temperature sensor
@@ -93,12 +95,15 @@ public:
      * \param pPWM      - the pointer to the PWM controlled fan pin
      * \param MinTempC0 - the minimum temperature of the range
      * \param MaxTempC0 - the maximum temperature of the range
-     * \param MinFreqHz - the minimum PWM frequency of the controlling range
-     * \param MaxFreqHz - the maximum PWM frequency of the controlling range
+     * \param MinDuty   - the minimum Duty Cycle of the controlling range
+     * \param MaxDuty   - the maximum Duty Cycle of the controlling range
      */
     CFanControl(std::shared_ptr<CSamTempSensor> &pTempSens, std::shared_ptr<CPinPWM> &pPWM,
-                float MinTempC0=20.0f, float MaxTempC0=60.0f,
-                unsigned int MinFreqHz=1000, unsigned int MaxFreqHz=9000);
+                float MinTempC0=45.0f, float MaxTempC0=65.0f,
+                float MinDuty=0.5, float MaxDuty=1.0);
+
+    bool GetEnabled();
+    void SetEnabled(bool enabled);
 
     /*!
      * \brief The object state update method

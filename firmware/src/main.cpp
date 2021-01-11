@@ -39,7 +39,7 @@ Copyright (c) 2019 Panda Team
 #include "HatsMemMan.h"
 #include "RawBinStorage.h"
 
-#include "FanControlSimple.h"
+#include "FanControl.h"
 #include "SamNVMCTRL.h"
 #include "SemVer.h"
 #include "View.h"
@@ -287,10 +287,16 @@ int main(void)
         pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
 
 
-        //temp sens+fan control:
+        //temp sensor+ PIN PWM:
         auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
+        auto pFanPWM=std::make_shared<CPinPWM>(CSamPORT::group::A, CSamPORT::pin::P09);
+        auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
+
+        //temp sens+fan control:
         pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );
-        auto pFanControl=std::make_shared<CFanControlSimple>(pTempSens, CSamPORT::group::A, CSamPORT::pin::P09);
+        pDisp->Add("Fan.duty", std::make_shared< CCmdSGHandler<CPinPWM, float> >(pFanPWM, &CPinPWM::GetDutyCycle) );
+        pDisp->Add("Fan.freq", std::make_shared< CCmdSGHandler<CPinPWM, unsigned int> >(pFanPWM, &CPinPWM::GetFrequency, &CPinPWM::SetFrequency) );
+        pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CFanControl, bool> >(pFanControl, &CFanControl::GetEnabled, &CFanControl::SetEnabled) );
 
         //button:
 #ifdef CALIBRATION_STATION
@@ -343,7 +349,7 @@ int main(void)
         pDisp->Add("Voltage", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetVoltage, &nodeControl::SetVoltage) );
         pDisp->Add("Current", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetCurrent, &nodeControl::SetCurrent) );
         pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
-        pDisp->Add("Fan", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsFanStarted,  &nodeControl::StartFan) );
+        //pDisp->Add("Fan", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsFanStarted,  &nodeControl::StartFan) );
 
 
         CView &view=CView::Instance();

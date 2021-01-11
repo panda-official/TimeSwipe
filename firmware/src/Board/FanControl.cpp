@@ -7,20 +7,31 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "FanControl.h"
 
-CFanControl::CFanControl(std::shared_ptr<CSamTempSensor> &pTempSens, std::shared_ptr<CPinPWM> &pPWM, float MinTempC0, float MaxTempC0, unsigned int MinFreqHz, unsigned int MaxFreqHz)
+CFanControl::CFanControl(std::shared_ptr<CSamTempSensor> &pTempSens, std::shared_ptr<CPinPWM> &pPWM, float MinTempC0, float MaxTempC0, float MinDuty, float MaxDuty)
 {
 
     m_TempMinC0=MinTempC0;
     m_TempMaxC0=MaxTempC0;
     m_TempRangeC0=MaxTempC0-MinTempC0;
 
-    m_MinFreqHz=MinFreqHz;
-    m_MaxFreqHz=MaxFreqHz;
-    m_FreqRangeHz=MaxFreqHz-MinFreqHz;
+    m_MinDuty=MinDuty;
+    m_MaxDuty=MaxDuty;
+    m_DutyRange=MaxDuty-MinDuty;
 
     m_pTempSens=pTempSens;
     m_pPWM=pPWM;
+    m_pPWM->SetFrequency(100);
 
+}
+
+void CFanControl::SetEnabled(bool enabled)
+{
+    m_enabled = enabled;
+}
+
+bool CFanControl::GetEnabled()
+{
+    return m_enabled;
 }
 
 void CFanControl::Update()
@@ -38,9 +49,6 @@ void CFanControl::Update()
     else if(speed>=m_FanSpeeds)
         speed=m_FanSpeeds-1;
 
-    if(speed==m_CurSpeed)
-        return;
-
     m_CurSpeed=speed;
 
     if(0==speed)
@@ -49,7 +57,13 @@ void CFanControl::Update()
         return;
     }
 
-    unsigned int freq=(speed*m_FreqRangeHz)/m_FanSpeeds + m_MinFreqHz;
-    m_pPWM->SetFrequency(freq);
-    m_pPWM->Start(true);
+    float duty=((float)m_CurSpeed/(m_FanSpeeds-1))*m_DutyRange + m_MinDuty;
+
+    m_pPWM->SetDutyCycle(duty);
+    if(m_enabled == true)
+    {
+        m_pPWM->Start(true);
+    } else {
+        m_pPWM->Start(false);
+    }
 }
