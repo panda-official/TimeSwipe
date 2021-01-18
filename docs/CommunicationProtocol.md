@@ -1,314 +1,378 @@
 # Data Model
 
-The board's internal data is represented as access points or variables.
-Each variable holds an only single value that can be written (set) to the variable or read out (get) if appropriate access rights are set (r/w)
-The value is either primitive type (bool, int, float, etc) or an object.
+The board's internal data is represented as *access points* or *variables*. Each
+variable holds a value of some primitive type (`bool`, `int`, `float`, etc) or a
+JSON object. Some variables are both read/write and the others are read-only.
 
-Each variable(access point) has its own unique name that is written in the domain name form for convenience. Where the elder domain name is on the left.
-For example: "ADC1.raw" means raw value of ADC channel 1.
-This way access points form a hierarchical data model.
+Each access point is uniquely named in the domain name form for convenience, where
+the elder domain name is on the left. For example, `ADC1.raw` means raw value of
+ADC channel 1. This way access points forms a hierarchical *data model*.
 
-## Possible access point types:
+## Access points
 
-### Type DAC: 
+### DAC access point
 
-This access point type is used for setting offset on the input signal for each of 4 channels by controlling the input signal amplifier.
-The access point consists of two domain names.
+This access point is used for setting offset on the input signal for each of `4`
+channels by controlling the input signal amplifier. The access point consists of
+two domain names.
 
-Root domain:          Can be used only with sub-domain <br />
-<br />
-Sub domain (.raw):    Holds an analog output setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
+|Domain|Description                                            |Valid values  |Access|
+|:-----|:------------------------------------------------------|:-------------|:-----|
+|root  |Can be used only with `.raw`.                          |              |      |
+|.raw  |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |
 
-Here is a list of all possible DAC access points:
+The possible DAC access points are:
 
-DAC1.raw <br />
-DAC2.raw <br />
-DAC3.raw <br />
-DAC4.raw <br />
+  - `DAC1.raw`
+  - `DAC2.raw`
+  - `DAC3.raw`
+  - `DAC4.raw`
 
-### Type AOUT
+### AOUT access point
 
-By default the input signal amplifier outputs connected to board's analog outputs.
-But there is an ability to control analog outputs #3 and #4 manually by selecting the special control mode via a DACsw variable (explained later in this document).
-The mode is activated by setting DACsw=1. Amplifier outputs #3 and #4 will be disconnected and replaced by internal 2-channel DAC output.
-To control analog output values #3 and #4 in this mode additional access points are presented:
+By default, the input signal amplifier outputs connected to board's analog outputs.
+But it's possible to control analog outputs `#3` and `#4` manually by selecting
+the special control mode via the `DACsw` variable (explained later in this document).
+The mode is activated by setting `DACsw` to `1`. Amplifier outputs `#3` and `#4` will
+be disconnected and replaced by internal 2-channel DAC output. To control analog output
+values `#3` and `#4` in this mode additional access points are presented.
 
-Root domain:          Can be used only with sub-domain <br />
-<br />
-Sub domain (.raw):    Holds an analog output setpoint in a raw binary format (integer value 0:4095 discrets, r/w)
+|Domain|Description                                            |Valid values  |Access|
+|:-----|:------------------------------------------------------|:-------------|:-----|
+|root  |Can be used only with `.raw`                           |              |      |
+|.raw  |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |
 
+The possible AOUT access points are:
 
-AOUT3.raw <br />
-AOUT4.raw <br />
+  - `AOUT3.raw`
+  - `AOUT4.raw`
 
+### ADC access point
 
-### Type ADC: 
+This access point is used to control board's ADCs and consists of two domain names.
 
-This access point type is used to control board's ADCs and consists of two domain names.
+|Domain|Description                                        |Valid values  |Access|
+|:-----|:--------------------------------------------------|:-------------|:-----|
+|root  |Can be used only with `.raw`.                      |              |      |
+|.raw  |Holds an ADC measured value in a raw binary format.|int `[0,4095]`|r     |
 
-Root domain:          Can be used only with sub-domain <br />
-Sub domain (.raw):    Holds an ADC measured value in a raw binary format (integer value 0:4095 discrets, r)
+The possible ADC access points are:
 
-Here is a list of all possible ADC's access points:
+  - `ADC1.raw`
+  - `ADC2.raw`
+  - `ADC3.raw`
+  - `ADC4.raw`
 
-ADC1.raw <br />
-ADC2.raw <br />
-ADC3.raw <br />
-ADC4.raw <br />
+### PWM access point
 
+This access point is used to control board's `AOUT3` and `AOUT4` PWMs.
 
-### Type PWM:
+|Domain  |Description                            |Valid values                           |Access|
+|:-------|:--------------------------------------|:--------------------------------------|:-----|
+|root    |Holds the PWMx ON/OFF state.           |bool                                   |r/w   |
+|.repeats|Holds a number of periods to generate. |unsigned `[0,0xffffffff]`, `0`=Infinite|r/w   |
+|.duty   |Holds the PWM duty cycle (pulse width).|float `[0.001,0.999]`                  |r/w   |
+|.freq   |Holds a frequency to generate.         |unsigned `[1,1000]`                    |r/w   |
+|.high   |Holds the high PWM output level.       |unsigned `[0,4095]`                    |r/w   |
+|.low    |Holds the low PWM output level.        |unsigned `[0,4095]`                    |r/w   |
 
-This access point type is used to control board's AOUT3 & AOUT4 PWMs.
+The possible PWM access points are:
 
-Root domain:            Holds the PWMx ON/OFF state (boolen, false:true, r/w) <br />
-Sub domain (.repeats):  Holds a number of periods to generate (unsigned int, 0:0xffffffff, r/w, 0=infinite generation) <br />
-Sub domain (.duty):     Holds the PWM duty cycle(pulse width) (float, 0.001:0.999, r/w) <br />
-Sub domain (.freq):     Holds a frequency to generate (unsigned int, 1:1000, r/w) <br />
-Sub domain (.high):     Holds the high PWM output level (unsigned int, 0:4095, r/w) <br />
-Sub domain (.low):      Holds the low PWM output level (unsigned int, 0:4095, r/w) <br />
+  - `PWM1`
+  - `PWM1.repeats`
+  - `PWM1.duty`
+  - `PWM1.freq`
+  - `PWM1.high`
+  - `PWM1.low`
+  - `PWM2`
+  - `PWM2.repeats`
+  - `PWM2.duty`
+  - `PWM2.freq`
+  - `PWM2.high`
+  - `PWM2.low`
 
-Here is a list of all possible PWM's access points:
+### CH access point
 
-PWM1 <br />
-PWM1.repeats <br />
-PWM1.duty <br />
-PWM1.freq <br />
-PWM1.high <br />
-PWM1.low <br />
+This access point is used to control board's channel.
 
-PWM2 <br />
-PWM2.repeats <br />
-PWM2.duty <br />
-PWM2.freq <br />
-PWM2.high <br />
-PWM2.low <br />
+|Domain|Description                                   |Valid values                               |Access|
+|:-----|:---------------------------------------------|:------------------------------------------|:-----|
+|root  |Can be used only with a sub-domain.           |bool                                       |r/w   |
+|.mode |Holds current measurement mode of the channel.|unsigned `0`=Voltage mode, `1`=Current mode|r/w   |
+|.gain |Holds current Gain setting of the channel.    |float `[1/8, 128*1.375]`                   |r/w   |
+|.iepe |Holds the state of IEPE switch of the channel.|bool                                       |r/w   |
 
+The possible CH access points are:
 
-### Type CH:
+  - `CH1.mode`
+  - `CH1.gain`
+  - `CH1.iepe`
+  - `CH2.mode`
+  - `CH2.gain`
+  - `CH2.iepe`
+  - `CH3.mode`
+  - `CH3.gain`
+  - `CH3.iepe`
+  - `CH4.mode`
+  - `CH4.gain`
+  - `CH4.iepe`
 
-This access point type isused to control board's channel.
+### Fan access point
 
-Root domain:            Can be used only with sub-domain <br />
-Sub domain (.mode):     Holds current measurement mode of the channel(unsigned int, 0:1, r/w, 0=Voltage mode, 1=Current mode) <br />
-Sub domain (.gain):     Holds current Gain setting of the channel(float, 1/8: 128*1.375, r/w)  <br />
-Sub domain (.iepe):     Holds the state of IEPE switch of the channel(bool, false:true, r/w) <br />
+This access point is used to control board's Fan output.
 
-Here is a list of all possible CH access points:
+|Domain|Description                                |Valid values                               |Access|
+|:-----|:------------------------------------------|:------------------------------------------|:-----|
+|root  |Enables or disables Fan globally.          |bool                                       |r/w   |
+|.duty |Holds the Fan PWM duty cycle (pulse width).|float `[.001,.999]`                        |r     |
+|.freq |Holds the Fan PWM frequency.               |unsigned `[1,20000]`                       |r/w   |
 
-CH1.mode <br />
-CH1.gain <br />
-CH1.iepe <br />
+### Access points with only root domain
 
-CH2.mode <br />
-CH2.gain <br />
-CH2.iepe <br />
+|Access point |Description |Valid values|Access|
+|:------------|:-----------|:-----------|:-----|
+|Gain         |Holds Gain value.|int `[1,4]`|r/w|
+|Bridge       |Holds Bridge Switch state (ON or OFF).|bool|r/w|
+|Record       |Writing "1" to this variable initiates/restarts a record process.|bool|r/w|
+|Mode         |Sets working mode of the board.|int, `0`=IEPE, `1`=Normal Signal, `2`=Digital|r/w|
+|Offset       |Starts/stops offset searching process.|int, `0`=Stop, `1`=Negative offset, `2`=Zero offset, `3`=Positive offset|r/w|
+|Offset.errtol|Holds a calibration process error tolerance value.|int|r/w|
+|EnableADmes  |Holds an ADC enabled state (ON or OFF).|bool|r/w|
+|DACsw        |Determines the mode of controlling analog outputs `#3`, `#4`.|int, `0`=default (amplified input signal), `1`=manual via `AOUT3`, `AOUT4`|r/w|
+|Temp         |Holds the current core temperature of `SAME54` in degrees Celsius.|float|r|
+|ARMID		  |Holds Hardware Chip ID.|string|r|
+|fwVersion	  |Holds firmware Version in the SemVer format.|string|r|
+|CalStatus    |Holds board calibration status.|bool|r|
+|Voltage      |Holds Output Voltage value (mockup).|float|r/w|
+|Current      |Holds Current Setting (mockup).|float, `0`=MaxCurrent|r/w|
+|MaxCurrent   |Holds MaxCurrent Setting (Current max range, mockup).|float|r/w|
 
-CH3.mode <br />
-CH3.gain <br />
-CH3.iepe <br />
+### JSON controlled access points
 
-CH4.mode <br />
-CH4.gain <br />
-CH4.iepe <br />
+|Access point|Description|Valid values|Access|
+|:-----------|:----------|:-----------|:-----|
+|js          |"JSON setpoint". Writing to this variable a JSON object leads to write operation on multiple variables given in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the given variables as a JSON object.|JSON object|r/w|
+|je          |"JSON event". Holds the latest events description in form of the JSON object.|JSON object|r|
 
+The structure of the JSON object can be arbitrary but must follow the following semantic rules:
+  - when writing to a variable the format of JSON object entry should be: `{"variable" : value}`;
+  - when reading from a variable it's name should be inserted to a "JSON array" type: ["variable", ...] (preferable);
+  - when reading from a variable the format of JSON object entry should be: `{"variable" : "?"}` (alternative way of the above).
 
-### Type Fan:
+**Note, for all JSON controlled access points: writing a request with a call of a
+JSON command inside ("js" or "je") leads to "disabled" error!**
 
-This access point type is used to control board's Fan output.
+## Communication protocols
 
-Root domain:            Enables or disables Fan globally (boolean, true:false, r/w) <br />
-
-Sub domain (.duty):     Holds the Fan PWM duty cycle(pulse width) (float, 0.001:0.999, r) <br />
-Sub domain (.freq):     Holds the Fan PWM frequency (unsigned int, 1:20000, r/w) <br />
-
-### Access points with only one root domain name:
-
- Access Point   |       Function
---------------  |    ------------------------------------------------------------------------------------------------------- 
-Gain            |   Holds Gain value (integer value, 1:4, r/w)
-Bridge          |   Holds Bridge Switch state (ON or OFF) (boolean, false(0):true(1), r/w)
-Record          |   Writing "1" to this variable initiates/restarts a record process (boolean, false(0):true(1), r/w)
-Mode            |   Sets working mode of the board (integer value, 0 - IEPE, 1 - Normal Signal, 2 - Digital, r/w )
-Offset          |   Starts/stops offset searching process (integer value, 0 - stop, 1- negative offset, 2- zero offset, 3- positive offset, r/w)
-Offset.errtol   |   Holds a calibration process error tolerance value (integer r/w)
-EnableADmes     |   Holds an ADC enabled state (ON or OFF) (boolean, false(0):true(1), r/w)
-DACsw           |   Determines the mode of controlling analog outputs #3-4 (0 - default (amplified input signal), 1 - manual via AOUT3, AOUT4) (integer value, 0:1, r/w)
-Temp            |   Returns the current core temperature of SAME54 in degrees Celsius (float, r)
-ARMID		|   Returns Hardware Chip ID (string, r)
-fwVersion	|   Returns firmware Version in the SemVer format (string, r)
-CalStatus       |   Holds board calibration status (boolean, false(0):true(1), r)
-Voltage         |   Holds Output Voltage value (float, r/w) (mockup)
-Current         |   Holds Current Setting (float, 0-MaxCurrent, r/w) (mockup)
-MaxCurrent      |   Holds MaxCurrent Setting (Current max range) (float, r/w) (mockup)
-
-
-
-
-### JSON controlled access points:
-
- Access Point   |       Function
---------------  |    --------------------------------------------------------------------------------------------------------------------------------------- 
-js              |    ("JSON setpoint") Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).      
-je              |    ("JSON event") Holds latest events description in form of a JSON object (JSON object, r)
-
-The structure of the JSON object can be arbitrary but must follow several semantic rules:
-When setting a value in an entry of a JSON object the format should be {"variable name" : value}.
-When reading information from a variable its name can be placed in a "JSON array" type: ["variable name", ..].
-Its a preferable way. Alternativetly it can be requested with a "get" request in a following form {"variable name" : "?"}
-
-
-
-
-# Communication protocols
-
+The protocol is implemented by the board's driver over a specific SPI protocol.
 There are a number of protocols that can be used for managing data of access points.
-The simple ANSI text protocol is implemented by default.
-The protocol works according to a master-slave communication model.
+The simple ANSI text protocol is implemented by default. The protocol works according
+to a *master/slave* communication model. The syntax of the request from a *master* is
+as follows:
 
-A request from a master consists of: <br />
-__access point name (variable) + access operator ('>' means read variable, '<' means write value) + value (object) + new line character (/n)__  <br />
-<br />
-The response from a slave is a read back value in the case of success or an error message started with a '!' character.
+```
+access-point access-operator value\n
+```
 
+where
 
-#### Examples:
+- `access-point` - is a name of an access point (variable);
+- `access-operator` - `>` (read value) or `<` (write value);
+- `value` - a value of the primitive type or a JSON object.
 
+The response from a *slave* is a readback value in case of success, or an error message
+started with the `!` character.
 
-##### 1. Setting an offset value for channel #1 to 2048 Discrets:
+## Examples
 
-Request/Response             |  Command
----------------------------- | --------------------
-request message:             |   DAC1.raw<2048\n
-successive response message: |   2048\n
+### 1. Setting an offset value for channel #1 to 2048 Discrets
 
-<br />
+#### Request
 
-##### 2. Preset a value for analog output #3 to 2048 Discrets to be controlled in a manual mode:
+```
+DAC1.raw<2048\n
+```
 
-Request/Response             |  Command
----------------------------- | --------------------
-request message:             |   AOUT3.raw<2048\n
-successive response message: |   2048\n
+#### Response
 
-<br />
+```
+2048\n
+```
 
+### 2. Preset a value for analog output #3 to 2048 Discrets to be controlled in the manual mode
 
+#### Request
 
-##### 3. Set the manual control mode for channels #3 and #4 (will be: DACsw=1, amplifier's otputs #3 and #4 are disconnected, preset channels AOUT3 & AOUT4 connected to analog outputs #3 and #4):
+```
+AOUT3.raw<2048\n
+```
 
-Request/Response             |  Command
----------------------------- | --------------------
-request message:             |   DACsw<1\n
-successive response message: |   1\n
+#### Response
 
-<br />
+```
+2048\n
+```
 
-##### 4. Control analog output #4 directly in the manual mode (DACsw=1):
+### 3. Set the manual control mode for channels #3 and #4
 
-Request/Response             |  Command
----------------------------- | --------------------
-request message:             |   AOUT4.raw<3000\n
-successive response message: |   3000\n
+#### Effects
 
-<br />
+`DACsw` is set to `1`, amplifier's outputs `#3` and `#4` are disconnected,
+preset channels `AOUT3` and `AOUT4` are connected to analog outputs `#3` and `#4`.
 
+#### Request
 
+```
+DACsw<1\n
+```
 
-##### 5. Reading actual ADC2 raw value:
+#### Response
 
-Request/Response             |  Command
----------------------------- | --------------------
-request message:             |   ADC1.raw>\n
-successive response message: |    2048\n
+```
+1\n
+```
 
-<br />
+### 4. Control the analog output #4 directly in the manual mode (DACsw=1)
 
-##### 6. Setup a board via a JSON command:
+#### Request
 
-Request/Response              |  Command
------------------------------ | -------------------------------------------------------------------------------------------------------------------------
-request message:              |   js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
-successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+```
+AOUT4.raw<3000\n
+```
 
-<br />
+#### Response
 
-##### 7. Read back board settings via a JSON command(preferable way)
+```
+3000\n
+```
 
-Request/Response               |  Command
------------------------------- | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>[ "Gain", "Bridge", "DAC1.raw", "DAC2.raw", "DAC3.raw", "DAC4.raw" ]\n
-successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+### 5. Reading actual ADC2 raw value
 
-<br />
+#### Request
 
-##### 8. Read back board settings via a JSON command(alternative way)
+```
+ADC2.raw>\n
+```
 
-Request/Response               |  Command
------------------------------- | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>{ "Gain" : "?", "Bridge" : "?", "DAC1.raw" : "?", "DAC2.raw" : "?", "DAC3.raw" : "?", "DAC4.raw" : "?" }\n
-successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+#### Response
 
-Note: When reading information from a variable via "js>" command, values in the pair "key:value" are ignored and should be set to a question mark. <br />
+```
+2048\n
+```
 
-<br />
+### 6. Setup a board via a JSON command
 
-##### 9. Dump all available variables with a read access via a single JSON command
+#### Request
 
-Request/Response               |  Command
------------------------------- | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>\n
-successive response message:   |  {"ADC1.raw" : 2047, ...<all previous listed variables with a read access>... }\n
+```
+js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+```
 
-<br />
+#### Response
 
-##### 10. Polling latest board events via a JSON command:
+```
+{"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+```
 
-Request/Response               |  Command
------------------------------- | -------------------------------------------------------------------------------------------------------------------------
-request message:               |  je>\n
-successive response message:   |  {"Button" : true, "ButtonStateCnt" : 3 } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
+### 7. Read back board settings via a JSON command (preferable way)
 
-Note: The event response message can vary depending on the current events active (please, see "EventSystem" documentation)
+#### Request
 
-__Note for all JSON commands: writing a request with a call of a JSON command inside("js" or "je") leads to "disabled" error__
+```
+js>[ "Gain", "Bridge", "DAC1.raw", "DAC2.raw", "DAC3.raw", "DAC4.raw" ]\n
+```
 
-<br />
+#### Response
 
+```
+{"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+```
 
-### Common communication errors for all access points:
+### 8. Read back board settings via a JSON command (alternative way)
 
-Error message       |    Meaning
-------------------  |   -----------------------------------------------------------------------------------------------------------------
-!Line_err!          |   communication bus error
-!Timeout_err!       |   the board is not responding during specified timeout
-!obj_not_found!     |   a requested access point is not found
-!>_not_supported!   |   read operation is not supported
-!<_not_supported!   |   write operation is not supported
-!disabled!          |   the access point is disabled
-!protocol_error!    |   request message does not fit to protocol format (e.g. missing access point name, access operator or value)
-!stoi               |   string to integer value conversion error
-!stof               |   string to floating point conversion error
+#### Request
 
-<br />
+```
+js>{ "Gain" : "?", "Bridge" : "?", "DAC1.raw" : "?", "DAC2.raw" : "?", "DAC3.raw" : "?", "DAC4.raw" : "?" }\n
+```
 
+#### Response
+
+```
+{"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+```
+
+Note: when reading from variables with `js>` command the question marks ("?")
+must be used instead of values of "key:value" pairs.
+
+### 9. Dump all available variables with a read access via a single JSON command
+
+#### Request
+
+```
+js>\n
+```
+
+#### Response
+
+```
+{"ADC1.raw" : 2047, ...<all previous listed variables with a read access>... }\n
+```
+
+### 10. Polling the latest board events via a JSON command
+
+#### Request
+
+```
+je>\n
+```
+
+#### Response
+
+```
+{"Button" : true, "ButtonStateCnt" : 3 }
+```
+
+Indicates the board's button was pressed and shows its state counter:
+  - odd value means the button is pressed;
+  - even value means it is released.
+
+Note: the event response message can vary depending on the current events active
+(please, see [the Event System documentation](EventSystem.md)).
+
+### Common communication errors for all access points
+
+|Error message    |Description|
+|:----------------|:----------|
+|!Line_err!       |Communication bus error.|
+|!Timeout_err!    |The board is not responding during specified timeout.|
+|!obj_not_found!  |A requested access point is not found.|
+|!>_not_supported!|Read operation is not supported.|
+|!<_not_supported!|Write operation is not supported.|
+|!disabled!       |The access point is disabled.|
+|!protocol_error! |Request message does not fit to protocol format. (E.g. missing access point name, access operator or value.)|
+|!stoi            |String to integer value conversion error.|
+|!stof            |String to floating point conversion error.|
 
 ### JSON specific communication errors
 
-While processing a JSON request an error can be generated while processing each entry. The error information will be placed in the output JSON object in the following form:
+Upon processing a JSON request an error can be generated while processing each
+entry. The error information is placed to the output JSON object in the following form:
 
-{"variable name" : {"edescr":"error description","val":"value"}}}.
+```
+{"variable" : {"edescr":"error message","val":"value"}}
+```
 
-where "error description" text error description from the table above without preceding "!" or specific syntax error generated by a JSON parser.
-"value" the value set in the incoming request.
+where:
+  - `variable` - a name of a variable;
+  - `error message` - text of the *Error message* column of the table above
+  without preceding "!", or specific syntax error generated by a JSON parser;
+  - `value` - the value set in the incoming request.
 
-example: js>[ "ADC1.raw", "ADC2.raw", "js" ]
+Example:
+
+```
+js>[ "ADC1.raw", "ADC2.raw", "js" ]
+
 {"ADC1.raw":2107,"ADC2.raw":2041,"js":{"error":{"edescr":"disabled!","val":""}}}
-
-<br />
-
-
-
-The protocol is implemented by the board's driver over a specific SPI protocol.
-
-
+```
