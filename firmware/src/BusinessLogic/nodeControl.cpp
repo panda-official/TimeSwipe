@@ -80,7 +80,9 @@ bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data, std::string &str
 }
 bool nodeControl::GetCalibrationData(CHatAtomCalibration &Data, std::string &strError)
 {
-    if (CHatsMemMan::op_result::OK==m_EEPROMstorage.Load(Data))
+    CHatsMemMan::op_result res=m_EEPROMstorage.Load(Data);
+
+    if (CHatsMemMan::op_result::OK==res || CHatsMemMan::op_result::atom_not_found==res)
         return true;
 
     strError="EEPROM image is corrupted";
