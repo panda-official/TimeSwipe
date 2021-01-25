@@ -524,7 +524,8 @@ if(PANDA_BUILD_TESTS)
 
   # Set the link libraries per software.
   set(driver_link_libraries timeswipe)
-  set(firmware_link_libraries ADCDAC Board JSONstuff LEDs SAMe54 Interfaces Communication)
+  set(firmware_link_libraries ADCDAC Board CortexMX JSONstuff LEDs SAMe54
+    Interfaces Communication 3rdparty_Adafruit_NeoPixel)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
