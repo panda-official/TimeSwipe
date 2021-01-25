@@ -517,14 +517,14 @@ if(PANDA_BUILD_TESTS)
 
   # Set the include directories per software.
   # FIXME: the best way to consume this stuff is target_link_libraries().
-  set(driver_include_directories
+  set(driver_tests_include_directories
     driver/src/RaspberryPi
     firmware/src/Interfaces
     firmware/src/Communication)
 
   # Set the link libraries per software.
-  set(driver_link_libraries timeswipe)
-  set(firmware_link_libraries ADCDAC Board CortexMX JSONstuff LEDs SAMe54
+  set(driver_tests_link_libraries timeswipe)
+  set(firmware_tests_link_libraries ADCDAC Board CortexMX JSONstuff LEDs SAMe54
     Interfaces Communication 3rdparty_Adafruit_NeoPixel)
 
   # Set the link libraries per test.
@@ -551,9 +551,9 @@ if(PANDA_BUILD_TESTS)
       POSITION_INDEPENDENT_CODE True
       DEBUG_POSTFIX "d")
     target_include_directories(${exe} PUBLIC
-      ${${software}_include_directories})
+      ${${software}_tests_include_directories})
     target_link_libraries(${exe} PRIVATE
-      ${${software}_link_libraries} ${${test}_link_libraries})
+      ${${software}_tests_link_libraries} ${${test}_link_libraries})
     panda_target_compile_options(${exe})
     if(is_unit_test)
       add_test(NAME ${exe} COMMAND ${exe})
