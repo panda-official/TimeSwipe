@@ -49,9 +49,8 @@ if(PANDA_BUILD_FIRMWARE)
   set(PANDA_BUILD_ARM_BARE_METAL On)
 
   if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-      set(CMAKE_BUILD_TYPE "Release")
+    set(CMAKE_BUILD_TYPE "Release")
   endif()
-
 endif()
 
 # ------------------------------------------------------------------------------
@@ -60,6 +59,23 @@ endif()
 
 file(STRINGS driver/version VERSION_NUMBER
   LENGTH_MINIMUM 5 LENGTH_MAXIMUM 8 LIMIT_COUNT 1) # ab.cd.ef
+
+# The `software` variable is a helper for substitution/interpolation.
+if(PANDA_BUILD_FIRMWARE)
+  set(software "firmware")
+else()
+  set(software "driver")
+endif()
+
+# Simple protection against changing the build target.
+if((PANDA_BUILD_FIRMWARE AND EXISTS ${CMAKE_CURRENT_BINARY_DIR}/panda_build_driver)
+    OR
+   (NOT PANDA_BUILD_FIRMWARE AND EXISTS ${CMAKE_CURRENT_BINARY_DIR}/panda_build_firmware))
+  message(FATAL_ERROR "Switching from driver build to firmware build and vice versa is forbidden!
+Hint: please use different build directories for driver and firmware.")
+else()
+  file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/panda_build_${software})
+endif()
 
 panda_setup_build()
 
@@ -106,9 +122,7 @@ if(PANDA_BUILD_FIRMWARE_EMU)
   add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
 endif()
 
-
 if(PANDA_BUILD_FIRMWARE)
-  set(software "firmware")
   message(CHECK_START "Configuring the ${software} build.")
 
   enable_language(ASM)
@@ -406,7 +420,6 @@ if(PANDA_BUILD_FIRMWARE)
   message(CHECK_PASS "Ready to build the ${software}.")
 
 else()
-  set(software "driver")
   message(CHECK_START "Configuring the ${software}.")
 
   # ------------
