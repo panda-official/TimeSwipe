@@ -509,22 +509,28 @@ endif()
 
 if(PANDA_BUILD_TESTS)
   enable_testing()
-  message(CHECK_START "Configuring the tests.")
+  message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
   set(driver_tests datlog pwm rpispi)
-  set(firmware_tests buttonevent)
+  set(firmware_tests button_event)
 
   # Set the include directories per software.
-  set(driver_include_directories driver/src/RaspberryPi firmware/src/Interfaces
+  # FIXME: the best way to consume this stuff is target_link_libraries().
+  set(driver_include_directories
+    driver/src/RaspberryPi
+    firmware/src/Interfaces
     firmware/src/Communication)
 
-  # Set the link library per software.
+  # Set the link libraries per software.
   set(driver_link_libraries timeswipe)
-  set(firmware_link_libraries)
+  set(firmware_link_libraries ADCDAC Board JSONstuff LEDs SAMe54 Interfaces Communication)
 
-  # Set the link library lists per tests.
+  # Set the link libraries per test.
   set(datlog_link_libraries pthread)
+
+  # Set the extra sources per test.
+  set(button_event_extra_sources 3rdParty/prj_templ/Custom/startup_ARMCM4.S)
 
   # Configure the tests from the lists above.
   function(panda_configure_test test)
@@ -537,7 +543,7 @@ if(PANDA_BUILD_TESTS)
     endif()
     set(exe "${full_name}")
     set(src "${CMAKE_CURRENT_SOURCE_DIR}/${software}/examples/${full_name}.cpp")
-    add_executable(${exe} ${src})
+    add_executable(${exe} ${src} ${${test}_extra_sources})
     set_target_properties(${exe}
       PROPERTIES
       LINKER_LANGUAGE "CXX"
@@ -565,5 +571,5 @@ if(PANDA_BUILD_TESTS)
       )
   endif()
 
-  message(CHECK_PASS "Tests configuration completed.")
+  message(CHECK_PASS "Tests configuration for ${software} completed.")
 endif()
