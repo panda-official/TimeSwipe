@@ -1,3 +1,12 @@
+/*
+ * Run as:
+ *   sudo ./datlog --config datlog.json --input IEPE --output temp.txt
+ *
+ * This test will gather data for 10 seconds according to the configuration file
+ * specified, from the `IEPE` inputs and will save the data in CSV format to the
+ * file `temp.txt`.
+ */
+
 #include <nlohmann/json.hpp>
 
 #include <iostream>

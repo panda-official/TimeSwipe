@@ -54,3 +54,20 @@ macro(panda_setup_build)
   endif()
   add_compile_options(-Wno-psabi)
 endmacro()
+
+function(panda_target_compile_options target)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(${target} PRIVATE
+      -pedantic
+      -Wall
+      -Wextra
+      -Winline
+      -Winit-self
+      -Wuninitialized
+      -Wmaybe-uninitialized
+      -Woverloaded-virtual
+      -Wsuggest-override
+      -Wlogical-op
+      -Wswitch)
+  endif()
+endfunction()

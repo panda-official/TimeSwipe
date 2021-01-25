@@ -41,10 +41,10 @@ set(PANDA_BUILD_ARM Off CACHE BOOL
 set(PANDA_BUILD_ARM64 Off CACHE BOOL
   "Build for ARM64bit?")
 
-set(PANDA_BUILD_TESTS Off CACHE BOOL
-  "Build tests?")
+set(PANDA_BUILD_TESTS On CACHE BOOL
+  "Build tests (including examples)?")
 
-if (PANDA_BUILD_FIRMWARE)
+if(PANDA_BUILD_FIRMWARE)
   set(PANDA_BUILD_ARM On)
   set(PANDA_BUILD_ARM_BARE_METAL On)
 
@@ -86,6 +86,12 @@ set(CMAKE_CXX_STANDARD 17)
 # is used.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
+if (WIN32)
+  set(panda_output_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>")
+elseif (UNIX)
+  set(panda_output_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+endif()
+
 # ------------------------------------------------------------------------------
 # Common dependencies
 # ------------------------------------------------------------------------------
@@ -96,23 +102,24 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 # Targets
 # ------------------------------------------------------------------------------
 
-if (PANDA_BUILD_FIRMWARE_EMU)
+if(PANDA_BUILD_FIRMWARE_EMU)
   add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
 endif()
 
 
-if (PANDA_BUILD_FIRMWARE)
-  message(CHECK_START "Configuring the firmware build.")
+if(PANDA_BUILD_FIRMWARE)
+  set(software "firmware")
+  message(CHECK_START "Configuring the ${software} build.")
 
   enable_language(ASM)
 
-  if (PANDA_BUILD_FIRMWARE_RAM_IMAGE)
+  if(PANDA_BUILD_FIRMWARE_RAM_IMAGE)
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc_RAM.ld")
   else()
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc.ld")
   endif()
 
-  #if (PANDA_BUILD_FIRMWARE_EMU)
+  #if(PANDA_BUILD_FIRMWARE_EMU)
    # add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
   #endif()
 
@@ -202,7 +209,7 @@ if (PANDA_BUILD_FIRMWARE)
     nodeControl.h
     rgbacol.h
     )
-  if (NOT PANDA_BUILD_FIRMWARE_EMU)
+  if(NOT PANDA_BUILD_FIRMWARE_EMU)
     list(APPEND BusinessLogic_src nodeControl.cpp)
   else()
     list(APPEND BusinessLogic_src nodeControl_emu.cpp)
@@ -388,7 +395,7 @@ if (PANDA_BUILD_FIRMWARE)
 
   add_executable(${TARGET_NAME} ${firmware_src})
 
-  if (PANDA_BUILD_FIRMWARE_DMS)
+  if(PANDA_BUILD_FIRMWARE_DMS)
     target_compile_definitions(${TARGET_NAME} PRIVATE DMS_BOARD)
   endif()
 
@@ -396,17 +403,18 @@ if (PANDA_BUILD_FIRMWARE)
     HATS_EEPROM SAMe54 Board BusinessLogic JSONstuff LEDs Procs
     3rdparty_Adafruit_NeoPixel)
 
-  message(CHECK_PASS "Ready to build the firmware.")
+  message(CHECK_PASS "Ready to build the ${software}.")
 
 else()
-  message(CHECK_START "Configuring the driver build.")
+  set(software "driver")
+  message(CHECK_START "Configuring the ${software}.")
 
   # ------------
   # Dependencies
   # ------------
 
   find_package(Boost)
-  if (NOT Boost_FOUND)
+  if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found.
 Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's installed.")
   endif()
@@ -435,11 +443,11 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   target_link_libraries(timeswipe PUBLIC Boost::boost pthread 3rdparty_nlohmann_json 3rdparty_BCM)
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
-  if (NOT CMAKE_CROSSCOMPILING)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-      if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
+  if(NOT CMAKE_CROSSCOMPILING)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
         find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS /usr/lib/gcc/arm-linux-gnueabihf/8)
-        if (atomic_lib)
+        if(atomic_lib)
           message("Explicit Linking with atomic library")
           target_link_libraries(timeswipe PUBLIC ${atomic_lib})
         endif()
@@ -492,5 +500,70 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/driver/timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
-  message(CHECK_PASS "Ready to build the driver.")
+  message(CHECK_PASS "Ready to build the ${software}.")
+endif()
+
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+if(PANDA_BUILD_TESTS)
+  enable_testing()
+  message(CHECK_START "Configuring the tests.")
+
+  # Set the test lists.
+  set(driver_tests datlog pwm rpispi)
+  set(firmware_tests buttonevent)
+
+  # Set the include directories per software.
+  set(driver_include_directories driver/src/RaspberryPi firmware/src/Interfaces
+    firmware/src/Communication)
+
+  # Set the link library per software.
+  set(driver_link_libraries timeswipe)
+  set(firmware_link_libraries)
+
+  # Set the link library lists per tests.
+  set(datlog_link_libraries pthread)
+
+  # Configure the tests from the lists above.
+  function(panda_configure_test test)
+    set(full_name "${test}")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${software}/examples/${full_name}.cpp")
+      set(is_unit_test TRUE)
+      set(full_name "unit-${test}")
+    else()
+      set(is_unit_test FALSE)
+    endif()
+    set(exe "${full_name}")
+    set(src "${CMAKE_CURRENT_SOURCE_DIR}/${software}/examples/${full_name}.cpp")
+    add_executable(${exe} ${src})
+    set_target_properties(${exe}
+      PROPERTIES
+      LINKER_LANGUAGE "CXX"
+      POSITION_INDEPENDENT_CODE True
+      DEBUG_POSTFIX "d")
+    target_include_directories(${exe} PUBLIC
+      ${${software}_include_directories})
+    target_link_libraries(${exe} PRIVATE
+      ${${software}_link_libraries} ${${test}_link_libraries})
+    panda_target_compile_options(${exe})
+    if(is_unit_test)
+      add_test(NAME ${exe} COMMAND ${exe})
+    endif()
+  endfunction()
+  foreach(test ${${software}_tests})
+    panda_configure_test(${test})
+  endforeach()
+
+  # Custom commands
+  if(NOT PANDA_BUILD_FIRMWARE)
+    add_custom_target(panda_copy_test_resources ALL
+      COMMAND cmake -E copy_if_different
+      "${CMAKE_CURRENT_SOURCE_DIR}/driver/examples/datlog.json"
+      "${panda_output_dir}"
+      )
+  endif()
+
+  message(CHECK_PASS "Tests configuration completed.")
 endif()
