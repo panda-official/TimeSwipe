@@ -35,7 +35,7 @@ set(PANDA_BUILD_CALIBRATION_FIRMWARE Off CACHE BOOL
 set(BUILD_SHARED_LIBS Off CACHE BOOL
   "Build shared libraries?")
 
-set(PANDA_BUILD_ARM Off CACHE BOOL
+set(PANDA_BUILD_ARM On CACHE BOOL
   "Build for ARM?")
 
 set(PANDA_BUILD_ARM64 Off CACHE BOOL
@@ -123,7 +123,7 @@ if(PANDA_BUILD_FIRMWARE_EMU)
 endif()
 
 if(PANDA_BUILD_FIRMWARE)
-  message(CHECK_START "Configuring the ${software} build.")
+  message(CHECK_START "Configuring the firmware build.")
 
   enable_language(ASM)
 
@@ -413,10 +413,10 @@ if(PANDA_BUILD_FIRMWARE)
     HATS_EEPROM SAMe54 Board BusinessLogic JSONstuff LEDs Procs
     3rdparty_Adafruit_NeoPixel)
 
-  message(CHECK_PASS "Ready to build the ${software}.")
+  message(CHECK_PASS "Ready to build the firmware.")
 
 else()
-  message(CHECK_START "Configuring the ${software}.")
+  message(CHECK_START "Configuring the driver build.")
 
   # ------------
   # Dependencies
@@ -473,9 +473,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     firmware/src/Communication
     firmware/src/HATS_EEPROM
 
-    driver/src/Interfaces
-    driver/src/Communication
-
     3rdParty
     3rdParty/BCMsrc
     3rdParty/HATS_EEPROM
@@ -509,7 +506,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/driver/timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
-  message(CHECK_PASS "Ready to build the ${software}.")
+  message(CHECK_PASS "Ready to build the driver.")
 endif()
 
 # ------------------------------------------------------------------------------
