@@ -61,7 +61,7 @@ jobs:
         run: |
           mkdir build-driver-arm64
           cd build-driver-arm64
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On ..
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On -DCMAKE_CXX_FLAGS='-mno-float128' ..
           cmake --build . --parallel
           export destdir="$PWD"/timeswipe_`cat ../driver/version`
           chown -R build .

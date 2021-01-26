@@ -104,8 +104,9 @@ project(panda_timeswipe
 # ------------------------------------------------------------------------------
 
 enable_language(CXX)
-set(CXX_STANDARD_REQUIRED ON)
+set(CXX_STANDARD_REQUIRED On)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS Off)
 
 # ------------------------------------------------------------------------------
 # Output settings
