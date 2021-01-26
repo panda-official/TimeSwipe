@@ -3,7 +3,6 @@ Version: @PROJECT_VERSION@
 Section: base
 Priority: optional
 Architecture: all
-Depends: 
-Maintainer: Ilya Gavrilov <gilyav@gmail.com>
-Description: Timeswipe driver
-
+Depends:
+Maintainer: Dmitry Igrishin <dmitigr@gmail.com>
+Description: Panda Timeswipe Driver
