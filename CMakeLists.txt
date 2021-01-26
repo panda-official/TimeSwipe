@@ -480,7 +480,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   target_include_directories(timeswipe
     PRIVATE
-    driver/src
     driver/src/RaspberryPi
 
     firmware/src/Interfaces
@@ -492,7 +491,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     3rdParty/HATS_EEPROM
 
     PUBLIC
-    driver/include
+    driver/src
     )
 
   # -----------------------
@@ -515,7 +514,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     RUNTIME  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-  install(DIRECTORY driver/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  install(FILES driver/src/timeswipe.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/driver/timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
