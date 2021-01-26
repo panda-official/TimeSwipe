@@ -87,6 +87,7 @@ bool CSamNVMCTRL::EraseBlock(unsigned int nBlock)
 bool CSamNVMCTRL::ReadUserPage(struct NVM_UserPage &page)
 {
     page=*(  (struct NVM_UserPage *)NVMCTRL_USER );
+    return true;
 }
 bool CSamNVMCTRL::SetUserPageDefaults()
 {
@@ -197,6 +198,3 @@ void CSamNVMCTRL::FlushSmartEEPROM()
         NVMCTRL->CTRLB.reg=(NVMCTRL_CTRLB_CMDEX_KEY|NVMCTRL_CTRLB_CMD_SEEFLUSH);
     }
 }
-
-
-
