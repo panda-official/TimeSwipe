@@ -4,7 +4,7 @@ on:
     branches:
       - master
     paths:
-      - 'docker/Dockerfile.ubuntu'
+      - 'docker/driver.ubuntu'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,4 +16,4 @@ jobs:
         name: pandaofficial/timeswipe_ubuntu
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        dockerfile: docker/Dockerfile.ubuntu
+        dockerfile: docker/driver.ubuntu
