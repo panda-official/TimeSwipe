@@ -133,10 +133,6 @@ if(PANDA_BUILD_FIRMWARE)
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc.ld")
   endif()
 
-  #if(PANDA_BUILD_FIRMWARE_EMU)
-   # add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
-  #endif()
-
   add_compile_options(
     -ffunction-sections
     -fdata-sections
