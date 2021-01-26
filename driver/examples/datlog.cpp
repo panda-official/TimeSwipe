@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int samplerate = 48000;
     bool trace_spi = false;
 
-    for (unsigned i = 1; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i],"--config")) {
             if (i+1 > argc) {
                 usage(argv[0]);
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
-    shutdown_handler = [&](int signal) {
+    shutdown_handler = [&](int /*signal*/) {
         tswipe.Stop();
         exit(1);
     };
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 
     // Board Start
     int counter = 0;
-    ret = tswipe.Start([&](auto&& records, uint64_t errors) {
+    ret = tswipe.Start([&](auto&& records, uint64_t /*errors*/) {
         counter += records.DataSize();
             for (size_t i = 0; i < records.DataSize(); i++) {
                 if (i == 0) {
