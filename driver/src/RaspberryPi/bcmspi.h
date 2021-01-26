@@ -19,7 +19,7 @@ protected:
 
     CBcmLIB();
     ~CBcmLIB();
-    
+
 public:
     enum iSPI{
 
@@ -60,14 +60,14 @@ public:
     inline void		 SPI_set_speed_hz(uint32_t speed_hz){ CBcmLIB::SPI_set_speed_hz(m_nSPI, speed_hz); }
 
 
-    virtual bool send(CFIFO &msg);
-    virtual bool receive(CFIFO &msg);
+    bool send(CFIFO &msg) override;
+    bool receive(CFIFO &msg) override;
     virtual bool send(typeSChar ch);
     virtual bool receive(typeSChar &ch);
 
-    virtual void set_phpol(bool bPhase, bool bPol);
-    virtual void set_baud_div(unsigned char div);
-    virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel);
+    void set_phpol(bool bPhase, bool bPol) override;
+    void set_baud_div(unsigned char div) override;
+    void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel) override;
 };
 
 #endif // BCMSPI_H

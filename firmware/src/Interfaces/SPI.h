@@ -22,22 +22,21 @@ Copyright (c) 2019 Panda Team
  * \todo seems to be deprecated,too complex...
  *
  */
-class CSPI : public virtual ISerial{
-	
+class CSPI : public virtual ISerial {
 public:
     /*!
      * \brief Sends a serial message to this class object
      * \param msg  - the message to send (output parameter)
      * \return the operation result: true if successful otherwise - false
      */
-    virtual bool send(CFIFO &msg)=0;
+    virtual bool send(CFIFO& msg) override = 0;
 
     /*!
      * \brief Receives a serial message from this class object
      * \param msg - the message to receive (input parameter)
      * \return the operation result: true if successful otherwise - false
      */
-    virtual bool receive(CFIFO &msg)=0;
+    virtual bool receive(CFIFO& msg) override = 0;
 
 
     /*!
@@ -46,21 +45,24 @@ public:
      * \param in_msg - the message to receive (input parameter)
      * \return the operation result: true if successful otherwise - false
      */
-    virtual bool transfer(CFIFO &out_msg, CFIFO &in_msg){return false;} //dbg
+    virtual bool transfer(CFIFO& /*out_msg*/, CFIFO& /*in_msg*/)
+    {
+      return false; // dbg
+    }
 
-	
+
     /*!
      * \brief Setups phase & polarity
      * \param bPhase A phase to set: true(1)-shifted, false(0) - not shifted
      * \param bPol A polarity to set: true - bus idle state=HIGH, false - bus idle state=LOW
      */
-	virtual void set_phpol(bool bPhase, bool bPol)=0;
+    virtual void set_phpol(bool bPhase, bool bPol) = 0;
 
     /*!
      * \brief  Setups baudrate divisor
      * \param div A divisor value: baudrate=clock_speed/div
      */
-	virtual void set_baud_div(unsigned char div)=0;
+    virtual void set_baud_div(unsigned char div) = 0;
 
     /*!
      * \brief Setups the bus timing profile ---minimal time to HOLD CS HIGH---___delay in between transfers___---delay before SCK is continued---
@@ -68,8 +70,8 @@ public:
      * \param IntertransDel A delay in between transfers
      * \param BeforeClockDel A delay before SCK is continued
      */
-	virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel)=0;
+    virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel) = 0;
 
     //! virtual destructor
-    virtual ~CSPI()=default;
+    virtual ~CSPI() = default;
 };
