@@ -18,25 +18,23 @@ jobs:
       - name: Build project
         id: build_project
         run: |
-          git clone https://github.com/nlohmann/json driver/3rdParty/nlohmann #XXX: until submodule issue resolved in actions
-          cd driver
-          mkdir build64
-          cd build64
-          cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ..
-          make
-          export destdir="$PWD"/timeswipe_`cat ../version`.aarch64
+          mkdir build-driver-arm64
+          cd build-driver-arm64
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On ..
+          cmake --build . --parallel
+          export destdir="$PWD"/timeswipe_`cat ../driver/version`.aarch64
           make -j DESTDIR=$destdir install
-          cp -p -r DEBIAN $destdir
+          cp -p -r ../driver/contrib/DEBIAN $destdir
           dpkg-deb --build $destdir
           echo ::set-output name=deb64::$(ls *.deb)
           cd ..
-          mkdir build32
-          cd build32
-          cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -DARM32=True ..
-          make
-          export destdir="$PWD"/timeswipe_`cat ../version`.armv7l
+          mkdir build-driver-arm32
+          cd build-driver-arm32
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM=On ..
+          cmake --build . --parallel
+          export destdir="$PWD"/timeswipe_`cat ../driver/version`.armv7l
           make -j DESTDIR=$destdir install
-          cp -p -r DEBIAN $destdir
+          cp -p -r ../driver/contrib/DEBIAN $destdir
           dpkg-deb --build $destdir
           echo ::set-output name=deb32::$(ls *.deb)
           cd ..
@@ -44,12 +42,12 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: deb32
-          path: ./driver/build32/${{ steps.build_project.outputs.deb32 }}
+          path: ./build-driver-arm32/${{ steps.build_project.outputs.deb32 }}
       - name: Save deb64
         uses: actions/upload-artifact@v1
         with:
           name: deb64
-          path: ./driver/build64/${{ steps.build_project.outputs.deb64 }}
+          path: ./build-driver-arm64/${{ steps.build_project.outputs.deb64 }}
 
   build_arch:
     name: Build arch
@@ -61,23 +59,19 @@ jobs:
       - name: Build project
         id: build_project
         run: |
-          git clone https://github.com/nlohmann/json driver/3rdParty/nlohmann #XXX: until submodule issue resolved in actions
-          cd driver
-          mkdir build64
-          cd build64
-          cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ..
-          make
-          export destdir="$PWD"/timeswipe_`cat ../version`
-          cd ..
-          chown -R build build64
-          cd build64
+          mkdir build-driver-arm64
+          cd build-driver-arm64
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On ..
+          cmake --build . --parallel
+          export destdir="$PWD"/timeswipe_`cat ../driver/version`
+          chown -R build .
           sudo -u build makepkg
           echo ::set-output name=arch64::$(ls *.xz)
       - name: Save arch64
         uses: actions/upload-artifact@v1
         with:
           name: arch64
-          path: ./driver/build64/${{ steps.build_project.outputs.arch64 }}
+          path: ./build-driver-arm64/${{ steps.build_project.outputs.arch64 }}
 
   release:
     name: Create Github Release
@@ -125,4 +119,3 @@ jobs:
         pattern: "arch64/*"
         github-token: ${{ secrets.GITHUB_TOKEN }}
         release-url: ${{ steps.create_release.outputs.upload_url }}
-
