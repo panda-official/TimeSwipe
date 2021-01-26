@@ -9,7 +9,7 @@ on:
     branches: [ master ]
 
 
-  
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -21,19 +21,19 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-        
+
     - name: Doxygen Action
       uses: mattnotmitt/doxygen-action@v1.2.0
       with:
         # Path to Doxyfile
-        doxyfile-path: "./Doxyfile" # default is ./Doxyfile
+        doxyfile-path: "./driver.doxyfile" # default is ./Doxyfile
         # Working directory
-        working-directory: "driver/" # default is .
-    
+        working-directory: "docs/" # default is .
+
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        # Default Doxyfile build documentation to html directory. 
+        # Default Doxyfile build documentation to html directory.
         # Change the directory if changes in Doxyfile
         publish_dir: ./driver/html
