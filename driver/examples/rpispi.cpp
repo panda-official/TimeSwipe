@@ -121,14 +121,15 @@ int main ( int argc, char *argv[] )
                     }
                     else
                     {
-                        switch ( spi.m_ComCntr.get_state ( ) )
+                      switch ( spi.m_ComCntr.get_state ( ) )
                         {
-                            case CSyncSerComFSM::errLine:
-                                std::cout << "!Line_err!";
-                                break;
-                            case CSyncSerComFSM::errTimeout:
-                                std::cout << "!Timeout_err!";
-                                break;
+                        case CSyncSerComFSM::errLine:
+                          std::cout << "!Line_err!";
+                          break;
+                        case CSyncSerComFSM::errTimeout:
+                          std::cout << "!Timeout_err!";
+                          break;
+                        default: break;
                         }
                     }
                     std::cout<<std::endl<<"->"<<std::endl;
