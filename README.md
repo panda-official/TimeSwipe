@@ -1,4 +1,4 @@
-![](https://github.com/panda-official/TimeSwipe/workflows/Workflow/badge.svg)
+![](https://github.com/panda-official/TimeSwipe/workflows/Build%20Linux%20Packages/badge.svg)
 
 # TimeSwipe
 Firmware and Drivers for PANDA TimeSwipe Boards
