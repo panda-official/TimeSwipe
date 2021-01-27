@@ -19,13 +19,6 @@ Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 
 CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
 {
-    //filling test pattern with default value:
-    /*m_PageTestPattern.reserve(m_nPageSize);
-    for(int i=0; i<m_nPageSize; i++)
-    {
-        m_PageTestPattern<<0xA5;
-    }*/
-
     PORT->Group[3].DIRSET.reg=(1L<<10);
     SetWriteProtection(true);
 
@@ -212,82 +205,54 @@ void CSamI2CeepromMaster::StartTranfer(bool how)
 
 }
 
-//self-test:
-/*bool CSamI2CeepromMaster::self_test_proc()
+bool CSamI2CeepromMaster::test_mem_area(CFIFO &TestPattern, int nStartAddr)
 {
-    int nPages=m_nReadDataCountLim/m_nPageSize;
     CFIFO ReadBuf;
-    ReadBuf.reserve(m_nPageSize);
-    m_nMemAddr=0; //from the beginning
 
+    TestPattern.rewind();
+    size_t nPatternSize=static_cast<size_t>(TestPattern.in_avail());
+    ReadBuf.reserve( nPatternSize );
 
-    for(int i=0; i<nPages; i++, m_nMemAddr+=m_nPageSize)
+    m_nMemAddr=nStartAddr;
+
+    if(!__send(TestPattern))
+        return false;
+
+    //some delay is required:
+    os::wait(10);
+
+    if(!receive(ReadBuf))
+        return false;
+
+    //comare:
+    for(int k=0; k<nPatternSize; k++)
     {
-        ReadBuf.rewind();
-        m_PageTestPattern.rewind();
-        if(!__send(m_PageTestPattern))
+        if(ReadBuf[k]!=TestPattern[k])
             return false;
-
-        //a delay inbetween required:
-        os::uwait(500); //???
-
-        if(!receive(ReadBuf))
-            return false;
-
-        //comare:
-        for(int k=0; k<m_nPageSize; k++)
-        {
-            if(ReadBuf[k]!=m_PageTestPattern[k])
-                return false;
-        }
     }
     return true;
-}*/
+}
 
 //fast self-test:
-bool CSamI2CeepromMaster::self_test_proc(size_t nPatternSize)
+bool CSamI2CeepromMaster::self_test_proc()
 {
-    CFIFO PageTestPattern, ReadBuf;
-    size_t nPages=static_cast<size_t>(m_nReadDataCountLim)/nPatternSize;
+    CFIFO PageTestPattern;
 
-
-    PageTestPattern.reserve(static_cast<size_t>(nPatternSize));
-    ReadBuf.reserve(static_cast<size_t>(nPatternSize));
-    m_nMemAddr=0; //from the beginning
-
-    for(int i=0; i<nPatternSize; i++)
+    for(int i=0; i<m_nPageSize; i++)
     {
         PageTestPattern<<0xA5;
     }
 
+    //test first page:
+    if(!test_mem_area(PageTestPattern, 0))
+        return false;
 
-    for(size_t i=0; i<nPages; i++, m_nMemAddr+=m_nPageSize){
+    //test last page:
+    if(!test_mem_area(PageTestPattern, m_nReadDataCountLim-m_nPageSize))
+        return false;
 
-
-        ReadBuf.rewind();
-        PageTestPattern.rewind();
-
-        if(!__send(PageTestPattern))
-            return false;
-
-        //some delay is required:
-        os::wait(10);
-
-        if(!receive(ReadBuf))
-            return false;
-
-        //comare:
-        for(int k=0; k<nPatternSize; k++)
-        {
-            if(ReadBuf[k]!=PageTestPattern[k])
-                return false;
-        }
-    }
     return true;
-
 }
-
-
 
 
 void CSamI2CeepromMaster::RunSelfTest(bool bHow)

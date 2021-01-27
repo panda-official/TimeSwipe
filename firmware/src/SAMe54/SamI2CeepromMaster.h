@@ -115,12 +115,6 @@ protected:
       */
       CFIFO *m_pBuf=nullptr;
 
-
-     /*!
-     * \brief The data pattern to test single page
-     */
-    //CFIFO m_PageTestPattern;
-
     /*!
      * \brief The handler of the 1st IRQ line of the Sercom
      */
@@ -206,10 +200,19 @@ public:
     void check_reset();
 
     /*!
+     * \brief Tests selected area of the EEPROM
+     * \param TestPattern - a pattern to test with
+     * \param nStartAddr -the start address of the EEPROM area
+     * \return true on succes, false on error
+     */
+    bool test_mem_area(CFIFO &TestPattern, int nStartAddr);
+
+
+    /*!
      * \brief Self test process
      * \return true on succes, false on error
      */
-    bool self_test_proc(size_t nPatternSize=1024);
+    bool self_test_proc();
 
 
 public:
