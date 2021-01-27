@@ -1,9 +1,30 @@
-# package build command:
-# docker run --rm -v "$PWD":/usr/src  timeswipe:arch /usr/src/build_arch.sh
 FROM archlinux
 
-RUN pacman -Syu --noconfirm && pacman -Sy --noconfirm shadow sudo fakeroot grep binutils make cmake gcc aarch64-linux-gnu-gcc lib32-glibc boost-libs boost awk file git
+# Update and prepare the system.
+RUN pacman -Syu --noconfirm && \
+    pacman -Sy --noconfirm shadow sudo fakeroot grep binutils make cmake gcc \
+                           aarch64-linux-gnu-gcc awk file git unzip wget
 RUN useradd build
 
-# aarch64 comiler doesn't "look" into aarch64-linux-gnu dir
-RUN ln -s /usr/include/boost /usr/aarch64-linux-gnu/include/boost
+# Prepare the build root dir.
+ENV build_root=/build
+WORKDIR /${build_root}
+
+# Download and cross compile Boost.
+## Set the options related to Boost.
+ARG boost_major=1
+ARG boost_minor=75
+ARG boost_patch=0
+ARG boost_prefix=/opt/arm/boost
+ARG cross_compiler_executable=aarch64-linux-gnu-g++
+## Do the work.
+ARG boost_stem=boost_${boost_major}_${boost_minor}_${boost_patch}
+ARG boost_version=${boost_major}.${boost_minor}.${boost_patch}
+
+RUN wget -w5 https://dl.bintray.com/boostorg/release/${boost_version}/source/${boost_stem}.tar.bz2 && \
+    tar xvf ${boost_stem}.tar.bz2
+
+WORKDIR /${build_root}/${boost_stem}
+RUN ./bootstrap.sh
+RUN sed -i 's/^\s*using gcc.*$/    using gcc : arm : '${cross_compiler_executable}' ;/' project-config.jam
+RUN ./b2 link=static runtime-link=static install toolset=gcc-arm --prefix=${boost_prefix}
