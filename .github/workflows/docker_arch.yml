@@ -3,15 +3,10 @@ on:
   push:
     branches:
       - master
-    # paths:
-    #   - 'docker/driver.arch'
+    paths:
+      - 'docker/driver.arch'
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo In order to always run this workflow
   build:
-    needs: prepare
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
