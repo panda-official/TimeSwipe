@@ -1,11 +1,10 @@
-# Maintainer: Your Name <youremail@domain.com>
+# Maintainer: Dmitry Igrishin <dmitigr@gmail.com>
 pkgname=timeswipe
 pkgver=@PROJECT_VERSION@
 pkgrel=1
 epoch=
-pkgdesc="timeswipe driver"
-arch=('any')
-#arch=(aarch64)
+pkgdesc="Timeswipe Driver"
+arch=(aarch64)
 url=""
 license=('GPL')
 groups=()
@@ -25,6 +24,5 @@ md5sums=()
 validpgpkeys=()
 
 package() {
-	make -C .. DESTDIR="$pkgdir" install
+    make -C .. DESTDIR="$destdir" install
 }
-

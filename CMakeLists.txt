@@ -502,7 +502,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   configure_file(driver/contrib/timeswipe.pc.in driver/timeswipe.pc @ONLY)
   configure_file(driver/contrib/DEBIAN/control.in driver/DEBIAN/control @ONLY)
-  configure_file(driver/contrib/arch/PKGBUILD.in driver/PKGBUILD @ONLY)
+  configure_file(driver/contrib/arch/PKGBUILD.in PKGBUILD @ONLY)
 
   # -------
   # Install
