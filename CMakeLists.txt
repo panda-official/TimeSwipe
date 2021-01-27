@@ -382,7 +382,6 @@ if(PANDA_BUILD_FIRMWARE)
   target_link_libraries(JSONstuff PUBLIC 3rdparty_nlohmann_json Communication)
 
   # LEDs-specific
-  target_compile_definitions(LEDs PRIVATE  __arm__  __SAMD51__  __SAME54P20A__)
   target_link_libraries(LEDs PUBLIC Interfaces 3rdparty_CMSIS 3rdparty_sam
     PRIVATE 3rdparty_Adafruit_NeoPixel)
 

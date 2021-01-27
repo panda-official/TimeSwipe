@@ -35,7 +35,7 @@ if (PANDA_BUILD_FIRMWARE)
     )
 
   add_library(3rdparty_Adafruit_NeoPixel OBJECT ${Adafruit_NeoPixel_src})
-  target_compile_definitions(3rdparty_Adafruit_NeoPixel PUBLIC SAM_BRM)
+  target_compile_definitions(3rdparty_Adafruit_NeoPixel PUBLIC SAM_BRM __arm__  __SAMD51__  __SAME54P20A__)
   target_include_directories(3rdparty_Adafruit_NeoPixel PUBLIC Adafruit_NeoPixel
     PRIVATE
     ${CMAKE_SOURCE_DIR}/firmware/src/LEDs
