@@ -22,7 +22,7 @@ cmake_policy(VERSION 3.13)
 # ------------------------------------------------------------------------------
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-include(panda)
+include(misc)
 
 # ------------------------------------------------------------------------------
 # Options
@@ -67,6 +67,9 @@ if(PANDA_BUILD_FIRMWARE)
   endif()
 endif()
 
+set(CMAKE_TOOLCHAIN_FILE "cmake/arm.cmake" CACHE PATH
+  "Path to toolchain file.")
+
 # ------------------------------------------------------------------------------
 # Project
 # ------------------------------------------------------------------------------
@@ -90,8 +93,6 @@ Hint: please use different build directories for driver and firmware.")
 else()
   file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/panda_build_${software})
 endif()
-
-panda_setup_build()
 
 project(panda_timeswipe
   DESCRIPTION "Timeswipe driver"
