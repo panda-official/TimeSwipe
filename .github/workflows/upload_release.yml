@@ -1,11 +1,10 @@
+name: Build Linux Packages
 on:
-  push:
-    branches:
-      - master
-    tags:
-      - 'v*'
-
-name: Workflow
+  workflow_run:
+    workflows: ["Publish Docker timeswipe_arch", "Publish Docker timeswipe_ubuntu"]
+    branches: [master]
+    types:
+      - completed
 
 jobs:
   build_deb:
