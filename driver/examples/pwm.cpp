@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    for (unsigned i = 2; i < argc; i++) {
+    for (int i = 2; i < argc; i++) {
         if (!strcmp(argv[i],"--num")) {
             if (i+1 > argc) {
                 usage(argv[0]);
