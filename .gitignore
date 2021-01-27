@@ -36,3 +36,5 @@
 
 # Build directories
 build*
+
+_private
