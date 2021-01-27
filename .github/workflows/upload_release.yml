@@ -66,9 +66,8 @@ jobs:
           cd build-driver-arm64
           cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
           cmake --build . --parallel `nproc`
-          export destdir="$PWD"/timeswipe_`cat ../driver/version`
           chown -R build .
-          sudo -u build makepkg
+          sudo -u build sh -c "PKGEXT='.pkg.tar.xz' makepkg"
           echo ::set-output name=arch64::$(ls *.xz)
       - name: Save arch64
         uses: actions/upload-artifact@v1
