@@ -20,8 +20,8 @@ jobs:
         run: |
           mkdir build-driver-arm64
           cd build-driver-arm64
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On ..
-          cmake --build . --parallel
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
+          cmake --build . --parallel `nproc`
           export destdir="$PWD"/timeswipe_`cat ../driver/version`.aarch64
           make -j DESTDIR=$destdir install
           cp -p -r driver/DEBIAN $destdir
@@ -30,8 +30,8 @@ jobs:
           cd ..
           mkdir build-driver-arm32
           cd build-driver-arm32
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM=On ..
-          cmake --build . --parallel
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM=On -DCMAKE_VERBOSE_MAKEFILE=On ..
+          cmake --build . --parallel `nproc`
           export destdir="$PWD"/timeswipe_`cat ../driver/version`.armv7l
           make -j DESTDIR=$destdir install
           cp -p -r driver/DEBIAN $destdir
@@ -61,8 +61,8 @@ jobs:
         run: |
           mkdir build-driver-arm64
           cd build-driver-arm64
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On -DCMAKE_CXX_FLAGS='-mno-float128' ..
-          cmake --build . --parallel
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
+          cmake --build . --parallel `nproc`
           export destdir="$PWD"/timeswipe_`cat ../driver/version`
           chown -R build .
           sudo -u build makepkg
