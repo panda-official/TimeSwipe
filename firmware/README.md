@@ -16,7 +16,7 @@ On a vanilla installation of Raspbian Buster, the following packages have to be 
 
 ```
 sudo apt-get update
-sudo apt-get install gcc-arm-none-eabi cmake git 
+sudo apt-get install gcc-arm-none-eabi cmake git
 ```
 
 You can then clone this repository, if you haven't done that already:
@@ -82,10 +82,10 @@ sudo make install
 cd ..
 ```
 
-After installation, run openOCD with the `PandaOCD.cfg` file located in the firmware directory:
+After installation, run openOCD with the config file:
 
 ```
-sudo openocd -f ../firmware/PandaOCD.cfg
+sudo openocd -f timeswipe/tool/PandaOCD.cfg
 ```
 
 You should see something like:
@@ -131,7 +131,7 @@ atsame5 chip-erase
 
 To verify that the previous step worked, use:
 
-``` 
+```
 flash erase_check 0
 ```
 
@@ -170,4 +170,3 @@ Shutdown the Raspberry Pi and the TimeSwipe board and power on again to start us
 ### Flashing with Arch Linux ARMv8 AArch64
 
 tbd.
-
