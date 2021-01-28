@@ -27,7 +27,7 @@ jobs:
           cmake --build . --parallel `nproc`
           export destdir="$PWD"/timeswipe_`cat ../driver/version`.aarch64
           make -j DESTDIR=$destdir install
-          cp -p -r driver/DEBIAN $destdir
+          cp -p -r DEBIAN $destdir
           dpkg-deb --build $destdir
           echo ::set-output name=deb64::$(ls *.deb)
           cd ..
@@ -37,7 +37,7 @@ jobs:
           cmake --build . --parallel `nproc`
           export destdir="$PWD"/timeswipe_`cat ../driver/version`.armv7l
           make -j DESTDIR=$destdir install
-          cp -p -r driver/DEBIAN $destdir
+          cp -p -r DEBIAN $destdir
           dpkg-deb --build $destdir
           echo ::set-output name=deb32::$(ls *.deb)
           cd ..

@@ -499,8 +499,8 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # Package info generation
   # -----------------------
 
-  configure_file(pkg/timeswipe.pc.in driver/timeswipe.pc @ONLY)
-  configure_file(pkg/DEBIAN/control.in driver/DEBIAN/control @ONLY)
+  configure_file(pkg/timeswipe.pc.in timeswipe.pc @ONLY)
+  configure_file(pkg/DEBIAN/control.in DEBIAN/control @ONLY)
   configure_file(pkg/arch/PKGBUILD.in PKGBUILD @ONLY)
 
   # -------
@@ -517,7 +517,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   install(FILES driver/src/timeswipe.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/driver/timeswipe.pc
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
   message(CHECK_PASS "Ready to build the driver.")
