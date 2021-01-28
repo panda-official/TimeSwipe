@@ -38,3 +38,5 @@
 build*
 
 _private
+docs/driver
+docs/firmware
