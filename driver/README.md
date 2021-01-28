@@ -1,275 +1,240 @@
 # TimeSwipe Driver
 
-The driver is used for the communication between the TimeSwipe board and the Raspberry Pi.
-Supported operating systems on the Raspberry Pi are Raspbian Buster (and to an extent, any Debian-based OS), and Arch Linux ARMv8 AArch64.
-You can also cross-compile the driver on other host systems.
-The `examples` folder contains two example programs which use the driver.
-
+The driver is a middleware between TimeSwipe board and Raspberry Pi. Supported
+operating systems are Raspbian Buster and Arch Linux ARMv8 AArch64.
 
 ## Installing a Pre-Built Driver
 
-The simplest way to install the TimeSwipe Driver is to download the prebuilt packages.
-
+The simplest way to install the TimeSwipe Driver is to download the prebuilt
+packages from the [Release Section](https://github.com/panda-official/TimeSwipe/releases).
 
 ### Raspbian Buster
 
-If you are running Raspbian Buster (or any other Debian-based OS), simply download the package - you can find the latest in the [Release Section](https://github.com/panda-official/TimeSwipe/releases):
+A downloaded package can be installed with `dpkg` like this:
 
 ```
-wget https://github.com/panda-official/TimeSwipe/releases/download/vX.Y.Z/timeswipe_X.Y.Z.armv7l.deb
+sudo dpkg -i timeswipe_package.deb
 ```
 
-Then simply install with:
-
-```
-sudo dpkg -i timeswipe_X.Y.Z.armv7l.deb
-```
-
-You can also uninstall the driver with the command:
+or uninstalled like that:
 
 ```
 sudo dpkg -r timeswipe
 ```
 
-
 ### Arch Linux ARMv8 AArch64
 
-On Arch Linux, similarly download the appropriate package:
+A downloaded package can be installed with `pacman` like this:
 
 ```
-wget https://github.com/panda-official/TimeSwipe/releases/download/vX.Y.Z/timeswipe-X.Y.Z-1-any.pkg.tar.xz
+sudo pacman -U timeswipe_X.Y.Z-any.pkg.tar.xz
 ```
 
-And then as `root` install with:
+or uninstalled like that:
 
 ```
-pacman -U timeswipe_X.Y.Z-any.pkg.tar.xz
+sudo pacman -R timeswipe
 ```
 
-The package can be uninstalled with:
+## Compiling the Driver
+
+This section describes how to build the driver on Raspberry Pi.
+
+### Compiling the driver on Raspbian Buster
+
+Install the required packages:
 
 ```
-pacman -R timeswipe
+sudo apt update
+sudo apt install cmake git libboost-dev
 ```
 
-
-## Building the Driver
-
-This section describes how to build the driver on your own Raspberry Pi.
-
-
-### Raspbian Buster
-
-On a vanilla installation of Raspbian Buster, you will need to install some packages:
-
-```
-sudo apt-get update
-sudo apt-get install cmake git libboost-dev
-```
-
-You can then clone this repository, if you haven't done that already:
+Clone the TimeSwipe repository:
 
 ```
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Navigate to the project directory, build and install the driver:
+Build and install the driver:
 
 ```
 cd timeswipe
-mkdir -p build
-cd build
+mkdir build && cd build
 cmake ..
-make -j$(nproc)
+cmake --build . --parallel
 sudo make install
 ```
 
-The TimeSwipe driver should now be installed on your system.
-You can optionally create your own Debian package with `dpkg-deb --build .`.
-
-
-### Arch Linux ARMv8 AArch64
-
-On a vanilla installation of Arch Linux, as `root` run the commands:
+To create a package type:
 
 ```
-pacman-key --init
-pacman-key --populate archlinuxarm
-pacman -Syu
-pacman -S make gcc boost-libs boost pkgconfig
+dpkg-deb --build .
 ```
 
-to update your system and install the needed packages.
+### Compiling the driver on Arch Linux ARMv8 AArch64
 
-You can then clone this repository, if you haven't done that already:
+Update the system and install the required packages:
+
+```
+sudo pacman-key --init
+sudo pacman-key --populate archlinuxarm
+sudo pacman -Syu
+sudo pacman -S git cmake make gcc boost-libs boost pkgconfig
+```
+
+Clone the TimeSwipe repository:
 
 ```
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Navigate to the project directory, build and install the driver:
+Build and install the driver:
 
 ```
 cd timeswipe
-mkdir -p build
-cd build
+mkdir build && cd build
 cmake ..
-make -j$(nproc)
+cmake --build . --parallel
+sudo make install
 ```
 
-As `root` then install the driver:
+To create a package type:
 
 ```
-make install
+sudo pacman -S fakeroot
+makepkg
 ```
 
-The TimeSwipe driver should now be installed on your system.
-To optionally create your own `pkg.tar.xz` driver package, run `makepkg` from the `build` directory.
+## Cross-compiling the Driver
 
+This section shows how you can build the TimeSwipe driver on a computer other
+than a Raspberry Pi. A cross-compilator required in order to cross-compile the
+driver. Also, currently, Boost must be cross-compiled also.
 
-## Cross-Compiling the Driver
+### Cross-compiling Boost
 
-This section shows how you can build the TimeSwipe driver on a computer other than a Raspberry Pi.
-Supported cross-compilation architectures are Ubuntu 18.04 and OSX.
+Download the latest version of Boost. In the Boost folder run `./bootstrap`.
+In the generated `project-config.jam` file, replace the line beginning with
+`using gcc` with `using gcc : arm : arm-linux-gnueabihf-g++ ;` (for ARM32) or
+`using gcc : arm : aarch64-linux-gnu-g++ ;` (for ARM64). Now compile and install
+with `./b2 link=static runtime-link=static install toolset=gcc-arm --prefix=/opt/arm`
+(for ARM32) or `./b2 link=static runtime-link=static install toolset=gcc-arm --prefix=/opt/arm64`
+(for ARM64).
 
+Please note that we're working to stop the dependency on Boost!
 
-### Ubuntu 18.04 / Debian Buster
+### Cross-compiling the Driver on Ubuntu Linux
 
-To cross-compile on Ubuntu 18.04 / Debian Buster, you will need to install some extra packages:
+Install the required packages:
 
 ```
-sudo apt-get install gcc g++ gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-sudo apt-get install libboost-dev cmake git pkg-config
+sudo apt update
+sudo apt install gcc g++ gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
+                 gcc-aarch64-linux-gnu g++-aarch64-linux-gnu cmake git pkg-config
 ```
 
-You can then clone this repository, if you haven't done that already:
+Clone the TimeSwipe repository:
 
 ```
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the project directory and build
+Cross-compile Boost as [described above](#cross-compiling-boost).
 
-either the driver for the 32bit OS:
-
-```
-cd timeswipe
-mkdir -p build
-cd build
-cmake .. -DPANDA_BUILD_ARM=1
-make -j$(nproc)
-```
-
-or the driver for the 64bit OS:
+Build the driver:
 
 ```
 cd timeswipe
-mkdir -p build
-cd build
-cmake .. -DPANDA_BUILD_ARM=1 -DPANDA_BUILD_ARM64=1
-make -j$(nproc)
+mkdir build && cd build
+cmake -DPANDA_BUILD_ARM=On ..
+cmake --build . --parallel
+sudo make install
 ```
 
-depending on OS installed on your Raspberry Pi.
+Please note, `-DPANDA_BUILD_ARM=On` can be replaced with `-DPANDA_BUILD_ARM64=On`
+in order to build for ARM64.
 
+### Cross-compiling the Driver on macOS
 
-### OSX
+For cross-compilation on macOS, `ct-ng` and some extra dependencies are needed. If
+brew is not installed so far, please follow the [instructions](https://brew.sh).
 
-For cross-compilation on OSX, `ct-ng` and some extra dependencies are needed. If brew is not installed so far, follow the [instructions](https://brew.sh).
-In a terminal, enter the commands:
+Install the required packages:
 
 ```
 brew install cmake
 brew install crosstool-ng help2man bison
 ```
 
-Using `Disk Utility` create an APFS (case-sensitive) disk named `xtool-build-env`.
-Change the limit of file descriptors:
+Use `Disk Utility` to create an APFS (case-sensitive) disk named
+`xtool-build-env`. Then change the limit of file descriptors:
 
 ```
 ulimit -n 1024
 ```
 
-And copy the file `config_osx` from the `contrib/OSX` direcory to `/Volumes/xtool-build-env`, renaming the file in the process:
+Clone the TimeSwipe repository:
 
 ```
-cp contrib/OSX/config_osx /Volumes/xtool-build-env/.config
+git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then you can build the toolchain:
+Copy crosstool-NG configuration file:
+
+```
+cp timeswipe/contrib/OSX/config_osx /Volumes/xtool-build-env/.config
+```
+
+Now build the toolchain (it will take a while):
 
 ```
 cd /Volumes/xtool-build-env
 ct-ng build
 ```
 
-This will take a while.
-Then, with `brew, install `boost` and verify the availability of its path:
-
-```
-brew install boost
-brew --prefix boost
-```
-
 After the toolchain built successfully, change the PATH variable:
 
 ```
-export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin/:$PATH
+export PATH=/Volumes/xtool-build-env/aarch64-rpi3-linux-gnu/bin:$PATH
 ```
 
-You can then clone this repository, if you haven't done that already:
+Cross-compile Boost as [described above](#cross-compiling-boost).
+
+Navigate to the project directory and build:
+
+```
+cd timeswipe
+mkdir build && cd build
+cmake -DPANDA_BUILD_ARM64=On ..
+cmake --build . --parallel
+sudo make install
+```
+
+## Build the Driver emulator on Debian-based OS
+
+Install the required packages:
+
+```
+sudo apt install gcc g++ libboost-dev cmake git pkg-config
+```
+
+Clone the TimeSwipe repository:
 
 ```
 git clone --recursive https://github.com/panda-official/timeswipe.git
 ```
 
-Then simply navigate to the project directory and build:
+Build the driver in emulation mode:
 
 ```
 cd timeswipe
-mkdir -p build
-cd build
-cmake ..
-make -j$(nproc)
+mkdir build && cd build
+cmake -DPANDA_BUILD_FIRMWARE_EMU=On ..
+cmake --build . --parallel
 ```
 
-## Build the Driver emulator for Ubuntu 18.04  / Debian Buster x86_64
-
-To build on Ubuntu 18.04  / Debian Buster, you will need to install some extra packages:
+After the successive build `datlog` example can be runned:
 
 ```
-sudo apt-get install gcc g++ libboost-dev cmake git pkg-config
+./datlog --config datlog.json
 ```
-
-Clone this repository, if you haven't done that already:
-
-```
-git clone --recursive https://github.com/panda-official/timeswipe.git
-```
-
-Then simply navigate to the project directory and build:
-
-```
-cd timeswipe
-mkdir -p build
-cd build
-cmake .. -DPANDA_BUILD_FIRMWARE_EMU=1
-make -j$(nproc)
-```
-
-Then build the example:
-
-```
-cd timeswipe/driver/examples/DataLogging
-mkdir -p build
-cd build
-cmake .. -DPANDA_BUILD_FIRMWARE_EMU=1
-make -j$(nproc) main_static
-```
-
-After building main_static can be started at your host PC for demo/testing purposes:
-
-```
-./main_static --config ../config.json
-```
-
