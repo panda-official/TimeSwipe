@@ -1,37 +1,32 @@
 ![](https://github.com/panda-official/TimeSwipe/workflows/Build%20Linux%20Packages/badge.svg)
 
-# TimeSwipe
-Firmware and Drivers for PANDA TimeSwipe Boards
+# PANDA TimeSwipe Driver and Firmware
 
-
-## Pre-Built Files
-
-The [releases section](https://github.com/panda-official/TimeSwipe/releases) contains pre-built driver and firmware files for various architectures.
-You can also compile these yourself.
-Instructions can be found in the driver and firmware subdirectories.
-
-
-## Building and Flashing the Firmware
-
-The procedure is explained in the [firmware/README.md](https://github.com/panda-official/TimeSwipe/blob/master/firmware/README.md) section.
-
-
-## Building and Installing the Driver
-
-The procedure is explained in the [driver/README.md](https://github.com/panda-official/TimeSwipe/blob/master/driver/README.md) section.
-
+The [releases section](https://github.com/panda-official/TimeSwipe/releases)
+contains pre-built driver for both ARM32 and ARM64 architectures.
 
 ## Documentation
 
-The communication protocol is described in the file [docs/CommunicationProtocol.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/CommunicationProtocol.md), a description of the event system can be found in [docs/EventSystem.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/EventSystem.md).
-Software dependencies are listed in [docs/SoftwareDependencies.md](https://github.com/panda-official/TimeSwipe/blob/master/docs/SoftwareDependencies.md).
-Driver [API](https://panda-official.github.io/TimeSwipe/index.html)
+[Driver API](https://panda-official.github.io/TimeSwipe/index.html)
 
+### General documentation
+
+- [Communication protocol](docs/CommunicationProtocol.md)
+- [Event system](docs/EventSystem.md)
+
+### Building and installing the software
+
+- [Software dependencies](docs/SoftwareDependencies.md)
+- [Building and installing the driver](docs/driver.md)
+- [Building and flashing the firmware](docs/firmware.md)
 
 ## Product versioning
 
-The product consists of several modules using semantic versioning.
-Compatibility is defined as follows: for the driver and firmware, compatibility is determined by the major version number.
-For example, firmware 1.2.1 is compatible with driver 1.3.5 and 1.4.1 and not compatible with driver 2.0.1.
-For the compatibility between the submodules of the driver the minor number is also taken into account:
-for example, python driver submodule 1.3.9 is compatible with driver 1.3.5 and not compatible with  driver 1.4.1.
+The product consists of several modules using semantic versioning. Compatibility
+is defined by major version number, i.e. driver and firmware are compatible if
+their major version numbers are equal. Compatibility between the submodules of
+the driver is define by minor version number.
+
+For example, the firmware 1.2.1 is compatible with the driver 1.3.5, but not
+compatible with the driver 2.0.1; the Python driver submodule 1.3.9 is compatible
+with the driver 1.3.5, but not compatible with the driver 1.4.1.

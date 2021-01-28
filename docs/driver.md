@@ -1,4 +1,4 @@
-# TimeSwipe Driver
+# PANDA TimeSwipe Driver
 
 The driver is a middleware between TimeSwipe board and Raspberry Pi. Supported
 operating systems are Raspbian Buster and Arch Linux ARMv8 AArch64.

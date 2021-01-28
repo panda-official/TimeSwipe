@@ -1,4 +1,4 @@
-﻿# TimeSwipe Firmware
+﻿# PANDA TimeSwipe Firmware
 
 The TimeSwipe firmware can be flashed onto the TimeSwipe board a programmer or a debugger like the Atmel ICE.
 The most convenient variant however is to use a Raspberry Pi with openOCD.
