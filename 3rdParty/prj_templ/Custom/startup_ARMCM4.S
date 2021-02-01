@@ -4,7 +4,7 @@
  * Version: V2.0
  * Date: 16 August 2013
  *
-/* Copyright (c) 2011 - 2013 ARM LIMITED
+ * Copyright (c) 2011 - 2013 ARM LIMITED
 
    All rights reserved.
    Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
    POSSIBILITY OF SUCH DAMAGE.
-   ---------------------------------------------------------------------------*/
+*/
 
 /*--------------------------13.07.2019---------------------------------
   This file was edited by VNK to:
