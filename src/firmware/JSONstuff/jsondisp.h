@@ -60,7 +60,7 @@ public:
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    virtual typeCRes Call(CCmdCallDescr &d);
+    typeCRes Call(CCmdCallDescr &d) override;
 
     /*!
      * \brief The class constructor

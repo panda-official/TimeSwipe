@@ -82,29 +82,29 @@ protected:
     /*!
      * \brief The handler of the 1st IRQ line of the Sercom
      */
-    virtual void OnIRQ0();
+    void OnIRQ0() override;
 
     /*!
      * \brief The handler of the 2nd IRQ line of the Sercom
      */
-    virtual void OnIRQ1();
+    void OnIRQ1() override;
 
     /*!
      * \brief The handler of the 3rd IRQ line of the Sercom
      */
-    virtual void OnIRQ2();
+    void OnIRQ2() override;
 
     /*!
      * \brief The handler of the 4th IRQ line of the Sercom
      */
-    virtual void OnIRQ3();
+    void OnIRQ3() override;
 
     /*!
      * \brief Sends a serial message to the SPI bus
      * \param msg  A message to send (output parameter)
      * \return The operation result: true if successful otherwise - false
      */
-    virtual bool send(CFIFO &msg);
+    bool send(CFIFO &msg) override;
 
 };
 

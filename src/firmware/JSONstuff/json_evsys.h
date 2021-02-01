@@ -132,14 +132,14 @@ public:
      * \param key The event key (a string name)
      * \param val The event value (a JSON object containing the value)
      */
-    virtual void on_event(const char *key, nlohmann::json &val);
+    void on_event(const char *key, nlohmann::json &val) override;
 
     /*!
      * \brief A command dispatcher handler override for this class
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    virtual typeCRes Call(CCmdCallDescr &d);
+    typeCRes Call(CCmdCallDescr &d) override;
 
     /*!
      * \brief The class constructor

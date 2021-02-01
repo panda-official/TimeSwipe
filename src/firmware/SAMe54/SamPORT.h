@@ -383,7 +383,7 @@ protected:
      * \brief Implements Set functionality of CPin
      * \param bHow - the pin value to be set: logical true or false
     */
-    virtual void impl_Set(bool bHow)
+    void impl_Set(bool bHow) override
     {
         CSamPORT::SetPin(m_nGroup, m_nPin, bHow);
     }
@@ -392,7 +392,7 @@ protected:
     * \brief Implements RbSet (read back setup value) functionality of CPin
     * \return the pin value that was set: logical true or false
     */
-    virtual bool impl_RbSet()
+    bool impl_RbSet() override
     {
         return CSamPORT::RbSetPin(m_nGroup, m_nPin);
     }
@@ -401,7 +401,7 @@ protected:
      * \brief Implements Get functionality of CPin
      * \return actual pin state: logical true or false
      */
-    virtual bool impl_Get()
+    bool impl_Get() override
     {
         return CSamPORT::GetPin(m_nGroup, m_nPin);
     }

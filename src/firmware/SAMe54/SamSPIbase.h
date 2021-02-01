@@ -102,15 +102,17 @@ public:
      * \param msg  - the message to send (output parameter)
      * \return the operation result: true if successful otherwise - false
      */
-    virtual bool send(CFIFO &msg);
+    bool send(CFIFO &msg) override;
 
     /*!
      * \brief Does nothing
      * \param msg Ignored
      * \return false
      */
-    virtual bool receive(CFIFO &msg){ return false;}
-
+    bool receive(CFIFO&/*msg*/) override
+    {
+        return false;
+    }
 
     /*!
      * \brief Performs a SPI transfer operation: send output message, receive input message of the same length
@@ -118,7 +120,7 @@ public:
      * \param in_msg - the message to receive (input parameter)
      * \return the operation result: true if successful otherwise - false
      */
-    virtual bool transfer(CFIFO &out_msg, CFIFO &in_msg);
+    bool transfer(CFIFO &out_msg, CFIFO &in_msg) override;
 
 
     /*!
@@ -126,13 +128,13 @@ public:
      * \param bPhase A phase to set: true(1)-shifted, false(0) - not shifted
      * \param bPol A polarity to set: true - bus idle state=HIGH, false - bus idle state=LOW
      */
-    virtual void set_phpol(bool bPhase, bool bPol);
+    void set_phpol(bool bPhase, bool bPol) override;
 
     /*!
      * \brief  Setups baudrate divisor
      * \param div A divisor value: baudrate=clock_speed/div
      */
-    virtual void set_baud_div(unsigned char div);
+    void set_baud_div(unsigned char div) override;
 
     /*!
      * \brief Setups the bus timing profile ---minimal time to HOLD CS HIGH---___delay in between transfers___---delay before SCK is continued---
@@ -140,7 +142,8 @@ public:
      * \param IntertransDel A delay in between transfers
      * \param BeforeClockDel A delay before SCK is continued
      */
-    virtual void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel){}
+    void set_tprofile_divs(unsigned char /*CSminDel*/, unsigned char /*IntertransDel*/, unsigned char /*BeforeClockDel*/) override
+    {}
 
     /*!
      * \brief Enables IRQ mode

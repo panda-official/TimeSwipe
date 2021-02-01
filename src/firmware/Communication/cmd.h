@@ -106,7 +106,7 @@ public:
     {
         strcpy(m_descr, pDescr);
     }
-    virtual const char* what() const noexcept
+    const char* what() const noexcept override
     {
         return m_descr;
     }
@@ -259,7 +259,7 @@ public:
         m_pGetter=pGetter;
         m_pSetter=pSetter;
     }
-    virtual typeCRes Call(CCmdCallDescr &d)
+    typeCRes Call(CCmdCallDescr &d) override
     {
         if(d.m_ctype & CCmdCallDescr::ctype::ctSet) //set
         {
@@ -297,7 +297,3 @@ public:
         return typeCRes::OK;
     }
 };
-
-
-
-

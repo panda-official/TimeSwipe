@@ -106,7 +106,7 @@ public:
      * called by a Serial device
      * \param ch
      */
-    virtual void on_rec_char(typeSChar ch)
+    void on_rec_char(typeSChar ch) override
     {
         parser(ch);
     }
