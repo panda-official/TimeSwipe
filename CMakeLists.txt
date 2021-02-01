@@ -74,7 +74,7 @@ set(CMAKE_TOOLCHAIN_FILE "cmake/arm.cmake" CACHE PATH
 # Project
 # ------------------------------------------------------------------------------
 
-file(STRINGS driver/version VERSION_NUMBER
+file(STRINGS src/driver/version VERSION_NUMBER
   LENGTH_MINIMUM 5 LENGTH_MAXIMUM 8 LIMIT_COUNT 1) # ab.cd.ef
 
 # The `software` variable is a helper for substitution/interpolation.
@@ -344,7 +344,7 @@ if(PANDA_BUILD_FIRMWARE)
 
   foreach(dep ADCDAC Board BusinessLogic Communication CortexMX
       HATS_EEPROM Interfaces JSONstuff LEDs Math Procs SAMe54)
-    list(TRANSFORM ${dep}_src PREPEND firmware/src/${dep}/)
+    list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
   # ---------------------------
@@ -354,14 +354,14 @@ if(PANDA_BUILD_FIRMWARE)
   # Common to interface libraries
   foreach(dep Interfaces Math)
     add_library(${dep} INTERFACE)
-    target_include_directories(${dep} INTERFACE firmware/src/${dep})
+    target_include_directories(${dep} INTERFACE src/firmware/${dep})
   endforeach()
 
   # Common to static libraries
   foreach(dep ADCDAC Board BusinessLogic Communication CortexMX
       HATS_EEPROM JSONstuff LEDs Procs SAMe54)
     add_library(${dep} OBJECT ${${dep}_src})
-    target_include_directories(${dep} PUBLIC firmware/src/${dep})
+    target_include_directories(${dep} PUBLIC src/firmware/${dep})
   endforeach()
 
   # Communication-specific
@@ -390,13 +390,13 @@ if(PANDA_BUILD_FIRMWARE)
   target_link_libraries(Board PUBLIC Math 3rdparty_CMSIS 3rdparty_sam ADCDAC JSONstuff LEDs SAMe54)
   # FIXME: there is cyclical dependence: Board <--> BusinessLogic!!!
   # KLUDGE: for now just include directory of BusinessLogic
-  target_include_directories(Board PRIVATE firmware/src/BusinessLogic)
+  target_include_directories(Board PRIVATE src/firmware/BusinessLogic)
 
   # BusinessLogic-specific
   target_link_libraries(BusinessLogic PUBLIC Board)
   # FIXME: there is cyclical dependence: BusinessLogic <--> Procs!!!
   # KLUDGE: for now just include directory of Procs
-  target_include_directories(BusinessLogic PRIVATE firmware/src/Procs)
+  target_include_directories(BusinessLogic PRIVATE src/firmware/Procs)
 
   # Procs-specific
   target_link_libraries(Procs PUBLIC BusinessLogic)
@@ -414,7 +414,7 @@ if(PANDA_BUILD_FIRMWARE)
 
 
   set(firmware_src
-    firmware/src/main.cpp
+    src/firmware/main.cpp
     3rdParty/prj_templ/Custom/startup_ARMCM4.S
     )
 
@@ -451,16 +451,16 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # timeswipe target
   # ----------------
 
-  # FIXME: firmware/src/HATS_EEPROM should be common library for both driver and firmware
+  # FIXME: src/firmware/HATS_EEPROM should be common library for both driver and firmware
   set(timeswipe_src
-    driver/src/timeswipe.cpp
-    driver/src/timeswipe_eeprom.cpp
-    driver/src/timeswipe_event.cpp
-    driver/src/timeswipe_resampler.cpp
-    driver/src/pidfile.cpp
-    driver/src/board_iface.cpp
-    driver/src/RaspberryPi/bcmspi.cpp
-    firmware/src/HATS_EEPROM/HatsMemMan.cpp # KLUDGE: see FIXME above
+    src/driver/timeswipe.cpp
+    src/driver/timeswipe_eeprom.cpp
+    src/driver/timeswipe_event.cpp
+    src/driver/timeswipe_resampler.cpp
+    src/driver/pidfile.cpp
+    src/driver/board_iface.cpp
+    src/driver/RaspberryPi/bcmspi.cpp
+    src/firmware/HATS_EEPROM/HatsMemMan.cpp # KLUDGE: see FIXME above
     )
 
   add_library(timeswipe ${timeswipe_src})
@@ -481,18 +481,18 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   target_include_directories(timeswipe
     PRIVATE
-    driver/src/RaspberryPi
+    src/driver/RaspberryPi
 
-    firmware/src/Interfaces
-    firmware/src/Communication
-    firmware/src/HATS_EEPROM
+    src/firmware/Interfaces
+    src/firmware/Communication
+    src/firmware/HATS_EEPROM
 
     3rdParty
     3rdParty/BCMsrc
     3rdParty/HATS_EEPROM
 
     PUBLIC
-    driver/src
+    src/driver
     )
 
   # -----------------------
@@ -515,7 +515,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     RUNTIME  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-  install(FILES driver/src/timeswipe.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  install(FILES src/driver/timeswipe.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
@@ -538,9 +538,9 @@ if(PANDA_BUILD_TESTS)
   # Set the include directories per software.
   # FIXME: the best way to consume this stuff is target_link_libraries().
   set(driver_tests_include_directories
-    driver/src/RaspberryPi
-    firmware/src/Interfaces
-    firmware/src/Communication)
+    src/driver/RaspberryPi
+    src/firmware/Interfaces
+    src/firmware/Communication)
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
@@ -556,14 +556,14 @@ if(PANDA_BUILD_TESTS)
   # Configure the tests from the lists above.
   function(panda_configure_test test)
     set(full_name "${test}")
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${software}/examples/${full_name}.cpp")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/${software}/${full_name}.cpp")
       set(is_unit_test TRUE)
       set(full_name "unit-${test}")
     else()
       set(is_unit_test FALSE)
     endif()
     set(exe "${full_name}")
-    set(src "${CMAKE_CURRENT_SOURCE_DIR}/${software}/examples/${full_name}.cpp")
+    set(src "${CMAKE_CURRENT_SOURCE_DIR}/test/${software}/${full_name}.cpp")
     add_executable(${exe} ${src} ${${test}_extra_sources})
     set_target_properties(${exe}
       PROPERTIES
@@ -587,7 +587,7 @@ if(PANDA_BUILD_TESTS)
   if(NOT PANDA_BUILD_FIRMWARE)
     add_custom_target(panda_copy_test_resources ALL
       COMMAND cmake -E copy_if_different
-      "${CMAKE_CURRENT_SOURCE_DIR}/driver/examples/datlog.json"
+      "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/datlog.json"
       "${panda_output_dir}"
       )
   endif()

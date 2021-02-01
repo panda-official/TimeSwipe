@@ -30,7 +30,7 @@ if (PANDA_BUILD_FIRMWARE)
   set(Adafruit_NeoPixel_src
     Adafruit_NeoPixel/Adafruit_NeoPixel.cpp
     Adafruit_NeoPixel/Adafruit_NeoPixel.h
-    ${CMAKE_SOURCE_DIR}/firmware/src/LEDs/Adafruit_NeoPixel_stub.h
+    ${CMAKE_SOURCE_DIR}/src/firmware/LEDs/Adafruit_NeoPixel_stub.h # FIXME!
     Adafruit_NeoPixel/esp8266.c
     )
 
@@ -38,8 +38,8 @@ if (PANDA_BUILD_FIRMWARE)
   target_compile_definitions(3rdparty_Adafruit_NeoPixel PUBLIC SAM_BRM __arm__  __SAMD51__  __SAME54P20A__)
   target_include_directories(3rdparty_Adafruit_NeoPixel PUBLIC Adafruit_NeoPixel
     PRIVATE
-    ${CMAKE_SOURCE_DIR}/firmware/src/LEDs
-    ${CMAKE_SOURCE_DIR}/firmware/src/Interfaces)
+    ${CMAKE_SOURCE_DIR}/src/firmware/LEDs # FIXME!
+    ${CMAKE_SOURCE_DIR}/src/firmware/Interfaces) # FIXME!
 
   # ------------------------------------------------------------------------------
   # HATS_EEPROM
