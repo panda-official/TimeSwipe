@@ -11,14 +11,14 @@ contains pre-built driver for both ARM32 and ARM64 architectures.
 
 ### General documentation
 
-- [Communication protocol](docs/CommunicationProtocol.md)
-- [Event system](docs/EventSystem.md)
+- [Communication protocol](doc/CommunicationProtocol.md)
+- [Event system](doc/EventSystem.md)
 
 ### Building and installing the software
 
-- [Software dependencies](docs/SoftwareDependencies.md)
-- [Building and installing the driver](docs/driver.md)
-- [Building and flashing the firmware](docs/firmware.md)
+- [Software dependencies](doc/SoftwareDependencies.md)
+- [Building and installing the driver](doc/driver.md)
+- [Building and flashing the firmware](doc/firmware.md)
 
 ## Product versioning
 
