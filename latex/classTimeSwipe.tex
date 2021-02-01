@@ -1,0 +1,561 @@
+\hypertarget{classTimeSwipe}{}\doxysection{Time\+Swipe Class Reference}
+\label{classTimeSwipe}\index{TimeSwipe@{TimeSwipe}}
+
+
+{\ttfamily \#include $<$timeswipe.\+hpp$>$}
+
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classTimeSwipe_a7b429a83b9753b0e5c885b96f48e3e74}\label{classTimeSwipe_a7b429a83b9753b0e5c885b96f48e3e74}} 
+enum class {\bfseries Mode} \{ {\bfseries Primary}
+, {\bfseries Norm}
+, {\bfseries Digital}
+ \}
+\item 
+\mbox{\Hypertarget{classTimeSwipe_a6dcf984644e49df202ca8a2fd607f9c3}\label{classTimeSwipe_a6dcf984644e49df202ca8a2fd607f9c3}} 
+enum class {\bfseries Channel} \+: int \{ {\bfseries CH1}
+, {\bfseries CH2}
+, {\bfseries CH3}
+, {\bfseries CH4}
+ \}
+\item 
+\mbox{\Hypertarget{classTimeSwipe_a18c7baf1db89f49f9b034037fe9f308e}\label{classTimeSwipe_a18c7baf1db89f49f9b034037fe9f308e}} 
+enum class {\bfseries Channel\+Mes\+Mode} \+: int \{ {\bfseries Voltage}
+, {\bfseries Current}
+ \}
+\item 
+\mbox{\Hypertarget{classTimeSwipe_a41fe6c3e9102c59c6ff3e0bf5ba5cc23}\label{classTimeSwipe_a41fe6c3e9102c59c6ff3e0bf5ba5cc23}} 
+using \mbox{\hyperlink{classTimeSwipe_a41fe6c3e9102c59c6ff3e0bf5ba5cc23}{Read\+Callback}} = std\+::function$<$ void(\mbox{\hyperlink{classSensorsData}{Sensors\+Data}}, uint64\+\_\+t errors)$>$
+\begin{DoxyCompactList}\small\item\em Read sensors callback function pointer. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classTimeSwipe_a623fd4f775c4182647a827710815e408}\label{classTimeSwipe_a623fd4f775c4182647a827710815e408}} 
+using {\bfseries On\+Event\+Callback} = std\+::function$<$ void(\mbox{\hyperlink{classTimeSwipeEvent}{Time\+Swipe\+Event}} \&\&event)$>$
+\item 
+\mbox{\Hypertarget{classTimeSwipe_a28a4a52097d38ae273732bb65da25bf2}\label{classTimeSwipe_a28a4a52097d38ae273732bb65da25bf2}} 
+using {\bfseries On\+Error\+Callback} = std\+::function$<$ void(uint64\+\_\+t)$>$
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classTimeSwipe_afaf90b4cbd58a0b432ddac624cb41e53}\label{classTimeSwipe_afaf90b4cbd58a0b432ddac624cb41e53}} 
+{\bfseries Time\+Swipe} (const \mbox{\hyperlink{classTimeSwipe}{Time\+Swipe}} \&)=delete
+\item 
+void \mbox{\hyperlink{classTimeSwipe_ad4db5d1abf6b9c0fc31f7c4b77598cbb}{Set\+Mode}} (Mode number)
+\begin{DoxyCompactList}\small\item\em Setup hardware mode. \end{DoxyCompactList}\item 
+Mode \mbox{\hyperlink{classTimeSwipe_a4ec38ce521ee83910fa2ee9d2c6851d9}{Get\+Mode}} ()
+\begin{DoxyCompactList}\small\item\em Get current hardware mode. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classTimeSwipe_a5f8b31aaf2ec7cc676784dc505e0e991}{Set\+Sensor\+Offsets}} (int offset1, int offset2, int offset3, int offset4)
+\begin{DoxyCompactList}\small\item\em Setup Sensor offsets. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classTimeSwipe_a8dc84b048dc4fbf0df54e37c15bb395c}{Set\+Sensor\+Gains}} (float gain1, float gain2, float gain3, float gain4)
+\begin{DoxyCompactList}\small\item\em Setup Sensor gains. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classTimeSwipe_a21754108c2fa4099eddce415c13a6fca}{Set\+Sensor\+Transmissions}} (float trans1, float trans2, float trans3, float trans4)
+\begin{DoxyCompactList}\small\item\em Setup Sensor transmissions. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a517903d76f6674a644305fa5fbe0af1e}{Start\+PWM}} (uint8\+\_\+t num, uint32\+\_\+t frequency, uint32\+\_\+t high=4095, uint32\+\_\+t low=0, uint32\+\_\+t repeats=0, float duty\+\_\+cycle=0.\+5)
+\begin{DoxyCompactList}\small\item\em Start PWM generator Method can be called in any time. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a92fc02ed107f314c741b32da54a35a08}{Stop\+PWM}} (uint8\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Stop PWM generator Method can be called in any time. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_af1938a1a0152ec33f6451ae62f8a7852}{Get\+PWM}} (uint8\+\_\+t num, bool \&active, uint32\+\_\+t \&frequency, uint32\+\_\+t \&high, uint32\+\_\+t \&low, uint32\+\_\+t \&repeats, float \&duty\+\_\+cycle)
+\begin{DoxyCompactList}\small\item\em Get PWM generator state if it is in a Start state Method can be called in any time. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a9551786ec55aca7c8b9d12ae35165d16}{Set\+Channel\+Mode}} (Channel n\+Ch, Channel\+Mes\+Mode n\+Mode)
+\begin{DoxyCompactList}\small\item\em Sets the channel measurement mode\+: Voltage or Current. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a59b40056bb199191f8215116fbdb24a2}{Get\+Channel\+Mode}} (Channel n\+Ch, Channel\+Mes\+Mode \&n\+Mode)
+\begin{DoxyCompactList}\small\item\em Requests the channel measurement mode. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_aba609ad5adf2bde595af8ff71fd2d67d}{Set\+Channel\+Gain}} (Channel n\+Ch, float Gain)
+\begin{DoxyCompactList}\small\item\em Sets the channel gain value. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a507544efad9cb78a65cafeb0ecc9176d}{Get\+Channel\+Gain}} (Channel n\+Ch, float \&Gain)
+\begin{DoxyCompactList}\small\item\em Requests the channel gain value. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a5f0aa2b8d7384fbb20705629791419a4}{Set\+Channel\+IEPE}} (Channel n\+Ch, bool b\+IEPEon)
+\begin{DoxyCompactList}\small\item\em Switches channel IEPE mode ON/\+OFF. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a8f71a47d965561ac29054459a1fea515}{Get\+Channel\+IEPE}} (Channel n\+Ch, bool \&b\+IEPEon)
+\begin{DoxyCompactList}\small\item\em Requests the channel IEPE mode. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classTimeSwipe_a7f89bfb031afdfb24fcab134b93bd84c}{Set\+Burst\+Size}} (size\+\_\+t burst\+Num)
+\begin{DoxyCompactList}\small\item\em Setup Burst buffer size. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_ad2cce4ec7481db0ad9c2864c34d798a0}{Set\+Sample\+Rate}} (int rate)
+\begin{DoxyCompactList}\small\item\em Set sample rate. Default value is 48000. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}{Start}} (\mbox{\hyperlink{classTimeSwipe_a41fe6c3e9102c59c6ff3e0bf5ba5cc23}{Read\+Callback}} cb)
+\begin{DoxyCompactList}\small\item\em Start reading Sensor loop. \end{DoxyCompactList}\item 
+std\+::string \mbox{\hyperlink{classTimeSwipe_ace441aa93c469d0f3048f9cf21c5af70}{Set\+Settings}} (const std\+::string \&request, std\+::string \&error)
+\begin{DoxyCompactList}\small\item\em Send SPI Set\+Settings request and receive the answer. \end{DoxyCompactList}\item 
+std\+::string \mbox{\hyperlink{classTimeSwipe_a20f611a8233851c57f95c75b4ee37850}{Get\+Settings}} (const std\+::string \&request, std\+::string \&error)
+\begin{DoxyCompactList}\small\item\em Send SPI Get\+Settings request and receive the answer. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a7b01d74beae7c419c051d8d0d24db7d8}{on\+Event}} (On\+Event\+Callback cb)
+\begin{DoxyCompactList}\small\item\em Register callback for event. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_a70fabb14ecd47e5bff82368376475112}{on\+Error}} (On\+Error\+Callback cb)
+\begin{DoxyCompactList}\small\item\em Register error callback. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classTimeSwipe_ae3ef3e3e05360b72c584726c1d823540}{Stop}} ()
+\begin{DoxyCompactList}\small\item\em Stop reading Sensor loop. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classTimeSwipe_aa3e4c2fbf3e373d74778e165acafc370}{Trace\+SPI}} (bool val)
+\begin{DoxyCompactList}\small\item\em Trace\+SPI. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classTimeSwipe_acbedb3a70d8d26c2f0cf111482246cab}\label{classTimeSwipe_acbedb3a70d8d26c2f0cf111482246cab}} 
+static bool {\bfseries resample\+\_\+log}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\mbox{\hyperlink{classTimeSwipe}{Time\+Swipe}} interface for Sensor 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classTimeSwipe_a507544efad9cb78a65cafeb0ecc9176d}\label{classTimeSwipe_a507544efad9cb78a65cafeb0ecc9176d}} 
+\index{TimeSwipe@{TimeSwipe}!GetChannelGain@{GetChannelGain}}
+\index{GetChannelGain@{GetChannelGain}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{GetChannelGain()}{GetChannelGain()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Get\+Channel\+Gain (\begin{DoxyParamCaption}\item[{Channel}]{n\+Ch,  }\item[{float \&}]{Gain }\end{DoxyParamCaption})}
+
+
+
+Requests the channel gain value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em n\+Ch} & -\/ the channel to be requested \\
+\hline
+\mbox{\texttt{ out}}  & {\em Gain} & -\/ the actual gain of the channel\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on operation success, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a8f71a47d965561ac29054459a1fea515}\label{classTimeSwipe_a8f71a47d965561ac29054459a1fea515}} 
+\index{TimeSwipe@{TimeSwipe}!GetChannelIEPE@{GetChannelIEPE}}
+\index{GetChannelIEPE@{GetChannelIEPE}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{GetChannelIEPE()}{GetChannelIEPE()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Get\+Channel\+IEPE (\begin{DoxyParamCaption}\item[{Channel}]{n\+Ch,  }\item[{bool \&}]{b\+IEPEon }\end{DoxyParamCaption})}
+
+
+
+Requests the channel IEPE mode. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em n\+Ch} & -\/ the channel to be requested \\
+\hline
+\mbox{\texttt{ out}}  & {\em b\+IEPEon} & -\/ the actual state of the IEPE switch\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on operation success, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a59b40056bb199191f8215116fbdb24a2}\label{classTimeSwipe_a59b40056bb199191f8215116fbdb24a2}} 
+\index{TimeSwipe@{TimeSwipe}!GetChannelMode@{GetChannelMode}}
+\index{GetChannelMode@{GetChannelMode}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{GetChannelMode()}{GetChannelMode()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Get\+Channel\+Mode (\begin{DoxyParamCaption}\item[{Channel}]{n\+Ch,  }\item[{Channel\+Mes\+Mode \&}]{n\+Mode }\end{DoxyParamCaption})}
+
+
+
+Requests the channel measurement mode. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em n\+Ch} & -\/ the channel to be requested \\
+\hline
+\mbox{\texttt{ out}}  & {\em n\+Mode} & -\/ the actual measurement mode\+: Voltage or Current\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on operation success, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a4ec38ce521ee83910fa2ee9d2c6851d9}\label{classTimeSwipe_a4ec38ce521ee83910fa2ee9d2c6851d9}} 
+\index{TimeSwipe@{TimeSwipe}!GetMode@{GetMode}}
+\index{GetMode@{GetMode}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{GetMode()}{GetMode()}}
+{\footnotesize\ttfamily Mode Time\+Swipe\+::\+Get\+Mode (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Get current hardware mode. 
+
+\begin{DoxyReturn}{Returns}
+current mode 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_af1938a1a0152ec33f6451ae62f8a7852}\label{classTimeSwipe_af1938a1a0152ec33f6451ae62f8a7852}} 
+\index{TimeSwipe@{TimeSwipe}!GetPWM@{GetPWM}}
+\index{GetPWM@{GetPWM}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{GetPWM()}{GetPWM()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Get\+PWM (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{num,  }\item[{bool \&}]{active,  }\item[{uint32\+\_\+t \&}]{frequency,  }\item[{uint32\+\_\+t \&}]{high,  }\item[{uint32\+\_\+t \&}]{low,  }\item[{uint32\+\_\+t \&}]{repeats,  }\item[{float \&}]{duty\+\_\+cycle }\end{DoxyParamCaption})}
+
+
+
+Get PWM generator state if it is in a Start state Method can be called in any time. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em num} & -\/ output number -\/ possible values 0 or 1 \\
+\hline
+\mbox{\texttt{ out}}  & {\em active} & -\/ pwm active flag, if active is false other parameters can not be considered valid other parameters are output references to paramteres with same names in \mbox{\hyperlink{classTimeSwipe_a517903d76f6674a644305fa5fbe0af1e}{Start\+PWM}} they are valid only if true returned\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false if num parameter is wrong or generator is in stop state 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a20f611a8233851c57f95c75b4ee37850}\label{classTimeSwipe_a20f611a8233851c57f95c75b4ee37850}} 
+\index{TimeSwipe@{TimeSwipe}!GetSettings@{GetSettings}}
+\index{GetSettings@{GetSettings}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{GetSettings()}{GetSettings()}}
+{\footnotesize\ttfamily std\+::string Time\+Swipe\+::\+Get\+Settings (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{request,  }\item[{std\+::string \&}]{error }\end{DoxyParamCaption})}
+
+
+
+Send SPI Get\+Settings request and receive the answer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em request} & -\/ request json string \\
+\hline
+{\em error} & -\/ output error \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+json-\/formatted answer, set error if error occured 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a70fabb14ecd47e5bff82368376475112}\label{classTimeSwipe_a70fabb14ecd47e5bff82368376475112}} 
+\index{TimeSwipe@{TimeSwipe}!onError@{onError}}
+\index{onError@{onError}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{onError()}{onError()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::on\+Error (\begin{DoxyParamCaption}\item[{On\+Error\+Callback}]{cb }\end{DoxyParamCaption})}
+
+
+
+Register error callback. 
+
+on\+Error must be called before \mbox{\hyperlink{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}{Start}} called, otherwise register fails
+
+
+\begin{DoxyParams}{Parameters}
+{\em cb} & callback called once read error occurred \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false if register callback failed, true otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a7b01d74beae7c419c051d8d0d24db7d8}\label{classTimeSwipe_a7b01d74beae7c419c051d8d0d24db7d8}} 
+\index{TimeSwipe@{TimeSwipe}!onEvent@{onEvent}}
+\index{onEvent@{onEvent}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{onEvent()}{onEvent()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::on\+Event (\begin{DoxyParamCaption}\item[{On\+Event\+Callback}]{cb }\end{DoxyParamCaption})}
+
+
+
+Register callback for event. 
+
+on\+Event must be called before \mbox{\hyperlink{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}{Start}} called, otherwise register fails
+
+
+\begin{DoxyParams}{Parameters}
+{\em cb} & callback called with event received \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false if register callback failed, true otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a7f89bfb031afdfb24fcab134b93bd84c}\label{classTimeSwipe_a7f89bfb031afdfb24fcab134b93bd84c}} 
+\index{TimeSwipe@{TimeSwipe}!SetBurstSize@{SetBurstSize}}
+\index{SetBurstSize@{SetBurstSize}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetBurstSize()}{SetBurstSize()}}
+{\footnotesize\ttfamily void Time\+Swipe\+::\+Set\+Burst\+Size (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{burst\+Num }\end{DoxyParamCaption})}
+
+
+
+Setup Burst buffer size. 
+
+This method notifies the driver to return at least burst\+Num records to the cb of \mbox{\hyperlink{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}{Start}} function per each call
+
+
+\begin{DoxyParams}{Parameters}
+{\em burst\+Num} & -\/ number of records in burst buffer \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classTimeSwipe_aba609ad5adf2bde595af8ff71fd2d67d}\label{classTimeSwipe_aba609ad5adf2bde595af8ff71fd2d67d}} 
+\index{TimeSwipe@{TimeSwipe}!SetChannelGain@{SetChannelGain}}
+\index{SetChannelGain@{SetChannelGain}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetChannelGain()}{SetChannelGain()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Set\+Channel\+Gain (\begin{DoxyParamCaption}\item[{Channel}]{n\+Ch,  }\item[{float}]{Gain }\end{DoxyParamCaption})}
+
+
+
+Sets the channel gain value. 
+
+Sets the gain value in the range \mbox{[}1/8 \+: 128$\ast$1.375\mbox{]}. If the value doesn\textquotesingle{}t correspond to available gain it will be fitted to the closest available gain
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em n\+Ch} & -\/ the channel to be set \\
+\hline
+\mbox{\texttt{ in}}  & {\em Gain} & -\/ the gain value to be set\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on operation success, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a5f0aa2b8d7384fbb20705629791419a4}\label{classTimeSwipe_a5f0aa2b8d7384fbb20705629791419a4}} 
+\index{TimeSwipe@{TimeSwipe}!SetChannelIEPE@{SetChannelIEPE}}
+\index{SetChannelIEPE@{SetChannelIEPE}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetChannelIEPE()}{SetChannelIEPE()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Set\+Channel\+IEPE (\begin{DoxyParamCaption}\item[{Channel}]{n\+Ch,  }\item[{bool}]{b\+IEPEon }\end{DoxyParamCaption})}
+
+
+
+Switches channel IEPE mode ON/\+OFF. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em n\+Ch} & -\/ the channel to be set \\
+\hline
+\mbox{\texttt{ in}}  & {\em b\+IEPEon} & -\/ the state of the IEPE switch to be set\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on operation success, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a9551786ec55aca7c8b9d12ae35165d16}\label{classTimeSwipe_a9551786ec55aca7c8b9d12ae35165d16}} 
+\index{TimeSwipe@{TimeSwipe}!SetChannelMode@{SetChannelMode}}
+\index{SetChannelMode@{SetChannelMode}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetChannelMode()}{SetChannelMode()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Set\+Channel\+Mode (\begin{DoxyParamCaption}\item[{Channel}]{n\+Ch,  }\item[{Channel\+Mes\+Mode}]{n\+Mode }\end{DoxyParamCaption})}
+
+
+
+Sets the channel measurement mode\+: Voltage or Current. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em n\+Ch} & -\/ the channel to be set \\
+\hline
+\mbox{\texttt{ in}}  & {\em n\+Mode} & -\/ the measurement mode\+: Voltage or Current\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on operation success, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_ad4db5d1abf6b9c0fc31f7c4b77598cbb}\label{classTimeSwipe_ad4db5d1abf6b9c0fc31f7c4b77598cbb}} 
+\index{TimeSwipe@{TimeSwipe}!SetMode@{SetMode}}
+\index{SetMode@{SetMode}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetMode()}{SetMode()}}
+{\footnotesize\ttfamily void Time\+Swipe\+::\+Set\+Mode (\begin{DoxyParamCaption}\item[{Mode}]{number }\end{DoxyParamCaption})}
+
+
+
+Setup hardware mode. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em number} & -\/ one of Mode \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classTimeSwipe_ad2cce4ec7481db0ad9c2864c34d798a0}\label{classTimeSwipe_ad2cce4ec7481db0ad9c2864c34d798a0}} 
+\index{TimeSwipe@{TimeSwipe}!SetSampleRate@{SetSampleRate}}
+\index{SetSampleRate@{SetSampleRate}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetSampleRate()}{SetSampleRate()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Set\+Sample\+Rate (\begin{DoxyParamCaption}\item[{int}]{rate }\end{DoxyParamCaption})}
+
+
+
+Set sample rate. Default value is 48000. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em rate} & -\/ new sample rate \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false on wrong rate value requested 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a8dc84b048dc4fbf0df54e37c15bb395c}\label{classTimeSwipe_a8dc84b048dc4fbf0df54e37c15bb395c}} 
+\index{TimeSwipe@{TimeSwipe}!SetSensorGains@{SetSensorGains}}
+\index{SetSensorGains@{SetSensorGains}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetSensorGains()}{SetSensorGains()}}
+{\footnotesize\ttfamily void Time\+Swipe\+::\+Set\+Sensor\+Gains (\begin{DoxyParamCaption}\item[{float}]{gain1,  }\item[{float}]{gain2,  }\item[{float}]{gain3,  }\item[{float}]{gain4 }\end{DoxyParamCaption})}
+
+
+
+Setup Sensor gains. 
+
+It is mandatory to setup gains before \mbox{\hyperlink{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}{Start}}
+
+
+\begin{DoxyParams}{Parameters}
+{\em gain1} & \\
+\hline
+{\em gain2} & \\
+\hline
+{\em gain3} & \\
+\hline
+{\em gain4} & \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classTimeSwipe_a5f8b31aaf2ec7cc676784dc505e0e991}\label{classTimeSwipe_a5f8b31aaf2ec7cc676784dc505e0e991}} 
+\index{TimeSwipe@{TimeSwipe}!SetSensorOffsets@{SetSensorOffsets}}
+\index{SetSensorOffsets@{SetSensorOffsets}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetSensorOffsets()}{SetSensorOffsets()}}
+{\footnotesize\ttfamily void Time\+Swipe\+::\+Set\+Sensor\+Offsets (\begin{DoxyParamCaption}\item[{int}]{offset1,  }\item[{int}]{offset2,  }\item[{int}]{offset3,  }\item[{int}]{offset4 }\end{DoxyParamCaption})}
+
+
+
+Setup Sensor offsets. 
+
+Default offsets are all 0
+
+
+\begin{DoxyParams}{Parameters}
+{\em offset1} & \\
+\hline
+{\em offset2} & \\
+\hline
+{\em offset3} & \\
+\hline
+{\em offset4} & \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classTimeSwipe_a21754108c2fa4099eddce415c13a6fca}\label{classTimeSwipe_a21754108c2fa4099eddce415c13a6fca}} 
+\index{TimeSwipe@{TimeSwipe}!SetSensorTransmissions@{SetSensorTransmissions}}
+\index{SetSensorTransmissions@{SetSensorTransmissions}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetSensorTransmissions()}{SetSensorTransmissions()}}
+{\footnotesize\ttfamily void Time\+Swipe\+::\+Set\+Sensor\+Transmissions (\begin{DoxyParamCaption}\item[{float}]{trans1,  }\item[{float}]{trans2,  }\item[{float}]{trans3,  }\item[{float}]{trans4 }\end{DoxyParamCaption})}
+
+
+
+Setup Sensor transmissions. 
+
+It is mandatory to setup transmissions before \mbox{\hyperlink{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}{Start}}
+
+
+\begin{DoxyParams}{Parameters}
+{\em trans1} & \\
+\hline
+{\em trans2} & \\
+\hline
+{\em trans3} & \\
+\hline
+{\em trans4} & \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classTimeSwipe_ace441aa93c469d0f3048f9cf21c5af70}\label{classTimeSwipe_ace441aa93c469d0f3048f9cf21c5af70}} 
+\index{TimeSwipe@{TimeSwipe}!SetSettings@{SetSettings}}
+\index{SetSettings@{SetSettings}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{SetSettings()}{SetSettings()}}
+{\footnotesize\ttfamily std\+::string Time\+Swipe\+::\+Set\+Settings (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{request,  }\item[{std\+::string \&}]{error }\end{DoxyParamCaption})}
+
+
+
+Send SPI Set\+Settings request and receive the answer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em request} & -\/ request json string \\
+\hline
+{\em error} & -\/ output error \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+json-\/formatted answer, set error if error occured 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}\label{classTimeSwipe_ace4c5d37d3c84ba41e7cf1ae29eee77f}} 
+\index{TimeSwipe@{TimeSwipe}!Start@{Start}}
+\index{Start@{Start}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{Start()}{Start()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Start (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classTimeSwipe_a41fe6c3e9102c59c6ff3e0bf5ba5cc23}{Read\+Callback}}}]{cb }\end{DoxyParamCaption})}
+
+
+
+Start reading Sensor loop. 
+
+Only one instance of \mbox{\hyperlink{classTimeSwipe}{Time\+Swipe}} can be running each moment of the time
+
+After each sensor read complete cb called with vector of \mbox{\hyperlink{classSensorsData}{Sensors\+Data}}
+
+Buffer is for 1 second data if {\ttfamily cb} works longer than 1 second, next data can be loosed and next callback called with non-\/zero errors
+
+Function starts two threads\+: one thread reads sensor values to the ring buffer, second thread polls ring buffer and calls cb
+
+Function can not be called from callback
+
+
+\begin{DoxyParams}{Parameters}
+{\em cb} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false if reading procedure start failed, otherwise true 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a517903d76f6674a644305fa5fbe0af1e}\label{classTimeSwipe_a517903d76f6674a644305fa5fbe0af1e}} 
+\index{TimeSwipe@{TimeSwipe}!StartPWM@{StartPWM}}
+\index{StartPWM@{StartPWM}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{StartPWM()}{StartPWM()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Start\+PWM (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{num,  }\item[{uint32\+\_\+t}]{frequency,  }\item[{uint32\+\_\+t}]{high = {\ttfamily 4095},  }\item[{uint32\+\_\+t}]{low = {\ttfamily 0},  }\item[{uint32\+\_\+t}]{repeats = {\ttfamily 0},  }\item[{float}]{duty\+\_\+cycle = {\ttfamily 0.5} }\end{DoxyParamCaption})}
+
+
+
+Start PWM generator Method can be called in any time. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & -\/ output number -\/ possible values are 0 or 1 \\
+\hline
+{\em frequency} & -\/ periods per second -\/ possible values between 1 and 1000 \\
+\hline
+{\em high} & -\/ PWM signal high value -\/ possible values are 0..4095 high $>$= low, default is 4095 \\
+\hline
+{\em low} & -\/ PWM signal low value -\/ possible values are 0..4095 low $<$= high, default is 0 \\
+\hline
+{\em repeats} & -\/ number of periods to repeat. PWM generator will work (repeats/frequency) seconds after repeats number get exhausted PWM goes to stop state and Start\+PWM can be called again 0 is for unlimited repeats (default) \\
+\hline
+{\em duty\+\_\+cycle} & -\/ part of PWM period when signal is in high state. 0.\+001 duty\+\_\+cycle $<$= 0.\+999. default value is 0.\+5\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false if at least one wrong parameter given or generator already in start state 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_ae3ef3e3e05360b72c584726c1d823540}\label{classTimeSwipe_ae3ef3e3e05360b72c584726c1d823540}} 
+\index{TimeSwipe@{TimeSwipe}!Stop@{Stop}}
+\index{Stop@{Stop}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{Stop()}{Stop()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Stop (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Stop reading Sensor loop. 
+
+\begin{DoxyReturn}{Returns}
+true is stop succeeded, false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_a92fc02ed107f314c741b32da54a35a08}\label{classTimeSwipe_a92fc02ed107f314c741b32da54a35a08}} 
+\index{TimeSwipe@{TimeSwipe}!StopPWM@{StopPWM}}
+\index{StopPWM@{StopPWM}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{StopPWM()}{StopPWM()}}
+{\footnotesize\ttfamily bool Time\+Swipe\+::\+Stop\+PWM (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{num }\end{DoxyParamCaption})}
+
+
+
+Stop PWM generator Method can be called in any time. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em numb} & -\/ output number -\/ possible values 0 or 1\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+false if at least wrong parameter given or generator already in stop state 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classTimeSwipe_aa3e4c2fbf3e373d74778e165acafc370}\label{classTimeSwipe_aa3e4c2fbf3e373d74778e165acafc370}} 
+\index{TimeSwipe@{TimeSwipe}!TraceSPI@{TraceSPI}}
+\index{TraceSPI@{TraceSPI}!TimeSwipe@{TimeSwipe}}
+\doxysubsubsection{\texorpdfstring{TraceSPI()}{TraceSPI()}}
+{\footnotesize\ttfamily void Time\+Swipe\+::\+Trace\+SPI (\begin{DoxyParamCaption}\item[{bool}]{val }\end{DoxyParamCaption})}
+
+
+
+Trace\+SPI. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em val} & true=on \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/github/workspace/src/driver/\mbox{\hyperlink{timeswipe_8hpp}{timeswipe.\+hpp}}\end{DoxyCompactItemize}
