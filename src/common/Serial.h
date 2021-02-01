@@ -1,15 +1,27 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
 
-#pragma once
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-#include <vector>
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_COMMON_SERIAL_HPP
+#define PANDA_TIMESWIPE_COMMON_SERIAL_HPP
+
 #include <memory>
 #include <string>
+#include <vector>
 
 /*!
 *   @file
@@ -177,14 +189,14 @@ struct ISerial
      * \param msg  a message to send (output parameter)
      * \return operation result: true if successful otherwise - false
      */
-	virtual bool send(CFIFO &msg)=0;
+    virtual bool send(CFIFO &msg)=0;
 
     /*!
      * \brief receive a serial message from this class object
      * \param msg a message to receive (input parameter)
      * \return operation result: true if successful otherwise - false
      */
-	virtual bool receive(CFIFO &msg)=0;
+    virtual bool receive(CFIFO &msg)=0;
 
 
      //! default constructor
@@ -300,3 +312,4 @@ protected:
         virtual ~CSerial()=default;
 };
 
+#endif  // PANDA_TIMESWIPE_COMMON_SERIAL_HPP
