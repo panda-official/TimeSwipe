@@ -74,7 +74,7 @@ set(CMAKE_TOOLCHAIN_FILE "cmake/arm.cmake" CACHE PATH
 # Project
 # ------------------------------------------------------------------------------
 
-file(STRINGS src/driver/version VERSION_NUMBER
+file(STRINGS .driver_version driver_version
   LENGTH_MINIMUM 5 LENGTH_MAXIMUM 8 LIMIT_COUNT 1) # ab.cd.ef
 
 # The `software` variable is a helper for substitution/interpolation.
@@ -97,7 +97,7 @@ endif()
 project(panda_timeswipe
   DESCRIPTION "Timeswipe driver"
   HOMEPAGE_URL https://github.com/panda-official/TimeSwipe
-  VERSION ${VERSION_NUMBER}
+  VERSION ${driver_version}
 )
 
 # ------------------------------------------------------------------------------
