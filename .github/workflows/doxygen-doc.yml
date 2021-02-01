@@ -10,8 +10,8 @@ jobs:
     - name: Doxygen Action
       uses: mattnotmitt/doxygen-action@v1.2.0
       with:
-        doxyfile-path: "driver.doxyfile" # default is ./Doxyfile
-        working-directory: "docs" # default is .
+        doxyfile-path: "Doxyfile" # default is ./Doxyfile
+        working-directory: "doc/driver" # default is .
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
@@ -19,4 +19,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         # Default Doxyfile build documentation to html directory.
         # Change the directory if changes in Doxyfile
-        publish_dir: doc/driver/html
+        publish_dir: doc/driver/doxygen/html

@@ -17,8 +17,8 @@ contains pre-built driver for both ARM32 and ARM64 architectures.
 ### Building and installing the software
 
 - [Software dependencies](doc/SoftwareDependencies.md)
-- [Building and installing the driver](doc/driver.md)
-- [Building and flashing the firmware](doc/firmware.md)
+- [Building and installing the driver](doc/driver/install.md)
+- [Building and flashing the firmware](doc/firmware/install.md)
 
 ## Product versioning
 

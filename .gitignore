@@ -38,5 +38,5 @@
 build*
 
 _private
-doc/driver
-doc/firmware
+doc/driver/doxygen
+doc/firmware/doxygen
