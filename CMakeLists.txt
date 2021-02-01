@@ -409,7 +409,6 @@ if(PANDA_BUILD_FIRMWARE)
       set(target_name "firmware.elf")
   endif()
 
-
   set(firmware_src
     src/firmware/main.cpp
     3rdParty/prj_templ/Custom/startup_ARMCM4.S
