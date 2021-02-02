@@ -53,3 +53,22 @@ them with CCmdSGHandler for example.
 
 Since normally SPI bus is used for communication a kind of flow-control is also
 required. It is realized via CSyncSerComFSM.
+
+## ADCDAC
+
+Implementation of ADC and DAC device management is based on the AD channel concept:
+ADC and DAC devices usually contains a number of measurement/controlling units
+called *channels*. The common features of a channel described in the `CADchan`
+class. The concrete methods for ADC and DAC channel in `CAdc` and `CDac` classes.
+
+Being derived from `CAdc` class ADC channels can be added to corresponding ADC
+board object that is responsible for continuous updating channels in a queue.
+For example, `CSamADCchan` and `CSamADCcntr` where `CSamADCcntr` implements the
+board object. To avoid waiting in queue update and switching between channels
+overridden direct measurement function `CAdc::DirectMeasure()` can be called.
+
+An object of class derived from `CDac` can be also added to a board object or
+alternatively the control functionality can be implemented directly via
+overridden `CDac::DriverSetVal()` since continuous updating and queuing are
+usually not required for the DAC channel. The class `CDac5715sa` is an example
+of self-controlled channel.

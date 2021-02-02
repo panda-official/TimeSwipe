@@ -214,7 +214,6 @@ if(PANDA_BUILD_FIRMWARE)
 
   set(ADCDAC_src
     ADC.h
-    ADCDAC_doc.h
     ADchan.h
     DAC.cpp
     DAC.h
