@@ -1,7 +1,7 @@
 /*!
  * \file
  * \brief this file is used only to generate the documentation
- *  
+ *
  * \page BusinessLogic_page BusinessLogic
  *
  *  The basic functionality of the board is provided by the nodeControl class object.
@@ -27,6 +27,11 @@
  *
  *  Another thing is a data visualization: displaying the measured signal levels by LEDs when user is not interacting with the board (default View mode).
  *  This is implemented by a CDataVis class
+ *
+ * The board's built in routines and necessary infrastructure for execution are also placed in this directory.
+ *
+ * Currently only finding amplifier offsets routine is implemented by CADpointSearch class. This class containes an algorythm
+ * for finding offset for a single channel only. For possibility of finding offsets for several channels at once the special infrastructure
+ * class is used: CCalMan
+ *
  */
- 
- 

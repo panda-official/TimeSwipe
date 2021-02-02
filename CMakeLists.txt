@@ -268,6 +268,11 @@ if(PANDA_BUILD_FIRMWARE)
     board_type.h
     nodeControl.h
     rgbacol.h
+
+    ADpointSearch.cpp
+    ADpointSearch.h
+    zerocal_man.cpp
+    zerocal_man.h
     )
   if(NOT PANDA_BUILD_FIRMWARE_EMU)
     list(APPEND BusinessLogic_src nodeControl.cpp)
@@ -306,14 +311,6 @@ if(PANDA_BUILD_FIRMWARE)
     ringbuffer.h
     )
 
-  set(Procs_src
-    ADpointSearch.cpp
-    ADpointSearch.h
-    Procs_doc.h
-    zerocal_man.cpp
-    zerocal_man.h
-    )
-
   set(SAMe54_src
     NVMpage.h
     SAMe54_doc.h
@@ -348,7 +345,7 @@ if(PANDA_BUILD_FIRMWARE)
     clock_set_SAME54.cpp
     )
 
-  foreach(dep ADCDAC Board BusinessLogic CortexMX JSONstuff LEDs Math Procs SAMe54)
+  foreach(dep ADCDAC Board BusinessLogic CortexMX JSONstuff LEDs Math SAMe54)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -363,7 +360,7 @@ if(PANDA_BUILD_FIRMWARE)
   endforeach()
 
   # Common to static libraries
-  foreach(dep ADCDAC Board BusinessLogic CortexMX JSONstuff LEDs Procs SAMe54)
+  foreach(dep ADCDAC Board BusinessLogic CortexMX JSONstuff LEDs SAMe54)
     add_library(${dep} OBJECT ${${dep}_src})
     target_include_directories(${dep} PUBLIC src/firmware/${dep})
   endforeach()
@@ -392,12 +389,6 @@ if(PANDA_BUILD_FIRMWARE)
 
   # BusinessLogic-specific
   target_link_libraries(BusinessLogic PUBLIC Board)
-  # FIXME: there is cyclical dependence: BusinessLogic <--> Procs!!!
-  # KLUDGE: for now just include directory of Procs
-  target_include_directories(BusinessLogic PRIVATE src/firmware/Procs)
-
-  # Procs-specific
-  target_link_libraries(Procs PUBLIC BusinessLogic)
 
   # -------------------
   # firmware.elf target
@@ -422,7 +413,7 @@ if(PANDA_BUILD_FIRMWARE)
   endif()
 
   target_link_libraries(${target_name} ADCDAC CortexMX SAMe54 Board BusinessLogic
-    JSONstuff LEDs Procs 3rdparty_Adafruit_NeoPixel common)
+    JSONstuff LEDs 3rdparty_Adafruit_NeoPixel common)
 
   message(CHECK_PASS "Ready to build the firmware.")
 
