@@ -183,4 +183,53 @@ public:
   }
 };
 
+// -----------------------------------------------------------------------------
+// Class CDac
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief A DAC (Digital-to-Analog-Converter) channel.
+ *
+ * @remarks Uses only DAC functionality of CADchan.
+ */
+class CDac : public CADchan {
+protected:
+  /**
+   * @brief Sets the output value to the real DAC device
+   *
+   * The function is used to transfer a control value from the abstract DAC
+   * channel to the real DAC device and must be overriden in a real device
+   * control class.
+   *
+   * @param val A value to set in a real-unit format for devices that can accept
+   * it (some PCI boards for example).
+   * @param out_bin A value to set in a raw-binary format - most common format
+   * for DAC devices.
+   */
+  virtual void DriverSetVal(float val, int out_bin) = 0;
+
+public:
+  /**
+   * @brief Set control value in a real unit format for this channel.
+   *
+   * @param val A value in a real unit format
+   */
+  void SetVal(float val)
+  {
+    SetRealVal(val);
+    DriverSetVal(m_RealVal, m_RawBinaryVal);
+  }
+
+  /**
+   * @brief Set control value in a raw binary format for this channel.
+   *
+   * @param val A value in a raw binary format.
+   */
+  void SetRawOutput(int val)
+  {
+    SetRawBinVal(val);
+    DriverSetVal(m_RealVal, m_RawBinaryVal);
+  }
+};
+
 #endif  // PANDA_TIMESWIPE_FIRMWARE_ADCDAC_HPP
