@@ -151,6 +151,7 @@ function(panda_add_common_library)
     std_port.h
     )
   list(TRANSFORM common_src PREPEND src/common/)
+  # FIXME: common should be header-only
   add_library(common OBJECT ${common_src})
   # add_library(common INTERFACE)
   target_link_libraries(common PRIVATE 3rdparty_HATS_EEPROM)
