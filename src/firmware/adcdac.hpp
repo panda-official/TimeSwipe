@@ -161,4 +161,26 @@ public:
   }
 };
 
+// -----------------------------------------------------------------------------
+// Class CAdc
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief An ADC (Analog-to-Digital-Converter) channel.
+ *
+ * @remarks Uses only ADC functionality from CADchan.
+ */
+class CAdc : public CADchan {
+public:
+  /**
+   * @brief Force direct measurement for this channel on ADC device without queuing.
+   *
+   * @returns Immediately measured analog value in raw-binary format.
+   */
+  virtual int DirectMeasure() const noexcept
+  {
+    return GetRawBinVal();
+  }
+};
+
 #endif  // PANDA_TIMESWIPE_FIRMWARE_ADCDAC_HPP
