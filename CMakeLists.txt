@@ -128,7 +128,38 @@ endif()
 # Common dependencies
 # ------------------------------------------------------------------------------
 
-# No common dependencies
+function(panda_add_common_library)
+  set(common_src
+    HatsMemMan.cpp
+    HatsMemMan.h
+
+    PWM.h
+    Pin.h
+    SPI.h
+    Serial.h
+    Storage.h
+    button.h
+    os.h
+    timer.h
+
+    SyncCom.h
+    cmd.cpp
+    cmd.h
+    frm_stream.cpp
+    frm_stream.h
+    std_port.cpp
+    std_port.h
+    )
+  list(TRANSFORM common_src PREPEND src/common/)
+  add_library(common OBJECT ${common_src})
+  # add_library(common INTERFACE)
+  target_link_libraries(common PRIVATE 3rdparty_HATS_EEPROM)
+  #target_include_directories(common BEFORE INTERFACE
+  target_include_directories(common BEFORE PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/common>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src/common>
+    )
+endfunction()
 
 # ------------------------------------------------------------------------------
 # Targets
@@ -173,6 +204,8 @@ if(PANDA_BUILD_FIRMWARE)
   # Third-party bundled dependencies
   # Note: must follow add_{compile,link}_options()
   add_subdirectory(3rdParty)
+
+  panda_add_common_library()
 
   # ---------------------------
   # Internal dependency sources
@@ -241,37 +274,9 @@ if(PANDA_BUILD_FIRMWARE)
     list(APPEND BusinessLogic_src nodeControl_emu.cpp)
   endif()
 
-  set(Communication_src
-    Communication_doc.h
-    SyncCom.h
-    cmd.cpp
-    cmd.h
-    frm_stream.cpp
-    frm_stream.h
-    std_port.cpp
-    std_port.h
-    )
-
   set(CortexMX_src
     CortexMX_doc.h
     nodeTimeCM4.cpp
-    )
-
-  set(HATS_EEPROM_src
-    HatsMemMan.cpp
-    HatsMemMan.h
-    )
-
-  set(Interfaces_src
-    PWM.h
-    Pin.h
-    SPI.h
-    Serial.h
-    Storage.h
-    button.h
-    interfaces_doc.h
-    os.h
-    timer.h
     )
 
   set(JSONstuff_src
@@ -342,8 +347,7 @@ if(PANDA_BUILD_FIRMWARE)
     clock_set_SAME54.cpp
     )
 
-  foreach(dep ADCDAC Board BusinessLogic Communication CortexMX
-      HATS_EEPROM Interfaces JSONstuff LEDs Math Procs SAMe54)
+  foreach(dep ADCDAC Board BusinessLogic CortexMX JSONstuff LEDs Math Procs SAMe54)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -352,37 +356,30 @@ if(PANDA_BUILD_FIRMWARE)
   # ---------------------------
 
   # Common to interface libraries
-  foreach(dep Interfaces Math)
+  foreach(dep Math)
     add_library(${dep} INTERFACE)
     target_include_directories(${dep} INTERFACE src/firmware/${dep})
   endforeach()
 
   # Common to static libraries
-  foreach(dep ADCDAC Board BusinessLogic Communication CortexMX
-      HATS_EEPROM JSONstuff LEDs Procs SAMe54)
+  foreach(dep ADCDAC Board BusinessLogic CortexMX JSONstuff LEDs Procs SAMe54)
     add_library(${dep} OBJECT ${${dep}_src})
     target_include_directories(${dep} PUBLIC src/firmware/${dep})
   endforeach()
 
-  # Communication-specific
-  target_link_libraries(Communication PUBLIC Interfaces)
-
   # CortexMX-specific
   target_compile_definitions(CortexMX PRIVATE __SAME54P20A__)
-  target_link_libraries(CortexMX PUBLIC Interfaces 3rdparty_CMSIS 3rdparty_sam)
+  target_link_libraries(CortexMX PUBLIC 3rdparty_CMSIS 3rdparty_sam common)
 
   # SAMe54-specific
   target_compile_definitions(SAMe54 PRIVATE __SAME54P20A__)
-  target_link_libraries(SAMe54 PUBLIC 3rdparty_CMSIS 3rdparty_sam ADCDAC Communication)
-
-  # HATS_EEPROM-specific
-  target_link_libraries(HATS_EEPROM PUBLIC Interfaces 3rdparty_HATS_EEPROM)
+  target_link_libraries(SAMe54 PUBLIC 3rdparty_CMSIS 3rdparty_sam ADCDAC common)
 
   # JSONstuff-specific
-  target_link_libraries(JSONstuff PUBLIC 3rdparty_nlohmann_json Communication)
+  target_link_libraries(JSONstuff PUBLIC 3rdparty_nlohmann_json common)
 
   # LEDs-specific
-  target_link_libraries(LEDs PUBLIC Interfaces 3rdparty_CMSIS 3rdparty_sam
+  target_link_libraries(LEDs PUBLIC 3rdparty_CMSIS 3rdparty_sam common
     PRIVATE 3rdparty_Adafruit_NeoPixel)
 
   # Board-specific
@@ -406,10 +403,10 @@ if(PANDA_BUILD_FIRMWARE)
   # -------------------
 
   if(PANDA_BUILD_CALIBRATION_FIRMWARE)
-      SET(TARGET_NAME "calibration_firmware.elf")
+      set(target_name "calibration_firmware.elf")
       add_compile_definitions(CALIBRATION_STATION)
   else()
-      SET(TARGET_NAME "firmware.elf")
+      set(target_name "firmware.elf")
   endif()
 
 
@@ -418,15 +415,14 @@ if(PANDA_BUILD_FIRMWARE)
     3rdParty/prj_templ/Custom/startup_ARMCM4.S
     )
 
-  add_executable(${TARGET_NAME} ${firmware_src})
+  add_executable(${target_name} ${firmware_src})
 
   if(PANDA_BUILD_FIRMWARE_DMS)
-    target_compile_definitions(${TARGET_NAME} PRIVATE DMS_BOARD)
+    target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
 
-  target_link_libraries(${TARGET_NAME} ADCDAC Communication CortexMX
-    HATS_EEPROM SAMe54 Board BusinessLogic JSONstuff LEDs Procs
-    3rdparty_Adafruit_NeoPixel)
+  target_link_libraries(${target_name} ADCDAC CortexMX SAMe54 Board BusinessLogic
+    JSONstuff LEDs Procs 3rdparty_Adafruit_NeoPixel common)
 
   message(CHECK_PASS "Ready to build the firmware.")
 
@@ -447,11 +443,12 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # Note: must follow add_{compile,link}_options()
   add_subdirectory(3rdParty)
 
+  panda_add_common_library()
+
   # ----------------
   # timeswipe target
   # ----------------
 
-  # FIXME: src/firmware/HATS_EEPROM should be common library for both driver and firmware
   set(timeswipe_src
     src/driver/timeswipe.cpp
     src/driver/timeswipe_eeprom.cpp
@@ -460,11 +457,10 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver/pidfile.cpp
     src/driver/board_iface.cpp
     src/driver/RaspberryPi/bcmspi.cpp
-    src/firmware/HATS_EEPROM/HatsMemMan.cpp # KLUDGE: see FIXME above
     )
 
   add_library(timeswipe ${timeswipe_src})
-  target_link_libraries(timeswipe PUBLIC Boost::boost pthread 3rdparty_nlohmann_json 3rdparty_BCM)
+  target_link_libraries(timeswipe PUBLIC Boost::boost pthread 3rdparty_nlohmann_json 3rdparty_BCM common)
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
   if(NOT CMAKE_CROSSCOMPILING)
@@ -483,13 +479,8 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     PRIVATE
     src/driver/RaspberryPi
 
-    src/firmware/Interfaces
-    src/firmware/Communication
-    src/firmware/HATS_EEPROM
-
     3rdParty
     3rdParty/BCMsrc
-    3rdParty/HATS_EEPROM
 
     PUBLIC
     src/driver
@@ -539,13 +530,12 @@ if(PANDA_BUILD_TESTS)
   # FIXME: the best way to consume this stuff is target_link_libraries().
   set(driver_tests_include_directories
     src/driver/RaspberryPi
-    src/firmware/Interfaces
-    src/firmware/Communication)
+    )
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
   set(firmware_tests_link_libraries ADCDAC Board CortexMX JSONstuff LEDs SAMe54
-    Interfaces Communication 3rdparty_Adafruit_NeoPixel)
+    3rdparty_Adafruit_NeoPixel)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
@@ -572,7 +562,7 @@ if(PANDA_BUILD_TESTS)
       DEBUG_POSTFIX "d")
     target_include_directories(${exe} PUBLIC
       ${${software}_tests_include_directories})
-    target_link_libraries(${exe} PRIVATE
+    target_link_libraries(${exe} PRIVATE common
       ${${software}_tests_link_libraries} ${${test}_link_libraries})
     panda_target_compile_options(${exe})
     if(is_unit_test)

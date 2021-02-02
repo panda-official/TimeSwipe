@@ -22,6 +22,13 @@ add_library(3rdparty_nlohmann_json INTERFACE)
 target_compile_definitions(3rdparty_nlohmann_json INTERFACE NLOHMANN_JSON_CUSTOM_STDIO_FRM)
 target_include_directories(3rdparty_nlohmann_json INTERFACE nlohmann)
 
+# ------------------------------------------------------------------------------
+# HATS_EEPROM
+# ------------------------------------------------------------------------------
+
+add_library(3rdparty_HATS_EEPROM INTERFACE)
+target_include_directories(3rdparty_HATS_EEPROM INTERFACE HATS_EEPROM)
+
 if (PANDA_BUILD_FIRMWARE)
   # ------------------------------------------------------------------------------
   # Adafruit_NeoPixel
@@ -38,15 +45,8 @@ if (PANDA_BUILD_FIRMWARE)
   target_compile_definitions(3rdparty_Adafruit_NeoPixel PUBLIC SAM_BRM __arm__  __SAMD51__  __SAME54P20A__)
   target_include_directories(3rdparty_Adafruit_NeoPixel PUBLIC Adafruit_NeoPixel
     PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/firmware/LEDs # FIXME!
-    ${CMAKE_SOURCE_DIR}/src/firmware/Interfaces) # FIXME!
-
-  # ------------------------------------------------------------------------------
-  # HATS_EEPROM
-  # ------------------------------------------------------------------------------
-
-  add_library(3rdparty_HATS_EEPROM INTERFACE)
-  target_include_directories(3rdparty_HATS_EEPROM INTERFACE HATS_EEPROM)
+    ${CMAKE_SOURCE_DIR}/src/common # FIXME!
+    ${CMAKE_SOURCE_DIR}/src/firmware/LEDs) # FIXME!
 
   # ------------------------------------------------------------------------------
   # Upfirdn
