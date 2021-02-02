@@ -17,7 +17,7 @@ Copyright (c) 2019-2020 Panda Team
 #include <stdint.h>
 #include <memory>
 #include "Pin.h"
-#include "DAC.h"
+#include "adcdac.hpp"
 #include "PWM.h"
 #include "SamCLK.h"
 #include "SamTC.h"
@@ -120,4 +120,3 @@ protected:
 public:
     CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
 };
-

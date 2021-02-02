@@ -27,7 +27,7 @@ enum class typeDac5715chan : int
 };
 
 #include "SPI.h"
-#include "DAC.h"
+#include "adcdac.hpp"
 #include "Pin.h"
 
 /*!
@@ -51,14 +51,14 @@ protected:
     /*!
      * \brief m_pBus a pointer to SPI bus.
      */
-	CSPI *m_pBus;
+    CSPI *m_pBus;
 
     std::shared_ptr<IPin> m_pCS;
 
     /*!
      * \brief m_chan what channel of MAX5715 is controlled (A or B or C or D)
      */
-	typeDac5715chan m_chan;
+    typeDac5715chan m_chan;
 
     /*!
      * \brief DriverSetVal the main driver function to set DAC channel output value.
@@ -67,8 +67,8 @@ protected:
      *  the format(some PCI boards for example, currently not used)
      * \param out_bin output value in raw binary format - used directly by MAX5715
      */
-	virtual void DriverSetVal(float val, int out_bin);
-	
+    virtual void DriverSetVal(float val, int out_bin);
+
 public:
     /*!
      * \brief CDac5715sa class constructor

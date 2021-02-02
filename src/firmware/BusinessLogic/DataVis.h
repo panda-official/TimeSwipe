@@ -14,7 +14,7 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include <memory>
-#include "ADC.h"
+#include "adcdac.hpp"
 #include "View.h"
 #include "mav.h"
 

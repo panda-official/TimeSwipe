@@ -15,8 +15,7 @@ Copyright (c) 2019 Panda Team
 
 #include <memory>
 #include <vector>
-#include "ADC.h"
-#include "DAC.h"
+#include "adcdac.hpp"
 
 /*!
  * \brief The Finite States for search for the required value of the control signal to obtain the output signal of the desired value algorithm

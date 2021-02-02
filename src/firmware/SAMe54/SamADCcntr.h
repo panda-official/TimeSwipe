@@ -17,7 +17,7 @@ Copyright (c) 2019 Panda Team
 #include <list>
 
 #include "os.h"
-#include "ADC.h"
+#include "adcdac.hpp"
 #include "SamCLK.h"
 
 /*!
@@ -145,7 +145,7 @@ protected:
     /*!
      * \brief SAME54's real ADC index using for measurements
      */
-	typeSamADC m_nADC;
+    typeSamADC m_nADC;
 
     /*!
      * \brief A collection of channels
@@ -156,7 +156,7 @@ protected:
      * \brief An associated clock generator: must be provided to perform conversions
      */
     std::shared_ptr<CSamCLK> m_pCLK;
-	
+
 public:
     /*!
      * \brief The class constructor
@@ -168,7 +168,7 @@ public:
      * 4) connects available clock generator via CSom CLK service
      * 5) performs final tuning and enables SAME54 ADC
      */
-	CSamADCcntr(typeSamADC nADC);
+    CSamADCcntr(typeSamADC nADC);
 
     /*!
      * \brief Selects 2 analog inputs for subsequent ADC conversion operations on them via CSamADCcntr::SingleConv()

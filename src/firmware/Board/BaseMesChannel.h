@@ -13,7 +13,7 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include <memory>
-#include "DAC.h"
+#include "adcdac.hpp"
 #include "Pin.h"
 #include "DataVis.h"
 
@@ -203,6 +203,3 @@ public:
 };
 
 typedef CMesChannel CIEPEchannel;
-
-
-

@@ -15,8 +15,7 @@ Copyright (c) 2019 Panda Team
 
 #include <memory>
 #include <vector>
-#include "ADC.h"
-#include "DAC.h"
+#include "adcdac.hpp"
 #include "ADpointSearch.h"
 #include "json_evsys.h"
 #include "Storage.h"

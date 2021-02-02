@@ -18,7 +18,7 @@ Copyright (c) 2019 Panda Team
 enum class typeSamDAC{Dac0, Dac1};
 
 
-#include "DAC.h"
+#include "adcdac.hpp"
 #include "SamCLK.h"
 
 /*!

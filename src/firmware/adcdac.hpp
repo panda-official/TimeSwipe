@@ -98,7 +98,7 @@ public:
   }
 
   /// @returns An actual measured/controlled value in raw-binary format
-  int GetRawBinVal() const noexcept
+  int GetRawBinVal() // FIXME: const noexcept
   {
     return m_RawBinaryVal;
   }
@@ -177,7 +177,7 @@ public:
    *
    * @returns Immediately measured analog value in raw-binary format.
    */
-  virtual int DirectMeasure() const noexcept
+  virtual int DirectMeasure() // FIXME: const noexcept
   {
     return GetRawBinVal();
   }
