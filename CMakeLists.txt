@@ -247,31 +247,6 @@ if(PANDA_BUILD_FIRMWARE)
     pin_button.h
     )
 
-  set(BusinessLogic_src
-    BusinessLogic_doc.h
-    DataVis.cpp
-    DataVis.h
-    NewMenu.cpp
-    NewMenu.h
-    SemVer.cpp
-    SemVer.h
-    View.cpp
-    View.h
-    board_type.h
-    nodeControl.h
-    rgbacol.h
-
-    ADpointSearch.cpp
-    ADpointSearch.h
-    zerocal_man.cpp
-    zerocal_man.h
-    )
-  if(NOT PANDA_BUILD_FIRMWARE_EMU)
-    list(APPEND BusinessLogic_src nodeControl.cpp)
-  else()
-    list(APPEND BusinessLogic_src nodeControl_emu.cpp)
-  endif()
-
   set(JSONstuff_src
     JSONstuff_doc.h
     jsondisp.cpp
@@ -332,7 +307,7 @@ if(PANDA_BUILD_FIRMWARE)
     cortex_handlers.cpp
     )
 
-  foreach(dep Board BusinessLogic JSONstuff LEDs Math sam)
+  foreach(dep Board JSONstuff LEDs Math sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -347,7 +322,7 @@ if(PANDA_BUILD_FIRMWARE)
   endforeach()
 
   # Common to static libraries
-  foreach(dep Board BusinessLogic JSONstuff LEDs sam)
+  foreach(dep Board JSONstuff LEDs sam)
     add_library(${dep} OBJECT ${${dep}_src})
     target_include_directories(${dep} PUBLIC src/firmware src/firmware/${dep})
   endforeach()
@@ -366,12 +341,6 @@ if(PANDA_BUILD_FIRMWARE)
   # Board-specific
   target_compile_definitions(Board PRIVATE  __SAME54P20A__)
   target_link_libraries(Board PUBLIC Math 3rdparty_CMSIS 3rdparty_sam JSONstuff LEDs sam)
-  # FIXME: there is cyclical dependence: Board <--> BusinessLogic!!!
-  # KLUDGE: for now just include directory of BusinessLogic
-  target_include_directories(Board PRIVATE src/firmware/BusinessLogic)
-
-  # BusinessLogic-specific
-  target_link_libraries(BusinessLogic PUBLIC Board)
 
   # -------------------
   # firmware.elf target
@@ -384,10 +353,41 @@ if(PANDA_BUILD_FIRMWARE)
       set(target_name "firmware.elf")
   endif()
 
+  # Primary firmware sources
   set(firmware_src
-    src/firmware/main.cpp
-    3rdParty/prj_templ/Custom/startup_ARMCM4.S
+    BusinessLogic/BusinessLogic_doc.h
+    BusinessLogic/DataVis.cpp
+    BusinessLogic/DataVis.h
+    BusinessLogic/NewMenu.cpp
+    BusinessLogic/NewMenu.h
+    BusinessLogic/SemVer.cpp
+    BusinessLogic/SemVer.h
+    BusinessLogic/View.cpp
+    BusinessLogic/View.h
+    BusinessLogic/board_type.h
+    BusinessLogic/nodeControl.h
+    BusinessLogic/rgbacol.h
+
+    BusinessLogic/ADpointSearch.cpp
+    BusinessLogic/ADpointSearch.h
+    BusinessLogic/zerocal_man.cpp
+    BusinessLogic/zerocal_man.h
+
+    main.cpp
     )
+  if(NOT PANDA_BUILD_FIRMWARE_EMU)
+    list(APPEND firmware_src BusinessLogic/nodeControl.cpp)
+  else()
+    list(APPEND firmware_src BusinessLogic/nodeControl_emu.cpp)
+  endif()
+  list(TRANSFORM firmware_src PREPEND src/firmware/)
+
+  # Third-party firmware sources
+  list(APPEND firmware_thirdparty_src
+    prj_templ/Custom/startup_ARMCM4.S
+    )
+  list(TRANSFORM firmware_thirdparty_src PREPEND 3rdParty/)
+  list(APPEND firmware_src ${firmware_thirdparty_src})
 
   add_executable(${target_name} ${firmware_src})
 
@@ -397,8 +397,8 @@ if(PANDA_BUILD_FIRMWARE)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
 
-  target_link_libraries(${target_name} sam Board BusinessLogic
-    JSONstuff LEDs 3rdparty_Adafruit_NeoPixel common)
+  target_link_libraries(${target_name} sam Board JSONstuff LEDs
+    3rdparty_Adafruit_NeoPixel common)
 
   message(CHECK_PASS "Ready to build the firmware.")
 

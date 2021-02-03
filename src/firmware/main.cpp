@@ -7,10 +7,14 @@ Copyright (c) 2019 Panda Team
 
 //build for ADCs-DACs:
 
+#include "cmd.h"
 #include "os.h"
+#include "std_port.h"
 #include "SamSPIbase.h"
 #include "SamQSPI.h"
 #include "SPIcomm.h"
+#include "SAMbutton.h"
+#include "DMSchannel.h"
 
 #include "I2CmemHAT.h"
 #include "I2Cmem8Pin.h"
@@ -23,17 +27,15 @@ Copyright (c) 2019 Panda Team
 #include "ShiftReg.h"
 #include "PGA280.h"
 
-#include "NewMenu.h"
-#include "SAMbutton.h"
-#include "CalFWbtnHandler.h"
-#include "nodeLED.h"
-#include "View.h"
-#include "nodeControl.h"
-#include "zerocal_man.h"
-#include "DMSchannel.h"
+#include "BusinessLogic/NewMenu.h"
+#include "BusinessLogic/CalFWbtnHandler.h"
+#include "BusinessLogic/View.h"
+#include "BusinessLogic/nodeControl.h"
+#include "BusinessLogic/zerocal_man.h"
+#include "BusinessLogic/SemVer.h"
 
-#include "cmd.h"
-#include "std_port.h"
+#include "nodeLED.h"
+
 #include "jsondisp.h"
 
 #include "HatsMemMan.h"
@@ -41,8 +43,6 @@ Copyright (c) 2019 Panda Team
 
 #include "FanControl.h"
 #include "SamNVMCTRL.h"
-#include "SemVer.h"
-#include "View.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
