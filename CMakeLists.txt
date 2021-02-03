@@ -28,7 +28,7 @@ include(misc)
 # Options
 # ------------------------------------------------------------------------------
 
-set(CMAKE_VERBOSE_MAKEFILE Off CACHE BOOL
+set(CMAKE_VERBOSE_MAKEFILE On CACHE BOOL
   "Verbose output (useful to figure out what is going on at build time)?")
 
 set(PANDA_BUILD_FIRMWARE Off CACHE BOOL
