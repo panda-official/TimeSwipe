@@ -100,6 +100,10 @@ project(panda_timeswipe
   VERSION ${driver_version}
 )
 
+if(CMAKE_CROSSCOMPILING)
+  message("Cross-compiling for ${CMAKE_SYSTEM_PROCESSOR} ${CMAKE_SYSTEM_NAME}.")
+endif()
+
 # ------------------------------------------------------------------------------
 # Languages
 # ------------------------------------------------------------------------------
@@ -419,7 +423,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
         find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS /usr/lib/gcc/arm-linux-gnueabihf/8)
         if(atomic_lib)
-          message("Explicit Linking with atomic library")
+          message("Explicit Linking with atomic library.")
           target_link_libraries(timeswipe PUBLIC ${atomic_lib})
         endif()
       endif()
