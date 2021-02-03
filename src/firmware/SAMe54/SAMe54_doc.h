@@ -1,10 +1,14 @@
 /*!
  * \file
  * \brief this file is used only to generate the documentation
- *  
+ *
  * \page SAMe54_page SAMe54
  *
- * This directory contains a class library for controlling board's CPU (SAME54) hardware components.
+ * This directory contains a class library for controlling board's CPU (SAME54) hardware components
+ * and some components for handling SAME54's CortexM4 core.
+ *
+ * void SysTick_Handler() - a CortexM4 interrupt handler, used for generating OS system time.
+ * The time can be requested by os::get_tick_mS.
  *
  * Currently the following parts are implemented:
  *
@@ -57,10 +61,8 @@
  * <H4> DMA </H4>
  *
  * CSamDMABlock, CSamDMAChannel, CSamDMAC - implement basic DMA functionality
- * 
+ *
  * <H4> Nonvolatile Memory Controller </H4>
  *
  * CSamNVMCTRL - implements SAM's Nonvolatile Memory Controller with an interface to SmartEEPROM
  */
- 
- 
