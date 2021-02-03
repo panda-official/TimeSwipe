@@ -35,7 +35,7 @@ namespace os {
  * \brief A time elapsed since system start in milliseconds
  * \return timer value in milliseconds
  */
-unsigned long get_tick_mS(void);
+unsigned long get_tick_mS() noexcept;
 
 /*!
  * \brief Sleep for defined time

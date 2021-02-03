@@ -1,30 +1,47 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
+
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "os.h"
 #include "sam.h"
 
 //timer func for M4:
+// FIXME: atomic
 static unsigned long sys_time_mS;
 
-extern "C"{
+extern "C" {
 
-/*!
- * \brief A CortexMX system timer interrupt handler
- * \details Increments a system time counter by one every millisecond
+/**
+ * @brief A CortexMX system timer interrupt handler.
+ *
+ * Increments a system time counter by one every millisecond.
  */
-void SysTick_Handler(void)
+void SysTick_Handler()
 {
-	sys_time_mS++;
-}}
+  sys_time_mS++;
+}
 
-namespace os  {
-unsigned long get_tick_mS(void)
+} // extern "C"
+
+namespace os {
+
+unsigned long get_tick_mS() noexcept
 {
-	return sys_time_mS;
+  return sys_time_mS;
 }
-}
+
+} // namespace os
