@@ -8,7 +8,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "os.h"
 #include "RawBinStorage.h"
-#include "SamNVMCTRL.h"
+#include "sam/SamNVMCTRL.h"
 
 #define STORAGE_STAMP 10042020
 CRawBinStorage::CRawBinStorage()

@@ -16,7 +16,7 @@ Copyright (c) 2019 Panda Team
 #include <memory>
 #include "adcdac.hpp"
 #include "View.h"
-#include "mav.h"
+#include "misc/mav.h"
 
 /*!
  * \brief Data visualization class: displays the measured signal levels of the ADC channel using the LED indicator. Like this it visualizes the actual measurement values.

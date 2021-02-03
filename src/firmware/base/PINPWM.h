@@ -14,13 +14,14 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include <stdint.h>
-#include <memory>
 #include "PWM.h"
-#include "SamCLK.h"
-#include "SamTC.h"
-#include "SamDMAC.h"
-#include "SamPORT.h"
+#include "sam/SamCLK.h"
+#include "sam/SamTC.h"
+#include "sam/SamDMAC.h"
+#include "sam/SamPORT.h"
+
+#include <cstdint>
+#include <memory>
 
 /*!
  * \brief The class implements a PWM which output is controlled by the PIN with DMA support

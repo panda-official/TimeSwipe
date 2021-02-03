@@ -46,7 +46,7 @@ if (PANDA_BUILD_FIRMWARE)
   target_include_directories(3rdparty_Adafruit_NeoPixel PUBLIC Adafruit_NeoPixel
     PRIVATE
     ${CMAKE_SOURCE_DIR}/src/common # FIXME!
-    ${CMAKE_SOURCE_DIR}/src/firmware/led) # FIXME!
+    ${CMAKE_SOURCE_DIR}/src/firmware) # FIXME!
 
   # ------------------------------------------------------------------------------
   # Upfirdn

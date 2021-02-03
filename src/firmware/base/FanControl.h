@@ -14,7 +14,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "SamTempSensor.h"
+#include "sam/SamTempSensor.h"
 #include "PINPWM.h"
 #include "os.h"
 

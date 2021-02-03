@@ -5,18 +5,17 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2021 Panda Team
 */
 
-#include "os.h"
-#include "SPIcomm.h"
-#include "SAMbutton.h"
-#include "nodeLED.h"
-#include "cmd.h"
-#include "std_port.h"
-#include "jsondisp.h"
-#include "timer.h"
 #include "button.h"
-#include "json_evsys.h"
-#include "SamService.h"
-
+#include "cmd.h"
+#include "os.h"
+#include "std_port.h"
+#include "timer.h"
+#include "base/SPIcomm.h"
+#include "base/SAMbutton.h"
+#include "json/jsondisp.h"
+#include "json/json_evsys.h"
+#include "led/nodeLED.h"
+#include "sam/SamService.h"
 
 class CButtonLogic final : public CTimerEvent
                          , public CButtonEvent

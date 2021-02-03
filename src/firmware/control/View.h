@@ -14,13 +14,13 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include <vector>
+#include "os.h"
 #include "board_type.h"
 #include "rgbacol.h"
-#include "nodeLED.h"
-#include "os.h"
-#include "SAMbutton.h"
+#include "led/nodeLED.h"
+#include "base/SAMbutton.h"
 
+#include <vector>
 
 class CView;
 typedef void (CView::*pfn_ViewProc)();

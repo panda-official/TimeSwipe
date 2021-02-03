@@ -19,9 +19,9 @@ Copyright (c) 2019-2020 Panda Team
 #include "Pin.h"
 #include "adcdac.hpp"
 #include "PWM.h"
-#include "SamCLK.h"
-#include "SamTC.h"
-#include "SamDMAC.h"
+#include "sam/SamCLK.h"
+#include "sam/SamTC.h"
+#include "sam/SamDMAC.h"
 
 /*!
  * \brief The class implements a PWM which output is controlled by the DAC with DMA or timer IRQ support

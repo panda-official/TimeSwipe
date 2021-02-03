@@ -15,7 +15,7 @@ Copyright (c) 2019 Panda Team
 *
 */
 
-#include "SamI2Cmem.h"
+#include "sam/SamI2Cmem.h"
 
 /*!
  * \brief A hardware-dependent realization of CAT2430 EEPROM chip emulation for HAT's outputs
@@ -28,4 +28,3 @@ public:
      */
     CSamI2CmemHAT();
 };
-

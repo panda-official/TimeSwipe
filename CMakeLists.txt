@@ -208,9 +208,9 @@ if(PANDA_BUILD_FIRMWARE)
 
   panda_add_common_library()
 
-  # ---------------------------
-  # Internal dependency sources
-  # ---------------------------
+  # --------------------------------
+  # firmware target (static library)
+  # --------------------------------
 
   set(base_src
     BaseMesChannel.h
@@ -330,76 +330,50 @@ if(PANDA_BUILD_FIRMWARE)
 
   foreach(dep base control json led misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
+    list(APPEND firmware_src ${${dep}_src})
   endforeach()
 
-  # ---------------------------
-  # Internal dependency targets
-  # ---------------------------
-
-  # Common to interface libraries
-  foreach(dep misc)
-    add_library(${dep} INTERFACE)
-    target_include_directories(${dep} INTERFACE src/firmware src/firmware/${dep})
-  endforeach()
-
-  # Common to static libraries
-  foreach(dep base control json led sam)
-    add_library(${dep} OBJECT ${${dep}_src})
-    target_include_directories(${dep} PUBLIC src/firmware src/firmware/${dep})
-  endforeach()
-
-  # sam-specific
-  target_compile_definitions(sam PRIVATE __SAME54P20A__)
-  target_link_libraries(sam PUBLIC 3rdparty_CMSIS 3rdparty_sam common)
-
-  # json-specific
-  target_link_libraries(json PUBLIC 3rdparty_nlohmann_json common)
-
-  # led-specific
-  target_link_libraries(led PUBLIC 3rdparty_CMSIS 3rdparty_sam common
-    PRIVATE 3rdparty_Adafruit_NeoPixel)
-
-  # base-specific
-  target_compile_definitions(base PRIVATE  __SAME54P20A__)
-  target_link_libraries(base PUBLIC misc 3rdparty_CMSIS 3rdparty_sam json led sam)
-
-  # control-specific
-  target_link_libraries(control PUBLIC base)
+  add_library(firmware STATIC ${firmware_src})
+  target_compile_definitions(firmware PUBLIC __SAME54P20A__)
+  target_include_directories(firmware PUBLIC src/firmware)
+  target_link_libraries(firmware PUBLIC
+    3rdparty_Adafruit_NeoPixel
+    3rdparty_CMSIS
+    3rdparty_nlohmann_json
+    3rdparty_sam
+    common)
 
   # -------------------
   # firmware.elf target
   # -------------------
 
   if(PANDA_BUILD_CALIBRATION_FIRMWARE)
-      set(target_name "calibration_firmware.elf")
-      add_compile_definitions(CALIBRATION_STATION)
+    set(target_name "calibration_firmware.elf")
   else()
-      set(target_name "firmware.elf")
+    set(target_name "firmware.elf")
   endif()
 
-  # Primary firmware sources
-  set(firmware_src
-    src/firmware/main.cpp
+  # Primary firmware.elf sources
+  set(firmware_elf_src
+    main.cpp
     )
-  # list(TRANSFORM firmware_src PREPEND src/firmware/)
+  list(TRANSFORM firmware_elf_src PREPEND src/firmware/)
 
-  # Third-party firmware sources
-  list(APPEND firmware_thirdparty_src
+  # Third-party firmware.elf sources
+  list(APPEND firmware_elf_thirdparty_src
     prj_templ/Custom/startup_ARMCM4.S
     )
-  list(TRANSFORM firmware_thirdparty_src PREPEND 3rdParty/)
-  list(APPEND firmware_src ${firmware_thirdparty_src})
+  list(TRANSFORM firmware_elf_thirdparty_src PREPEND 3rdParty/)
+  list(APPEND firmware_elf_src ${firmware_elf_thirdparty_src})
 
-  add_executable(${target_name} ${firmware_src})
-
-  target_include_directories(${target_name} PRIVATE src/firmware)
-
+  add_executable(${target_name} ${firmware_elf_src})
+  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+    target_compile_definitions(${target_name} CALIBRATION_STATION)
+  endif()
   if(PANDA_BUILD_FIRMWARE_DMS)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
-
-  target_link_libraries(${target_name} sam base control json led
-    3rdparty_Adafruit_NeoPixel common)
+  target_link_libraries(${target_name} firmware)
 
   message(CHECK_PASS "Ready to build the firmware.")
 
@@ -511,7 +485,7 @@ if(PANDA_BUILD_TESTS)
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
-  set(firmware_tests_link_libraries base json led sam 3rdparty_Adafruit_NeoPixel)
+  set(firmware_tests_link_libraries firmware)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)

@@ -13,8 +13,8 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "SamTempSensor.h"
-#include"SamPORT.h"
+#include "sam/SamTempSensor.h"
+#include "sam/SamPORT.h"
 #include "os.h"
 
 /*!

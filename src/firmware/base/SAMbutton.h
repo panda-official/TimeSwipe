@@ -17,7 +17,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "pin_button.h"
-#include "json_evsys.h"
+#include "json/json_evsys.h"
 
 /*!
  * \brief A hardware-dependent realization of the board's button with ability of generation a JSON event from the button state
