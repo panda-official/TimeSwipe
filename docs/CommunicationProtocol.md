@@ -20,40 +20,36 @@ The mode is activated by setting `AOUT` to `1`. Amplifier outputs `#3` and `#4` 
 be disconnected and replaced by internal 2-channel DAC output. To control analog output
 values `#3` and `#4` in this mode additional access points are presented.
 
-[AOUT3..AOUT4]
-|Domain|Description                                            |Valid values  |Access|
-|:-----|:------------------------------------------------------|:-------------|:-----|
-|root  |Globally enables/disables the analog output mode       |bool          |r/w   |
-|.raw  |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |
+|Domain         |Description                                            |Valid values  |Access|
+|:--------------|:------------------------------------------------------|:-------------|:-----|
+|`AOUT3`/`AOUT4`|Globally enables/disables the analog output mode       |bool          |r/w   |
+|.raw           |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |
 
 ### PWM access point
 
 This access point is used to control board's `AOUT3` and `AOUT4` PWMs. 
 
-[PWM1..PWM2]
-|Domain  |Description                            |Valid values                           |Access|
-|:-------|:--------------------------------------|:--------------------------------------|:-----|
-|root    |Holds the PWMx ON/OFF state.           |bool                                   |r/w   |
-|.repeats|Holds a number of periods to generate. |unsigned `[0,0xffffffff]`, `0`=Infinite|r/w   |
-|.duty   |Holds the PWM duty cycle (pulse width).|float `[0.001,0.999]`                  |r/w   |
-|.freq   |Holds a frequency to generate.         |unsigned `[1,1000]`                    |r/w   |
-|.high   |Holds the high PWM output level.       |unsigned `[0,4095]`                    |r/w   |
-|.low    |Holds the low PWM output level.        |unsigned `[0,4095]`                    |r/w   |
+|Domain       |Description                            |Valid values                           |Access|
+|:------------|:--------------------------------------|:--------------------------------------|:-----|
+|`PWM1`/`PWM2`|Holds the PWMx ON/OFF state.           |bool                                   |r/w   |
+|.repeats     |Holds a number of periods to generate. |unsigned `[0,0xffffffff]`, `0`=Infinite|r/w   |
+|.duty        |Holds the PWM duty cycle (pulse width).|float `[0.001,0.999]`                  |r/w   |
+|.freq        |Holds a frequency to generate.         |unsigned `[1,1000]`                    |r/w   |
+|.high        |Holds the high PWM output level.       |unsigned `[0,4095]`                    |r/w   |
+|.low         |Holds the low PWM output level.        |unsigned `[0,4095]`                    |r/w   |
 
 ### CH access point
 
-This access point is used to control board's channel. [CH1..CH4]
+This access point is used to control board's channel. 
 
-|Domain  |Description                                   |Valid values                               |Access|
-|:-------|:---------------------------------------------|:------------------------------------------|:-----|
-|root    |Can be used only with a sub-domain.           |                                           |      |
-|.mode   |Holds current measurement mode of the channel.|unsigned `0`=Voltage mode, `1`=Current mode|r/w   |
-|.gain   |Holds current Gain setting of the channel.    |float `[0.225, 316.8]`                     |r/w   |
-|.iepe   |Holds the state of IEPE switch of the channel.|bool                                       |r/w   |
-|.offset |Holds the Offset Setting of the channel       |unsigned `[0,4095]`                        |r/w   |
-|.armadc |get a raw value of the 12bit ARM ADC          |unsigned `[0,4095]`                        |r     |
-
-Example: `CH3.mode` 
+|Domain     |Description                                   |Valid values                               |Access|
+|:----------|:---------------------------------------------|:------------------------------------------|:-----|
+|`CH1`-`CH4`|Can be used only with a sub-domain.           |                                           |      |
+|.mode      |Measurement mode of the channel.              |`0` = Voltage mode, `1` = Current mode     |r/w   |
+|.gain      |Gain setting of the channel.                  |float `[0.225, 316.8]` See [Gain Table]    |r/w   |
+|.iepe      |State of IEPE switch of the channel.          |bool                                       |r/w   |
+|.offset    |Offset Setting of the channel                 |unsigned `[0,4095]`                        |r/w   |
+|.armadc    |Raw value of the 12bit ARM ADC                |unsigned `[0,4095]`                        |r     |
 
 .mode, .gain, .iepe and .offset access point is only available since TimeSwipe 1.0 board.
 
@@ -63,20 +59,20 @@ This access point is used to control board's Fan output.
 
 |Domain|Description                                |Valid values                               |Access|
 |:-----|:------------------------------------------|:------------------------------------------|:-----|
-|root  |Enables or disables Fan globally.          |bool                                       |r/w   |
-|.duty |Holds the Fan PWM duty cycle (pulse width).|float `[.001,.999]`                        |r     |
-|.freq |Holds the Fan PWM frequency.               |unsigned `[1,20000]`                       |r/w   |
+|`Fan` |Enables or disables Fan globally.          |bool                                       |r/w   |
+|.duty |Fan PWM duty cycle (pulse width).          |float `[.001,.999]`                        |r     |
+|.freq |Fan PWM frequency.                         |unsigned `[1,20000]`                       |r/w   |
 
 ### Supply access point
 
-This access point is used to control board's Fan output.
+This access point is used to control board's Supply Voltage Output.
 
 |Domain   |Description                                |Valid values                               |Access|
 |:--------|:------------------------------------------|:------------------------------------------|:-----|
-|root     |Enables or disables Supply globally.       |bool                                       |r/w   |
-|.voltage |Holds the Fan PWM duty cycle (pulse width).|float `[2.5,24]`                           |r/w   |
+|`Supply` |Enables or disables Supply globally.       |bool                                       |r/w   |
+|.voltage |Output Voltage setting                     |float `[2.5,24]`                           |r/w   |
 
-.voltage access point is only available since TimeSwipe 1.0 board. On older boards the voltage is 24VDC.
+.voltage access point is only available since TimeSwipe 1.0 board. On older boards the voltage is fixed 24VDC.
 
 ### Access points with only root domain
 
@@ -91,8 +87,10 @@ This access point is used to control board's Fan output.
 |fwVersion	  |Holds firmware Version in the SemVer format.|string|r|
 |CalStatus    |Holds board calibration status.|bool|r|
 
-only available on older Boards, before Timeswipe 1.0
-|Mode         |Sets working mode of the board.|int, `0`=IEPE, `1`=Normal Signal, `2`=Digital|r/w|
+Following is only available on older Boards, before Timeswipe 1.0:
+|Access point |Description |Valid values|Access|
+|:------------|:-----------|:-----------|:-----|
+|Mode         |Sets working mode of the board.|`0` = IEPE, `1` = Normal Signal, `2` = Digital|r/w|
 |IEPE         |Enables IEPE current output globally|bool |r/w|
 
 ### JSON controlled access points
