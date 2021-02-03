@@ -298,7 +298,7 @@ if(PANDA_BUILD_FIRMWARE)
     ringbuffer.h
     )
 
-  set(SAMe54_src
+  set(sam_src
     NVMpage.h
     SAMe54_doc.h
     SamADCcntr.cpp
@@ -333,7 +333,7 @@ if(PANDA_BUILD_FIRMWARE)
     cortex_handlers.cpp
     )
 
-  foreach(dep Board BusinessLogic JSONstuff LEDs Math SAMe54)
+  foreach(dep Board BusinessLogic JSONstuff LEDs Math sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -348,14 +348,14 @@ if(PANDA_BUILD_FIRMWARE)
   endforeach()
 
   # Common to static libraries
-  foreach(dep Board BusinessLogic JSONstuff LEDs SAMe54)
+  foreach(dep Board BusinessLogic JSONstuff LEDs sam)
     add_library(${dep} OBJECT ${${dep}_src})
     target_include_directories(${dep} PUBLIC src/firmware src/firmware/${dep})
   endforeach()
 
-  # SAMe54-specific
-  target_compile_definitions(SAMe54 PRIVATE __SAME54P20A__)
-  target_link_libraries(SAMe54 PUBLIC 3rdparty_CMSIS 3rdparty_sam common)
+  # sam-specific
+  target_compile_definitions(sam PRIVATE __SAME54P20A__)
+  target_link_libraries(sam PUBLIC 3rdparty_CMSIS 3rdparty_sam common)
 
   # JSONstuff-specific
   target_link_libraries(JSONstuff PUBLIC 3rdparty_nlohmann_json common)
@@ -366,7 +366,7 @@ if(PANDA_BUILD_FIRMWARE)
 
   # Board-specific
   target_compile_definitions(Board PRIVATE  __SAME54P20A__)
-  target_link_libraries(Board PUBLIC Math 3rdparty_CMSIS 3rdparty_sam JSONstuff LEDs SAMe54)
+  target_link_libraries(Board PUBLIC Math 3rdparty_CMSIS 3rdparty_sam JSONstuff LEDs sam)
   # FIXME: there is cyclical dependence: Board <--> BusinessLogic!!!
   # KLUDGE: for now just include directory of BusinessLogic
   target_include_directories(Board PRIVATE src/firmware/BusinessLogic)
@@ -398,7 +398,7 @@ if(PANDA_BUILD_FIRMWARE)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
 
-  target_link_libraries(${target_name} SAMe54 Board BusinessLogic
+  target_link_libraries(${target_name} sam Board BusinessLogic
     JSONstuff LEDs 3rdparty_Adafruit_NeoPixel common)
 
   message(CHECK_PASS "Ready to build the firmware.")
@@ -511,7 +511,7 @@ if(PANDA_BUILD_TESTS)
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
-  set(firmware_tests_link_libraries Board JSONstuff LEDs SAMe54
+  set(firmware_tests_link_libraries Board JSONstuff LEDs sam
     3rdparty_Adafruit_NeoPixel)
 
   # Set the link libraries per test.
