@@ -246,8 +246,7 @@ if(PANDA_BUILD_FIRMWARE)
     pin_button.h
     )
 
-  set(JSONstuff_src
-    JSONstuff_doc.h
+  set(json_src
     jsondisp.cpp
     jsondisp.h
     json_base.cpp
@@ -306,7 +305,7 @@ if(PANDA_BUILD_FIRMWARE)
     cortex_handlers.cpp
     )
 
-  foreach(dep base JSONstuff LEDs Math sam)
+  foreach(dep base json LEDs Math sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -321,7 +320,7 @@ if(PANDA_BUILD_FIRMWARE)
   endforeach()
 
   # Common to static libraries
-  foreach(dep base JSONstuff LEDs sam)
+  foreach(dep base json LEDs sam)
     add_library(${dep} OBJECT ${${dep}_src})
     target_include_directories(${dep} PUBLIC src/firmware src/firmware/${dep})
   endforeach()
@@ -330,8 +329,8 @@ if(PANDA_BUILD_FIRMWARE)
   target_compile_definitions(sam PRIVATE __SAME54P20A__)
   target_link_libraries(sam PUBLIC 3rdparty_CMSIS 3rdparty_sam common)
 
-  # JSONstuff-specific
-  target_link_libraries(JSONstuff PUBLIC 3rdparty_nlohmann_json common)
+  # json-specific
+  target_link_libraries(json PUBLIC 3rdparty_nlohmann_json common)
 
   # LEDs-specific
   target_link_libraries(LEDs PUBLIC 3rdparty_CMSIS 3rdparty_sam common
@@ -339,7 +338,7 @@ if(PANDA_BUILD_FIRMWARE)
 
   # base-specific
   target_compile_definitions(base PRIVATE  __SAME54P20A__)
-  target_link_libraries(base PUBLIC Math 3rdparty_CMSIS 3rdparty_sam JSONstuff LEDs sam)
+  target_link_libraries(base PUBLIC Math 3rdparty_CMSIS 3rdparty_sam json LEDs sam)
 
   # -------------------
   # firmware.elf target
@@ -395,7 +394,7 @@ if(PANDA_BUILD_FIRMWARE)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
 
-  target_link_libraries(${target_name} sam base JSONstuff LEDs
+  target_link_libraries(${target_name} sam base json LEDs
     3rdparty_Adafruit_NeoPixel common)
 
   message(CHECK_PASS "Ready to build the firmware.")
@@ -508,8 +507,7 @@ if(PANDA_BUILD_TESTS)
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
-  set(firmware_tests_link_libraries base JSONstuff LEDs sam
-    3rdparty_Adafruit_NeoPixel)
+  set(firmware_tests_link_libraries base json LEDs sam 3rdparty_Adafruit_NeoPixel)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)

@@ -209,3 +209,26 @@ also landed in this module. Currently, the only finding amplifier offsets
 routine is provided by `CADpointSearch` class. This class contains an algorithm
 for finding offset for a single channel only. For possibility of finding offsets
 for several channels at once there is special infrastructure class `CCalMan`
+
+## JSON
+
+This module implements the communication extensions and some additional
+JSON-based functionality from the `nlohman::json` library to the firmware:
+
+  - `CJSONbase` - is a superviser class used for controlling the entire JSON
+  system. For exampe, all JSON command handlers can be switched on/off by
+  calling a CJSONbase::LockCmdSubsys(...);
+  - `CJSONStream` - is a class derived from `CFrmStream` provides a mechanism
+  for retrieving/storing primitive and standard data types (`int`, `float`,
+  `std::string` etc) from/to the JSON object in the `CFrmStream` style: by
+  extraction(`>>`) and insertion (`<<`) operators that allows an easy integration
+  with the communication system;
+  - `CJSONDispatcher` - is a handler for "js" command;
+  - `CJSONEvDispatcher` - a handler for "je" command.
+
+A simple event system where an *event* - is a JSON object is based on two classes:
+
+  - `IJSONEvent` - is a callback interface used to notify the derived class with
+  JSON event;
+  - `CJSONEvCP` - is a template for creating an event source with a connection
+  point inside for the event subscribers.
