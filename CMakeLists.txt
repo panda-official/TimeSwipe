@@ -265,8 +265,7 @@ if(PANDA_BUILD_FIRMWARE)
     nodeLED.h
     )
 
-  set(Math_src
-    Math_doc.h
+  set(misc_src
     mav.h
     ringbuffer.h
     )
@@ -305,7 +304,7 @@ if(PANDA_BUILD_FIRMWARE)
     cortex_handlers.cpp
     )
 
-  foreach(dep base json LEDs Math sam)
+  foreach(dep base json LEDs misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -314,7 +313,7 @@ if(PANDA_BUILD_FIRMWARE)
   # ---------------------------
 
   # Common to interface libraries
-  foreach(dep Math)
+  foreach(dep misc)
     add_library(${dep} INTERFACE)
     target_include_directories(${dep} INTERFACE src/firmware src/firmware/${dep})
   endforeach()
@@ -338,7 +337,7 @@ if(PANDA_BUILD_FIRMWARE)
 
   # base-specific
   target_compile_definitions(base PRIVATE  __SAME54P20A__)
-  target_link_libraries(base PUBLIC Math 3rdparty_CMSIS 3rdparty_sam json LEDs sam)
+  target_link_libraries(base PUBLIC misc 3rdparty_CMSIS 3rdparty_sam json LEDs sam)
 
   # -------------------
   # firmware.elf target

@@ -232,3 +232,8 @@ A simple event system where an *event* - is a JSON object is based on two classe
   JSON event;
   - `CJSONEvCP` - is a template for creating an event source with a connection
   point inside for the event subscribers.
+
+## Misc
+
+Miscellaneous module currenly only includes *moving average* implementation with
+calculation of *standard deviation*.
