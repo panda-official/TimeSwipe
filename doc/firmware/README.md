@@ -72,3 +72,78 @@ alternatively the control functionality can be implemented directly via
 overridden `CDac::DriverSetVal()` since continuous updating and queuing are
 usually not required for the DAC channel. The class `CDac5715sa` is an example
 of self-controlled channel.
+
+## SAME54 Components Support
+
+### CortexM4 interrupts
+
+#### System Tick Interrupt
+
+Used to generate OS system time returned by os::get_tick_mS().
+
+### Generic Clock Controller
+
+From SAME54 manual, page 152:
+
+```
+Depending on the application, peripherals may require specific clock frequencies
+to operate correctly. The Generic Clock controller (GCLK) features 12 Generic
+Clock Generators that can provide a wide range of clock frequencies.
+```
+
+In other words, SAME54 peripherals are not provided with clock frequency by
+default, but require a clock generator to be properly tuned and connected. For
+this purpose a `CSamCLK` was designed. A `CSamCLK::Factory()` is used to find
+free clock generator, reserve it and provide class methods for setup.
+
+### Timers/Counters
+
+`CSamTC` - a realization of SAM's Timer Counter (TC).
+
+### PORT (digital pins IO) control
+
+`CSamPORT` (Port Groups) and `CSamPin` (Port Pins) provides methods for
+multiplexing pins to various peripherals like Sercom.
+
+### ADC & DAC
+
+`CSamADCchan` and `CSamADCcntr` are used to control SAME54's ADCs.
+
+`CSamDACcntr` is used to control SAME54's DACs.
+
+`CSamTempSensor` is used to measure SAME54's core temperature.
+
+### QSPI
+
+`CSamQSPI` - is an implementation of Quad SPI Interface. This bus is used to
+control MAX15xx board's DAC.
+
+### SERCOM-based serial devices
+
+`SERCOM` - is a SAME54's Serial Communication Interface. Depending on settings
+it can be turned into USART, SPI, I2C-master or I2C-slave.
+
+`CSamSercom` provides the basic functionality of SERCOM mainly dealing with
+interrupt processing, enabling and connecting corresponding `CSamCLK` (Generic
+Clock controller).
+
+`CSamSPIbase` implements basic functionality of SAME54 Sercom SPI.
+
+`CSamI2Cmem` - is an implementation of CAT2430 EEPROM chip emulation
+(implementations for concrete pinouts are `CSamI2CmemHAT` and `CSamI2Cmem8Pin`).
+
+`CSamI2CeepromMaster` - is an I2C master for working with a real CAT2430 EEPROM
+chip.
+
+### Factory calibration settings
+
+`NVMscpage` - is an interface for reading SAME54 factory calibration settings.
+
+### DMA
+
+`CSamDMABlock`, `CSamDMAChannel` and `CSamDMAC` implements basic DMA functionality.
+
+### Nonvolatile Memory Controller
+
+`CSamNVMCTRL` implements SAM's Nonvolatile Memory Controller with an interface to
+SmartEEPROM.

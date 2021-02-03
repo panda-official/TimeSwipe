@@ -300,7 +300,6 @@ if(PANDA_BUILD_FIRMWARE)
 
   set(sam_src
     NVMpage.h
-    SAMe54_doc.h
     SamADCcntr.cpp
     SamADCcntr.h
     SamCLK.cpp
