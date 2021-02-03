@@ -246,6 +246,31 @@ if(PANDA_BUILD_FIRMWARE)
     pin_button.h
     )
 
+  set(control_src
+    ADpointSearch.cpp
+    ADpointSearch.h
+    zerocal_man.cpp
+    zerocal_man.h
+
+    CalFWbtnHandler.h
+    DataVis.cpp
+    DataVis.h
+    NewMenu.cpp
+    NewMenu.h
+    SemVer.cpp
+    SemVer.h
+    View.cpp
+    View.h
+    board_type.h
+    nodeControl.h
+    rgbacol.h
+    )
+  if(NOT PANDA_BUILD_FIRMWARE_EMU)
+    list(APPEND control_src nodeControl.cpp)
+  else()
+    list(APPEND control_src nodeControl_emu.cpp)
+  endif()
+
   set(json_src
     jsondisp.cpp
     jsondisp.h
@@ -303,7 +328,7 @@ if(PANDA_BUILD_FIRMWARE)
     cortex_handlers.cpp
     )
 
-  foreach(dep base json led misc sam)
+  foreach(dep base control json led misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -318,7 +343,7 @@ if(PANDA_BUILD_FIRMWARE)
   endforeach()
 
   # Common to static libraries
-  foreach(dep base json led sam)
+  foreach(dep base control json led sam)
     add_library(${dep} OBJECT ${${dep}_src})
     target_include_directories(${dep} PUBLIC src/firmware src/firmware/${dep})
   endforeach()
@@ -338,6 +363,9 @@ if(PANDA_BUILD_FIRMWARE)
   target_compile_definitions(base PRIVATE  __SAME54P20A__)
   target_link_libraries(base PUBLIC misc 3rdparty_CMSIS 3rdparty_sam json led sam)
 
+  # control-specific
+  target_link_libraries(control PUBLIC base)
+
   # -------------------
   # firmware.elf target
   # -------------------
@@ -351,31 +379,9 @@ if(PANDA_BUILD_FIRMWARE)
 
   # Primary firmware sources
   set(firmware_src
-    control/DataVis.cpp
-    control/DataVis.h
-    control/NewMenu.cpp
-    control/NewMenu.h
-    control/SemVer.cpp
-    control/SemVer.h
-    control/View.cpp
-    control/View.h
-    control/board_type.h
-    control/nodeControl.h
-    control/rgbacol.h
-
-    control/ADpointSearch.cpp
-    control/ADpointSearch.h
-    control/zerocal_man.cpp
-    control/zerocal_man.h
-
-    main.cpp
+    src/firmware/main.cpp
     )
-  if(NOT PANDA_BUILD_FIRMWARE_EMU)
-    list(APPEND firmware_src control/nodeControl.cpp)
-  else()
-    list(APPEND firmware_src control/nodeControl_emu.cpp)
-  endif()
-  list(TRANSFORM firmware_src PREPEND src/firmware/)
+  # list(TRANSFORM firmware_src PREPEND src/firmware/)
 
   # Third-party firmware sources
   list(APPEND firmware_thirdparty_src
@@ -392,7 +398,7 @@ if(PANDA_BUILD_FIRMWARE)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
 
-  target_link_libraries(${target_name} sam base json led
+  target_link_libraries(${target_name} sam base control json led
     3rdparty_Adafruit_NeoPixel common)
 
   message(CHECK_PASS "Ready to build the firmware.")
