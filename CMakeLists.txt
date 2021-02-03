@@ -212,9 +212,8 @@ if(PANDA_BUILD_FIRMWARE)
   # Internal dependency sources
   # ---------------------------
 
-  set(Board_src
+  set(base_src
     BaseMesChannel.h
-    Board_doc.h
     DACPWM.cpp
     DACPWM.h
     DACPWMht.cpp
@@ -307,7 +306,7 @@ if(PANDA_BUILD_FIRMWARE)
     cortex_handlers.cpp
     )
 
-  foreach(dep Board JSONstuff LEDs Math sam)
+  foreach(dep base JSONstuff LEDs Math sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
   endforeach()
 
@@ -322,7 +321,7 @@ if(PANDA_BUILD_FIRMWARE)
   endforeach()
 
   # Common to static libraries
-  foreach(dep Board JSONstuff LEDs sam)
+  foreach(dep base JSONstuff LEDs sam)
     add_library(${dep} OBJECT ${${dep}_src})
     target_include_directories(${dep} PUBLIC src/firmware src/firmware/${dep})
   endforeach()
@@ -338,9 +337,9 @@ if(PANDA_BUILD_FIRMWARE)
   target_link_libraries(LEDs PUBLIC 3rdparty_CMSIS 3rdparty_sam common
     PRIVATE 3rdparty_Adafruit_NeoPixel)
 
-  # Board-specific
-  target_compile_definitions(Board PRIVATE  __SAME54P20A__)
-  target_link_libraries(Board PUBLIC Math 3rdparty_CMSIS 3rdparty_sam JSONstuff LEDs sam)
+  # base-specific
+  target_compile_definitions(base PRIVATE  __SAME54P20A__)
+  target_link_libraries(base PUBLIC Math 3rdparty_CMSIS 3rdparty_sam JSONstuff LEDs sam)
 
   # -------------------
   # firmware.elf target
@@ -396,7 +395,7 @@ if(PANDA_BUILD_FIRMWARE)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
 
-  target_link_libraries(${target_name} sam Board JSONstuff LEDs
+  target_link_libraries(${target_name} sam base JSONstuff LEDs
     3rdparty_Adafruit_NeoPixel common)
 
   message(CHECK_PASS "Ready to build the firmware.")
@@ -509,7 +508,7 @@ if(PANDA_BUILD_TESTS)
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
-  set(firmware_tests_link_libraries Board JSONstuff LEDs sam
+  set(firmware_tests_link_libraries base JSONstuff LEDs sam
     3rdparty_Adafruit_NeoPixel)
 
   # Set the link libraries per test.
