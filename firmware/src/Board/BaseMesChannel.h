@@ -86,6 +86,12 @@ public:
     }
 
     /*!
+     * \brief Actualise channel offset values
+     */
+    virtual void UpdateOffsets(){}
+
+
+    /*!
      * \brief Returns current amplification gain of the channel
      * \return Current amplification gain of the channel
      */

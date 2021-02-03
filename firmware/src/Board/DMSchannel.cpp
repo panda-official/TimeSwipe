@@ -60,7 +60,8 @@ void CDMSchannel::UpdateOffsets()
 {
 
     //apply offsets only in case of production firmware
-#ifndef CALIBRATION_STATION
+    if(!m_pCont->IsCalEnabled())
+        return;
 
     std::string strError;
     CHatAtomCalibration cdata;
@@ -73,7 +74,5 @@ void CDMSchannel::UpdateOffsets()
 
 
     m_pDAC->SetRawOutput(pair.b);
-
-#endif
 
 }

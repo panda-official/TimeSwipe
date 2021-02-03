@@ -57,7 +57,10 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 
 void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
 {   
-    if(m_bCalEnabled && m_pVoltageDAC){
+    if(!m_bCalEnabled)
+        return;
+
+    if(m_pVoltageDAC){
 
         std::string strError;
         CCalAtomPair cpair;
@@ -65,6 +68,10 @@ void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
 
         m_pVoltageDAC->SetLinearFactors(cpair.m, cpair.b);
     }
+
+    //update all channels:
+    for(auto &el : m_pMesChans) el->UpdateOffsets();
+
 }
 
 bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data, std::string &strError)

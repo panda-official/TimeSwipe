@@ -44,13 +44,13 @@ protected:
      */
     std::shared_ptr<CPGA280> m_pPGA;
 
-    void UpdateOffsets();
+    virtual void UpdateOffsets() override;
 
     /*!
      * \brief Turns IEPEmode on/off
      * \param bHow - true=IEPE mode ON, false=IEPE mode off
      */
-    virtual void IEPEon(bool bHow){
+    virtual void IEPEon(bool bHow) override{
 
         m_bIEPEon=bHow;
         m_pIEPEswitch->Set(bHow);
@@ -60,7 +60,7 @@ protected:
      * \brief Sets the measurement mode (Voltage or Current)
      * \param nMode - the measuremnt mode to be set
      */
-    virtual void SetMesMode(mes_mode nMode){
+    virtual void SetMesMode(mes_mode nMode) override{
 
         m_MesMode=nMode;
         m_pPGA->SetMode( static_cast<CPGA280::mode>(nMode) );
@@ -72,7 +72,7 @@ protected:
      * \brief Sets the channel amplification gain
      * \param GainValue - the Gain value to be set
      */
-    virtual void SetAmpGain(float GainValue);
+    virtual void SetAmpGain(float GainValue) override;
 
 public:
 
