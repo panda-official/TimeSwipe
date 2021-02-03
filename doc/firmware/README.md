@@ -147,3 +147,33 @@ chip.
 
 `CSamNVMCTRL` implements SAM's Nonvolatile Memory Controller with an interface to
 SmartEEPROM.
+
+## Control
+
+The basic functionality of the board is provided by the `nodeControl` class.
+Since the only one controller object may exist it's designed after the
+*singleton* pattern. Features of `nodeControl` includes:
+
+  - adjustment of the board amplifier gain;
+  - adjustment of bridge voltage;
+  - finding the amplifier offsets;
+  - generating a random 32-bit value as a new record stamp.
+
+The board's User Interface (UI) is physically implemented as a button and four
+colorized LEDs. The *user menus* are formed by flashing LEDs in different colors.
+
+All the possible views of the board are implemented in a separate View class
+`CView` with a view channel for each LED represented by the class `CViewChannel`.
+
+The menu logic is handled by `CNewMenu` class object. The class is designed in
+event-driven style and forced by events coming from a button `SAMButton`.
+
+Another feature is a data visualization allowing to display the measured signal
+levels by using LEDs when an user is not interacting with the board (default
+View mode). This feature is implemented in the `CDataVis` class.
+
+The board's built-in routines and necessary infrastructure for execution are
+also landed in this module. Currently, the only finding amplifier offsets
+routine is provided by `CADpointSearch` class. This class contains an algorithm
+for finding offset for a single channel only. For possibility of finding offsets
+for several channels at once there is special infrastructure class `CCalMan`

@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 #include <memory>
 #include "adcdac.hpp"
 #include "Pin.h"
-#include "BusinessLogic/DataVis.h"
+#include "control/DataVis.h"
 
 
 class nodeControl;

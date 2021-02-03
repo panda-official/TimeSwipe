@@ -154,7 +154,7 @@ private:
 
         //! Forbid copying
         nodeControl& operator=(const nodeControl&)=delete;
-	
+
 public:
         /*!
          * \brief The possible values for IEPE measure modes
@@ -307,7 +307,8 @@ public:
         }
 
         /*!
-         * \brief Increments the board's amplifier gain.
+         * \brief Increments the board's amplifier gain. If the maximum gain is
+         * exceeded then minimum value is used.
          * \param step An incrementation step
          * \return The gain that was set
          */
@@ -316,7 +317,7 @@ public:
             int outp=GetGain()+step;
             if(outp>4)
                 outp=1;
-			
+
             return gain_out(outp);
         }
 
@@ -364,7 +365,7 @@ public:
          * \return 0 = IEPE; 1 = Normsignal
          */
         int GetMode();
-	
+
         /*!
          * \brief Starts/stops finding amplifier offsets procedure
          * \param nOffs 0- stop/reset, 1- negative offset search, 2- zero offset search, 3- positive offset search

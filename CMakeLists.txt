@@ -355,30 +355,29 @@ if(PANDA_BUILD_FIRMWARE)
 
   # Primary firmware sources
   set(firmware_src
-    BusinessLogic/BusinessLogic_doc.h
-    BusinessLogic/DataVis.cpp
-    BusinessLogic/DataVis.h
-    BusinessLogic/NewMenu.cpp
-    BusinessLogic/NewMenu.h
-    BusinessLogic/SemVer.cpp
-    BusinessLogic/SemVer.h
-    BusinessLogic/View.cpp
-    BusinessLogic/View.h
-    BusinessLogic/board_type.h
-    BusinessLogic/nodeControl.h
-    BusinessLogic/rgbacol.h
+    control/DataVis.cpp
+    control/DataVis.h
+    control/NewMenu.cpp
+    control/NewMenu.h
+    control/SemVer.cpp
+    control/SemVer.h
+    control/View.cpp
+    control/View.h
+    control/board_type.h
+    control/nodeControl.h
+    control/rgbacol.h
 
-    BusinessLogic/ADpointSearch.cpp
-    BusinessLogic/ADpointSearch.h
-    BusinessLogic/zerocal_man.cpp
-    BusinessLogic/zerocal_man.h
+    control/ADpointSearch.cpp
+    control/ADpointSearch.h
+    control/zerocal_man.cpp
+    control/zerocal_man.h
 
     main.cpp
     )
   if(NOT PANDA_BUILD_FIRMWARE_EMU)
-    list(APPEND firmware_src BusinessLogic/nodeControl.cpp)
+    list(APPEND firmware_src control/nodeControl.cpp)
   else()
-    list(APPEND firmware_src BusinessLogic/nodeControl_emu.cpp)
+    list(APPEND firmware_src control/nodeControl_emu.cpp)
   endif()
   list(TRANSFORM firmware_src PREPEND src/firmware/)
 

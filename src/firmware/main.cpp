@@ -27,12 +27,12 @@ Copyright (c) 2019 Panda Team
 #include "ShiftReg.h"
 #include "PGA280.h"
 
-#include "BusinessLogic/NewMenu.h"
-#include "BusinessLogic/CalFWbtnHandler.h"
-#include "BusinessLogic/View.h"
-#include "BusinessLogic/nodeControl.h"
-#include "BusinessLogic/zerocal_man.h"
-#include "BusinessLogic/SemVer.h"
+#include "control/NewMenu.h"
+#include "control/CalFWbtnHandler.h"
+#include "control/View.h"
+#include "control/nodeControl.h"
+#include "control/zerocal_man.h"
+#include "control/SemVer.h"
 
 #include "nodeLED.h"
 
