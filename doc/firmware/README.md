@@ -233,6 +233,21 @@ A simple event system where an *event* - is a JSON object is based on two classe
   - `CJSONEvCP` - is a template for creating an event source with a connection
   point inside for the event subscribers.
 
+## LED
+
+In order to control the board LEDs the Adafruit NeoPixel library is used as a
+low-level layer above the hardware. The following classes extends the Adafruit
+NeoPixel library:
+
+  - `CLED` - is a class providing an interface for controlling a single LED.
+  It contains methods for switching LED on/off, changing its color and mode
+  (blinking/steady);
+  - nodeLED - is a container for a number of LED objects. Also provide some
+  group methods for working with multiple LEDs;
+
+`Adafruit_NeoPixel_stub.h` - is a glue between the classes listed above and
+the Adafruit NeoPixel library
+
 ## Misc
 
 Miscellaneous module currenly only includes *moving average* implementation with

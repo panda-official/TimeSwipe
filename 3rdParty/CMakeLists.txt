@@ -37,7 +37,7 @@ if (PANDA_BUILD_FIRMWARE)
   set(Adafruit_NeoPixel_src
     Adafruit_NeoPixel/Adafruit_NeoPixel.cpp
     Adafruit_NeoPixel/Adafruit_NeoPixel.h
-    ${CMAKE_SOURCE_DIR}/src/firmware/LEDs/Adafruit_NeoPixel_stub.h # FIXME!
+    ${CMAKE_SOURCE_DIR}/src/firmware/led/Adafruit_NeoPixel_stub.h # FIXME!
     Adafruit_NeoPixel/esp8266.c
     )
 
@@ -46,7 +46,7 @@ if (PANDA_BUILD_FIRMWARE)
   target_include_directories(3rdparty_Adafruit_NeoPixel PUBLIC Adafruit_NeoPixel
     PRIVATE
     ${CMAKE_SOURCE_DIR}/src/common # FIXME!
-    ${CMAKE_SOURCE_DIR}/src/firmware/LEDs) # FIXME!
+    ${CMAKE_SOURCE_DIR}/src/firmware/led) # FIXME!
 
   # ------------------------------------------------------------------------------
   # Upfirdn
