@@ -344,6 +344,8 @@ int main(void)
         pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<CSamI2CeepromMaster, bool> >(pEEPROM_MasterBus,
                                                                                                &CSamI2CeepromMaster::GetSelfTestResult,  &CSamI2CeepromMaster::RunSelfTest) );
 
+        pDisp->Add("CalEnable", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsCalEnabled,  &nodeControl::EnableCal) );
+
 #endif
 
 

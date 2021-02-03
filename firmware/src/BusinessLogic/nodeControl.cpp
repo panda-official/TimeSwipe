@@ -13,6 +13,13 @@ Copyright (c) 2019 Panda Team
 nodeControl::nodeControl()
 {
     m_pMesChans.reserve(4);
+
+#ifdef CALIBRATION_STATION
+    m_bCalEnabled=false;
+#else
+    m_bCalEnabled=true;
+#endif
+
 }
 
 void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf)
@@ -49,10 +56,8 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 }
 
 void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
-{
-
-#ifndef CALIBRATION_STATION
-    if(m_pVoltageDAC){
+{   
+    if(m_bCalEnabled && m_pVoltageDAC){
 
         std::string strError;
         CCalAtomPair cpair;
@@ -60,8 +65,6 @@ void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
 
         m_pVoltageDAC->SetLinearFactors(cpair.m, cpair.b);
     }
-#endif
-
 }
 
 bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data, std::string &strError)

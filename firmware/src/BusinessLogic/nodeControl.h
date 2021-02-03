@@ -109,6 +109,12 @@ protected:
 
 
         /*!
+         * \brief true if the calibration data enabled, false otherwise
+         */
+        bool  m_bCalEnabled;
+
+
+        /*!
          * \brief Board Bridge persistent setting
          */
         bool m_BridgeSetting=false;
@@ -197,6 +203,22 @@ protected:
         void ApplyCalibrationData(CHatAtomCalibration &Data);
 
 public:
+        inline bool IsCalEnabled()
+        {
+            return m_bCalEnabled;
+        }
+        inline void EnableCal(bool bHow)
+        {
+            m_bCalEnabled=bHow;
+            if(bHow)
+            {
+                CHatAtomCalibration cal_data;
+                m_CalStatus=m_EEPROMstorage.Load(cal_data);
+                ApplyCalibrationData(cal_data);
+            }
+        }
+
+
         /*!
          * \brief Sets current board type: IEPE or DMS
          * \param BoardType - IEPE or DMS
