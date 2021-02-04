@@ -136,6 +136,11 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
         {
             CCalAtomPair cpair;
 
+            //init the pair:
+            if(!cal_atom.GetCalPair(nAtom, pair_ind, cpair, strError))
+                return false;
+
+
             auto it_m=el.find("m");
             if(it_m!=el.end())
             {
