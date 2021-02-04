@@ -31,14 +31,19 @@ protected:
     std::shared_ptr<CCmdDispatcher> m_pDisp;
 
 
-    typedef void (CJSONDispatcher::*typeSubHandler)(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
-    typedef std::map<std::string, typeSubHandler > typeSubMap;
+    //typedef void (CJSONDispatcher::*typeSubHandler)(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+
+    using typeSubHandler=std::function< void(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct) >;
+
+    //typedef std::map<std::string, typeSubHandler > typeSubMap;
+
+    using typeSubMap=std::map<std::string, typeSubHandler >;
 
     typeSubMap m_SubHandlersMap;
 
     //handlers:
-    void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
-    bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
+   // void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+    //bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
 
 
     /*!
@@ -81,10 +86,14 @@ public:
      * \brief The class constructor
      * \param pDisp A pointer to a command dispatcher
      */
-    CJSONDispatcher(const std::shared_ptr<CCmdDispatcher> &pDisp)
-    {
+    CJSONDispatcher(const std::shared_ptr<CCmdDispatcher> &pDisp){
         m_pDisp=pDisp;
 
-        m_SubHandlersMap.emplace("cAtom", &CJSONDispatcher::procCAtom);
+        //m_SubHandlersMap.emplace("cAtom", &CJSONDispatcher::procCAtom);
+    }
+
+    void AddSubHandler(std::string strName, typeSubHandler SubHandler){
+
+        m_SubHandlersMap.emplace(strName, SubHandler);
     }
 };

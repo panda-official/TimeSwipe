@@ -99,6 +99,106 @@ bool nodeControl::GetCalibrationData(CHatAtomCalibration &Data, std::string &str
     return false;
 }
 
+bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
+{
+    CHatAtomCalibration cal_atom;
+
+    //load existing atom
+    nodeControl &nc=nodeControl::Instance();
+    if(!nc.GetCalibrationData(cal_atom, strError))
+        return false;
+
+    size_t nAtom=jObj["cAtom"];
+
+    size_t nCalPairs;
+    if(!cal_atom.GetPairsCount(nAtom, nCalPairs, strError))
+        return false;
+
+
+    //if call type=set
+    if(CCmdCallDescr::ctype::ctSet==ct)
+    {
+#ifndef CALIBRATION_STATION
+        strError="calibration setting is prohibited!";
+        return false;
+#endif
+
+        auto &data=jObj["data"];
+        if(data.size()>nCalPairs)
+        {
+            strError="wrong data count";
+            return false;
+        }
+
+
+        size_t pair_ind=0;
+        for(auto &el : data)
+        {
+            CCalAtomPair cpair;
+
+            auto it_m=el.find("m");
+            if(it_m!=el.end())
+            {
+                cpair.m=*it_m;
+            }
+
+            auto it_b=el.find("b");
+            if(it_b!=el.end())
+            {
+                cpair.b=*it_b;
+            }
+
+
+            if(!cal_atom.SetCalPair(nAtom, pair_ind, std::move(cpair), strError))
+                return false;
+
+            pair_ind++;
+        }
+
+        //save the atom:
+        if(!nc.SetCalibrationData(cal_atom, strError))
+        {
+            //strError="failed to save calibration data";
+            return false;
+        }
+    }
+
+    //form the answer:
+    //auto resp_data=jResp["data"];//.array();
+
+    auto resp_data=nlohmann::json::array();
+    for(size_t pair_ind=0; pair_ind < nCalPairs; pair_ind++)
+    {
+        CCalAtomPair pair;
+
+        if(!cal_atom.GetCalPair(nAtom, pair_ind, pair, strError))
+            return false;
+
+        //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
+        nlohmann::json jpair;
+        jpair["m"]=pair.m;
+        jpair["b"]=pair.b;
+        resp_data.emplace_back(jpair);
+    }
+    jResp["cAtom"]=nAtom;
+    jResp["data"]=resp_data;
+
+    return true;
+}
+
+ void nodeControl::procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct)
+ {
+        std::string strError;
+        if(!_procCAtom(jObj, jResp, ct, strError))
+        {
+            //jResp["cAtom"]["error"]["edescr"]=strError;
+
+            nlohmann::json &jerr=jResp["cAtom"]["error"];
+            jerr["edescr"]=strError;
+        }
+ }
+
+
 
 void nodeControl::Serialize(CStorage &st)
 {

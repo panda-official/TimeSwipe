@@ -44,6 +44,8 @@ Copyright (c) 2019-2020 Panda Team
 #include "SemVer.h"
 #include "View.h"
 
+using namespace std::placeholders;
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -352,6 +354,15 @@ int main(void)
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
         pDisp->Add("js", pJC);
+
+        pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*pNC), _1, _2, _3 ) );
+
+       // pJC->AddSubHandler("cAtom", &nodeControl::procCAtom);
+
+//#ifdef CALIBRATION_STATION
+
+//#endif
+
 
         //------------------JSON EVENTS-------------------
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);

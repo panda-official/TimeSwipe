@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 #include "jsondisp.h"
 #include "json_stream.h"
-#include "nodeControl.h"
+//#include "nodeControl.h"
 
 void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jResp)
 {
@@ -91,7 +91,8 @@ void CJSONDispatcher::Call(nlohmann::json &jObj, nlohmann::json &jResp, const CC
         {
             //exec handler:
             typeSubHandler pHandler=pSubHandler->second;
-            (this->*pHandler)(jObj, jResp, ct);
+            //(this->*pHandler)(jObj, jResp, ct);
+            pHandler(jObj, jResp, ct);
             return;
         }
 
@@ -159,7 +160,7 @@ typeCRes CJSONDispatcher::Call(CCmdCallDescr &d)
 
 //protocol extensions:
 
-bool CJSONDispatcher::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
+/*bool CJSONDispatcher::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
 {
     CHatAtomCalibration cal_atom;
 
@@ -190,7 +191,22 @@ bool CJSONDispatcher::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, co
         size_t pair_ind=0;
         for(auto &el : data)
         {
-            if(!cal_atom.SetCalPair(nAtom, pair_ind, CCalAtomPair(el["m"], el["b"]), strError))
+            CCalAtomPair cpair;
+
+            auto it_m=el.find("m");
+            if(it_m!=el.end())
+            {
+                cpair.m=*it_m;
+            }
+
+            auto it_b=el.find("b");
+            if(it_b!=el.end())
+            {
+                cpair.b=*it_b;
+            }
+
+
+            if(!cal_atom.SetCalPair(nAtom, pair_ind, std::move(cpair), strError))
                 return false;
 
             pair_ind++;
@@ -237,4 +253,4 @@ bool CJSONDispatcher::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, co
             nlohmann::json &jerr=jResp["cAtom"]["error"];
             jerr["edescr"]=strError;
         }
- }
+ }*/

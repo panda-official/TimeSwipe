@@ -347,13 +347,13 @@ if (PANDA_BUILD_FIRMWARE)
 
   # JSONstuff-specific
   target_link_libraries(JSONstuff PUBLIC 3rdparty_nlohmann_json Communication)
-  target_include_directories(JSONstuff PRIVATE firmware/src/BusinessLogic)
-  target_include_directories(JSONstuff PRIVATE firmware/src/Board)
-  target_include_directories(JSONstuff PRIVATE firmware/src/ADCDAC)
-  target_include_directories(JSONstuff PRIVATE firmware/src/LEDs)
-  target_include_directories(JSONstuff PRIVATE firmware/src/Math)
-  target_include_directories(JSONstuff PRIVATE firmware/src/Procs)
-  target_include_directories(JSONstuff PRIVATE firmware/src/HATS_EEPROM)
+ # target_include_directories(JSONstuff PRIVATE firmware/src/BusinessLogic)
+  #target_include_directories(JSONstuff PRIVATE firmware/src/Board)
+  #target_include_directories(JSONstuff PRIVATE firmware/src/ADCDAC)
+  #target_include_directories(JSONstuff PRIVATE firmware/src/LEDs)
+  #target_include_directories(JSONstuff PRIVATE firmware/src/Math)
+  #target_include_directories(JSONstuff PRIVATE firmware/src/Procs)
+  #target_include_directories(JSONstuff PRIVATE firmware/src/HATS_EEPROM)
 
   # LEDs-specific
   target_compile_definitions(LEDs PRIVATE  __arm__  __SAMD51__  __SAME54P20A__)
@@ -365,16 +365,16 @@ if (PANDA_BUILD_FIRMWARE)
   target_link_libraries(Board PUBLIC Math 3rdparty_CMSIS 3rdparty_sam ADCDAC JSONstuff LEDs SAMe54)
   # FIXME: there is cyclical dependence: Board <--> BusinessLogic!!!
   # KLUDGE: for now just include directory of BusinessLogic
- # target_include_directories(Board PRIVATE firmware/src/BusinessLogic)
-  #target_include_directories(Board PRIVATE firmware/src/HATS_EEPROM)
-
   target_include_directories(Board PRIVATE firmware/src/BusinessLogic)
-  target_include_directories(Board PRIVATE firmware/src/Board)
-  target_include_directories(Board PRIVATE firmware/src/ADCDAC)
-  target_include_directories(Board PRIVATE firmware/src/LEDs)
-  target_include_directories(Board PRIVATE firmware/src/Math)
-  target_include_directories(Board PRIVATE firmware/src/Procs)
   target_include_directories(Board PRIVATE firmware/src/HATS_EEPROM)
+
+  #target_include_directories(Board PRIVATE firmware/src/BusinessLogic)
+  #target_include_directories(Board PRIVATE firmware/src/Board)
+  #target_include_directories(Board PRIVATE firmware/src/ADCDAC)
+  #target_include_directories(Board PRIVATE firmware/src/LEDs)
+  #target_include_directories(Board PRIVATE firmware/src/Math)
+  target_include_directories(Board PRIVATE firmware/src/Procs)
+  #target_include_directories(Board PRIVATE firmware/src/HATS_EEPROM)
 
   # BusinessLogic-specific
   target_link_libraries(BusinessLogic PUBLIC Board)

@@ -118,12 +118,13 @@ void CSamI2CeepromMaster::SetWriteProtection(bool how)
     if(how)
     {
         PORT->Group[3].OUTSET.reg=(1L<<10);
+        os::uwait(100);                      //wait till real voltage level rise of fall
     }
     else
     {
+        os::uwait(100);                      //wait till real voltage level rise of fall
         PORT->Group[3].OUTCLR.reg=(1L<<10);
     }
-    os::uwait(50); //wait till real voltage level rise of fall
 }
 
 bool CSamI2CeepromMaster::write_next_page() //since only 1 page can be written at once

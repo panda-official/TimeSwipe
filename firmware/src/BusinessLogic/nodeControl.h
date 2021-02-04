@@ -201,6 +201,11 @@ protected:
          * \param Data
          */
         void ApplyCalibrationData(CHatAtomCalibration &Data);
+        bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
+
+public:
+        void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+
 
 public:
         inline bool IsCalEnabled()
