@@ -201,17 +201,40 @@ protected:
          * \param Data
          */
         void ApplyCalibrationData(CHatAtomCalibration &Data);
+
+        /*!
+         * \brief JSON handler to store/retrieve calibration atoms.
+         * \param jObj -input JSON object
+         * \param jResp -output JSON object
+         * \param ct - call type (get or set)
+         */
         bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
 
 public:
+        /*!
+         * \brief JSON handler wrapper to store/retrieve calibration atoms. Callback for the JSON dispatcher
+         * \param jObj -input JSON object
+         * \param jResp -output JSON object
+         * \param ct - call type (get or set)
+         */
         void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
 
 
 public:
+        /*!
+         * \brief Are calibration settings enabled?
+         * \return true - yes, false - no
+         */
         inline bool IsCalEnabled()
         {
             return m_bCalEnabled;
         }
+
+
+        /*!
+         * \brief Enables calibration settings
+         * \param bHow -true enables calibration, forces data to the corresponding DACs
+         */
         inline void EnableCal(bool bHow)
         {
             m_bCalEnabled=bHow;

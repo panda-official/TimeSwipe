@@ -38,7 +38,8 @@ public:
             read,       //!< Continuous data read mode until the EOF
             write,      //!< Continuous data write mode
 
-            errTransfer //! An error occurred during transmission
+            errTransfer, //! An error occurred during transmission
+            errCmp      //! An error occured during data comparation
         };
 
 
@@ -70,6 +71,12 @@ protected:
     bool m_bSelfTestResult=false;
 
     /*!
+     * \brief Compare reading mode
+     */
+    bool m_bCmpReadMode=false;
+
+
+    /*!
      * \brief A EEPROM chip address
      */
     int  m_nDevAddr=0xA0;
@@ -99,6 +106,8 @@ protected:
      * \brief The size of the EEPROM page
      */
     const int m_nPageSize=16;
+
+    const int m_nWriteRetries=3;
 
     /*!
      * \brief An operation timeout, milliseconds
@@ -180,6 +189,13 @@ protected:
      */
     bool __send(CFIFO &msg);
 
+    /*!
+     * \brief Compares EEPROM content with given message
+     * \param msg - the data to compare
+     * \return true on success (data identical), false otherwise
+     */
+    bool __sendRB(CFIFO &msg);
+
 public:
 
     /*!
@@ -240,11 +256,22 @@ public:
         inline void    SetDeviceAddr(int nDevAddr){m_nDevAddr=nDevAddr; }
 
         /*!
-         * \brief Sets the EEPROM memory address for reading data and the maximum amount of data to read.
+         * \brief Sets the EEPROM base address for reading/writing data and the maximum amount of data to read.
          * \param nDataAddr An initial data address to read data from
          * \param nCountLim A maximum data amount to be read
          */
-        inline void    SetDataAddrAndCountLim(int nDataAddr, int nCountLim=4096){m_nMemAddr=nDataAddr;  m_nReadDataCountLim=nCountLim;}
+        inline void    SetDataAddrAndCountLim(int nDataAddr, int nCountLim=4096){
+            m_nMemAddr=nDataAddr;  m_nReadDataCountLim=nCountLim;
+        }
+
+        /*!
+         * \brief Sets the EEPROM base address for reading/writing data
+         * \param nDataAddr
+         */
+        inline void    SetDataAddr(int nDataAddr){
+
+            m_nMemAddr=nDataAddr;
+        }
 
         /*!
          * \brief Enables IRQ mode

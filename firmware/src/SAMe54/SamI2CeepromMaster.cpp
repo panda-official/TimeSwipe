@@ -137,7 +137,7 @@ bool CSamI2CeepromMaster::write_next_page() //since only 1 page can be written a
     {
         if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
             return false;
-        os::wait(1); //regulate the cpu load here
+        //os::wait(1); //regulate the cpu load here
     }
     if(FSM::halted==m_MState)
     {
@@ -166,11 +166,43 @@ bool CSamI2CeepromMaster::__send(CFIFO &msg)  //blocking call
     m_pBuf=nullptr;
     return bPageWriteResult;
 }
+bool CSamI2CeepromMaster::__sendRB(CFIFO &msg)  //blocking call
+{
+    m_nCurMemAddr=m_nMemAddr;
+    m_pBuf=&msg;
+    m_bCmpReadMode=true;
+    StartTranfer(false);
+    unsigned long StartWaitTime=os::get_tick_mS();
+    while(FSM::halted!=m_MState && errTransfer!=m_MState)
+    {
+        if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
+            break;
+        os::wait(1);
+    }
+    m_pBuf=nullptr;
+    return (FSM::halted==m_MState);
+}
 
 bool CSamI2CeepromMaster::send(CFIFO &msg)  //blocking call
 {
+    bool bPageWriteResult=false;
 SetWriteProtection(false);
-    bool bPageWriteResult=__send(msg);
+    for(int i=0; i<m_nWriteRetries; i++){
+
+        msg.rewind();
+        if(__send(msg))
+        {
+            //some delay is required:
+            os::wait(10);
+
+            msg.rewind();
+            if(__sendRB(msg))
+            {
+                bPageWriteResult=true;
+                break;
+            }
+        }
+     }
 SetWriteProtection(true);
     return bPageWriteResult;
 }
@@ -178,13 +210,14 @@ bool CSamI2CeepromMaster::receive(CFIFO &msg) //blocking call
 {
     m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
+    m_bCmpReadMode=false;
     StartTranfer(false);
     unsigned long StartWaitTime=os::get_tick_mS();
     while(FSM::halted!=m_MState && errTransfer!=m_MState)
     {
         if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
             break;
-        os::wait(50);
+        os::wait(1);
     }
     m_pBuf=nullptr;
     return (FSM::halted==m_MState);
@@ -214,16 +247,23 @@ bool CSamI2CeepromMaster::test_mem_area(CFIFO &TestPattern, int nStartAddr)
     size_t nPatternSize=static_cast<size_t>(TestPattern.in_avail());
     ReadBuf.reserve( nPatternSize );
 
+    int nPrevAddr=m_nMemAddr;
     m_nMemAddr=nStartAddr;
 
     if(!__send(TestPattern))
+    {
+        m_nMemAddr=nPrevAddr;
         return false;
+    }
 
     //some delay is required:
     os::wait(10);
 
-    if(!receive(ReadBuf))
+    bool rb=receive(ReadBuf);
+    m_nMemAddr=nPrevAddr;
+    if(!rb)
         return false;
+
 
     //comare:
     for(int k=0; k<nPatternSize; k++)
@@ -361,7 +401,9 @@ void CSamI2CeepromMaster::IRQhandler()
         //read data untill the end
         if(writeB(pI2Cm->DATA.bit.DATA)<0) //EOF
         {
-            m_MState=FSM::halted;
+            if(FSM::errCmp!=m_MState){
+                m_MState=FSM::halted;
+            }
             pI2Cm->CTRLB.bit.ACKACT=1; //setting "NACK" to the chip
             SYNC_BUS(pI2Cm)
             pI2Cm->CTRLB.bit.CMD=0x3; //stop
@@ -438,9 +480,25 @@ int CSamI2CeepromMaster::writeB(int val)
     if(!m_pBuf)
         return -1;
 
-    if(m_pBuf->size()>=m_nReadDataCountLim) //memmory protection
-        return -1;
+    if(m_bCmpReadMode){
 
-    (*m_pBuf)<<val;
-    return val;
+        if(0==m_pBuf->in_avail())
+            return -1;
+
+        typeSChar ch;
+        (*m_pBuf)>>ch;
+        if(ch!=val)
+        {
+            m_MState=FSM::errCmp;
+            return -1;
+        }
+    }
+    else{
+
+        if(m_pBuf->size()>=m_nReadDataCountLim) //memmory protection
+            return -1;
+
+        (*m_pBuf)<<val;
+        return val;
+    }
 }
