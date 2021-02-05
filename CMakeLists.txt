@@ -134,7 +134,6 @@ endif()
 
 function(panda_add_common_library)
   set(common_src
-    HatsMemMan.cpp
     HatsMemMan.h
 
     PWM.h
@@ -158,7 +157,7 @@ function(panda_add_common_library)
   # FIXME: common should be header-only
   add_library(common OBJECT ${common_src})
   # add_library(common INTERFACE)
-  target_link_libraries(common PRIVATE 3rdparty_HATS_EEPROM)
+  target_link_libraries(common PUBLIC 3rdparty_HATS_EEPROM)
   #target_include_directories(common BEFORE INTERFACE
   target_include_directories(common BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/common>

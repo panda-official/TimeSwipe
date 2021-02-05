@@ -1,29 +1,45 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019-2020 Panda Team
-*/
+// -*- C++ -*-
 
-/*!
-*   @file
-*   @brief A definition file for HAT data types and interfaces:
-*   CHatAtomVendorInfo, CHatAtomGPIOmap, CHatsMemMan
-*
-*/
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-#pragma once
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * @file
+ * HAT data stuff.
+ */
+
+#ifndef PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
+#define PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
+
+#include "eeptypes.h" // 3rdParty/HATS_EEPROM/eeptypes.h
+#include "Serial.h"
 
 #include <array>
-#include "Serial.h"
-enum class typeHatsAtom:int {VendorInfo=1, GPIOmap, LinuxDTB, Custom};
+#include <cstdint>
+#include <cstring>
 
-/*!
- * \brief The vendor info atom
- */
-struct CHatAtomVendorInfo
-{
+enum class typeHatsAtom {
+  VendorInfo=1,
+  GPIOmap,
+  LinuxDTB,
+  Custom
+};
+
+/// A vendor info atom.
+struct CHatAtomVendorInfo {
 friend class CHatsMemMan;
 
     //uint32_t    m_uuid[4];  //represented as 4 32-bit words
@@ -42,28 +58,110 @@ private:
     /*!
      * \brief Fills data fields with zeros
      */
-    void reset();
+  void reset()
+  {
+    //memset(m_uuid, 0, 20);
+    m_uuid.fill(0);
+    m_PID=0;
+    m_pver=0;
+    m_vstr.erase();
+    m_pstr.erase();
+  }
 
-    /*!
+  /*!
      * \brief Loads data fields from an ATOM binary image
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool load(CFIFO &buf);
+  bool load(CFIFO& buf)
+  {
+    //special deserialization:
+    int nDSize=buf.in_avail();
+    if(nDSize<22)
+      return false;
+    //const char *pData=buf.data();
+
+    typeSChar ch;
+    /*  uint8_t   *pBuf=(uint8_t *)(m_uuid);
+        for(int i=0; i<20; i++)
+        {
+        buf>>ch;
+        pBuf[i]=(uint8_t)ch;
+        }*/
+
+    uint8_t   *pBuf=(uint8_t *)m_uuid.data();
+    for(int i=0; i<16; i++)
+      {
+        buf>>ch;
+        pBuf[i]=(uint8_t)ch;
+      }
+    typeSChar b0, b1;
+    buf>>b0>>b1;
+    *((uint8_t*)&m_PID)=b0; *( ((uint8_t*)&m_PID) +1 )=b1;
+    buf>>b0>>b1;
+    *((uint8_t*)&m_pver)=b0; *( ((uint8_t*)&m_pver) +1 )=b1;
+
+    int vslen, pslen;
+    buf>>vslen>>pslen;
+
+    m_vstr.reserve(vslen);
+    m_pstr.reserve(pslen);
+
+    for(int i=0; i<vslen; i++)
+      {
+        buf>>ch;
+        m_vstr+=ch;
+      }
+    for(int i=0; i<pslen; i++)
+      {
+        buf>>ch;
+        m_pstr+=ch;
+      }
+    return true;
+
+  }
 
     /*!
      * \brief Stores data fields to an ATOM binary image
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool store(CFIFO &buf);
+  bool store(CFIFO& buf)
+  {
+    //special serialization:
+    int vslen=m_vstr.length();
+    int pslen=m_pstr.length();
+    buf.reserve(22+vslen+pslen); //minimum size
+    /* uint8_t   *pBuf=(uint8_t *)(m_uuid);
+       for(int i=0; i<20; i++)
+       {
+       buf<<pBuf[i];
+       }*/
+
+    uint8_t   *pBuf=(uint8_t *)m_uuid.data();
+    for(int i=0; i<16; i++)
+      {
+        buf<<pBuf[i];
+      }
+    buf<<*((uint8_t*)&m_PID)<<*( ((uint8_t*)&m_PID) +1 );
+    buf<<*((uint8_t*)&m_pver)<<*( ((uint8_t*)&m_pver) +1 );
+
+
+    buf<<vslen<<pslen;
+    for(int i=0; i<vslen; i++)
+      {
+        buf<<m_vstr[i];
+      }
+    for(int i=0; i<pslen; i++)
+      {
+        buf<<m_pstr[i];
+      }
+    return true;
+  }
 };
 
-/*!
- * \brief The GPIO map atom
- */
-struct CHatAtomGPIOmap
-{
+/// GPIO map atom
+struct CHatAtomGPIOmap {
 friend class CHatsMemMan;
 
     struct bank_drive{
@@ -99,133 +197,400 @@ private:
     /*!
      * \brief Fills data fields with zeros
      */
-    void reset();
+  void reset()
+  {
+    memset(&m_bank_drive, 0, 30);
+  }
 
     /*!
      * \brief Loads data fields from an ATOM binary image
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool load(CFIFO &buf);
+  bool load(CFIFO &buf)
+  {
+    //special deserialization:
+    int nDSize=buf.in_avail();
+    if(nDSize<30)
+      return false;
+
+    typeSChar ch;
+    uint8_t   *pBuf=(uint8_t *)(&m_bank_drive);
+    for(int i=0; i<30; i++)
+      {
+        buf>>ch;
+        pBuf[i]=(uint8_t)ch;
+      }
+    return true;
+  }
 
     /*!
      * \brief Stores data fields to an ATOM binary image
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool store(CFIFO &buf);
+  bool store(CFIFO &buf)
+  {
+    //special serialization:
+    buf.reserve(30);
+
+    uint8_t   *pBuf=(uint8_t *)(&m_bank_drive);
+    for(int i=0; i<30; i++)
+      {
+        buf<<pBuf[i];
+      }
+    return true;
+  }
 };
 
-
-/*!
- * \brief A manager class for working with HATs-EEPROM binary image
- */
-class CHatsMemMan
-{
+/// A manager class for working with HATs-EEPROM binary image
+class CHatsMemMan {
 public:
-    /*!
-     * \brief A class constructor
-     * \param pFIFObuf a buffer containing EEPROM binary image
-     */
-    CHatsMemMan(std::shared_ptr<CFIFO> &pFIFObuf);
+  /*!
+   * \brief A class constructor
+   * \param pFIFObuf a buffer containing EEPROM binary image
+   */
+  CHatsMemMan(std::shared_ptr<CFIFO> &pFIFObuf)
+  {
+    m_pFIFObuf=pFIFObuf;
+  }
 
-    enum op_result{
+  enum op_result {
+    OK,
 
-        OK,
-
-        atom_not_found,
-        atom_is_corrupted,
-        storage_is_corrupted,
-        storage_isnt_verified
-    };
+    atom_not_found,
+    atom_is_corrupted,
+    storage_is_corrupted,
+    storage_isnt_verified
+  };
 
 protected:
+  /*!
+   * \brief ReadAtom reads Atom's raw binary data
+   * \param nAtom absolute address of the Atom
+   * \param nAtomType atom type to be read out
+   * \param rbuf data receive bufer
+   * \return read operation result (OK or an error)
+   */
+  op_result ReadAtom(unsigned int nAtom, typeHatsAtom &nAtomType, CFIFO &rbuf)
+  {
+    if(OK!=m_StorageState)
+      return m_StorageState;
 
-    /*!
-     * \brief ReadAtom reads Atom's raw binary data
-     * \param nAtom absolute address of the Atom
-     * \param nAtomType atom type to be read out
-     * \param rbuf data receive bufer
-     * \return read operation result (OK or an error)
-     */
-    op_result ReadAtom(unsigned int nAtom, typeHatsAtom &nAtomType, CFIFO &rbuf);
+    struct atom_header *pAtom;
+    op_result res=FindAtomHeader(nAtom, GetMemBuf(), GetMemBufSize(), &pAtom);
+    if(op_result::OK!=res)
+      return res;
 
-    /*!
-     * \brief WriteAtom writes Atom's raw binary data
-     * \param nAtom absolute address of the Atom
-     * \param nAtomType atom type to be written
-     * \param wbuf data bufer
-     * \return read operation result (OK or an error)
-     */
+    //check the atom CRC:
+    const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
+    const char *pData=(const char*)pAtom + sizeof(struct atom_header); //&pAtom->data_begin;
+    nAtomType=static_cast<typeHatsAtom>(pAtom->type);
 
-    op_result WriteAtom(unsigned int nAtom, typeHatsAtom nAtomType, CFIFO &wbuf);
+    uint16_t calc_crc=getcrc((char*)pAtom, dlen+sizeof(atom_header) );
+    uint16_t *pCRC=(uint16_t*)(pData+dlen);
+    if(calc_crc!=*pCRC)
+      return atom_is_corrupted;
+
+    //fill the output variables:
+    for(int i=0; i<dlen; i++)
+      {
+        rbuf<<pData[i];
+      }
+    return op_result::OK;
+  }
+
+  /*!
+   * \brief WriteAtom writes Atom's raw binary data
+   * \param nAtom absolute address of the Atom
+   * \param nAtomType atom type to be written
+   * \param wbuf data bufer
+   * \return read operation result (OK or an error)
+   */
+  op_result WriteAtom(unsigned int nAtom, typeHatsAtom nAtomType, CFIFO &wbuf)
+  {
+    if(OK!=m_StorageState)
+      return m_StorageState;
+
+
+    struct atom_header *pAtom;
+
+    unsigned int nAtomsCount=GetAtomsCount();
+    if(nAtom>nAtomsCount)
+      return op_result::atom_not_found;
+
+    bool bAddingNew=(nAtom==nAtomsCount);
+
+
+    const char *pMemBuf=GetMemBuf();
+    op_result res=FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
+    if(bAddingNew)
+      {
+        if(op_result::atom_not_found!=res)
+          return res;
+      }
+    else if(op_result::OK!=res)
+      return res;
+
+
+    //what can happaned here...if atom is not found this is ok, we can write a new one
+    //the problem can be if whole storage is corrupted...
+    //should we check it at the beginning?
+    //lets assume the storage is OK: FindAtomHeader can check the header, not each atom...
+    unsigned int req_size=wbuf.size();
+    int nMemAdjustVal;
+    if(bAddingNew)
+      {
+        nMemAdjustVal=req_size+sizeof(atom_header)+2;
+        AdjustMemBuf((const char*)pAtom, nMemAdjustVal); //completely new
+      }
+    else
+      {
+        int dlen=pAtom->dlen-2;
+        nMemAdjustVal=(int)(req_size - dlen);
+        AdjustMemBuf((char*)pAtom+sizeof(struct atom_header), nMemAdjustVal); //keep header
+      }
+
+
+    //will it be the same address after realocation?!
+    //if not have to repeat Finding procedure...
+    if(GetMemBuf()!=pMemBuf)
+      {
+        pMemBuf=GetMemBuf();
+        FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
+      }
+
+    //after adjustion, fill the atom struct:
+    pAtom->type=static_cast<uint16_t>(nAtomType);
+    pAtom->count=nAtom; //also zero-based atom count
+    pAtom->dlen=req_size+2;
+    char *pData=(char*)pAtom+sizeof(struct atom_header);
+    uint16_t *pCRC=(uint16_t*)(pData+req_size);
+    for(unsigned int i=0; i<req_size; i++)
+      {
+        pData[i]=wbuf[i];
+      }
+    *pCRC=getcrc((char*)pAtom, req_size+sizeof(struct atom_header)); //set CRC stamp, atom is ready
+
+    ((struct header_t *)(pMemBuf))->eeplen+=nMemAdjustVal;
+    if(bAddingNew)
+      {
+        //also setup the header with the new data:
+        ((struct header_t *)(pMemBuf))->numatoms=nAtom+1;
+      }
+
+    return op_result::OK;
+  }
 
 public:
 
-    /*!
-     * \brief Returns the total atoms count
-     * \return
-     */
-    unsigned int GetAtomsCount();
+  /*!
+   * \brief Returns the total atoms count
+   * \return
+   */
+  unsigned int GetAtomsCount()
+  {
+    struct header_t *pHeader=(struct header_t *)GetMemBuf();
+    return pHeader->numatoms;
+  }
 
-    /*!
-     * \brief Checks the image data validity
-     * \details The method must be called before performing any operations on the binary image
-     * It checks all headers and atoms validity and sets m_StorageState to "OK" on success
-     * If you are working on empty image Reset() must be called instead
-     * \return operation result: OK on success
-     */
-    op_result Verify();
+  /*!
+   * \brief Checks the image data validity
+   * \details The method must be called before performing any operations on the binary image
+   * It checks all headers and atoms validity and sets m_StorageState to "OK" on success
+   * If you are working on empty image Reset() must be called instead
+   * \return operation result: OK on success
+   */
+  op_result Verify()
+  {
+    op_result res=VerifyStorage(GetMemBuf(), GetMemBufSize());
+    m_StorageState=res;
+    return res;
+  }
 
-    /*!
-     * \brief Resets all image data to a default state(atoms count=0). Must be called when start working on empty image
-     */
-    void Reset();
+  /*!
+   * \brief Resets all image data to a default state(atoms count=0). Must be called when start working on empty image
+   */
+  void Reset()
+  {
+    SetMemBufSize(sizeof(struct header_t));
+    m_StorageState=ResetStorage(GetMemBuf(), GetMemBufSize());
+  }
 
+  /*!
+   * \brief Loads the atom of given type from the image
+   * \return operation result: OK on success
+   */
+  template <typename typeAtom>
+  op_result Load(typeAtom &atom)
+  {
+    CFIFO buf;
+    typeHatsAtom nAtomType;
+    op_result rv=ReadAtom(atom.m_index, nAtomType, buf);
+    if(op_result::OK!=rv)
+      return rv;
+    if(atom.m_type!=nAtomType)
+      return op_result::atom_is_corrupted;
+    if(!atom.load(buf))
+      return op_result::atom_is_corrupted;
 
-    /*!
-     * \brief Loads the atom of given type from the image
-     * \return operation result: OK on success
-     */
-    template <typename typeAtom>
-    op_result Load(typeAtom &atom)
-    {
-        CFIFO buf;
-        typeHatsAtom nAtomType;
-        op_result rv=ReadAtom(atom.m_index, nAtomType, buf);
-        if(op_result::OK!=rv)
-            return rv;
-        if(atom.m_type!=nAtomType)
-            return op_result::atom_is_corrupted;
-        if(!atom.load(buf))
-            return op_result::atom_is_corrupted;
+    return rv;
+  }
 
-        return rv;
-    }
+  /*!
+   * \brief Stores the atom of given type to the image
+   * \return operation result: OK on success
+   */
+  template <typename typeAtom>
+  op_result Store(typeAtom &atom)
+  {
+    if(OK!=m_StorageState)
+      return m_StorageState;
 
-    /*!
-     * \brief Stores the atom of given type to the image
-     * \return operation result: OK on success
-     */
-    template <typename typeAtom>
-    op_result Store(typeAtom &atom)
-    {
-        if(OK!=m_StorageState)
-            return m_StorageState;
-
-        CFIFO buf;
-        atom.store(buf);
-        return WriteAtom(atom.m_index, atom.m_type, buf);
-    }
+    CFIFO buf;
+    atom.store(buf);
+    return WriteAtom(atom.m_index, atom.m_type, buf);
+  }
 
 protected:
-    op_result m_StorageState=storage_isnt_verified;
+  op_result m_StorageState=storage_isnt_verified;
 
-    std::shared_ptr<CFIFO>   m_pFIFObuf;
+  std::shared_ptr<CFIFO>   m_pFIFObuf;
 
-    const char *GetMemBuf();
-    int  GetMemBufSize();
-    void SetMemBufSize(int size);
-    void AdjustMemBuf(const char *pStart, int nAdjustVal);
+  /// @name Memory control
+  /// @{
 
+  const char* GetMemBuf()
+  {
+    return m_pFIFObuf->data();
+  }
+
+  int GetMemBufSize()
+  {
+    return m_pFIFObuf->size();
+  }
+
+  void SetMemBufSize(int size)
+  {
+    m_pFIFObuf->resize(size);
+  }
+
+  void AdjustMemBuf(const char *pStart, int nAdjustVal)
+  {
+    if(0==nAdjustVal)
+      return;
+
+    int req_ind=pStart-m_pFIFObuf->data();
+    int size=GetMemBufSize();
+    if(nAdjustVal>0)    //insert
+      {
+        m_pFIFObuf->insert(req_ind, nAdjustVal, 0);
+      }
+    else                //erase
+      {
+        m_pFIFObuf->erase(req_ind, -nAdjustVal);
+      }
+  }
+
+  /// @}
+private:
+  static constexpr std::uint32_t signature{0x69502d52};
+  static constexpr unsigned char version{1};
+
+  struct atom_header {
+    uint16_t type;
+    uint16_t count;
+    uint32_t dlen;
+    // char data_begin;
+  };
+
+  op_result FindAtomHeader(unsigned int nAtom, const char *pMemBuf,
+    const int MemBufSize, struct atom_header **pHeaderBegin)
+  {
+    struct header_t *pHeader=(struct header_t *)(pMemBuf);
+    const char *pMemLimit=(pMemBuf+MemBufSize);
+
+    op_result rv=op_result::OK;
+
+    //check if nAtom fits the boundares:
+    if(nAtom>=pHeader->numatoms)
+      {
+        nAtom=pHeader->numatoms;
+        rv=op_result::atom_not_found;
+      }
+
+    const char *pAtomPtr=(pMemBuf+sizeof (struct header_t));
+    for(int i=0; i<nAtom; i++)
+      {
+        pAtomPtr+=(sizeof(struct atom_header) + ((struct atom_header *)pAtomPtr)->dlen);
+        if(pAtomPtr>pMemLimit)
+          {
+            //return memory violation
+            return op_result::storage_is_corrupted;
+          }
+      }
+
+    *pHeaderBegin=(struct atom_header *)pAtomPtr;  //always return the pointer to the next atom or at least where it should be...
+    return rv;
+  }
+
+  op_result VerifyAtom(struct atom_header *pAtom)
+  {
+    //check the atom CRC:
+    const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
+    const char *pData=(const char*)pAtom + sizeof(struct atom_header);
+
+    uint16_t calc_crc=getcrc((char*)pAtom, dlen+sizeof(atom_header) );
+    uint16_t *pCRC=(uint16_t*)(pData+dlen);
+    if(calc_crc!=*pCRC)
+      return op_result::atom_is_corrupted;
+
+    return op_result::OK;
+  }
+
+  op_result VerifyStorage(const char *pMemBuf, const int MemBufSize)
+  {
+    if(MemBufSize<sizeof(struct header_t))
+      return op_result::storage_is_corrupted;
+
+    struct header_t *pHeader=(struct header_t *)(pMemBuf);
+    const char *pMemLimit=(pMemBuf+MemBufSize);
+
+    if(signature!=pHeader->signature || version!=pHeader->ver || pHeader->res!=0 || pHeader->eeplen>MemBufSize)
+      return  op_result::storage_is_corrupted;
+
+    //verify all atoms:
+    int nAtoms=pHeader->numatoms;
+    const char *pAtomPtr=(pMemBuf+sizeof (struct header_t));
+    for(int i=0; i<nAtoms; i++)
+      {
+        op_result res=VerifyAtom( (struct atom_header *)pAtomPtr );
+        if(op_result::OK!=res)
+          return res;
+        pAtomPtr+=(sizeof(struct atom_header) + ((struct atom_header *)pAtomPtr)->dlen);
+        if(pAtomPtr>pMemLimit)
+          {
+            //return memory violation
+            return op_result::storage_is_corrupted;
+          }
+      }
+    return op_result::OK;
+  }
+
+  op_result ResetStorage(const char *pMemBuf, const int MemBufSize)
+  {
+    if(MemBufSize<sizeof(struct header_t))
+      return op_result::storage_is_corrupted;
+
+    struct header_t *pHeader=(struct header_t *)(pMemBuf);
+
+    pHeader->signature=signature;
+    pHeader->ver=version;
+    pHeader->res=0;
+    pHeader->numatoms=0;
+    pHeader->eeplen=sizeof(struct header_t);
+    return op_result::OK;
+  }
 };
+
+#endif  // PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
