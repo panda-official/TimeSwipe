@@ -148,16 +148,12 @@ function(panda_add_common_library)
     SyncCom.h
     cmd.h
     frm_stream.h
-    std_port.cpp
     std_port.h
     )
   list(TRANSFORM common_src PREPEND src/common/)
-  # FIXME: common should be header-only
-  add_library(common OBJECT ${common_src})
-  # add_library(common INTERFACE)
-  target_link_libraries(common PUBLIC 3rdparty_HATS_EEPROM)
-  #target_include_directories(common BEFORE INTERFACE
-  target_include_directories(common BEFORE PUBLIC
+  add_library(common INTERFACE)
+  target_link_libraries(common INTERFACE 3rdparty_HATS_EEPROM)
+  target_include_directories(common BEFORE INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/common>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src/common>
     )

@@ -1,130 +1,198 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
 
-/*!
-*   \file
-*   \brief A basic Port class implementing simple ANSI text protocol (see CommunicationProtocol.md)
-*   CStdPort
-*
-*
-*/
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-#pragma once
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-#include "cmd.h"
-#include "Serial.h"
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-/*!
- * \brief A basic Port class implementing simple ANSI text protocol (see CommunicationProtocol.md)
- *
- * \details All commands and data are presented as text in a human-readable format.
- *  The message must ended with a termination character (new line by default)
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * @file
+ * A basic Port that implements simple text protocol described in
+ * CommunicationProtocol.md.
  */
 
-class CStdPort : public ISerialEvent
-{
+#ifndef PANDA_TIMESWIPE_COMMON_STD_PORT_HPP
+#define PANDA_TIMESWIPE_COMMON_STD_PORT_HPP
+
+#include "cmd.h"
+#include "frm_stream.h"
+#include "Serial.h"
+
+/**
+ * @brief An implementation of simple text protocol described in
+ * CommunicationProtocol.md.
+ *
+ * All the commands and data are presented as text in a human-readable format.
+ * The message must be ended with a termination character (`\n` by default).
+ */
+class CStdPort : public ISerialEvent {
 protected:
+  /// A pointer to a  serial device used for communication
+  std::shared_ptr<CSerial> m_pBus;
 
-    /*!
-     * \brief A pointer to a  serial device used for communication
-     */
-    std::shared_ptr<CSerial> m_pBus;
+  /// A pointer to a command dispatcher object.
+  std::shared_ptr<CCmdDispatcher> m_pDisp;
 
-    /*!
-     * \brief A pointer to a command dispatcher object
-     */
-    std::shared_ptr<CCmdDispatcher> m_pDisp;
+  /// An information about command call and its parameters in protocol-independent form.
+  CCmdCallDescr m_CallDescr;
 
-    /*!
-     * \brief An information about command call and its parameters in protocol-independent form
-     */
-    CCmdCallDescr           m_CallDescr;
+  /// A FIFO buffer to receive incoming request message.
+  CFIFO m_In;
 
-    /*!
-     * \brief A FIFO buffer to receive incoming request message
-     */
-    CFIFO      m_In;
+  /// A FIFO buffer to form an output message.
+  CFIFO m_Out;
 
-    /*!
-     * \brief A FIFO buffer to form an output message
-     */
-    CFIFO      m_Out;
+  /// Shall we automatically remove spaces from the input stream? This variable controlled automatically.
+  bool m_bTrimming=true;
 
-    //simple parser:
+  /// A Finite State Machine (FSM) used to parse incoming stream.
+  enum FSM {
+    proc_cmd,           //!<processing a command
+    proc_function,      //!<waiting for a function type character: '<'="set", '>'="get"
+    proc_args,          //!<processing command arguments
+    err_protocol        //!<an error happened during processing an incoming request
+  };
 
-    /*!
-     * \brief Shall we automatically remove spaces from the input stream? This variable controlled automatically.
-     */
-    bool    m_bTrimming=true;
+  /// Holds a current state of the parser FSM.
+  FSM m_PState=FSM::proc_cmd;
 
-    //! A Finite State Machine (FSM) used to parse incoming stream
-    enum    FSM{
+  /**
+   * @brief Main parser function, called from on_rec_char
+   *
+   * @param ch Incoming character.
+   */
+  void parser(typeSChar ch)
+  {
+    if(m_bTrimming) {
+      if(' '==ch)
+        return;
 
-        proc_cmd,           //!<processing a command
-        proc_function,      //!<waiting for a function type character: '<'="set", '>'="get"
-        proc_args,          //!<processing command arguments
+      m_bTrimming=false;
+    }
 
-        err_protocol        //!<an error happened during processing an incoming request
-    };
+    if(TERM_CHAR==ch) {
+      typeCRes cres;
 
-    /*!
-     * \brief Holds a current state of the parser FSM
-     */
-    FSM    m_PState=FSM::proc_cmd;
+      //preparing streams:
+      CFrmStream in(&m_In);
+      CFrmStream out(&m_Out);
 
-    /*!
-     * \brief Main parser function, called from on_rec_char
-     * \param ch incoming character
-     */
-    void parser(typeSChar ch);
+      try {
+        if(proc_args!=m_PState)
+          throw CCmdException("protocol_error!");
 
-    /*!
-     * \brief Reset the port: buffers, FSM and m_CallDescr
-     */
-    void reset()
-    {
+        //call:
+        m_CallDescr.m_pIn=&in;
+        m_CallDescr.m_pOut=&out;
+        m_CallDescr.m_bThrowExcptOnErr=true;
+        cres=m_pDisp->Call(m_CallDescr);
+
+      } catch(const std::exception& ex) {
+        out<<"!"<<ex.what();
+      }
+
+      //send data:
+      /*if(typeCRes::OK!=cres) switch(cres){
+
+        case typeCRes::parse_err:           out<<"!parse_err!";       break;
+        case typeCRes::obj_not_found:       out<<"!obj_not_found!";   break;
+        case typeCRes::fget_not_supported:  out<<"!>_not_supported!";  break;
+        case typeCRes::fset_not_supported:  out<<"!<_not_supported!";  break;
+        }*/
+      m_Out<<TERM_CHAR;
+      m_pBus->send(m_Out);
+
+      //reset:
+      reset();
+      return; //!!!!
+    }
+
+    switch(m_PState) {
+    case proc_cmd:
+      if(' '==ch || '<'==ch || '>'==ch) {
+        m_PState=proc_function;
         m_bTrimming=true;
-        m_PState=FSM::proc_cmd;
-        m_CallDescr.m_strCommand.clear();
-        m_In.reset();
-        m_Out.reset();
-    }
-
-public:
-
-    /*!
-     * \brief Termination character used(default is "new line" )
-     */
-    static const int TERM_CHAR='\n';
-
-    /*!
-     * \brief "A new character has been received in a FIFO buffer of a serial device" - reimplemented ISerialEvent::on_rec_char
-     * called by a Serial device
-     * \param ch
-     */
-    void on_rec_char(typeSChar ch) override
-    {
         parser(ch);
+        return;
+      }
+      m_CallDescr.m_strCommand+=ch;
+      return;
+
+    case proc_function:
+      if('>'==ch) { //get
+        m_CallDescr.m_ctype=CCmdCallDescr::ctype::ctGet;
+        m_PState=proc_args;
+        m_bTrimming=true;
+      } else if('<'==ch) { //set
+        m_CallDescr.m_ctype=CCmdCallDescr::ctype::ctSet;
+        m_PState=proc_args;
+        m_bTrimming=true;
+      } else {
+        //format error: no function
+        //parser(TERM_CHAR);
+        m_PState=err_protocol;
+      }
+      return;
+
+    case proc_args:
+      m_In<<ch;
+      return;
     }
+  }
+
+  /// Resets the port: buffers, FSM and m_CallDescr.
+  void reset()
+  {
+    m_bTrimming=true;
+    m_PState=FSM::proc_cmd;
+    m_CallDescr.m_strCommand.clear();
+    m_In.reset();
+    m_Out.reset();
+  }
+
 public:
+  /// Termination character used (default is `\n`).
+  static const int TERM_CHAR='\n';
 
-    /*!
-     * \brief CStdPort Constructor
-     * \param pDisp A pointer to a command dispatcher
-     * \param pBus A pointer to a serial device that provides ISerial for sending response messages and ISerialEvent callback interface
-     *  for listening incoming characters
-     */
-    CStdPort(const std::shared_ptr<CCmdDispatcher> &pDisp, const std::shared_ptr<CSerial> &pBus)
-    {
-        m_pDisp=pDisp;
-        m_pBus=pBus;
+  /**
+   * @brief Callback that is called when a new character has been received in
+   * a FIFO buffer of a serial device.
+   *
+   * @param ch Character received.
+   */
+  void on_rec_char(typeSChar ch) override
+  {
+    parser(ch);
+  }
 
-        m_In.reserve(1024);
-        m_Out.reserve(1024);
-    }
+public:
+  /**
+   * @brief The constructor.
+   *
+   * @param pDisp A pointer to a command dispatcher.
+   * @param pBus A pointer to a serial device that provides ISerial for sending
+   * response messages and ISerialEvent callback interface for listening incoming
+   * characters.
+   */
+  CStdPort(const std::shared_ptr<CCmdDispatcher> &pDisp, const std::shared_ptr<CSerial> &pBus)
+  {
+    m_pDisp=pDisp;
+    m_pBus=pBus;
 
+    m_In.reserve(1024);
+    m_Out.reserve(1024);
+  }
 };
+
+#endif  // PANDA_TIMESWIPE_COMMON_STD_PORT_HPP
