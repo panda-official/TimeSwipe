@@ -16,20 +16,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * @file
+ * Basic serial data types and interfaces.
+ */
+
 #ifndef PANDA_TIMESWIPE_COMMON_SERIAL_HPP
 #define PANDA_TIMESWIPE_COMMON_SERIAL_HPP
 
 #include <memory>
 #include <string>
 #include <vector>
-
-/*!
-*   @file
-*   @brief A definition file for basic serial data types and interfaces:
-*   CFIFO, ISerial, ISerialEvent, CSerial
-*
-*/
-
 
 typedef int typeSChar;
 

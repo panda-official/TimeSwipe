@@ -16,14 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * @file
+ * Basic button event interfaces.
+ */
+
 #ifndef PANDA_TIMESWIPE_COMMON_BUTTON_HPP
 #define PANDA_TIMESWIPE_COMMON_BUTTON_HPP
-
-/*!
-*   @file
-*   @brief A definition file for basic button event interface CButtonEvent
-*
-*/
 
 /*!
  * \brief The enumeration of possible button states

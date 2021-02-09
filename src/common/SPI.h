@@ -16,14 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * @file
+ * Common stuff of all Serial Peripheral Interface (SPI) devices.
+ */
+
 #ifndef PANDA_TIMESWIPE_COMMON_SPI_HPP
 #define PANDA_TIMESWIPE_COMMON_SPI_HPP
-
-/*!
-*   @file
-*   @brief A definition file for SPI(Serial Peripheral Interface) CSPI class - basic class for all SPI devices
-*
-*/
 
 #include "Serial.h"
 

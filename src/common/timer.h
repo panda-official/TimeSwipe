@@ -16,15 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * @file
+ * Basic timer event interfaces
+ */
+
 #ifndef PANDA_TIMESWIPE_COMMON_TIMER_HPP
 #define PANDA_TIMESWIPE_COMMON_TIMER_HPP
-
-/*!
-*   @file
-*   @brief A definition file for basic timer event interface CTimerEvent
-*
-*/
-
 
 /*!
  * \brief A callback interface used to notify the derived class that a timer event happened

@@ -16,17 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * @file
+ * Basic storage class and object serialization interface
+ */
+
 #ifndef PANDA_TIMESWIPE_COMMON_STORAGE_HPP
 #define PANDA_TIMESWIPE_COMMON_STORAGE_HPP
 
 #include <typeinfo>
-
-/*!
-*   @file
-*   @brief A definition file for basic storage class and object serialization interface:
-*   CStorage, ISerialize
-*
-*/
 
 /*!
  * \brief   The base class defining an interface for a persistent data storage

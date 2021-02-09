@@ -16,17 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+* @file
+* PWM stuff.
+*/
+
 #ifndef PANDA_TIMESWIPE_COMMON_PWM_HPP
 #define PANDA_TIMESWIPE_COMMON_PWM_HPP
 
 #include "os.h"
-
-/*!
-*   @file
-*   @brief A definition file for basic PWM interface:
-*   CPWM
-*
-*/
 
 /*!
  * \brief The PWM base class
