@@ -474,12 +474,6 @@ if(PANDA_BUILD_TESTS)
   set(driver_tests datlog pwm rpispi)
   set(firmware_tests button_event)
 
-  # Set the include directories per software.
-  # FIXME: the best way to consume this stuff is target_link_libraries().
-  set(driver_tests_include_directories
-    src/driver/RaspberryPi
-    )
-
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
   set(firmware_tests_link_libraries firmware)
@@ -507,8 +501,6 @@ if(PANDA_BUILD_TESTS)
       LINKER_LANGUAGE "CXX"
       POSITION_INDEPENDENT_CODE True
       DEBUG_POSTFIX "d")
-    target_include_directories(${exe} PUBLIC
-      ${${software}_tests_include_directories})
     target_link_libraries(${exe} PRIVATE common
       ${${software}_tests_link_libraries} ${${test}_link_libraries})
     panda_target_compile_options(${exe})
