@@ -115,7 +115,7 @@ public:
          * \param b a simbol to be inserted according to FIFO order
          * \return reference to this
          */
-        inline CFIFOlt & operator <<(typeSChar b)
+        CFIFOlt& operator<<(typeSChar b)
         {
                 if(m_WriteInd>=nBufSize)
                 {
@@ -131,7 +131,7 @@ public:
          * \return reference to this
          */
 
-        inline CFIFOlt & operator >>(typeSChar &b)
+        CFIFOlt& operator>>(typeSChar &b)
         {
                 b=m_pBuf[m_ReadInd++];
                 return *this;
@@ -143,7 +143,7 @@ public:
          *  processing speed is not critical and immideatly free this buffer for receiving a new incoming data
          * \param dest A buffer to pass the received data
          */
-        inline void dumpres(CFIFOlt &dest)
+        void dumpres(CFIFOlt& dest)
         {
             char *pNewBuf=dest.m_pBuf;
             dest.m_pBuf=m_pBuf;
@@ -158,17 +158,17 @@ public:
          * \brief how many elements are available in the FIFO buffer?
          * \return the number of available elements.
          */
-        inline int in_avail() const { return m_WriteInd-m_ReadInd; }
+        int in_avail() const { return m_WriteInd-m_ReadInd; }
 
         /*!
          * \brief remove all elements from the buffer
          */
-        inline void reset() { m_WriteInd=0; m_ReadInd=0; }
+        void reset() { m_WriteInd=0; m_ReadInd=0; }
 
         /*!
          * \brief restore all elements that have been exctracted form the bufer by >> extraction operator
          */
-        inline void rewind(){ m_ReadInd=0; }
+        void rewind(){ m_ReadInd=0; }
 };
 
 

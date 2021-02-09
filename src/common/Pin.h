@@ -71,7 +71,7 @@ public:
      * \brief Sets logic state of the pin. May differ from actual output level (see SetInvertedBehaviour() )
      * \param bHow - the logical state to be set
      */
-    inline void Set(bool bHow)
+    void Set(bool bHow)
     {
         impl_Set(m_bInvertedBehaviour ? !bHow:bHow);
 
@@ -83,7 +83,7 @@ public:
      * \brief Reads back set logical state of the pin
      * \return set logical value of the pin
      */
-    inline bool RbSet()
+    bool RbSet()
     {
         bool rv=impl_RbSet();
         return m_bInvertedBehaviour ? !rv:rv;
@@ -93,7 +93,7 @@ public:
      * \brief Returns measured logic state when pin acts as an input. May differ from actual output level (see SetInvertedBehaviour() )
      * \return measured logical value of the pin
      */
-    inline bool Get()
+    bool Get()
     {
         bool rv=impl_Get();
         return m_bInvertedBehaviour ? !rv:rv;
@@ -105,7 +105,7 @@ public:
      * Inverted behaviour: logical true=low output level(0), logical false=high output level(1)
      * \param how - true=inverted behaviour, false=normal behaviour (default)
      */
-    inline void SetInvertedBehaviour(bool how)
+    void SetInvertedBehaviour(bool how)
     {
         m_bInvertedBehaviour=how;
     }
@@ -115,7 +115,7 @@ public:
      * \details Usually pin output level does not change immediately but some short time is required to wait for the level rise or fall
      * \param nSetupTime_uS - the setup time in uS
      */
-    inline void SetPinSetupTime(unsigned long nSetupTime_uS)
+    void SetPinSetupTime(unsigned long nSetupTime_uS)
     {
         m_SetupTime_uS=nSetupTime_uS;
     }
