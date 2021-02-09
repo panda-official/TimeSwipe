@@ -26,7 +26,6 @@
 
 #include "frm_stream.h"
 
-#include <cstring>
 #include <map>
 #include <memory>
 #include <string>
@@ -96,19 +95,16 @@ typedef  CCmdCallDescr::cres typeCRes;
 /// A command execution exception
 class CCmdException : public std::exception {
 protected:
-  /// Buffer for holding error text description.
-  char m_descr[64];
+  std::string what_;
 
 public:
-  explicit CCmdException(const char* pDescr)
-  {
-    /// FIXME: use std::string
-    strcpy(m_descr, pDescr);
-  }
+  explicit CCmdException(std::string what)
+    : what_{std::move(what)}
+  {}
 
   const char* what() const noexcept override
   {
-    return m_descr;
+    return what_.data();
   }
 };
 
