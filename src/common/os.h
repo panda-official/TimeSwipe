@@ -16,15 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * @file
+ * An operating system interface.
+ */
+
 #ifndef PANDA_TIMESWIPE_COMMON_OS_HPP
 #define PANDA_TIMESWIPE_COMMON_OS_HPP
-
-/*!
-*   @file
-*   @brief A definition file for operating system interface ::os
-*
-*/
-
 
 /*!
  *  \brief an operating system interface namespace
