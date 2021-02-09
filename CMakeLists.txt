@@ -146,7 +146,6 @@ function(panda_add_common_library)
     timer.h
 
     SyncCom.h
-    cmd.cpp
     cmd.h
     frm_stream.cpp
     frm_stream.h
