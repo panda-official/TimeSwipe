@@ -147,7 +147,6 @@ function(panda_add_common_library)
 
     SyncCom.h
     cmd.h
-    frm_stream.cpp
     frm_stream.h
     std_port.cpp
     std_port.h
