@@ -1,5 +1,4 @@
 #include "board.hpp"
-#include "defs.h"
 #include <nlohmann/json.hpp>
 
 // RPI GPIO FUNCTIONS
@@ -91,7 +90,7 @@ void sleep8ns()
 
 unsigned int readAllGPIO()
 {
-    return (*(gpio + 13) & ALL_32_BITS_ON); 
+    return (*(gpio + 13) & ALL_32_BITS_ON);
 }
 
 static std::mutex boardMtx;
@@ -100,9 +99,7 @@ std::list<TimeSwipeEvent> readBoardEvents()
 {
     std::list<TimeSwipeEvent> events;
     std::lock_guard<std::mutex> lock(boardMtx);
-#if NOT_RPI
-    return events;
-#endif
+#ifndef PANDA_BUILD_FIRMWARE_EMU
     std::string data;
     if (BoardInterface::get()->getEvents(data) && !data.empty()) {
         if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
@@ -155,47 +152,53 @@ std::list<TimeSwipeEvent> readBoardEvents()
             std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
         }
     }
+#endif
     return events;
 }
 
 std::string readBoardGetSettings(const std::string& request, std::string& error) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     return request;
-#endif
+#else
     return BoardInterface::get()->getGetSettings(request, error);
+#endif
 }
 
 std::string readBoardSetSettings(const std::string& request, std::string& error) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     return request;
-#endif
+#else
     return BoardInterface::get()->getSetSettings(request, error);
+#endif
 }
 
 bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     return false;
-#endif
+#else
     return BoardInterface::get()->startPWM(num, frequency, high, low, repeats, duty_cycle);
+#endif
 }
 
 bool BoardStopPWM(uint8_t num) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     return false;
-#endif
+#else
     return BoardInterface::get()->stopPWM(num);
+#endif
 }
 
 bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     return false;
-#endif
+#else
     return BoardInterface::get()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);
+#endif
 }
 
 void BoardTraceSPI(bool val) {

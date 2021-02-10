@@ -1,6 +1,5 @@
 #include "reader.hpp"
-#include "defs.h"
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
 #include <math.h>
 #endif
 
@@ -124,7 +123,7 @@ struct RecordReader
     std::array<float, 4> transmission = {1.0, 1.0, 1.0, 1.0};
     std::array<float, 4> mfactor;
 
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     std::chrono::steady_clock::time_point emulPointBegin;
     std::chrono::steady_clock::time_point emulPointEnd;
     uint64_t emulSent = 0;
@@ -134,9 +133,7 @@ struct RecordReader
     // read records from hardware buffer
     SensorsData read()
     {
-#if NOT_RPI
-        return readEmulated();
-#endif
+#ifndef PANDA_BUILD_FIRMWARE_EMU
         SensorsData out;
         out.reserve(lastRead*2);
         int lastTCO;
@@ -184,6 +181,9 @@ struct RecordReader
 
         lastRead = out.DataSize();
         return out;
+#else
+        return readEmulated();
+#endif
     }
 
     void waitForPiOk()
@@ -194,10 +194,9 @@ struct RecordReader
 
     void setup()
     {
-#if NOT_RPI
-        return;
-#endif
+#ifndef PANDA_BUILD_FIRMWARE_EMU
         setup_io();
+#endif
     }
 
     void start()
@@ -206,23 +205,22 @@ struct RecordReader
         {
             mfactor[i] = gain[i] * transmission[i];
         }
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
         emulPointBegin = std::chrono::steady_clock::now();
         emulSent = 0;
-        return;
-#endif
+#else
         init(mode);
+#endif
     }
 
     void stop()
     {
-#if NOT_RPI
-        return;
+#ifndef PANDA_BUILD_FIRMWARE_EMU
+      shutdown();
 #endif
-        shutdown();
     }
 
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     double angle = 0.0;
     SensorsData readEmulated()
     {

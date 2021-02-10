@@ -11,7 +11,6 @@
 #include "timeswipe_eeprom.hpp"
 #include "timeswipe_resampler.hpp"
 #include "pidfile.hpp"
-#include "defs.h"
 
 bool TimeSwipe::resample_log = false;
 
@@ -90,7 +89,7 @@ private:
     void _pollerLoop(TimeSwipe::ReadCallback cb);
     void _spiLoop();
     void _receiveEvents();
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     int emulButtonPressed = 0;
     int emulButtonSent = 0;
     void _emulLoop();
@@ -208,7 +207,7 @@ bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb) {
     _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_fetcherLoop, this)));
     _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_pollerLoop, this, cb)));
     _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_spiLoop, this)));
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     _serviceThreads.push_back(std::thread(std::bind(&TimeSwipeImpl::_emulLoop, this)));
 #endif
 
@@ -272,16 +271,15 @@ bool TimeSwipeImpl::_isStarted() {
 }
 
 void TimeSwipeImpl::_receiveEvents() {
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     if (emulButtonSent < emulButtonPressed) {
         TimeSwipeEvent::Button btn(true, emulButtonPressed);
         emulButtonSent = emulButtonPressed;
         _events.push(btn);
     }
 #else
-    for (auto&& event: readBoardEvents()) {
+    for (auto&& event: readBoardEvents())
         _events.push(event);
-    }
 #endif
 }
 
@@ -446,7 +444,7 @@ void TimeSwipeImpl::_pollerLoop(TimeSwipe::ReadCallback cb) {
     }
 }
 
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
 void TimeSwipeImpl::_emulLoop() {
     emulButtonPressed = 0;
     emulButtonSent = 0;

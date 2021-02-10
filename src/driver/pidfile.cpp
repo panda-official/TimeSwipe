@@ -1,5 +1,4 @@
 #include "pidfile.hpp"
-#include "defs.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -12,7 +11,7 @@
 
 PidFile::PidFile(const std::string& name)
 : fname (name) {
-#if NOT_RPI
+#ifdef PANDA_BUILD_FIRMWARE_EMU
     fname = std::string("./") + name + std::string(".pid");
 #else
     fname = std::string("/var/run/") + name + std::string(".pid");
