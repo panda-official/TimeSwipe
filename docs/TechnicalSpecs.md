@@ -16,7 +16,7 @@ The combined gain can be set via JSON commands in firmware.
 |1st gain stage|2nd gain stage|Fixed gain by filter|Combined gain|
 |:-------------|:-------------|:-------------------|:------------|
 | 1            | 0.125        | 1.8                | 0.225       |
-| 1.375        | 0.125        | 1.8                | 0.310       |
+| 1.375        | 0.125        | 1.8                | 0.309       |
 | 1            | 0.25         | 1.8                | 0.450       |
 | 1.375        | 0.25         | 1.8                | 0.619       |
 | 1            | 0.5          | 1.8                | 0.900       |
