@@ -10,7 +10,6 @@ ADC channel 1. This way access points forms a hierarchical *data model*.
 
 ## Access points
 
-
 ### AOUT access point
 
 By default, the input signal amplifier outputs connected to board's analog outputs.
@@ -20,95 +19,90 @@ The mode is activated by setting `AOUT` to `1`. Amplifier outputs `#3` and `#4` 
 be disconnected and replaced by internal 2-channel DAC output. To control analog output
 values `#3` and `#4` in this mode additional access points are presented.
 
-|Domain         |Description                                            |Valid values  |Access|
-|:--------------|:------------------------------------------------------|:-------------|:-----|
-|`AOUT3`/`AOUT4`|Globally enables/disables the analog output mode       |bool          |r/w   |
-|.raw           |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |
-
-### PWM access point
-
-This access point is used to control board's `AOUT3` and `AOUT4` PWMs. 
-
-|Domain       |Description                            |Valid values                           |Access|
-|:------------|:--------------------------------------|:--------------------------------------|:-----|
-|`PWM1`/`PWM2`|Holds the PWMx ON/OFF state.           |bool                                   |r/w   |
-|.repeats     |Holds a number of periods to generate. |unsigned `[0,0xffffffff]`, `0`=Infinite|r/w   |
-|.duty        |Holds the PWM duty cycle (pulse width).|float `[0.001,0.999]`                  |r/w   |
-|.freq        |Holds a frequency to generate.         |unsigned `[1,1000]`                    |r/w   |
-|.high        |Holds the high PWM output level.       |unsigned `[0,4095]`                    |r/w   |
-|.low         |Holds the low PWM output level.        |unsigned `[0,4095]`                    |r/w   |
+|Domain         |Description                                            |Valid values                           |Access|
+|:--------------|:------------------------------------------------------|:--------------------------------------|:-----|
+|`AOUT3`/`AOUT4`|Globally enables/disables the analog output mode.      |bool                                   |r/w   |
+|.raw           |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`                         |r/w   |
+|.pwm.repeats   |Holds a number of periods to generate.                 |unsigned `[0,0xffffffff]`, `0`=Infinite|r/w   |
+|.pwm.duty      |Holds the PWM duty cycle (pulse width).                |float `[0.001,0.999]`                  |r/w   |
+|.pwm.freq      |Holds a frequency to generate.                         |unsigned `[1,1000]`                    |r/w   |
+|.pwm.high      |Holds the high PWM output level.                       |unsigned `[0,4095]`                    |r/w   |
+|.pwm.low       |Holds the low PWM output level.                        |unsigned `[0,4095]`                    |r/w   |
 
 ### CH access point
 
-This access point is used to control board's channel. 
+This access point is used to control board's channel.
 
-|Domain     |Description                                   |Valid values                               |Access|
-|:----------|:---------------------------------------------|:------------------------------------------|:-----|
-|`CH1`-`CH4`|Can be used only with a sub-domain.           |                                           |      |
-|.mode      |Measurement mode of the channel.              |`0` = Voltage mode, `1` = Current mode     |r/w   |
-|.gain      |Gain setting of the channel.                  |float `[0.225, 316.8]` See [Gain Table]    |r/w   |
-|.iepe      |State of IEPE switch of the channel.          |bool                                       |r/w   |
-|.offset    |Offset Setting of the channel                 |unsigned `[0,4095]`                        |r/w   |
-|.armadc    |Raw value of the 12bit ARM ADC                |unsigned `[0,4095]`                        |r     |
+|Domain     |Description                                   |Valid values                                              |Access|
+|:----------|:---------------------------------------------|:---------------------------------------------------------|:-----|
+|`CH1`-`CH4`|Can be used only with a sub-domain.           |                                                          |      |
+|.mode      |Measurement mode of the channel.              |`0` = Voltage mode, `1` = Current mode                    |r/w   |
+|.gain      |Gain setting of the channel.                  |float `[0.225, 316.8]` See [Gain Table](TechnicalSpecs.md#gain-settings)|r/w   |
+|.iepe      |State of IEPE switch of the channel.          |bool                                                      |r/w   |
+|.offset    |Offset Setting of the channel                 |unsigned `[0,4095]`                                       |r/w   |
+|.armadc    |Raw value of the 12bit ARM ADC                |unsigned `[0,4095]`                                       |r     |
 
-.mode, .gain, .iepe and .offset access point is only available since TimeSwipe 1.0 board.
+The `.mode`, `.gain`, `.iepe` and `.offset` access points are only available in
+TimeSwipe 1.0+ boards.
 
 ### Fan access point
 
 This access point is used to control board's Fan output.
 
-|Domain|Description                                |Valid values                               |Access|
-|:-----|:------------------------------------------|:------------------------------------------|:-----|
-|`Fan` |Enables or disables Fan globally.          |bool                                       |r/w   |
-|.duty |Fan PWM duty cycle (pulse width).          |float `[.001,.999]`                        |r     |
-|.freq |Fan PWM frequency.                         |unsigned `[1,20000]`                       |r/w   |
+|Domain|Description                                |Valid values           |Access|
+|:-----|:------------------------------------------|:----------------------|:-----|
+|`Fan` |Enables or disables Fan globally.          |bool                   |r/w   |
+|.duty |Fan PWM duty cycle (pulse width).          |float `[.001,.999]`    |r     |
+|.freq |Fan PWM frequency.                         |unsigned `[1,20000]`   |r/w   |
 
 ### Supply access point
 
 This access point is used to control board's Supply Voltage Output.
 
-|Domain   |Description                                |Valid values                               |Access|
-|:--------|:------------------------------------------|:------------------------------------------|:-----|
-|`Supply` |Enables or disables Supply globally.       |bool                                       |r/w   |
-|.voltage |Output Voltage setting                     |float `[2.5,24]`                           |r/w   |
+|Domain   |Description                                |Valid values      |Access|
+|:--------|:------------------------------------------|:-----------------|:-----|
+|`Supply` |Enables or disables Supply globally.       |bool              |r/w   |
+|.voltage |Output Voltage setting                     |float `[2.5,24]`  |r/w   |
 
-.voltage access point is only available since TimeSwipe 1.0 board. On older boards the voltage is fixed 24VDC.
+The `.voltage` access point is only available in TimeSwipe 1.0+ boards. On older
+boards the voltage is fixed to `24VDC`.
 
 ### Access points with only root domain
 
 |Access point |Description |Valid values|Access|
 |:------------|:-----------|:-----------|:-----|
-|Record       |Writing "1" to this variable initiates/restarts a record process.|bool|r/w|
+|Record       |Writing "1" to this variable initiates/restarts a record process.|bool                                         |r/w|
 |Offset       |Starts/stops offset searching process.|int, `0`=Stop, `1`=Negative offset, `2`=Zero offset, `3`=Positive offset|r/w|
-|Offset.errtol|Holds a calibration process error tolerance value.|int|r/w|
-|EnableADmes  |Holds an ADC enabled state (ON or OFF).|bool|r/w|
-|Temp         |Holds the current core temperature of ARM Chip in degrees Celsius.|float|r|
-|ARMID		  |Holds Hardware Chip ID.|string|r|
-|fwVersion	  |Holds firmware Version in the SemVer format.|string|r|
-|CalStatus    |Holds board calibration status.|bool|r|
+|Offset.errtol|Holds a calibration process error tolerance value.|int                                                         |r/w|
+|EnableADmes  |Holds an ADC enabled state (ON or OFF).|bool                                                                   |r/w|
+|Temp         |Holds the current core temperature of ARM Chip in degrees Celsius.|float                                       |r|
+|ARMID		  |Holds Hardware Chip ID.|string                                                                                 |r|
+|fwVersion	  |Holds firmware Version in the SemVer format.|string                                                            |r|
+|CalStatus    |Holds board calibration status.|bool                                                                           |r|
 
-Following is only available on older Boards, before Timeswipe 1.0:
+The following access points are only available on older Boards prior to Timeswipe 1.0:
+
 |Access point |Description |Valid values|Access|
 |:------------|:-----------|:-----------|:-----|
 |Mode         |Sets working mode of the board.|`0` = IEPE, `1` = Normal Signal, `2` = Digital|r/w|
-|IEPE         |Enables IEPE current output globally|bool |r/w|
+|IEPE         |Enables IEPE current output globally|bool                                     |r/w|
 
 ### JSON controlled access points
 
 |Access point|Description|Valid values|Access|
 |:-----------|:----------|:-----------|:-----|
-|js          |"JSON setpoint". Writing to this variable a JSON object leads to write operation on multiple variables given in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the given variables as a JSON object.|JSON object|r/w|
-|je          |"JSON event". Holds the latest events description in form of the JSON object.|JSON object|r|
+|js          |"JSON setpoint". Writing to this variable a JSON string leads to write operation on multiple variables given in the string. The result of the operation will be returned as a JSON object (see the [protocol description](#communication-protocol)). Reading from this variable a JSON object leads to readout values from all of the given variables as a JSON object.|JSON object|r/w|
+|je          |"JSON event". Holds the latest events description as JSON.|JSON object|r|
 
 The structure of the JSON object can be arbitrary but must follow the following semantic rules:
   - when writing to a variable the format of JSON object entry should be: `{"variable" : value}`;
   - when reading from a variable it's name should be inserted to a "JSON array" type: ["variable", ...] (preferable);
   - when reading from a variable the format of JSON object entry should be: `{"variable" : "?"}` (alternative way of the above).
 
-**Note, for all JSON controlled access points: writing a request with a call of a
-JSON command inside ("js" or "je") leads to "disabled" error!**
+**Note, for all JSON controlled access points: writing a request with a call of
+a JSON command inside ("js" or "je") leads to "disabled" error!**
 
-## Communication protocols
+## Communication protocol
 
 The protocol is implemented by the board's driver over a specific SPI protocol.
 There are a number of protocols that can be used for managing data of access points.
@@ -211,13 +205,13 @@ CH2.armadc>\n
 #### Request
 
 ```
-js<{ "Gain" : 3, "Supply" : true,   "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
+js<{ "CH1.Gain" : 3, "Supply" : true, "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
 ```
 
 #### Response
 
 ```
-{"Gain" : 3, "Supply" : true,   "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
+{"CH1.Gain" : 3, "Supply" : true, "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
 ```
 
 ### 7. Read back board settings via a JSON command (preferable way)
@@ -225,13 +219,13 @@ js<{ "Gain" : 3, "Supply" : true,   "CH1.offset" : 500, "CH2.offset" : 700, "CH3
 #### Request
 
 ```
-js>[ "Gain", "Supply", "CH1.offset", "CH2.offset", "CH3.offset", "CH4.offset" ]\n
+js>[ "CH1.Gain", "Supply", "CH1.offset", "CH2.offset", "CH3.offset", "CH4.offset" ]\n
 ```
 
 #### Response
 
 ```
-{"Gain" : 3, "Supply" : true,   "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
+{"CH1.Gain" : 3, "Supply" : true, "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
 ```
 
 ### 8. Read back board settings via a JSON command (alternative way)
@@ -239,13 +233,13 @@ js>[ "Gain", "Supply", "CH1.offset", "CH2.offset", "CH3.offset", "CH4.offset" ]\
 #### Request
 
 ```
-js>{ "Gain" : "?", "Supply" : "?", "CH1.offset" : "?", "CH2.offset" : "?", "CH3.offset" : "?", "CH4.offset" : "?" }\n
+js>{ "CH1.Gain" : "?", "Supply" : "?", "CH1.offset" : "?", "CH2.offset" : "?", "CH3.offset" : "?", "CH4.offset" : "?" }\n
 ```
 
 #### Response
 
 ```
-{"Gain" : 3, "Supply" : true,   "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
+{"CH1.Gain" : 3, "Supply" : true, "CH1.offset" : 500, "CH2.offset" : 700, "CH3.offset" : 900, "CH4.offset" : 1100 }\n
 ```
 
 Note: when reading from variables with `js>` command the question marks ("?")
