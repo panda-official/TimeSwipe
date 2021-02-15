@@ -1,3 +1,5 @@
+// FIXME: this is not 3rdparty
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -67,7 +69,7 @@ struct gpio_map_d {
 };
 
 
-uint16_t getcrc(char* data, unsigned int size) {
+inline uint16_t getcrc(char* data, unsigned int size) {
 
     uint16_t out = 0;
     int bits_read = 0, bit_flag;

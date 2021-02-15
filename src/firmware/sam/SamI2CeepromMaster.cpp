@@ -480,8 +480,7 @@ int CSamI2CeepromMaster::writeB(int val)
     if(!m_pBuf)
         return -1;
 
-    if(m_bCmpReadMode){
-
+    if(m_bCmpReadMode) {
         if(0==m_pBuf->in_avail())
             return -1;
 
@@ -492,13 +491,11 @@ int CSamI2CeepromMaster::writeB(int val)
             m_MState=FSM::errCmp;
             return -1;
         }
-    }
-    else{
-
+    } else {
         if(m_pBuf->size()>=m_nReadDataCountLim) //memmory protection
             return -1;
 
         (*m_pBuf)<<val;
-        return val;
     }
+    return val;
 }
