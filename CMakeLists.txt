@@ -341,6 +341,12 @@ if(PANDA_BUILD_FIRMWARE)
 
   add_library(firmware STATIC ${firmware_src})
   target_compile_definitions(firmware PUBLIC __SAME54P20A__)
+  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+    target_compile_definitions(firmware PUBLIC CALIBRATION_STATION)
+  endif()
+  if(PANDA_BUILD_FIRMWARE_DMS)
+    target_compile_definitions(firmware PUBLIC DMS_BOARD)
+  endif()
   target_include_directories(firmware PUBLIC src/firmware)
   target_link_libraries(firmware PUBLIC
     3rdparty_Adafruit_NeoPixel
@@ -370,16 +376,9 @@ if(PANDA_BUILD_FIRMWARE)
   list(APPEND firmware_elf_src ${firmware_elf_thirdparty_src})
 
   add_executable(${target_name} ${firmware_elf_src})
-  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
-    target_compile_definitions(${target_name} PRIVATE CALIBRATION_STATION)
-  endif()
-  if(PANDA_BUILD_FIRMWARE_DMS)
-    target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
-  endif()
   target_link_libraries(${target_name} PRIVATE firmware)
 
   message(CHECK_PASS "Ready to build the ${firmware_subtype} firmware.")
-
 else()
   message(CHECK_START "Configuring the driver build.")
 
