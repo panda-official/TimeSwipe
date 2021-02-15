@@ -7,45 +7,46 @@ Copyright (c) 2019-2020 Panda Team
 
 //build for ADCs-DACs:
 
+#include "cmd.h"
 #include "os.h"
-#include "SamSPIbase.h"
-#include "SamQSPI.h"
-#include "SPIcomm.h"
+#include "std_port.h"
+#include "HatsMemMan.h"
 
-#include "I2CmemHAT.h"
-#include "I2Cmem8Pin.h"
-#include "SamI2CeepromMaster.h"
-#include "SamADCcntr.h"
-#include "SamDACcntr.h"
-#include "SamService.h"
-#include "DACmax5715.h"
-#include "DACPWMht.h"
-#include "ShiftReg.h"
-#include "PGA280.h"
+#include "base/SPIcomm.h"
+#include "sam/SamSPIbase.h"
+#include "sam/SamQSPI.h"
+
+#include "base/I2CmemHAT.h"
+#include "base/I2Cmem8Pin.h"
+#include "sam/SamI2CeepromMaster.h"
+#include "sam/SamADCcntr.h"
+#include "sam/SamDACcntr.h"
+#include "sam/SamService.h"
+
+#include "base/DACmax5715.h"
+#include "base/DACPWMht.h"
+#include "base/ShiftReg.h"
+#include "base/PGA280.h"
 
 
 //#include "menu_logic.h"
 //#include "NewMenu.h"
-#include "CalFWbtnHandler.h"
+#include "control/CalFWbtnHandler.h"
 
-#include "SAMbutton.h"
-#include "nodeLED.h"
-#include "View.h"
-#include "nodeControl.h"
-#include "zerocal_man.h"
-#include "DMSchannel.h"
+#include "base/SAMbutton.h"
+#include "led/nodeLED.h"
+#include "control/View.h"
+#include "control/nodeControl.h"
+#include "control/zerocal_man.h"
+#include "base/DMSchannel.h"
 
-#include "cmd.h"
-#include "std_port.h"
-#include "jsondisp.h"
+#include "json/jsondisp.h"
 
-#include "HatsMemMan.h"
-#include "RawBinStorage.h"
+#include "base/RawBinStorage.h"
+#include "base/FanControlSimple.h"
 
-#include "FanControlSimple.h"
-#include "SamNVMCTRL.h"
-#include "SemVer.h"
-#include "View.h"
+#include "sam/SamNVMCTRL.h"
+#include "control/SemVer.h"
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
@@ -256,7 +257,7 @@ int main(void)
                 auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
                 auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-                nc.AddMesChannel( std::make_shared<CDMSchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280) );
+                nc.AddMesChannel( std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, false) );
 #ifdef DMS_TEST_MODE
 
                 //add commands to each:
@@ -275,7 +276,7 @@ int main(void)
         {
             for(int i=0; i<nChannels; i++)
             {
-                nc.AddMesChannel( std::make_shared<CIEPEchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i)) );
+                nc.AddMesChannel( std::make_shared<CIEPEchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), false) );
             }
         }
 

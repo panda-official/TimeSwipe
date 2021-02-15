@@ -34,6 +34,9 @@ set(CMAKE_VERBOSE_MAKEFILE On CACHE BOOL
 set(PANDA_BUILD_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
+set(PANDA_BUILD_CALIBRATION_FIRMWARE Off CACHE BOOL
+  "Build calibration firmware? (Disables driver build.)")
+
 set(PANDA_BUILD_FIRMWARE_DMS On CACHE BOOL
   "Build firmware for the DMS board?")
 
@@ -42,9 +45,6 @@ set(PANDA_BUILD_FIRMWARE_EMU Off CACHE BOOL
 
 set(PANDA_BUILD_FIRMWARE_RAM_IMAGE Off CACHE BOOL
   "Build firmware as RAM image?")
-
-set(PANDA_BUILD_CALIBRATION_FIRMWARE Off CACHE BOOL
-  "Build calibration firmware?")
 
 set(BUILD_SHARED_LIBS Off CACHE BOOL
   "Build shared libraries?")
@@ -57,6 +57,10 @@ set(PANDA_BUILD_ARM64 Off CACHE BOOL
 
 set(PANDA_BUILD_TESTS On CACHE BOOL
   "Build tests (including examples)?")
+
+if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+  set(PANDA_BUILD_FIRMWARE On)
+endif()
 
 if(PANDA_BUILD_FIRMWARE)
   set(PANDA_BUILD_ARM On)
@@ -168,7 +172,12 @@ if(PANDA_BUILD_FIRMWARE_EMU)
 endif()
 
 if(PANDA_BUILD_FIRMWARE)
-  message(CHECK_START "Configuring the firmware build.")
+  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+    set(firmware_subtype "calibration")
+  else()
+    set(firmware_subtype "normal")
+  endif()
+  message(CHECK_START "Configuring the ${firmware_subtype} firmware build.")
 
   enable_language(ASM)
 
@@ -344,15 +353,12 @@ if(PANDA_BUILD_FIRMWARE)
   # firmware.elf target
   # -------------------
 
-  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
-    set(target_name "calibration_firmware.elf")
-  else()
-    set(target_name "firmware.elf")
-  endif()
+  set(firmware_name "firmware")
+  set(target_name "${firmware_subtype}_firmware.elf")
 
   # Primary firmware.elf sources
   set(firmware_elf_src
-    main.cpp
+    ${firmware_name}.cpp
     )
   list(TRANSFORM firmware_elf_src PREPEND src/firmware/)
 
@@ -370,9 +376,9 @@ if(PANDA_BUILD_FIRMWARE)
   if(PANDA_BUILD_FIRMWARE_DMS)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
   endif()
-  target_link_libraries(${target_name} firmware)
+  target_link_libraries(${target_name} PRIVATE firmware)
 
-  message(CHECK_PASS "Ready to build the firmware.")
+  message(CHECK_PASS "Ready to build the ${firmware_subtype} firmware.")
 
 else()
   message(CHECK_START "Configuring the driver build.")
