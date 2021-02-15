@@ -15,16 +15,36 @@ Copyright (c) 2019 Panda Team
 
 #include "json_base.h"
 #include "cmd.h"
+//#include "nodeControl.h"
+//#include "HatsMemMan.h"
+#include <map>
 
 /*!
  * \brief The "js" command dispatcher
  * \details Please, see CommunicationProtocol.md and EventSysytem.md for details.
  */
 
+
 class CJSONDispatcher : public CJSONbase, public CCmdCallHandler
 {
 protected:
     std::shared_ptr<CCmdDispatcher> m_pDisp;
+
+
+    //typedef void (CJSONDispatcher::*typeSubHandler)(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+
+    using typeSubHandler=std::function< void(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct) >;
+
+    //typedef std::map<std::string, typeSubHandler > typeSubMap;
+
+    using typeSubMap=std::map<std::string, typeSubHandler >;
+
+    typeSubMap m_SubHandlersMap;
+
+    //handlers:
+   // void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+    //bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
+
 
     /*!
      *  \brief: Called for "js>". Returns all possible settings (enumerates all "get" handlers)
@@ -66,8 +86,14 @@ public:
      * \brief The class constructor
      * \param pDisp A pointer to a command dispatcher
      */
-    CJSONDispatcher(const std::shared_ptr<CCmdDispatcher> &pDisp)
-    {
+    CJSONDispatcher(const std::shared_ptr<CCmdDispatcher> &pDisp){
         m_pDisp=pDisp;
+
+        //m_SubHandlersMap.emplace("cAtom", &CJSONDispatcher::procCAtom);
+    }
+
+    void AddSubHandler(std::string strName, typeSubHandler SubHandler){
+
+        m_SubHandlersMap.emplace(strName, SubHandler);
     }
 };

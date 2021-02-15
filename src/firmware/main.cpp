@@ -2,7 +2,7 @@
 This Source Code Form is subject to the terms of the GNU General Public License v3.0.
 If a copy of the GPL was not distributed with this
 file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
+Copyright (c) 2019-2020 Panda Team
 */
 
 //build for ADCs-DACs:
@@ -38,6 +38,8 @@ Copyright (c) 2019 Panda Team
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
 
+using namespace std::placeholders;
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful
@@ -60,6 +62,7 @@ int sys_clock_init(void);
 int main(void)
 {
         const int nChannels=4;
+        const size_t EEPROMsize=2048;
 
 #ifdef CALIBRATION_STATION
         bool bVisEnabled=false;
@@ -83,39 +86,25 @@ int main(void)
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
         auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
-        pEEPROM_MemBuf->reserve(1024); //reserve 1kb for an EEPROM data
+        pEEPROM_MemBuf->reserve(EEPROMsize); //reserve 2kb for an EEPROM data
 
         //creating an I2C EEPROM master to operate with an external chip:
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
         pEEPROM_MasterBus->EnableIRQs(true);
 
         //request data from an external chip:
-        pEEPROM_MasterBus->SetDataAddrAndCountLim(0, 1024);
+        pEEPROM_MasterBus->SetDataAddrAndCountLim(0, EEPROMsize);
         pEEPROM_MasterBus->SetDeviceAddr(0xA0);
         pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
-
-        //verifing the image:
-        CHatsMemMan HatMan(pEEPROM_MemBuf);
-        if(CHatsMemMan::op_result::OK!=HatMan.Verify()) //image is corrupted
-        {
-            //make default image:
-            HatMan.Reset();
-
-            CHatAtomVendorInfo vinf;
-
-            vinf.m_uuid=CSamService::GetSerial();
-            vinf.m_PID=0;
-            vinf.m_pver=2;
-            vinf.m_vstr="PANDA";
-            vinf.m_pstr="TimeSwipe";
-
-            HatMan.Store(vinf); //storage is ready
-        }
 
         //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
         auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
         pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
         pEEPROM_HAT->EnableIRQs(true);
+
+        //set iface:
+        nodeControl &nc=nodeControl::Instance();
+        nc.SetEEPROMiface(pEEPROM_MasterBus, pEEPROM_MemBuf);
         //----------------------------------------------------------
 
 
@@ -127,7 +116,6 @@ int main(void)
         pSPIsc2->AdviseSink(pStdPort);
 
 
-        nodeControl &nc=nodeControl::Instance();
         nc.SetBoardType(ThisBoard);
         std::shared_ptr<IPin> pDAConPin;
         std::shared_ptr<IPin> pUB1onPin;
@@ -223,9 +211,12 @@ int main(void)
             pInaSpiCSpin->Set(false);
 
             auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
-            pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
+           // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
             pDAC2A->SetVal(0);
             nc.SetVoltageDAC(pDAC2A);
+
+            //ability to control VSUP dac raw value:
+            pDisp->Add("VSUP.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2A, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
 
 
             //create 4 PGAs:
@@ -236,7 +227,7 @@ int main(void)
                 auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
                 auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-                nc.AddMesChannel( std::make_shared<CDMSchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
+                nc.AddMesChannel( std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
 #ifdef DMS_TEST_MODE
 
                 //add commands to each:
@@ -255,7 +246,7 @@ int main(void)
         {
             for(int i=0; i<nChannels; i++)
             {
-                nc.AddMesChannel( std::make_shared<CIEPEchannel>(pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled) );
+                nc.AddMesChannel( std::make_shared<CIEPEchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled) );
             }
         }
 
@@ -351,12 +342,27 @@ int main(void)
         pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
                                                                                        &CCalFWbtnHandler::HasUItestBeenDone,
                                                                                        &CCalFWbtnHandler::StartUItest) );
+        //testing Ext EEPROM:
+        pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<CSamI2CeepromMaster, bool> >(pEEPROM_MasterBus,
+                                                                                               &CSamI2CeepromMaster::GetSelfTestResult,  &CSamI2CeepromMaster::RunSelfTest) );
+
+        pDisp->Add("CalEnable", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsCalEnabled,  &nodeControl::EnableCal) );
+
 #endif
 
 
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
         pDisp->Add("js", pJC);
+
+        pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*pNC), _1, _2, _3 ) );
+
+       // pJC->AddSubHandler("cAtom", &nodeControl::procCAtom);
+
+//#ifdef CALIBRATION_STATION
+
+//#endif
+
 
         //------------------JSON EVENTS-------------------
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);

@@ -5,7 +5,9 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "DMSchannel.h"
+#include "HatsMemMan.h"
+#include "base/DMSchannel.h"
+#include "control/nodeControl.h"
 
 void CDMSchannel::SetAmpGain(float GainValue)
 {
@@ -48,5 +50,29 @@ void CDMSchannel::SetAmpGain(float GainValue)
 
 
     if(m_pPGA->SetGains( static_cast<CPGA280::igain>(el/2), static_cast<CPGA280::ogain>(el%2) ))
+    {
+        m_nGainIndex=el;
         m_ActualAmpGain=GainTab[el];
+        UpdateOffsets();
+    }
+}
+void CDMSchannel::UpdateOffsets()
+{
+
+    //apply offsets only in case of production firmware
+    if(!m_pCont->IsCalEnabled())
+        return;
+
+    std::string strError;
+    CHatAtomCalibration cdata;
+    m_pCont->GetCalibrationData(cdata, strError);
+
+    CCalAtomPair pair;
+    cdata.GetCalPair( (mes_mode::Voltage==m_MesMode ? CCalAtom::atom_type::V_In1 : CCalAtom::atom_type::C_In1) + static_cast<size_t>(m_nChanInd),
+
+                      m_nGainIndex, pair, strError);
+
+
+    m_pDAC->SetRawOutput(pair.b);
+
 }

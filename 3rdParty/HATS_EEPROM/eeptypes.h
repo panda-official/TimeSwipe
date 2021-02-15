@@ -1,10 +1,11 @@
+#include <stddef.h>
 #include <stdint.h>
 
 /* Atom types */
-#define ATOM_INVALID_TYPE 	0x0000
+#define ATOM_INVALID_TYPE   0x0000
 #define ATOM_VENDOR_TYPE 0x0001
 #define ATOM_GPIO_TYPE	0x0002
-#define ATOM_DT_TYPE 		0x0003
+#define ATOM_DT_TYPE        0x0003
 #define ATOM_CUSTOM_TYPE		0x0004
 #define ATOM_HINVALID_TYPE	0xffff
 
@@ -28,49 +29,49 @@
 
 /* EEPROM header structure */
 struct header_t {
-	uint32_t signature;
-	unsigned char ver;
-	unsigned char res;
-	uint16_t numatoms;
-	uint32_t eeplen;
+    uint32_t signature;
+    unsigned char ver;
+    unsigned char res;
+    uint16_t numatoms;
+    uint32_t eeplen;
 };
 
 /* Atom structure */
 struct atom_t {
-	uint16_t type;
-	uint16_t count;
-	uint32_t dlen;
-	char* data;
-	uint16_t crc16;
+    uint16_t type;
+    uint16_t count;
+    uint32_t dlen;
+    char* data;
+    uint16_t crc16;
 };
 
 /* Vendor info atom data */
 struct vendor_info_d {
-	uint32_t serial_1; //least significant
-	uint32_t serial_2;
-	uint32_t serial_3;
-	uint32_t serial_4; //most significant
-	uint16_t pid;
-	uint16_t pver;
-	unsigned char vslen;
-	unsigned char pslen;
-	char* vstr;
-	char* pstr;
+    uint32_t serial_1; //least significant
+    uint32_t serial_2;
+    uint32_t serial_3;
+    uint32_t serial_4; //most significant
+    uint16_t pid;
+    uint16_t pver;
+    unsigned char vslen;
+    unsigned char pslen;
+    char* vstr;
+    char* pstr;
 };
 
 /* GPIO map atom data */
 struct gpio_map_d {
-	unsigned char flags;
-	unsigned char power;
-	unsigned char pins[GPIO_COUNT];
+    unsigned char flags;
+    unsigned char power;
+    unsigned char pins[GPIO_COUNT];
 };
 
 
 uint16_t getcrc(char* data, unsigned int size) {
-	
-	uint16_t out = 0;
+
+    uint16_t out = 0;
     int bits_read = 0, bit_flag;
-	
+
     /* Sanity check: */
     if((data == NULL) || size==0)
         return 0;
@@ -87,7 +88,7 @@ uint16_t getcrc(char* data, unsigned int size) {
         bits_read++;
         if(bits_read > 7)
         {
-			bits_read = 0;
+            bits_read = 0;
             data++;
             size--;
         }
@@ -114,6 +115,6 @@ uint16_t getcrc(char* data, unsigned int size) {
     for (; i != 0; i >>=1, j <<= 1) {
         if (i & out) crc |= j;
     }
-	
+
     return crc;
 }

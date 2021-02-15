@@ -13,12 +13,13 @@ Copyright (c) 2019 Panda Team
 *   nodeControl
 */
 
-#include <memory>
+#include "HatsMemMan.h"
 #include "base/BaseMesChannel.h"
 #include "base/RawBinStorage.h"
-#include "zerocal_man.h"
+#include "control/zerocal_man.h"
 #include "json/json_evsys.h"
 
+#include <memory>
 
 /*!
  * \brief Provides the basic functionality of the board
@@ -87,19 +88,41 @@ protected:
         CRawBinStorage m_PersistStorage;
 
         /*!
-         * \brief true when settings are first loaded from the persist storage
+         * \brief The external EEPROM storage manager
          */
-        bool           m_bSettingsLoaded=false;
+        CHatsMemMan    m_EEPROMstorage;
 
         /*!
-         * \brief Board Gain persistent setting
+         * \brief The serial bus used to read/write EEPROM binary image placed in CFIFO
          */
-        int m_GainSetting=1;
+        std::shared_ptr<ISerial> m_pEEPROMbus;
+
+        /*!
+         * \brief The board calibration status
+         */
+        CHatsMemMan::op_result m_CalStatus;
+
+        /*!
+         * \brief true when settings are first loaded from the persist storage
+         */
+        bool  m_bSettingsLoaded=false;
+
+
+        /*!
+         * \brief true if the calibration data enabled, false otherwise
+         */
+        bool  m_bCalEnabled;
+
 
         /*!
          * \brief Board Bridge persistent setting
          */
         bool m_BridgeSetting=false;
+
+        /*!
+         * \brief Board Gain persistent setting
+         */
+        int m_GainSetting=1;
 
         /*!
          * \brief Board Secondary persistent setting
@@ -172,7 +195,58 @@ protected:
          */
         MesModes m_OpMode=nodeControl::IEPE;
 
+
+        /*!
+         * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
+         * \param Data
+         */
+        void ApplyCalibrationData(CHatAtomCalibration &Data);
+
+        /*!
+         * \brief JSON handler to store/retrieve calibration atoms.
+         * \param jObj -input JSON object
+         * \param jResp -output JSON object
+         * \param ct - call type (get or set)
+         */
+        bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
+
 public:
+        /*!
+         * \brief JSON handler wrapper to store/retrieve calibration atoms. Callback for the JSON dispatcher
+         * \param jObj -input JSON object
+         * \param jResp -output JSON object
+         * \param ct - call type (get or set)
+         */
+        void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+
+
+public:
+        /*!
+         * \brief Are calibration settings enabled?
+         * \return true - yes, false - no
+         */
+        inline bool IsCalEnabled()
+        {
+            return m_bCalEnabled;
+        }
+
+
+        /*!
+         * \brief Enables calibration settings
+         * \param bHow -true enables calibration, forces data to the corresponding DACs
+         */
+        inline void EnableCal(bool bHow)
+        {
+            m_bCalEnabled=bHow;
+            if(bHow)
+            {
+                CHatAtomCalibration cal_data;
+                m_CalStatus=m_EEPROMstorage.Load(cal_data);
+                ApplyCalibrationData(cal_data);
+            }
+        }
+
+
         /*!
          * \brief Sets current board type: IEPE or DMS
          * \param BoardType - IEPE or DMS
@@ -238,6 +312,7 @@ public:
          */
         void AddMesChannel(const std::shared_ptr<CMesChannel> &pChan)
         {
+            pChan->m_pCont=this;
             m_pMesChans.emplace_back(pChan);
             m_OffsetSearch.Add(pChan->m_pADC, pChan->m_pDAC, pChan->m_VisChan.GetVisChannel());
         }
@@ -407,13 +482,48 @@ public:
          * \brief Returns board calibration status
          * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
          */
-        inline bool GetCalStatus(){ return false;}
+        inline bool GetCalStatus(){
 
+            return (CHatsMemMan::op_result::OK==m_CalStatus);
+        }
+
+        /*!
+         * \brief Sets the interface for working with external EEPROM chip.
+         * \param pBus - the pointer to the EEPROM bus to send/receive EEPROM image
+         * \param pMemBuf - the pre-allocated RAM storage for the EEPROM image
+         */
+        void SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf);
+
+        /*!
+         * \brief Applies the calibration data to all board items and stores the data in the EEPROM
+         * \param Data - the Calibration Atoms collection to strore
+         * \param strError - the operation error (if occurred)
+         * \return true on success, false otherwise (actual error is placed into the strError )
+         */
+        bool SetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
+
+        /*!
+         * \brief Retrieves the calibration data preloaded into the EEPROM image RAM storage
+         * \param Data - the Calibration Atoms collection
+         * \param strError - the operation error (if occurred)
+         * \return true on success, false otherwise (actual error is placed into the strError )
+         */
+        bool GetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
+
+        /*!
+         * \brief Starts/Stops the board cooler
+         * \param bHow: true=start, false=stop
+         */
         inline void StartFan(bool bHow)
         {
             assert(m_pFanOn);
             m_pFanOn->Set(bHow);
         }
+
+        /*!
+         * \brief Checks if board's cooler is running or not
+         * \return true=running, false=stopped
+         */
         inline bool IsFanStarted()
         {
             assert(m_pFanOn);
@@ -430,6 +540,7 @@ public:
                 m_pVoltageDAC->SetVal(val);
             else
                 m_Voltage=val;
+
         }
 
         /*!

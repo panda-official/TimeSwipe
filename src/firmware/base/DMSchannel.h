@@ -32,6 +32,8 @@ class CDMSchannel : public CMesChannel
 {
 protected:
 
+    size_t m_nGainIndex=0;
+
     /*!
      * \brief The pointer to the IEPE switch pin
      */
@@ -42,11 +44,13 @@ protected:
      */
     std::shared_ptr<CPGA280> m_pPGA;
 
+    virtual void UpdateOffsets() override;
+
     /*!
      * \brief Turns IEPEmode on/off
      * \param bHow - true=IEPE mode ON, false=IEPE mode off
      */
-    virtual void IEPEon(bool bHow){
+    virtual void IEPEon(bool bHow) override{
 
         m_bIEPEon=bHow;
         m_pIEPEswitch->Set(bHow);
@@ -56,10 +60,11 @@ protected:
      * \brief Sets the measurement mode (Voltage or Current)
      * \param nMode - the measuremnt mode to be set
      */
-    virtual void SetMesMode(mes_mode nMode){
+    virtual void SetMesMode(mes_mode nMode) override{
 
         m_MesMode=nMode;
         m_pPGA->SetMode( static_cast<CPGA280::mode>(nMode) );
+        UpdateOffsets();
 
     }
 
@@ -67,7 +72,7 @@ protected:
      * \brief Sets the channel amplification gain
      * \param GainValue - the Gain value to be set
      */
-    virtual void SetAmpGain(float GainValue);
+    virtual void SetAmpGain(float GainValue) override;
 
 public:
 
@@ -80,9 +85,9 @@ public:
      * \param pPGA - the pointer to the PGA280 amplifier control instance
      * \param bVisEnabled - The visualisation enable flag
      */
-    CDMSchannel(const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh,
+    CDMSchannel(const int nChanInd, const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh,
                 const std::shared_ptr<CPin> &pIEPEswitch, const std::shared_ptr<CPGA280> &pPGA, bool bVisEnabled) :
-        CMesChannel(pADC,  pDAC, nCh, bVisEnabled)
+        CMesChannel(nChanInd, pADC,  pDAC, nCh, bVisEnabled)
     {
         m_pIEPEswitch=pIEPEswitch;
         m_pPGA=pPGA;
