@@ -365,7 +365,7 @@ if(PANDA_BUILD_FIRMWARE)
 
   add_executable(${target_name} ${firmware_elf_src})
   if(PANDA_BUILD_CALIBRATION_FIRMWARE)
-    target_compile_definitions(${target_name} CALIBRATION_STATION)
+    target_compile_definitions(${target_name} PRIVATE CALIBRATION_STATION)
   endif()
   if(PANDA_BUILD_FIRMWARE_DMS)
     target_compile_definitions(${target_name} PRIVATE DMS_BOARD)
