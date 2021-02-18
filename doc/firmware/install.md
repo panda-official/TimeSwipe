@@ -13,7 +13,7 @@ There are two generation of boards exists at the moment: *DMS* (actual) and
 firmware can be flashed but simply will not work! By default, when building
 from source, the firmware for *DMS* boards is built. In order to build for
 *IEPE* board the command line option `-DPANDA_BUILD_FIRMWARE_DMS=Off` should
-be passed to CMake.
+be passed to CMake (please see the examples below).
 
 ## Building the Firmware
 
@@ -62,22 +62,19 @@ cmake .. -DPANDA_BUILD_FIRMWARE=On -DPANDA_BUILD_FIRMWARE_DMS=Off
 make -j$(nproc)
 ```
 
-The last step should generate a `firmware.elf` file, which can be flashed to the TimeSwipe board.
-
-### Building on Arch Linux ARMv8 AArch64
-
-tbd.
+The last step should generate a `firmware.elf` file, which can be flashed to
+the TimeSwipe board.
 
 ## Flashing the Firmware with OpenOCD on a Raspberry Pi
 
-The easiest way to flash the firmware, is to use a Raspberry Pi.
+The easiest way to flash the firmware, is to use Raspberry Pi.
 
 ### Flashing with Raspbian Buster
 
-To flash the firmware directly from the Raspberry Pi, we need to install `OpenOCD`:
+To flash the firmware directly from Raspberry Pi, we need to install `OpenOCD`:
 
 ```
-sudo apt-get install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev telnet
+sudo apt install git autoconf libtool make pkg-config libusb-1.0-0 libusb-1.0-0-dev telnet
 git clone git://git.code.sf.net/p/openocd/code openocd
 cd openocd
 ./bootstrap
