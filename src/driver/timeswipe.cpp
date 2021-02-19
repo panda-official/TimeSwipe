@@ -445,15 +445,16 @@ void TimeSwipeImpl::pollerLoop(TimeSwipe::ReadCallback callback)
 {
   while (work_) {
     SensorsData records[10];
-    auto num = record_queue_.pop(&records[0], 10);
+    auto num = record_queue_.pop(records);
     std::uint64_t errors = record_error_count_.fetch_and(0UL);
-    if (num == 0 && errors == 0) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      continue;
-    }
 
     if (errors && on_error_cb_)
       Callbacker{*this}(on_error_cb_, errors);
+
+    if (!num) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      continue;
+    }
 
     SensorsData* records_ptr{};
     SensorsData samples;
@@ -467,7 +468,7 @@ void TimeSwipeImpl::pollerLoop(TimeSwipe::ReadCallback callback)
       for (std::size_t i = 1; i < num; i++) {
         records[0].append(std::move(records[i]));
       }
-      records_ptr = &records[0];
+      records_ptr = records;
     }
 
     if (burst_buffer_.empty() && burst_size_ <= records_ptr->DataSize()) {
