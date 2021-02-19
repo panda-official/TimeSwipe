@@ -310,8 +310,12 @@ public:
     // Calculate FIR coefficients.
     const auto firc = [this]
     {
+      std::clog << "Calculating FIR coefficients...";
       std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
+      if (firc.size() > std::numeric_limits<int>::max())
+        throw std::runtime_error{"too many FIR coefficients required"};
       assert(options_.filter_length() == firc.size());
+      std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
 
       /*
@@ -330,7 +334,13 @@ public:
         const auto window = kaiser(firc.size(), beta);
         assert(firc.size() == window.size());
         transform(cbegin(window), cend(window), cbegin(firc), begin(result),
-          [u](const auto w, const auto c) { return u * w * c; });
+          [u](const auto w, const auto c)
+          {
+            if (const auto val = u * w * c; std::isnan(val))
+              throw std::runtime_error{"one of FIR coefficients would be NaN"};
+            else
+              return val;
+          });
         return accumulate(cbegin(result), cend(result), .0);
       };
 
@@ -371,10 +381,6 @@ public:
       std::clog.precision(clog_prec);
       return result;
     }();
-    if (firc.size() > std::numeric_limits<int>::max())
-      throw std::runtime_error{"too many FIR coefficients required"};
-    else if (any_of(cbegin(firc), cend(firc), [](const auto v){ return std::isnan(v); }))
-      throw std::runtime_error{"FIR coefficients contains NaN"};
     // print_firc(firc);
 
     // Initializing the underlying resamplers and the associated states.
