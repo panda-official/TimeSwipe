@@ -359,7 +359,7 @@ public:
           apply_kaiser_and_sum(prev_beta);
           std::clog << prev_beta << "\n";
           break;
-        } else if (!(beta > inf && beta < sup))
+        } else if (!(inf < beta && beta < sup))
           throw std::runtime_error{"unable to guess shape factor for Kaiser window"
               " (probably, either up-factor "+std::to_string(options_.up_factor())+
               " or down-factor "+std::to_string(options_.down_factor())+
@@ -377,9 +377,9 @@ public:
       throw std::runtime_error{"FIR coefficients contains NaN"};
     // print_firc(firc);
 
-    // Initializing the underlying resamplers.
-    for (auto& r : resamplers_)
-      r = {options_.up_factor(), options_.down_factor(), cbegin(firc), cend(firc), options_.extrapolation()};
+    // Initializing the underlying resamplers and the associated states.
+    for (auto& rs : rstates_)
+      rs = ResamplerState{options_, firc};
   }
 
   /// @returns The options instance.
@@ -397,7 +397,8 @@ public:
   {
     return resample([this, &records](const std::size_t column_index)
     {
-      auto& resampler = resamplers_[column_index];
+      auto& rstate = rstates_[column_index];
+      auto& resampler = rstate.resampler;
       auto& input = records[column_index];
       const auto input_size = input.size();
       if (!input_size)
@@ -405,15 +406,15 @@ public:
 
       // Apply the filter.
       auto result = zero_result(resampler, input_size);
-      if (options_.crop_extra()) {
-        const bool is_first_apply = !resampler.is_applied(); // must precede to resampler.apply()!
-        resampler.apply(cbegin(input), cend(input), begin(result));
-        if (is_first_apply) {
-          const auto b = cbegin(result);
-          result.erase(b, b + leading_skip_count(resampler));
-        }
-      } else
-        resampler.apply(cbegin(input), cend(input), begin(result));
+      const auto out = resampler.apply(cbegin(input), cend(input), begin(result));
+      assert(result.size() == std::distance(begin(result), out));
+      if (rstate.unskipped_leading_count) {
+        assert(options_.crop_extra());
+        const auto b = cbegin(result);
+        const auto skip_count = std::min<std::size_t>(rstate.unskipped_leading_count, result.size());
+        result.erase(b, b + skip_count);
+        rstate.unskipped_leading_count -= skip_count;
+      }
 
       return result;
     });
@@ -431,7 +432,8 @@ public:
   {
     return resample([this](const std::size_t column_index)
     {
-      auto& resampler = resamplers_[column_index];
+      auto& rstate = rstates_[column_index];
+      auto& resampler = rstate.resampler;
       if (!resampler.is_applied())
         return SensorsData::Value{}; // short-circuit
 
@@ -439,6 +441,7 @@ public:
       auto result = zero_result(resampler, resampler.coefs_per_phase() - 1);
       if (options_.crop_extra()) {
         const auto skip_count = trailing_skip_count(resampler);
+        assert(skip_count < result.size());
         resampler.flush(begin(result));
         result.resize(result.size() - skip_count);
       } else
@@ -451,7 +454,20 @@ public:
 private:
   using R = FirResampler<float>;
   Options options_;
-  std::array<R, SensorsData::SensorsSize()> resamplers_;
+  struct ResamplerState final {
+    ResamplerState() = default;
+
+    template<class T>
+    explicit ResamplerState(const Options& options, const std::vector<T>& firc)
+      : resampler{options.up_factor(), options.down_factor(),
+                  cbegin(firc), cend(firc), options.extrapolation()}
+      , unskipped_leading_count{options.crop_extra() ? leading_skip_count(resampler) : 0}
+    {}
+
+    R resampler;
+    std::size_t unskipped_leading_count{};
+  };
+  std::array<ResamplerState, SensorsData::SensorsSize()> rstates_;
 
   template<typename F>
   SensorsData resample(F&& run)
@@ -463,18 +479,18 @@ private:
     return result;
   }
 
-  SensorsData::Value zero_result(const R& resampler, const std::size_t input_size)
+  static SensorsData::Value zero_result(const R& resampler, const std::size_t input_size)
   {
     const auto result_size = resampler.output_sequence_size(input_size);
     return SensorsData::Value(result_size);
   }
 
-  std::size_t leading_skip_count(const R& resampler) const noexcept
+  static std::size_t leading_skip_count(const R& resampler) noexcept
   {
     return resampler.output_sequence_size(resampler.coefs_per_phase() - 1) / 2;
   }
 
-  std::size_t trailing_skip_count(const R& resampler) const noexcept
+  static std::size_t trailing_skip_count(const R& resampler) noexcept
   {
     const auto sz = resampler.output_sequence_size(resampler.coefs_per_phase() - 1);
     return (sz + sz % 2) / 2;
