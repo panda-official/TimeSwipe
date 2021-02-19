@@ -52,7 +52,7 @@ public:
    *
    * @return number of data entries each sensor has
    */
-  std::size_t DataSize();
+  std::size_t DataSize() const noexcept;
 
   /**
    * \brief Access sensor data
@@ -61,8 +61,13 @@ public:
    *
    * @return number of data entries each sensor has
    */
+  std::vector<float>& operator[](std::size_t num) noexcept;
 
-  std::vector<float>& operator[](std::size_t num);
+  /// @overload
+  const Value& operator[](const std::size_t index) const noexcept
+  {
+    return data_[index];
+  }
 
   CONTAINER& data();
   void reserve(std::size_t num);
@@ -72,6 +77,40 @@ public:
   void erase_front(std::size_t num);
   void erase_back(std::size_t num);
 
+  /// @name Iterators
+  /// @{
+
+  auto begin() noexcept
+  {
+    return data_.begin();
+  }
+
+  auto begin() const noexcept
+  {
+    return data_.begin();
+  }
+
+  auto cbegin() const noexcept
+  {
+    return data_.cbegin();
+  }
+
+  auto end() noexcept
+  {
+    return data_.end();
+  }
+
+  auto end() const noexcept
+  {
+    return data_.end();
+  }
+
+  auto cend() const noexcept
+  {
+    return data_.cend();
+  }
+
+  /// @}
 private:
   CONTAINER data_;
 };

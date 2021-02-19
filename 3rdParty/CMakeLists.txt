@@ -15,6 +15,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # ------------------------------------------------------------------------------
+# dmitigr_misc
+# ------------------------------------------------------------------------------
+
+if(NOT PANDA_BUILD_FIRMWARE)
+  add_library(3rdparty_dmitigr_misc INTERFACE)
+  target_include_directories(3rdparty_dmitigr_misc INTERFACE dmitigr)
+endif()
+
+# ------------------------------------------------------------------------------
 # nlohmann_json
 # ------------------------------------------------------------------------------
 
@@ -29,7 +38,7 @@ target_include_directories(3rdparty_nlohmann_json INTERFACE nlohmann)
 add_library(3rdparty_HATS_EEPROM INTERFACE)
 target_include_directories(3rdparty_HATS_EEPROM INTERFACE HATS_EEPROM)
 
-if (PANDA_BUILD_FIRMWARE)
+if(PANDA_BUILD_FIRMWARE)
   # ------------------------------------------------------------------------------
   # Adafruit_NeoPixel
   # ------------------------------------------------------------------------------

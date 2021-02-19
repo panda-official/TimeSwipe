@@ -11,6 +11,7 @@
 #define PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iterator>
 #include <stdexcept>

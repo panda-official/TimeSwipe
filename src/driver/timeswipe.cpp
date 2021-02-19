@@ -17,12 +17,12 @@
 
 bool TimeSwipe::resample_log = false;
 
-std::vector<float>& SensorsData::operator[](std::size_t num)
+std::vector<float>& SensorsData::operator[](std::size_t num) noexcept
 {
   return data_[num];
 }
 
-std::size_t SensorsData::DataSize()
+std::size_t SensorsData::DataSize() const noexcept
 {
   return data_[0].size();
 }

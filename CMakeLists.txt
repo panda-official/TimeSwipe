@@ -31,6 +31,9 @@ include(misc)
 set(CMAKE_VERBOSE_MAKEFILE On CACHE BOOL
   "Verbose output (useful to figure out what is going on at build time)?")
 
+set(PANDA_CLANG_USE_LIBCPP On CACHE BOOL
+  "Use libcpp with Clang?")
+
 set(PANDA_BUILD_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
@@ -470,7 +473,7 @@ if(PANDA_BUILD_TESTS)
   message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
-  set(driver_tests datlog pwm rpispi)
+  set(driver_tests datlog pwm resampler rpispi)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.
@@ -479,6 +482,8 @@ if(PANDA_BUILD_TESTS)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
+  set(resampler_link_libraries 3rdparty_dmitigr_misc)
+  panda_append_cppfs(resampler_link_libraries)
 
   # Set the extra sources per test.
   set(button_event_extra_sources 3rdParty/prj_templ/Custom/startup_ARMCM4.S)
