@@ -36,6 +36,7 @@
 #include <utility>
 
 /// A timeswipe resampler options.
+/// FIXME: merge up_factor() and down_factor() into factors().
 class TimeSwipeResamplerOptions final {
 public:
   /**
@@ -360,7 +361,9 @@ public:
           break;
         } else if (!(beta > inf && beta < sup))
           throw std::runtime_error{"unable to guess shape factor for Kaiser window"
-              " (probably, either up-factor or down-factor are exorbitant to handle)"};
+              " (probably, either up-factor "+std::to_string(options_.up_factor())+
+              " or down-factor "+std::to_string(options_.down_factor())+
+              " are exorbitant to handle)"};
 
         prev_beta = beta;
         prev_sum = sum;

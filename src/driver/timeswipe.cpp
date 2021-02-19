@@ -12,6 +12,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <numeric>
 #include <stdexcept>
 
 bool TimeSwipe::resample_log = false;
@@ -208,9 +209,12 @@ bool TimeSwipeImpl::SetSampleRate(int rate)
 {
   if (rate < 1 || rate > max_sample_rate_)
     return false;
-  else if (rate != max_sample_rate_)
-    resampler_ = std::make_unique<TimeSwipeResampler>(TimeSwipeResamplerOptions{static_cast<unsigned>(rate), max_sample_rate_});
-  else
+  else if (rate != max_sample_rate_) {
+    const auto rates_gcd = std::gcd(rate, max_sample_rate_);
+    const auto up = rate / rates_gcd;
+    const auto down = max_sample_rate_ / rates_gcd;
+    resampler_ = std::make_unique<TimeSwipeResampler>(TimeSwipeResamplerOptions{up, down});
+  } else
     resampler_.reset();
   return true;
 }
