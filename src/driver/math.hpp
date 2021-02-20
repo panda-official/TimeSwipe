@@ -201,43 +201,30 @@ inline std::vector<double> firls(const std::size_t order, std::vector<double> fr
 }
 
 /**
- * Calculates Kaiser window.
+ * @brief Calculates Kaiser Window.
  *
  * @param length Window length.
  * @param beta Shape factor. Must be positive. This parameter affects the
  * sidelobe attenuation of the Fourier transform of the window.
  *
  * @par Requires
- * `(length > 1)`.
+ * `(length > 1 && beta >= 0)`.
  *
- * @returns A vector with length-point Kaiser window with shape factor `beta`.
+ * @returns A vector of filter coefficients of a length-point Kaiser window
+ * with a shape factor `beta`.
  */
-inline std::vector<double> kaiser(const std::size_t length, const double beta = .5)
+inline std::vector<double> kaiser(const int length, const double beta = .5)
 {
   assert(length > 1);
-
-  using Vec = std::vector<double>;
-  const auto fabs = static_cast<double(*)(double)>(std::fabs);
-  const auto odd = length % 2;
-  const double xind = square(length - 1);
-  const double bessel = fabs(std::cyl_bessel_i(double(0), beta));
-
-  Vec xi((length + 1) / 2);
-  generate(begin(xi), end(xi), [i = 0, odd]() mutable
+  assert(beta >= 0);
+  std::vector<double> result(length);
+  generate(begin(result), end(result), [i = 0]() mutable { return i++; });
+  transform(cbegin(result), cend(result), begin(result),
+    [n = length - 1, beta, d = std::cyl_bessel_i(0, beta)](const double x)
   {
-    const auto val = static_cast<double>(i++) + .5 * (1 - odd);
-    return 4 * square(val);
+    const double a = 2 * beta/n * std::sqrt(x * (n - x));
+    return std::cyl_bessel_i(0, a) / d;
   });
-
-  Vec w(xi.size());
-  transform(cbegin(xi), cend(xi), begin(w), [beta, xind, bessel](const auto x)
-  {
-    return std::cyl_bessel_i(0, beta * std::sqrt(1 - x / xind)) / bessel;
-  });
-
-  Vec result(2 * w.size() - odd);
-  const auto m = transform(crbegin(w) + odd, crend(w), begin(result), fabs);
-  transform(cbegin(w), cend(w), m, fabs);
   return result;
 }
 
