@@ -179,7 +179,8 @@ inline void write_output(std::ostream& out, const Output_format format, const Se
 {
   const auto sample_rate = records.DataSize();
   const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
-  assert(columns_count);
+  if (!columns_count)
+    return;
   if (format == Output_format::bin) {
     std::vector<Sensor_value> buf;
     buf.reserve(columns_count);
