@@ -24,7 +24,7 @@ std::vector<float>& SensorsData::operator[](std::size_t num) noexcept
 
 std::size_t SensorsData::DataSize() const noexcept
 {
-  return data_[0].size();
+  return !data_.empty() ? data_[0].size() : 0;
 }
 
 SensorsData::CONTAINER& SensorsData::data()
@@ -44,7 +44,7 @@ void SensorsData::clear()
     data_[i].clear();
 }
 
-bool SensorsData::empty()
+bool SensorsData::empty() const noexcept
 {
   return DataSize() == 0;
 }

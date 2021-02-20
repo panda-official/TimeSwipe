@@ -72,7 +72,7 @@ public:
   CONTAINER& data();
   void reserve(std::size_t num);
   void clear();
-  bool empty();
+  bool empty() const noexcept;
   void append(SensorsData&& other);
   void erase_front(std::size_t num);
   void erase_back(std::size_t num);
