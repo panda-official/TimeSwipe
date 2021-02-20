@@ -515,7 +515,7 @@ try {
       for (auto i = 0*sample_rate; in && i < sample_rate; ++i) {
         // Parse next line (even if CSV file has no newline after the last line).
         in.getline(line.data(), line.size());
-        if (const auto gcount = in.gcount(); in || gcount && (gcount < line.size())) {
+        if (const auto gcount = in.gcount(); in || (gcount && (gcount < line.size()))) {
           ++entry_count;
           std::size_t j{};
           std::string::size_type offset{};

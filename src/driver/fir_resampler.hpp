@@ -284,6 +284,8 @@ public:
       switch (signal_extrapolation_) {
       case SignalExtrapolation::zero:;
         [[fallthrough]];
+      case SignalExtrapolation::smooth:
+        [[fallthrough]];
       case SignalExtrapolation::constant:;
         assert(false);
         std::terminate();
