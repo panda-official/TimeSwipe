@@ -44,6 +44,19 @@ int main(int argc, char *argv[])
     TimeSwipe tswipe;
    // tswipe.TraceSPI(trace_spi);
 
+    //fetch the current mask:
+    uint8_t nMask=0x0f;
+    if(!tswipe.GetMeasMask(nMask))
+    {
+        std::cout << "Failed to read the selected ADC1-4 combination (bit mask)";
+    }
+    else
+    {
+        std::cout << "selected ADC1-4 combination (bit mask)="<<nMask;
+    }
+    std::cout<<std::endl;
+
+
     std::vector<uint8_t> file;
     std::string strErrMsg;
     if(!tswipe.readFile("MeasResult", file, strErrMsg))
@@ -57,8 +70,47 @@ int main(int argc, char *argv[])
         std::cout<<ch;
     }*/
     std::ofstream FILE(dumpname, std::ios::out | std::ofstream::binary);
-    std::copy(file.begin(), file.end(), std::ostreambuf_iterator<char>(FILE));
-    std::copy(file.begin(), file.end(), std::ostreambuf_iterator<char>(std::cout));
+ /*   std::copy(file.begin(), file.end(), std::ostreambuf_iterator<char>(FILE));
+    std::copy(file.begin(), file.end(), std::ostreambuf_iterator<char>(std::cout));*/
+
+    auto stream_filler=[](uint8_t mask, const std::vector<uint8_t> &file, std::ostream &stream){
+
+        //scan mask:
+        if(0==mask)
+            return;
+
+        int nChans=0;
+        for(unsigned int i=0; i<sizeof(mask); i++){
+
+            if(mask&(1L<<i))
+                nChans++;
+        }
+
+
+        int nColumnInd=0;
+        for(const auto el : file){
+
+            stream<<el;
+            if(nColumnInd==(nChans-1))
+            {
+                stream<<std::endl;
+                nColumnInd=0;
+            }
+            else
+            {
+                if(nColumnInd)
+                {
+                    stream<<'\t';
+                }
+                nColumnInd++;
+            }
+        }
+    };
+
+    //fill the streams:
+    stream_filler(nMask, file, FILE);
+    stream_filler(nMask, file, std::cout);
+
 
     std::cout<<std::endl;
 

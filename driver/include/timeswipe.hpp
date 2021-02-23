@@ -469,6 +469,16 @@ public:
 
 
     /**
+     * @brief Requests the bit combination of 4 bit to select a combination of ADC1-4
+     *
+     * @param[out] mask - the actual channels combination
+     *
+     * @return true on operation success, false otherwise
+     */
+    bool GetMeasMask(uint8_t &mask);
+
+
+    /**
      * @brief Reads a binary file from the board
      * @param pFname - a filename to read
      * @param file - input buffer for the data

@@ -237,6 +237,19 @@ public:
         return true;
     }
 
+    //Measurement Iface:
+    bool getMeasMask(uint8_t &mask, std::string& error){
+
+        sendGetCommand("MeasChannel");
+        std::string answer;
+        if (!receiveAnswer(answer, error)) {
+            mask=0;
+            return false;
+        }
+        mask=std::stoi(answer);
+        return true;
+    }
+
     //file transfer:
     int readFPacket(const char *pFname, std::vector<uint8_t> &input, unsigned int pos, unsigned int count, std::string& error){
 

@@ -363,6 +363,12 @@ std::string TimeSwipe::GetSettings(const std::string& request, std::string& erro
     return _impl->Settings(0, request, error);
 }
 
+bool TimeSwipe::GetMeasMask(uint8_t &mask)
+{
+    std::string strErrMsg;
+    return BoardInterface::get()->getMeasMask(mask, strErrMsg);
+}
+
 bool TimeSwipe::readFile(const char *pFname, std::vector<uint8_t> &file, std::string& error){
 
     return BoardInterface::get()->readFile(pFname, file, error);
