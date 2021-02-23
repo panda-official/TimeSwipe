@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        std::cout << "selected ADC1-4 combination (bit mask)="<<nMask;
+        std::cout << "selected ADC1-4 combination (bit mask)="<<static_cast<int>(nMask);
     }
     std::cout<<std::endl;
 
@@ -80,17 +80,20 @@ int main(int argc, char *argv[])
             return;
 
         int nChans=0;
-        for(unsigned int i=0; i<sizeof(mask); i++){
+        for(unsigned int i=0; i<4; i++){
 
             if(mask&(1L<<i))
                 nChans++;
         }
 
+        //std::cout<<"chans="<<nChans<<std::endl;
+
 
         int nColumnInd=0;
-        for(const auto el : file){
+        size_t nSize=file.size();
+        for(size_t i=0; i<nSize; i+=2){
 
-            stream<<el;
+            stream<<( (static_cast<unsigned int>(file[i])<<8)|file[i+1] );
             if(nColumnInd==(nChans-1))
             {
                 stream<<std::endl;
@@ -98,10 +101,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                if(nColumnInd)
-                {
-                    stream<<'\t';
-                }
+                stream<<"\t";
                 nColumnInd++;
             }
         }
