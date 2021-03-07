@@ -56,7 +56,7 @@ set(PANDA_BUILD_ARM On CACHE BOOL
   "Build for ARM?")
 
 set(PANDA_BUILD_ARM64 Off CACHE BOOL
-  "Build for ARM64bit?")
+  "Build for ARM64?")
 
 set(PANDA_BUILD_TESTS On CACHE BOOL
   "Build tests (including examples)?")
@@ -336,12 +336,13 @@ if(PANDA_BUILD_FIRMWARE)
   add_library(firmware STATIC ${firmware_src})
   target_compile_definitions(firmware PUBLIC __SAME54P20A__)
   target_include_directories(firmware PUBLIC src/firmware)
-  target_link_libraries(firmware PUBLIC
+  set(firmware_link_libraries
     3rdparty_Adafruit_NeoPixel
     3rdparty_CMSIS
     3rdparty_nlohmann_json
     3rdparty_sam
     common)
+  target_link_libraries(firmware PUBLIC ${firmware_link_libraries})
 
   # -------------------
   # firmware.elf target
@@ -410,7 +411,15 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     )
 
   add_library(timeswipe ${timeswipe_src})
-  target_link_libraries(timeswipe PUBLIC Boost::boost pthread 3rdparty_nlohmann_json 3rdparty_BCM common)
+  set(timeswipe_link_libraries
+    Boost::boost
+    pthread
+    3rdparty_nlohmann_json
+    3rdparty_BCM
+    3rdparty_dmitigr_math
+    common)
+  panda_append_cppfs(timeswipe_link_libraries)
+  target_link_libraries(timeswipe PUBLIC ${timeswipe_link_libraries})
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
   if(NOT CMAKE_CROSSCOMPILING)
@@ -482,7 +491,7 @@ if(PANDA_BUILD_TESTS)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
-  set(resampler_link_libraries 3rdparty_dmitigr_misc)
+  set(resampler_link_libraries 3rdparty_dmitigr_misc 3rdparty_dmitigr_progpar)
   panda_append_cppfs(resampler_link_libraries)
 
   # Set the extra sources per test.

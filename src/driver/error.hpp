@@ -21,22 +21,28 @@ namespace panda::timeswipe::driver {
 /// Error codes.
 enum class Errc {
   /// No error.
-  ok = 0,
+  kOk = 0,
 
   /// Generic error.
-  generic = 1,
+  kGeneric = 1,
+
+  /// Pid file lock failed.
+  kPidFileLockFailed = 2,
 
   /// Board is busy.
-  board_is_busy = 101,
-
-  /// Board channel mode unreadable.
-  board_channel_mode_unavailable = 111,
-
-  /// Board channel mode unwritable.
-  board_channel_mode_unwritable = 121,
+  kBoardIsBusy = 1001,
 
   /// Invalid drift reference.
-  invalid_drift_reference = 1001
+  kInvalidDriftReference = 2001,
+
+  /// No drift references calculated.
+  kNoDriftReferences = 2002,
+
+  /// Insufficient drift reference count.
+  kInsufficientDriftReferences = 2003,
+
+  /// Excessive drift reference count.
+  kExcessiveDriftReferences = 2004
 };
 
 /**
@@ -46,9 +52,14 @@ enum class Errc {
 constexpr const char* to_literal(const Errc errc) noexcept
 {
   switch (errc) {
-  case Errc::ok: return "ok";
-  case Errc::generic: return "generic";
-  case Errc::invalid_drift_reference: return "invalid_drift_reference";
+  case Errc::kOk: return "ok";
+  case Errc::kGeneric: return "generic error";
+  case Errc::kPidFileLockFailed: return "PID file lock failed";
+  case Errc::kBoardIsBusy: return "board is busy";
+  case Errc::kInvalidDriftReference: return "invalid drift reference";
+  case Errc::kNoDriftReferences: return "no drift references";
+  case Errc::kInsufficientDriftReferences: return "insufficient drift references";
+  case Errc::kExcessiveDriftReferences: return "excessive drift references";
   }
   return nullptr;
 }
@@ -135,6 +146,13 @@ inline std::error_condition make_error_condition(const Errc errc) noexcept
 // -----------------------------------------------------------------------------
 
 namespace std {
+
+/**
+ * @ingroup errors
+ *
+ * @brief The full specialization for integration with `<system_error>`.
+ */
+template<> struct is_error_code_enum<panda::timeswipe::driver::Errc> final : true_type {};
 
 /**
  * @ingroup errors

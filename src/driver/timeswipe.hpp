@@ -19,10 +19,14 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 #define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 
+#include "error.hpp"
+
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <iostream>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -43,6 +47,7 @@ public:
    */
   static constexpr std::size_t SensorsSize() noexcept
   {
+    static_assert(SENSORS > 0);
     return SENSORS;
   }
 
@@ -71,11 +76,12 @@ public:
 
   CONTAINER& data();
   void reserve(std::size_t num);
-  void clear();
+  void clear() noexcept;
   bool empty() const noexcept;
-  void append(SensorsData&& other);
-  void erase_front(std::size_t num);
-  void erase_back(std::size_t num);
+  void append(const SensorsData& other);
+  void append(const SensorsData& other, std::size_t count);
+  void erase_front(std::size_t count) noexcept;
+  void erase_back(std::size_t count) noexcept;
 
   /// @name Iterators
   /// @{
@@ -304,7 +310,6 @@ public:
    *
    */
   enum class ChannelMesMode : int {
-
     Voltage,
     Current
   };
@@ -322,7 +327,7 @@ public:
    *
    * @return current mode
    */
-  Mode GetMode();
+  Mode GetMode() const noexcept;
 
   /**
    * \brief Setup Sensor offsets
@@ -471,8 +476,8 @@ public:
    */
   bool GetChannelIEPE(Channel nCh, bool &bIEPEon);
 
-
-
+  /// @returns Max possible sample rate.
+  int MaxSampleRate() const noexcept;
 
   /**
    * \brief Setup Burst buffer size
@@ -488,8 +493,88 @@ public:
    *
    * @param rate - new sample rate
    * @return false on wrong rate value requested
+   *
+   * @par Requires
+   * `(1 <= rate && rate <= MaxSampleRate()).
    */
   bool SetSampleRate(int rate);
+
+  /// @name Drift Compensation
+  /// @{
+
+  /**
+   * @brief Calculates drift references.
+   *
+   * The calculated references are stored to
+   * `<cwd>/.pandagmbh/timeswipe/drift_reference` for persistent storage until
+   * either it deleted directly or by calling ClearDriftReferences().
+   *
+   * @par Requires
+   * `!IsBusy()`.
+   *
+   * @par Effects
+   * `IsBusy()`.
+   *
+   * @par Exception safety guarantee
+   * Basic.
+   *
+   * @see DriftReferences(), ClearDriftReferences(), CalculateDriftDeltas().
+   */
+  std::vector<float> CalculateDriftReferences();
+
+  /**
+   * @brief Clears drift references if any. Effectively, it removes file
+   * `<cwd>/.pandagmbh/timeswipe/drift_references`.
+   *
+   * @see CalculateDriftReferences().
+   */
+  void ClearDriftReferences();
+
+  /**
+   * @brief Calculates drift deltas based on calculated drift references.
+   *
+   * @par Effects
+   * Calculated deltas will be substracted from each input value of the
+   * corresponding channel.
+   *
+   * @par Requires
+   * `DriftReferences() && !IsBusy()`.
+   *
+   * @see DriftDeltas(), CalculateDriftReferences().
+   */
+  std::vector<float> CalculateDriftDeltas();
+
+  /**
+   * @brief Clears drift deltas if any.
+   *
+   * @par Effects
+   * Input values of the corresponding channel will not be affected by deltas.
+   *
+   * @see CalculateDriftReferences().
+   */
+  void ClearDriftDeltas();
+
+  /**
+   * @returns The calculated drift references.
+   *
+   * @param force Forces the reading of references from a filesystem if `true`.
+   * Otherwise, the last cached value will be returned.
+   *
+   * @throws An Exception with the code `invalid_drift_reference` if
+   * file `CWD/.pandagmbh/timeswipe/drift_references` contains a junk.
+   *
+   * @see CalculateDriftReferences(), ClearDriftReferences(), DriftDeltas().
+   */
+  std::optional<std::vector<float>> DriftReferences(bool force = {}) const;
+
+  /**
+   * @returns The calculated drift deltas.
+   *
+   * @see CalculateDriftDeltas().
+   */
+  std::optional<std::vector<float>> DriftDeltas() const;
+
+  /// @}
 
   /**
    * \brief Read sensors callback function pointer
@@ -511,8 +596,18 @@ public:
    *
    * @param cb
    * @return false if reading procedure start failed, otherwise true
+   *
+   * @par Effects
+   * `IsBusy()`.
    */
   bool Start(ReadCallback cb);
+
+  /**
+   * @returns `true` if this instance is busy on read the sensor input.
+   *
+   * @see CalculateDriftReferences(), CalculateDriftDeltas(), Start().
+   */
+  bool IsBusy() const noexcept;
 
   /**
    * \brief Send SPI SetSettings request and receive the answer
@@ -567,7 +662,7 @@ public:
    */
   void TraceSPI(bool val);
 
-  static bool resample_log;
+  inline static bool resample_log;
 private:
   std::unique_ptr<TimeSwipeImpl> impl_;
 };

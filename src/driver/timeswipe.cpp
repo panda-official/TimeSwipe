@@ -5,17 +5,21 @@
 #include "timeswipe_eeprom.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
+#include <dmitigr/misc/filesystem.hpp>
+#include <dmitigr/misc/math.hpp>
 
 #include <atomic>
 #include <chrono>
-#include <iostream>
+#include <condition_variable>
+#include <fstream>
 #include <list>
-#include <memory>
 #include <mutex>
 #include <numeric>
 #include <stdexcept>
+#include <thread>
 
-bool TimeSwipe::resample_log = false;
+// FIXME!!!
+using namespace panda::timeswipe::driver;
 
 std::vector<float>& SensorsData::operator[](std::size_t num) noexcept
 {
@@ -38,7 +42,7 @@ void SensorsData::reserve(std::size_t num)
     data_[i].reserve(num);
 }
 
-void SensorsData::clear()
+void SensorsData::clear() noexcept
 {
   for (std::size_t i = 0; i < SENSORS; i++)
     data_[i].clear();
@@ -49,42 +53,188 @@ bool SensorsData::empty() const noexcept
   return DataSize() == 0;
 }
 
-void SensorsData::append(SensorsData&& other)
+void SensorsData::append(const SensorsData& other)
 {
-  for (std::size_t i = 0; i < SENSORS; i++)
-    std::move(other.data_[i].begin(), other.data_[i].end(), std::back_inserter(data_[i]));
-  other.clear();
+  append(other, other.DataSize());
 }
 
-void SensorsData::erase_front(std::size_t num)
+void SensorsData::append(const SensorsData& other, const std::size_t count)
 {
-  for (std::size_t i = 0; i < SENSORS; i++)
-    data_[i].erase(data_[i].begin(), data_[i].begin() + num);
+  for (std::size_t i = 0; i < SENSORS; ++i) {
+    const auto in_size = std::min<std::size_t>(other.data_[i].size(), count);
+    const auto out_offset = data_[i].size();
+    data_[i].resize(data_[i].size() + in_size);
+    const auto b = other.data_[i].begin();
+    std::copy(b, b + in_size, data_[i].begin() + out_offset);
+  }
 }
 
-void SensorsData::erase_back(std::size_t num)
+void SensorsData::erase_front(const std::size_t count) noexcept
 {
   for (std::size_t i = 0; i < SENSORS; i++)
-    data_[i].resize(data_[i].size()-num);
+    data_[i].erase(data_[i].begin(), data_[i].begin() + count);
 }
+
+void SensorsData::erase_back(const std::size_t count) noexcept
+{
+  for (std::size_t i = 0; i < SENSORS; i++)
+    data_[i].resize(data_[i].size() - count);
+}
+
+// =============================================================================
 
 class TimeSwipeImpl final {
-private:
-  inline static std::mutex mutex_;
-  inline static TimeSwipeImpl* started_instance_;
-  inline static constexpr int max_sample_rate_{48000};
 public:
-  TimeSwipeImpl();
-  ~TimeSwipeImpl();
-  void SetMode(int number);
-  int GetMode();
+  ~TimeSwipeImpl()
+  {
+    Stop();
+    clearThreads();
+  }
+
+  TimeSwipeImpl(TimeSwipe& self)
+    : self_{self}
+    , pid_file_{"timeswipe"}
+  {
+    const std::lock_guard lock{mutex_};
+    std::string msg;
+    if (!pid_file_.Lock(msg))
+      // Lock here. Second lock from the same process is allowed.
+      throw Exception{Errc::kPidFileLockFailed, msg};
+  }
+
+  void SetMode(const int number)
+  {
+    record_reader_.mode = number;
+  }
+
+  int GetMode() const noexcept
+  {
+    return record_reader_.mode;
+  }
 
   void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
   void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
   void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
 
   bool SetSampleRate(int rate);
+
+  int MaxSampleRate() const noexcept
+  {
+    return kMaxSampleRate_;
+  }
+
+  std::vector<float> CalculateDriftReferences()
+  {
+    // Collect the data for calculation.
+    auto data{CollectSensorsData(kDriftSamplesCount_, // 5 ms
+      [this](const auto&){return DriftAffectedStateGuard{*this};})};
+
+    // Discard the first half.
+    data.erase_front(kDriftSamplesCount_ / 2);
+
+    // Take averages of measured data (references).
+    std::vector<float> result(data.SensorsSize());
+    transform(data.cbegin(), data.cend(), result.begin(), [](const auto& dat)
+    {
+      return static_cast<float>(dmitigr::math::avg(dat));
+    });
+
+    // Put references to the TmpDir/drift_references.
+    const auto tmp_dir{TmpDir()};
+    std::filesystem::create_directories(tmp_dir);
+    std::ofstream refs_file{tmp_dir/"drift_references"};
+    for (auto i = 0*result.size(); i < result.size() - 1; ++i)
+      refs_file << result[i] << " ";
+    refs_file << result.back() << "\n";
+
+    // Cache references.
+    drift_references_ = result;
+
+    return result;
+  }
+
+  void ClearDriftReferences()
+  {
+    std::filesystem::remove(TmpDir()/"drift_references");
+  }
+
+  std::vector<float> CalculateDriftDeltas()
+  {
+    // Throw away if there are no references.
+    const auto refs{DriftReferences()};
+    if (!refs)
+      throw Exception{Errc::kNoDriftReferences};
+
+    // Collect the data for calculation.
+    auto data{CollectSensorsData(kDriftSamplesCount_,
+      [this](const auto&){ return DriftAffectedStateGuard{*this}; })};
+    assert(refs->size() == data.SensorsSize());
+
+    // Discard the first half.
+    data.erase_front(kDriftSamplesCount_ / 2);
+
+    // Take averages of measured data (references) and subtract the references.
+    std::vector<float> result(data.SensorsSize());
+    transform(data.cbegin(), data.cend(), refs->cbegin(), result.begin(),
+      [](const auto& dat, const auto ref)
+      {
+        return static_cast<float>(dmitigr::math::avg(dat) - ref);
+      });
+
+    // Cache deltas.
+    drift_deltas_ = result;
+
+    return result;
+  }
+
+  void ClearDriftDeltas()
+  {
+    drift_deltas_.reset();
+  }
+
+  std::optional<std::vector<float>> DriftReferences(const bool force = {}) const
+  {
+    if (!force && drift_references_)
+      return drift_references_;
+
+    const auto drift_references{TmpDir()/"drift_references"};
+    if (!std::filesystem::exists(drift_references))
+      return std::nullopt;
+
+    std::ifstream in{drift_references};
+    if (!in)
+      throw Exception{Errc::kInvalidDriftReference};
+
+    std::vector<float> refs;
+    while (in && refs.size() < SensorsData::SensorsSize()) {
+      float val;
+      in >> val;
+      refs.push_back(val);
+    }
+    if (!in.eof())
+      throw Exception{Errc::kExcessiveDriftReferences};
+    if (refs.size() < SensorsData::SensorsSize())
+      throw Exception{Errc::kInsufficientDriftReferences};
+
+    assert(refs.size() == SensorsData::SensorsSize());
+
+    // Cache and return references.
+    return drift_references_ = refs;
+  }
+
+  std::optional<std::vector<float>> DriftDeltas() const
+  {
+    return drift_deltas_;
+  }
+
   bool Start(TimeSwipe::ReadCallback);
+
+  bool IsBusy() const noexcept
+  {
+    const std::unique_lock lk{mutex_};
+    return IsBusy__(lk);
+  }
+
   bool onEvent(TimeSwipe::OnEventCallback cb);
   bool onError(TimeSwipe::OnErrorCallback cb);
   std::string Settings(std::uint8_t set_or_get, const std::string& request, std::string& error);
@@ -93,7 +243,78 @@ public:
   void SetBurstSize(std::size_t burst);
 
 private:
+  // Min sample rate per second.
+  constexpr static int kMinSampleRate_{32};
+  // Max sample rate per second.
+  constexpr static int kMaxSampleRate_{48000};
+
+  // "Switching oscillation" completely (according to PSpice) decays after 1.5 ms.
+  constexpr static std::chrono::microseconds kSwitchingOscillationPeriod_{1500};
+
+  // We need only 5 ms of raw data. (5 ms * 48 kHz = 240 values.)
+  constexpr static std::size_t kDriftSamplesCount_{5 * kMaxSampleRate_/1000};
+  static_assert(!(kDriftSamplesCount_ % 2));
+
+  inline static std::mutex mutex_;
+  inline static TimeSwipeImpl* started_instance_;
+
+  TimeSwipe& self_;
+
+  std::size_t burst_size_{};
+  int sample_rate_{kMaxSampleRate_};
+  std::unique_ptr<TimeSwipeResampler> resampler_;
+
+  mutable std::optional<std::vector<float>> drift_references_;
+  std::optional<std::vector<float>> drift_deltas_;
+
+  RecordReader record_reader_;
+  // Next buffer must be enough to keep records for 1 s
+  constexpr static unsigned queue_size_{kMaxSampleRate_/kMinSampleRate_*2};
+  boost::lockfree::spsc_queue<SensorsData, boost::lockfree::capacity<queue_size_>> record_queue_;
+  std::atomic_uint64_t record_error_count_{0};
+  SensorsData burst_buffer_;
+
+  boost::lockfree::spsc_queue<std::pair<std::uint8_t, std::string>, boost::lockfree::capacity<1024>> in_spi_;
+  boost::lockfree::spsc_queue<std::pair<std::string, std::string>, boost::lockfree::capacity<1024>> out_spi_;
+  boost::lockfree::spsc_queue<TimeSwipeEvent, boost::lockfree::capacity<128>> events_;
+
+  TimeSwipe::OnEventCallback on_event_cb_;
+  TimeSwipe::OnErrorCallback on_error_cb_;
+
+  bool work_{}; // FIXME: remove
+  bool in_callback_{};
+  std::list<std::thread> threads_;
+
+  PidFile pid_file_;
+
+  // -----------------------------------------------------------------------------
+  // API
+  // -----------------------------------------------------------------------------
+
+  bool isStarted();
+  void fetcherLoop();
+  void pollerLoop(TimeSwipe::ReadCallback cb);
+  void spiLoop();
+  void receiveEvents();
+#ifdef PANDA_BUILD_FIRMWARE_EMU
+  int emul_button_pressed_{};
+  int emul_button_sent_{};
+  void emulLoop();
+#endif
+
+  void processSPIRequests();
+  void clearThreads();
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
   struct Callbacker final {
+    Callbacker(const Callbacker&) = delete;
+    Callbacker& operator=(const Callbacker&) = delete;
+    Callbacker(Callbacker&&) = delete;
+    Callbacker& operator=(Callbacker&&) = delete;
+
     ~Callbacker()
     {
       self_.in_callback_ = false;
@@ -114,72 +335,212 @@ private:
     TimeSwipeImpl& self_;
   };
 
-  bool isStarted();
-  void fetcherLoop();
-  void pollerLoop(TimeSwipe::ReadCallback cb);
-  void spiLoop();
-  void receiveEvents();
-#ifdef PANDA_BUILD_FIRMWARE_EMU
-  int emul_button_pressed_{};
-  int emul_button_sent_{};
-  void emulLoop();
-#endif
+  /*
+   * An automatic restorer of state affected by drift calculation stuff. Stashed
+   * state will be restored upon destruction of the instance of this class.
+   */
+  struct DriftAffectedStateGuard final {
+  private:
+    friend TimeSwipeImpl;
+    using Ch = TimeSwipe::Channel;
+    using Chmm = TimeSwipe::ChannelMesMode;
 
-  RecordReader record_reader_;
-  // 32 - minimal sample 48K maximal rate, next buffer is enough too keep records for 1 sec
-  static constexpr unsigned queue_size_ = 48000/32*2;
-  boost::lockfree::spsc_queue<SensorsData, boost::lockfree::capacity<queue_size_>> record_queue_;
-  std::atomic_uint64_t record_error_count_{0};
+    DriftAffectedStateGuard(const DriftAffectedStateGuard&) = delete;
+    DriftAffectedStateGuard& operator=(const DriftAffectedStateGuard&) = delete;
+    DriftAffectedStateGuard(DriftAffectedStateGuard&&) = delete;
+    DriftAffectedStateGuard& operator=(DriftAffectedStateGuard&&) = delete;
 
-  SensorsData burst_buffer_;
-  std::size_t burst_size_{};
+    // Restores the state of TimeSwipe instance.
+    ~DriftAffectedStateGuard()
+    {
+      impl_.resampler_ = std::move(resampler_);
+      impl_.burst_size_ = burst_size_;
+      impl_.sample_rate_ = sample_rate_;
 
-  boost::lockfree::spsc_queue<std::pair<std::uint8_t, std::string>, boost::lockfree::capacity<1024>> in_spi_;
-  boost::lockfree::spsc_queue<std::pair<std::string, std::string>, boost::lockfree::capacity<1024>> out_spi_;
-  boost::lockfree::spsc_queue<TimeSwipeEvent, boost::lockfree::capacity<128>> events_;
-  void processSPIRequests();
+      // Restore input modes.
+      impl_.self_.SetChannelMode(Ch::CH4, chmm4_);
+      impl_.self_.SetChannelMode(Ch::CH3, chmm3_);
+      impl_.self_.SetChannelMode(Ch::CH2, chmm2_);
+      impl_.self_.SetChannelMode(Ch::CH1, chmm1_);
+    }
 
-  void clearThreads();
+    // Stores the state and prepares TimeSwipe instance for measurement.
+    DriftAffectedStateGuard(TimeSwipeImpl& impl)
+      : impl_{impl}
+      , sample_rate_{impl_.sample_rate_}
+      , burst_size_{impl_.burst_size_}
+    {
+      // Store current input modes.
+      if (!(impl_.self_.GetChannelMode(Ch::CH1, chmm1_) &&
+          impl_.self_.GetChannelMode(Ch::CH2, chmm2_) &&
+          impl_.self_.GetChannelMode(Ch::CH3, chmm3_) &&
+          impl_.self_.GetChannelMode(Ch::CH4, chmm4_)))
+        throw Exception{Errc::kGeneric};
 
-  TimeSwipe::OnEventCallback on_event_cb_;
-  TimeSwipe::OnErrorCallback on_error_cb_;
+      /*
+       * Change input modes to 1.
+       * This will cause a "switching oscillation" appears at the output of
+       * the measured value, which completely (according to PSpice) decays
+       * after 1.5 ms.
+       */
+      for (const auto m : {Ch::CH1, Ch::CH2, Ch::CH3, Ch::CH4}) {
+        if (!impl_.self_.SetChannelMode(m, TimeSwipe::ChannelMesMode::Current))
+          throw Exception{Errc::kGeneric};
+      }
+      std::this_thread::sleep_for(impl_.kSwitchingOscillationPeriod_);
 
-  bool work_{};
-  bool in_callback_{};
-  std::list<std::thread> threads_;
+      // Store the current state of self.
+      resampler_ = impl_.SetSampleRate__(impl_.MaxSampleRate());
+      impl_.SetBurstSize(impl_.kDriftSamplesCount_);
+    }
 
-  std::unique_ptr<TimeSwipeResampler> resampler_;
+    TimeSwipeImpl& impl_;
+    const decltype(impl_.sample_rate_) sample_rate_;
+    const decltype(impl_.burst_size_) burst_size_;
+    Chmm chmm1_, chmm2_, chmm3_, chmm4_;
+    decltype(impl_.resampler_) resampler_;
+  };
 
-  PidFile pid_file_;
-};
-
-TimeSwipeImpl::TimeSwipeImpl()
-  : pid_file_{"timeswipe"}
-{
-  std::lock_guard<std::mutex> lock(mutex_);
-  std::string err;
-  if (!pid_file_.Lock(err)) {
-    // Lock here. Second lock from the same process is allowed.
-    std::cerr << "pid file lock failed: \"" << err << "\"" << std::endl;
-    throw std::runtime_error("pid file lock failed");
+  static std::filesystem::path TmpDir()
+  {
+    const auto cwd = std::filesystem::current_path();
+    return cwd/".pandagmbh"/"timeswipe";
   }
-}
 
-TimeSwipeImpl::~TimeSwipeImpl()
-{
-  Stop();
-  clearThreads();
-}
+  /// @warning Not thread-safe!
+  bool IsBusy__(const std::unique_lock<std::mutex>&) const noexcept
+  {
+    return work_ || started_instance_ || in_callback_;
+  }
 
-void TimeSwipeImpl::SetMode(int number)
-{
-  record_reader_.mode = number;
-}
+  /// @warning Not thread-safe!
+  bool Start__(const std::unique_lock<std::mutex>& lk, TimeSwipe::ReadCallback&& cb)
+  {
+    if (IsBusy__(lk)) {
+      std::cerr << "TimeSwipe drift calculation/compensation or reading in progress,"
+                << " or other instance started, or called from callback function."
+                << std::endl;
+      return false;
+    }
 
-int TimeSwipeImpl::GetMode()
-{
-  return record_reader_.mode;
-}
+    std::string err;
+    if (!TimeSwipeEEPROM::Read(err)) {
+      std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
+      //TODO: uncomment once parsing implemented
+      //return false;
+    }
+
+    clearThreads();
+
+    record_reader_.setup();
+    record_reader_.start();
+
+    started_instance_ = this;
+    work_ = true;
+    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::fetcherLoop, this)));
+    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::pollerLoop, this, cb)));
+    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::spiLoop, this)));
+#ifdef PANDA_BUILD_FIRMWARE_EMU
+    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::emulLoop, this)));
+#endif
+    return true;
+  }
+
+  /// @warning Not thread-safe!
+  bool Stop__(const std::unique_lock<std::mutex>&)
+  {
+    if (!work_ || started_instance_ != this)
+      return false;
+    started_instance_ = nullptr;
+
+    work_ = false;
+
+    clearThreads();
+
+    while (record_queue_.pop());
+    while (in_spi_.pop());
+    while (out_spi_.pop());
+    record_reader_.stop();
+    return true;
+  }
+
+    /// @returns Previous resampler if any.
+  std::unique_ptr<TimeSwipeResampler> SetSampleRate__(const int rate)
+  {
+    if (!(1 <= rate && rate <= MaxSampleRate()))
+      throw std::invalid_argument{"rate"};
+
+    auto result{std::move(resampler_)};
+    if (rate != MaxSampleRate()) {
+      const auto rates_gcd = std::gcd(rate, MaxSampleRate());
+      const auto up = rate / rates_gcd;
+      const auto down = MaxSampleRate() / rates_gcd;
+      resampler_ = std::make_unique<TimeSwipeResampler>(TimeSwipeResamplerOptions{up, down});
+    } else
+      resampler_.reset();
+
+    sample_rate_ = rate;
+    return result;
+  }
+
+  /**
+   * @brief Collects the specified samples count.
+   *
+   * @returns The collected sensor data.
+   *
+   * @param samples_count A number of samples to collect.
+   * @param state_guard A function which takes an argument of type
+   * `std::unique_lock` and returns an object which can be used for
+   * automatic resourse cleanup (e.g. RAII state keeper and restorer).
+   */
+  template<typename F>
+  SensorsData CollectSensorsData(const std::size_t samples_count, F&& state_guard)
+  {
+    std::unique_lock lk{mutex_};
+
+    if (IsBusy__(lk))
+      throw Exception{Errc::kBoardIsBusy};
+
+    const auto guard{state_guard(lk)};
+
+    std::error_code ec;
+    bool done{};
+    SensorsData data;
+    std::condition_variable update;
+    const bool is_started = Start__(lk, [this,
+        samples_count, &ec, &done, &data, &update]
+      (const SensorsData sd, const std::uint64_t errors)
+    {
+      if (ec || done)
+        return;
+
+      try {
+        if (data.DataSize() < samples_count)
+          data.append(sd, samples_count - data.DataSize());
+      } catch (...) {
+        ec = Errc::kGeneric;
+      }
+
+      if (ec || (!done && data.DataSize() == samples_count)) {
+        done = true;
+        update.notify_one();
+      }
+    });
+    if (!is_started)
+      throw Exception{Errc::kGeneric}; // FIXME: Start__() throw a more detailed error instead
+
+    // Await for notification from the callback.
+    update.wait(lk, [&done]{ return done; });
+    assert(done);
+    Stop__(lk);
+
+    // Throw away if the data collection failed.
+    if (ec)
+      throw Exception{ec};
+
+    return data;
+  }
+};
 
 void TimeSwipeImpl::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
 {
@@ -205,71 +566,23 @@ void TimeSwipeImpl::SetSensorTransmissions(float trans1, float trans2, float tra
   record_reader_.transmission[3] = 1.0 / trans4;
 }
 
-bool TimeSwipeImpl::SetSampleRate(int rate)
+bool TimeSwipeImpl::SetSampleRate(const int rate)
 {
-  if (rate < 1 || rate > max_sample_rate_)
-    return false;
-  else if (rate != max_sample_rate_) {
-    const auto rates_gcd = std::gcd(rate, max_sample_rate_);
-    const auto up = rate / rates_gcd;
-    const auto down = max_sample_rate_ / rates_gcd;
-    resampler_ = std::make_unique<TimeSwipeResampler>(TimeSwipeResamplerOptions{up, down});
-  } else
-    resampler_.reset();
+  // FIXME: protect with mutex!
+  SetSampleRate__(rate);
   return true;
 }
 
-bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback cb)
+bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback callback)
 {
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (work_ || started_instance_ || in_callback_) {
-      std::cerr << "TimeSwipe already started or other instance started or called from callback function" << std::endl;
-      return false;
-    }
-    started_instance_ = this;
-
-    std::string err;
-    if (!TimeSwipeEEPROM::Read(err)) {
-      std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
-      //TODO: uncomment once parsing implemented
-      //return false;
-    }
-  }
-  clearThreads();
-
-  record_reader_.setup();
-  record_reader_.start();
-
-  work_ = true;
-  threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::fetcherLoop, this)));
-  threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::pollerLoop, this, cb)));
-  threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::spiLoop, this)));
-#ifdef PANDA_BUILD_FIRMWARE_EMU
-  threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::emulLoop, this)));
-#endif
-  return true;
+  const std::unique_lock lk{mutex_};
+  return Start__(lk, std::move(callback));
 }
 
 bool TimeSwipeImpl::Stop()
 {
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!work_ || started_instance_ != this) {
-      return false;
-    }
-    started_instance_ = nullptr;
-  }
-
-  work_ = false;
-
-  clearThreads();
-
-  while (record_queue_.pop());
-  while (in_spi_.pop());
-  while (out_spi_.pop());
-  record_reader_.stop();
-  return true;
+  const std::unique_lock lk{mutex_};
+  return Stop__(lk);
 }
 
 bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb)
@@ -352,7 +665,7 @@ void TimeSwipeImpl::clearThreads()
 
 TimeSwipe::TimeSwipe()
 {
-  impl_ = std::make_unique<TimeSwipeImpl>();
+  impl_ = std::make_unique<TimeSwipeImpl>(*this);
 }
 
 TimeSwipe::~TimeSwipe() = default;
@@ -377,9 +690,14 @@ void TimeSwipe::SetMode(Mode number)
   return impl_->SetMode(int(number));
 }
 
-TimeSwipe::Mode TimeSwipe::GetMode()
+TimeSwipe::Mode TimeSwipe::GetMode() const noexcept
 {
   return TimeSwipe::Mode(impl_->GetMode());
+}
+
+int TimeSwipe::MaxSampleRate() const noexcept
+{
+  return impl_->MaxSampleRate();
 }
 
 void TimeSwipe::SetBurstSize(std::size_t burst)
@@ -390,6 +708,36 @@ void TimeSwipe::SetBurstSize(std::size_t burst)
 bool TimeSwipe::SetSampleRate(int rate)
 {
   return impl_->SetSampleRate(rate);
+}
+
+std::vector<float> TimeSwipe::CalculateDriftReferences()
+{
+  return impl_->CalculateDriftReferences();
+}
+
+void TimeSwipe::ClearDriftReferences()
+{
+  impl_->ClearDriftReferences();
+}
+
+std::vector<float> TimeSwipe::CalculateDriftDeltas()
+{
+  return impl_->CalculateDriftDeltas();
+}
+
+void TimeSwipe::ClearDriftDeltas()
+{
+  impl_->ClearDriftDeltas();
+}
+
+std::optional<std::vector<float>> TimeSwipe::DriftReferences(const bool force) const
+{
+  return impl_->DriftReferences(force);
+}
+
+std::optional<std::vector<float>> TimeSwipe::DriftDeltas() const
+{
+  return impl_->DriftDeltas();
 }
 
 bool TimeSwipe::Start(TimeSwipe::ReadCallback cb)
@@ -578,7 +926,6 @@ void TimeSwipe::TraceSPI(bool val)
 
 bool TimeSwipe::SetChannelMode(Channel nCh, ChannelMesMode nMode)
 {
-
   return BoardInterface::get()->setChannelMode(static_cast<unsigned int>(nCh), static_cast<int>(nMode));
 }
 

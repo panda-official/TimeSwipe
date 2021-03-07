@@ -15,12 +15,18 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # ------------------------------------------------------------------------------
-# dmitigr_misc
+# dmitigr
 # ------------------------------------------------------------------------------
 
 if(NOT PANDA_BUILD_FIRMWARE)
+  add_library(3rdparty_dmitigr_math INTERFACE)
+  target_include_directories(3rdparty_dmitigr_math INTERFACE dmitigr)
+
   add_library(3rdparty_dmitigr_misc INTERFACE)
   target_include_directories(3rdparty_dmitigr_misc INTERFACE dmitigr)
+
+  add_library(3rdparty_dmitigr_progpar INTERFACE)
+  target_include_directories(3rdparty_dmitigr_progpar INTERFACE dmitigr)
 endif()
 
 # ------------------------------------------------------------------------------
