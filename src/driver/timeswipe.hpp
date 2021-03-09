@@ -513,7 +513,7 @@ public:
    * `!IsBusy()`.
    *
    * @par Effects
-   * `IsBusy()`.
+   * `IsBusy()` for a while (~5ms), then `!IsBusy() && DriftReferences()`.
    *
    * @par Exception safety guarantee
    * Basic.
@@ -523,8 +523,17 @@ public:
   std::vector<float> CalculateDriftReferences();
 
   /**
-   * @brief Clears drift references if any. Effectively, it removes file
-   * `<cwd>/.pandagmbh/timeswipe/drift_references`.
+   * @brief Clears drift references if any.
+   *
+   * @par Requires
+   * `!IsBusy()`.
+   *
+   * @par Effects
+   * `!DriftReferences()`. Removes `<cwd>/.pandagmbh/timeswipe/drift_references`
+   * file.
+   *
+   * @par Exception safety guarantee
+   * Strong.
    *
    * @see CalculateDriftReferences().
    */
@@ -534,23 +543,30 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Effects
-   * Calculated deltas will be substracted from each input value of the
-   * corresponding channel.
+   * `IsBusy()` for a while (~5ms), then `!IsBusy() && DriftDeltas()`.
+   * After calling the `Start()`, calculated deltas will be substracted from
+   * each input value of the corresponding channel.
    *
    * @par Requires
    * `DriftReferences() && !IsBusy()`.
    *
-   * @see DriftDeltas(), CalculateDriftReferences().
+   * @see DriftDeltas(), CalculateDriftReferences(), Start().
    */
   std::vector<float> CalculateDriftDeltas();
 
   /**
    * @brief Clears drift deltas if any.
    *
+   * @par Requires
+   * `!IsBusy()`.
+   *
    * @par Effects
    * Input values of the corresponding channel will not be affected by deltas.
    *
-   * @see CalculateDriftReferences().
+   * @par Exception safety guarantee
+   * Strong.
+   *
+   * @see CalculateDriftDeltas().
    */
   void ClearDriftDeltas();
 
@@ -560,7 +576,7 @@ public:
    * @param force Forces the reading of references from a filesystem if `true`.
    * Otherwise, the last cached value will be returned.
    *
-   * @throws An Exception with the code `invalid_drift_reference` if
+   * @throws An Exception with the code `Errc::kInvalidDriftReference` if
    * file `CWD/.pandagmbh/timeswipe/drift_references` contains a junk.
    *
    * @see CalculateDriftReferences(), ClearDriftReferences(), DriftDeltas().

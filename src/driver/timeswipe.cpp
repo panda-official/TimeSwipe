@@ -155,7 +155,12 @@ public:
 
   void ClearDriftReferences()
   {
+    const std::unique_lock lk{mutex_};
+    if (IsBusy__(lk))
+      throw Exception{Errc::kBoardIsBusy};
+
     std::filesystem::remove(TmpDir()/"drift_references");
+    drift_references_.reset();
   }
 
   std::vector<float> CalculateDriftDeltas()
@@ -189,6 +194,10 @@ public:
 
   void ClearDriftDeltas()
   {
+    const std::unique_lock lk{mutex_};
+    if (IsBusy__(lk))
+      throw Exception{Errc::kBoardIsBusy};
+
     drift_deltas_.reset();
   }
 
