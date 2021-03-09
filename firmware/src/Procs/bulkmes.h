@@ -40,6 +40,7 @@ public:
     }
 
     void SetMeasRateHz(unsigned int nRate);
+    unsigned int  __SetMeasRateHz(unsigned int nRate, bool bForce);
     unsigned int GetMeasRateHz(){
         return m_nMeasRate;
     }

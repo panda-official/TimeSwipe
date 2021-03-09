@@ -8,6 +8,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "bulkmes.h"
 #include "nodeControl.h"
 #include "os.h"
+#include "SamADCcntr.h"
 
 CADbulkMes::CADbulkMes()
 {
@@ -21,12 +22,55 @@ void CADbulkMes::SetMeasMode(unsigned int nMode)
 void CADbulkMes::SetMeasChanMask(unsigned int nMask)
 {
     m_nMeasMask=nMask;
+
+    //__SetMeasRateHz(m_nMeasRate, false);
 }
 void CADbulkMes::SetMeasRateHz(unsigned int nRate)
 {
     if(nRate<1)
         nRate=1;
+    if(nRate>250000)
+        nRate=250000;
+
     m_nMeasRate=nRate;
+
+    //__SetMeasRateHz(nRate, false);
+}
+unsigned int CADbulkMes::__SetMeasRateHz(unsigned int nRate, bool bForce)
+{
+    if(nRate<1)
+        nRate=1;
+
+    //get corresponding ADC board:
+    nodeControl &nc=nodeControl::Instance();
+
+    size_t nChan=nc.GetMesChannelsCount();
+    assert(nChan);
+    CSamADCchan *pChan=dynamic_cast<CSamADCchan*>(&(nc.GetMesChannel(0)->ADC()));
+    assert(pChan);
+
+    unsigned int nActChans=0;
+    for(size_t i=0; i<nChan; i++) if(m_nMeasMask&(1L<<i)){
+
+        nActChans++;
+    }
+    if(0==nActChans)
+    {
+        m_nMeasRate=nRate;
+        return 0;
+    }
+
+    CSamADCcntr *pCont=pChan->GetCont().get();
+    unsigned int norm_rate=nRate*nActChans;
+    unsigned int real_rate=pCont->SetSamplingRate(norm_rate, bForce);
+    unsigned int av_cycles=real_rate/norm_rate;
+    if(!av_cycles)
+        av_cycles=1;
+
+    //m_nMeasRate=(av_cycles*real_rate)/nActChans;
+
+    return av_cycles;
+
 }
 
 void CADbulkMes::MeasStart(unsigned int nDuration)
@@ -34,46 +78,73 @@ void CADbulkMes::MeasStart(unsigned int nDuration)
     //preparing chans:
     nodeControl &nc=nodeControl::Instance();
     size_t nChan=nc.GetMesChannelsCount();
-    unsigned long cycle_delay_us=1000000/m_nMeasRate;
     m_DataBuf.reset();
 
+
+    std::vector<typeSamADCmuxpos> ipos;
+    std::vector<typeSamADCmuxneg> ineg;
+    std::vector<int> mes_result;
+
+    size_t nActChans=0;
     for(size_t i=0; i<nChan; i++) if(m_nMeasMask&(1L<<i))
     {
+        nActChans++;
+
         nc.GetMesChannel(i)->SetMesMode(m_nMeasMode ? CMesChannel::mes_mode::Current : CMesChannel::mes_mode::Voltage);
-        nc.GetMesChannel(i)->ADC().SelectAveragingMode(CAdc::averaging_mode::none); //get only raw values
+      //  nc.GetMesChannel(i)->ADC().SelectAveragingMode(CAdc::averaging_mode::none); //get only raw values
+
+        CSamADCchan *pChan=dynamic_cast<CSamADCchan*>(&(nc.GetMesChannel(i)->ADC()));
+        assert(pChan);
+
+        ipos.emplace_back(pChan->GetPosInput());
+        ineg.emplace_back(pChan->GetNegInput());
+        mes_result.emplace_back(0);
     }
+    if(!nActChans)
+        return;
+
+   // mes_result.resize(nActChans);
+
+    //board:
+    CSamADCchan *pChan=dynamic_cast<CSamADCchan*>(&(nc.GetMesChannel(0)->ADC()));
+    assert(pChan);
+    CSamADCcntr *pCont=pChan->GetCont().get();
+    assert(pCont);
+
+    //save prev rate:
+    unsigned int prev_rate=pCont->GetSamplingRate();
+
+    //set rate:
+    unsigned int nCycles=__SetMeasRateHz(m_nMeasRate, true);
+
+
 
     //start the measurements:
     unsigned long MeasStartTime=os::get_tick_mS();
     while(os::get_tick_mS()-MeasStartTime < nDuration)
     {
 
-        //single measure:
-        for(size_t i=0; i<nChan; i++) if(m_nMeasMask&(1L<<i))
-        {
-            int raw_meas_val=nc.GetMesChannel(i)->ADC().DirectMeasure();
-            m_DataBuf<<((raw_meas_val>>8)&0xff)<<(raw_meas_val&0xff);       //push the data
+        for(unsigned int i=0; i<nCycles; i++){
+
+            for(size_t ch=0; ch<nActChans; ch++){
+
+                pCont->SelectInput(ipos[ch], ineg[ch]);
+                mes_result[ch]+=pCont->SingleConv();
+            }
         }
 
-        //wait for a while (rate)
-        os::uwait(cycle_delay_us);
+        //dump:
+        for(size_t ch=0; ch<nActChans; ch++){
 
-    }
+            int raw_meas_val=mes_result[ch]/nCycles;
+            mes_result[ch]=0;
+            m_DataBuf<<((raw_meas_val>>8)&0xff)<<(raw_meas_val&0xff);
 
-    for(size_t i=0; i<nChan; i++) if(m_nMeasMask&(1L<<i))
-    {
-        nc.GetMesChannel(i)->ADC().SelectAveragingMode(CAdc::averaging_mode::ch_default); //return to the channel default mode
-    }
-
-
-    //test function: just fills the buffer with the data
-    /*for(unsigned int r=0; r<nDuration; r++)
-    {
-        for(int i=0; i<10; i++)
-        {
-            m_DataBuf<<(0x30+i);
         }
-    }*/
+    }
+
+    //restore the rate after finishing:
+    pCont->SetSamplingRate(prev_rate);
 }
 
 int CADbulkMes::ReadBuffer(CFrmStream &Stream, unsigned int nStartPos, unsigned int nRead)

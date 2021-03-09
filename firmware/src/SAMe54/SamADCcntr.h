@@ -108,6 +108,23 @@ public:
      */
     CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax, bool bAutoUpd=true);
 
+
+    typeSamADCmuxpos GetPosInput(){
+
+        return   m_posIN;
+     }
+    typeSamADCmuxneg GetNegInput(){
+
+        return m_negIN;
+     }
+
+
+
+    std::shared_ptr<CSamADCcntr> GetCont(){
+
+        return m_pCont;
+    }
+
     /*!
      * \brief The class virtual destructor
      */
@@ -156,6 +173,18 @@ protected:
      * \brief An associated clock generator: must be provided to perform conversions
      */
     std::shared_ptr<CSamCLK> m_pCLK;
+
+    unsigned int log2(unsigned int val){
+
+        unsigned int res;
+        for(res=0; val>1; res++){
+
+            val>>=1;
+        }
+        return res;
+    }
+
+    static constexpr unsigned int def_rate=1000000;
 	
 public:
     /*!
@@ -169,6 +198,10 @@ public:
      * 5) performs final tuning and enables SAME54 ADC
      */
 	CSamADCcntr(typeSamADC nADC);
+
+    unsigned int SetSamplingRate(unsigned int nRateHz, bool bForce=false);
+
+    unsigned int GetSamplingRate();
 
     /*!
      * \brief Selects 2 analog inputs for subsequent ADC conversion operations on them via CSamADCcntr::SingleConv()

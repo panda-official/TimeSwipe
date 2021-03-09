@@ -118,6 +118,38 @@ short CSamADCcntr::SingleConv()
     return (pADC->RESULT.bit.RESULT); //2-compl code
 }
 
+unsigned int CSamADCcntr::SetSamplingRate(unsigned int nRateHz, bool bForce)
+{
+    if(!nRateHz)
+        nRateHz=1;
+
+    //assuming the default rate is 1MBPS at 48MHZ input (max value)
+    unsigned int div=log2(def_rate/nRateHz);
+    if(div>0x0A)
+        div=0x0A; //hardware limitation
+
+    unsigned int real_rate=def_rate / (1L<<div);
+
+    if(bForce){
+
+        Adc *pADC=SELECT_SAMADC(m_nADC);
+
+        pADC->AVGCTRL.bit.SAMPLENUM=div;
+        while(pADC->SYNCBUSY.bit.AVGCTRL){}
+
+    }
+
+    return real_rate;
+}
+unsigned int CSamADCcntr::GetSamplingRate()
+{
+    Adc *pADC=SELECT_SAMADC(m_nADC);
+
+    unsigned int div=pADC->AVGCTRL.bit.SAMPLENUM;
+    return def_rate / (1L<<div);
+}
+
+
 CSamADCcntr::CSamADCcntr(typeSamADC nADC)
 {
 	m_nADC=nADC;
@@ -191,6 +223,8 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
         while(pADC->SYNCBUSY.bit.AVGCTRL){}
         pADC->CTRLB.bit.RESSEL=0x01; //16BIT For averaging mode output
         while(pADC->SYNCBUSY.bit.CTRLB){}
+        pADC->SAMPCTRL.bit.SAMPLEN=11;  //make sample length=12 cycles + 12 cycles of the data shifting=24->samp rate 1MBpS at 48MHZ
+        while(pADC->SYNCBUSY.bit.SAMPCTRL){}
     //-------------------------------------------------------------------
 
     
