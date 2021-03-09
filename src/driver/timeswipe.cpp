@@ -801,6 +801,21 @@ void TimeSwipeImpl::pollerLoop(TimeSwipe::ReadCallback callback)
       continue;
     }
 
+    // If there are drift deltas substract them.
+    if (drift_deltas_) {
+      const auto& deltas = *drift_deltas_;
+      for (auto i = 0*num; i < num; ++i) {
+        const auto sz = records[i].SensorsSize();
+        assert(deltas.size() == sz);
+        for (auto j = 0*sz; j < sz; ++j) {
+          auto& values{records[i][j]};
+          const auto delta{deltas[j]};
+          transform(cbegin(values), cend(values), begin(values),
+            [delta](const auto& value) { return value - delta; });
+        }
+      }
+    }
+
     SensorsData* records_ptr{};
     SensorsData samples;
     if (resampler_) {
