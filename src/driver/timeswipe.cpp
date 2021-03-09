@@ -142,7 +142,8 @@ public:
     // Put references to the TmpDir/drift_references.
     const auto tmp_dir{TmpDir()};
     std::filesystem::create_directories(tmp_dir);
-    std::ofstream refs_file{tmp_dir/"drift_references"};
+    constexpr auto open_flags{std::ios_base::out | std::ios_base::trunc};
+    std::ofstream refs_file{tmp_dir/"drift_references", open_flags};
     for (auto i = 0*result.size(); i < result.size() - 1; ++i)
       refs_file << result[i] << " ";
     refs_file << result.back() << "\n";
@@ -161,6 +162,7 @@ public:
 
     std::filesystem::remove(TmpDir()/"drift_references");
     drift_references_.reset();
+    drift_deltas_.reset();
   }
 
   std::vector<float> CalculateDriftDeltas()

@@ -500,23 +500,44 @@ public:
   bool SetSampleRate(int rate);
 
   /// @name Drift Compensation
+  ///
+  /// @brief This API provides a way to compensate the long term drift of the
+  /// measurement hardware when making long term measurements with the TimeSwipe
+  /// board.
+  ///
+  /// @detail The approach assumes the calculation for each channel of the
+  /// reference values (*references*) and deviations from these values
+  /// (*deltas*). The later are used for correction (by subtraction) of all the
+  /// values which comes from the hardware.
+  /// The calculated references are saved to a file for long-term storage which
+  /// can be useful in cases like power failures. The deltas can only be
+  /// calculated if there are references available, otherwise and exception
+  /// will be thrown. Unlike the references, the deltas are not saved to a file.
+  /// Either the references or the deltas can be recalculated an arbitrary number
+  /// of times. It's also possible to clear either the references or the deltas
+  /// in order to stop correcting the input values and pass them to the user
+  /// read callback unmodified. Please note, that in order to calculate or clear
+  /// either the references or deltas the board must not be busy (started).
+  ///
   /// @{
 
   /**
    * @brief Calculates drift references.
    *
    * The calculated references are stored to
-   * `<cwd>/.pandagmbh/timeswipe/drift_reference` for persistent storage until
+   * `<CWD>/.pandagmbh/timeswipe/drift_reference` for persistent storage until
    * either it deleted directly or by calling ClearDriftReferences().
    *
    * @par Requires
    * `!IsBusy()`.
    *
    * @par Effects
-   * `IsBusy()` for a while (~5ms), then `!IsBusy() && DriftReferences()`.
+   * `!IsBusy() && DriftReferences()`.
    *
    * @par Exception safety guarantee
    * Basic.
+   *
+   * @remarks Blocks the current thread for a while (~5ms).
    *
    * @see DriftReferences(), ClearDriftReferences(), CalculateDriftDeltas().
    */
@@ -529,26 +550,28 @@ public:
    * `!IsBusy()`.
    *
    * @par Effects
-   * `!DriftReferences()`. Removes `<cwd>/.pandagmbh/timeswipe/drift_references`
-   * file.
+   * `!DriftReferences() && !DriftDeltas()`. Removes the file
+   * `<CWD>/.pandagmbh/timeswipe/drift_references`.
    *
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see CalculateDriftReferences().
+   * @see CalculateDriftReferences(), ClearDriftDeltas().
    */
   void ClearDriftReferences();
 
   /**
    * @brief Calculates drift deltas based on calculated drift references.
    *
+   * @par Requires
+   * `DriftReferences() && !IsBusy()`.
+   *
    * @par Effects
-   * `IsBusy()` for a while (~5ms), then `!IsBusy() && DriftDeltas()`.
+   * `!IsBusy() && DriftDeltas()`.
    * After calling the `Start()`, calculated deltas will be substracted from
    * each input value of the corresponding channel.
    *
-   * @par Requires
-   * `DriftReferences() && !IsBusy()`.
+   * @remarks Blocks the current thread for a while (~5ms).
    *
    * @see DriftDeltas(), CalculateDriftReferences(), Start().
    */
@@ -566,7 +589,7 @@ public:
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see CalculateDriftDeltas().
+   * @see CalculateDriftDeltas(), ClearDriftReferences().
    */
   void ClearDriftDeltas();
 
@@ -577,7 +600,7 @@ public:
    * Otherwise, the last cached value will be returned.
    *
    * @throws An Exception with the code `Errc::kInvalidDriftReference` if
-   * file `CWD/.pandagmbh/timeswipe/drift_references` contains a junk.
+   * file `<CWD>/.pandagmbh/timeswipe/drift_references` contains a junk.
    *
    * @see CalculateDriftReferences(), ClearDriftReferences(), DriftDeltas().
    */
