@@ -227,7 +227,11 @@ public:
     return drift_deltas_;
   }
 
-  bool Start(TimeSwipe::ReadCallback);
+  bool Start(TimeSwipe::ReadCallback callback)
+  {
+    const std::unique_lock lk{mutex_};
+    return Start__(lk, std::move(callback));
+  }
 
   bool IsBusy() const noexcept
   {
@@ -238,7 +242,12 @@ public:
   bool onEvent(TimeSwipe::OnEventCallback cb);
   bool onError(TimeSwipe::OnErrorCallback cb);
   std::string Settings(std::uint8_t set_or_get, const std::string& request, std::string& error);
-  bool Stop();
+
+  bool Stop()
+  {
+    const std::unique_lock lk{mutex_};
+    return Stop__(lk);
+  }
 
   void SetBurstSize(std::size_t burst);
 
@@ -438,7 +447,7 @@ private:
     started_instance_ = this;
     work_ = true;
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::fetcherLoop, this)));
-    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::pollerLoop, this, cb)));
+    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::pollerLoop, this, std::move(cb))));
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::spiLoop, this)));
 #ifdef PANDA_BUILD_FIRMWARE_EMU
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::emulLoop, this)));
@@ -571,18 +580,6 @@ bool TimeSwipeImpl::SetSampleRate(const int rate)
   // FIXME: protect with mutex!
   SetSampleRate__(rate);
   return true;
-}
-
-bool TimeSwipeImpl::Start(TimeSwipe::ReadCallback callback)
-{
-  const std::unique_lock lk{mutex_};
-  return Start__(lk, std::move(callback));
-}
-
-bool TimeSwipeImpl::Stop()
-{
-  const std::unique_lock lk{mutex_};
-  return Stop__(lk);
 }
 
 bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb)
