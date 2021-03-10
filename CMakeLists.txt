@@ -482,17 +482,17 @@ if(PANDA_BUILD_TESTS)
   message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
-  set(driver_tests datlog pwm resampler rpispi)
+  set(driver_tests datlog drift_compensation pwm resampler rpispi)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
   set(firmware_tests_link_libraries firmware)
+  panda_append_cppfs(driver_tests_link_libraries)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
   set(resampler_link_libraries 3rdparty_dmitigr_misc 3rdparty_dmitigr_progpar)
-  panda_append_cppfs(resampler_link_libraries)
 
   # Set the extra sources per test.
   set(button_event_extra_sources 3rdParty/prj_templ/Custom/startup_ARMCM4.S)
