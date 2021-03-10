@@ -753,6 +753,11 @@ bool TimeSwipe::Start(TimeSwipe::ReadCallback cb)
   return impl_->Start(cb);
 }
 
+bool TimeSwipe::IsBusy() const noexcept
+{
+  return impl_->IsBusy();
+}
+
 bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb)
 {
   return impl_->onError(cb);
