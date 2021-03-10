@@ -523,25 +523,25 @@ private:
 
     const auto guard{state_guard(lk)};
 
-    std::error_code ec;
+    std::error_condition econd;
     bool done{};
     SensorsData data;
     std::condition_variable update;
     const bool is_started = Start__(lk, [this,
-        samples_count, &ec, &done, &data, &update]
+        samples_count, &econd, &done, &data, &update]
       (const SensorsData sd, const std::uint64_t errors)
     {
-      if (ec || done)
+      if (econd || done)
         return;
 
       try {
         if (data.DataSize() < samples_count)
           data.append(sd, samples_count - data.DataSize());
       } catch (...) {
-        ec = Errc::kGeneric;
+        econd = Errc::kGeneric;
       }
 
-      if (ec || (!done && data.DataSize() == samples_count)) {
+      if (econd || (!done && data.DataSize() == samples_count)) {
         done = true;
         update.notify_one();
       }
@@ -555,8 +555,8 @@ private:
     Stop__(lk);
 
     // Throw away if the data collection failed.
-    if (ec)
-      throw Exception{ec};
+    if (econd)
+      throw Exception{econd};
 
     return data;
   }

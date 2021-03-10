@@ -10,6 +10,7 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_ERROR_HPP
 #define PANDA_TIMESWIPE_DRIVER_ERROR_HPP
 
+#include <stdexcept>
 #include <system_error>
 
 namespace panda::timeswipe::driver {
@@ -116,23 +117,13 @@ inline const ErrorCategory& error_category() noexcept
 }
 
 // -----------------------------------------------------------------------------
-// std::error_code/std::error_condition makers
+// std::error_condition maker
 // -----------------------------------------------------------------------------
 
 /**
  * @ingroup errors
  *
- * @returns `std::error_code(int(errc), error_category())`.
- */
-inline std::error_code make_error_code(const Errc errc) noexcept
-{
-  return std::error_code{static_cast<int>(errc), error_category()};
-}
-
-/**
- * @ingroup errors
- *
- * @returns `std::error_condition(int(errc), server_error_category())`
+ * @returns `std::error_condition(int(errc), error_category())`.
  */
 inline std::error_condition make_error_condition(const Errc errc) noexcept
 {
@@ -146,13 +137,6 @@ inline std::error_condition make_error_condition(const Errc errc) noexcept
 // -----------------------------------------------------------------------------
 
 namespace std {
-
-/**
- * @ingroup errors
- *
- * @brief The full specialization for integration with `<system_error>`.
- */
-template<> struct is_error_code_enum<panda::timeswipe::driver::Errc> final : true_type {};
 
 /**
  * @ingroup errors
@@ -174,17 +158,22 @@ namespace panda::timeswipe::driver {
  *
  * @brief An exception.
  */
-class Exception final : public std::system_error {
+class Exception final : public std::runtime_error {
 public:
   /// The constructor.
-  Exception(const std::error_code ec)
-    : system_error{ec}
+  Exception(const std::error_condition condition, const std::string& what = {})
+    : runtime_error{what}
+    , condition_{condition}
   {}
 
-  /// @overload
-  Exception(const std::error_code ec, const std::string& what)
-    : system_error{ec, what}
-  {}
+  /// @returns Error condition.
+  std::error_condition condition() const noexcept
+  {
+    return condition_;
+  }
+
+private:
+  std::error_condition condition_;
 };
 
 } // namespace panda::timeswipe::driver
