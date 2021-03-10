@@ -99,7 +99,7 @@ public:
     std::string msg;
     if (!pid_file_.Lock(msg))
       // Lock here. Second lock from the same process is allowed.
-      throw Exception{Errc::kPidFileLockFailed, msg};
+      throw Exception{Errc::kPidFileLockFailed};
   }
 
   void SetMode(const int number)
@@ -523,25 +523,25 @@ private:
 
     const auto guard{state_guard(lk)};
 
-    std::error_condition econd;
+    Errc errc{};
     bool done{};
     SensorsData data;
     std::condition_variable update;
     const bool is_started = Start__(lk, [this,
-        samples_count, &econd, &done, &data, &update]
+        samples_count, &errc, &done, &data, &update]
       (const SensorsData sd, const std::uint64_t errors)
     {
-      if (econd || done)
+      if (is_error(errc) || done)
         return;
 
       try {
         if (data.DataSize() < samples_count)
           data.append(sd, samples_count - data.DataSize());
       } catch (...) {
-        econd = Errc::kGeneric;
+        errc = Errc::kGeneric;
       }
 
-      if (econd || (!done && data.DataSize() == samples_count)) {
+      if (is_error(errc) || (!done && data.DataSize() == samples_count)) {
         done = true;
         update.notify_one();
       }
@@ -555,8 +555,8 @@ private:
     Stop__(lk);
 
     // Throw away if the data collection failed.
-    if (econd)
-      throw Exception{econd};
+    if (is_error(errc))
+      throw Exception{errc};
 
     return data;
   }

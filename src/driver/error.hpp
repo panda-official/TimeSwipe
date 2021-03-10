@@ -46,6 +46,12 @@ enum class Errc {
   kExcessiveDriftReferences = 2004
 };
 
+/// @returns `true` if `errc` indicates an error.
+constexpr bool is_error(const Errc errc) noexcept
+{
+  return errc != Errc::kOk;
+}
+
 /**
  * @returns The literal representation of the `errc`, or `nullptr`
  * if `errc` does not corresponds to any value defined by Errc.
@@ -158,12 +164,13 @@ namespace panda::timeswipe::driver {
  *
  * @brief An exception.
  */
-class Exception final : public std::runtime_error {
+class Exception final : public std::exception {
 public:
   /// The constructor.
-  Exception(const std::error_condition condition, const std::string& what = {})
-    : runtime_error{what}
-    , condition_{condition}
+  explicit Exception(const Errc errc, std::string what = {})
+    : condition_{errc}
+    , what_holder_{what.empty() ? to_literal(errc) :
+        what.append(" (").append(to_literal(errc)).append(")")}
   {}
 
   /// @returns Error condition.
@@ -172,8 +179,15 @@ public:
     return condition_;
   }
 
+  /// @returns A "what string".
+  const char* what() const noexcept override
+  {
+    return what_holder_.what();
+  }
+
 private:
   std::error_condition condition_;
+  std::runtime_error what_holder_;
 };
 
 } // namespace panda::timeswipe::driver
