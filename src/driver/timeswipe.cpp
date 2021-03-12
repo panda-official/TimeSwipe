@@ -219,11 +219,14 @@ public:
     std::vector<float> refs;
     while (in && refs.size() < SensorsData::SensorsSize()) {
       float val;
-      in >> val;
-      refs.push_back(val);
+      if (in >> val)
+        refs.push_back(val);
     }
-    if (!in.eof())
-      throw Exception{Errc::kExcessiveDriftReferences};
+    if (!in.eof()) {
+      float val;
+      if (in >> val)
+        throw Exception{Errc::kExcessiveDriftReferences};
+    }
     if (refs.size() < SensorsData::SensorsSize())
       throw Exception{Errc::kInsufficientDriftReferences};
 
