@@ -1,0 +1,71 @@
+#!/usr/bin/expect -f
+
+# Set default timeout
+set timeout 20
+
+# Set host
+set host [lindex $argv 0]
+
+# Set port
+set port 4444
+
+# Set image filename
+set image [lindex $argv 1]
+
+# Spawn the telnet program and connects it to the variable name
+spawn telnet $host $port
+
+# Failure handler
+proc handle_failure {} {
+    send_user "Failure! Entering the interaction mode.\n"
+    interact
+    exit 11
+}
+
+# Expectations
+expect {
+    "Open On-Chip Debugger" { send "reset halt\r" }
+    timeout "exit 11"
+}
+
+expect {
+    -re "target halted due to debug-request.*xPSR.*\r" { send "reset init\r" }
+    timeout handle_failure
+}
+
+expect {
+    -re "target halted due to debug-request.*xPSR.*\r" { send "atsame5 chip-erase\r" }
+    timeout handle_failure
+}
+
+expect {
+    -re "chip erase started.*\r" { send "flash erase_check 0\r" }
+    timeout handle_failure
+}
+
+expect {
+    -re "successfully checked erase state.*\r" { send "flash write_image $image\r" }
+    -re "error when checking erase state.*\r" handle_failure
+    timeout handle_failure
+}
+
+expect {
+    -re "wrote \[0-9\]+ bytes from file $image.*\r" { send "halt\rflash erase_check 0\r" }
+    -re "error writing to flash.*\r" handle_failure
+    timeout handle_failure
+}
+
+expect {
+    -re "successfully checked erase state" exp_continue
+    -re "error when checking erase state.*\r" handle_failure
+    -re "not erased" {
+        sleep 2
+        send "reset\r"
+    }
+    timeout handle_failure
+}
+
+expect {
+    -re "SWD DPIDR 0x\[a-f0-9\]+\r" { send "exit\r" }
+    timeout handle_failure
+}
