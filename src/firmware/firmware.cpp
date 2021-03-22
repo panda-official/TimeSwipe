@@ -217,9 +217,10 @@ int main(void)
             pDAC2A->SetVal(0);
             nc.SetVoltageDAC(pDAC2A);
 
+#ifdef CALIBRATION_STATION
             //ability to control VSUP dac raw value:
             pDisp->Add("VSUP.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2A, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-
+#endif
 
             //create 4 PGAs:
             CDMSsr::pins IEPEpins[]={CDMSsr::pins::IEPE1_On, CDMSsr::pins::IEPE2_On, CDMSsr::pins::IEPE3_On, CDMSsr::pins::IEPE4_On};
