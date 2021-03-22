@@ -39,18 +39,27 @@ expect {
 }
 
 expect {
-    -re "chip erase started.*\r" { send "flash erase_check 0\r" }
+    -re "chip erase started.*\r" {
+        sleep 2
+        send "flash erase_check 0\r"
+    }
     timeout handle_failure
 }
 
 expect {
-    -re "successfully checked erase state.*\r" { send "flash write_image $image\r" }
+    -re "successfully checked erase state.*\r" {
+        sleep 2
+        send "flash write_image $image\r"
+    }
     -re "error when checking erase state.*\r" handle_failure
     timeout handle_failure
 }
 
 expect {
-    -re "wrote \[0-9\]+ bytes from file $image.*\r" { send "halt\rflash erase_check 0\r" }
+    -re "wrote \[0-9\]+ bytes from file $image.*\r" {
+        sleep 2
+        send "halt\rflash erase_check 0\r"
+    }
     -re "error writing to flash.*\r" handle_failure
     timeout handle_failure
 }
