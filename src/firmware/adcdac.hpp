@@ -47,7 +47,7 @@ protected:
   /// An actual value of the hannel in real units.
   float m_RealVal{};
 
-  /// An actual value ot the channel in the raw-binary format (native chip format).
+  /// An actual value of the channel in the raw-binary format (native chip format).
   int m_RawBinaryVal{};
 
   /**
