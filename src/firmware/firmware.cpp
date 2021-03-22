@@ -381,6 +381,9 @@ int main(void)
         view.BlinkAtStart();
 #endif
 
+        // Enable calibration settings.
+        nc.EnableCal(true);
+
         while(1) //endless loop ("super loop")
         {
              button.update();

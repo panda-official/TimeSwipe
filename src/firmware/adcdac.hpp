@@ -44,7 +44,7 @@ protected:
   /// The maximum range of the channel in real units (V, a, mA...).
   float m_RangeMax{};
 
-  /// An actual value of the hannel in real units.
+  /// An actual value of the channel in real units.
   float m_RealVal{};
 
   /// An actual value of the channel in the raw-binary format (native chip format).
@@ -149,8 +149,8 @@ public:
     m_RangeMin = min;
     m_RangeMax = max;
 
-    m_b = min;
     m_k = (max-min)/m_IntRange;
+    m_b = min;
   }
 
   /// Sets the conversion factors directly.
@@ -158,6 +158,9 @@ public:
   {
     m_k = k;
     m_b = b;
+
+    // Update the stored values.
+    SetRawBinVal(m_RawBinaryVal);
   }
 };
 
