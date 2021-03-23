@@ -67,6 +67,7 @@ void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
         Data.GetCalPair(CCalAtom::atom_type::V_supply, 0, cpair, strError);
 
         m_pVoltageDAC->SetLinearFactors(cpair.m, cpair.b);
+        m_pVoltageDAC->SetVal();
     }
 
     //update all channels:

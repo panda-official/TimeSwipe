@@ -29,14 +29,14 @@
  */
 class CADchan {
 protected:
-  /// Proportional convertion factor k: RealValue=RawValue*k + b.
+  /// Proportional convertion factor k: Raw = Real*k + b.
   float m_k{};
 
-  /// Zero offset: RealValue=RawValue*k + b.
+  /// Zero offset: Raw = Real*k + b.
   float m_b{};
 
   /// The range of the chip in discrets(raw-binary fromat).
-  int m_IntRange{1}; // ADCrange
+  int m_IntRange{}; // ADCrange
 
   /// The minimum range of the channel in real units (V, a, mA...).
   float m_RangeMin{};
@@ -44,41 +44,45 @@ protected:
   /// The maximum range of the channel in real units (V, a, mA...).
   float m_RangeMax{};
 
-  /// An actual value of the channel in real units.
-  float m_RealVal{};
-
   /// An actual value of the channel in the raw-binary format (native chip format).
-  int m_RawBinaryVal{};
+  int m_Raw{};
 
-  /**
-   * @brief Conversion from raw-binary value (native for the ADC/DAC chip or
-   * board) to real units value.
-   *
-   * @param RawVal The value in a raw-binary format.
-   *
-   * @return Real value in defined units.
-   */
-  float RawBinary2Real(int RawVal) const noexcept
+  /// @returns A valid raw value in range `[0, m_IntRange]`.
+  int ValidRaw(const int value) const noexcept
   {
-    if (RawVal < 0)
-      RawVal = 0;
-    if (RawVal > m_IntRange)
-      RawVal = m_IntRange;
-    return RawVal*m_k + m_b;
+    return value < 0 ? 0 : value > m_IntRange ? m_IntRange : value;
+  }
+
+  /// @returns A valid real value in range `[m_RangeMin, m_RangeMax]`.
+  float ValidReal(const float value) const noexcept
+  {
+    return value < m_RangeMin ? m_RangeMin : value > m_RangeMax ? m_RangeMax : value;
   }
 
   /**
-   * @brief Conversion from real value to raw-binary format (native for the
+   * @brief Conversion from raw value (native for the ADC/DAC chip or
+   * board) to real units value.
+   *
+   * @param value The value in a raw-binary format.
+   *
+   * @return Real value in defined units.
+   */
+  float RawToReal(const int value) const noexcept
+  {
+    return (ValidRaw(value) - m_b) / m_k;
+  }
+
+  /**
+   * @brief Conversion from real value to raw value (native for the
    * ADC/DAC chip or board).
    *
-   * @param RealVal The value in a real units.
+   * @param value The value in a real units.
    *
    * @return Raw-binary value.
    */
-  int Real2RawBinary(const float RealVal) const noexcept
+  int RealToRaw(const float value) const noexcept
   {
-    const auto res = static_cast<int>((RealVal-m_b)/m_k);
-    return res < 0 ? 0 : res > m_IntRange ? m_IntRange : res;
+    return ValidReal(value) * m_k + m_b;
   }
 
 public:
@@ -94,13 +98,13 @@ public:
   /// @returns An actual measured/controlled value in real units.
   float GetRealVal() const noexcept
   {
-    return m_RealVal;
+    return RawToReal(m_Raw);
   }
 
   /// @returns An actual measured/controlled value in raw-binary format
   int GetRawBinVal() // FIXME: const noexcept
   {
-    return m_RawBinaryVal;
+    return m_Raw;
   }
 
   /**
@@ -108,22 +112,15 @@ public:
    * is not in range `[m_RangeMin, m_RangeMax]` it will be adjusted to the
    * nearest border of that range.
    */
-  void SetRealVal(float value) noexcept
+  void SetRealVal(const float value) noexcept
   {
-    if (value < m_RangeMin)
-      value = m_RangeMin;
-    if (value > m_RangeMax)
-      value = m_RangeMax;
-
-    m_RealVal = value;
-    m_RawBinaryVal = Real2RawBinary(value);
+    m_Raw = RealToRaw(ValidReal(value));
   }
 
   /// Sets the actual measured/controlled value in raw-binary format.
-  void SetRawBinVal(const int RawVal) noexcept
+  void SetRawBinVal(const int value) noexcept
   {
-    m_RawBinaryVal = RawVal;
-    m_RealVal = RawBinary2Real(RawVal);
+    m_Raw = ValidRaw(value);
   }
 
   /**
@@ -146,21 +143,21 @@ public:
    */
   void SetRange(const float min, const float max) noexcept
   {
+    const auto old_real{GetRealVal()};
     m_RangeMin = min;
     m_RangeMax = max;
-
-    m_k = (max-min)/m_IntRange;
-    m_b = min;
+    // Update the stored value according to new range.
+    SetRealVal(old_real);
   }
 
   /// Sets the conversion factors directly.
   void SetLinearFactors(const float k, const float b) noexcept
   {
+    const auto old_real{GetRealVal()};
     m_k = k;
     m_b = b;
-
-    // Update the stored values.
-    SetRawBinVal(m_RawBinaryVal);
+    // Update the stored value according to new coefs.
+    SetRealVal(old_real);
   }
 };
 
@@ -212,26 +209,32 @@ protected:
   virtual void DriverSetVal(float val, int out_bin) = 0;
 
 public:
+  /// Set the current control value for this channel.
+  void SetVal() noexcept
+  {
+    DriverSetVal(GetRealVal(), GetRawBinVal());
+  }
+
   /**
    * @brief Set control value in a real unit format for this channel.
    *
-   * @param val A value in a real unit format
+   * @param value A value in a real unit format
    */
-  void SetVal(float val)
+  void SetVal(const float value) noexcept
   {
-    SetRealVal(val);
-    DriverSetVal(m_RealVal, m_RawBinaryVal);
+    SetRealVal(value);
+    DriverSetVal(GetRealVal(), GetRawBinVal());
   }
 
   /**
    * @brief Set control value in a raw binary format for this channel.
    *
-   * @param val A value in a raw binary format.
+   * @param value A value in a raw binary format.
    */
-  void SetRawOutput(int val)
+  void SetRawOutput(const int value) noexcept
   {
-    SetRawBinVal(val);
-    DriverSetVal(m_RealVal, m_RawBinaryVal);
+    SetRawBinVal(value);
+    DriverSetVal(GetRealVal(), GetRawBinVal());
   }
 };
 
