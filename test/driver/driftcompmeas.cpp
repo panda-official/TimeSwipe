@@ -52,19 +52,27 @@ void measure(TimeSwipe& ts, const std::chrono::milliseconds dur)
   assert(stopped);
 
   // Print the results
-  std::cout << "avg: ";
-  for (std::size_t i{}; i < channel_count; ++i) {
-    std::cout << aavg[i];
-    if (i < channel_count - 1)
-      std::cout << ' ';
+  const auto prec{std::cout.precision()};
+  try {
+    std::cout.precision(5 + 4);
+    std::cout << "avg: ";
+    for (std::size_t i{}; i < channel_count; ++i) {
+      std::cout << aavg[i];
+      if (i < channel_count - 1)
+        std::cout << ' ';
+    }
+    std::cout << "\nstddev: ";
+    for (std::size_t i{}; i < channel_count; ++i) {
+      std::cout << astddev[i];
+      if (i < channel_count - 1)
+        std::cout << ' ';
+    }
+    std::cout << "\n";
+  } catch (...) {
+    std::cout.precision(prec);
+    throw;
   }
-  std::cout << "\nstddev: ";
-  for (std::size_t i{}; i < channel_count; ++i) {
-    std::cout << astddev[i];
-    if (i < channel_count - 1)
-      std::cout << ' ';
-  }
-  std::cout << "\n";
+  std::cout.precision(prec);
 }
 
 } // namespace
