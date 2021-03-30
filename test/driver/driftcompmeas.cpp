@@ -10,10 +10,12 @@
 #include "timeswipe.hpp"
 
 #include <dmitigr/misc/math.hpp>
+#include <nlohmann/json.hpp>
 
 #include <cassert>
 #include <chrono>
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -87,6 +89,21 @@ try {
   const auto dur{argc > 1 ? ms{std::stoi(argv[1])} : ms{500}};
   if (dur <= ms::zero())
     throw std::invalid_argument{"invalid duration"};
+
+  // Process the config file.
+  const auto cfg_file_name{argc > 2 ? argv[2] : "driftcompmeas.json"};
+  if (std::ifstream in{cfg_file_name}) {
+    nlohmann::json config;
+    in >> config;
+    if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
+      if (!cs->empty()) {
+        std::string msg;
+        ts.SetSettings(cs->dump(), msg);
+        if(!msg.empty())
+          throw std::invalid_argument{"invalid config: " + msg};
+      }
+    }
+  }
 
   if (!ts.DriftReferences()) {
     // Normally, it means the first program run.

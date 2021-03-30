@@ -531,6 +531,9 @@ if(PANDA_BUILD_TESTS)
       COMMAND cmake -E copy_if_different
       "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/datlog.json"
       "${panda_output_dir}"
+      COMMAND cmake -E copy_if_different
+      "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/driftcompmeas.json"
+      "${panda_output_dir}"
       )
   endif()
 
