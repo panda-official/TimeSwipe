@@ -7,10 +7,6 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#ifdef NDEBUG
-#error This test is only usable without NDEBUG enabled.
-#endif
-
 #include "timeswipe.hpp"
 
 #include <dmitigr/misc/filesystem.hpp>

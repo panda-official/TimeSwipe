@@ -482,7 +482,7 @@ if(PANDA_BUILD_TESTS)
   message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
-  set(driver_tests datlog drift_compensation pwm resampler rpispi)
+  set(driver_tests datlog driftcomp driftcompmeas pwm resampler rpispi)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.
