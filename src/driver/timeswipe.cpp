@@ -116,7 +116,15 @@ public:
   void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
   void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
 
-  bool SetSampleRate(int rate);
+  bool SetSampleRate(const int rate)
+  {
+    const std::unique_lock lk{mutex_};
+    if (!IsBusy__(lk)) {
+      SetSampleRate__(rate);
+      return true;
+    } else
+      return false;
+  }
 
   int MaxSampleRate() const noexcept
   {
@@ -589,13 +597,6 @@ void TimeSwipeImpl::SetSensorTransmissions(float trans1, float trans2, float tra
   record_reader_.transmission[3] = 1.0 / trans4;
 }
 
-bool TimeSwipeImpl::SetSampleRate(const int rate)
-{
-  // FIXME: protect with mutex!
-  SetSampleRate__(rate);
-  return true;
-}
-
 bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb)
 {
   if (isStarted())
@@ -716,7 +717,7 @@ void TimeSwipe::SetBurstSize(std::size_t burst)
   return impl_->SetBurstSize(burst);
 }
 
-bool TimeSwipe::SetSampleRate(int rate)
+bool TimeSwipe::SetSampleRate(const int rate)
 {
   return impl_->SetSampleRate(rate);
 }
