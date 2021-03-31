@@ -31,40 +31,35 @@
 struct GPIOData final {
   std::uint8_t byte{};
   unsigned int tco{};
-  bool piOK{};
+  bool piOk{};
+
+  static GPIOData read() noexcept
+  {
+    setGPIOHigh(CLOCK);
+    sleep55ns();
+    sleep55ns();
+
+    setGPIOLow(CLOCK);
+    sleep55ns();
+    sleep55ns();
+
+    const unsigned int allGPIO{readAllGPIO()};
+    const std::uint8_t byte =
+      ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
+      ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
+      ((allGPIO & DATA_POSITION[2]) >> 2) |   //     5
+      ((allGPIO & DATA_POSITION[3]) >> 1) |   //     4
+      ((allGPIO & DATA_POSITION[4]) >> 3) |   //     3
+      ((allGPIO & DATA_POSITION[5]) >> 10) |  //     2
+      ((allGPIO & DATA_POSITION[6]) >> 12) |  //     1
+      ((allGPIO & DATA_POSITION[7]) >> 16);   //     0
+
+    sleep55ns();
+    sleep55ns();
+
+    return {byte, (allGPIO & TCO_POSITION), (allGPIO & PI_STATUS_POSITION) != 0};
+  }
 };
-
-inline GPIOData readByteAndStatusFromGPIO()
-{
-  setGPIOHigh(CLOCK);
-  sleep55ns();
-  sleep55ns();
-
-  setGPIOLow(CLOCK);
-  sleep55ns();
-  sleep55ns();
-
-  const unsigned int allGPIO{readAllGPIO()};
-  const std::uint8_t byte =
-    ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
-    ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
-    ((allGPIO & DATA_POSITION[2]) >> 2) |   //     5
-    ((allGPIO & DATA_POSITION[3]) >> 1) |   //     4
-    ((allGPIO & DATA_POSITION[4]) >> 3) |   //     3
-    ((allGPIO & DATA_POSITION[5]) >> 10) |  //     2
-    ((allGPIO & DATA_POSITION[6]) >> 12) |  //     1
-    ((allGPIO & DATA_POSITION[7]) >> 16);   //     0
-
-  sleep55ns();
-  sleep55ns();
-
-  return {byte, (allGPIO & TCO_POSITION), (allGPIO & PI_STATUS_POSITION) != 0};
-}
-
-constexpr bool isRisingFlank(const bool last, const bool now) noexcept
-{
-  return !last && now;
-}
 
 // chunk-Layout:
 // ------+----------------------------+---------------------------
@@ -79,9 +74,9 @@ constexpr bool isRisingFlank(const bool last, const bool now) noexcept
 //     6 |  1-2    2-2    3-2    4-2  |  1-3    2-3    3-3    4-3
 //     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
 
-constexpr std::size_t BLOCKS_PER_CHUNK{8u};
-constexpr std::size_t CHUNK_SIZE_IN_BYTE{BLOCKS_PER_CHUNK};
-constexpr std::size_t TCO_SIZE{256};
+constexpr std::size_t kBlocksPerChunk{8u};
+constexpr std::size_t kChunkSizeInByte{kBlocksPerChunk};
+constexpr std::size_t kTcoSize{256};
 
 constexpr void setBit(std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
 {
@@ -94,14 +89,14 @@ constexpr bool getBit(const std::uint8_t byte, const std::uint8_t N) noexcept
 }
 
 template <class T>
-void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
+void convertChunkToRecord(const std::array<uint8_t, kChunkSizeInByte>& chunk,
   const std::array<int, 4>& offset, const std::array<float, 4>& mfactor, T& data)
 {
   std::size_t count{};
   std::vector<std::uint16_t> sensors(4);
   static std::vector<std::uint16_t> sensorOld(4, 32768);
 
-  for (size_t i{}; i < CHUNK_SIZE_IN_BYTE; ++i) {
+  for (size_t i{}; i < kChunkSizeInByte; ++i) {
     setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
     setBit(sensors[1], 15 - count, getBit(chunk[i], 2));
     setBit(sensors[2], 15 - count, getBit(chunk[i], 1));
@@ -130,7 +125,7 @@ void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
 }
 
 struct RecordReader final {
-  std::array<std::uint8_t, CHUNK_SIZE_IN_BYTE> currentChunk{};
+  std::array<std::uint8_t, kChunkSizeInByte> currentChunk{};
   std::size_t bytesRead{};
   bool isFirst{true};
   std::size_t lastRead{};
@@ -147,6 +142,11 @@ struct RecordReader final {
   std::uint64_t emulSent{};
   static constexpr size_t emulRate{48000};
 #endif
+
+  static constexpr bool isRisingFlank(const bool last, const bool now) noexcept
+  {
+    return !last && now;
+  }
 
   // read records from hardware buffer
   SensorsData read()
@@ -166,14 +166,14 @@ struct RecordReader final {
     // II.
     bool dry_run{true};
     while (run) {
-      auto res = readByteAndStatusFromGPIO();
+      auto res{GPIOData::read()};
       currentTCO = res.tco;
 
       count++;
       currentChunk[bytesRead] = res.byte;
       bytesRead++;
 
-      if (bytesRead == CHUNK_SIZE_IN_BYTE) {
+      if (bytesRead == kChunkSizeInByte) {
         convertChunkToRecord(currentChunk, offset, mfactor, out.data());
         bytesRead = 0;
       }
