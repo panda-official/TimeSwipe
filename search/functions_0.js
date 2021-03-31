@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['count_54',['count',['../classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1',1,'TimeSwipeEvent::Button']]]
+  ['begin_64',['begin',['../classSensorsData.html#a0300dd62821c47c6e4eb5ab705bf385f',1,'SensorsData::begin() noexcept'],['../classSensorsData.html#a91a1c46d28173ef5aa70f52077a061be',1,'SensorsData::begin() const noexcept']]]
 ];

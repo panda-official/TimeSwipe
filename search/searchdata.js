@@ -1,27 +1,24 @@
 var indexSectionsWithContent =
 {
-  0: "bcdgimoprstv",
+  0: "bcdegimoprstv",
   1: "bgmorst",
-  2: "t",
-  3: "cdgiopstv",
-  4: "r"
+  2: "bcdegimopstv",
+  3: "r"
 };
 
 var indexSectionNames =
 {
   0: "all",
   1: "classes",
-  2: "files",
-  3: "functions",
-  4: "typedefs"
+  2: "functions",
+  3: "typedefs"
 };
 
 var indexSectionLabels =
 {
   0: "All",
   1: "Classes",
-  2: "Files",
-  3: "Functions",
-  4: "Typedefs"
+  2: "Functions",
+  3: "Typedefs"
 };
 

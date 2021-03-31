@@ -1,4 +1,11 @@
 var searchData=
 [
-  ['is_12',['is',['../classTimeSwipeEvent.html#af2be5f131062c34c331808097077fc8d',1,'TimeSwipeEvent']]]
+  ['gain_14',['Gain',['../classTimeSwipeEvent_1_1Gain.html',1,'TimeSwipeEvent']]],
+  ['get_15',['get',['../classTimeSwipeEvent.html#ae2acfc2e55796a9214534c44ca62dbed',1,'TimeSwipeEvent']]],
+  ['getchannelgain_16',['GetChannelGain',['../classTimeSwipe.html#a507544efad9cb78a65cafeb0ecc9176d',1,'TimeSwipe']]],
+  ['getchanneliepe_17',['GetChannelIEPE',['../classTimeSwipe.html#a8f71a47d965561ac29054459a1fea515',1,'TimeSwipe']]],
+  ['getchannelmode_18',['GetChannelMode',['../classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2',1,'TimeSwipe']]],
+  ['getmode_19',['GetMode',['../classTimeSwipe.html#ab9f4e3b449b6a1a7954411d9e8186fe4',1,'TimeSwipe']]],
+  ['getpwm_20',['GetPWM',['../classTimeSwipe.html#a35ea791084cca4c93fa27763f098ca76',1,'TimeSwipe']]],
+  ['getsettings_21',['GetSettings',['../classTimeSwipe.html#a20f611a8233851c57f95c75b4ee37850',1,'TimeSwipe']]]
 ];
