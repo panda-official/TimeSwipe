@@ -21,6 +21,7 @@
 
 #include "board.hpp"
 
+#include <cstdint>
 #include <vector>
 
 #ifdef PANDA_BUILD_FIRMWARE_EMU
@@ -28,7 +29,7 @@
 #endif
 
 struct GPIOData final {
-  uint8_t byte{};
+  std::uint8_t byte{};
   unsigned int tco{};
   bool piOK{};
 };
@@ -43,8 +44,8 @@ inline GPIOData readByteAndStatusFromGPIO()
   sleep55ns();
   sleep55ns();
 
-  unsigned int allGPIO = readAllGPIO();
-  uint8_t byte =
+  const unsigned int allGPIO{readAllGPIO()};
+  const std::uint8_t byte =
     ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
     ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
     ((allGPIO & DATA_POSITION[2]) >> 2) |   //     5
@@ -78,16 +79,16 @@ constexpr bool isRisingFlank(const bool last, const bool now) noexcept
 //     6 |  1-2    2-2    3-2    4-2  |  1-3    2-3    3-3    4-3
 //     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
 
-constexpr size_t BLOCKS_PER_CHUNK = 8;
-constexpr size_t CHUNK_SIZE_IN_BYTE = BLOCKS_PER_CHUNK;
-constexpr size_t TCO_SIZE = 256;
+constexpr std::size_t BLOCKS_PER_CHUNK{8u};
+constexpr std::size_t CHUNK_SIZE_IN_BYTE{BLOCKS_PER_CHUNK};
+constexpr std::size_t TCO_SIZE{256};
 
-constexpr void setBit(uint16_t &word, uint8_t N, bool bit) noexcept
+constexpr void setBit(std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
 {
   word = (word & ~(1UL << N)) | (bit << N);
 }
 
-constexpr bool getBit(uint8_t byte, uint8_t N) noexcept
+constexpr bool getBit(const std::uint8_t byte, const std::uint8_t N) noexcept
 {
   return (byte & (1UL << N));
 }
@@ -96,9 +97,9 @@ template <class T>
 void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
   const std::array<int, 4>& offset, const std::array<float, 4>& mfactor, T& data)
 {
-  size_t count{};
-  std::vector<uint16_t> sensors(4);
-  static std::vector<uint16_t> sensorOld(4, 32768);
+  std::size_t count{};
+  std::vector<std::uint16_t> sensors(4);
+  static std::vector<std::uint16_t> sensorOld(4, 32768);
 
   for (size_t i{}; i < CHUNK_SIZE_IN_BYTE; ++i) {
     setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
@@ -114,7 +115,7 @@ void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
     count++;
   }
 
-  for (size_t i{}; i < 4; ++i) {
+  for (std::size_t i{}; i < 4; ++i) {
     //##########################//
     //TBD: Dirty fix for clippings
     //##########################//
@@ -129,10 +130,10 @@ void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
 }
 
 struct RecordReader final {
-  std::array<uint8_t, CHUNK_SIZE_IN_BYTE> currentChunk{};
-  size_t bytesRead{};
+  std::array<std::uint8_t, CHUNK_SIZE_IN_BYTE> currentChunk{};
+  std::size_t bytesRead{};
   bool isFirst{true};
-  size_t lastRead{};
+  std::size_t lastRead{};
 
   int mode{};
   std::array<int, 4> offset{0, 0, 0, 0};
@@ -143,7 +144,7 @@ struct RecordReader final {
 #ifdef PANDA_BUILD_FIRMWARE_EMU
   std::chrono::steady_clock::time_point emulPointBegin;
   std::chrono::steady_clock::time_point emulPointEnd;
-  uint64_t emulSent{};
+  std::uint64_t emulSent{};
   static constexpr size_t emulRate{48000};
 #endif
 
@@ -215,7 +216,7 @@ struct RecordReader final {
 
   void start()
   {
-    for (size_t i{}; i < mfactor.size(); i++)
+    for (std::size_t i{}; i < mfactor.size(); ++i)
       mfactor[i] = gain[i] * transmission[i];
 #ifdef PANDA_BUILD_FIRMWARE_EMU
     emulPointBegin = std::chrono::steady_clock::now();
@@ -241,12 +242,13 @@ struct RecordReader final {
     auto& data{out.data()};
     while (true) {
       emulPointEnd = chrono::steady_clock::now();
-      const uint64_t diff_us{chrono::duration_cast<chrono::microseconds>(emulPointEnd - emulPointBegin).count()};
-      const uint64_t wouldSent{diff_us * emulRate / 1000 / 1000};
+      const std::uint64_t diff_us{chrono::duration_cast<chrono::microseconds>
+        (emulPointEnd - emulPointBegin).count()};
+      const std::uint64_t wouldSent{diff_us * emulRate / 1000 / 1000};
       if (wouldSent > emulSent) {
         while (emulSent++ < wouldSent) {
           constexpr int NB_OF_SAMPLES{emulRate};
-          auto val = int(3276 * sin(angle) + 32767);
+          auto val{int(3276 * std::sin(angle) + 32767)};
           angle += (2.0 * M_PI) / NB_OF_SAMPLES;
           data[0].push_back(val);
           data[1].push_back(val);
