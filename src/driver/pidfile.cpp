@@ -35,21 +35,19 @@ bool PidFile::Lock(std::string& err) {
         unlock();
         return false;
     }
-    char buf[32];
+    std::string buf(32, '\0');
+    int rd = read(fd, buf.data(), buf.size());
+    buf.resize(rd);
 
-    int rd = read(fd, buf, sizeof(buf)-1);
-    buf[rd]=0;
-
-    char proc_name[80];
-    snprintf(proc_name, sizeof(proc_name), "/proc/%s/exe", buf);
-    if( access( proc_name, F_OK ) != -1 ) {
-        err = "process exists with pid " + std::string(buf);
+    std::string proc_name{"/proc/"+buf+"/exe"};
+    if (access( proc_name.c_str(), F_OK ) != -1) {
+        err = "process exists with pid " + buf;
         unlock();
         return false;
     }
 
-    snprintf(buf, sizeof(buf), "%d", getpid());
-    rd = write(fd, buf, strlen(buf));
+    buf = std::to_string(getpid());
+    rd = write(fd, buf.data(), buf.size());
     locked = true;
 
     return true;

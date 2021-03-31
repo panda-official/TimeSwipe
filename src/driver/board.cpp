@@ -1,5 +1,8 @@
 #include "board.hpp"
+
 #include <nlohmann/json.hpp>
+
+#include <mutex>
 
 // RPI GPIO FUNCTIONS
 void pullGPIO(unsigned pin, unsigned high)

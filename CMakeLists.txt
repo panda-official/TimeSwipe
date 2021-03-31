@@ -31,6 +31,9 @@ include(misc)
 set(CMAKE_VERBOSE_MAKEFILE On CACHE BOOL
   "Verbose output (useful to figure out what is going on at build time)?")
 
+set(PANDA_CLANG_USE_LIBCPP On CACHE BOOL
+  "Use libcpp with Clang?")
+
 set(PANDA_BUILD_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
@@ -53,7 +56,7 @@ set(PANDA_BUILD_ARM On CACHE BOOL
   "Build for ARM?")
 
 set(PANDA_BUILD_ARM64 Off CACHE BOOL
-  "Build for ARM64bit?")
+  "Build for ARM64?")
 
 set(PANDA_BUILD_TESTS On CACHE BOOL
   "Build tests (including examples)?")
@@ -348,12 +351,13 @@ if(PANDA_BUILD_FIRMWARE)
     target_compile_definitions(firmware PUBLIC DMS_BOARD)
   endif()
   target_include_directories(firmware PUBLIC src/firmware)
-  target_link_libraries(firmware PUBLIC
+  set(firmware_link_libraries
     3rdparty_Adafruit_NeoPixel
     3rdparty_CMSIS
     3rdparty_nlohmann_json
     3rdparty_sam
     common)
+  target_link_libraries(firmware PUBLIC ${firmware_link_libraries})
 
   # -------------------
   # firmware.elf target
@@ -406,14 +410,21 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver/timeswipe.cpp
     src/driver/timeswipe_eeprom.cpp
     src/driver/timeswipe_event.cpp
-    src/driver/timeswipe_resampler.cpp
     src/driver/pidfile.cpp
     src/driver/board_iface.cpp
     src/driver/RaspberryPi/bcmspi.cpp
     )
 
   add_library(timeswipe ${timeswipe_src})
-  target_link_libraries(timeswipe PUBLIC Boost::boost pthread 3rdparty_nlohmann_json 3rdparty_BCM common)
+  set(timeswipe_link_libraries
+    Boost::boost
+    pthread
+    3rdparty_nlohmann_json
+    3rdparty_BCM
+    3rdparty_dmitigr_math
+    common)
+  panda_append_cppfs(timeswipe_link_libraries)
+  target_link_libraries(timeswipe PUBLIC ${timeswipe_link_libraries})
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
   if(NOT CMAKE_CROSSCOMPILING)
@@ -476,15 +487,17 @@ if(PANDA_BUILD_TESTS)
   message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
-  set(driver_tests datlog pwm rpispi)
+  set(driver_tests datlog driftcomp driftcompmeas kaiser pwm resampler rpispi)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
   set(firmware_tests_link_libraries firmware)
+  panda_append_cppfs(driver_tests_link_libraries)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
+  set(resampler_link_libraries 3rdparty_dmitigr_misc 3rdparty_dmitigr_progpar)
 
   # Set the extra sources per test.
   set(button_event_extra_sources 3rdParty/prj_templ/Custom/startup_ARMCM4.S)
@@ -522,6 +535,9 @@ if(PANDA_BUILD_TESTS)
     add_custom_target(panda_copy_test_resources ALL
       COMMAND cmake -E copy_if_different
       "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/datlog.json"
+      "${panda_output_dir}"
+      COMMAND cmake -E copy_if_different
+      "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/driftcompmeas.json"
       "${panda_output_dir}"
       )
   endif()

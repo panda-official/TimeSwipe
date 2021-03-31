@@ -16,7 +16,7 @@ class TimeSwipeEventImpl {
 };
 
 TimeSwipeEvent::TimeSwipeEvent() {
-    _impl = std::make_shared<TimeSwipeEventImpl>();
+    impl_ = std::make_shared<TimeSwipeEventImpl>();
 }
 
 TimeSwipeEvent::~TimeSwipeEvent() {
@@ -84,7 +84,7 @@ int TimeSwipeEvent::Mode::value() const {
 
 template <class EVENT>
 bool TimeSwipeEvent::is() const {
-    return std::holds_alternative<EVENT>(_impl->events);
+    return std::holds_alternative<EVENT>(impl_->events);
 }
 template bool TimeSwipeEvent::is<TimeSwipeEvent::Button>() const;
 template bool TimeSwipeEvent::is<TimeSwipeEvent::Gain>() const;
@@ -96,7 +96,7 @@ template bool TimeSwipeEvent::is<TimeSwipeEvent::Mode>() const;
 
 template <class EVENT>
 const EVENT& TimeSwipeEvent::get() const {
-    return std::get<EVENT>(_impl->events);
+    return std::get<EVENT>(impl_->events);
 }
 
 template const TimeSwipeEvent::Button& TimeSwipeEvent::get<TimeSwipeEvent::Button>() const;
@@ -111,7 +111,7 @@ template <class EVENT>
 TimeSwipeEvent::TimeSwipeEvent(EVENT&& ev)
     : TimeSwipeEvent()
 {
-    _impl->events = std::move(ev);
+    impl_->events = std::move(ev);
 }
 template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Button&& ev);
 template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Gain&& ev);
@@ -125,7 +125,7 @@ template <class EVENT>
 TimeSwipeEvent::TimeSwipeEvent(const EVENT& ev)
     : TimeSwipeEvent()
 {
-    _impl->events = ev;
+    impl_->events = ev;
 }
 template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Button& ev);
 template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Gain& ev);

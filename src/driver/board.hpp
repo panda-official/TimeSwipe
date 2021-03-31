@@ -1,13 +1,15 @@
 #ifndef BOARD
 #define BOARD
 
-#include <string>
 #include <array>
 #include <chrono>
+#include <list>
+#include <string>
 #include <thread>
 
-#include "gpio/gpio.h"
 #include "board_iface.hpp"
+#include "gpio/gpio.h"
+#include "timeswipe.hpp"
 
 // PIN NAMES
 static const unsigned char DATA0 = 24; //BCM 24 - PIN 18
