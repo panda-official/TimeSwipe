@@ -22,6 +22,7 @@
 #include "board.hpp"
 
 #include <cstdint>
+#include <type_traits>
 #include <vector>
 
 #ifdef PANDA_BUILD_FIRMWARE_EMU
@@ -78,25 +79,28 @@ constexpr std::size_t kBlocksPerChunk{8u};
 constexpr std::size_t kChunkSizeInByte{kBlocksPerChunk};
 constexpr std::size_t kTcoSize{256};
 
-constexpr void setBit(std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
+inline void convertChunkToRecord(SensorsData& data,
+  const std::array<std::uint8_t, kChunkSizeInByte>& chunk,
+  const std::array<std::uint16_t, 4>& offset,
+  const std::array<float, 4>& mfactor)
 {
-  word = (word & ~(1UL << N)) | (bit << N);
-}
-
-constexpr bool getBit(const std::uint8_t byte, const std::uint8_t N) noexcept
-{
-  return (byte & (1UL << N));
-}
-
-template <class T>
-void convertChunkToRecord(const std::array<uint8_t, kChunkSizeInByte>& chunk,
-  const std::array<int, 4>& offset, const std::array<float, 4>& mfactor, T& data)
-{
-  std::size_t count{};
-  std::vector<std::uint16_t> sensors(4);
+  std::array<std::uint16_t, 4> sensors{};
   static std::vector<std::uint16_t> sensorOld(4, 32768);
 
-  for (size_t i{}; i < kChunkSizeInByte; ++i) {
+  static_assert(data.SensorsSize() == 4); // KLUDGE
+  using OffsetValue = std::decay_t<decltype(offset)>::value_type;
+  using SensorValue = std::decay_t<decltype(sensors)>::value_type;
+  static_assert(sizeof(OffsetValue) == sizeof(SensorValue));
+
+  constexpr auto setBit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
+  {
+    word = (word & ~(1UL << N)) | (bit << N);
+  };
+  constexpr auto getBit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
+  {
+    return (byte & (1UL << N));
+  };
+  for (std::size_t i{}, count{}; i < kChunkSizeInByte; ++i) {
     setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
     setBit(sensors[1], 15 - count, getBit(chunk[i], 2));
     setBit(sensors[2], 15 - count, getBit(chunk[i], 1));
@@ -110,6 +114,7 @@ void convertChunkToRecord(const std::array<uint8_t, kChunkSizeInByte>& chunk,
     count++;
   }
 
+  auto& underlying_data{data.data()};
   for (std::size_t i{}; i < 4; ++i) {
     //##########################//
     //TBD: Dirty fix for clippings
@@ -120,7 +125,7 @@ void convertChunkToRecord(const std::array<uint8_t, kChunkSizeInByte>& chunk,
     sensorOld[i] = sensors[i];
     //##########################//
 
-    data[i].push_back((float)(sensors[i] - offset[i]) * mfactor[i]);
+    underlying_data[i].push_back(static_cast<float>(sensors[i] - offset[i]) * mfactor[i]);
   }
 }
 
@@ -131,7 +136,7 @@ struct RecordReader final {
   std::size_t lastRead{};
 
   int mode{};
-  std::array<int, 4> offset{0, 0, 0, 0};
+  std::array<std::uint16_t, 4> offset{0, 0, 0, 0};
   std::array<float, 4> gain{1, 1, 1, 1};
   std::array<float, 4> transmission{1, 1, 1, 1};
   std::array<float, 4> mfactor{};
@@ -174,7 +179,7 @@ struct RecordReader final {
       bytesRead++;
 
       if (bytesRead == kChunkSizeInByte) {
-        convertChunkToRecord(currentChunk, offset, mfactor, out.data());
+        convertChunkToRecord(out, currentChunk, offset, mfactor);
         bytesRead = 0;
       }
 
