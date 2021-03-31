@@ -86,31 +86,37 @@ public:
   /// @name Iterators
   /// @{
 
+  /// @returns Iterator that points to a first channel.
   auto begin() noexcept
   {
     return data_.begin();
   }
 
+  /// @returns Constant iterator that points to a first channel.
   auto begin() const noexcept
   {
     return data_.begin();
   }
 
+  /// @returns Constant iterator that points to a first channel.
   auto cbegin() const noexcept
   {
     return data_.cbegin();
   }
 
+  /// @returns Iterator that points to an one-past-the-last channel.
   auto end() noexcept
   {
     return data_.end();
   }
 
+  /// @returns Constant iterator that points to an one-past-the-last channel.
   auto end() const noexcept
   {
     return data_.end();
   }
 
+  /// @returns Constant iterator that points to an one-past-the-last channel.
   auto cend() const noexcept
   {
     return data_.cend();
@@ -489,13 +495,18 @@ public:
   void SetBurstSize(std::size_t burstNum);
 
   /**
-   * \brief Set sample rate. Default value is 48000
+   * @brief Set sample rate. Default value is MaxSampleRate().
    *
    * @param rate - new sample rate
    * @return false on wrong rate value requested
    *
    * @par Requires
-   * `(1 <= rate && rate <= MaxSampleRate()).
+   * `(!IsBusy() && (1 <= rate && rate <= MaxSampleRate())).
+   *
+   * @warning It's highly recommended not to use the rate for which
+   * `(MaxSampleRate() % rate != 0)` for best performance. In other words
+   * the lower the value of `std::gcd(MaxSampleRate(), rate)`, the worse
+   * the performance of the underlying resampler.
    */
   bool SetSampleRate(int rate);
 
