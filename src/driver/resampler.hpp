@@ -358,7 +358,7 @@ public:
       }();
 
       // Find the most suitable shape factor step by step by delta (in-)decrementing.
-      constexpr double inf{}, sup{20};
+      constexpr double inf{}, sup{30};
       const auto up_factor = options_.up_factor();
       for (double prev_beta{initial_beta}, prev_sum{initial_sum};;) {
         const double beta = prev_beta + delta;
