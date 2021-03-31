@@ -28,9 +28,9 @@
 #endif
 
 struct GPIOData final {
-  uint8_t byte;
-  unsigned int tco;
-  bool piOK;
+  uint8_t byte{};
+  unsigned int tco{};
+  bool piOK{};
 };
 
 inline GPIOData readByteAndStatusFromGPIO()
@@ -96,11 +96,11 @@ template <class T>
 void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
   const std::array<int, 4>& offset, const std::array<float, 4>& mfactor, T& data)
 {
-  size_t count = 0;
-  std::vector<uint16_t> sensors(4, 0);
+  size_t count{};
+  std::vector<uint16_t> sensors(4);
   static std::vector<uint16_t> sensorOld(4, 32768);
 
-  for (size_t i = 0; i < CHUNK_SIZE_IN_BYTE; ++i) {
+  for (size_t i{}; i < CHUNK_SIZE_IN_BYTE; ++i) {
     setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
     setBit(sensors[1], 15 - count, getBit(chunk[i], 2));
     setBit(sensors[2], 15 - count, getBit(chunk[i], 1));
@@ -114,7 +114,7 @@ void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
     count++;
   }
 
-  for (size_t i = 0; i < 4; ++i) {
+  for (size_t i{}; i < 4; ++i) {
     //##########################//
     //TBD: Dirty fix for clippings
     //##########################//
@@ -129,16 +129,16 @@ void convertChunkToRecord(const std::array<uint8_t, CHUNK_SIZE_IN_BYTE>& chunk,
 }
 
 struct RecordReader final {
-  std::array<uint8_t, CHUNK_SIZE_IN_BYTE> currentChunk;
+  std::array<uint8_t, CHUNK_SIZE_IN_BYTE> currentChunk{};
   size_t bytesRead{};
   bool isFirst{true};
   size_t lastRead{};
 
   int mode{};
   std::array<int, 4> offset{0, 0, 0, 0};
-  std::array<float, 4> gain{1.0, 1.0, 1.0, 1.0};
-  std::array<float, 4> transmission{1.0, 1.0, 1.0, 1.0};
-  std::array<float, 4> mfactor;
+  std::array<float, 4> gain{1, 1, 1, 1};
+  std::array<float, 4> transmission{1, 1, 1, 1};
+  std::array<float, 4> mfactor{};
 
 #ifdef PANDA_BUILD_FIRMWARE_EMU
   std::chrono::steady_clock::time_point emulPointBegin;
@@ -153,17 +153,17 @@ struct RecordReader final {
 #ifndef PANDA_BUILD_FIRMWARE_EMU
     SensorsData out;
     out.reserve(lastRead*2);
-    int lastTCO;
-    int currentTCO;
+    int lastTCO{};
+    int currentTCO{};
 
-    int count = 0;
-    bool run = true;
+    int count{};
+    bool run{true};
 
     // I.
     waitForPiOk();
 
     // II.
-    bool dry_run = true;
+    bool dry_run{true};
     while (run) {
       auto res = readByteAndStatusFromGPIO();
       currentTCO = res.tco;
@@ -215,7 +215,7 @@ struct RecordReader final {
 
   void start()
   {
-    for (size_t i = 0; i < mfactor.size(); i++)
+    for (size_t i{}; i < mfactor.size(); i++)
       mfactor[i] = gain[i] * transmission[i];
 #ifdef PANDA_BUILD_FIRMWARE_EMU
     emulPointBegin = std::chrono::steady_clock::now();
@@ -238,14 +238,14 @@ struct RecordReader final {
   {
     namespace chrono = std::chrono;
     SensorsData out;
-    auto& data = out.data();
+    auto& data{out.data()};
     while (true) {
       emulPointEnd = chrono::steady_clock::now();
-      uint64_t diff_us = chrono::duration_cast<chrono::microseconds>(emulPointEnd - emulPointBegin).count();
-      uint64_t wouldSent = diff_us * emulRate / 1000 / 1000;
+      const uint64_t diff_us{chrono::duration_cast<chrono::microseconds>(emulPointEnd - emulPointBegin).count()};
+      const uint64_t wouldSent{diff_us * emulRate / 1000 / 1000};
       if (wouldSent > emulSent) {
         while (emulSent++ < wouldSent) {
-          static constexpr int NB_OF_SAMPLES = emulRate;
+          constexpr int NB_OF_SAMPLES{emulRate};
           auto val = int(3276 * sin(angle) + 32767);
           angle += (2.0 * M_PI) / NB_OF_SAMPLES;
           data[0].push_back(val);
