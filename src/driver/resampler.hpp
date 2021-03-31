@@ -325,7 +325,7 @@ public:
        */
       const auto clog_prec = std::clog.precision();
       std::clog.precision(std::numeric_limits<double>::max_digits10);
-      std::clog << "Guessing the most suitable shape factor for Kaiser window...";
+      std::clog << "Guessing the best shape factor for Kaiser window of size "<<firc.size()<<"...";
       std::vector<double> result(firc.size());
 
       // Create convenient applicator of Kaiser window and adder of the result of application.
