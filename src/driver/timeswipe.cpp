@@ -384,9 +384,9 @@ private:
     // Restores the state of TimeSwipe instance.
     ~DriftAffectedStateGuard()
     {
-      impl_.resampler_ = std::move(resampler_);
       impl_.burst_size_ = burst_size_;
       impl_.sample_rate_ = sample_rate_;
+      impl_.resampler_ = std::move(resampler_);
 
       // Restore input modes.
       impl_.self_.SetChannelMode(Ch::CH4, chmm4_);
