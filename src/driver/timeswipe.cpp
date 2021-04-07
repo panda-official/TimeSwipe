@@ -104,12 +104,12 @@ public:
 
   void SetMode(const int number)
   {
-    record_reader_.mode = number;
+    record_reader_.SetMode(number);
   }
 
   int GetMode() const noexcept
   {
-    return record_reader_.mode;
+    return record_reader_.Mode();
   }
 
   void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
@@ -463,8 +463,8 @@ private:
 
     clearThreads();
 
-    record_reader_.setup();
-    record_reader_.start();
+    record_reader_.Setup();
+    record_reader_.Start();
 
     started_instance_ = this;
     work_ = true;
@@ -491,7 +491,7 @@ private:
     while (record_queue_.pop());
     while (in_spi_.pop());
     while (out_spi_.pop());
-    record_reader_.stop();
+    record_reader_.Stop();
     return true;
   }
 
@@ -575,26 +575,26 @@ private:
 
 void TimeSwipeImpl::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
 {
-  record_reader_.offset[0] = offset1;
-  record_reader_.offset[1] = offset2;
-  record_reader_.offset[2] = offset3;
-  record_reader_.offset[3] = offset4;
+  record_reader_.Offsets()[0] = offset1;
+  record_reader_.Offsets()[1] = offset2;
+  record_reader_.Offsets()[2] = offset3;
+  record_reader_.Offsets()[3] = offset4;
 }
 
 void TimeSwipeImpl::SetSensorGains(float gain1, float gain2, float gain3, float gain4)
 {
-  record_reader_.gain[0] = 1.0 / gain1;
-  record_reader_.gain[1] = 1.0 / gain2;
-  record_reader_.gain[2] = 1.0 / gain3;
-  record_reader_.gain[3] = 1.0 / gain4;
+  record_reader_.Gains()[0] = 1.0 / gain1;
+  record_reader_.Gains()[1] = 1.0 / gain2;
+  record_reader_.Gains()[2] = 1.0 / gain3;
+  record_reader_.Gains()[3] = 1.0 / gain4;
 }
 
 void TimeSwipeImpl::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
 {
-  record_reader_.transmission[0] = 1.0 / trans1;
-  record_reader_.transmission[1] = 1.0 / trans2;
-  record_reader_.transmission[2] = 1.0 / trans3;
-  record_reader_.transmission[3] = 1.0 / trans4;
+  record_reader_.Transmissions()[0] = 1.0 / trans1;
+  record_reader_.Transmissions()[1] = 1.0 / trans2;
+  record_reader_.Transmissions()[2] = 1.0 / trans3;
+  record_reader_.Transmissions()[3] = 1.0 / trans4;
 }
 
 bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb)
@@ -785,8 +785,7 @@ std::string TimeSwipe::GetSettings(const std::string& request, std::string& erro
 void TimeSwipeImpl::fetcherLoop()
 {
   while (work_) {
-    auto data = record_reader_.read();
-    if (!record_queue_.push(data))
+    if (const auto data{record_reader_.Read()}; !record_queue_.push(data))
       ++record_error_count_;
 
     TimeSwipeEvent event;

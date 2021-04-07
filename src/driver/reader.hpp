@@ -81,12 +81,12 @@ constexpr std::size_t kTcoSize{256};
 
 inline void convertChunkToRecord(SensorsData& data,
   const std::array<std::uint8_t, kChunkSizeInByte>& chunk,
-  const std::array<std::uint16_t, 4>& offset,
-  const std::array<float, 4>& mfactor)
+  const std::array<std::uint16_t, 4>& offsets,
+  const std::array<float, 4>& mfactors)
 {
   std::array<std::uint16_t, 4> sensors{};
   static_assert(data.SensorsSize() == 4); // KLUDGE
-  using OffsetValue = std::decay_t<decltype(offset)>::value_type;
+  using OffsetValue = std::decay_t<decltype(offsets)>::value_type;
   using SensorValue = std::decay_t<decltype(sensors)>::value_type;
   static_assert(sizeof(OffsetValue) == sizeof(SensorValue));
 
@@ -114,39 +114,19 @@ inline void convertChunkToRecord(SensorsData& data,
 
   auto& underlying_data{data.data()};
   for (std::size_t i{}; i < 4; ++i)
-    underlying_data[i].push_back(static_cast<float>(sensors[i] - offset[i]) * mfactor[i]);
+    underlying_data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
 }
 
-struct RecordReader final {
-  std::array<std::uint8_t, kChunkSizeInByte> currentChunk{};
-  std::size_t bytesRead{};
-  bool isFirst{true};
-  std::size_t lastRead{};
-
-  int mode{};
-  std::array<std::uint16_t, 4> offset{0, 0, 0, 0};
-  std::array<float, 4> gain{1, 1, 1, 1};
-  std::array<float, 4> transmission{1, 1, 1, 1};
-  std::array<float, 4> mfactor{};
-
-#ifdef PANDA_BUILD_FIRMWARE_EMU
-  std::chrono::steady_clock::time_point emulPointBegin;
-  std::chrono::steady_clock::time_point emulPointEnd;
-  std::uint64_t emulSent{};
-  static constexpr size_t emulRate{48000};
-#endif
-
-  static constexpr bool isRisingFlank(const bool last, const bool now) noexcept
-  {
-    return !last && now;
-  }
+class RecordReader final {
+private:
+  friend class TimeSwipeImpl;
 
   // read records from hardware buffer
-  SensorsData read()
+  SensorsData Read()
   {
 #ifndef PANDA_BUILD_FIRMWARE_EMU
     SensorsData out;
-    out.reserve(lastRead*2);
+    out.reserve(last_read_*2);
     int lastTCO{};
     int currentTCO{};
 
@@ -154,7 +134,7 @@ struct RecordReader final {
     bool run{true};
 
     // I.
-    waitForPiOk();
+    WaitForPiOk();
 
     // II.
     bool dry_run{true};
@@ -163,12 +143,12 @@ struct RecordReader final {
       currentTCO = res.tco;
 
       count++;
-      currentChunk[bytesRead] = res.byte;
-      bytesRead++;
+      current_chunk_[bytes_read_] = res.byte;
+      bytes_read_++;
 
-      if (bytesRead == kChunkSizeInByte) {
-        convertChunkToRecord(out, currentChunk, offset, mfactor);
-        bytesRead = 0;
+      if (bytes_read_ == kChunkSizeInByte) {
+        convertChunkToRecord(out, current_chunk_, offsets_, mfactors_);
+        bytes_read_ = 0;
       }
 
       run = dry_run || !(currentTCO - lastTCO == 16384);
@@ -178,8 +158,8 @@ struct RecordReader final {
     }
 
     // discard first read - thats any old data in RAM!
-    if (isFirst) {
-      isFirst = false;
+    if (is_first_) {
+      is_first_ = false;
       out.clear();
     }
 
@@ -187,39 +167,39 @@ struct RecordReader final {
     sleep55ns();
     sleep55ns();
 
-    lastRead = out.DataSize();
+    last_read_ = out.DataSize();
     return out;
 #else
     return readEmulated();
 #endif
   }
 
-  void waitForPiOk()
+  void WaitForPiOk()
   {
     // for 12MHz Quartz
     std::this_thread::sleep_for(std::chrono::microseconds(700));
   }
 
-  void setup()
+  void Setup()
   {
 #ifndef PANDA_BUILD_FIRMWARE_EMU
     setup_io();
 #endif
   }
 
-  void start()
+  void Start()
   {
-    for (std::size_t i{}; i < mfactor.size(); ++i)
-      mfactor[i] = gain[i] * transmission[i];
+    for (std::size_t i{}; i < mfactors_.size(); ++i)
+      mfactors_[i] = gains_[i] * transmissions_[i];
 #ifdef PANDA_BUILD_FIRMWARE_EMU
-    emulPointBegin = std::chrono::steady_clock::now();
-    emulSent = 0;
+    emul_point_begin_ = std::chrono::steady_clock::now();
+    emul_sent_ = 0;
 #else
-    init(mode);
+    init(mode_);
 #endif
   }
 
-  void stop()
+  void Stop()
   {
 #ifndef PANDA_BUILD_FIRMWARE_EMU
     shutdown();
@@ -228,21 +208,20 @@ struct RecordReader final {
 
 #ifdef PANDA_BUILD_FIRMWARE_EMU
   double angle{};
-  SensorsData readEmulated()
+  SensorsData ReadEmulated()
   {
     namespace chrono = std::chrono;
     SensorsData out;
     auto& data{out.data()};
     while (true) {
-      emulPointEnd = chrono::steady_clock::now();
+      emul_point_end_ = chrono::steady_clock::now();
       const std::uint64_t diff_us{chrono::duration_cast<chrono::microseconds>
-        (emulPointEnd - emulPointBegin).count()};
-      const std::uint64_t wouldSent{diff_us * emulRate / 1000 / 1000};
-      if (wouldSent > emulSent) {
-        while (emulSent++ < wouldSent) {
-          constexpr int NB_OF_SAMPLES{emulRate};
-          auto val{int(3276 * std::sin(angle) + 32767)};
-          angle += (2.0 * M_PI) / NB_OF_SAMPLES;
+        (emul_point_end_ - emul_point_begin_).count()};
+      const std::uint64_t wouldSent{diff_us * emul_rate_ / 1000 / 1000};
+      if (wouldSent > emul_sent_) {
+        while (emul_sent_++ < wouldSent) {
+          const auto val{int(3276 * std::sin(angle) + 32767)};
+          angle += (2.0 * M_PI) / emul_rate_;
           data[0].push_back(val);
           data[1].push_back(val);
           data[2].push_back(val);
@@ -255,6 +234,70 @@ struct RecordReader final {
     return out;
   }
 #endif
+
+  const std::array<std::uint16_t, 4>& Offsets() const noexcept
+  {
+    return offsets_;
+  }
+
+  std::array<std::uint16_t, 4>& Offsets() noexcept
+  {
+    return offsets_;
+  }
+
+  const std::array<float, 4>& Gains() const noexcept
+  {
+    return gains_;
+  }
+
+  std::array<float, 4>& Gains() noexcept
+  {
+    return gains_;
+  }
+
+  const std::array<float, 4>& Transmissions() const noexcept
+  {
+    return transmissions_;
+  }
+
+  std::array<float, 4>& Transmissions() noexcept
+  {
+    return transmissions_;
+  }
+
+  int Mode() const noexcept
+  {
+    return mode_;
+  }
+
+  void SetMode(const int mode) noexcept
+  {
+    mode_ = mode;
+  }
+
+private:
+  std::array<std::uint8_t, kChunkSizeInByte> current_chunk_{};
+  std::size_t bytes_read_{};
+  bool is_first_{true};
+  std::size_t last_read_{};
+
+  int mode_{};
+  std::array<std::uint16_t, 4> offsets_{0, 0, 0, 0};
+  std::array<float, 4> gains_{1, 1, 1, 1};
+  std::array<float, 4> transmissions_{1, 1, 1, 1};
+  std::array<float, 4> mfactors_{};
+
+#ifdef PANDA_BUILD_FIRMWARE_EMU
+  std::chrono::steady_clock::time_point emul_point_begin_;
+  std::chrono::steady_clock::time_point emul_point_end_;
+  std::uint64_t emul_sent_{};
+  static constexpr std::size_t emul_rate_{48000};
+#endif
+
+  static constexpr bool isRisingFlank(const bool last, const bool now) noexcept
+  {
+    return !last && now;
+  }
 };
 
 #endif  // PANDA_TIMESWIPE_DRIVER_READER_HPP
