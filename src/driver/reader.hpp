@@ -85,8 +85,6 @@ inline void convertChunkToRecord(SensorsData& data,
   const std::array<float, 4>& mfactor)
 {
   std::array<std::uint16_t, 4> sensors{};
-  static std::vector<std::uint16_t> sensorOld(4, 32768);
-
   static_assert(data.SensorsSize() == 4); // KLUDGE
   using OffsetValue = std::decay_t<decltype(offset)>::value_type;
   using SensorValue = std::decay_t<decltype(sensors)>::value_type;
@@ -115,18 +113,8 @@ inline void convertChunkToRecord(SensorsData& data,
   }
 
   auto& underlying_data{data.data()};
-  for (std::size_t i{}; i < 4; ++i) {
-    //##########################//
-    //TBD: Dirty fix for clippings
-    //##########################//
-    if (sensors[i] % 64 == 7 || sensors[i] % 64 == 56)
-      sensors[i] = sensorOld[i];
-
-    sensorOld[i] = sensors[i];
-    //##########################//
-
+  for (std::size_t i{}; i < 4; ++i)
     underlying_data[i].push_back(static_cast<float>(sensors[i] - offset[i]) * mfactor[i]);
-  }
 }
 
 struct RecordReader final {
