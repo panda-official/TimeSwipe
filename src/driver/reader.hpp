@@ -21,6 +21,7 @@
 
 #include "board.hpp"
 
+#include <array>
 #include <cstdint>
 #include <type_traits>
 #include <vector>
@@ -28,6 +29,20 @@
 #ifdef PANDA_BUILD_FIRMWARE_EMU
 #include <cmath>
 #endif
+
+// chunk-Layout:
+// ------+----------------------------+---------------------------
+//  Byte | Bit7   Bit6   Bit5   Bit4  | Bit3   Bit2   Bit1   Bit0
+// ------+----------------------------+---------------------------
+//     0 | 1-14   2-14   3-14   4-14  | 1-15   2-15   3-15   4-15
+//     1 | 1-12   2-12   3-12   4-12  | 1-13   2-13   3-13   4-13
+//     2 | 1-10   2-10   3-10   4-10  | 1-11   2-11   3-11   4-11
+//     3 |  1-8    2-8    3-8    4-8  |  1-9    2-9    3-9    4-9
+//     4 |  1-6    2-6    3-6    4-6  |  1-7    2-7    3-7    4-7
+//     5 |  1-4    2-4    3-4    4-4  |  1-5    2-5    3-5    4-5
+//     6 |  1-2    2-2    3-2    4-2  |  1-3    2-3    3-3    4-3
+//     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
+using Chunk = std::array<std::uint8_t, 8>;
 
 struct GPIOData final {
   std::uint8_t byte{};
@@ -62,25 +77,8 @@ struct GPIOData final {
   }
 };
 
-// chunk-Layout:
-// ------+----------------------------+---------------------------
-//  Byte | Bit7   Bit6   Bit5   Bit4  | Bit3   Bit2   Bit1   Bit0
-// ------+----------------------------+---------------------------
-//     0 | 1-14   2-14   3-14   4-14  | 1-15   2-15   3-15   4-15
-//     1 | 1-12   2-12   3-12   4-12  | 1-13   2-13   3-13   4-13
-//     2 | 1-10   2-10   3-10   4-10  | 1-11   2-11   3-11   4-11
-//     3 |  1-8    2-8    3-8    4-8  |  1-9    2-9    3-9    4-9
-//     4 |  1-6    2-6    3-6    4-6  |  1-7    2-7    3-7    4-7
-//     5 |  1-4    2-4    3-4    4-4  |  1-5    2-5    3-5    4-5
-//     6 |  1-2    2-2    3-2    4-2  |  1-3    2-3    3-3    4-3
-//     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
-
-constexpr std::size_t kBlocksPerChunk{8u};
-constexpr std::size_t kChunkSizeInByte{kBlocksPerChunk};
-constexpr std::size_t kTcoSize{256};
-
 inline void convertChunkToRecord(SensorsData& data,
-  const std::array<std::uint8_t, kChunkSizeInByte>& chunk,
+  const Chunk& chunk,
   const std::array<std::uint16_t, 4>& offsets,
   const std::array<float, 4>& mfactors)
 {
@@ -98,7 +96,7 @@ inline void convertChunkToRecord(SensorsData& data,
   {
     return (byte & (1UL << N));
   };
-  for (std::size_t i{}, count{}; i < kChunkSizeInByte; ++i) {
+  for (std::size_t i{}, count{}; i < chunk.size(); ++i) {
     setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
     setBit(sensors[1], 15 - count, getBit(chunk[i], 2));
     setBit(sensors[2], 15 - count, getBit(chunk[i], 1));
@@ -146,7 +144,7 @@ private:
       current_chunk_[bytes_read_] = res.byte;
       bytes_read_++;
 
-      if (bytes_read_ == kChunkSizeInByte) {
+      if (bytes_read_ == current_chunk_.size()) {
         convertChunkToRecord(out, current_chunk_, offsets_, mfactors_);
         bytes_read_ = 0;
       }
@@ -276,7 +274,7 @@ private:
   }
 
 private:
-  std::array<std::uint8_t, kChunkSizeInByte> current_chunk_{};
+  Chunk current_chunk_{};
   std::size_t bytes_read_{};
   bool is_first_{true};
   std::size_t last_read_{};
