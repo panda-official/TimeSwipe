@@ -44,12 +44,12 @@
 //     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
 using Chunk = std::array<std::uint8_t, 8>;
 
-struct GPIOData final {
+struct GpioData final {
   std::uint8_t byte{};
   unsigned int tco{};
   bool piOk{};
 
-  static GPIOData read() noexcept
+  static GpioData Read() noexcept
   {
     setGPIOHigh(CLOCK);
     sleep55ns();
@@ -75,9 +75,28 @@ struct GPIOData final {
 
     return {byte, (allGPIO & TCO_POSITION), (allGPIO & PI_STATUS_POSITION) != 0};
   }
+
+  struct ReadChunkResult final {
+    Chunk chunk{};
+    unsigned tco{};
+  };
+
+  static ReadChunkResult ReadChunk() noexcept
+  {
+    ReadChunkResult result;
+    result.chunk[0] = Read().byte;
+    {
+      const auto d{Read()};
+      result.chunk[1] = d.byte;
+      result.tco = d.tco;
+    }
+    for (unsigned i{2u}; i < result.chunk.size(); ++i)
+      result.chunk[i] = Read().byte;
+    return result;
+  }
 };
 
-inline void convertChunkToRecord(SensorsData& data,
+inline void appendChunk(SensorsData& data,
   const Chunk& chunk,
   const std::array<std::uint16_t, 4>& offsets,
   const std::array<float, 4>& mfactors)
@@ -124,48 +143,31 @@ private:
   {
 #ifndef PANDA_BUILD_FIRMWARE_EMU
     SensorsData out;
-    out.reserve(last_read_*2);
-    int lastTCO{};
-    int currentTCO{};
+    out.reserve(1);
 
-    int count{};
-    bool run{true};
-
+  begin:
     // I.
     WaitForPiOk();
 
     // II.
-    bool dry_run{true};
-    while (run) {
-      auto res{GPIOData::read()};
-      currentTCO = res.tco;
-
-      count++;
-      current_chunk_[bytes_read_] = res.byte;
-      bytes_read_++;
-
-      if (bytes_read_ == current_chunk_.size()) {
-        convertChunkToRecord(out, current_chunk_, offsets_, mfactors_);
-        bytes_read_ = 0;
-      }
-
-      run = dry_run || !(currentTCO - lastTCO == 16384);
-      // run = !isRisingFlank(lastTCO,currentTCO);
-      lastTCO = currentTCO;
-      dry_run = false;
-    }
-
-    // discard first read - thats any old data in RAM!
-    if (is_first_) {
-      is_first_ = false;
-      out.clear();
-    }
+    do {
+      const auto [chunk, tco] = GpioData::ReadChunk();
+      appendChunk(out, chunk, offsets_, mfactors_);
+      if (tco != 0x00004000)
+        break;
+    } while (true);
 
     // III.
     sleep55ns();
     sleep55ns();
 
-    last_read_ = out.DataSize();
+    // Discard first read. (I.e. any old data in RAM!)
+    if (!is_read_) {
+      is_read_ = true;
+      out.clear();
+      goto begin;
+    }
+
     return out;
 #else
     return readEmulated();
@@ -202,6 +204,7 @@ private:
 #ifndef PANDA_BUILD_FIRMWARE_EMU
     shutdown();
 #endif
+    is_read_ = false;
   }
 
 #ifdef PANDA_BUILD_FIRMWARE_EMU
@@ -274,11 +277,7 @@ private:
   }
 
 private:
-  Chunk current_chunk_{};
-  std::size_t bytes_read_{};
-  bool is_first_{true};
-  std::size_t last_read_{};
-
+  bool is_read_{};
   int mode_{};
   std::array<std::uint16_t, 4> offsets_{0, 0, 0, 0};
   std::array<float, 4> gains_{1, 1, 1, 1};
