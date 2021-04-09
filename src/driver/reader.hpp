@@ -142,7 +142,8 @@ private:
   SensorsData Read()
   {
 #ifndef PANDA_BUILD_FIRMWARE_EMU
-    SensorsData out; // FIXME: optimization -- make it member
+    SensorsData out;
+    out.reserve(3072);
 
   begin:
     // I.
