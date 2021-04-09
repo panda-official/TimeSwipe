@@ -142,8 +142,7 @@ private:
   SensorsData Read()
   {
 #ifndef PANDA_BUILD_FIRMWARE_EMU
-    SensorsData out;
-    out.reserve(1);
+    SensorsData out; // FIXME: optimization -- make it member
 
   begin:
     // I.
@@ -152,9 +151,9 @@ private:
     // II.
     do {
       const auto [chunk, tco] = GpioData::ReadChunk();
-      appendChunk(out, chunk, offsets_, mfactors_);
       if (tco != 0x00004000)
         break;
+      appendChunk(out, chunk, offsets_, mfactors_);
     } while (true);
 
     // III.
@@ -165,8 +164,11 @@ private:
     if (!is_read_) {
       is_read_ = true;
       out.clear();
-      goto begin;
     }
+
+    // Do not return an emtpy result. Re-try.
+    if (out.empty())
+      goto begin;
 
     return out;
 #else
