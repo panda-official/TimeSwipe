@@ -24,7 +24,9 @@
 #include <array>
 #include <cstdint>
 #include <functional>
-#include <iostream>
+#include <iostream> // included here just in case because std::cerr can be used
+                    // by TimeSwipe::TimeSwipe() and the instance of TimeSwipe
+                    // can be defined as a static object
 #include <memory>
 #include <optional>
 #include <string>
