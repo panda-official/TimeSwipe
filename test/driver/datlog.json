@@ -18,9 +18,9 @@
         "SENSOR_TRANSMISSION": [1.0,1.0,1.0,1.0]
     },
     "CONFIG_SCRIPT":  [
-        {"CH1.mode" : 0,  "CH1.gain" : 0.125,  "CH1.iepe" : true},
-        {"CH2.mode" : 0,  "CH2.gain" : 0.125,  "CH2.iepe" : true},
-        {"CH3.mode" : 0,  "CH3.gain" : 0.125,  "CH3.iepe" : true},
-        {"CH4.mode" : 0,  "CH4.gain" : 0.125,  "CH4.iepe" : true}
+      {"CH1.mode": 0, "DAC1.raw": 2048, "CH1.gain" : 0.125,  "CH1.iepe" : false},
+      {"CH2.mode": 0, "DAC2.raw": 2048, "CH2.gain" : 0.125,  "CH2.iepe" : false},
+      {"CH3.mode": 0, "DAC3.raw": 2048, "CH3.gain" : 0.125,  "CH3.iepe" : false},
+      {"CH4.mode": 0, "DAC4.raw": 2048, "CH4.gain" : 0.125,  "CH4.iepe" : false}
     ]
 }
