@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     nlohmann::json config;
     std::ofstream data_log;
     bool dump = false;
-    std::string configname = "config.json";
+    std::string configname = "datlog.json";
     std::string dumpname;
     std::string input;
     int runtime = 10;
