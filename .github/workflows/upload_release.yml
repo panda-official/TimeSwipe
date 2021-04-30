@@ -23,7 +23,7 @@ jobs:
         run: |
           mkdir build-driver-arm64
           cd build-driver-arm64
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
           cmake --build . --parallel `nproc`
           export destdir="$PWD"/timeswipe_`cat ../.driver_version`.aarch64
           make -j DESTDIR=$destdir install
@@ -33,7 +33,7 @@ jobs:
           cd ..
           mkdir build-driver-arm32
           cd build-driver-arm32
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM=On -DCMAKE_VERBOSE_MAKEFILE=On ..
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_ARM=On -DCMAKE_VERBOSE_MAKEFILE=On ..
           cmake --build . --parallel `nproc`
           export destdir="$PWD"/timeswipe_`cat ../.driver_version`.armv7l
           make -j DESTDIR=$destdir install
@@ -64,7 +64,7 @@ jobs:
         run: |
           mkdir build-driver-arm64
           cd build-driver-arm64
-          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_BUILD_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
+          cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
           cmake --build . --parallel `nproc`
           chown -R build .
           sudo -u build sh -c "PKGEXT='.pkg.tar.xz' makepkg"
