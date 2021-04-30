@@ -78,6 +78,7 @@ public:
 
   CONTAINER& data();
   void reserve(std::size_t num);
+  void resize(std::size_t new_size);
   void clear() noexcept;
   bool empty() const noexcept;
   void append(const SensorsData& other);

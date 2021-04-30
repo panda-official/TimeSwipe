@@ -42,6 +42,12 @@ void SensorsData::reserve(std::size_t num)
     data_[i].reserve(num);
 }
 
+void SensorsData::resize(const std::size_t new_size)
+{
+  for (std::size_t i = 0; i < SENSORS; i++)
+    data_[i].resize(new_size);
+}
+
 void SensorsData::clear() noexcept
 {
   for (std::size_t i = 0; i < SENSORS; i++)
