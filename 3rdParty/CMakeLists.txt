@@ -81,13 +81,11 @@ else()
   # BCM
   # ------------------------------------------------------------------------------
 
-  if (NOT PANDA_TIMESWIPE_FIRMWARE)
-    set(BCM_src
-      BCMsrc/bcm2835.c
-      BCMsrc/bcm2835.h
-      )
+  set(BCM_src
+    BCMsrc/bcm2835.c
+    BCMsrc/bcm2835.h
+    )
 
-    add_library(3rdparty_BCM OBJECT ${BCM_src})
-    target_include_directories(3rdparty_BCM PUBLIC BCMsrc)
-  endif()
+  add_library(3rdparty_BCM OBJECT ${BCM_src})
+  target_include_directories(3rdparty_BCM PUBLIC BCMsrc)
 endif()
