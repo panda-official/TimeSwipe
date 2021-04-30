@@ -1,29 +1,21 @@
 # -*- cmake -*-
-# Copyright (C) 2021  PANDA GmbH
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-if(PANDA_BUILD_ARM)
-  if(PANDA_BUILD_ARM64)
+if(PANDA_ARM)
+  if(PANDA_ARM64)
     set(default_sys_proc "aarch64")
   else()
     set(default_sys_proc "armv7l")
   endif()
 
-  if(PANDA_BUILD_ARM_BARE_METAL)
+  if(PANDA_ARM_BARE_METAL)
     set(default_sys_name "Generic")
-    if(PANDA_BUILD_ARM64)
+    if(PANDA_ARM64)
       set(default_c "aarch64-none-eabi-gcc")
       set(default_cpp "aarch64-none-eabi-g++")
     else()
@@ -36,7 +28,7 @@ if(PANDA_BUILD_ARM)
     set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS}")
   else()
     set(default_sys_name "Linux")
-    if(PANDA_BUILD_ARM64)
+    if(PANDA_ARM64)
       set(default_c "aarch64-linux-gnu-gcc")
       set(default_cpp "aarch64-linux-gnu-g++")
     else()

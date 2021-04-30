@@ -11,7 +11,7 @@
 
 PidFile::PidFile(const std::string& name)
 : fname (name) {
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     fname = std::string("./") + name + std::string(".pid");
 #else
     fname = std::string("/var/run/") + name + std::string(".pid");

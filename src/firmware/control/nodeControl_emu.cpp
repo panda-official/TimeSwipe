@@ -8,7 +8,7 @@ Copyright (c) 2019 Panda Team
 //implementing emulation of node control:
 
 #include "nodeControl.h"
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
 #include <iostream>
 #endif
 
@@ -20,7 +20,7 @@ bool nodeControl::IsRecordStarted(){ return brecord;}
 bool nodeControl::StartRecord(const bool how)
 {
     brecord=how;
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::cout<<(how ? "record started" : "record stopped")<<std::endl;
 #endif
     return brecord;
@@ -28,7 +28,7 @@ bool nodeControl::StartRecord(const bool how)
 int nodeControl::gain_out(int val)
 {
      gain=val;
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::cout<<"gain="<<gain<<std::endl;
 #endif
      return gain;
@@ -38,14 +38,14 @@ bool nodeControl::GetBridge(){return bridge;}
 bool nodeControl::SetBridge(bool how)
 {
     bridge=how;
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::cout<<"bridge="<<bridge<<std::endl;
 #endif
     return bridge;
 }
 void nodeControl::SetZero(void)
 {
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::cout<<"zero was set"<<std::endl;
 #endif
 }

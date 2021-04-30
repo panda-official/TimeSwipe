@@ -333,7 +333,7 @@ private:
   void pollerLoop(TimeSwipe::ReadCallback cb);
   void spiLoop();
   void receiveEvents();
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
   int emul_button_pressed_{};
   int emul_button_sent_{};
   void emulLoop();
@@ -477,7 +477,7 @@ private:
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::fetcherLoop, this)));
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::pollerLoop, this, std::move(cb))));
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::spiLoop, this)));
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::emulLoop, this)));
 #endif
     return true;
@@ -644,7 +644,7 @@ bool TimeSwipeImpl::isStarted()
 
 void TimeSwipeImpl::receiveEvents()
 {
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
   if (emul_button_sent_ < emul_button_pressed_) {
     TimeSwipeEvent::Button btn(true, emul_button_pressed_);
     emul_button_sent_ = emul_button_pressed_;
@@ -888,7 +888,7 @@ void TimeSwipeImpl::pollerLoop(TimeSwipe::ReadCallback callback)
   }
 }
 
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
 void TimeSwipeImpl::emulLoop()
 {
   emul_button_pressed_ = 0;

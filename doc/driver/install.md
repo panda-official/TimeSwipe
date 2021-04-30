@@ -146,12 +146,12 @@ Build the driver:
 ```
 cd timeswipe
 mkdir build && cd build
-cmake -DPANDA_BUILD_ARM=On ..
+cmake -DPANDA_ARM=On ..
 cmake --build . --parallel
 sudo make install
 ```
 
-Please note, `-DPANDA_BUILD_ARM=On` can be replaced with `-DPANDA_BUILD_ARM64=On`
+Please note, `-DPANDA_ARM=On` can be replaced with `-DPANDA_ARM64=On`
 in order to build for ARM64.
 
 ### Cross-compiling the Driver on macOS
@@ -205,7 +205,7 @@ Navigate to the project directory and build:
 ```
 cd timeswipe
 mkdir build && cd build
-cmake -DPANDA_BUILD_ARM64=On ..
+cmake -DPANDA_ARM64=On ..
 cmake --build . --parallel
 sudo make install
 ```
@@ -229,7 +229,7 @@ Build the driver in emulation mode:
 ```
 cd timeswipe
 mkdir build && cd build
-cmake -DPANDA_BUILD_FIRMWARE_EMU=On ..
+cmake -DPANDA_TIMESWIPE_FIRMWARE_EMU=On ..
 cmake --build . --parallel
 ```
 

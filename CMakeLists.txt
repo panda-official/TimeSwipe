@@ -31,41 +31,41 @@ include(misc)
 set(PANDA_CLANG_USE_LIBCPP On CACHE BOOL
   "Use libcpp with Clang?")
 
-set(PANDA_BUILD_FIRMWARE Off CACHE BOOL
+set(PANDA_ARM On CACHE BOOL
+  "Build for ARM?")
+
+set(PANDA_ARM64 Off CACHE BOOL
+  "Build for ARM64?")
+
+set(PANDA_TIMESWIPE_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
-set(PANDA_BUILD_CALIBRATION_FIRMWARE Off CACHE BOOL
+set(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE Off CACHE BOOL
   "Build calibration firmware? (Disables driver build.)")
 
-set(PANDA_BUILD_FIRMWARE_DMS On CACHE BOOL
+set(PANDA_TIMESWIPE_FIRMWARE_DMS On CACHE BOOL
   "Build firmware for the DMS board?")
 
-set(PANDA_BUILD_FIRMWARE_EMU Off CACHE BOOL
+set(PANDA_TIMESWIPE_FIRMWARE_EMU Off CACHE BOOL
   "Build firmware emulator?")
 
-set(PANDA_BUILD_FIRMWARE_RAM_IMAGE Off CACHE BOOL
+set(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE Off CACHE BOOL
   "Build firmware as RAM image?")
+
+set(PANDA_TIMESWIPE_TESTS On CACHE BOOL
+  "Build tests (including examples)?")
+
+if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
+  set(PANDA_TIMESWIPE_FIRMWARE On)
+endif()
+
+if(PANDA_TIMESWIPE_FIRMWARE)
+  set(PANDA_ARM On)
+  set(PANDA_ARM_BARE_METAL On)
+endif()
 
 set(BUILD_SHARED_LIBS Off CACHE BOOL
   "Build shared libraries?")
-
-set(PANDA_BUILD_ARM On CACHE BOOL
-  "Build for ARM?")
-
-set(PANDA_BUILD_ARM64 Off CACHE BOOL
-  "Build for ARM64?")
-
-set(PANDA_BUILD_TESTS On CACHE BOOL
-  "Build tests (including examples)?")
-
-if(PANDA_BUILD_CALIBRATION_FIRMWARE)
-  set(PANDA_BUILD_FIRMWARE On)
-endif()
-
-if(PANDA_BUILD_FIRMWARE)
-  set(PANDA_BUILD_ARM On)
-  set(PANDA_BUILD_ARM_BARE_METAL On)
-endif()
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -86,16 +86,16 @@ file(STRINGS .driver_version driver_version
   LENGTH_MINIMUM 5 LENGTH_MAXIMUM 8 LIMIT_COUNT 1) # ab.cd.ef
 
 # The `software` variable is a helper for substitution/interpolation.
-if(PANDA_BUILD_FIRMWARE)
+if(PANDA_TIMESWIPE_FIRMWARE)
   set(software "firmware")
 else()
   set(software "driver")
 endif()
 
 # Simple protection against changing the build target.
-if((PANDA_BUILD_FIRMWARE AND EXISTS ${CMAKE_CURRENT_BINARY_DIR}/panda_build_driver)
+if((PANDA_TIMESWIPE_FIRMWARE AND EXISTS ${CMAKE_CURRENT_BINARY_DIR}/panda_build_driver)
     OR
-   (NOT PANDA_BUILD_FIRMWARE AND EXISTS ${CMAKE_CURRENT_BINARY_DIR}/panda_build_firmware))
+   (NOT PANDA_TIMESWIPE_FIRMWARE AND EXISTS ${CMAKE_CURRENT_BINARY_DIR}/panda_build_firmware))
   message(FATAL_ERROR "Switching from driver build to firmware build and vice versa is forbidden!
 Hint: please use different build directories for driver and firmware.")
 else()
@@ -171,12 +171,12 @@ endfunction()
 # Targets
 # ------------------------------------------------------------------------------
 
-if(PANDA_BUILD_FIRMWARE_EMU)
-  add_compile_definitions(PANDA_BUILD_FIRMWARE_EMU)
+if(PANDA_TIMESWIPE_FIRMWARE_EMU)
+  add_compile_definitions(PANDA_TIMESWIPE_FIRMWARE_EMU)
 endif()
 
-if(PANDA_BUILD_FIRMWARE)
-  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+if(PANDA_TIMESWIPE_FIRMWARE)
+  if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
     set(firmware_subtype "calibration")
   else()
     set(firmware_subtype "normal")
@@ -185,7 +185,7 @@ if(PANDA_BUILD_FIRMWARE)
 
   enable_language(ASM)
 
-  if(PANDA_BUILD_FIRMWARE_RAM_IMAGE)
+  if(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE)
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc_RAM.ld")
   else()
     set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc.ld")
@@ -275,7 +275,7 @@ if(PANDA_BUILD_FIRMWARE)
     nodeControl.h
     rgbacol.h
     )
-  if(NOT PANDA_BUILD_FIRMWARE_EMU)
+  if(NOT PANDA_TIMESWIPE_FIRMWARE_EMU)
     list(APPEND control_src nodeControl.cpp)
   else()
     list(APPEND control_src nodeControl_emu.cpp)
@@ -345,10 +345,10 @@ if(PANDA_BUILD_FIRMWARE)
 
   add_library(firmware STATIC ${firmware_src})
   target_compile_definitions(firmware PUBLIC __SAME54P20A__)
-  if(PANDA_BUILD_CALIBRATION_FIRMWARE)
+  if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
     target_compile_definitions(firmware PUBLIC CALIBRATION_STATION)
   endif()
-  if(PANDA_BUILD_FIRMWARE_DMS)
+  if(PANDA_TIMESWIPE_FIRMWARE_DMS)
     target_compile_definitions(firmware PUBLIC DMS_BOARD)
   endif()
   target_include_directories(firmware PUBLIC src/firmware)
@@ -483,7 +483,7 @@ endif()
 # Tests
 # ------------------------------------------------------------------------------
 
-if(PANDA_BUILD_TESTS)
+if(PANDA_TIMESWIPE_TESTS)
   enable_testing()
   message(CHECK_START "Configuring the tests for ${software}.")
 
@@ -532,7 +532,7 @@ if(PANDA_BUILD_TESTS)
   endforeach()
 
   # Custom commands
-  if(NOT PANDA_BUILD_FIRMWARE)
+  if(NOT PANDA_TIMESWIPE_FIRMWARE)
     add_custom_target(panda_copy_test_resources ALL
       COMMAND cmake -E copy_if_different
       "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/datlog.json"

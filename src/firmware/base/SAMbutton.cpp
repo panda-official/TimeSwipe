@@ -38,7 +38,7 @@ bool SAMButton::IsButtonLEDon()
 
 bool SAMButton::impl_get_signal(void){
 
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
         return is_key_pressed();
 #else
     #ifdef TIME_SWIPE_BRD_V0

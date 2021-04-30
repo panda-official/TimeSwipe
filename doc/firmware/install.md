@@ -12,7 +12,7 @@ There are two generation of boards exists at the moment: *DMS* (actual) and
 *IEPE* (legacy), which are not binary compatible to each other! An improper
 firmware can be flashed but simply will not work! By default, when building
 from source, the firmware for *DMS* boards is built. In order to build for
-*IEPE* board the command line option `-DPANDA_BUILD_FIRMWARE_DMS=Off` should
+*IEPE* board the command line option `-DPANDA_TIMESWIPE_FIRMWARE_DMS=Off` should
 be passed to CMake (please see the examples below).
 
 ## Building the Firmware
@@ -49,7 +49,7 @@ To build DMS firmware:
 ```
 mkdir -p build_DMS
 cd build_DMS
-cmake .. -DPANDA_BUILD_FIRMWARE=On
+cmake .. -DPANDA_TIMESWIPE_FIRMWARE=On
 make -j$(nproc)
 ```
 
@@ -58,7 +58,7 @@ To build IEPE firmware:
 ```
 mkdir -p build_IEPE
 cd build_IEPE
-cmake .. -DPANDA_BUILD_FIRMWARE=On -DPANDA_BUILD_FIRMWARE_DMS=Off
+cmake .. -DPANDA_TIMESWIPE_FIRMWARE=On -DPANDA_TIMESWIPE_FIRMWARE_DMS=Off
 make -j$(nproc)
 ```
 

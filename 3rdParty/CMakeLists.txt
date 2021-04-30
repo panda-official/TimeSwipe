@@ -18,7 +18,7 @@
 # dmitigr
 # ------------------------------------------------------------------------------
 
-if(NOT PANDA_BUILD_FIRMWARE)
+if(NOT PANDA_TIMESWIPE_FIRMWARE)
   add_library(3rdparty_dmitigr_math INTERFACE)
   target_include_directories(3rdparty_dmitigr_math INTERFACE dmitigr)
 
@@ -44,7 +44,7 @@ target_include_directories(3rdparty_nlohmann_json INTERFACE nlohmann)
 add_library(3rdparty_HATS_EEPROM INTERFACE)
 target_include_directories(3rdparty_HATS_EEPROM INTERFACE HATS_EEPROM)
 
-if(PANDA_BUILD_FIRMWARE)
+if(PANDA_TIMESWIPE_FIRMWARE)
   # ------------------------------------------------------------------------------
   # Adafruit_NeoPixel
   # ------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ else()
   # BCM
   # ------------------------------------------------------------------------------
 
-  if (NOT PANDA_BUILD_FIRMWARE)
+  if (NOT PANDA_TIMESWIPE_FIRMWARE)
     set(BCM_src
       BCMsrc/bcm2835.c
       BCMsrc/bcm2835.h

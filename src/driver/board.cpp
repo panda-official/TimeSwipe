@@ -102,7 +102,7 @@ std::list<TimeSwipeEvent> readBoardEvents()
 {
     std::list<TimeSwipeEvent> events;
     std::lock_guard<std::mutex> lock(boardMtx);
-#ifndef PANDA_BUILD_FIRMWARE_EMU
+#ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::string data;
     if (BoardInterface::get()->getEvents(data) && !data.empty()) {
         if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
@@ -161,7 +161,7 @@ std::list<TimeSwipeEvent> readBoardEvents()
 
 std::string readBoardGetSettings(const std::string& request, std::string& error) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
     return BoardInterface::get()->getGetSettings(request, error);
@@ -170,7 +170,7 @@ std::string readBoardGetSettings(const std::string& request, std::string& error)
 
 std::string readBoardSetSettings(const std::string& request, std::string& error) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
     return BoardInterface::get()->getSetSettings(request, error);
@@ -179,7 +179,7 @@ std::string readBoardSetSettings(const std::string& request, std::string& error)
 
 bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
     return BoardInterface::get()->startPWM(num, frequency, high, low, repeats, duty_cycle);
@@ -188,7 +188,7 @@ bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low,
 
 bool BoardStopPWM(uint8_t num) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
     return BoardInterface::get()->stopPWM(num);
@@ -197,7 +197,7 @@ bool BoardStopPWM(uint8_t num) {
 
 bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
     std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
     return BoardInterface::get()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);

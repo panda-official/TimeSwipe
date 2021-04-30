@@ -26,7 +26,7 @@
 #include <type_traits>
 #include <vector>
 
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
 #include <cmath>
 #endif
 
@@ -141,7 +141,7 @@ private:
   // read records from hardware buffer
   SensorsData Read()
   {
-#ifndef PANDA_BUILD_FIRMWARE_EMU
+#ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     SensorsData out;
     out.reserve(3072);
 
@@ -185,7 +185,7 @@ private:
 
   void Setup()
   {
-#ifndef PANDA_BUILD_FIRMWARE_EMU
+#ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     setup_io();
 #endif
   }
@@ -194,7 +194,7 @@ private:
   {
     for (std::size_t i{}; i < mfactors_.size(); ++i)
       mfactors_[i] = gains_[i] * transmissions_[i];
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     emul_point_begin_ = std::chrono::steady_clock::now();
     emul_sent_ = 0;
 #else
@@ -204,13 +204,13 @@ private:
 
   void Stop()
   {
-#ifndef PANDA_BUILD_FIRMWARE_EMU
+#ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     shutdown();
 #endif
     is_read_ = false;
   }
 
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
   double angle{};
   SensorsData ReadEmulated()
   {
@@ -287,7 +287,7 @@ private:
   std::array<float, 4> transmissions_{1, 1, 1, 1};
   std::array<float, 4> mfactors_{};
 
-#ifdef PANDA_BUILD_FIRMWARE_EMU
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
   std::chrono::steady_clock::time_point emul_point_begin_;
   std::chrono::steady_clock::time_point emul_point_end_;
   std::uint64_t emul_sent_{};
