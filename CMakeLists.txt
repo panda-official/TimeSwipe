@@ -28,9 +28,6 @@ include(misc)
 # Options
 # ------------------------------------------------------------------------------
 
-set(CMAKE_VERBOSE_MAKEFILE On CACHE BOOL
-  "Verbose output (useful to figure out what is going on at build time)?")
-
 set(PANDA_CLANG_USE_LIBCPP On CACHE BOOL
   "Use libcpp with Clang?")
 
@@ -68,11 +65,15 @@ endif()
 if(PANDA_BUILD_FIRMWARE)
   set(PANDA_BUILD_ARM On)
   set(PANDA_BUILD_ARM_BARE_METAL On)
-
-  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE "Release")
-  endif()
 endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+    "The type of build")
+endif()
+
+set(CMAKE_VERBOSE_MAKEFILE On CACHE BOOL
+  "Verbose output (useful to figure out what is going on at build time)?")
 
 set(CMAKE_TOOLCHAIN_FILE "cmake/arm.cmake" CACHE PATH
   "Path to toolchain file.")
