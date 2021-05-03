@@ -5,10 +5,12 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include <cassert>
 #include "SamSPIbase.h"
-#include "os.h"
+#include "../../common/os.h"
+
 #include "sam.h"
+
+#include <cassert>
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
@@ -232,4 +234,3 @@ void CSamSPIbase::EnableIRQs(bool how)
     CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
     CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
 }
-

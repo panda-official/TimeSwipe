@@ -15,8 +15,8 @@ Copyright (c) 2019-2020 Panda Team
 #ifndef SPICOMM_H
 #define SPICOMM_H
 
+#include "../../common/SyncCom.h"
 #include "sam/SamSPIbase.h"
-#include "SyncCom.h"
 
 /*!
  * \brief The class providing functionality for external communication via SPI with integrated flow-control (CSyncSerComFSM)

@@ -13,10 +13,12 @@ Copyright (c) 2019-2020 Panda Team
 
 
 #pragma once
-#include <stdint.h>
+
+#include "../../common/SPI.h"
+#include "../../common/Pin.h"
+
+#include <cstdint>
 #include <vector>
-#include "SPI.h"
-#include "Pin.h"
 
 /*!
  * \brief The wrapper for PGA280 command byte sequence

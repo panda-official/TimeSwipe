@@ -12,11 +12,11 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include <memory>
-#include "adcdac.hpp"
-#include "Pin.h"
-#include "control/DataVis.h"
+#include "../adcdac.hpp"
+#include "../control/DataVis.h"
+#include "../../common/Pin.h"
 
+#include <memory>
 
 class nodeControl;
 

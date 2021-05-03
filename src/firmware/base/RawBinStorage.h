@@ -7,10 +7,11 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
+#include "../../common/Storage.h"
+
+#include <cstdint>
 #include <memory>
 #include <vector>
-#include <stdint.h>
-#include "Storage.h"
 
 /*!
 *   @file

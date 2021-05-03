@@ -14,10 +14,11 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "SamPORT.h"
-#include "SPI.h"
 #include "SamSercom.h"
-#include "os.h"
+#include "SamPORT.h"
+
+#include "../../common/os.h"
+#include "../../common/SPI.h"
 
 /*!
  * \brief The class implements basic functionality of SAME54 Sercom SPI

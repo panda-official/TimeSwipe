@@ -6,11 +6,11 @@ Copyright (c) 2019 Panda Team
 */
 
 
-#include <random>
-#include "os.h"
 #include "nodeLED.h"
-#include "Adafruit_NeoPixel.h"
+#include "../../common/os.h"
+#include "../../thirdparty/Adafruit_NeoPixel/Adafruit_NeoPixel.h"
 
+#include <random>
 
 //neopix object:
 static Adafruit_NeoPixel glob_NeoPix(4, 12);
@@ -115,7 +115,7 @@ typeLEDcol nodeLED::gen_rnd_col()
 
 void nodeLED::init(void)
 {
-	glob_NeoPix.begin();
+    glob_NeoPix.begin();
 #ifndef KEMU
     resetALL();
 #endif

@@ -16,7 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "os.h"
+#include "../../common/os.h"
+
 #include "sam.h"
 
 //timer func for M4:

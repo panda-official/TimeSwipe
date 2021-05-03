@@ -13,12 +13,14 @@ Copyright (c) 2019 Panda Team
 
 
 #pragma once
-#include  <memory>
-#include <list>
 
-#include "os.h"
 #include "adcdac.hpp"
 #include "SamCLK.h"
+
+#include "../../common/os.h"
+
+#include <memory>
+#include <list>
 
 /*!
  * \brief An enumeration of possible SAME54 ADC devices

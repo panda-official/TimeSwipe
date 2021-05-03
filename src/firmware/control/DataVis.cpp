@@ -6,12 +6,12 @@ Copyright (c) 2019 Panda Team
 */
 
 
-#include "os.h"
+#include "board_type.h"
 #include "DataVis.h"
 #include "View.h"
-#include <math.h>
+#include "../../common/os.h"
 
-#include "board_type.h"
+#include <cmath>
 
 CDataVis::CDataVis(CView::vischan nCh)
 {
@@ -96,5 +96,3 @@ void CDataVis::Update(float InputValue)
     CView::Instance().GetChannel(m_nCh).SetSensorIntensity(Inorm);
     //-----------------------------------------------------------------
 }
-
-

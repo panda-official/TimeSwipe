@@ -11,14 +11,13 @@ Copyright (c) 2019-2020 Panda Team
 *   CView, CViewChannel
 */
 
-
 #pragma once
 
-#include "os.h"
 #include "board_type.h"
 #include "rgbacol.h"
-#include "led/nodeLED.h"
-#include "base/SAMbutton.h"
+#include "../base/SAMbutton.h"
+#include "../led/nodeLED.h"
+#include "../../common/os.h"
 
 #include <vector>
 

@@ -5,9 +5,8 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-#include "os.h"
 #include "zerocal_man.h"
-
+#include "../../common/os.h"
 
 void CCalMan::Serialize(CStorage &st)
 {

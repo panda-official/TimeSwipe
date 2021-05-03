@@ -7,11 +7,12 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include <memory>
-#include "Pin.h"
 #include "adcdac.hpp"
 //#include "ADmux.h"
-#include "PWM.h"
+#include "../../common/Pin.h"
+#include "../../common/PWM.h"
+
+#include <memory>
 
 /*!
 *   @file

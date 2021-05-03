@@ -14,9 +14,9 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "sam/SamTempSensor.h"
 #include "PINPWM.h"
-#include "os.h"
+#include "../../common/os.h"
+#include "sam/SamTempSensor.h"
 
 /*!
  * \brief The class implements control of fan in PWM mode with several fixed speeds

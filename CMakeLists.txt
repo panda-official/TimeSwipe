@@ -137,39 +137,6 @@ elseif (UNIX)
 endif()
 
 # ------------------------------------------------------------------------------
-# Common dependencies
-# ------------------------------------------------------------------------------
-
-function(panda_add_common_library)
-  set(common_src
-    HatsMemMan.h
-
-    PWM.h
-    Pin.h
-    SPI.h
-    Serial.h
-    Storage.h
-    button.h
-    os.h
-    timer.h
-
-    SyncCom.h
-    cmd.h
-    frm_stream.h
-    std_port.h
-
-    json.hpp
-    )
-  list(TRANSFORM common_src PREPEND src/common/)
-  add_library(common INTERFACE)
-  target_link_libraries(common INTERFACE 3rdparty_HATS_EEPROM)
-  target_include_directories(common BEFORE INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/common>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src/common>
-    )
-endfunction()
-
-# ------------------------------------------------------------------------------
 # Targets
 # ------------------------------------------------------------------------------
 
@@ -188,9 +155,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   enable_language(ASM)
 
   if(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE)
-    set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc_RAM.ld")
+    set(linker_script "src/thirdparty/prj_templ/Custom/gcc_RAM.ld")
   else()
-    set(linker_script "${CMAKE_SOURCE_DIR}/3rdParty/prj_templ/Custom/gcc.ld")
+    set(linker_script "src/thirdparty/prj_templ/Custom/gcc.ld")
   endif()
 
   add_compile_options(
@@ -211,18 +178,20 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     -mfpu=fpv4-sp-d16
     # --specs=nosys.specs
     # --specs=nano.specs
-    -T${linker_script}
+    -T${CMAKE_SOURCE_DIR}/${linker_script}
     )
-
-  # Third-party bundled dependencies
-  # Note: must follow add_{compile,link}_options()
-  add_subdirectory(src/thirdparty)
-
-  panda_add_common_library()
 
   # --------------------------------
   # firmware target (static library)
   # --------------------------------
+
+  # thirdparty
+  set(Adafruit_NeoPixel_src
+    Adafruit_NeoPixel.cpp
+    Adafruit_NeoPixel.h
+    Adafruit_NeoPixel_stub.h
+    esp8266.c
+    )
 
   set(base_src
     BaseMesChannel.h
@@ -339,27 +308,40 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     cortex_handlers.cpp
     )
 
+  # Third-party stuff
+  foreach(dep Adafruit_NeoPixel)
+    list(TRANSFORM ${dep}_src PREPEND src/thirdparty/${dep}/)
+    list(APPEND firmware_src ${${dep}_src})
+  endforeach()
+
+  # Our stuff
   foreach(dep base control json led misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
     list(APPEND firmware_src ${${dep}_src})
   endforeach()
 
   add_library(firmware STATIC ${firmware_src})
-  target_compile_definitions(firmware PUBLIC __SAME54P20A__)
+  target_compile_definitions(firmware PUBLIC
+    # Nlohmann JSON
+    NLOHMANN_JSON_CUSTOM_STDIO_FRM
+
+    # prj_templ
+    __SAME54P20A__
+
+    # Adafruit_NeoPixel
+    SAM_BRM __arm__  __SAMD51__  __SAME54P20A__
+    )
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
     target_compile_definitions(firmware PUBLIC CALIBRATION_STATION)
   endif()
   if(PANDA_TIMESWIPE_FIRMWARE_DMS)
     target_compile_definitions(firmware PUBLIC DMS_BOARD)
   endif()
-  target_include_directories(firmware PUBLIC src/firmware)
-  set(firmware_link_libraries
-    3rdparty_Adafruit_NeoPixel
-    3rdparty_CMSIS
-    3rdparty_nlohmann_json
-    3rdparty_sam
-    common)
-  target_link_libraries(firmware PUBLIC ${firmware_link_libraries})
+  target_include_directories(firmware PUBLIC src/firmware
+    PRIVATE
+    src/thirdparty/prj_templ/include
+    src/thirdparty/prj_templ/CMSIS/Include
+    )
 
   # -------------------
   # firmware.elf target
@@ -378,7 +360,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   list(APPEND firmware_elf_thirdparty_src
     prj_templ/Custom/startup_ARMCM4.S
     )
-  list(TRANSFORM firmware_elf_thirdparty_src PREPEND 3rdParty/)
+  list(TRANSFORM firmware_elf_thirdparty_src PREPEND src/thirdparty/)
   list(APPEND firmware_elf_src ${firmware_elf_thirdparty_src})
 
   add_executable(${target_name} ${firmware_elf_src})
@@ -421,6 +403,10 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     )
   panda_append_cppfs(timeswipe_link_libraries)
   target_link_libraries(timeswipe PUBLIC ${timeswipe_link_libraries})
+  target_compile_definitions(timeswipe PUBLIC
+    # Nlohmann JSON
+    NLOHMANN_JSON_CUSTOM_STDIO_FRM
+    )
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
   if(NOT CMAKE_CROSSCOMPILING)
@@ -487,7 +473,7 @@ if(PANDA_TIMESWIPE_TESTS)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
-  set(button_event_extra_sources 3rdParty/prj_templ/Custom/startup_ARMCM4.S)
+  set(button_event_extra_sources src/thirdparty/prj_templ/Custom/startup_ARMCM4.S)
 
   # Configure the tests from the lists above.
   function(panda_configure_test test)

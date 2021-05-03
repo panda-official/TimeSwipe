@@ -13,9 +13,10 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
+#include "../../common/os.h"
+
 #include "sam/SamTempSensor.h"
 #include "sam/SamPORT.h"
-#include "os.h"
 
 /*!
  * \brief The class implements simple control of fan in ON/OFF mode

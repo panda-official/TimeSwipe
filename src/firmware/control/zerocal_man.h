@@ -13,13 +13,14 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
+#include "../adcdac.hpp"
+#include "../json/json_evsys.h"
+#include "ADpointSearch.h"
+#include "../../common/Storage.h"
+#include "View.h"
+
 #include <memory>
 #include <vector>
-#include "adcdac.hpp"
-#include "ADpointSearch.h"
-#include "json/json_evsys.h"
-#include "Storage.h"
-#include "View.h"
 
 /*!
  * \brief A container for collection of CADpointSearch class objects

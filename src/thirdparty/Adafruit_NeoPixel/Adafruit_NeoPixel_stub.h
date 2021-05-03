@@ -14,12 +14,12 @@ Copyright (c) 2019 Panda Team
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "os.h"
+#include "../../common/os.h"
 typedef bool boolean;
 #define micros() (os::get_tick_mS()*1000)
 
-#define INPUT 	0
-#define OUTPUT 	1
+#define INPUT   0
+#define OUTPUT  1
 #define LOW		0
 #define HIGH	1
 #define PROGMEM
@@ -46,7 +46,7 @@ void noInterrupts(void);
 /*!
  * \brief Enables CPU interrupts
  */
-void interrupts(void); 
+void interrupts(void);
 
 /*!
  * \brief Stub function: just returns input *parameter
@@ -75,5 +75,3 @@ uint32_t *get_OUTSET_addr(int pin);
  * \return A &PORT[x].OUTCLR.reg)
  */
 uint32_t *get_OUTCLR_addr(int pin);
-
-

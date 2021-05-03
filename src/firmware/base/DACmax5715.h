@@ -26,9 +26,9 @@ enum class typeDac5715chan : int
     DACD    //!<channel D, #3
 };
 
-#include "SPI.h"
+#include "../../common/SPI.h"
+#include "../../common/Pin.h"
 #include "adcdac.hpp"
-#include "Pin.h"
 
 /*!
  * \brief The CDac5715sa class implements MAX5715 DAC's channel functionality

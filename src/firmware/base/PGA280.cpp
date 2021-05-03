@@ -6,8 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "PGA280.h"
-#include "os.h"
-
+#include "../../common/os.h"
 
 bool CPGA280cmdBuf::transfer(CSPI &spi_bus, IPin &CS)
 {
@@ -130,6 +129,3 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      m_GainMuxReg.reg=reg.reg;
      return true;
  }
-
-
-

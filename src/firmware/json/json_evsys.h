@@ -104,7 +104,7 @@ public:
 
 };
 
-#include "cmd.h"
+#include "../../common/cmd.h"
 /*!
  * \brief The "je" command dispatcher and holder of the last JSON events
  * \details Please, see CommunicationProtocol.md and EventSysytem.md for details.

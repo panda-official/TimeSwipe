@@ -14,11 +14,11 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include <memory>
-#include <bitset>
-#include <stdint.h>
-#include "Pin.h"
+#include "../../common/Pin.h"
 
+#include <bitset>
+#include <cstdint>
+#include <memory>
 
 typedef std::bitset<32> typeRegister;
 class CShiftRegPin;
@@ -344,6 +344,3 @@ public:
         m_pCSpin=pCSpin;
     }
 };
-
-
-

@@ -14,17 +14,16 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include "json_base.h"
-#include "cmd.h"
-//#include "nodeControl.h"
-//#include "HatsMemMan.h"
+//#include "../control/nodeControl.h"
+#include "../../common/cmd.h"
+//#include "../../common/HatsMemMan.h"
+
 #include <map>
 
 /*!
  * \brief The "js" command dispatcher
  * \details Please, see CommunicationProtocol.md and EventSysytem.md for details.
  */
-
-
 class CJSONDispatcher : public CJSONbase, public CCmdCallHandler
 {
 protected:

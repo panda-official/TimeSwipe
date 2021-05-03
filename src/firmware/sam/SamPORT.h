@@ -13,10 +13,11 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include <memory>
-#include "Pin.h"
 #include "SamSercom.h"
 
+#include "../../common/Pin.h"
+
+#include <memory>
 
 class CSamPin;
 /*!

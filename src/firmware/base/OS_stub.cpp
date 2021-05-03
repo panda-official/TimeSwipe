@@ -9,13 +9,13 @@ Copyright (c) 2019 Panda Team
 
 //unsigned long get_tick_mS(void);
 
-#include "os.h"
+#include "../../common/os.h"
 
 namespace os{
 void wait(unsigned long time_mS)
 {
-	unsigned long start_time=get_tick_mS();
-	while( (get_tick_mS()-start_time)<time_mS ){ asm("nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;"); }
+    unsigned long start_time=get_tick_mS();
+    while( (get_tick_mS()-start_time)<time_mS ){ asm("nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;"); }
 }
 
 void uwait(unsigned long time_uS)

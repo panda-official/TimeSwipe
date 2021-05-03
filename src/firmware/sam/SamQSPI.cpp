@@ -7,14 +7,15 @@ Copyright (c) 2019 Panda Team
 
 //SAM QSPI implementation:
 
-#include "os.h"
 #include "SamQSPI.h"
+#include "../../common/os.h"
+
 #include "sam.h"
 
 //ctor:
 CSamQSPI::CSamQSPI(bool bAutoCS)
 {
-	//setup QSPI outputs: PA08, PA09, PB10, PB11
+    //setup QSPI outputs: PA08, PA09, PB10, PB11
 
     //PA08 -> group 0, even, function "H"(qspi)=0x07
     PORT->Group[0].PMUX[4].bit.PMUXE=0x07;
@@ -39,18 +40,18 @@ CSamQSPI::CSamQSPI(bool bAutoCS)
 //settings:
 void CSamQSPI::set_phpol(bool bPhase, bool bPol)
 {
-	QSPI->BAUD.bit.CPHA= bPhase		? 1:0; //phase
-	QSPI->BAUD.bit.CPOL= bPol 		? 1:0; //polarity
+    QSPI->BAUD.bit.CPHA= bPhase		? 1:0; //phase
+    QSPI->BAUD.bit.CPOL= bPol       ? 1:0; //polarity
 }
 void CSamQSPI::set_baud_div(unsigned char div)
 {
-	QSPI->BAUD.bit.BAUD=div;
+    QSPI->BAUD.bit.BAUD=div;
 }
 void CSamQSPI::set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel)
 {
-	QSPI->CTRLB.bit.DLYCS=CSminDel;
-	QSPI->CTRLB.bit.DLYBCT=IntertransDel;
-	QSPI->BAUD.bit.DLYBS=BeforeClockDel;
+    QSPI->CTRLB.bit.DLYCS=CSminDel;
+    QSPI->CTRLB.bit.DLYBCT=IntertransDel;
+    QSPI->BAUD.bit.DLYBS=BeforeClockDel;
 }
 
 //serial impl:
@@ -59,12 +60,12 @@ bool CSamQSPI::send(CFIFO &msg)
     while(msg.in_avail())
     {
         typeSChar b;
-		msg>>b;
-		
-		//send:
-		QSPI->TXDATA.bit.DATA=b;
-		while( 0==(QSPI->INTFLAG.bit.DRE) ){}
-	}
+        msg>>b;
+
+        //send:
+        QSPI->TXDATA.bit.DATA=b;
+        while( 0==(QSPI->INTFLAG.bit.DRE) ){}
+    }
     QSPI->CTRLA.reg=0x1000002; //deselect CS
 
     return true;

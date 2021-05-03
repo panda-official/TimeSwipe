@@ -13,11 +13,11 @@ Copyright (c) 2019 Panda Team
 *   nodeControl
 */
 
-#include "HatsMemMan.h"
-#include "base/BaseMesChannel.h"
-#include "base/RawBinStorage.h"
-#include "control/zerocal_man.h"
-#include "json/json_evsys.h"
+#include "zerocal_man.h"
+#include "../base/BaseMesChannel.h"
+#include "../base/RawBinStorage.h"
+#include "../json/json_evsys.h"
+#include "../../common/HatsMemMan.h"
 
 #include <memory>
 
