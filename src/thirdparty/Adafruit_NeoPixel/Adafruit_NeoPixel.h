@@ -31,7 +31,7 @@
  #include <WProgram.h>
  #include <pins_arduino.h>
 #else
-#include "led/Adafruit_NeoPixel_stub.h"
+#include "Adafruit_NeoPixel_stub.h"
 #endif
 #endif
 

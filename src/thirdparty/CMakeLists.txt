@@ -52,7 +52,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   set(Adafruit_NeoPixel_src
     Adafruit_NeoPixel/Adafruit_NeoPixel.cpp
     Adafruit_NeoPixel/Adafruit_NeoPixel.h
-    ${CMAKE_SOURCE_DIR}/src/firmware/led/Adafruit_NeoPixel_stub.h # FIXME!
+    Adafruit_NeoPixel/Adafruit_NeoPixel_stub.h
     Adafruit_NeoPixel/esp8266.c
     )
 

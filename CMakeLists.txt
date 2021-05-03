@@ -293,8 +293,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     )
 
   set(led_src
-    Adafruit_NeoPixel_stub.h
-    ino_stub_SAME54.cpp
+    Adafruit_NeoPixel_stub.cpp
     nodeLED.cpp
     nodeLED.h
     )
