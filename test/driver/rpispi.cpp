@@ -13,8 +13,7 @@ Copyright (c) 2019 Panda Team
  */
 
 #include "../../src/common/Serial.h"
-
-#include <RaspberryPi/bcmspi.h>
+#include "../../src/driver/RaspberryPi/bcmspi.h"
 
 #include <cstdlib>
 #include <iostream>

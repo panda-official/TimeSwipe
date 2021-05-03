@@ -1,17 +1,26 @@
+// -*- C++ -*-
+/*
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+  Copyright (c) 2021 PANDA GmbH
+*/
+
 #include "../../src/common/json.hpp"
+#include "../../src/driver/timeswipe.hpp"
 
-#include <iostream>
-
-#include <csignal>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fstream>
-#include <sstream>
-#include <functional>
-#include <thread>
 #include <chrono>
-#include "timeswipe.hpp"
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <sstream>
+#include <thread>
+
+#include <unistd.h>
 
 // #include <chrono>
 

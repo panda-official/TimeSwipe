@@ -7,9 +7,8 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "resampler.hpp"
-#include "timeswipe.hpp"
-
+#include "../../src/driver/resampler.hpp"
+#include "../../src/driver/timeswipe.hpp"
 #include "../../src/thirdparty/dmitigr/misc/filesystem.hpp"
 #include "../../src/thirdparty/dmitigr/misc/progpar.hpp"
 #include "../../src/thirdparty/dmitigr/misc/str.hpp"

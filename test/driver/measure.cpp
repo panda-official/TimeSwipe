@@ -7,7 +7,7 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "timeswipe.hpp"
+#include "../../src/driver/timeswipe.hpp"
 
 #include <cassert>
 #include <chrono>

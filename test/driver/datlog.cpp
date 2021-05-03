@@ -8,21 +8,19 @@
  */
 
 #include "../../src/common/json.hpp"
+#include "../../src/driver/timeswipe.hpp"
 
-#include <iostream>
-
-#include <csignal>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fstream>
-#include <sstream>
-#include <functional>
-#include <thread>
 #include <chrono>
-#include "timeswipe.hpp"
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <sstream>
+#include <thread>
 
-// #include <chrono>
+#include <unistd.h>
 
 std::function<void(int)> shutdown_handler;
 void signal_handler(int signal) { shutdown_handler(signal); }

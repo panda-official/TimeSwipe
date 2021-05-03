@@ -7,10 +7,9 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "timeswipe.hpp"
-
-#include "../../src/thirdparty/dmitigr/misc/math.hpp"
 #include "../../src/common/json.hpp"
+#include "../../src/driver/timeswipe.hpp"
+#include "../../src/thirdparty/dmitigr/misc/math.hpp"
 
 #include <cassert>
 #include <chrono>

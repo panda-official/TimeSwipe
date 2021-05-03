@@ -7,7 +7,7 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "resampler.hpp"
+#include "../../src/driver/resampler.hpp"
 
 #include <thread>
 #include <vector>
