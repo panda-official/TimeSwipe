@@ -1,4 +1,4 @@
-#include "bcmspi.h"
+#include "RaspberryPi/bcmspi.h"
 #include <iostream>
 #include <thread>
 #include <sstream>

@@ -1,5 +1,5 @@
 #include "timeswipe_eeprom.hpp"
-#include "HatsMemMan.h"
+#include "../common/HatsMemMan.h"
 #include <memory>
 #include <fstream>
 

@@ -12,9 +12,9 @@ Copyright (c) 2019 Panda Team
  * be printed on `stdout`. `Ctrl + c` exits the application.
  */
 
-#include "Serial.h"
+#include "../../src/common/Serial.h"
 
-#include "RaspberryPi/bcmspi.h"
+#include <RaspberryPi/bcmspi.h>
 
 #include <cstdlib>
 #include <iostream>

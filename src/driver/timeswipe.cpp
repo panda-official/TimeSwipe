@@ -4,9 +4,10 @@
 #include "timeswipe.hpp"
 #include "timeswipe_eeprom.hpp"
 
+#include "../thirdparty/dmitigr/misc/filesystem.hpp"
+#include "../thirdparty/dmitigr/misc/math.hpp"
+
 #include <boost/lockfree/spsc_queue.hpp>
-#include <dmitigr/misc/filesystem.hpp>
-#include <dmitigr/misc/math.hpp>
 
 #include <atomic>
 #include <chrono>

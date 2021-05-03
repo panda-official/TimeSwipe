@@ -10,9 +10,9 @@
 #include "resampler.hpp"
 #include "timeswipe.hpp"
 
-#include <dmitigr/misc/filesystem.hpp>
-#include <dmitigr/misc/progpar.hpp>
-#include <dmitigr/misc/str.hpp>
+#include "../../src/thirdparty/dmitigr/misc/filesystem.hpp"
+#include "../../src/thirdparty/dmitigr/misc/progpar.hpp"
+#include "../../src/thirdparty/dmitigr/misc/str.hpp"
 
 #include <algorithm>
 #include <cassert>

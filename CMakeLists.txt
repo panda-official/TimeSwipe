@@ -157,6 +157,8 @@ function(panda_add_common_library)
     cmd.h
     frm_stream.h
     std_port.h
+
+    json.hpp
     )
   list(TRANSFORM common_src PREPEND src/common/)
   add_library(common INTERFACE)
@@ -214,7 +216,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
 
   # Third-party bundled dependencies
   # Note: must follow add_{compile,link}_options()
-  add_subdirectory(3rdParty)
+  add_subdirectory(src/thirdparty)
 
   panda_add_common_library()
 
@@ -396,12 +398,6 @@ else()
 Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's installed.")
   endif()
 
-  # Third-party bundled dependencies
-  # Note: must follow add_{compile,link}_options()
-  add_subdirectory(3rdParty)
-
-  panda_add_common_library()
-
   # ----------------
   # timeswipe target
   # ----------------
@@ -413,16 +409,16 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver/pidfile.cpp
     src/driver/board_iface.cpp
     src/driver/RaspberryPi/bcmspi.cpp
+
+    # BCM
+    src/thirdparty/BCMsrc/bcm2835.c
     )
 
   add_library(timeswipe ${timeswipe_src})
   set(timeswipe_link_libraries
     Boost::boost
     pthread
-    3rdparty_nlohmann_json
-    3rdparty_BCM
-    3rdparty_dmitigr_math
-    common)
+    )
   panda_append_cppfs(timeswipe_link_libraries)
   target_link_libraries(timeswipe PUBLIC ${timeswipe_link_libraries})
 
@@ -439,16 +435,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     endif()
   endif()
 
-  target_include_directories(timeswipe
-    PRIVATE
-    src/driver/RaspberryPi
-
-    3rdParty
-    3rdParty/BCMsrc
-
-    PUBLIC
-    src/driver
-    )
+  target_include_directories(timeswipe PUBLIC src/driver)
 
   # -----------------------
   # Package info generation
@@ -497,7 +484,7 @@ if(PANDA_TIMESWIPE_TESTS)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
-  set(resampler_link_libraries 3rdparty_dmitigr_misc 3rdparty_dmitigr_progpar)
+  set(resampler_link_libraries)
 
   # Set the extra sources per test.
   set(button_event_extra_sources 3rdParty/prj_templ/Custom/startup_ARMCM4.S)
@@ -519,8 +506,8 @@ if(PANDA_TIMESWIPE_TESTS)
       LINKER_LANGUAGE "CXX"
       POSITION_INDEPENDENT_CODE True
       DEBUG_POSTFIX "d")
-    target_link_libraries(${exe} PRIVATE common
-      ${${software}_tests_link_libraries} ${${test}_link_libraries})
+    target_link_libraries(${exe}
+      PRIVATE ${${software}_tests_link_libraries} ${${test}_link_libraries})
     panda_target_compile_options(${exe})
     if(is_unit_test)
       add_test(NAME ${exe} COMMAND ${exe})

@@ -1,6 +1,5 @@
 #include "board.hpp"
-
-#include <nlohmann/json.hpp>
+#include "../common/json.hpp"
 
 #include <mutex>
 

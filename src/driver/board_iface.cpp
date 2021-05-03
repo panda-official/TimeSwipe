@@ -1,5 +1,5 @@
 #include "board_iface.hpp"
-#include <nlohmann/json.hpp>
+#include "../common/json.hpp"
 
 BoardInterface* BoardInterface::_instance = nullptr;
 

@@ -9,7 +9,7 @@
 
 #include "timeswipe.hpp"
 
-#include <dmitigr/misc/filesystem.hpp>
+#include "../../src/thirdparty/dmitigr/misc/filesystem.hpp"
 
 #include <algorithm>
 #include <cassert>

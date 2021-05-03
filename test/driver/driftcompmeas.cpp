@@ -9,8 +9,8 @@
 
 #include "timeswipe.hpp"
 
-#include <dmitigr/misc/math.hpp>
-#include <nlohmann/json.hpp>
+#include "../../src/thirdparty/dmitigr/misc/math.hpp"
+#include "../../src/common/json.hpp"
 
 #include <cassert>
 #include <chrono>

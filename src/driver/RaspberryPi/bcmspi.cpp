@@ -8,7 +8,7 @@ Copyright (c) 2019 Panda Team
 #include "bcmspi.h"
 #include <iostream>
 
-#include "bcm2835.h"
+#include "../../thirdparty/BCMsrc/bcm2835.h"
 bool CBcmLIB::m_bLibInitialized=false;
 bool CBcmLIB::m_bSPIInitialized[2]={false};
 
@@ -70,8 +70,8 @@ void CBcmLIB::SPI_setCS(iSPI nSPI, bool how)
     }
     else
     {
-		char t=0, r;
-		_bcm_aux_spi_transfernb(&t, &r, 1, how ? 1:0);
+        char t=0, r;
+        _bcm_aux_spi_transfernb(&t, &r, 1, how ? 1:0);
     }
 }
 void CBcmLIB::SPI_waitDone(iSPI nSPI)
@@ -99,14 +99,14 @@ typeSChar CBcmLIB::SPItransfer(iSPI nSPI, typeSChar ch)
 
 void CBcmLIB::SPI_set_speed_hz(iSPI nSPI, uint32_t speed_hz)
 {
-	if(iSPI::SPI0==nSPI)
-	{
-		bcm2835_spi_set_speed_hz(speed_hz);
-	}
-	else
-	{
-		bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));	
-	}
+    if(iSPI::SPI0==nSPI)
+    {
+        bcm2835_spi_set_speed_hz(speed_hz);
+    }
+    else
+    {
+        bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
+    }
 }
 
 
@@ -117,12 +117,12 @@ CBcmSPI::CBcmSPI(iSPI nSPI)
     m_nSPI=nSPI;
     if(!init_SPI(nSPI))
         return;
-        
-    
+
+
     //set default rate:
     //SPI_set_speed_hz(100000);
     SPI_set_speed_hz(50000);
-    
+
 }
 CBcmSPI::~CBcmSPI()
 {
@@ -154,7 +154,7 @@ bool CBcmSPI::send(CFIFO &msg)
 
     //waiting for a "done" state:
     SPI_waitDone();
-   
+
 
     m_ComCntr.start(CSyncSerComFSM::FSM::recSilenceFrame);
     do
