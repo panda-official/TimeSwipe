@@ -59,7 +59,7 @@ bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
 bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 {
     m_CmdBuf.reset();
-    m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::write, nReg, RegValue, TBUF);
+    m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::write, nReg, RegValue, false);
     return m_CmdBuf.transfer(*m_pSPIbus, *m_pCS);
 }
 
@@ -83,7 +83,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
 
      //buf tmt to 0:
-     if(!WriteRegister(reg::BUFtmt, 0, true))
+     if(!WriteRegister(reg::BUFtmt, 0))
          return false;
 
      m_nMode=nMode;
@@ -96,7 +96,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      reg.reg=m_GainMuxReg.reg;
 
      reg.bit.IGAIN=ig;
-     if(!WriteRegister(reg::gain_mux, reg.reg, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
@@ -109,7 +109,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      reg.reg=m_GainMuxReg.reg;
 
      reg.bit.OGAIN=og;
-     if(!WriteRegister(reg::gain_mux, reg.reg, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
@@ -123,7 +123,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
      reg.bit.IGAIN=ig;
      reg.bit.OGAIN=og;
-     if(!WriteRegister(reg::gain_mux, reg.reg, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
