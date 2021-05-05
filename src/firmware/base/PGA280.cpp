@@ -89,9 +89,10 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
 
      //buf tmt to 0:
+     /*
      if(!WriteRegister(reg::BUFtmt, 0))
          return false;
-
+    */
      m_nMode=nMode;
      return true;
  }
