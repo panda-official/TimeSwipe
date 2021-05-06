@@ -65,6 +65,10 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
  bool CPGA280::SetMode(mode nMode)
  {
+
+     if(!WriteRegister(reg::soft_reset, 1))
+         return false;
+
      //switch1 (assuming all other switches are zero after reset)
      typeCPGA280ISw1Reg sw1;
      typeCPGA280ISw2Reg sw2;
@@ -74,8 +78,8 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      {
          sw1.bit.SW_A1=1;
          sw1.bit.SW_A2=1;
-         sw2.bit.SW_G1=1;
-         sw2.bit.SW_G2=1;
+//         sw2.bit.SW_G1=1;
+//         sw2.bit.SW_G2=1;
      }
      else
      {
@@ -89,10 +93,10 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
 
      //buf tmt to 0:
-     /*
+     
      if(!WriteRegister(reg::BUFtmt, 0))
          return false;
-    */
+    
      m_nMode=nMode;
      return true;
  }
