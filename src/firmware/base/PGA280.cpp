@@ -42,8 +42,7 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
     m_pCS=pCS;
 
     m_GainMuxReg.reg=0;
-    if(!WriteRegister(reg::soft_reset, 1))
-        return false;
+    WriteRegister(reg::soft_reset, 1);
     SetMode(mode::Voltage);
     SetIGain(igain::ig_1_8);
     SetOGain(ogain::og1);
@@ -62,9 +61,15 @@ bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
 }
 bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 {
+    uint8_t ReadRegValue = 0;
     m_CmdBuf.reset();
     m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::write, nReg, RegValue, false);
-    return m_CmdBuf.transfer(*m_pSPIbus, *m_pCS);
+    if(!m_CmdBuf.transfer(*m_pSPIbus, *m_pCS))
+        return false;
+    ReadRegister(nReg,ReadRegValue);
+    if(ReadRegValue != RegValue)
+        return false;
+    return true;
 }
 
  bool CPGA280::SetMode(mode nMode)
@@ -72,15 +77,15 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
      //switch1 (assuming all other switches are zero after reset)
      typeCPGA280ISw1Reg sw1;
-     typeCPGA280ISw2Reg sw2;
+//     typeCPGA280ISw2Reg sw2;
      sw1.reg=0;
-     sw2.reg=0;
+//     sw2.reg=0;
      if(mode::Voltage==nMode)
      {
          sw1.bit.SW_A1=1;
          sw1.bit.SW_A2=1;
-//         sw2.bit.SW_G1=1;
-//         sw2.bit.SW_G2=1;
+         //sw2.bit.SW_G1=1;
+         //sw2.bit.SW_G2=1;
      }
      else
      {
@@ -89,8 +94,8 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      }
      if(!WriteRegister(reg::ISw1, sw1.reg))
          return false;
-     if(!WriteRegister(reg::ISw2, sw2.reg))
-         return false;
+//     if(!WriteRegister(reg::ISw2, sw2.reg))
+//         return false;
 
 
      //buf tmt to 0:
