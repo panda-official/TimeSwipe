@@ -42,7 +42,11 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
     m_pCS=pCS;
 
     m_GainMuxReg.reg=0;
+    if(!WriteRegister(reg::soft_reset, 1))
+        return false;
     SetMode(mode::Voltage);
+    SetIGain(igain::ig_1_8);
+    SetOGain(ogain::og1);
 }
 
 bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
@@ -65,9 +69,6 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
  bool CPGA280::SetMode(mode nMode)
  {
-
-     if(!WriteRegister(reg::soft_reset, 1))
-         return false;
 
      //switch1 (assuming all other switches are zero after reset)
      typeCPGA280ISw1Reg sw1;
