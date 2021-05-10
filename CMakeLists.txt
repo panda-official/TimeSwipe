@@ -64,9 +64,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   set(PANDA_ARM_BARE_METAL On)
 endif()
 
-set(BUILD_SHARED_LIBS Off CACHE BOOL
-  "Build shared libraries?")
-
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
     "The type of build")
@@ -396,7 +393,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/thirdparty/BCMsrc/bcm2835.c
     )
 
-  add_library(timeswipe ${timeswipe_src})
+  add_library(timeswipe STATIC ${timeswipe_src})
   set(timeswipe_link_libraries
     Boost::boost
     pthread
