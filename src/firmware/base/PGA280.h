@@ -300,10 +300,8 @@ typedef union {
 /*!
  * \brief The PGA280 amplifier control class
  */
-class CPGA280
-{
+class CPGA280 final {
 public:
-
     /*!
      * \brief The PGA280 registers
      */
@@ -389,7 +387,8 @@ public:
      * \brief Sets measurement mode (Voltage or Current). This is a wrapper to be used with a command processor
      * \param nMode  - the mode to be set
      */
-    inline void CmSetMode(unsigned int nMode){
+    void CmSetMode(const unsigned int nMode)
+    {
         SetMode( static_cast<mode>(nMode) );
     }
 
@@ -397,7 +396,8 @@ public:
      * \brief Returns current measurement mode (Voltage or Current). This is a wrapper to be used with a command processor
      * \return
      */
-    inline unsigned int CmGetMode(){
+    unsigned int CmGetMode() const noexcept
+    {
         return m_nMode;
     }
 
@@ -405,7 +405,8 @@ public:
      * \brief Sets input gain value. This is a wrapper to be used with a command processor
      * \param nGain - the input gain to be set
      */
-    inline void CmSetIGain(unsigned int nGain){
+    void CmSetIGain(const unsigned int nGain)
+    {
         SetIGain( static_cast<igain>(nGain) );
     }
 
@@ -413,7 +414,8 @@ public:
      * \brief Returns current input gain value. This is a wrapper to be used with a command processor
      * \return input gain value
      */
-    inline unsigned int CmGetIGain(){
+    unsigned int CmGetIGain() const noexcept
+    {
         return m_GainMuxReg.bit.IGAIN;
     }
 
@@ -421,7 +423,8 @@ public:
      * \brief Sets output gain value. This is a wrapper to be used with a command processor
      * \param nGain - the input gain to be set
      */
-    inline void CmSetOGain(unsigned int nGain){
+    void CmSetOGain(const unsigned int nGain)
+    {
         SetOGain( static_cast<ogain>(nGain) );
     }
 
@@ -429,7 +432,8 @@ public:
      * \brief Returns current output gain value. This is a wrapper to be used with a command processor
      * \return output gain value
      */
-    inline unsigned int CmGetOGain(){
+    unsigned int CmGetOGain() const noexcept
+    {
         return m_GainMuxReg.bit.OGAIN;
     }
 
@@ -446,7 +450,7 @@ public:
      * \brief Returns selected register. This is a wrapper to be used with a command processor
      * \return selected register number
      */
-    unsigned int GetSelectedReg()
+    unsigned int GetSelectedReg() const noexcept
     {
         return m_SelReg;
     }
@@ -458,17 +462,14 @@ public:
     int ReadSelectedReg()
     {
         uint8_t rv;
-        if(!ReadRegister(m_SelReg, rv))
-            return -1;
-
-        return rv;
+        return ReadRegister(m_SelReg, rv) ? rv : -1;
     }
 
     /*!
      * \brief Writes register value previously selected by SelectIng(). This is a wrapper to be used with a command processor
      * \param nVal - the register value to be written
      */
-    void WriteSelectedReg(int nVal)
+    void WriteSelectedReg(const int nVal)
     {
         WriteRegister(m_SelReg, nVal);
     }
@@ -480,10 +481,7 @@ public:
      */
     CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS);
 
-
-
-protected:
-
+private:
     /*!
      * \brief m_pSPIbus - the pointer to a SPI communication bus
      */
@@ -522,12 +520,17 @@ protected:
      */
     bool ReadRegister(reg nReg, uint8_t &RegValue);
 
-    /*!
-     * \brief Sets the value of PGA280 register
-     * \param nReg - the register to set
-     * \param RegValue - the register value to be written
-     * \param TBUF - trigger internal buffer on write operation
-     * \return true on success, false on any error
+    /**
+     * @brief Sets the value of PGA280 register.
+     *
+     * @param nReg The register to set.
+     * @param RegValue The register value to be written.
+     * @param TBUF Trigger internal buffer on write operation.
+     *
+     * @returns `false` on any error.
+     *
+     * @remarks PGA buffer it's disabled by default because it using should
+     * be avoided since it might introduce a noise of the buffer op amp.
      */
     bool WriteRegister(reg nReg, uint8_t RegValue, bool TBUF=false);
 };

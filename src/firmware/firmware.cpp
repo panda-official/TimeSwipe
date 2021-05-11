@@ -11,6 +11,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "../common/os.h"
 #include "../common/std_port.h"
 #include "../common/HatsMemMan.h"
+#include "error.hpp"
 #include "base/SPIcomm.h"
 #include "base/SAMbutton.h"
 #include "base/DMSchannel.h"
@@ -60,8 +61,8 @@ int sys_clock_init(void);
 *
 */
 
-int main(void)
-{
+int main()
+try {
         const int nChannels=4;
         const size_t EEPROMsize=2048;
 
@@ -395,4 +396,11 @@ int main(void)
              pSamADC0->Update();
              pFanControl->Update();
         }
+} catch (const std::system_error& e) {
+  // FIXME: store error code and category to EEPROM.
+  return e.code().value();
+} catch (const std::exception& e) {
+  return -1;
+} catch (...) {
+  return -2;
 }
