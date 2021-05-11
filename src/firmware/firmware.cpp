@@ -40,7 +40,6 @@ Copyright (c) 2019-2020 Panda Team
 
 using namespace std::placeholders;
 
-#define DMS_TEST_MODE
 
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
