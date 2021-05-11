@@ -42,6 +42,7 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
     m_pCS=pCS;
 
     m_GainMuxReg.reg=0;
+    // FIXME: check the return values of the calls below.
     WriteRegister(reg::soft_reset, 1);
     SetMode(mode::Voltage);
     SetIGain(igain::ig_1_8);
@@ -93,7 +94,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      //buf tmt to 0:
      if(!WriteRegister(reg::BUFtmt, 0))
          return false;
-    
+
      m_nMode=nMode;
      return true;
  }
