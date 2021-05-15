@@ -6,6 +6,10 @@
 #
 # Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 
+if(PANDA_ARM64)
+  set(PANDA_ARM On)
+endif()
+
 if(PANDA_ARM)
   if(PANDA_ARM64)
     set(default_sys_proc "aarch64")
