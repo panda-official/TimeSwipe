@@ -40,6 +40,7 @@ Copyright (c) 2019-2020 Panda Team
 
 using namespace std::placeholders;
 
+
 /*!
  * \brief Setups the CPU main clock frequency to 120MHz
  * \return 0=frequency tuning was successful

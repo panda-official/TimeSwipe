@@ -42,7 +42,11 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
     m_pCS=pCS;
 
     m_GainMuxReg.reg=0;
+    // FIXME: check the return values of the calls below.
+    WriteRegister(reg::soft_reset, 1);
     SetMode(mode::Voltage);
+    SetIGain(igain::ig_1_8);
+    SetOGain(ogain::og1);
 }
 
 bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
@@ -58,9 +62,15 @@ bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
 }
 bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 {
+    uint8_t ReadRegValue = 0;
     m_CmdBuf.reset();
     m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::write, nReg, RegValue, TBUF);
-    return m_CmdBuf.transfer(*m_pSPIbus, *m_pCS);
+    if(!m_CmdBuf.transfer(*m_pSPIbus, *m_pCS))
+        return false;
+    ReadRegister(nReg,ReadRegValue);
+    if(ReadRegValue != RegValue)
+        return false;
+    return true;
 }
 
  bool CPGA280::SetMode(mode nMode)
@@ -81,9 +91,8 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      if(!WriteRegister(reg::ISw1, sw1.reg))
          return false;
 
-
      //buf tmt to 0:
-     if(!WriteRegister(reg::BUFtmt, 0, true))
+     if(!WriteRegister(reg::BUFtmt, 0))
          return false;
 
      m_nMode=nMode;
@@ -96,20 +105,20 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
      reg.reg=m_GainMuxReg.reg;
 
      reg.bit.IGAIN=ig;
-     if(!WriteRegister(reg::gain_mux, reg.reg, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
      return true;
-
  }
+
  bool CPGA280::SetOGain(ogain og)
  {
      typeCPGA280GainMuxReg reg;
      reg.reg=m_GainMuxReg.reg;
 
      reg.bit.OGAIN=og;
-     if(!WriteRegister(reg::gain_mux, reg.reg, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
@@ -123,7 +132,7 @@ bool CPGA280::WriteRegister(reg nReg, uint8_t RegValue, bool TBUF)
 
      reg.bit.IGAIN=ig;
      reg.bit.OGAIN=og;
-     if(!WriteRegister(reg::gain_mux, reg.reg, true))
+     if(!WriteRegister(reg::gain_mux, reg.reg))
          return false;
 
      m_GainMuxReg.reg=reg.reg;
