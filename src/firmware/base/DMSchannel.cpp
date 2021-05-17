@@ -14,14 +14,8 @@ void CDMSchannel::SetAmpGain(float GainValue)
 #define OGAIN_FACTOR 1.375f
     static constexpr float GainTab[]={
 
-        (1.0f/8.0f),
-        (1.0f/8.0f)*OGAIN_FACTOR,
-        (1.0f/4.0f),
-        (1.0f/4.0f)*OGAIN_FACTOR,
-        (1.0f/2.0f),
-        (1.0f/2.0f)*OGAIN_FACTOR,
         1.0f,
-        OGAIN_FACTOR,
+        1.0f*OGAIN_FACTOR,
         2.0f,
         2.0f*OGAIN_FACTOR,
         4.0f,
@@ -35,7 +29,13 @@ void CDMSchannel::SetAmpGain(float GainValue)
         64.0f,
         64.0f*OGAIN_FACTOR,
         128.0f,
-        128.0f*OGAIN_FACTOR
+        128.0f*OGAIN_FACTOR,
+        256.0f,
+        256.0f*OGAIN_FACTOR,
+        512.0f,
+        512.0f*OGAIN_FACTOR,
+        1024.0f,
+        1024.0f*OGAIN_FACTOR
     };
 
     constexpr size_t tsize=sizeof(GainTab)/sizeof(float);
@@ -59,7 +59,7 @@ void CDMSchannel::SetAmpGain(float GainValue)
 void CDMSchannel::UpdateOffsets()
 {
 
-    //apply offsets only in case of production firmware
+    //apply offsets only if calibration is enabled
     if(!m_pCont->IsCalEnabled())
         return;
 
