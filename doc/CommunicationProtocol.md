@@ -91,7 +91,7 @@ This access point type isused to control board's channel.
 
 Root domain:            Can be used only with sub-domain <br />
 Sub domain (.mode):     Holds current measurement mode of the channel(unsigned int, 0:1, r/w, 0=Voltage mode, 1=Current mode) <br />
-Sub domain (.gain):     Holds current Gain setting of the channel(float, 1/8: 128*1.375, r/w)  <br />
+Sub domain (.gain):     Holds current Gain setting of the channel(float, 1: 1408, r/w)  <br />
 Sub domain (.iepe):     Holds the state of IEPE switch of the channel(bool, false:true, r/w) <br />
 
 Here is a list of all possible CH access points:
