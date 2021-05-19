@@ -305,3 +305,20 @@ example: js>[ "ADC1.raw", "ADC2.raw", "js" ]
 The protocol is implemented by the board's driver over a specific SPI protocol.
 
 
+## Additional commands in Calibration Firmware
+The calibration firmware is a special build of the TimeSwipe Firmware, which enables extra functionality used for calibration of the boards.
+
+### SAM ADC Measurement:
+One additional feature is the measurement of the same Input like the external ADC with the internal SAM ADC.
+This allows comparisons between those measurements to detect ADC errors.
+The following commands are used to configure and start the measurement.
+
+ Access Point   |       Function
+--------------  |    ------------------------------------------------------------------------------------------------------- 
+MeasMode        |   Selects the SAM ADC measurement mode, 0:Voltage Mode, 1:Current Mode
+MeasChannel     |   Selects which channels to measure with SAM ADC as a 4bit bit-combination, e.g. 15=all 4 channels
+MeasRate        |   Specifies the sampling rate of the SAM ADC, 1..8000 Hz
+MeasStart       |   Starts the SAM ADC measurement into SAM RAM for the specified duration in ms, 1..1000
+
+Once the measurement has been started, the values are stored in the internal RAM of the SAM. The freader example can be used to receive those values and store them in a file in the same format as the DataLogger example.
+Please consider, that the SAM RAM is very limited. Therefore, keep the measurement config very low to prevent errors.
