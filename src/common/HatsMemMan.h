@@ -24,7 +24,7 @@
 #ifndef PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
 #define PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
 
-#include "../thirdparty/HATS_EEPROM/eeptypes.h"
+#include "../3rdparty/HATS_EEPROM/eeptypes.h"
 #include "Serial.h"
 
 #include <array>

@@ -9,7 +9,7 @@
 
 #include "../../src/common/json.hpp"
 #include "../../src/driver/timeswipe.hpp"
-#include "../../src/thirdparty/dmitigr/misc/math.hpp"
+#include "../../src/3rdparty/dmitigr/misc/math.hpp"
 
 #include <cassert>
 #include <chrono>

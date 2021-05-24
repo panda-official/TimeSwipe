@@ -9,9 +9,9 @@
 
 #include "../../src/driver/resampler.hpp"
 #include "../../src/driver/timeswipe.hpp"
-#include "../../src/thirdparty/dmitigr/misc/filesystem.hpp"
-#include "../../src/thirdparty/dmitigr/misc/progpar.hpp"
-#include "../../src/thirdparty/dmitigr/misc/str.hpp"
+#include "../../src/3rdparty/dmitigr/misc/filesystem.hpp"
+#include "../../src/3rdparty/dmitigr/misc/progpar.hpp"
+#include "../../src/3rdparty/dmitigr/misc/str.hpp"
 
 #include <algorithm>
 #include <cassert>

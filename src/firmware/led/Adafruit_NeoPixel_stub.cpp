@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 //SAME54 PORTS for ino (implementation of Adafruit_NeoPixel_stub.h):
 
-#include "../../thirdparty/Adafruit_NeoPixel/Adafruit_NeoPixel_stub.h"
+#include "../../3rdparty/Adafruit_NeoPixel/Adafruit_NeoPixel_stub.h"
 #include "sam.h"
 
 #define PIN_MASK (1L<<12)   //PB12=041

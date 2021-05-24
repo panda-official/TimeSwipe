@@ -8,7 +8,7 @@ Copyright (c) 2019 Panda Team
 #include "bcmspi.h"
 #include <iostream>
 
-#include "../../thirdparty/BCMsrc/bcm2835.h"
+#include "../../3rdparty/BCMsrc/bcm2835.h"
 bool CBcmLIB::m_bLibInitialized=false;
 bool CBcmLIB::m_bSPIInitialized[2]={false};
 

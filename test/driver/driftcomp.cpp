@@ -8,7 +8,7 @@
 */
 
 #include "../../src/driver/timeswipe.hpp"
-#include "../../src/thirdparty/dmitigr/misc/filesystem.hpp"
+#include "../../src/3rdparty/dmitigr/misc/filesystem.hpp"
 
 #include <algorithm>
 #include <cassert>

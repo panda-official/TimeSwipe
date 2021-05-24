@@ -27,6 +27,6 @@
 #ifndef NLOHMANN_JSON_CUSTOM_STDIO_FRM
 #define NLOHMANN_JSON_CUSTOM_STDIO_FRM
 #endif
-#include "../thirdparty/nlohmann/json.hpp"
+#include "../3rdparty/nlohmann/json.hpp"
 
 #endif  // PANDA_TIMESWIPE_COMMON_JSON_HPP

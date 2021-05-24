@@ -152,9 +152,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   enable_language(ASM)
 
   if(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE)
-    set(linker_script "src/thirdparty/prj_templ/Custom/gcc_RAM.ld")
+    set(linker_script "src/3rdparty/prj_templ/Custom/gcc_RAM.ld")
   else()
-    set(linker_script "src/thirdparty/prj_templ/Custom/gcc.ld")
+    set(linker_script "src/3rdparty/prj_templ/Custom/gcc.ld")
   endif()
 
   add_compile_options(
@@ -182,7 +182,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   # firmware target (static library)
   # --------------------------------
 
-  # thirdparty
+  # 3rdparty
   set(Adafruit_NeoPixel_src
     Adafruit_NeoPixel.cpp
     Adafruit_NeoPixel.h
@@ -307,7 +307,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
 
   # Third-party stuff
   foreach(dep Adafruit_NeoPixel)
-    list(TRANSFORM ${dep}_src PREPEND src/thirdparty/${dep}/)
+    list(TRANSFORM ${dep}_src PREPEND src/3rdparty/${dep}/)
     list(APPEND firmware_src ${${dep}_src})
   endforeach()
 
@@ -336,8 +336,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   endif()
   target_include_directories(firmware PUBLIC src/firmware
     PRIVATE
-    src/thirdparty/prj_templ/include
-    src/thirdparty/prj_templ/CMSIS/Include
+    src/3rdparty/prj_templ/include
+    src/3rdparty/prj_templ/CMSIS/Include
     )
 
   # -------------------
@@ -354,11 +354,11 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   list(TRANSFORM firmware_elf_src PREPEND src/firmware/)
 
   # Third-party firmware.elf sources
-  list(APPEND firmware_elf_thirdparty_src
+  list(APPEND firmware_elf_3rdparty_src
     prj_templ/Custom/startup_ARMCM4.S
     )
-  list(TRANSFORM firmware_elf_thirdparty_src PREPEND src/thirdparty/)
-  list(APPEND firmware_elf_src ${firmware_elf_thirdparty_src})
+  list(TRANSFORM firmware_elf_3rdparty_src PREPEND src/3rdparty/)
+  list(APPEND firmware_elf_src ${firmware_elf_3rdparty_src})
 
   add_executable(${target_name} ${firmware_elf_src})
   target_link_libraries(${target_name} PRIVATE firmware)
@@ -390,7 +390,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver/RaspberryPi/bcmspi.cpp
 
     # BCM
-    src/thirdparty/BCMsrc/bcm2835.c
+    src/3rdparty/BCMsrc/bcm2835.c
     )
 
   add_library(timeswipe STATIC ${timeswipe_src})
@@ -470,7 +470,7 @@ if(PANDA_TIMESWIPE_TESTS)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
-  set(button_event_extra_sources src/thirdparty/prj_templ/Custom/startup_ARMCM4.S)
+  set(button_event_extra_sources src/3rdparty/prj_templ/Custom/startup_ARMCM4.S)
 
   # Configure the tests from the lists above.
   function(panda_configure_test test)
