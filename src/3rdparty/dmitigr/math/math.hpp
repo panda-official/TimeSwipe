@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2020 Dmitry Igrishin
+// Copyright (C) 2021 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,10 +20,12 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_MISC_MATH_HPP
-#define DMITIGR_MISC_MATH_HPP
+#ifndef DMITIGR_MATH_MATH_HPP
+#define DMITIGR_MATH_MATH_HPP
 
-#include <cassert>
+#include "version.hpp"
+#include "../assert.hpp"
+
 #include <utility>
 
 namespace dmitigr::math {
@@ -53,45 +55,55 @@ public:
   /// Constructs closed [{},{}] interval.
   Interval() noexcept = default;
 
-  /// Constructs closed [min, max] interval.
-  explicit Interval(T min, T max) noexcept
+  /**
+   * Constructs closed [min, max] interval.
+   *
+   * @par Requires
+   * `min <= max`.
+   */
+  explicit Interval(T min, T max)
     : type_{Type::closed}
     , min_{std::move(min)}
     , max_{std::move(max)}
   {
-    assert(min_ <= max_);
+    DMITIGR_CHECK_ARG(min_ <= max_);
   }
 
-  /// Constructs the interval of the specified type.
-  explicit Interval(const Type type, T min, T max) noexcept
+  /**
+   * Constructs the interval of the specified type.
+   *
+   * @par Requires
+   * `(type == Type::closed && min <= max) || (type != Type::closed && min < max)`.
+   */
+  explicit Interval(const Type type, T min, T max)
     : type_{type}
     , min_{std::move(min)}
     , max_{std::move(max)}
   {
-    assert((type_ == Type::closed && min_ <= max_) ||
+    DMITIGR_CHECK_ARG((type_ == Type::closed && min_ <= max_) ||
       (type_ != Type::closed && min_ < max_));
   }
 
   /// @returns [min, max] interval.
-  static Interval make_closed(T min, T max) noexcept
+  static Interval make_closed(T min, T max)
   {
     return {Type::closed, std::move(min), std::move(max)};
   }
 
   /// @returns (min, max) interval.
-  static Interval make_open(T min, T max) noexcept
+  static Interval make_open(T min, T max)
   {
     return {Type::open, std::move(min), std::move(max)};
   }
 
   /// @returns (min, max] interval.
-  static Interval make_lopen(T min, T max) noexcept
+  static Interval make_lopen(T min, T max)
   {
     return {Type::lopen, std::move(min), std::move(max)};
   }
 
   /// @returns [min, max) interval.
-  static Interval make_ropen(T min, T max) noexcept
+  static Interval make_ropen(T min, T max)
   {
     return {Type::ropen, std::move(min), std::move(max)};
   }
@@ -122,8 +134,8 @@ public:
     case Type::open:   return (min_ <  value) && (value <  max_); // ()
     case Type::lopen:  return (min_ <  value) && (value <= max_); // (]
     case Type::ropen:  return (min_ <= value) && (value <  max_); // [)
-    default: assert(false);
     }
+    DMITIGR_ASSERT(false);
   }
 
   /**
@@ -198,12 +210,13 @@ constexpr bool is_power_of_two(const T number) noexcept
  * get the aligned value by using `alignment`.
  *
  * @par Requires
- * `is_power_of_two(alignment)`.
+ * `size >= 0 && is_power_of_two(alignment)`.
  */
 template<typename T, typename U>
-constexpr auto padding(const T size, const U alignment) noexcept
+constexpr auto padding(const T size, const U alignment)
 {
-  assert(is_power_of_two(alignment));
+  DMITIGR_CHECK_ARG(size >= 0);
+  DMITIGR_CHECK_ARG(is_power_of_two(alignment));
   const auto a = alignment;
   return (static_cast<T>(0) - size) & static_cast<T>(a - 1);
 }
@@ -212,16 +225,17 @@ constexpr auto padding(const T size, const U alignment) noexcept
  * @return The value of `size` aligned by using `alignment`.
  *
  * @par Requires
- * `is_power_of_two(alignment)`.
+ * `size >= 0 && is_power_of_two(alignment)`.
  */
 template<typename T, typename U>
-constexpr T aligned(const T size, const U alignment) noexcept
+constexpr T aligned(const T size, const U alignment)
 {
-  assert(is_power_of_two(alignment));
+  DMITIGR_CHECK_ARG(size >= 0);
+  DMITIGR_CHECK_ARG(is_power_of_two(alignment));
   const T a = alignment;
   return (size + (a - 1)) & -a;
 }
 
 } // namespace dmitigr::math
 
-#endif  // DMITIGR_MISC_MATH_HPP
+#endif  // DMITIGR_MATH_MATH_HPP

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2020 Dmitry Igrishin
+// Copyright (C) 2021 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,13 +20,14 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_MISC_PROGPAR_HPP
-#define DMITIGR_MISC_PROGPAR_HPP
+#ifndef DMITIGR_PROGPAR_PROGPAR_HPP
+#define DMITIGR_PROGPAR_PROGPAR_HPP
 
-#include "filesystem.hpp"
+#include "version.hpp"
+#include "../assert.hpp"
+#include "../filesystem.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <map>
 #include <optional>
 #include <string>
@@ -85,17 +86,24 @@ public:
     }
 
     /// @returns The name of this option if `is_valid()`.
-    const std::string& name() const noexcept
+    const std::string& name() const
     {
-      assert(is_valid());
+      DMITIGR_CHECK(is_valid());
       return *name_;
     }
 
     /// @returns The value of this option if `is_valid()`.
-    const std::optional<std::string>& value() const noexcept
+    const std::optional<std::string>& value() const
     {
-      assert(is_valid());
+      DMITIGR_CHECK(is_valid());
       return *value_;
+    }
+
+    /// @returns `value().value()` or `val`.
+    std::string value_or(std::string val) const
+    {
+      DMITIGR_CHECK(is_valid());
+      return value_->value_or(std::move(val));
     }
 
     /**
@@ -122,7 +130,7 @@ public:
     explicit Optref(const Program_parameters& pp) noexcept
       : program_parameters_{pp}
     {
-      assert(!is_valid());
+      DMITIGR_ASSERT(!is_valid());
     }
 
     /// The constructor.
@@ -132,7 +140,7 @@ public:
       , name_{&name}
       , value_{&value}
     {
-      assert(is_valid());
+      DMITIGR_ASSERT(is_valid());
     }
   };
 
@@ -147,7 +155,9 @@ public:
    */
   Program_parameters(const int argc, const char* const* argv)
   {
-    assert(argc > 0 && argv && argv[0]);
+    DMITIGR_CHECK_ARG(argc > 0);
+    DMITIGR_CHECK_ARG(argv);
+    DMITIGR_CHECK_ARG(argv[0]);
 
     static const auto opt = [](const std::string_view arg)
       -> std::optional<std::pair<std::string, std::optional<std::string>>>
@@ -188,7 +198,7 @@ public:
     for (; argi < argc; ++argi)
       arguments_.emplace_back(argv[argi]);
 
-    assert(is_valid());
+    DMITIGR_ASSERT(is_valid());
   }
 
   /**
@@ -198,13 +208,13 @@ public:
    * `!path.empty()`.
    */
   explicit Program_parameters(std::filesystem::path path,
-    Option_map options = {}, Argument_vector arguments = {}) noexcept
+    Option_map options = {}, Argument_vector arguments = {})
     : path_{std::move(path)}
     , options_{std::move(options)}
     , arguments_{std::move(arguments)}
   {
-    assert(!path_.empty());
-    assert(is_valid());
+    DMITIGR_CHECK_ARG(!path_.empty());
+    DMITIGR_ASSERT(is_valid());
   }
 
   /// @returns `false` if this instance is default-constructed.
@@ -251,9 +261,9 @@ public:
   }
 
   /// @returns `arguments()[argument_index]`.
-  const std::string& operator[](const std::size_t argument_index) const noexcept
+  const std::string& operator[](const std::size_t argument_index) const
   {
-    assert(argument_index < arguments_.size());
+    DMITIGR_CHECK_RANGE(argument_index < arguments_.size());
     return arguments_[argument_index];
   }
 
@@ -288,4 +298,4 @@ private:
 
 } // namespace dmitigr::progpar
 
-#endif // DMITIGR_MISC_PROGPAR_HPP
+#endif // DMITIGR_PROGPAR_PROGPAR_HPP

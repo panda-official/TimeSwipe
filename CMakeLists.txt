@@ -371,11 +371,17 @@ else()
   # Dependencies
   # ------------
 
+  # Boost
   find_package(Boost)
   if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found.
 Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's installed.")
   endif()
+
+  # Cefeika
+  set(DMITIGR_CEFEIKA_BUNDLED On CACHE BOOL "" FORCE)
+  set(DMITIGR_CEFEIKA_HEADER_ONLY On CACHE BOOL "" FORCE)
+  add_subdirectory(src/3rdparty/dmitigr)
 
   # ----------------
   # timeswipe target
@@ -394,12 +400,11 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     )
 
   add_library(timeswipe STATIC ${timeswipe_src})
-  set(timeswipe_link_libraries
-    Boost::boost
-    pthread
-    )
-  panda_append_cppfs(timeswipe_link_libraries)
-  target_link_libraries(timeswipe PUBLIC ${timeswipe_link_libraries})
+  list(APPEND timeswipe_link_libraries_public pthread)
+  panda_append_cppfs(timeswipe_link_libraries_public)
+  target_link_libraries(timeswipe
+    PUBLIC ${timeswipe_link_libraries_public}
+    PRIVATE Boost::boost dmitigr_math dmitigr_progpar dmitigr_str)
   target_compile_definitions(timeswipe PUBLIC
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
@@ -463,7 +468,7 @@ if(PANDA_TIMESWIPE_TESTS)
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
   set(firmware_tests_link_libraries firmware)
-  panda_append_cppfs(driver_tests_link_libraries)
+  list(APPEND driver_tests_link_libraries dmitigr_filesystem)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)

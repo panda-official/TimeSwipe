@@ -1,0 +1,126 @@
+#!/bin/bash
+# Copyright (C) 2021 Dmitry Igrishin
+
+# This software is provided 'as-is', without any express or implied
+# warranty. In no event will the authors be held liable for any damages
+# arising from the use of this software.
+
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would be
+#    appreciated but is not required.
+# 2. Altered source versions must be plainly marked as such, and must not be
+#    misrepresented as being the original software.
+# 3. This notice may not be removed or altered from any source distribution.
+
+script_dir=$(dirname "$0")
+. "${script_dir}/cefeika_deps.sh" || exit $?
+. "${script_dir}/cefeika_test_deps.sh" || exit $?
+
+err()
+{
+  echo $* >&2
+  exit 1
+}
+
+usage()
+{
+  err "usage: $0 [-T] library... path-to-destination-root"
+}
+
+# $1 - lib
+copy_lib()
+{
+  local lib=$1
+  local thirdparty_re='^3rdparty_+'
+  if [[ $lib =~ $thirdparty_re ]]; then
+    libpath=$(echo "$lib" | sed -E 's/3rdparty_(.*)$/3rdparty\/\1/g')
+    mkdir -p "$dst/3rdparty" || exit $?
+  else
+    libpath=$lib
+  fi
+  if [ -f "$src/${libpath}.hpp" ]; then
+    cp "$src/${libpath}.hpp" "$dst" || exit $?
+  fi
+  if [ -d "$src/$libpath" ]; then
+    mkdir -p "$dst/$libpath" || exit $?
+    find "$src/$libpath" -mindepth 1 ! -name 'test' ! -path "$src/$libpath/test/*" -print0 | \
+      xargs -0 -I% cp -R % "$dst/$libpath" || exit $?
+    if [ X"$without_tests" = X ]; then
+      if [ -d "$src/$libpath/test" ]; then
+        cp -R "$src/$libpath/test" "$dst/$libpath" || exit $?
+        local test_deps=${lib}_test_deps
+        copy_libs ${!test_deps}
+      fi
+    fi
+  else
+    err "no library found -- $lib"
+  fi
+}
+
+# $* - libs
+copy_libs()
+{
+  for lib in $*; do
+    # Copy library and it's dependencies
+    deps=${lib}_deps
+    deps=${!deps}
+    for dep in $deps; do
+      copy_lib $dep
+    done
+    copy_lib $lib
+  done
+}
+
+# Process options
+while getopts T opt
+do
+  case $opt in
+    T) without_tests=1 ;;
+    ?) usage ;;
+  esac
+done
+shift `expr $OPTIND - 1`
+
+# Process arguments
+if [ $# -lt 2 ]; then
+  usage
+fi
+src=$(realpath "${script_dir}/..")
+while [ $# -gt 1 ]; do
+  if [ ! -d "$src/$1" ]; then
+    err "unknown library specified -- $1"
+  fi
+  libs="$libs $1"
+  shift
+done
+dst=$1
+
+# Create the destination
+mkdir -p $dst || exit $?
+
+# Copy special stuff
+for f in .editorconfig .gitattributes .gitignore CMakeLists.txt LICENSE.txt README.md; do
+  cp "$src/$f" "$dst" || exit $?
+done
+
+# Copy special .in stuff
+for f in dll.hpp lib.cpp lib.hpp version.hpp version.rc Doxyfile; do
+  cp "$src/${f}.in" "$dst" || exit $?
+done
+
+# Copy CMake stuff
+mkdir -p "$dst/cmake" || exit $?
+find "$src/cmake" -mindepth 1 ! -name 'dmitigr_cefeika_libraries.cmake' -print0 | \
+  xargs -0 -I% cp -R % "$dst/cmake" || exit $?
+
+# Copy libraries
+copy_libs $libs
+
+# Copy this script
+mkdir -p "$dst/tool" || exit $?
+cp "$0" "$dst/tool" || exit $?

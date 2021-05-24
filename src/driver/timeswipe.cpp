@@ -4,8 +4,8 @@
 #include "timeswipe.hpp"
 #include "timeswipe_eeprom.hpp"
 
-#include "../3rdparty/dmitigr/misc/filesystem.hpp"
-#include "../3rdparty/dmitigr/misc/math.hpp"
+#include "../3rdparty/dmitigr/filesystem.hpp"
+#include "../3rdparty/dmitigr/math.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 
