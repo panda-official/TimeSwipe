@@ -401,7 +401,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   add_library(timeswipe STATIC ${timeswipe_src})
   list(APPEND timeswipe_link_libraries_public pthread)
-  panda_append_cppfs(timeswipe_link_libraries_public)
+  dmitigr_append_cppfs(timeswipe_link_libraries_public)
   target_link_libraries(timeswipe
     PUBLIC ${timeswipe_link_libraries_public}
     PRIVATE Boost::boost dmitigr_math dmitigr_progpar dmitigr_str)
