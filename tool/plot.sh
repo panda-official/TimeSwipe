@@ -50,7 +50,7 @@ if [ X"$csv_separators" = X'' ]; then
   csv_separators=' \t,'
 fi
 
-ascii_re='^ASCII'
+ascii_re='^(ASCII|CSV)'
 plot=
 for input_file in "$@"; do
   if [[ ! -f "$input_file" ]]; then
