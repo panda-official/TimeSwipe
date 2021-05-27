@@ -142,34 +142,39 @@ private:
   SensorsData Read()
   {
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    SensorsData out;
-    out.reserve(3072);
-
-  begin:
-    // I.
-    WaitForPiOk();
-
-    // II.
-    do {
-      const auto [chunk, tco] = GpioData::ReadChunk();
-      if (tco != 0x00004000)
-        break;
-      appendChunk(out, chunk, offsets_, mfactors_);
-    } while (true);
-
-    // III.
-    sleep55ns();
-    sleep55ns();
-
-    // Discard first read. (I.e. any old data in RAM!)
-    if (!is_read_) {
-      is_read_ = true;
-      out.clear();
+    // Skip data sets if needed. (First 32 data sets are always invalid.)
+    while (read_skip_count_ > 0) {
+      WaitForPiOk();
+      while (true) {
+        const auto [chunk, tco] = GpioData::ReadChunk();
+        if (tco != 0x00004000) break;
+      }
+      --read_skip_count_;
     }
 
-    // Do not return an emtpy result. Re-try.
-    if (out.empty())
-      goto begin;
+    // Wait the RAM A or RAM B becomes available for reading.
+    WaitForPiOk();
+
+    /*
+     * Read the data sets. The amount of data depends on the counterstate
+     * and can be [1..255]*32 data sets. (The number of data sets are always 32
+     * also. Usually, the first data set is of size greater than 1 is followed
+     * by 31 data sets of size 1.)
+     *
+     * TODO: the PIN 12 of Pi-Header is for overflow detection. When it's
+     * becomes high it indicates that the RAM is full (failure - data loss).
+     * So, check this case.
+     */
+    SensorsData out;
+    out.reserve(8192);
+    do {
+      const auto [chunk, tco] = GpioData::ReadChunk();
+      appendChunk(out, chunk, offsets_, mfactors_);
+      if (tco != 0x00004000) break;
+    } while (true);
+
+    sleep55ns();
+    sleep55ns();
 
     return out;
 #else
@@ -207,7 +212,7 @@ private:
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     shutdown();
 #endif
-    is_read_ = false;
+    read_skip_count_ = kInitialInvalidDataSetsCount;
   }
 
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
@@ -280,7 +285,9 @@ private:
   }
 
 private:
-  bool is_read_{};
+  // The number of initial invalid data sets.
+  static constexpr int kInitialInvalidDataSetsCount{32};
+  int read_skip_count_{kInitialInvalidDataSetsCount};
   int mode_{};
   std::array<std::uint16_t, 4> offsets_{0, 0, 0, 0};
   std::array<float, 4> gains_{1, 1, 1, 1};
