@@ -8,7 +8,7 @@
 */
 
 #include "../../src/common/json.hpp"
-#include "../../src/driver/timeswipe.hpp"
+#include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/math.hpp"
 
 #include <cassert>
