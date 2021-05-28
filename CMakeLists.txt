@@ -395,13 +395,13 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/3rdparty/BCMsrc/bcm2835.c
     )
 
-  add_library(timeswipe STATIC ${timeswipe_src})
+  add_library(panda_timeswipe STATIC ${timeswipe_src})
   list(APPEND timeswipe_link_libraries_public pthread)
   dmitigr_append_cppfs(timeswipe_link_libraries_public)
-  target_link_libraries(timeswipe
+  target_link_libraries(panda_timeswipe
     PUBLIC ${timeswipe_link_libraries_public}
     PRIVATE Boost::boost)
-  target_compile_definitions(timeswipe PUBLIC
+  target_compile_definitions(panda_timeswipe PUBLIC
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
     )
@@ -413,7 +413,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
         find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS /usr/lib/gcc/arm-linux-gnueabihf/8)
         if(atomic_lib)
           message("Explicit Linking with atomic library.")
-          target_link_libraries(timeswipe PUBLIC ${atomic_lib})
+          target_link_libraries(panda_timeswipe PUBLIC ${atomic_lib})
         endif()
       endif()
     endif()
@@ -423,7 +423,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # Package info generation
   # -----------------------
 
-  configure_file(pkg/timeswipe.pc.in timeswipe.pc @ONLY)
+  configure_file(pkg/panda_timeswipe.pc.in panda_timeswipe.pc @ONLY)
   configure_file(pkg/DEBIAN/control.in DEBIAN/control @ONLY)
   configure_file(pkg/arch/PKGBUILD.in PKGBUILD @ONLY)
 
@@ -433,7 +433,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   include(GNUInstallDirs)
 
-  install(TARGETS timeswipe
+  install(TARGETS panda_timeswipe
     EXPORT timeswipe_export
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -442,11 +442,11 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   install(EXPORT timeswipe_export
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/panda_timeswipe/cmake
-    FILE timeswipe-config.cmake)
+    FILE panda_timeswipe-config.cmake)
 
   install(FILES src/driver/timeswipe.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/timeswipe.pc
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/panda_timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
   message(CHECK_PASS "Ready to build the driver.")
@@ -465,7 +465,7 @@ if(PANDA_TIMESWIPE_TESTS)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.
-  set(driver_tests_link_libraries timeswipe)
+  set(driver_tests_link_libraries panda_timeswipe)
   set(firmware_tests_link_libraries firmware)
   list(APPEND driver_tests_link_libraries)
 
