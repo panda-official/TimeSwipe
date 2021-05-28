@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['datasize_72',['DataSize',['../classSensorsData.html#a5025a1dd38ce4c190123ad5ff9210ca7',1,'SensorsData']]],
-  ['driftdeltas_73',['DriftDeltas',['../classTimeSwipe.html#a4eb8ffc7dd03ed7b2d957015a87c0597',1,'TimeSwipe']]],
-  ['driftreferences_74',['DriftReferences',['../classTimeSwipe.html#a7e922f17697339e078e232852d149167',1,'TimeSwipe']]]
+  ['datasize_83',['DataSize',['../classSensorsData.html#a5025a1dd38ce4c190123ad5ff9210ca7',1,'SensorsData']]],
+  ['driftdeltas_84',['DriftDeltas',['../classTimeSwipe.html#a4eb8ffc7dd03ed7b2d957015a87c0597',1,'TimeSwipe']]],
+  ['driftreferences_85',['DriftReferences',['../classTimeSwipe.html#a7e922f17697339e078e232852d149167',1,'TimeSwipe']]]
 ];

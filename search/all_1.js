@@ -6,5 +6,6 @@ var searchData=
   ['cend_6',['cend',['../classSensorsData.html#ac2765f43aadf48956319bf4501483140',1,'SensorsData']]],
   ['cleardriftdeltas_7',['ClearDriftDeltas',['../classTimeSwipe.html#a992e3f0d0ba97a8a67478c333d53cf52',1,'TimeSwipe']]],
   ['cleardriftreferences_8',['ClearDriftReferences',['../classTimeSwipe.html#a60755ed410538c944ee1c66a1f6a9c0a',1,'TimeSwipe']]],
-  ['count_9',['count',['../classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1',1,'TimeSwipeEvent::Button']]]
+  ['condition_9',['condition',['../classpanda_1_1timeswipe_1_1driver_1_1Exception.html#a889386efe6b52f39d21ec188e248eee9',1,'panda::timeswipe::driver::Exception']]],
+  ['count_10',['count',['../classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1',1,'TimeSwipeEvent::Button']]]
 ];

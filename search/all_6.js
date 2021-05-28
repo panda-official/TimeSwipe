@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['maxsamplerate_24',['MaxSampleRate',['../classTimeSwipe.html#ae6646f3b049aa0d5daab4747a1dc5ffd',1,'TimeSwipe']]],
-  ['mode_25',['Mode',['../classTimeSwipeEvent_1_1Mode.html',1,'TimeSwipeEvent']]]
+  ['maxsamplerate_28',['MaxSampleRate',['../classTimeSwipe.html#ae6646f3b049aa0d5daab4747a1dc5ffd',1,'TimeSwipe']]],
+  ['message_29',['message',['../classpanda_1_1timeswipe_1_1driver_1_1ErrorCategory.html#a862bfaceccb3246e6eed5a7ad9c6573a',1,'panda::timeswipe::driver::ErrorCategory']]],
+  ['mode_30',['Mode',['../classTimeSwipeEvent_1_1Mode.html',1,'TimeSwipeEvent']]]
 ];
