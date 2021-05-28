@@ -22,6 +22,7 @@ cmake_policy(VERSION 3.13)
 # ------------------------------------------------------------------------------
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(dmitigr)
 include(misc)
 
 # ------------------------------------------------------------------------------
@@ -378,11 +379,6 @@ else()
 Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's installed.")
   endif()
 
-  # Cefeika
-  set(DMITIGR_CEFEIKA_BUNDLED On CACHE BOOL "" FORCE)
-  set(DMITIGR_CEFEIKA_HEADER_ONLY On CACHE BOOL "" FORCE)
-  add_subdirectory(src/3rdparty/dmitigr)
-
   # ----------------
   # timeswipe target
   # ----------------
@@ -404,7 +400,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   dmitigr_append_cppfs(timeswipe_link_libraries_public)
   target_link_libraries(timeswipe
     PUBLIC ${timeswipe_link_libraries_public}
-    PRIVATE Boost::boost dmitigr_math dmitigr_progpar dmitigr_str)
+    PRIVATE Boost::boost)
   target_compile_definitions(timeswipe PUBLIC
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
@@ -423,8 +419,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     endif()
   endif()
 
-  target_include_directories(timeswipe PUBLIC src/driver)
-
   # -----------------------
   # Package info generation
   # -----------------------
@@ -440,10 +434,15 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   include(GNUInstallDirs)
 
   install(TARGETS timeswipe
+    EXPORT timeswipe_export
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+  install(EXPORT timeswipe_export
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/panda_timeswipe/cmake
+    FILE timeswipe-config.cmake)
 
   install(FILES src/driver/timeswipe.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
@@ -468,7 +467,7 @@ if(PANDA_TIMESWIPE_TESTS)
   # Set the link libraries per software.
   set(driver_tests_link_libraries timeswipe)
   set(firmware_tests_link_libraries firmware)
-  list(APPEND driver_tests_link_libraries dmitigr_filesystem)
+  list(APPEND driver_tests_link_libraries)
 
   # Set the link libraries per test.
   set(datlog_link_libraries pthread)
