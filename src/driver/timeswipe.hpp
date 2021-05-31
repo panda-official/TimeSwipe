@@ -30,6 +30,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 /**
@@ -300,6 +301,36 @@ public:
     Norm,
     Digital
   };
+
+  /**
+   * @returns The value of type `Mode` converted from `value`.
+   *
+   * @throws `std::invalid_argument` if `value` doesn't corresponds to any
+   * member of Mode.
+   */
+  static Mode ToMode(const std::string_view value)
+  {
+    if (value == "primary") return TimeSwipe::Mode::Primary;
+    else if (value == "norm") return TimeSwipe::Mode::Norm;
+    else if (value == "digital") return TimeSwipe::Mode::Digital;
+    else throw std::invalid_argument{"invalid text representation of TimeSwipe::Mode"};
+  }
+
+  /**
+   * @returns The value of type `std::string_view` converted from `value`.
+   *
+   * @throws `std::invalid_argument` if `value` doesn't corresponds to any
+   * member of Mode.
+   */
+  static std::string_view ToStringView(const Mode value)
+  {
+    switch (value) {
+    case Mode::Primary: return "primary";
+    case Mode::Norm: return "norm";
+    case Mode::Digital: return "digital";
+    }
+    throw std::invalid_argument{"invalid value of TimeSwipe::Mode"};
+  }
 
   /** @enum TimeSwipe::Channels
    *
