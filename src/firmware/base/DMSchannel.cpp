@@ -11,36 +11,35 @@ Copyright (c) 2019-2020 Panda Team
 
 void CDMSchannel::SetAmpGain(float GainValue)
 {
-#define OGAIN_FACTOR 1.375f
-    static constexpr float GainTab[]={
-
-        1.0f,
-        1.0f*OGAIN_FACTOR,
-        2.0f,
-        2.0f*OGAIN_FACTOR,
-        4.0f,
-        4.0f*OGAIN_FACTOR,
-        8.0f,
-        8.0f*OGAIN_FACTOR,
-        16.0f,
-        16.0f*OGAIN_FACTOR,
-        32.0f,
-        32.0f*OGAIN_FACTOR,
-        64.0f,
-        64.0f*OGAIN_FACTOR,
-        128.0f,
-        128.0f*OGAIN_FACTOR,
-        256.0f,
-        256.0f*OGAIN_FACTOR,
-        512.0f,
-        512.0f*OGAIN_FACTOR,
-        1024.0f,
-        1024.0f*OGAIN_FACTOR
+    constexpr float ogain_factor{1.375};
+    constexpr float GainTab[]={
+        1,
+        1*ogain_factor,
+        2,
+        2*ogain_factor,
+        4,
+        4*ogain_factor,
+        8,
+        8*ogain_factor,
+        16,
+        16*ogain_factor,
+        32,
+        32*ogain_factor,
+        64,
+        64*ogain_factor,
+        128,
+        128*ogain_factor,
+        256,
+        256*ogain_factor,
+        512,
+        512*ogain_factor,
+        1024,
+        1024*ogain_factor
     };
-
-    constexpr size_t tsize=sizeof(GainTab)/sizeof(float);
-    size_t el;
-    for(el=0; el<tsize; el++)
+    constexpr size_t tsize{sizeof(GainTab)/sizeof(float)};
+    static_assert(!(tsize % 2));
+    size_t el{};
+    for(; el<tsize; el++)
     {
         if(GainValue<GainTab[el])
             break;
