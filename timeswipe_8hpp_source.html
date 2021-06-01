@@ -101,307 +101,326 @@ $(function() {
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#include &lt;optional&gt;</span></div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
-<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classSensorsData.html">   38</a></span>&#160;<span class="keyword">class </span><a class="code" href="classSensorsData.html">SensorsData</a> {</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  <span class="keyword">static</span> constexpr std::size_t SENSORS = 4;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keyword">using</span> CONTAINER = std::array&lt;std::vector&lt;float&gt;, SENSORS&gt;;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  <span class="keyword">using</span> Value = std::vector&lt;float&gt;;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="classSensorsData.html#a352e98c4dff3917ae99f039ff7103893">   50</a></span>&#160;  <span class="keyword">static</span> constexpr std::size_t <a class="code" href="classSensorsData.html#a352e98c4dff3917ae99f039ff7103893">SensorsSize</a>() noexcept</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  {</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    static_assert(SENSORS &gt; 0);</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keywordflow">return</span> SENSORS;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  }</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno"><a class="line" href="classSensorsData.html#a5025a1dd38ce4c190123ad5ff9210ca7">   62</a></span>&#160;  std::size_t <a class="code" href="classSensorsData.html#a5025a1dd38ce4c190123ad5ff9210ca7">DataSize</a>() const noexcept;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
-<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="classSensorsData.html#aaa19b88518e64d568bb7dc09fb9842aa">   71</a></span>&#160;  std::vector&lt;<span class="keywordtype">float</span>&gt;&amp; operator[](std::<span class="keywordtype">size_t</span> num) noexcept;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
-<div class="line"><a name="l00074"></a><span class="lineno"><a class="line" href="classSensorsData.html#af5b47c9064d84dddbf2027a07ea0ce4b">   74</a></span>&#160;  const Value&amp; operator[](const std::<span class="keywordtype">size_t</span> index) const noexcept</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  {</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keywordflow">return</span> data_[index];</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;  }</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  CONTAINER&amp; data();</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  <span class="keywordtype">void</span> reserve(std::size_t num);</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  <span class="keywordtype">void</span> resize(std::size_t new_size);</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  <span class="keywordtype">void</span> clear() noexcept;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <span class="keywordtype">bool</span> empty() const noexcept;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  <span class="keywordtype">void</span> append(const <a class="code" href="classSensorsData.html">SensorsData</a>&amp; other);</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <span class="keywordtype">void</span> append(const <a class="code" href="classSensorsData.html">SensorsData</a>&amp; other, std::<span class="keywordtype">size_t</span> count);</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  <span class="keywordtype">void</span> erase_front(std::<span class="keywordtype">size_t</span> count) noexcept;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  <span class="keywordtype">void</span> erase_back(std::<span class="keywordtype">size_t</span> count) noexcept;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
-<div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="classSensorsData.html#a0300dd62821c47c6e4eb5ab705bf385f">   93</a></span>&#160;  auto <a class="code" href="classSensorsData.html#a0300dd62821c47c6e4eb5ab705bf385f">begin</a>() noexcept</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  {</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <span class="keywordflow">return</span> data_.begin();</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;  }</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
-<div class="line"><a name="l00099"></a><span class="lineno"><a class="line" href="classSensorsData.html#a91a1c46d28173ef5aa70f52077a061be">   99</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#a91a1c46d28173ef5aa70f52077a061be">begin</a>() const noexcept</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  {</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keywordflow">return</span> data_.begin();</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  }</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
-<div class="line"><a name="l00105"></a><span class="lineno"><a class="line" href="classSensorsData.html#a5a79a4ba09448124d0db49efef15db2c">  105</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#a5a79a4ba09448124d0db49efef15db2c">cbegin</a>() const noexcept</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;  {</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordflow">return</span> data_.cbegin();</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;  }</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160; </div>
-<div class="line"><a name="l00111"></a><span class="lineno"><a class="line" href="classSensorsData.html#a0b1fa27970814986d3f2b81ca0bb400b">  111</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#a0b1fa27970814986d3f2b81ca0bb400b">end</a>() noexcept</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;  {</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keywordflow">return</span> data_.end();</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  }</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
-<div class="line"><a name="l00117"></a><span class="lineno"><a class="line" href="classSensorsData.html#abe9be43dd5da59afb2433a4c59b4e15c">  117</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#abe9be43dd5da59afb2433a4c59b4e15c">end</a>() const noexcept</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  {</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;    <span class="keywordflow">return</span> data_.end();</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  }</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
-<div class="line"><a name="l00123"></a><span class="lineno"><a class="line" href="classSensorsData.html#ac2765f43aadf48956319bf4501483140">  123</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#ac2765f43aadf48956319bf4501483140">cend</a>() const noexcept</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;  {</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    <span class="keywordflow">return</span> data_.cend();</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;  }</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160; </div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  CONTAINER data_;</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;};</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="keyword">class </span>TimeSwipeEventImpl;</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160; </div>
-<div class="line"><a name="l00138"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent.html">  138</a></span>&#160;<span class="keyword">class </span><a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a> {</div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
-<div class="line"><a name="l00144"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Button.html">  144</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Button.html">Button</a> {</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;  <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Button.html">Button</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Button.html">Button</a>(<span class="keywordtype">bool</span> _pressed, <span class="keywordtype">unsigned</span> _count);</div>
-<div class="line"><a name="l00151"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Button.html#a6ea4bcec8b99ee4d73d14f116f5965a9">  151</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipeEvent_1_1Button.html#a6ea4bcec8b99ee4d73d14f116f5965a9">pressed</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00156"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1">  156</a></span>&#160;    <span class="keywordtype">unsigned</span> <a class="code" href="classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1">count</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;  <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    <span class="keywordtype">bool</span> _pressed;</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    <span class="keywordtype">unsigned</span> _count;</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;  };</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
-<div class="line"><a name="l00165"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Gain.html">  165</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Gain.html">Gain</a> {</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;  <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Gain.html">Gain</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Gain.html">Gain</a>(<span class="keywordtype">int</span> _value);</div>
-<div class="line"><a name="l00172"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Gain.html#a68b8dce47364d0f45061393b545184c3">  172</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Gain.html#a68b8dce47364d0f45061393b545184c3">value</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;  <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    <span class="keywordtype">int</span> _value;</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;  };</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160; </div>
-<div class="line"><a name="l00180"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1SetSecondary.html">  180</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html">SetSecondary</a> {</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;  <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html">SetSecondary</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html">SetSecondary</a>(<span class="keywordtype">int</span> _value);</div>
-<div class="line"><a name="l00187"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1SetSecondary.html#ac152e0602d9626d1ad0e15018e2e4fb2">  187</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html#ac152e0602d9626d1ad0e15018e2e4fb2">value</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;  <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;    <span class="keywordtype">int</span> _value;</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;  };</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160; </div>
-<div class="line"><a name="l00195"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Bridge.html">  195</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Bridge.html">Bridge</a> {</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;  <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Bridge.html">Bridge</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Bridge.html">Bridge</a>(<span class="keywordtype">int</span> _value);</div>
-<div class="line"><a name="l00202"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Bridge.html#a32fbeff0f18b0dcf849791a4c29a9976">  202</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Bridge.html#a32fbeff0f18b0dcf849791a4c29a9976">value</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;  <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;    <span class="keywordtype">int</span> _value;</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;  };</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160; </div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &lt;string_view&gt;</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; </div>
+<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="classSensorsData.html">   39</a></span>&#160;<span class="keyword">class </span><a class="code" href="classSensorsData.html">SensorsData</a> {</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keyword">static</span> constexpr std::size_t SENSORS = 4;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <span class="keyword">using</span> CONTAINER = std::array&lt;std::vector&lt;float&gt;, SENSORS&gt;;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="keyword">using</span> Value = std::vector&lt;float&gt;;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
+<div class="line"><a name="l00051"></a><span class="lineno"><a class="line" href="classSensorsData.html#a352e98c4dff3917ae99f039ff7103893">   51</a></span>&#160;  <span class="keyword">static</span> constexpr std::size_t <a class="code" href="classSensorsData.html#a352e98c4dff3917ae99f039ff7103893">SensorsSize</a>() noexcept</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  {</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    static_assert(SENSORS &gt; 0);</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keywordflow">return</span> SENSORS;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  }</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno"><a class="line" href="classSensorsData.html#a5025a1dd38ce4c190123ad5ff9210ca7">   63</a></span>&#160;  std::size_t <a class="code" href="classSensorsData.html#a5025a1dd38ce4c190123ad5ff9210ca7">DataSize</a>() const noexcept;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00072"></a><span class="lineno"><a class="line" href="classSensorsData.html#aaa19b88518e64d568bb7dc09fb9842aa">   72</a></span>&#160;  std::vector&lt;<span class="keywordtype">float</span>&gt;&amp; operator[](std::<span class="keywordtype">size_t</span> num) noexcept;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
+<div class="line"><a name="l00075"></a><span class="lineno"><a class="line" href="classSensorsData.html#af5b47c9064d84dddbf2027a07ea0ce4b">   75</a></span>&#160;  const Value&amp; operator[](const std::<span class="keywordtype">size_t</span> index) const noexcept</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  {</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordflow">return</span> data_[index];</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  }</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  CONTAINER&amp; data();</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  <span class="keywordtype">void</span> reserve(std::size_t num);</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  <span class="keywordtype">void</span> resize(std::size_t new_size);</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <span class="keywordtype">void</span> clear() noexcept;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  <span class="keywordtype">bool</span> empty() const noexcept;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <span class="keywordtype">void</span> append(const <a class="code" href="classSensorsData.html">SensorsData</a>&amp; other);</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  <span class="keywordtype">void</span> append(const <a class="code" href="classSensorsData.html">SensorsData</a>&amp; other, std::<span class="keywordtype">size_t</span> count);</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  <span class="keywordtype">void</span> erase_front(std::<span class="keywordtype">size_t</span> count) noexcept;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  <span class="keywordtype">void</span> erase_back(std::<span class="keywordtype">size_t</span> count) noexcept;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
+<div class="line"><a name="l00094"></a><span class="lineno"><a class="line" href="classSensorsData.html#a0300dd62821c47c6e4eb5ab705bf385f">   94</a></span>&#160;  auto <a class="code" href="classSensorsData.html#a0300dd62821c47c6e4eb5ab705bf385f">begin</a>() noexcept</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  {</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keywordflow">return</span> data_.begin();</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  }</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
+<div class="line"><a name="l00100"></a><span class="lineno"><a class="line" href="classSensorsData.html#a91a1c46d28173ef5aa70f52077a061be">  100</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#a91a1c46d28173ef5aa70f52077a061be">begin</a>() const noexcept</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  {</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="keywordflow">return</span> data_.begin();</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  }</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
+<div class="line"><a name="l00106"></a><span class="lineno"><a class="line" href="classSensorsData.html#a5a79a4ba09448124d0db49efef15db2c">  106</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#a5a79a4ba09448124d0db49efef15db2c">cbegin</a>() const noexcept</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  {</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="keywordflow">return</span> data_.cbegin();</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;  }</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno"><a class="line" href="classSensorsData.html#a0b1fa27970814986d3f2b81ca0bb400b">  112</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#a0b1fa27970814986d3f2b81ca0bb400b">end</a>() noexcept</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  {</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keywordflow">return</span> data_.end();</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;  }</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
+<div class="line"><a name="l00118"></a><span class="lineno"><a class="line" href="classSensorsData.html#abe9be43dd5da59afb2433a4c59b4e15c">  118</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#abe9be43dd5da59afb2433a4c59b4e15c">end</a>() const noexcept</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  {</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    <span class="keywordflow">return</span> data_.end();</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  }</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
+<div class="line"><a name="l00124"></a><span class="lineno"><a class="line" href="classSensorsData.html#ac2765f43aadf48956319bf4501483140">  124</a></span>&#160;  <span class="keyword">auto</span> <a class="code" href="classSensorsData.html#ac2765f43aadf48956319bf4501483140">cend</a>() const noexcept</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;  {</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    <span class="keywordflow">return</span> data_.cend();</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;  }</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  CONTAINER data_;</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;};</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160; </div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;<span class="keyword">class </span>TimeSwipeEventImpl;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160; </div>
+<div class="line"><a name="l00139"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent.html">  139</a></span>&#160;<span class="keyword">class </span><a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a> {</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160; </div>
+<div class="line"><a name="l00145"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Button.html">  145</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Button.html">Button</a> {</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;  <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Button.html">Button</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Button.html">Button</a>(<span class="keywordtype">bool</span> _pressed, <span class="keywordtype">unsigned</span> _count);</div>
+<div class="line"><a name="l00152"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Button.html#a6ea4bcec8b99ee4d73d14f116f5965a9">  152</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipeEvent_1_1Button.html#a6ea4bcec8b99ee4d73d14f116f5965a9">pressed</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00157"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1">  157</a></span>&#160;    <span class="keywordtype">unsigned</span> <a class="code" href="classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1">count</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;  <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    <span class="keywordtype">bool</span> _pressed;</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="keywordtype">unsigned</span> _count;</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;  };</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
+<div class="line"><a name="l00166"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Gain.html">  166</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Gain.html">Gain</a> {</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;  <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Gain.html">Gain</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Gain.html">Gain</a>(<span class="keywordtype">int</span> _value);</div>
+<div class="line"><a name="l00173"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Gain.html#a68b8dce47364d0f45061393b545184c3">  173</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Gain.html#a68b8dce47364d0f45061393b545184c3">value</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;  <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    <span class="keywordtype">int</span> _value;</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;  };</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
+<div class="line"><a name="l00181"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1SetSecondary.html">  181</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html">SetSecondary</a> {</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;  <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html">SetSecondary</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html">SetSecondary</a>(<span class="keywordtype">int</span> _value);</div>
+<div class="line"><a name="l00188"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1SetSecondary.html#ac152e0602d9626d1ad0e15018e2e4fb2">  188</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1SetSecondary.html#ac152e0602d9626d1ad0e15018e2e4fb2">value</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;  <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    <span class="keywordtype">int</span> _value;</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;  };</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160; </div>
+<div class="line"><a name="l00196"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Bridge.html">  196</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Bridge.html">Bridge</a> {</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;  <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Bridge.html">Bridge</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Bridge.html">Bridge</a>(<span class="keywordtype">int</span> _value);</div>
+<div class="line"><a name="l00203"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Bridge.html#a32fbeff0f18b0dcf849791a4c29a9976">  203</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Bridge.html#a32fbeff0f18b0dcf849791a4c29a9976">value</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;  <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;    <span class="keywordtype">int</span> _value;</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;  };</div>
 <div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160; </div>
-<div class="line"><a name="l00211"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Record.html">  211</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Record.html">Record</a> {</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;  <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Record.html">Record</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Record.html">Record</a>(<span class="keywordtype">int</span> _value);</div>
-<div class="line"><a name="l00218"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Record.html#a1768ed333fa6842549f1e4ca30faf867">  218</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Record.html#a1768ed333fa6842549f1e4ca30faf867">value</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;  <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    <span class="keywordtype">int</span> _value;</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;  };</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160; </div>
-<div class="line"><a name="l00226"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Offset.html">  226</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Offset.html">Offset</a> {</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;  <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Offset.html">Offset</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Offset.html">Offset</a>(<span class="keywordtype">int</span> _value);</div>
-<div class="line"><a name="l00233"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Offset.html#a8e9ac82518354ed1e81e9f92b48dfd34">  233</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Offset.html#a8e9ac82518354ed1e81e9f92b48dfd34">value</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;  <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    <span class="keywordtype">int</span> _value;</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;  };</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160; </div>
-<div class="line"><a name="l00241"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Mode.html">  241</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Mode.html">Mode</a> {</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;  <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Mode.html">Mode</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Mode.html">Mode</a>(<span class="keywordtype">int</span> _value);</div>
-<div class="line"><a name="l00248"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Mode.html#ad52f4237c66a5e9af7f1e7f635d5ab00">  248</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Mode.html#ad52f4237c66a5e9af7f1e7f635d5ab00">value</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;  <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    <span class="keywordtype">int</span> _value;</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;  };</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160; </div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
-<div class="line"><a name="l00257"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent.html#af2be5f131062c34c331808097077fc8d">  257</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipeEvent.html#af2be5f131062c34c331808097077fc8d">is</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160; </div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
-<div class="line"><a name="l00263"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent.html#ae2acfc2e55796a9214534c44ca62dbed">  263</a></span>&#160;  <span class="keyword">const</span> EVENT&amp; <a class="code" href="classTimeSwipeEvent.html#ae2acfc2e55796a9214534c44ca62dbed">get</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160; </div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>();</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;  ~<a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>();</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160; </div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(EVENT&amp;&amp; ev);</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160; </div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(<span class="keyword">const</span> EVENT&amp; ev);</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160; </div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(<a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp;&amp; ev) = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(<span class="keyword">const</span> <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp; ev) = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp; operator=(<span class="keyword">const</span> <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp;) = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;  std::shared_ptr&lt;TimeSwipeEventImpl&gt; impl_;</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;};</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160; </div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160; </div>
+<div class="line"><a name="l00212"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Record.html">  212</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Record.html">Record</a> {</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;  <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Record.html">Record</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Record.html">Record</a>(<span class="keywordtype">int</span> _value);</div>
+<div class="line"><a name="l00219"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Record.html#a1768ed333fa6842549f1e4ca30faf867">  219</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Record.html#a1768ed333fa6842549f1e4ca30faf867">value</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;  <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    <span class="keywordtype">int</span> _value;</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;  };</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160; </div>
+<div class="line"><a name="l00227"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Offset.html">  227</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Offset.html">Offset</a> {</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;  <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Offset.html">Offset</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Offset.html">Offset</a>(<span class="keywordtype">int</span> _value);</div>
+<div class="line"><a name="l00234"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Offset.html#a8e9ac82518354ed1e81e9f92b48dfd34">  234</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Offset.html#a8e9ac82518354ed1e81e9f92b48dfd34">value</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;  <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    <span class="keywordtype">int</span> _value;</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;  };</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160; </div>
+<div class="line"><a name="l00242"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Mode.html">  242</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classTimeSwipeEvent_1_1Mode.html">Mode</a> {</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;  <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Mode.html">Mode</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    <a class="code" href="classTimeSwipeEvent_1_1Mode.html">Mode</a>(<span class="keywordtype">int</span> _value);</div>
+<div class="line"><a name="l00249"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent_1_1Mode.html#ad52f4237c66a5e9af7f1e7f635d5ab00">  249</a></span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classTimeSwipeEvent_1_1Mode.html#ad52f4237c66a5e9af7f1e7f635d5ab00">value</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;  <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;    <span class="keywordtype">int</span> _value;</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;  };</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160; </div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
+<div class="line"><a name="l00258"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent.html#af2be5f131062c34c331808097077fc8d">  258</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipeEvent.html#af2be5f131062c34c331808097077fc8d">is</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160; </div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
+<div class="line"><a name="l00264"></a><span class="lineno"><a class="line" href="classTimeSwipeEvent.html#ae2acfc2e55796a9214534c44ca62dbed">  264</a></span>&#160;  <span class="keyword">const</span> EVENT&amp; <a class="code" href="classTimeSwipeEvent.html#ae2acfc2e55796a9214534c44ca62dbed">get</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160; </div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>();</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  ~<a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>();</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160; </div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(EVENT&amp;&amp; ev);</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160; </div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">class</span> EVENT&gt;</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(<span class="keyword">const</span> EVENT&amp; ev);</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160; </div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(<a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp;&amp; ev) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>(<span class="keyword">const</span> <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp; ev) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;  <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp; operator=(<span class="keyword">const</span> <a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp;) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;  std::shared_ptr&lt;TimeSwipeEventImpl&gt; impl_;</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;};</div>
 <div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160; </div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;<span class="keyword">class </span>TimeSwipeImpl;</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160; </div>
-<div class="line"><a name="l00287"></a><span class="lineno"><a class="line" href="classTimeSwipe.html">  287</a></span>&#160;<span class="keyword">class </span><a class="code" href="classTimeSwipe.html">TimeSwipe</a> {</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;  <a class="code" href="classTimeSwipe.html">TimeSwipe</a>();</div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;  ~<a class="code" href="classTimeSwipe.html">TimeSwipe</a>();</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;  <a class="code" href="classTimeSwipe.html">TimeSwipe</a>(<span class="keyword">const</span> <a class="code" href="classTimeSwipe.html">TimeSwipe</a>&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160; </div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;  <span class="keyword">enum class</span> Mode {</div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;    Primary,</div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    Norm,</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;    Digital</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;  };</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160; </div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;  <span class="keyword">enum class</span> Channel : int {</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;    CH1,</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;    CH2,</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;    CH3,</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    CH4</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;  };</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160; </div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;  <span class="keyword">enum class</span> ChannelMesMode : int {</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;    Voltage,</div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    Current</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;  };</div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160; </div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160; </div>
-<div class="line"><a name="l00332"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ad4db5d1abf6b9c0fc31f7c4b77598cbb">  332</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#ad4db5d1abf6b9c0fc31f7c4b77598cbb">SetMode</a>(Mode number);</div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160; </div>
-<div class="line"><a name="l00339"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ab9f4e3b449b6a1a7954411d9e8186fe4">  339</a></span>&#160;  Mode <a class="code" href="classTimeSwipe.html#ab9f4e3b449b6a1a7954411d9e8186fe4">GetMode</a>() const noexcept;</div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160; </div>
-<div class="line"><a name="l00351"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a5f8b31aaf2ec7cc676784dc505e0e991">  351</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a5f8b31aaf2ec7cc676784dc505e0e991">SetSensorOffsets</a>(<span class="keywordtype">int</span> offset1, <span class="keywordtype">int</span> offset2, <span class="keywordtype">int</span> offset3, <span class="keywordtype">int</span> offset4);</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160; </div>
-<div class="line"><a name="l00363"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a8dc84b048dc4fbf0df54e37c15bb395c">  363</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a8dc84b048dc4fbf0df54e37c15bb395c">SetSensorGains</a>(<span class="keywordtype">float</span> gain1, <span class="keywordtype">float</span> gain2, <span class="keywordtype">float</span> gain3, <span class="keywordtype">float</span> gain4);</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160; </div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;<span class="keyword">class </span>TimeSwipeImpl;</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160; </div>
+<div class="line"><a name="l00288"></a><span class="lineno"><a class="line" href="classTimeSwipe.html">  288</a></span>&#160;<span class="keyword">class </span><a class="code" href="classTimeSwipe.html">TimeSwipe</a> {</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;  <a class="code" href="classTimeSwipe.html">TimeSwipe</a>();</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;  ~<a class="code" href="classTimeSwipe.html">TimeSwipe</a>();</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;  <a class="code" href="classTimeSwipe.html">TimeSwipe</a>(<span class="keyword">const</span> <a class="code" href="classTimeSwipe.html">TimeSwipe</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160; </div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;  <span class="keyword">enum class</span> Mode {</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    Primary,</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;    Norm,</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;    Digital</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;  };</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160; </div>
+<div class="line"><a name="l00311"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ad1daa9fa5a518da4603c3953f0e884a0">  311</a></span>&#160;  <span class="keyword">static</span> Mode <a class="code" href="classTimeSwipe.html#ad1daa9fa5a518da4603c3953f0e884a0">ToMode</a>(<span class="keyword">const</span> std::string_view value)</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;  {</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    <span class="keywordflow">if</span> (value == <span class="stringliteral">&quot;primary&quot;</span>) <span class="keywordflow">return</span> TimeSwipe::Mode::Primary;</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <span class="stringliteral">&quot;norm&quot;</span>) <span class="keywordflow">return</span> TimeSwipe::Mode::Norm;</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (value == <span class="stringliteral">&quot;digital&quot;</span>) <span class="keywordflow">return</span> TimeSwipe::Mode::Digital;</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">throw</span> std::invalid_argument{<span class="stringliteral">&quot;invalid text representation of TimeSwipe::Mode&quot;</span>};</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;  }</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160; </div>
+<div class="line"><a name="l00325"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a5fade42afbb41f01eac24d39d1740058">  325</a></span>&#160;  <span class="keyword">static</span> std::string_view <a class="code" href="classTimeSwipe.html#a5fade42afbb41f01eac24d39d1740058">ToStringView</a>(<span class="keyword">const</span> Mode value)</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;  {</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    <span class="keywordflow">switch</span> (value) {</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;    <span class="keywordflow">case</span> Mode::Primary: <span class="keywordflow">return</span> <span class="stringliteral">&quot;primary&quot;</span>;</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    <span class="keywordflow">case</span> Mode::Norm: <span class="keywordflow">return</span> <span class="stringliteral">&quot;norm&quot;</span>;</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;    <span class="keywordflow">case</span> Mode::Digital: <span class="keywordflow">return</span> <span class="stringliteral">&quot;digital&quot;</span>;</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;    }</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;    <span class="keywordflow">throw</span> std::invalid_argument{<span class="stringliteral">&quot;invalid value of TimeSwipe::Mode&quot;</span>};</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;  }</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160; </div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;  <span class="keyword">enum class</span> Channel : int {</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;    CH1,</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    CH2,</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;    CH3,</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    CH4</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;  };</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160; </div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;  <span class="keyword">enum class</span> ChannelMesMode : int {</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;    Voltage,</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;    Current</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;  };</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160; </div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160; </div>
+<div class="line"><a name="l00363"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ad4db5d1abf6b9c0fc31f7c4b77598cbb">  363</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#ad4db5d1abf6b9c0fc31f7c4b77598cbb">SetMode</a>(Mode number);</div>
 <div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160; </div>
-<div class="line"><a name="l00375"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a21754108c2fa4099eddce415c13a6fca">  375</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a21754108c2fa4099eddce415c13a6fca">SetSensorTransmissions</a>(<span class="keywordtype">float</span> trans1, <span class="keywordtype">float</span> trans2, <span class="keywordtype">float</span> trans3, <span class="keywordtype">float</span> trans4);</div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160; </div>
-<div class="line"><a name="l00392"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a9e92e4570bda65cb56dad7c85e87c5c6">  392</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a9e92e4570bda65cb56dad7c85e87c5c6">StartPWM</a>(std::uint8_t num, std::uint32_t frequency,</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;    std::uint32_t high = 4095, std::uint32_t low = 0,</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;    std::uint32_t repeats = 0, <span class="keywordtype">float</span> duty_cycle = 0.5);</div>
+<div class="line"><a name="l00370"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ab9f4e3b449b6a1a7954411d9e8186fe4">  370</a></span>&#160;  Mode <a class="code" href="classTimeSwipe.html#ab9f4e3b449b6a1a7954411d9e8186fe4">GetMode</a>() const noexcept;</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160; </div>
+<div class="line"><a name="l00382"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a5f8b31aaf2ec7cc676784dc505e0e991">  382</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a5f8b31aaf2ec7cc676784dc505e0e991">SetSensorOffsets</a>(<span class="keywordtype">int</span> offset1, <span class="keywordtype">int</span> offset2, <span class="keywordtype">int</span> offset3, <span class="keywordtype">int</span> offset4);</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160; </div>
+<div class="line"><a name="l00394"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a8dc84b048dc4fbf0df54e37c15bb395c">  394</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a8dc84b048dc4fbf0df54e37c15bb395c">SetSensorGains</a>(<span class="keywordtype">float</span> gain1, <span class="keywordtype">float</span> gain2, <span class="keywordtype">float</span> gain3, <span class="keywordtype">float</span> gain4);</div>
 <div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160; </div>
-<div class="line"><a name="l00404"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a0f775a7191f7c7655f41f4499271578c">  404</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a0f775a7191f7c7655f41f4499271578c">StopPWM</a>(std::uint8_t num);</div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160; </div>
-<div class="line"><a name="l00418"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a35ea791084cca4c93fa27763f098ca76">  418</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a35ea791084cca4c93fa27763f098ca76">GetPWM</a>(std::uint8_t num, <span class="keywordtype">bool</span>&amp; active,</div>
-<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;    std::uint32_t&amp; frequency, std::uint32_t&amp; high,</div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;    std::uint32_t&amp; low, std::uint32_t&amp; repeats, <span class="keywordtype">float</span>&amp; duty_cycle);</div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160; </div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160; </div>
-<div class="line"><a name="l00430"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a9551786ec55aca7c8b9d12ae35165d16">  430</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a9551786ec55aca7c8b9d12ae35165d16">SetChannelMode</a>(Channel nCh, ChannelMesMode nMode);</div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160; </div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160; </div>
-<div class="line"><a name="l00440"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2">  440</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2">GetChannelMode</a>(Channel nCh, ChannelMesMode &amp;nMode);</div>
-<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160; </div>
-<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160; </div>
-<div class="line"><a name="l00453"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#aba609ad5adf2bde595af8ff71fd2d67d">  453</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#aba609ad5adf2bde595af8ff71fd2d67d">SetChannelGain</a>(Channel nCh, <span class="keywordtype">float</span> Gain);</div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160; </div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160; </div>
-<div class="line"><a name="l00464"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a507544efad9cb78a65cafeb0ecc9176d">  464</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a507544efad9cb78a65cafeb0ecc9176d">GetChannelGain</a>(Channel nCh, <span class="keywordtype">float</span> &amp;Gain);</div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160; </div>
-<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160; </div>
-<div class="line"><a name="l00475"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a5f0aa2b8d7384fbb20705629791419a4">  475</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a5f0aa2b8d7384fbb20705629791419a4">SetChannelIEPE</a>(Channel nCh, <span class="keywordtype">bool</span> bIEPEon);</div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160; </div>
-<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160; </div>
-<div class="line"><a name="l00486"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a8f71a47d965561ac29054459a1fea515">  486</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a8f71a47d965561ac29054459a1fea515">GetChannelIEPE</a>(Channel nCh, <span class="keywordtype">bool</span> &amp;bIEPEon);</div>
-<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160; </div>
-<div class="line"><a name="l00489"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ae6646f3b049aa0d5daab4747a1dc5ffd">  489</a></span>&#160;  <span class="keywordtype">int</span> <a class="code" href="classTimeSwipe.html#ae6646f3b049aa0d5daab4747a1dc5ffd">MaxSampleRate</a>() const noexcept;</div>
-<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160; </div>
-<div class="line"><a name="l00498"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a32b0687a293e1824e0ee8de6e16f81dd">  498</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a32b0687a293e1824e0ee8de6e16f81dd">SetBurstSize</a>(std::<span class="keywordtype">size_t</span> burstNum);</div>
-<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160; </div>
-<div class="line"><a name="l00514"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ad2cce4ec7481db0ad9c2864c34d798a0">  514</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#ad2cce4ec7481db0ad9c2864c34d798a0">SetSampleRate</a>(<span class="keywordtype">int</span> rate);</div>
-<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160; </div>
-<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160; </div>
-<div class="line"><a name="l00558"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a1aa5834eb2045d143105fcc62a2a31e8">  558</a></span>&#160;  std::vector&lt;<span class="keywordtype">float</span>&gt; <a class="code" href="classTimeSwipe.html#a1aa5834eb2045d143105fcc62a2a31e8">CalculateDriftReferences</a>();</div>
-<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160; </div>
-<div class="line"><a name="l00575"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a60755ed410538c944ee1c66a1f6a9c0a">  575</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a60755ed410538c944ee1c66a1f6a9c0a">ClearDriftReferences</a>();</div>
-<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160; </div>
-<div class="line"><a name="l00592"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#aa2b9275cc583669f275ae074ea5f62f7">  592</a></span>&#160;  std::vector&lt;<span class="keywordtype">float</span>&gt; <a class="code" href="classTimeSwipe.html#aa2b9275cc583669f275ae074ea5f62f7">CalculateDriftDeltas</a>();</div>
-<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160; </div>
-<div class="line"><a name="l00608"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a992e3f0d0ba97a8a67478c333d53cf52">  608</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a992e3f0d0ba97a8a67478c333d53cf52">ClearDriftDeltas</a>();</div>
-<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160; </div>
-<div class="line"><a name="l00621"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a7e922f17697339e078e232852d149167">  621</a></span>&#160;  std::optional&lt;std::vector&lt;<span class="keywordtype">float</span>&gt;&gt; <a class="code" href="classTimeSwipe.html#a7e922f17697339e078e232852d149167">DriftReferences</a>(<span class="keywordtype">bool</span> force = {}) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160; </div>
-<div class="line"><a name="l00628"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a4eb8ffc7dd03ed7b2d957015a87c0597">  628</a></span>&#160;  std::optional&lt;std::vector&lt;float&gt;&gt; <a class="code" href="classTimeSwipe.html#a4eb8ffc7dd03ed7b2d957015a87c0597">DriftDeltas</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00629"></a><span class="lineno">  629</span>&#160; </div>
-<div class="line"><a name="l00631"></a><span class="lineno">  631</span>&#160; </div>
-<div class="line"><a name="l00635"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">  635</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">ReadCallback</a> = std::function&lt;void(<a class="code" href="classSensorsData.html">SensorsData</a>, std::uint64_t errors)&gt;;</div>
-<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160; </div>
-<div class="line"><a name="l00656"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ace4c5d37d3c84ba41e7cf1ae29eee77f">  656</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#ace4c5d37d3c84ba41e7cf1ae29eee77f">Start</a>(<a class="code" href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">ReadCallback</a> cb);</div>
-<div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160; </div>
-<div class="line"><a name="l00663"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#adcaa960c3b89b481100e6666d37e8e57">  663</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#adcaa960c3b89b481100e6666d37e8e57">IsBusy</a>() const noexcept;</div>
-<div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160; </div>
-<div class="line"><a name="l00672"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ace441aa93c469d0f3048f9cf21c5af70">  672</a></span>&#160;  std::<span class="keywordtype">string</span> <a class="code" href="classTimeSwipe.html#ace441aa93c469d0f3048f9cf21c5af70">SetSettings</a>(const std::<span class="keywordtype">string</span>&amp; request, std::<span class="keywordtype">string</span>&amp; error);</div>
-<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160; </div>
-<div class="line"><a name="l00681"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a20f611a8233851c57f95c75b4ee37850">  681</a></span>&#160;  std::<span class="keywordtype">string</span> <a class="code" href="classTimeSwipe.html#a20f611a8233851c57f95c75b4ee37850">GetSettings</a>(const std::<span class="keywordtype">string</span>&amp; request, std::<span class="keywordtype">string</span>&amp; error);</div>
-<div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160; </div>
-<div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;  using OnEventCallback = std::function&lt;<span class="keywordtype">void</span>(<a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp;&amp; event)&gt;;</div>
-<div class="line"><a name="l00692"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a7b01d74beae7c419c051d8d0d24db7d8">  692</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a7b01d74beae7c419c051d8d0d24db7d8">onEvent</a>(OnEventCallback cb);</div>
-<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160; </div>
-<div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;  using OnErrorCallback = std::function&lt;<span class="keywordtype">void</span>(std::uint64_t)&gt;;</div>
-<div class="line"><a name="l00703"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a70fabb14ecd47e5bff82368376475112">  703</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a70fabb14ecd47e5bff82368376475112">onError</a>(OnErrorCallback cb);</div>
+<div class="line"><a name="l00406"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a21754108c2fa4099eddce415c13a6fca">  406</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a21754108c2fa4099eddce415c13a6fca">SetSensorTransmissions</a>(<span class="keywordtype">float</span> trans1, <span class="keywordtype">float</span> trans2, <span class="keywordtype">float</span> trans3, <span class="keywordtype">float</span> trans4);</div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160; </div>
+<div class="line"><a name="l00423"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a9e92e4570bda65cb56dad7c85e87c5c6">  423</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a9e92e4570bda65cb56dad7c85e87c5c6">StartPWM</a>(std::uint8_t num, std::uint32_t frequency,</div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;    std::uint32_t high = 4095, std::uint32_t low = 0,</div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;    std::uint32_t repeats = 0, <span class="keywordtype">float</span> duty_cycle = 0.5);</div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160; </div>
+<div class="line"><a name="l00435"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a0f775a7191f7c7655f41f4499271578c">  435</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a0f775a7191f7c7655f41f4499271578c">StopPWM</a>(std::uint8_t num);</div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160; </div>
+<div class="line"><a name="l00449"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a35ea791084cca4c93fa27763f098ca76">  449</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a35ea791084cca4c93fa27763f098ca76">GetPWM</a>(std::uint8_t num, <span class="keywordtype">bool</span>&amp; active,</div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;    std::uint32_t&amp; frequency, std::uint32_t&amp; high,</div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;    std::uint32_t&amp; low, std::uint32_t&amp; repeats, <span class="keywordtype">float</span>&amp; duty_cycle);</div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160; </div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160; </div>
+<div class="line"><a name="l00461"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a9551786ec55aca7c8b9d12ae35165d16">  461</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a9551786ec55aca7c8b9d12ae35165d16">SetChannelMode</a>(Channel nCh, ChannelMesMode nMode);</div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160; </div>
+<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160; </div>
+<div class="line"><a name="l00471"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2">  471</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2">GetChannelMode</a>(Channel nCh, ChannelMesMode &amp;nMode);</div>
+<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160; </div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160; </div>
+<div class="line"><a name="l00484"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#aba609ad5adf2bde595af8ff71fd2d67d">  484</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#aba609ad5adf2bde595af8ff71fd2d67d">SetChannelGain</a>(Channel nCh, <span class="keywordtype">float</span> Gain);</div>
+<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160; </div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160; </div>
+<div class="line"><a name="l00495"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a507544efad9cb78a65cafeb0ecc9176d">  495</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a507544efad9cb78a65cafeb0ecc9176d">GetChannelGain</a>(Channel nCh, <span class="keywordtype">float</span> &amp;Gain);</div>
+<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160; </div>
+<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160; </div>
+<div class="line"><a name="l00506"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a5f0aa2b8d7384fbb20705629791419a4">  506</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a5f0aa2b8d7384fbb20705629791419a4">SetChannelIEPE</a>(Channel nCh, <span class="keywordtype">bool</span> bIEPEon);</div>
+<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160; </div>
+<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160; </div>
+<div class="line"><a name="l00517"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a8f71a47d965561ac29054459a1fea515">  517</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a8f71a47d965561ac29054459a1fea515">GetChannelIEPE</a>(Channel nCh, <span class="keywordtype">bool</span> &amp;bIEPEon);</div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160; </div>
+<div class="line"><a name="l00520"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ae6646f3b049aa0d5daab4747a1dc5ffd">  520</a></span>&#160;  <span class="keywordtype">int</span> <a class="code" href="classTimeSwipe.html#ae6646f3b049aa0d5daab4747a1dc5ffd">MaxSampleRate</a>() const noexcept;</div>
+<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160; </div>
+<div class="line"><a name="l00529"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a32b0687a293e1824e0ee8de6e16f81dd">  529</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a32b0687a293e1824e0ee8de6e16f81dd">SetBurstSize</a>(std::<span class="keywordtype">size_t</span> burstNum);</div>
+<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160; </div>
+<div class="line"><a name="l00545"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ad2cce4ec7481db0ad9c2864c34d798a0">  545</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#ad2cce4ec7481db0ad9c2864c34d798a0">SetSampleRate</a>(<span class="keywordtype">int</span> rate);</div>
+<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160; </div>
+<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160; </div>
+<div class="line"><a name="l00589"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a1aa5834eb2045d143105fcc62a2a31e8">  589</a></span>&#160;  std::vector&lt;<span class="keywordtype">float</span>&gt; <a class="code" href="classTimeSwipe.html#a1aa5834eb2045d143105fcc62a2a31e8">CalculateDriftReferences</a>();</div>
+<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160; </div>
+<div class="line"><a name="l00606"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a60755ed410538c944ee1c66a1f6a9c0a">  606</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a60755ed410538c944ee1c66a1f6a9c0a">ClearDriftReferences</a>();</div>
+<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160; </div>
+<div class="line"><a name="l00623"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#aa2b9275cc583669f275ae074ea5f62f7">  623</a></span>&#160;  std::vector&lt;<span class="keywordtype">float</span>&gt; <a class="code" href="classTimeSwipe.html#aa2b9275cc583669f275ae074ea5f62f7">CalculateDriftDeltas</a>();</div>
+<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160; </div>
+<div class="line"><a name="l00639"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a992e3f0d0ba97a8a67478c333d53cf52">  639</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#a992e3f0d0ba97a8a67478c333d53cf52">ClearDriftDeltas</a>();</div>
+<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160; </div>
+<div class="line"><a name="l00652"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a7e922f17697339e078e232852d149167">  652</a></span>&#160;  std::optional&lt;std::vector&lt;<span class="keywordtype">float</span>&gt;&gt; <a class="code" href="classTimeSwipe.html#a7e922f17697339e078e232852d149167">DriftReferences</a>(<span class="keywordtype">bool</span> force = {}) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160; </div>
+<div class="line"><a name="l00659"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a4eb8ffc7dd03ed7b2d957015a87c0597">  659</a></span>&#160;  std::optional&lt;std::vector&lt;float&gt;&gt; <a class="code" href="classTimeSwipe.html#a4eb8ffc7dd03ed7b2d957015a87c0597">DriftDeltas</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160; </div>
+<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160; </div>
+<div class="line"><a name="l00666"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">  666</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">ReadCallback</a> = std::function&lt;void(<a class="code" href="classSensorsData.html">SensorsData</a>, std::uint64_t errors)&gt;;</div>
+<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160; </div>
+<div class="line"><a name="l00687"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ace4c5d37d3c84ba41e7cf1ae29eee77f">  687</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#ace4c5d37d3c84ba41e7cf1ae29eee77f">Start</a>(<a class="code" href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">ReadCallback</a> cb);</div>
+<div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160; </div>
+<div class="line"><a name="l00694"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#adcaa960c3b89b481100e6666d37e8e57">  694</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#adcaa960c3b89b481100e6666d37e8e57">IsBusy</a>() const noexcept;</div>
+<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160; </div>
+<div class="line"><a name="l00703"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ace441aa93c469d0f3048f9cf21c5af70">  703</a></span>&#160;  std::<span class="keywordtype">string</span> <a class="code" href="classTimeSwipe.html#ace441aa93c469d0f3048f9cf21c5af70">SetSettings</a>(const std::<span class="keywordtype">string</span>&amp; request, std::<span class="keywordtype">string</span>&amp; error);</div>
 <div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160; </div>
-<div class="line"><a name="l00710"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ae3ef3e3e05360b72c584726c1d823540">  710</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#ae3ef3e3e05360b72c584726c1d823540">Stop</a>();</div>
-<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160; </div>
-<div class="line"><a name="l00716"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#aa3e4c2fbf3e373d74778e165acafc370">  716</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#aa3e4c2fbf3e373d74778e165acafc370">TraceSPI</a>(<span class="keywordtype">bool</span> val);</div>
-<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160; </div>
-<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;  inline static <span class="keywordtype">bool</span> resample_log;</div>
-<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;private:</div>
-<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;  std::unique_ptr&lt;TimeSwipeImpl&gt; impl_;</div>
-<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;};</div>
-<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160; </div>
-<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP</span></div>
-<div class="ttc" id="aclassSensorsData_html"><div class="ttname"><a href="classSensorsData.html">SensorsData</a></div><div class="ttdoc">Sensors container.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:38</div></div>
-<div class="ttc" id="aclassSensorsData_html_a0300dd62821c47c6e4eb5ab705bf385f"><div class="ttname"><a href="classSensorsData.html#a0300dd62821c47c6e4eb5ab705bf385f">SensorsData::begin</a></div><div class="ttdeci">auto begin() noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:93</div></div>
-<div class="ttc" id="aclassSensorsData_html_a0b1fa27970814986d3f2b81ca0bb400b"><div class="ttname"><a href="classSensorsData.html#a0b1fa27970814986d3f2b81ca0bb400b">SensorsData::end</a></div><div class="ttdeci">auto end() noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:111</div></div>
-<div class="ttc" id="aclassSensorsData_html_a352e98c4dff3917ae99f039ff7103893"><div class="ttname"><a href="classSensorsData.html#a352e98c4dff3917ae99f039ff7103893">SensorsData::SensorsSize</a></div><div class="ttdeci">static constexpr std::size_t SensorsSize() noexcept</div><div class="ttdoc">Get number of sensors.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:50</div></div>
+<div class="line"><a name="l00712"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a20f611a8233851c57f95c75b4ee37850">  712</a></span>&#160;  std::<span class="keywordtype">string</span> <a class="code" href="classTimeSwipe.html#a20f611a8233851c57f95c75b4ee37850">GetSettings</a>(const std::<span class="keywordtype">string</span>&amp; request, std::<span class="keywordtype">string</span>&amp; error);</div>
+<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160; </div>
+<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;  using OnEventCallback = std::function&lt;<span class="keywordtype">void</span>(<a class="code" href="classTimeSwipeEvent.html">TimeSwipeEvent</a>&amp;&amp; event)&gt;;</div>
+<div class="line"><a name="l00723"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a7b01d74beae7c419c051d8d0d24db7d8">  723</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a7b01d74beae7c419c051d8d0d24db7d8">onEvent</a>(OnEventCallback cb);</div>
+<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160; </div>
+<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;  using OnErrorCallback = std::function&lt;<span class="keywordtype">void</span>(std::uint64_t)&gt;;</div>
+<div class="line"><a name="l00734"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#a70fabb14ecd47e5bff82368376475112">  734</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#a70fabb14ecd47e5bff82368376475112">onError</a>(OnErrorCallback cb);</div>
+<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160; </div>
+<div class="line"><a name="l00741"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#ae3ef3e3e05360b72c584726c1d823540">  741</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTimeSwipe.html#ae3ef3e3e05360b72c584726c1d823540">Stop</a>();</div>
+<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160; </div>
+<div class="line"><a name="l00747"></a><span class="lineno"><a class="line" href="classTimeSwipe.html#aa3e4c2fbf3e373d74778e165acafc370">  747</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTimeSwipe.html#aa3e4c2fbf3e373d74778e165acafc370">TraceSPI</a>(<span class="keywordtype">bool</span> val);</div>
+<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160; </div>
+<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;  inline static <span class="keywordtype">bool</span> resample_log;</div>
+<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;private:</div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;  std::unique_ptr&lt;TimeSwipeImpl&gt; impl_;</div>
+<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;};</div>
+<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160; </div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP</span></div>
+<div class="ttc" id="aclassSensorsData_html"><div class="ttname"><a href="classSensorsData.html">SensorsData</a></div><div class="ttdoc">Sensors container.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:39</div></div>
+<div class="ttc" id="aclassSensorsData_html_a0300dd62821c47c6e4eb5ab705bf385f"><div class="ttname"><a href="classSensorsData.html#a0300dd62821c47c6e4eb5ab705bf385f">SensorsData::begin</a></div><div class="ttdeci">auto begin() noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:94</div></div>
+<div class="ttc" id="aclassSensorsData_html_a0b1fa27970814986d3f2b81ca0bb400b"><div class="ttname"><a href="classSensorsData.html#a0b1fa27970814986d3f2b81ca0bb400b">SensorsData::end</a></div><div class="ttdeci">auto end() noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:112</div></div>
+<div class="ttc" id="aclassSensorsData_html_a352e98c4dff3917ae99f039ff7103893"><div class="ttname"><a href="classSensorsData.html#a352e98c4dff3917ae99f039ff7103893">SensorsData::SensorsSize</a></div><div class="ttdeci">static constexpr std::size_t SensorsSize() noexcept</div><div class="ttdoc">Get number of sensors.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:51</div></div>
 <div class="ttc" id="aclassSensorsData_html_a5025a1dd38ce4c190123ad5ff9210ca7"><div class="ttname"><a href="classSensorsData.html#a5025a1dd38ce4c190123ad5ff9210ca7">SensorsData::DataSize</a></div><div class="ttdeci">std::size_t DataSize() const noexcept</div><div class="ttdoc">Get number of data entries.</div></div>
-<div class="ttc" id="aclassSensorsData_html_a5a79a4ba09448124d0db49efef15db2c"><div class="ttname"><a href="classSensorsData.html#a5a79a4ba09448124d0db49efef15db2c">SensorsData::cbegin</a></div><div class="ttdeci">auto cbegin() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:105</div></div>
-<div class="ttc" id="aclassSensorsData_html_a91a1c46d28173ef5aa70f52077a061be"><div class="ttname"><a href="classSensorsData.html#a91a1c46d28173ef5aa70f52077a061be">SensorsData::begin</a></div><div class="ttdeci">auto begin() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:99</div></div>
-<div class="ttc" id="aclassSensorsData_html_abe9be43dd5da59afb2433a4c59b4e15c"><div class="ttname"><a href="classSensorsData.html#abe9be43dd5da59afb2433a4c59b4e15c">SensorsData::end</a></div><div class="ttdeci">auto end() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:117</div></div>
-<div class="ttc" id="aclassSensorsData_html_ac2765f43aadf48956319bf4501483140"><div class="ttname"><a href="classSensorsData.html#ac2765f43aadf48956319bf4501483140">SensorsData::cend</a></div><div class="ttdeci">auto cend() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:123</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_1_1Bridge_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Bridge.html">TimeSwipeEvent::Bridge</a></div><div class="ttdoc">Bridge value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:195</div></div>
+<div class="ttc" id="aclassSensorsData_html_a5a79a4ba09448124d0db49efef15db2c"><div class="ttname"><a href="classSensorsData.html#a5a79a4ba09448124d0db49efef15db2c">SensorsData::cbegin</a></div><div class="ttdeci">auto cbegin() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:106</div></div>
+<div class="ttc" id="aclassSensorsData_html_a91a1c46d28173ef5aa70f52077a061be"><div class="ttname"><a href="classSensorsData.html#a91a1c46d28173ef5aa70f52077a061be">SensorsData::begin</a></div><div class="ttdeci">auto begin() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:100</div></div>
+<div class="ttc" id="aclassSensorsData_html_abe9be43dd5da59afb2433a4c59b4e15c"><div class="ttname"><a href="classSensorsData.html#abe9be43dd5da59afb2433a4c59b4e15c">SensorsData::end</a></div><div class="ttdeci">auto end() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:118</div></div>
+<div class="ttc" id="aclassSensorsData_html_ac2765f43aadf48956319bf4501483140"><div class="ttname"><a href="classSensorsData.html#ac2765f43aadf48956319bf4501483140">SensorsData::cend</a></div><div class="ttdeci">auto cend() const noexcept</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:124</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_1_1Bridge_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Bridge.html">TimeSwipeEvent::Bridge</a></div><div class="ttdoc">Bridge value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:196</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1Bridge_html_a32fbeff0f18b0dcf849791a4c29a9976"><div class="ttname"><a href="classTimeSwipeEvent_1_1Bridge.html#a32fbeff0f18b0dcf849791a4c29a9976">TimeSwipeEvent::Bridge::value</a></div><div class="ttdeci">int value() const</div><div class="ttdoc">returns Bridge value as number</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_1_1Button_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Button.html">TimeSwipeEvent::Button</a></div><div class="ttdoc">Button press event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:144</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_1_1Button_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Button.html">TimeSwipeEvent::Button</a></div><div class="ttdoc">Button press event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:145</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1Button_html_a6ea4bcec8b99ee4d73d14f116f5965a9"><div class="ttname"><a href="classTimeSwipeEvent_1_1Button.html#a6ea4bcec8b99ee4d73d14f116f5965a9">TimeSwipeEvent::Button::pressed</a></div><div class="ttdeci">bool pressed() const</div><div class="ttdoc">returns true when pressed and false if released</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1Button_html_a835295c118576a15a620e36b2d9303f1"><div class="ttname"><a href="classTimeSwipeEvent_1_1Button.html#a835295c118576a15a620e36b2d9303f1">TimeSwipeEvent::Button::count</a></div><div class="ttdeci">unsigned count() const</div><div class="ttdoc">returns press/release counter, odd value is pressed, even value is released</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_1_1Gain_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Gain.html">TimeSwipeEvent::Gain</a></div><div class="ttdoc">Gain value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:165</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_1_1Gain_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Gain.html">TimeSwipeEvent::Gain</a></div><div class="ttdoc">Gain value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:166</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1Gain_html_a68b8dce47364d0f45061393b545184c3"><div class="ttname"><a href="classTimeSwipeEvent_1_1Gain.html#a68b8dce47364d0f45061393b545184c3">TimeSwipeEvent::Gain::value</a></div><div class="ttdeci">int value() const</div><div class="ttdoc">returns Gain value as number</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_1_1Mode_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Mode.html">TimeSwipeEvent::Mode</a></div><div class="ttdoc">Mode value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:241</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_1_1Mode_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Mode.html">TimeSwipeEvent::Mode</a></div><div class="ttdoc">Mode value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:242</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1Mode_html_ad52f4237c66a5e9af7f1e7f635d5ab00"><div class="ttname"><a href="classTimeSwipeEvent_1_1Mode.html#ad52f4237c66a5e9af7f1e7f635d5ab00">TimeSwipeEvent::Mode::value</a></div><div class="ttdeci">int value() const</div><div class="ttdoc">returns Mode value as number</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_1_1Offset_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Offset.html">TimeSwipeEvent::Offset</a></div><div class="ttdoc">Offset value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:226</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_1_1Offset_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Offset.html">TimeSwipeEvent::Offset</a></div><div class="ttdoc">Offset value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:227</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1Offset_html_a8e9ac82518354ed1e81e9f92b48dfd34"><div class="ttname"><a href="classTimeSwipeEvent_1_1Offset.html#a8e9ac82518354ed1e81e9f92b48dfd34">TimeSwipeEvent::Offset::value</a></div><div class="ttdeci">int value() const</div><div class="ttdoc">returns Offset value as number</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_1_1Record_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Record.html">TimeSwipeEvent::Record</a></div><div class="ttdoc">Record value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:211</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_1_1Record_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1Record.html">TimeSwipeEvent::Record</a></div><div class="ttdoc">Record value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:212</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1Record_html_a1768ed333fa6842549f1e4ca30faf867"><div class="ttname"><a href="classTimeSwipeEvent_1_1Record.html#a1768ed333fa6842549f1e4ca30faf867">TimeSwipeEvent::Record::value</a></div><div class="ttdeci">int value() const</div><div class="ttdoc">returns Record value as number</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_1_1SetSecondary_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1SetSecondary.html">TimeSwipeEvent::SetSecondary</a></div><div class="ttdoc">SetSecondary value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:180</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_1_1SetSecondary_html"><div class="ttname"><a href="classTimeSwipeEvent_1_1SetSecondary.html">TimeSwipeEvent::SetSecondary</a></div><div class="ttdoc">SetSecondary value event.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:181</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_1_1SetSecondary_html_ac152e0602d9626d1ad0e15018e2e4fb2"><div class="ttname"><a href="classTimeSwipeEvent_1_1SetSecondary.html#ac152e0602d9626d1ad0e15018e2e4fb2">TimeSwipeEvent::SetSecondary::value</a></div><div class="ttdeci">int value() const</div><div class="ttdoc">returns SetSecondary value as number</div></div>
-<div class="ttc" id="aclassTimeSwipeEvent_html"><div class="ttname"><a href="classTimeSwipeEvent.html">TimeSwipeEvent</a></div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:138</div></div>
+<div class="ttc" id="aclassTimeSwipeEvent_html"><div class="ttname"><a href="classTimeSwipeEvent.html">TimeSwipeEvent</a></div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:139</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_html_ae2acfc2e55796a9214534c44ca62dbed"><div class="ttname"><a href="classTimeSwipeEvent.html#ae2acfc2e55796a9214534c44ca62dbed">TimeSwipeEvent::get</a></div><div class="ttdeci">const EVENT &amp; get() const</div><div class="ttdoc">get interested event</div></div>
 <div class="ttc" id="aclassTimeSwipeEvent_html_af2be5f131062c34c331808097077fc8d"><div class="ttname"><a href="classTimeSwipeEvent.html#af2be5f131062c34c331808097077fc8d">TimeSwipeEvent::is</a></div><div class="ttdeci">bool is() const</div><div class="ttdoc">Check for interested event.</div></div>
-<div class="ttc" id="aclassTimeSwipe_html"><div class="ttname"><a href="classTimeSwipe.html">TimeSwipe</a></div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:287</div></div>
+<div class="ttc" id="aclassTimeSwipe_html"><div class="ttname"><a href="classTimeSwipe.html">TimeSwipe</a></div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:288</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a0f775a7191f7c7655f41f4499271578c"><div class="ttname"><a href="classTimeSwipe.html#a0f775a7191f7c7655f41f4499271578c">TimeSwipe::StopPWM</a></div><div class="ttdeci">bool StopPWM(std::uint8_t num)</div><div class="ttdoc">Stop PWM generator Method can be called in any time.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a1aa5834eb2045d143105fcc62a2a31e8"><div class="ttname"><a href="classTimeSwipe.html#a1aa5834eb2045d143105fcc62a2a31e8">TimeSwipe::CalculateDriftReferences</a></div><div class="ttdeci">std::vector&lt; float &gt; CalculateDriftReferences()</div><div class="ttdoc">Calculates drift references.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a20f611a8233851c57f95c75b4ee37850"><div class="ttname"><a href="classTimeSwipe.html#a20f611a8233851c57f95c75b4ee37850">TimeSwipe::GetSettings</a></div><div class="ttdeci">std::string GetSettings(const std::string &amp;request, std::string &amp;error)</div><div class="ttdoc">Send SPI GetSettings request and receive the answer.</div></div>
@@ -413,6 +432,7 @@ $(function() {
 <div class="ttc" id="aclassTimeSwipe_html_a59b40056bb199191f8215116fbdb24a2"><div class="ttname"><a href="classTimeSwipe.html#a59b40056bb199191f8215116fbdb24a2">TimeSwipe::GetChannelMode</a></div><div class="ttdeci">bool GetChannelMode(Channel nCh, ChannelMesMode &amp;nMode)</div><div class="ttdoc">Requests the channel measurement mode.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a5f0aa2b8d7384fbb20705629791419a4"><div class="ttname"><a href="classTimeSwipe.html#a5f0aa2b8d7384fbb20705629791419a4">TimeSwipe::SetChannelIEPE</a></div><div class="ttdeci">bool SetChannelIEPE(Channel nCh, bool bIEPEon)</div><div class="ttdoc">Switches channel IEPE mode ON/OFF.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a5f8b31aaf2ec7cc676784dc505e0e991"><div class="ttname"><a href="classTimeSwipe.html#a5f8b31aaf2ec7cc676784dc505e0e991">TimeSwipe::SetSensorOffsets</a></div><div class="ttdeci">void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)</div><div class="ttdoc">Setup Sensor offsets.</div></div>
+<div class="ttc" id="aclassTimeSwipe_html_a5fade42afbb41f01eac24d39d1740058"><div class="ttname"><a href="classTimeSwipe.html#a5fade42afbb41f01eac24d39d1740058">TimeSwipe::ToStringView</a></div><div class="ttdeci">static std::string_view ToStringView(const Mode value)</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:325</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a60755ed410538c944ee1c66a1f6a9c0a"><div class="ttname"><a href="classTimeSwipe.html#a60755ed410538c944ee1c66a1f6a9c0a">TimeSwipe::ClearDriftReferences</a></div><div class="ttdeci">void ClearDriftReferences()</div><div class="ttdoc">Clears drift references if any.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a70fabb14ecd47e5bff82368376475112"><div class="ttname"><a href="classTimeSwipe.html#a70fabb14ecd47e5bff82368376475112">TimeSwipe::onError</a></div><div class="ttdeci">bool onError(OnErrorCallback cb)</div><div class="ttdoc">Register error callback.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_a7b01d74beae7c419c051d8d0d24db7d8"><div class="ttname"><a href="classTimeSwipe.html#a7b01d74beae7c419c051d8d0d24db7d8">TimeSwipe::onEvent</a></div><div class="ttdeci">bool onEvent(OnEventCallback cb)</div><div class="ttdoc">Register callback for event.</div></div>
@@ -428,12 +448,13 @@ $(function() {
 <div class="ttc" id="aclassTimeSwipe_html_aba609ad5adf2bde595af8ff71fd2d67d"><div class="ttname"><a href="classTimeSwipe.html#aba609ad5adf2bde595af8ff71fd2d67d">TimeSwipe::SetChannelGain</a></div><div class="ttdeci">bool SetChannelGain(Channel nCh, float Gain)</div><div class="ttdoc">Sets the channel gain value.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_ace441aa93c469d0f3048f9cf21c5af70"><div class="ttname"><a href="classTimeSwipe.html#ace441aa93c469d0f3048f9cf21c5af70">TimeSwipe::SetSettings</a></div><div class="ttdeci">std::string SetSettings(const std::string &amp;request, std::string &amp;error)</div><div class="ttdoc">Send SPI SetSettings request and receive the answer.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_ace4c5d37d3c84ba41e7cf1ae29eee77f"><div class="ttname"><a href="classTimeSwipe.html#ace4c5d37d3c84ba41e7cf1ae29eee77f">TimeSwipe::Start</a></div><div class="ttdeci">bool Start(ReadCallback cb)</div><div class="ttdoc">Start reading Sensor loop.</div></div>
+<div class="ttc" id="aclassTimeSwipe_html_ad1daa9fa5a518da4603c3953f0e884a0"><div class="ttname"><a href="classTimeSwipe.html#ad1daa9fa5a518da4603c3953f0e884a0">TimeSwipe::ToMode</a></div><div class="ttdeci">static Mode ToMode(const std::string_view value)</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:311</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_ad2cce4ec7481db0ad9c2864c34d798a0"><div class="ttname"><a href="classTimeSwipe.html#ad2cce4ec7481db0ad9c2864c34d798a0">TimeSwipe::SetSampleRate</a></div><div class="ttdeci">bool SetSampleRate(int rate)</div><div class="ttdoc">Set sample rate. Default value is MaxSampleRate().</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_ad4db5d1abf6b9c0fc31f7c4b77598cbb"><div class="ttname"><a href="classTimeSwipe.html#ad4db5d1abf6b9c0fc31f7c4b77598cbb">TimeSwipe::SetMode</a></div><div class="ttdeci">void SetMode(Mode number)</div><div class="ttdoc">Setup hardware mode.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_adcaa960c3b89b481100e6666d37e8e57"><div class="ttname"><a href="classTimeSwipe.html#adcaa960c3b89b481100e6666d37e8e57">TimeSwipe::IsBusy</a></div><div class="ttdeci">bool IsBusy() const noexcept</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_ae3ef3e3e05360b72c584726c1d823540"><div class="ttname"><a href="classTimeSwipe.html#ae3ef3e3e05360b72c584726c1d823540">TimeSwipe::Stop</a></div><div class="ttdeci">bool Stop()</div><div class="ttdoc">Stop reading Sensor loop.</div></div>
 <div class="ttc" id="aclassTimeSwipe_html_ae6646f3b049aa0d5daab4747a1dc5ffd"><div class="ttname"><a href="classTimeSwipe.html#ae6646f3b049aa0d5daab4747a1dc5ffd">TimeSwipe::MaxSampleRate</a></div><div class="ttdeci">int MaxSampleRate() const noexcept</div></div>
-<div class="ttc" id="aclassTimeSwipe_html_af52c3436f54c281569916fec947023b4"><div class="ttname"><a href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">TimeSwipe::ReadCallback</a></div><div class="ttdeci">std::function&lt; void(SensorsData, std::uint64_t errors)&gt; ReadCallback</div><div class="ttdoc">Read sensors callback function pointer.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:635</div></div>
+<div class="ttc" id="aclassTimeSwipe_html_af52c3436f54c281569916fec947023b4"><div class="ttname"><a href="classTimeSwipe.html#af52c3436f54c281569916fec947023b4">TimeSwipe::ReadCallback</a></div><div class="ttdeci">std::function&lt; void(SensorsData, std::uint64_t errors)&gt; ReadCallback</div><div class="ttdoc">Read sensors callback function pointer.</div><div class="ttdef"><b>Definition:</b> timeswipe.hpp:666</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -64,6 +64,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="classTimeSwipe-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -199,6 +200,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7e922f17697339e078e232852d149167"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4eb8ffc7dd03ed7b2d957015a87c0597"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::vector&lt; float &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a4eb8ffc7dd03ed7b2d957015a87c0597">DriftDeltas</a> () const</td></tr>
 <tr class="separator:a4eb8ffc7dd03ed7b2d957015a87c0597"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:ad1daa9fa5a518da4603c3953f0e884a0"><td class="memItemLeft" align="right" valign="top">static Mode&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#ad1daa9fa5a518da4603c3953f0e884a0">ToMode</a> (const std::string_view value)</td></tr>
+<tr class="separator:ad1daa9fa5a518da4603c3953f0e884a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fade42afbb41f01eac24d39d1740058"><td class="memItemLeft" align="right" valign="top">static std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTimeSwipe.html#a5fade42afbb41f01eac24d39d1740058">ToStringView</a> (const Mode value)</td></tr>
+<tr class="separator:a5fade42afbb41f01eac24d39d1740058"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -1245,6 +1253,72 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>resample_log</
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>false if at least wrong parameter given or generator already in stop state </dd></dl>
+
+</div>
+</div>
+<a id="ad1daa9fa5a518da4603c3953f0e884a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1daa9fa5a518da4603c3953f0e884a0">&#9670;&nbsp;</a></span>ToMode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static Mode TimeSwipe::ToMode </td>
+          <td>(</td>
+          <td class="paramtype">const std::string_view&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>The value of type <code>Mode</code> converted from <code>value</code>.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">&lt;tt&gt;std::invalid_argument&lt;/tt&gt;</td><td>if <code>value</code> doesn't corresponds to any member of Mode. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a5fade42afbb41f01eac24d39d1740058"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fade42afbb41f01eac24d39d1740058">&#9670;&nbsp;</a></span>ToStringView()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static std::string_view TimeSwipe::ToStringView </td>
+          <td>(</td>
+          <td class="paramtype">const Mode&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>The value of type <code>std::string_view</code> converted from <code>value</code>.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">&lt;tt&gt;std::invalid_argument&lt;/tt&gt;</td><td>if <code>value</code> doesn't corresponds to any member of Mode. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
