@@ -102,7 +102,6 @@ public:
     std::string result{name()};
     result += ' ';
     result += std::to_string(ev);
-    result += ' ';
     if (const char* const literal = to_literal(static_cast<Errc>(ev))) {
       result += ' ';
       result += literal;
