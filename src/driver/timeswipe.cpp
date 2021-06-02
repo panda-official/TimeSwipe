@@ -3,6 +3,7 @@
 #include "resampler.hpp"
 #include "timeswipe.hpp"
 #include "timeswipe_eeprom.hpp"
+#include "../common/version.hpp"
 
 #include "../3rdparty/dmitigr/filesystem.hpp"
 #include "../3rdparty/dmitigr/math.hpp"
@@ -18,6 +19,14 @@
 #include <numeric>
 #include <stdexcept>
 #include <thread>
+
+namespace panda::timeswipe::driver {
+Version version() noexcept
+{
+  namespace ver = version;
+  return {ver::major, ver::minor, ver::patch};
+}
+} // namespace panda::timeswipe::driver
 
 // FIXME!!!
 using namespace panda::timeswipe::driver;

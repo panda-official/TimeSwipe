@@ -33,6 +33,18 @@
 #include <string_view>
 #include <vector>
 
+namespace panda::timeswipe::driver {
+/// A driver version.
+struct Version final {
+  int major{};
+  int minor{};
+  int patch{};
+};
+
+/// @returns The driver version.
+Version version() noexcept;
+} // namespace panda::timeswipe::driver
+
 /**
  * \brief Sensors container
  */
