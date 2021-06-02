@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [Changes][0.1.1] in v0.1.1 relative to v0.1.0
+
+  - Bugfix of firmware
+
 ## [Changes][0.1.0] in v0.1.0 relative to v0.0.16
 
  - The voltage range calculation is simplifed to
@@ -30,5 +34,6 @@
  - New API to set mode, gain and IEPE for each channel.
 
 [Unreleased]: https://github.com/panda-official/timeswipe/compare/v0.1.0...HEAD
+[0.1.1]: https://github.com/panda-official/timeswipe/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/panda-official/timeswipe/compare/v0.0.16...v0.1.0
 [GNUPlot]: http://www.gnuplot.info
