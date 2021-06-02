@@ -1,9 +1,9 @@
 # Maintainer: Dmitry Igrishin <dmitigr@gmail.com>
-pkgname=timeswipe
+pkgname=panda_timeswipe_driver
 pkgver=@PROJECT_VERSION@
 pkgrel=1
 epoch=
-pkgdesc="Timeswipe Driver"
+pkgdesc="Panda GmbH TimeSwipe Driver"
 arch=('any')
 url=""
 license=('GPL')
