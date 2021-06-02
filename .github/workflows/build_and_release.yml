@@ -77,7 +77,7 @@ jobs:
 
   release:
     name: Create Github Release
-    if: contains(github.ref, 'tags/v')
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     needs: [build_deb, build_arch]
     runs-on: ubuntu-latest
     steps:
