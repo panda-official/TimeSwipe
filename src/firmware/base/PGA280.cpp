@@ -43,8 +43,10 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
     m_pCS=pCS;
 
     m_GainMuxReg.reg=0;
-    if (!WriteRegister(reg::soft_reset, 1))
-      throw Exception{Errc::kGeneric};
+    WriteRegister(reg::soft_reset, 1);
+    // FIXME
+    // if (!WriteRegister(reg::soft_reset, 1))
+    //   throw Exception{Errc::kGeneric};
     SetMode(mode::Voltage);
     SetIGain(igain::ig_1_8);
     SetOGain(ogain::og1);
