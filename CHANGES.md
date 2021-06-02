@@ -31,4 +31,4 @@
 
 [Unreleased]: https://github.com/panda-official/timeswipe/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/panda-official/timeswipe/compare/v0.0.16...v0.1.0
-[GNUPlot]: http://www.gnuplot.info/
+[GNUPlot]: http://www.gnuplot.info
