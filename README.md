@@ -20,13 +20,10 @@ contains pre-built driver for both ARM32 and ARM64 architectures.
 - [Building and installing the driver](doc/driver/install.md)
 - [Building and flashing the firmware](doc/firmware/install.md)
 
-## Product versioning
+## Versioning
 
-The product consists of several modules using semantic versioning. Compatibility
-is defined by major version numbers, i.e. driver and firmware are compatible if
-their major version numbers are equal. Compatibility between submodules of the
-driver is defined by minor version numbers.
+Both TimeSwipe Driver and Firmware follows [semantic versioning 2.0.0][semver].
+Compatibility is defined by major version numbers, i.e. driver and firmware are
+compatible if theirs major version numbers are equal.
 
-For example, the firmware 1.2.1 is compatible with the driver 1.3.5, but not
-compatible with the driver 2.0.1; the Python driver submodule 1.3.9 is
-compatible with the driver 1.3.5, but not compatible with the driver 1.4.1.
+[semver]: https://semver.org/spec/v2.0.0.html

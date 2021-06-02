@@ -11,7 +11,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "../common/os.h"
 #include "../common/std_port.h"
 #include "../common/HatsMemMan.h"
-#include "error.hpp"
+#include "../common/version.hpp"
 #include "base/SPIcomm.h"
 #include "base/SAMbutton.h"
 #include "base/DMSchannel.h"
@@ -38,6 +38,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamDACcntr.h"
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
+#include "error.hpp"
 
 using namespace std::placeholders;
 
@@ -78,7 +79,8 @@ try {
         typeBoard ThisBoard=typeBoard::IEPEBoard;
 #endif
 
-        auto pVersion=std::make_shared<CSemVer>(0,0,16);
+        namespace ver = panda::timeswipe::version;
+        auto pVersion=std::make_shared<CSemVer>(ver::major, ver::minor, ver::patch);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
