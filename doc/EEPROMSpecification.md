@@ -53,8 +53,8 @@
 ```
   Bytes   Field
   16      uuid        UUID (unique for every single board ever made, based on chip ID)
-  2       pid         product ID:                           0=DMS, 1=IEPE
-  2       pver        product version:                      board revision according semver MAJOR number
+  2       pid         product ID:                           0x0101 (1st byte - Product Family -> Timeswipe=0x01, Drift=0x02...; 2nd byte - Product ID -> IEPE=0x01, DMS=0x02)
+  2       pver        product version:                      board revision according semver MAJOR and MINOR number. (v1.2 = 0x0102)
   1       vslen       vendor string length (bytes):         5
   1       pslen       product string length (bytes):        9
   X       vstr        ASCII vendor string:                  "PANDA"
@@ -65,36 +65,13 @@
 
   GPIO map for bank 0 GPIO on 40W B+ header.
 
-  **NOTE** GPIO number refers to BCM2835 GPIO number and **NOT** J8 pin number!
-
-```
-  Bytes   Field
-  1       bank_drive  bank drive strength/slew/hysteresis, BCM2835 can only set per bank, not per IO
-            Bits in byte:
-            [3:0] drive       0=leave at default, 1-8=drive*2mA, 9-15=reserved
-            [5:4] slew        0=leave at default, 1=slew rate limiting, 2=no slew limiting, 3=reserved
-            [7:6] hysteresis  0=leave at default, 1=hysteresis disabled, 2=hysteresis enabled, 3=reserved
-  1       power
-            [1:0] back_power  0=board does not back power Pi
-                              1=board back powers and can supply up to 1.3A to the Pi
-                              2=board back powers and can supply up to 2A to the Pi
-                              3=reserved
-                              If back_power=2 high current USB mode is automatically enabled.
-            [7:2] reserved    set to 0
-  28      1 byte per IO pin
-            Bits in each byte:
-            [2:0] func_sel    GPIO function as per FSEL GPIO register field in BCM2835 datasheet
-            [4:3] reserved    set to 0
-            [6:5] pulltype    0=leave at default setting,  1=pullup, 2=pulldown, 3=no pull
-            [  7] is_used     1=board uses this pin, 0=not connected and therefore not used
-```
+  can be found in `tool/ts_hat_config.txt`
 
 ### Device Tree atom data (type=0x0003):
 
 Binary data (the name or contents of a `.dtbo` overlay, for board hardware).
-
-For more information on the Device Tree atom contents, see the [Device Tree Guide](devicetree-guide.md).
-
+Can be found under `tool/ts_hat.dts`
+Documentation of how to use it can be found in tool/ts_hat.md
 
 ### Status & Calibration Atom (type=0x0004, ATOM4):
 
