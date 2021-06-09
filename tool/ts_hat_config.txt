@@ -1,0 +1,115 @@
+########################################################################
+# EEPROM settings text file
+#
+# Edit this file for your particular board and run through eepmake tool,
+# then use eepflash tool to write to attached HAT ID EEPROM 
+#
+# Tools available:
+#  eepmake   Parses EEPROM text file and creates binary .eep file
+#  eepdump   Dumps a binary .eep file as human readable text (for debug)
+#  eepflash  Write or read .eep binary image to/from HAT EEPROM
+#
+########################################################################
+
+########################################################################
+# Vendor info
+
+# 128 bit UUID. If left at zero eepmake tool will auto-generate
+# RFC 4122 compliant UUID
+# Insert ARM ID here
+product_uuid 00000000-0000-0000-0000-000000000000
+
+# 16 bit product id -> TS
+product_id 0x5453
+
+# 16 bit product version ->0101 -> 1.1
+product_ver 0x0101
+
+# ASCII vendor string  (max 255 characters)
+vendor "PANDA GmbH"
+
+# ASCII product string (max 255 characters)
+product "TimeSwipe"
+
+# Custom binary data
+custom_data
+c0ffee
+end
+
+########################################################################
+# GPIO bank settings, set to nonzero to change from the default.
+# NOTE these setting can only be set per BANK, uncommenting any of
+# these will force the bank to use the custom setting.
+
+# drive strength, 0=default, 1-8=2,4,6,8,10,12,14,16mA, 9-15=reserved
+gpio_drive 0
+
+# 0=default, 1=slew rate limiting, 2=no slew limiting, 3=reserved
+gpio_slew 0
+
+# 0=default, 1=hysteresis disabled, 2=hysteresis enabled, 3=reserved
+gpio_hysteresis 0
+
+# If board back-powers Pi via 5V GPIO header pins:
+# 0 = board does not back-power
+# 1 = board back-powers and can supply the Pi with a minimum of 1.3A
+# 2 = board back-powers and can supply the Pi with a minimum of 2A
+# 3 = reserved
+# If back_power=2 then USB high current mode will be automatically 
+# enabled on the Pi
+back_power 2
+
+########################################################################
+# GPIO pins, uncomment for GPIOs used on board
+# Options for FUNCTION: INPUT, OUTPUT, ALT0-ALT5
+# Options for PULL: DEFAULT, UP, DOWN, NONE
+# NB GPIO0 and GPIO1 are reserved for ID EEPROM so cannot be set
+
+#         GPIO  FUNCTION  PULL
+#         ----  --------  ----
+#I2C1
+setgpio  2     ALT0     DEFAULT
+setgpio  3     ALT0     DEFAULT
+#CLOCK
+setgpio  4     OUTPUT     DOWN
+#DATA3
+setgpio  5     INPUT     DEFAULT
+#DATA4
+setgpio  6     INPUT     DEFAULT
+#DATA2
+setgpio  7     INPUT     DEFAULT
+#SPI0
+setgpio  8     ALT0     DEFAULT
+setgpio  9     ALT0     DEFAULT
+setgpio  10    ALT0     DEFAULT
+setgpio  11    ALT0     DEFAULT
+#DATA5
+setgpio  12    INPUT     DEFAULT
+#DATA6
+setgpio  13    INPUT     DEFAULT
+#TC0
+setgpio  14    INPUT     DEFAULT
+#PI_OK
+setgpio  15    INPUT     DEFAULT
+#DATA7
+setgpio  16    INPUT     DEFAULT
+#RESET
+setgpio  17    OUTPUT     DOWN
+#FAIL
+setgpio  18    INPUT     DEFAULT
+#SPI1
+setgpio  19    ALT4     DEFAULT
+setgpio  20    ALT4     DEFAULT
+setgpio  21    ALT4     DEFAULT
+#SWDIO
+#setgpio  22    INPUT     DEFAULT
+#NC
+#setgpio  23    INPUT     DEFAULT
+#DATA0
+setgpio  24    INPUT     DEFAULT
+#DATA1
+setgpio  25    INPUT     DEFAULT
+#SPI1 CS
+setgpio  26    OUTPUT     UP
+#SWDCLK
+#setgpio  27    INPUT     DEFAULT

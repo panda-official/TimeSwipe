@@ -1,0 +1,25 @@
+/*
+ * Device tree overlay for PANDA TimeSwipe 1.1
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+    fragment@0 {
+        target-path = "/";
+        __overlay__ {
+            ts: timeswipe {
+                string = "hello";
+                status = "disabled";
+                bytes = /bits/ 8 <0x67 0x89>;
+                u16s = /bits/ 16 <0xabcd 0xef01>;
+                u32s = /bits/ 32 <0xfedcba98 0x76543210>;
+                u64s = /bits/ 64 < 0xaaaaa5a55a5a5555 0x0000111122223333>;
+                bool1; // Defaults to true
+                       // bool2 defaults to false
+                mac = [01 23 45 67 89 ab];
+            };
+        };
+    };
+};
