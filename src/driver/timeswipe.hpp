@@ -48,7 +48,7 @@ Version version() noexcept;
 /**
  * \brief Sensors container
  */
-class SensorsData {
+class SensorsData final {
   static constexpr std::size_t SENSORS = 4;
   using CONTAINER = std::array<std::vector<float>, SENSORS>;
 public:
@@ -148,7 +148,7 @@ class TimeSwipeEventImpl;
 /**
  * TimeSwipe events
  */
-class TimeSwipeEvent {
+class TimeSwipeEvent final {
 public:
 
   /**
@@ -297,7 +297,7 @@ class TimeSwipeImpl;
 /**
  * TimeSwipe interface for Sensor
  */
-class TimeSwipe {
+class TimeSwipe final {
 public:
   TimeSwipe();
   ~TimeSwipe();
