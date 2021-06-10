@@ -349,7 +349,7 @@ public:
    * \brief Board channel index
    *
    */
-  enum class Channel : int {
+  enum class Channel {
     CH1,
     CH2,
     CH3,
@@ -361,7 +361,7 @@ public:
    * @brief The channel measurement mode
    *
    */
-  enum class ChannelMesMode : int {
+  enum class ChannelMesMode {
     Voltage,
     Current
   };
