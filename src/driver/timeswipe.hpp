@@ -752,10 +752,7 @@ public:
    */
   bool Stop();
 
-  /*!
-   * \brief TraceSPI
-   * \param val true=on
-   */
+  /// Enables or disables SPI command tracing by using standard error output stream.
   void TraceSPI(bool val);
 
   inline static bool resample_log;
