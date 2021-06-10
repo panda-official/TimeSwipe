@@ -3,9 +3,10 @@
 #include <thread>
 #include <sstream>
 
-static void stripAnswer(std::string& str) {
-    if (str.length() && str[str.length()-1] == 0x0A) // strip \n
-        str = str.substr(0,str.length()-1);
+static void stripAnswer(std::string& str) noexcept
+{
+  if (!str.empty() && str.back() == '\n')
+    str.pop_back();
 }
 
 class BoardInterface
