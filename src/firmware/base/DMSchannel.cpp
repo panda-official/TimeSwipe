@@ -13,7 +13,7 @@ Copyright (c) 2019-2020 Panda Team
 /// FIXME: namespace
 using namespace panda::timeswipe;
 
-void CDMSchannel::SetAmpGain(float GainValue)
+void CDMSchannel::SetAmpGain(const float GainValue)
 {
     const auto index = OgainTableIndex(GainValue);
     const auto igain = static_cast<CPGA280::igain>(index / 2);
