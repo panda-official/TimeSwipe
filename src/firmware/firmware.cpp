@@ -107,7 +107,7 @@ try {
         pEEPROM_HAT->EnableIRQs(true);
 
         //set iface:
-        nodeControl &nc=nodeControl::Instance();
+        auto& nc = nodeControl::Instance();
         nc.SetEEPROMiface(pEEPROM_MasterBus, pEEPROM_MemBuf);
         //----------------------------------------------------------
 
@@ -361,10 +361,7 @@ try {
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
         pDisp->Add("js", pJC);
-
         pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*pNC), _1, _2, _3 ) );
-
-       // pJC->AddSubHandler("cAtom", &nodeControl::procCAtom);
 
 //#ifdef CALIBRATION_STATION
 
@@ -379,7 +376,11 @@ try {
         //--------------------------------------------------------------------------------------------------------------
 
 
-        nc.LoadSettings();
+        /*
+         * nodeControl::LoadSettings() activates the persistent
+         * storage handling which is currently broken!
+         */
+        // nc.LoadSettings();
         nc.SetMode(0); //set default mode
 #ifndef CALIBRATION_STATION
         view.BlinkAtStart();

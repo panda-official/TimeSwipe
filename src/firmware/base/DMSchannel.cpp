@@ -26,7 +26,6 @@ void CDMSchannel::SetAmpGain(const float GainValue)
 }
 void CDMSchannel::UpdateOffsets()
 {
-
     //apply offsets only if calibration is enabled
     if(!m_pCont->IsCalEnabled())
         return;
@@ -36,11 +35,7 @@ void CDMSchannel::UpdateOffsets()
     m_pCont->GetCalibrationData(cdata, strError);
 
     CCalAtomPair pair;
-    cdata.GetCalPair( (mes_mode::Voltage==m_MesMode ? CCalAtom::atom_type::V_In1 : CCalAtom::atom_type::C_In1) + static_cast<size_t>(m_nChanInd),
-
-                      m_nGainIndex, pair, strError);
-
-
+    const auto atom = mes_mode::Voltage == m_MesMode ? CCalAtom::atom_type::V_In1 : CCalAtom::atom_type::C_In1;
+    cdata.GetCalPair(atom + static_cast<std::size_t>(m_nChanInd), m_nGainIndex, pair, strError);
     m_pDAC->SetRawOutput(pair.b);
-
 }
