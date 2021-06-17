@@ -286,7 +286,8 @@ try {
           throw std::runtime_error{"invalid number of sensors specified"};
 
         // Check the content.
-        if (const auto [mi, ma] = minmax_element(cbegin(result), cend(result)); *mi < 0 || *ma > sensor_count)
+        if (const auto [mi, ma] = minmax_element(cbegin(result), cend(result));
+          *mi < 0 || *ma > static_cast<int>(sensor_count))
           throw std::runtime_error{"invalid sensor number"};
       } else
         exit_usage();
@@ -515,16 +516,17 @@ try {
       for (auto i = 0*sample_rate; in && i < sample_rate; ++i) {
         // Parse next line (even if CSV file has no newline after the last line).
         in.getline(line.data(), line.size());
-        if (const auto gcount = in.gcount(); in || (gcount && (gcount < line.size()))) {
+        using Size = std::string::size_type;
+        if (const Size gcount = in.gcount(); in || (gcount && (gcount < line.size()))) {
           ++entry_count;
           std::size_t j{};
-          std::string::size_type offset{};
+          Size offset{};
           while (offset < gcount) {
             if (j >= sensor_count)
               throw std::runtime_error{"too many fields at line " + std::to_string(entry_count)};
             const auto pos = line.find_first_of(separators, offset);
             assert(offset < pos);
-            const auto field_length = std::min<std::string::size_type>(pos, gcount) - offset;
+            const auto field_length = std::min(pos, gcount) - offset;
             assert(field_length);
             const auto field = line.substr(offset, field_length);
             const Sensor_value value = stof(field); // stof() discards leading whitespaces
