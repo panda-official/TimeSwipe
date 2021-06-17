@@ -3,7 +3,7 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
-Name: panda_timeswipe_driver
+Name: panda-timeswipe-driver
 Description: Panda GmbH TimeSwipe Driver
 Version: @PROJECT_VERSION@
 

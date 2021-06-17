@@ -1,4 +1,4 @@
-Package: panda_timeswipe_driver
+Package: panda-timeswipe-driver
 Version: @PROJECT_VERSION@
 Section: base
 Priority: optional
