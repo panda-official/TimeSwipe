@@ -299,9 +299,33 @@ class TimeSwipeImpl;
  */
 class TimeSwipe final {
 public:
-  TimeSwipe();
+  /**
+   * The destructor.
+   *
+   * @par Effects
+   * Same as for Stop().
+   */
   ~TimeSwipe();
+
+  /**
+   * Default-constructible.
+   *
+   * @par Effects
+   * Restarts TimeSwipe firmware on very first run!
+   */
+  TimeSwipe();
+
+  /// Move-constructible.
+  TimeSwipe(TimeSwipe&&) = default;
+
+  /// Move-assignable.
+  TimeSwipe& operator=(TimeSwipe&&) = default;
+
+  /// No copy-constructible.
   TimeSwipe(const TimeSwipe&) = delete;
+
+  /// No copy-assignable.
+  TimeSwipe& operator=(const TimeSwipe&) = delete;
 
   /** @enum TimeSwipe::Mode
    *

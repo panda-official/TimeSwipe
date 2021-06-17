@@ -116,6 +116,8 @@ public:
     if (!pid_file_.Lock(msg))
       // Lock here. Second lock from the same process is allowed.
       throw Exception{Errc::kPidFileLockFailed};
+
+    record_reader_.Init();
   }
 
   void SetMode(const int number)
@@ -478,10 +480,7 @@ private:
     }
 
     clearThreads();
-
-    record_reader_.Setup();
     record_reader_.Start();
-
     started_instance_ = this;
     work_ = true;
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::fetcherLoop, this)));

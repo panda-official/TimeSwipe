@@ -44,11 +44,65 @@ static const uint32_t PI_STATUS_POSITION = 1UL << PI_OK;
 static const uint32_t FAIL_POSITION = 1UL << FAIL;
 static const uint32_t BUTTON_POSITION = 1UL << BUTTON;
 
+/**
+ * Initializes GPIO pins.
+ *
+ * @param force Forces initialization even if IsBoardInited() returns `true`.
+ *
+ * @par Effects
+ * Restarts TimeSwipe firmware on very first run!
+ *
+ * @see IsBoardInited(), StartMeasurement().
+ */
+void InitBoard(bool force = false);
+
+/**
+ * @returns `true` if InitBoard() has been successfully called at least once.
+ *
+ * @par Thread-safety
+ * Thread-safe.
+ *
+ * @see InitBoard().
+ */
+bool IsBoardInited() noexcept;
+
+/**
+ * Sends the command to a TimeSwipe firmware to start measurement.
+ *
+ * @param mode Measurement mode.
+ *
+ * @par Requires
+ * `IsBoardInited()`.
+ *
+ * @par Effects
+ * The reader does receive the data from the board.
+ *
+ * @see InitBoard(), StopMeasurement().
+ */
+void StartMeasurement(int mode);
+
+/**
+ * @returns `true` if StartBoard() has been successfully called and
+ * StopMeasurement() has not been successfully called yet.
+ *
+ * @par Thread-safety
+ * Thread-safe.
+ */
+bool IsMeasurementStarted() noexcept;
+
+/**
+ * Sends the command to a TimeSwipe firmware to stop measurement.
+ *
+ * @par Effects
+ * The reader doesn't receive the data from the board.
+ *
+ * @see InitBoard(), StartMeasurement().
+ */
+void StopMeasurement();
+
 void pullGPIO(unsigned pin, unsigned high);
 void initGPIOInput(unsigned pin);
 void initGPIOOutput(unsigned pin);
-void init(int sensorType);
-void shutdown();
 void setGPIOHigh(unsigned pin);
 void setGPIOLow(unsigned pin);
 void resetAllGPIO();

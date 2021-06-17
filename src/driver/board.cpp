@@ -1,7 +1,12 @@
 #include "board.hpp"
 #include "../common/json.hpp"
+#include "../3rdparty/dmitigr/assert.hpp"
 
+#include <atomic>
 #include <mutex>
+
+std::atomic_bool is_board_inited;
+std::atomic_bool is_measurement_started;
 
 // RPI GPIO FUNCTIONS
 void pullGPIO(unsigned pin, unsigned high)
@@ -21,47 +26,74 @@ void initGPIOOutput(unsigned pin)
     pullGPIO(pin, 0);
 }
 
-void init(int mode)
+void InitBoard(const bool force)
 {
-    initGPIOInput(DATA0);
-    initGPIOInput(DATA1);
-    initGPIOInput(DATA2);
-    initGPIOInput(DATA3);
-    initGPIOInput(DATA4);
-    initGPIOInput(DATA5);
-    initGPIOInput(DATA6);
-    initGPIOInput(DATA7);
+  if (!force && IsBoardInited()) return;
 
-    initGPIOInput(TCO);
-    initGPIOInput(PI_OK);
-    initGPIOInput(FAIL);
-    initGPIOInput(BUTTON);
+  setup_io();
+  initGPIOInput(DATA0);
+  initGPIOInput(DATA1);
+  initGPIOInput(DATA2);
+  initGPIOInput(DATA3);
+  initGPIOInput(DATA4);
+  initGPIOInput(DATA5);
+  initGPIOInput(DATA6);
+  initGPIOInput(DATA7);
 
-    // initGPIOOutput(PI_ON);
-    initGPIOOutput(CLOCK);
-    initGPIOOutput(RESET);
+  initGPIOInput(TCO);
+  initGPIOInput(PI_OK);
+  initGPIOInput(FAIL);
+  initGPIOInput(BUTTON);
 
-    // Initial Reset
-    setGPIOLow(CLOCK);
-    setGPIOHigh(RESET);
+  // initGPIOOutput(PI_OK);
+  initGPIOOutput(CLOCK);
+  initGPIOOutput(RESET);
 
-    // SPI Communication
-    // // Select Mode
-    BoardInterface::get()->setMode(mode);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  // Initial Reset
+  setGPIOLow(CLOCK);
+  setGPIOHigh(RESET);
 
-    // // Start Measurement
-    BoardInterface::get()->setEnableADmes(0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    BoardInterface::get()->setEnableADmes(1);
+  is_board_inited = true;
 }
 
-void shutdown()
+bool IsBoardInited() noexcept
 {
-    // Reset Clock
-    setGPIOLow(CLOCK);
-    // Stop Measurement
-    BoardInterface::get()->setEnableADmes(0);
+  return is_board_inited;
+}
+
+void StartMeasurement(const int mode)
+{
+  using std::this_thread::sleep_for;
+  constexpr std::chrono::milliseconds pause{1};
+
+  DMITIGR_CHECK(IsBoardInited());
+
+  // Select Mode
+  BoardInterface::get()->setMode(mode);
+
+  // Start Measurement
+  sleep_for(pause);
+  BoardInterface::get()->setEnableADmes(1);
+
+  is_measurement_started = true;
+}
+
+bool IsMeasurementStarted() noexcept
+{
+  return is_measurement_started;
+}
+
+void StopMeasurement()
+{
+  if (!IsMeasurementStarted()) return;
+
+  // Reset Clock
+  setGPIOLow(CLOCK);
+
+  // Stop Measurement
+  BoardInterface::get()->setEnableADmes(0);
+
+  is_measurement_started = false;
 }
 
 void setGPIOHigh(unsigned pin)
