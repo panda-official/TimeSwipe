@@ -53,6 +53,9 @@ void InitBoard(const bool force)
   setGPIOLow(CLOCK);
   setGPIOHigh(RESET);
 
+  using std::chrono::milliseconds;
+  std::this_thread::sleep_for(milliseconds{1});
+
   is_board_inited = true;
 }
 
@@ -63,16 +66,14 @@ bool IsBoardInited() noexcept
 
 void StartMeasurement(const int mode)
 {
-  using std::this_thread::sleep_for;
-  constexpr std::chrono::milliseconds pause{1};
-
   DMITIGR_CHECK(IsBoardInited());
 
   // Select Mode
   BoardInterface::get()->setMode(mode);
 
   // Start Measurement
-  sleep_for(pause);
+  using std::chrono::milliseconds;
+  std::this_thread::sleep_for(milliseconds{1});
   BoardInterface::get()->setEnableADmes(1);
 
   is_measurement_started = true;
