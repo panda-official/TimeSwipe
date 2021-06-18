@@ -37,7 +37,7 @@ This access point is used to control board's channel.
 |:----------|:---------------------------------------------|:---------------------------------------------------------|:-----|
 |`CH1`-`CH4`|Can be used only with a sub-domain.           |                                                          |      |
 |.mode      |Measurement mode of the channel.              |`0` = Voltage mode, `1` = Current mode                    |r/w   |
-|.gain      |Gain setting of the channel.                  |float `[0.225, 316.8]` See [Gain Table](TechnicalSpecs.md#gain-settings)|r/w   |
+|.gain      |Gain setting of the channel.                  |float `[1, 1408]` See [Gain Table](TechnicalSpecs.md#gain-settings)|r/w   |
 |.iepe      |State of IEPE switch of the channel.          |bool                                                      |r/w   |
 |.offset    |Offset Setting of the channel                 |unsigned `[0,4095]`                                       |r/w   |
 |.armadc    |Raw value of the 12bit ARM ADC                |unsigned `[0,4095]`                                       |r     |
