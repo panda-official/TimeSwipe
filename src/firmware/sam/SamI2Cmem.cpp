@@ -93,13 +93,7 @@ void CSamI2Cmem::IRQhandler()
             if(pI2C->STATUS.bit.RXNACK) //! check RXNACK only when it is not repeated start
             {
                  //m_MState=FSM::halted;
-                 //pI2C->CTRLB.bit.CMD=2;
-                 if(m_nMemCurInd)
-                 {
-                     m_nMemCurInd--;
-                     //pI2C->DATA.reg=m_pMem[m_nMemCurInd-1];
-                 }
-                    // m_nMemCurInd--;
+                 //pI2C->CTRLB.bit.CMD=2
 
                //  pI2C->CTRLB.bit.CMD=2;
                 // return;
@@ -204,6 +198,6 @@ void CSamI2Cmem::set_addr_H(int addr)
 }
 void CSamI2Cmem::set_addr_L(int addr)
 {
-    m_nMemCurInd+=addr;
+    m_nMemCurInd = (m_nMemCurInd&0xFF00) | addr;
 }
 
