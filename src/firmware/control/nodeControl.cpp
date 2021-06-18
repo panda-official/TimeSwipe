@@ -29,27 +29,9 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 
     if(CHatsMemMan::op_result::OK!=m_EEPROMstorage.Verify()) //image is corrupted
     {
-        //make default image:
-        m_EEPROMstorage.Reset();
-
-        CHatAtomVendorInfo vinf;
-
-        vinf.m_uuid=CSamService::GetSerial();
-        vinf.m_PID=0;
-        vinf.m_pver=2;
-        vinf.m_vstr="PANDA";
-        vinf.m_pstr="TimeSwipe";
-
-        m_EEPROMstorage.Store(vinf); //storage is ready
+        m_CalStatus = false; //disable EEPROM reading
+        return; 
     }
-
-    //fill blank atoms with the stubs:
-    for(unsigned int i=m_EEPROMstorage.GetAtomsCount(); i<3; i++)
-    {
-        CHatAtomStub stub(i);
-        m_EEPROMstorage.Store( stub );
-    }
-
     CHatAtomCalibration cal_data;
     m_CalStatus=m_EEPROMstorage.Load(cal_data);
     ApplyCalibrationData(cal_data);

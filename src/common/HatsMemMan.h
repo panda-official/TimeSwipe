@@ -757,15 +757,6 @@ public:
   }
 
   /*!
-   * \brief Resets all image data to a default state(atoms count=0). Must be called when start working on empty image
-   */
-  void Reset()
-  {
-    SetMemBufSize(sizeof(struct header_t));
-    m_StorageState=ResetStorage(GetMemBuf(), GetMemBufSize());
-  }
-
-  /*!
    * \brief Loads the atom of given type from the image
    * \return operation result: OK on success
    */
@@ -838,8 +829,6 @@ protected:
 
   /// @}
 private:
-  static constexpr std::uint32_t signature{0x69502d52};
-  static constexpr unsigned char version{1};
 
   struct atom_header {
     uint16_t type;
@@ -900,7 +889,7 @@ private:
     struct header_t *pHeader=(struct header_t *)(pMemBuf);
     const char *pMemLimit=(pMemBuf+MemBufSize);
 
-    if(signature!=pHeader->signature || version!=pHeader->ver || pHeader->res!=0 || pHeader->eeplen>MemBufSize)
+    if(pHeader->res!=0 || pHeader->eeplen>MemBufSize)
       return  op_result::storage_is_corrupted;
 
     //verify all atoms:
@@ -918,21 +907,6 @@ private:
             return op_result::storage_is_corrupted;
           }
       }
-    return op_result::OK;
-  }
-
-  op_result ResetStorage(const char *pMemBuf, const int MemBufSize)
-  {
-    if(MemBufSize<sizeof(struct header_t))
-      return op_result::storage_is_corrupted;
-
-    struct header_t *pHeader=(struct header_t *)(pMemBuf);
-
-    pHeader->signature=signature;
-    pHeader->ver=version;
-    pHeader->res=0;
-    pHeader->numatoms=0;
-    pHeader->eeplen=sizeof(struct header_t);
     return op_result::OK;
   }
 };
