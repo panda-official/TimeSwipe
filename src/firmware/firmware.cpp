@@ -64,7 +64,7 @@ int sys_clock_init(void);
 int main()
 try {
         const int nChannels=4;
-        const size_t EEPROMsize=2048;
+        const size_t EEPROMsize=4096;
 
 #ifdef CALIBRATION_STATION
         bool bVisEnabled=false;
@@ -88,7 +88,7 @@ try {
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
         auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
-        pEEPROM_MemBuf->reserve(EEPROMsize); //reserve 2kb for an EEPROM data
+        pEEPROM_MemBuf->reserve(EEPROMsize); //reserve 32kb for an EEPROM data
 
         //creating an I2C EEPROM master to operate with an external chip:
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
@@ -398,9 +398,21 @@ try {
         }
 } catch (const std::system_error& e) {
   // FIXME: store error code and category to EEPROM.
+  nodeControl &nc=nodeControl::Instance();
+  auto pCH=nc.GetMesChannel(0);
+  pCH->SetColor(0xFF0000);
+  while(1){}    //dont exit
   return e.code().value();
 } catch (const std::exception& e) {
+  nodeControl &nc=nodeControl::Instance();
+  auto pCH=nc.GetMesChannel(1);
+  pCH->SetColor(0xFF0000);
+  while(1){}    //dont exit
   return -1;
 } catch (...) {
+  nodeControl &nc=nodeControl::Instance();
+  auto pCH=nc.GetMesChannel(2);
+  pCH->SetColor(0xFF0000);
+  while(1){}    //dont exit
   return -2;
 }

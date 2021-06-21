@@ -29,12 +29,13 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 
     if(CHatsMemMan::op_result::OK!=m_EEPROMstorage.Verify()) //image is corrupted
     {
-        m_CalStatus = false; //disable EEPROM reading
-        return; 
+        m_CalStatus = CHatsMemMan::op_result::storage_is_corrupted; //disable EEPROM reading
+        return;
     }
     CHatAtomCalibration cal_data;
     m_CalStatus=m_EEPROMstorage.Load(cal_data);
     ApplyCalibrationData(cal_data);
+
 }
 
 void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
