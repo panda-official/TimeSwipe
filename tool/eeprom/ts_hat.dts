@@ -1,0 +1,33 @@
+/*
+ * Device tree overlay for PANDA TimeSwipe 1.1
+ * Version 14.06.2021
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2835";
+
+    fragment@0 {
+        target = <&i2c_arm>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+            rtc@68 {
+                compatible = "dallas,ds3231";
+                reg = <0x68>;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&spi0>;
+        __overlay__ {
+            status = "okay";
+            #address-cells = <1>;
+            #size-cells = <0>;
+	};
+    };
+};
