@@ -398,9 +398,21 @@ try {
         }
 } catch (const std::system_error& e) {
   // FIXME: store error code and category to EEPROM.
+  nodeControl &nc=nodeControl::Instance();
+  auto pCH=nc.GetMesChannel(0);
+  pCH->SetColor(0xFF0000);
+  while(1){}    //dont exit
   return e.code().value();
 } catch (const std::exception& e) {
+  nodeControl &nc=nodeControl::Instance();
+  auto pCH=nc.GetMesChannel(1);
+  pCH->SetColor(0xFF0000);
+  while(1){}    //dont exit
   return -1;
 } catch (...) {
+  nodeControl &nc=nodeControl::Instance();
+  auto pCH=nc.GetMesChannel(2);
+  pCH->SetColor(0xFF0000);
+  while(1){}    //dont exit
   return -2;
 }
