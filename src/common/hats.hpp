@@ -21,8 +21,8 @@
  * HAT data stuff.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
-#define PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
+#ifndef PANDA_TIMESWIPE_COMMON_HATS_HPP
+#define PANDA_TIMESWIPE_COMMON_HATS_HPP
 
 #include "../3rdparty/HATS_EEPROM/eeptypes.h"
 #include "Serial.h"
@@ -937,4 +937,4 @@ private:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_HATS_MEM_MAN_HPP
+#endif  // PANDA_TIMESWIPE_COMMON_HATS_HPP
