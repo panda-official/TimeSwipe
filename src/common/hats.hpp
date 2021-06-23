@@ -24,12 +24,21 @@
 #ifndef PANDA_TIMESWIPE_COMMON_HATS_HPP
 #define PANDA_TIMESWIPE_COMMON_HATS_HPP
 
-#include "../3rdparty/HATS_EEPROM/eeptypes.h"
+#include "../3rdparty/dmitigr/crc.hpp"
 #include "Serial.h"
 
 #include <array>
 #include <cstdint>
 #include <cstring>
+
+/// EEPROM header.
+struct Header final {
+  std::uint32_t signature{};
+  std::uint8_t ver{};
+  std::uint8_t res{};
+  std::uint16_t numatoms{};
+  std::uint32_t eeplen{};
+};
 
 enum class typeHatsAtom {
   VendorInfo=1,
@@ -627,7 +636,7 @@ protected:
     if(OK!=m_StorageState)
       return m_StorageState;
 
-    struct atom_header *pAtom;
+    atom_header* pAtom{};
     op_result res=FindAtomHeader(nAtom, GetMemBuf(), GetMemBufSize(), &pAtom);
     if(op_result::OK!=res)
       return res;
@@ -637,8 +646,8 @@ protected:
     const char *pData=(const char*)pAtom + sizeof(struct atom_header); //&pAtom->data_begin;
     nAtomType=static_cast<typeHatsAtom>(pAtom->type);
 
-    uint16_t calc_crc=getcrc((char*)pAtom, dlen+sizeof(atom_header) );
-    uint16_t *pCRC=(uint16_t*)(pData+dlen);
+    std::uint16_t calc_crc{dmitigr::crc::crc16((char*)pAtom, dlen+sizeof(atom_header))};
+    std::uint16_t *pCRC=(uint16_t*)(pData+dlen);
     if(calc_crc!=*pCRC)
       return atom_is_corrupted;
 
@@ -660,17 +669,14 @@ protected:
     if(OK!=m_StorageState)
       return m_StorageState;
 
-
-    struct atom_header *pAtom;
-
     unsigned int nAtomsCount=GetAtomsCount();
     if(nAtom>nAtomsCount)
       return op_result::atom_not_found;
 
     bool bAddingNew=(nAtom==nAtomsCount);
 
-
-    const char *pMemBuf=GetMemBuf();
+    char* pMemBuf{GetMemBuf()};
+    atom_header* pAtom{};
     op_result res=FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
     if(bAddingNew) {
       if(op_result::atom_not_found!=res)
@@ -710,12 +716,13 @@ protected:
     uint16_t *pCRC=(uint16_t*)(pData+req_size);
     for(unsigned int i=0; i<req_size; i++)
       pData[i]=wbuf[i];
-    *pCRC=getcrc((char*)pAtom, req_size+sizeof(struct atom_header)); //set CRC stamp, atom is ready
+    *pCRC = dmitigr::crc::crc16((char*)pAtom, req_size+sizeof(atom_header)); //set CRC stamp, atom is ready
 
-    ((struct header_t *)(pMemBuf))->eeplen+=nMemAdjustVal;
+    auto* const header = reinterpret_cast<Header*>(pMemBuf);
+    header->eeplen += nMemAdjustVal;
     if(bAddingNew)
       //also setup the header with the new data:
-      ((struct header_t *)(pMemBuf))->numatoms=nAtom+1;
+      header->numatoms = nAtom + 1;
 
     return op_result::OK;
   }
@@ -736,10 +743,9 @@ public:
    * \brief Returns the total atoms count
    * \return
    */
-  unsigned int GetAtomsCount()
+  unsigned GetAtomsCount() const noexcept
   {
-    struct header_t *pHeader=(struct header_t *)GetMemBuf();
-    return pHeader->numatoms;
+    return reinterpret_cast<const Header*>(GetMemBuf())->numatoms;
   }
 
   /*!
@@ -761,7 +767,7 @@ public:
    */
   void Reset()
   {
-    SetMemBufSize(sizeof(struct header_t));
+    SetMemBufSize(sizeof(Header));
     m_StorageState=ResetStorage(GetMemBuf(), GetMemBufSize());
   }
 
@@ -808,7 +814,12 @@ protected:
   /// @name Memory control
   /// @{
 
-  const char* GetMemBuf()
+  const char* GetMemBuf() const noexcept
+  {
+    return m_pFIFObuf->data();
+  }
+
+  char* GetMemBuf() noexcept
   {
     return m_pFIFObuf->data();
   }
@@ -842,97 +853,93 @@ private:
   static constexpr unsigned char version{1};
 
   struct atom_header {
-    uint16_t type;
-    uint16_t count;
-    uint32_t dlen;
+    std::uint16_t type{};
+    std::uint16_t count{};
+    std::uint32_t dlen{};
     // char data_begin;
   };
 
-  op_result FindAtomHeader(unsigned int nAtom, const char *pMemBuf,
-    const int MemBufSize, struct atom_header **pHeaderBegin)
+  op_result FindAtomHeader(unsigned nAtom, char* const pMemBuf,
+    const std::size_t MemBufSize, atom_header** pHeaderBegin)
   {
-    struct header_t *pHeader=(struct header_t *)(pMemBuf);
-    const char *pMemLimit=(pMemBuf+MemBufSize);
+    const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
+    char* mem_buf_end = pMemBuf + MemBufSize;
 
-    op_result rv=op_result::OK;
+    op_result rv{op_result::OK};
 
-    //check if nAtom fits the boundares:
-    if(nAtom>=pHeader->numatoms)
-      {
-        nAtom=pHeader->numatoms;
-        rv=op_result::atom_not_found;
-      }
+    // Check if nAtom fits the boundares.
+    if(nAtom >= header->numatoms) {
+      nAtom = header->numatoms;
+      rv = op_result::atom_not_found;
+    }
 
-    const char *pAtomPtr=(pMemBuf+sizeof (struct header_t));
-    for(int i=0; i<nAtom; i++)
-      {
-        pAtomPtr+=(sizeof(struct atom_header) + ((struct atom_header *)pAtomPtr)->dlen);
-        if(pAtomPtr>pMemLimit)
-          {
-            //return memory violation
-            return op_result::storage_is_corrupted;
-          }
-      }
+    char* pAtomPtr = pMemBuf + sizeof(Header);
+    for(unsigned int i{}; i < nAtom; ++i) {
+      pAtomPtr += sizeof(atom_header) + reinterpret_cast<atom_header*>(pAtomPtr)->dlen;
+      if (pAtomPtr > mem_buf_end)
+        return op_result::storage_is_corrupted;
+    }
 
-    *pHeaderBegin=(struct atom_header *)pAtomPtr;  //always return the pointer to the next atom or at least where it should be...
+    // Always out the pointer to the next atom or at least where it should be.
+    *pHeaderBegin = reinterpret_cast<atom_header*>(pAtomPtr);
     return rv;
   }
 
-  op_result VerifyAtom(struct atom_header *pAtom)
+  op_result VerifyAtom(const atom_header* const pAtom)
   {
     //check the atom CRC:
-    const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
-    const char *pData=(const char*)pAtom + sizeof(struct atom_header);
+    const auto dlen = pAtom->dlen - 2; // real dlen without CRC
+    const auto* const pAtomOffset = reinterpret_cast<const char*>(pAtom);
+    const auto* const pDataOffset = pAtomOffset + sizeof(atom_header);
+    const auto* const pCrcOffset = pDataOffset + dlen;
 
-    uint16_t calc_crc=getcrc((char*)pAtom, dlen+sizeof(atom_header) );
-    uint16_t *pCRC=(uint16_t*)(pData+dlen);
-    if(calc_crc!=*pCRC)
+    const auto crc = *reinterpret_cast<const std::uint16_t*>(pCrcOffset);
+    const auto calc_crc = dmitigr::crc::crc16(pAtomOffset, dlen + sizeof(atom_header));
+    if (crc != calc_crc)
       return op_result::atom_is_corrupted;
 
     return op_result::OK;
   }
 
-  op_result VerifyStorage(const char *pMemBuf, const int MemBufSize)
+  op_result VerifyStorage(const char* pMemBuf, const std::size_t MemBufSize)
   {
-    if(MemBufSize<sizeof(struct header_t))
+    if(MemBufSize < sizeof(Header))
       return op_result::storage_is_corrupted;
 
-    struct header_t *pHeader=(struct header_t *)(pMemBuf);
-    const char *pMemLimit=(pMemBuf+MemBufSize);
+    const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
+    const char* const pMemLimit = pMemBuf + MemBufSize;
 
-    if(signature!=pHeader->signature || version!=pHeader->ver || pHeader->res!=0 || pHeader->eeplen>MemBufSize)
-      return  op_result::storage_is_corrupted;
+    if (header->signature != signature || header->ver != version
+      || header->res || header->eeplen > MemBufSize)
+      return op_result::storage_is_corrupted;
 
-    //verify all atoms:
-    int nAtoms=pHeader->numatoms;
-    const char *pAtomPtr=(pMemBuf+sizeof (struct header_t));
-    for(int i=0; i<nAtoms; i++)
-      {
-        op_result res=VerifyAtom( (struct atom_header *)pAtomPtr );
-        if(op_result::OK!=res)
-          return res;
-        pAtomPtr+=(sizeof(struct atom_header) + ((struct atom_header *)pAtomPtr)->dlen);
-        if(pAtomPtr>pMemLimit)
-          {
-            //return memory violation
-            return op_result::storage_is_corrupted;
-          }
-      }
+    // Verify all the atoms.
+    const std::uint16_t nAtoms{header->numatoms};
+    const char* pAtomPtr = pMemBuf + sizeof(Header);
+    for(std::uint16_t i{}; i < nAtoms; ++i) {
+      const auto* const atom_hdr = reinterpret_cast<const atom_header*>(pAtomPtr);
+      const op_result res{VerifyAtom(atom_hdr)};
+      if (res != op_result::OK)
+        return res;
+      pAtomPtr += sizeof(atom_header) + atom_hdr->dlen;
+      if (pAtomPtr > pMemLimit)
+        return op_result::storage_is_corrupted;
+    }
     return op_result::OK;
   }
 
-  op_result ResetStorage(const char *pMemBuf, const int MemBufSize)
+  op_result ResetStorage(char* pMemBuf, const std::size_t MemBufSize)
   {
-    if(MemBufSize<sizeof(struct header_t))
+    if (MemBufSize < sizeof(Header))
       return op_result::storage_is_corrupted;
 
-    struct header_t *pHeader=(struct header_t *)(pMemBuf);
+    auto* const header = reinterpret_cast<Header*>(pMemBuf);
 
-    pHeader->signature=signature;
-    pHeader->ver=version;
-    pHeader->res=0;
-    pHeader->numatoms=0;
-    pHeader->eeplen=sizeof(struct header_t);
+    header->signature = signature;
+    header->ver = version;
+    header->res = 0;
+    header->numatoms = 0;
+    header->eeplen = sizeof(Header);
     return op_result::OK;
   }
 };
