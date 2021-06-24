@@ -33,6 +33,12 @@
 
 namespace panda::timeswipe::hat {
 
+/// Forward declaration of the manager.
+class Manager;
+
+/// Forward declaration of the calibration map.
+class CalibrationMap;
+
 /// EEPROM header.
 struct Header final {
   std::uint32_t signature{};
@@ -42,8 +48,10 @@ struct Header final {
   std::uint32_t eeplen{};
 };
 
+namespace atom {
+
 /// Atom Type.
-enum class AtomType : std::uint16_t {
+enum class Type : std::uint16_t {
   Invalid = 0x0000,
   VendorInfo = 0x0001,
   GpioMap = 0x0002,
@@ -52,16 +60,16 @@ enum class AtomType : std::uint16_t {
   Invalid2 = 0xFFFF
 };
 
-class HatAtomStub final {
+class Stub final {
 public:
-  explicit HatAtomStub(const int nIndex) noexcept
+  explicit Stub(const int nIndex) noexcept
     : m_index{nIndex}
   {}
 
 private:
-  friend class HatsMemMan;
+  friend hat::Manager;
 
-  static constexpr AtomType m_type{AtomType::Custom};
+  static constexpr Type m_type{Type::Custom};
   int m_index{};
 
   /*!
@@ -86,9 +94,9 @@ private:
 };
 
 /// A vendor info atom.
-class HatAtomVendorInfo final {
+class VendorInfo final {
 public:
-  HatAtomVendorInfo(const std::array<std::uint32_t, 4> uuid,
+  VendorInfo(const std::array<std::uint32_t, 4> uuid,
     const std::uint16_t pid,
     const std::uint16_t pver,
     std::string vstr,
@@ -126,9 +134,9 @@ public:
   }
 
 private:
-  friend class HatsMemMan;
+  friend hat::Manager;
 
-  static constexpr AtomType m_type{AtomType::VendorInfo};
+  static constexpr Type m_type{Type::VendorInfo};
   static constexpr int m_index{};
   std::array<std::uint32_t, 4> m_uuid{};
   std::uint16_t m_pid{};
@@ -229,12 +237,12 @@ private:
 };
 
 /// GPIO map atom
-class HatAtomGPIOmap final {
+class GpioMap final {
 public:
-  HatAtomGPIOmap() = default;
+  GpioMap() = default;
 
 private:
-  friend class HatsMemMan;
+  friend hat::Manager;
 
   struct {
     std::uint8_t drive      :4;
@@ -254,7 +262,7 @@ private:
     std::uint8_t is_used  :1;
   } m_gpio[28]{};
 
-  static constexpr AtomType m_type{AtomType::GpioMap};
+  static constexpr Type m_type{Type::GpioMap};
   static constexpr int m_index{1}; // FIXME ? (should be 2?)
 
     /*!
@@ -297,73 +305,7 @@ private:
   }
 };
 
-class CalAtomPair final {
-public:
-  CalAtomPair() = default;
-
-  CalAtomPair(const float m, const std::uint16_t b) noexcept
-    : m_{m}
-    , b_{b}
-  {}
-
-  void set_m(const float m) noexcept
-  {
-    m_ = m;
-  }
-
-  void set_b(const std::uint16_t b) noexcept
-  {
-    b_ = b;
-  }
-
-  float m() const noexcept
-  {
-    return m_;
-  }
-
-  std::uint16_t b() const noexcept
-  {
-    return b_;
-  }
-
-  /*!
-   * \brief Loads data fields from an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
-   */
-  bool load(CFIFO &buf){
-
-    typeSChar ch;
-    uint8_t   *pBuf=(uint8_t *)&m_;
-    for(int i=0; i<6; i++)
-      {
-        buf>>ch;
-        pBuf[i]=(uint8_t)ch;
-      }
-    return true;
-  }
-
-  /*!
-   * \brief Stores data fields to an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
-   */
-  bool store(CFIFO &buf){
-
-    uint8_t   *pBuf=(uint8_t *)&m_;
-    for(int i=0; i<6; i++)
-      {
-        buf<<pBuf[i];
-      }
-    return true;
-  }
-
-private:
-  float m_{1};
-  std::uint16_t b_{};
-};
-
-class CalAtom final {
+class Calibration final {
 public:
   enum class Type : std::uint16_t {
     Header   = 0x0000,
@@ -380,8 +322,71 @@ public:
     Invalid  = 0xFFFF
   };
 
-  CalAtom(const CalAtom::Type nType, const std::uint16_t nCount)
-    : m_header{nType, nCount, nCount * sizeof(CalAtomPair)}
+  class Data final {
+  public:
+    Data() = default;
+
+    Data(const float m, const std::uint16_t b) noexcept
+      : m_{m}
+      , b_{b}
+    {}
+
+    void set_m(const float m) noexcept
+    {
+      m_ = m;
+    }
+
+    void set_b(const std::uint16_t b) noexcept
+    {
+      b_ = b;
+    }
+
+    float m() const noexcept
+    {
+      return m_;
+    }
+
+    std::uint16_t b() const noexcept
+    {
+      return b_;
+    }
+
+    /*!
+     * \brief Loads data fields from an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool load(CFIFO& buf)
+    {
+      typeSChar ch;
+      auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_);
+      for(int i{}; i<6; i++) {
+        buf >> ch;
+        pBuf[i] = static_cast<std::uint8_t>(ch);
+      }
+      return true;
+    }
+
+    /*!
+     * \brief Stores data fields to an ATOM binary image
+     * \param buf ATOM binary image
+     * \return true=successful, false=failure
+     */
+    bool store(CFIFO& buf)
+    {
+      auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_);
+      for(int i{}; i<6; i++)
+        buf << pBuf[i];
+      return true;
+    }
+
+  private:
+    float m_{1};
+    std::uint16_t b_{};
+  };
+
+  Calibration(const Type nType, const std::uint16_t nCount)
+    : m_header{nType, nCount, nCount * sizeof(Data)}
     , m_data{nCount}
   {}
 
@@ -390,18 +395,18 @@ public:
     return m_header.dlen + sizeof(Header);
   }
 
-  const std::vector<CalAtomPair>& pairs() const noexcept
+  const std::vector<Data>& data() const noexcept
   {
     return m_data;
   }
 
-  void set(const std::size_t index, CalAtomPair value)
+  void set(const std::size_t index, const Data& value)
   {
     m_data[index] = value;
   }
 
 private:
-  friend class HatAtomCalibration;
+  friend hat::CalibrationMap;
 
   struct Header final {
     Type type{};
@@ -409,7 +414,7 @@ private:
     std::uint32_t dlen{};
   } m_header;
 
-  std::vector<CalAtomPair> m_data;
+  std::vector<Data> m_data;
 
   /*!
    * \brief Loads data fields from an ATOM binary image
@@ -418,19 +423,17 @@ private:
    */
   bool load(CFIFO &buf)
   {
-    //load the header:
-    Header theader;
-
+    // Load header.
+    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
     typeSChar ch;
-    uint8_t   *pBuf=(uint8_t *)&theader;
-    for(size_t i=0; i<sizeof(Header); i++) {
+    for (std::size_t i{}; i < sizeof(Header); ++i) {
       buf >> ch;
-      pBuf[i] = (uint8_t)ch;
+      pBuf[i] = static_cast<std::uint8_t>(ch);
     }
 
-    //load the rest:
-    for(auto &pair : m_data)
-      pair.load(buf);
+    // Load data.
+    for(auto& data : m_data) data.load(buf);
+
     return true;
   }
 
@@ -439,35 +442,37 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO &buf)
+  bool store(CFIFO& buf)
   {
-    //store the header:
-    uint8_t   *pBuf=(uint8_t *)&m_header;
-    for(std::size_t i{}; i < sizeof(Header); ++i)
+    // Save header.
+    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
+    for (std::size_t i{}; i < sizeof(Header); ++i)
       buf << pBuf[i];
 
-    //save the rest:
-    for(auto &pair : m_data)
-      pair.store(buf);
+    // Save data.
+    for (auto& data : m_data) data.store(buf);
+
     return true;
   }
 };
 
-class HatAtomCalibration final {
+} // namespace atom
+
+class CalibrationMap final {
 public:
-  HatAtomCalibration()
+  CalibrationMap()
   {
     // Set data.
     m_atoms.reserve(9);
-    m_atoms.emplace_back(CalAtom::Type::V_In1, 22);
-    m_atoms.emplace_back(CalAtom::Type::V_In2, 22);
-    m_atoms.emplace_back(CalAtom::Type::V_In3, 22);
-    m_atoms.emplace_back(CalAtom::Type::V_In4, 22);
-    m_atoms.emplace_back(CalAtom::Type::V_supply, 1);
-    m_atoms.emplace_back(CalAtom::Type::C_In1, 22);
-    m_atoms.emplace_back(CalAtom::Type::C_In2, 22);
-    m_atoms.emplace_back(CalAtom::Type::C_In3, 22);
-    m_atoms.emplace_back(CalAtom::Type::C_In4, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::V_In1, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::V_In2, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::V_In3, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::V_In4, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::V_supply, 1);
+    m_atoms.emplace_back(atom::Calibration::Type::C_In1, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::C_In2, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::C_In3, 22);
+    m_atoms.emplace_back(atom::Calibration::Type::C_In4, 22);
 
     // Set header.
     m_header.cversion = 1;
@@ -475,25 +480,25 @@ public:
     m_header.numcatoms = static_cast<std::uint16_t>(m_atoms.size());
 
     std::size_t sztotal{sizeof(Header)};
-    for (auto &atom : m_atoms)
+    for (auto& atom : m_atoms)
       sztotal += atom.GetSizeInBytes();
     m_header.callen = sztotal;
   }
 
-  const CalAtom& refAtom(const CalAtom::Type type) const noexcept
+  const atom::Calibration& refAtom(const atom::Calibration::Type type) const noexcept
   {
     return m_atoms[static_cast<std::uint16_t>(type) - 1];
   }
 
-  CalAtom& refAtom(const CalAtom::Type type) noexcept
+  atom::Calibration& refAtom(const atom::Calibration::Type type) noexcept
   {
-    return const_cast<CalAtom&>(static_cast<const HatAtomCalibration*>(this)->refAtom(type));
+    return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->refAtom(type));
   }
 
-  bool CheckAtomIndex(const CalAtom::Type type, std::string &strError,
+  bool CheckAtomIndex(const atom::Calibration::Type type, std::string &strError,
     bool bCheckExistance = true) const noexcept
   {
-    if (type == CalAtom::Type::Header || type == CalAtom::Type::Invalid) {
+    if (type == atom::Calibration::Type::Header || type == atom::Calibration::Type::Invalid) {
       strError = "invalid atom type";
       return false;
     }
@@ -507,47 +512,49 @@ public:
     return true;
   }
 
-  bool CheckPairIndex(const CalAtom::Type type, const std::size_t nPairIndex, std::string &strError) const noexcept
+  bool CheckPairIndex(const atom::Calibration::Type type, const std::size_t nPairIndex, std::string &strError) const noexcept
   {
     if (!CheckAtomIndex(type, strError))
       return false;
 
-    if (nPairIndex >= refAtom(type).pairs().size()) {
+    if (nPairIndex >= refAtom(type).data().size()) {
       strError="wrong pair index";
       return false;
     }
     return true;
   }
 
-  bool GetPairsCount(const CalAtom::Type type, std::size_t& nCount, std::string& strError) const noexcept
+  bool GetPairsCount(const atom::Calibration::Type type, std::size_t& nCount, std::string& strError) const noexcept
   {
     if (!CheckAtomIndex(type, strError))
       return false;
 
-    nCount = refAtom(type).pairs().size();
+    nCount = refAtom(type).data().size();
     return true;
   }
 
-  bool SetCalPair(const CalAtom::Type type, const std::size_t nPairIndex, const CalAtomPair& Pair, std::string& strError)
+  bool SetCalPair(const atom::Calibration::Type type, const std::size_t nPairIndex,
+    const atom::Calibration::Data& data, std::string& strError)
   {
     if (!CheckPairIndex(type, nPairIndex, strError))
       return false;
 
-    refAtom(type).set(nPairIndex, Pair);
+    refAtom(type).set(nPairIndex, data);
     return true;
   }
 
-  bool GetCalPair(const CalAtom::Type type, const std::size_t nPairIndex, CalAtomPair& Pair, std::string& strError)
+  bool GetCalPair(const atom::Calibration::Type type, const std::size_t nPairIndex,
+    atom::Calibration::Data& data, std::string& strError) const noexcept
   {
     if (!CheckPairIndex(type, nPairIndex, strError))
       return false;
 
-    Pair = refAtom(type).pairs()[nPairIndex];
+    data = refAtom(type).data()[nPairIndex];
     return true;
   }
 
 private:
-  friend class HatsMemMan;
+  friend hat::Manager;
 
   struct Header final {
     std::uint8_t cversion{};
@@ -557,8 +564,8 @@ private:
     std::uint32_t callen{};
   } __attribute__((packed)) m_header;
 
-  std::vector<CalAtom> m_atoms;
-  AtomType m_type{AtomType::Custom};
+  std::vector<atom::Calibration> m_atoms;
+  atom::Type m_type{atom::Type::Custom};
   int m_index{3};
 
   /*!
@@ -610,13 +617,13 @@ private:
 };
 
 /// A manager class for working with HATs-EEPROM binary image
-class HatsMemMan final {
+class Manager final {
 public:
   /*!
    * \brief A class constructor
    * \param pFIFObuf a buffer containing EEPROM binary image
    */
-  explicit HatsMemMan(std::shared_ptr<CFIFO> pFIFObuf = {})
+  explicit Manager(std::shared_ptr<CFIFO> pFIFObuf = {})
     : m_pFIFObuf{std::move(pFIFObuf)}
   {}
 
@@ -635,7 +642,7 @@ public:
    * \param rbuf data receive bufer
    * \return read operation result (OK or an error)
    */
-  OpResult ReadAtom(unsigned int nAtom, AtomType &nAtomType, CFIFO &rbuf)
+  OpResult ReadAtom(unsigned int nAtom, atom::Type& nAtomType, CFIFO& rbuf)
   {
     if (m_StorageState != OpResult::OK) return m_StorageState;
 
@@ -647,7 +654,7 @@ public:
     //check the atom CRC:
     const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
     const char *pData=(const char*)pAtom + sizeof(AtomHeader); //&pAtom->data_begin;
-    nAtomType=static_cast<AtomType>(pAtom->type);
+    nAtomType=static_cast<atom::Type>(pAtom->type);
 
     std::uint16_t calc_crc{dmitigr::crc::crc16((char*)pAtom, dlen + sizeof(AtomHeader))};
     std::uint16_t *pCRC=(uint16_t*)(pData+dlen);
@@ -668,11 +675,11 @@ public:
    * \param wbuf data bufer
    * \return read operation result (OK or an error)
    */
-  OpResult WriteAtom(unsigned int nAtom, AtomType nAtomType, CFIFO &wbuf)
+  OpResult WriteAtom(unsigned int nAtom, atom::Type nAtomType, CFIFO& wbuf)
   {
     if (m_StorageState != OpResult::OK) return m_StorageState;
 
-    unsigned int nAtomsCount=GetAtomsCount();
+    unsigned int nAtomsCount = GetAtomsCount();
     if (nAtom > nAtomsCount)
       return OpResult::atom_not_found;
 
@@ -769,13 +776,13 @@ public:
    * \brief Loads the atom of given type from the image
    * \return operation result: OK on success
    */
-  template <typename typeAtom>
-  OpResult Load(typeAtom &atom)
+  template <typename A>
+  OpResult Load(A& atom)
   {
     CFIFO buf;
-    AtomType nAtomType;
-    if (const auto r = ReadAtom(atom.m_index, nAtomType, buf);
-      r == OpResult::OK && (atom.m_type != nAtomType || !atom.load(buf)))
+    atom::Type type;
+    if (const auto r = ReadAtom(atom.m_index, type, buf);
+      r == OpResult::OK && (atom.m_type != type || !atom.load(buf)))
       return OpResult::atom_is_corrupted;
     else
       return r;
@@ -785,8 +792,8 @@ public:
    * \brief Stores the atom of given type to the image
    * \return operation result: OK on success
    */
-  template <typename typeAtom>
-  OpResult Store(typeAtom &atom)
+  template <typename A>
+  OpResult Store(A& atom)
   {
     if (m_StorageState != OpResult::OK) return m_StorageState;
     CFIFO buf;
@@ -848,7 +855,7 @@ private:
   /// @name Atom stuff
   /// @{
 
-  OpResult FindAtomHeader(unsigned nAtom, char* const pMemBuf,
+  static OpResult FindAtomHeader(unsigned nAtom, char* const pMemBuf,
     const std::size_t MemBufSize, AtomHeader** pHeaderBegin)
   {
     const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
