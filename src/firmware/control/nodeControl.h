@@ -90,7 +90,7 @@ protected:
         /*!
          * \brief The external EEPROM storage manager
          */
-        CHatsMemMan    m_EEPROMstorage;
+        HatsMemMan    m_EEPROMstorage;
 
         /*!
          * \brief The serial bus used to read/write EEPROM binary image placed in CFIFO
@@ -100,7 +100,7 @@ protected:
         /*!
          * \brief The board calibration status
          */
-        CHatsMemMan::op_result m_CalStatus;
+        HatsMemMan::op_result m_CalStatus;
 
         /*!
          * \brief true when settings are first loaded from the persist storage
@@ -200,7 +200,7 @@ protected:
          * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
          * \param Data
          */
-        void ApplyCalibrationData(CHatAtomCalibration &Data);
+        void ApplyCalibrationData(HatAtomCalibration &Data);
 
         /*!
          * \brief JSON handler to store/retrieve calibration atoms.
@@ -240,7 +240,7 @@ public:
             m_bCalEnabled=bHow;
             if(bHow)
             {
-                CHatAtomCalibration cal_data;
+                HatAtomCalibration cal_data;
                 m_CalStatus=m_EEPROMstorage.Load(cal_data);
                 ApplyCalibrationData(cal_data);
             }
@@ -484,7 +484,7 @@ public:
          */
         inline bool GetCalStatus(){
 
-            return (CHatsMemMan::op_result::OK==m_CalStatus);
+            return (HatsMemMan::op_result::OK==m_CalStatus);
         }
 
         /*!
@@ -500,7 +500,7 @@ public:
          * \param strError - the operation error (if occurred)
          * \return true on success, false otherwise (actual error is placed into the strError )
          */
-        bool SetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
+        bool SetCalibrationData(HatAtomCalibration &Data, std::string &strError);
 
         /*!
          * \brief Retrieves the calibration data preloaded into the EEPROM image RAM storage
@@ -508,7 +508,7 @@ public:
          * \param strError - the operation error (if occurred)
          * \return true on success, false otherwise (actual error is placed into the strError )
          */
-        bool GetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
+        bool GetCalibrationData(HatAtomCalibration &Data, std::string &strError);
 
         /*!
          * \brief Starts/Stops the board cooler
