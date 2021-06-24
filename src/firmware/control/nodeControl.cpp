@@ -27,20 +27,10 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     m_EEPROMstorage.SetBuf(pMemBuf);
     m_pEEPROMbus=pBus;
 
-    if(HatsMemMan::op_result::OK!=m_EEPROMstorage.Verify()) //image is corrupted
-    {
-        //make default image:
-        m_EEPROMstorage.Reset();
-
-        HatAtomVendorInfo vinf;
-
-        vinf.m_uuid=CSamService::GetSerial();
-        vinf.m_PID=0;
-        vinf.m_pver=2;
-        vinf.m_vstr="PANDA";
-        vinf.m_pstr="TimeSwipe";
-
-        m_EEPROMstorage.Store(vinf); //storage is ready
+    if (m_EEPROMstorage.Verify() != HatsMemMan::op_result::OK) {
+      m_EEPROMstorage.Reset();
+      HatAtomVendorInfo vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
+      m_EEPROMstorage.Store(vinf); //storage is ready
     }
 
     //fill blank atoms with the stubs:

@@ -80,32 +80,53 @@ private:
 /// A vendor info atom.
 class HatAtomVendorInfo final {
 public:
-  //uint32_t    m_uuid[4];  //represented as 4 32-bit words
-  std::array<uint32_t, 4> m_uuid;
-  uint16_t    m_PID;
-  uint16_t    m_pver;
-  std::string m_vstr;
-  std::string m_pstr;
+  HatAtomVendorInfo(const std::array<std::uint32_t, 4> uuid,
+    const std::uint16_t pid,
+    const std::uint16_t pver,
+    std::string vstr,
+    std::string pstr) noexcept
+    : m_uuid{uuid}
+    , m_pid{pid}
+    , m_pver{pver}
+    , m_vstr{std::move(vstr)}
+    , m_pstr{std::move(pstr)}
+  {}
 
-  HatAtomVendorInfo(){reset();}
+  const std::array<std::uint32_t, 4>& uuid() const noexcept
+  {
+    return m_uuid;
+  }
+
+  std::uint16_t pid() const noexcept
+  {
+    return m_pid;
+  }
+
+  std::uint16_t pver() const noexcept
+  {
+    return m_pver;
+  }
+
+  const std::string& vstr() const noexcept
+  {
+    return m_vstr;
+  }
+
+  const std::string& pstr() const noexcept
+  {
+    return m_pstr;
+  }
 
 private:
   friend class HatsMemMan;
-  AtomType m_type{AtomType::VendorInfo};
-  int m_index{};
 
-    /*!
-     * \brief Fills data fields with zeros
-     */
-  void reset()
-  {
-    //memset(m_uuid, 0, 20);
-    m_uuid.fill(0);
-    m_PID=0;
-    m_pver=0;
-    m_vstr.erase();
-    m_pstr.erase();
-  }
+  static constexpr AtomType m_type{AtomType::VendorInfo};
+  static constexpr int m_index{};
+  std::array<std::uint32_t, 4> m_uuid{};
+  std::uint16_t m_pid{};
+  std::uint16_t m_pver{};
+  std::string m_vstr;
+  std::string m_pstr;
 
   /*!
      * \brief Loads data fields from an ATOM binary image
@@ -136,7 +157,7 @@ private:
       }
     typeSChar b0, b1;
     buf>>b0>>b1;
-    *((uint8_t*)&m_PID)=b0; *( ((uint8_t*)&m_PID) +1 )=b1;
+    *((uint8_t*)&m_pid)=b0; *( ((uint8_t*)&m_pid) +1 )=b1;
     buf>>b0>>b1;
     *((uint8_t*)&m_pver)=b0; *( ((uint8_t*)&m_pver) +1 )=b1;
 
@@ -182,7 +203,7 @@ private:
       {
         buf<<pBuf[i];
       }
-    buf<<*((uint8_t*)&m_PID)<<*( ((uint8_t*)&m_PID) +1 );
+    buf<<*((uint8_t*)&m_pid)<<*( ((uint8_t*)&m_pid) +1 );
     buf<<*((uint8_t*)&m_pver)<<*( ((uint8_t*)&m_pver) +1 );
 
 
@@ -255,7 +276,7 @@ private:
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_bank_drive);
     for (int i{}; i < 30; ++i) {
       buf >> ch;
-      pBuf[i] = reinterpret_cast<std::uint8_t>(ch);
+      pBuf[i] = static_cast<std::uint8_t>(ch);
     }
     return true;
   }
