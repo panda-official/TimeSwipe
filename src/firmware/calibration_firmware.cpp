@@ -8,7 +8,7 @@ Copyright (c) 2019-2020 Panda Team
 //build for ADCs-DACs:
 
 #include "cmd.h"
-#include "hats.hpp"
+#include "hat.hpp"
 #include "os.h"
 #include "std_port.h"
 

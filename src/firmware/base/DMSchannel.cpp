@@ -6,7 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "../../common/gain.hpp"
-#include "../../common/hats.hpp"
+#include "../../common/hat.hpp"
 #include "base/DMSchannel.h"
 #include "control/nodeControl.h"
 

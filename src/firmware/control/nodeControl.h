@@ -17,7 +17,7 @@ Copyright (c) 2019 Panda Team
 #include "../base/BaseMesChannel.h"
 #include "../base/RawBinStorage.h"
 #include "../json/json_evsys.h"
-#include "../../common/hats.hpp"
+#include "../../common/hat.hpp"
 
 #include <memory>
 
