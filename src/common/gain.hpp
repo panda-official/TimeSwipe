@@ -69,4 +69,7 @@ std::size_t OgainTableIndex(const float value) noexcept
 
 } // namespace panda::timeswipe
 
+/// FIXME: remove after placing the entire code base in the namespace
+using namespace panda::timeswipe;
+
 #endif  // PANDA_TIMESWIPE_COMMON_GAIN_HPP

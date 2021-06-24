@@ -31,6 +31,8 @@
 #include <cstdint>
 #include <cstring>
 
+namespace panda::timeswipe::hat {
+
 /// EEPROM header.
 struct Header final {
   std::uint32_t signature{};
@@ -936,5 +938,10 @@ private:
 
   /// @}
 };
+
+} // namespace panda::timeswipe::hat
+
+/// FIXME: remove after placing the entire code base in the namespace
+using namespace panda::timeswipe;
 
 #endif  // PANDA_TIMESWIPE_COMMON_HATS_HPP

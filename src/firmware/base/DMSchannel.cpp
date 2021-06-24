@@ -10,9 +10,6 @@ Copyright (c) 2019-2020 Panda Team
 #include "base/DMSchannel.h"
 #include "control/nodeControl.h"
 
-/// FIXME: namespace
-using namespace panda::timeswipe;
-
 void CDMSchannel::SetAmpGain(const float GainValue)
 {
     const auto index = OgainTableIndex(GainValue);
@@ -31,12 +28,12 @@ void CDMSchannel::UpdateOffsets()
         return;
 
     std::string strError;
-    HatAtomCalibration cdata;
+    hat::HatAtomCalibration cdata;
     m_pCont->GetCalibrationData(cdata, strError);
 
-    CalAtomPair pair;
-    const auto atom = mes_mode::Voltage == m_MesMode ? CalAtom::Type::V_In1 : CalAtom::Type::C_In1;
-    const CalAtom::Type type{static_cast<std::uint16_t>(atom) + static_cast<std::uint16_t>(m_nChanInd)};
+    hat::CalAtomPair pair;
+    const auto atom = mes_mode::Voltage == m_MesMode ? hat::CalAtom::Type::V_In1 : hat::CalAtom::Type::C_In1;
+    const hat::CalAtom::Type type{static_cast<std::uint16_t>(atom) + static_cast<std::uint16_t>(m_nChanInd)};
     cdata.GetCalPair(type, m_nGainIndex, pair, strError);
     m_pDAC->SetRawOutput(pair.b());
 }

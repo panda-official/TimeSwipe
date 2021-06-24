@@ -27,25 +27,25 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     m_EEPROMstorage.SetBuf(pMemBuf);
     m_pEEPROMbus=pBus;
 
-    if (m_EEPROMstorage.Verify() != HatsMemMan::OpResult::OK) {
+    if (m_EEPROMstorage.Verify() != hat::HatsMemMan::OpResult::OK) {
       m_EEPROMstorage.Reset();
-      HatAtomVendorInfo vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
+      hat::HatAtomVendorInfo vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
       m_EEPROMstorage.Store(vinf); //storage is ready
     }
 
     //fill blank atoms with the stubs:
     for(unsigned int i=m_EEPROMstorage.GetAtomsCount(); i<3; i++)
     {
-        HatAtomStub stub(i);
+        hat::HatAtomStub stub(i);
         m_EEPROMstorage.Store( stub );
     }
 
-    HatAtomCalibration cal_data;
+    hat::HatAtomCalibration cal_data;
     m_CalStatus=m_EEPROMstorage.Load(cal_data);
     ApplyCalibrationData(cal_data);
 }
 
-void nodeControl::ApplyCalibrationData(HatAtomCalibration &Data)
+void nodeControl::ApplyCalibrationData(hat::HatAtomCalibration &Data)
 {
     if(!m_bCalEnabled)
         return;
@@ -53,8 +53,8 @@ void nodeControl::ApplyCalibrationData(HatAtomCalibration &Data)
     if(m_pVoltageDAC){
 
         std::string strError;
-        CalAtomPair cpair;
-        Data.GetCalPair(CalAtom::Type::V_supply, 0, cpair, strError);
+        hat::CalAtomPair cpair;
+        Data.GetCalPair(hat::CalAtom::Type::V_supply, 0, cpair, strError);
 
         m_pVoltageDAC->SetLinearFactors(cpair.m(), cpair.b());
         m_pVoltageDAC->SetVal();
@@ -65,12 +65,12 @@ void nodeControl::ApplyCalibrationData(HatAtomCalibration &Data)
 
 }
 
-bool nodeControl::SetCalibrationData(HatAtomCalibration &Data, std::string &strError)
+bool nodeControl::SetCalibrationData(hat::HatAtomCalibration &Data, std::string &strError)
 {
      m_CalStatus=m_EEPROMstorage.Store(Data);
      ApplyCalibrationData(Data);
 
-    if (m_CalStatus == HatsMemMan::OpResult::OK)
+    if (m_CalStatus == hat::HatsMemMan::OpResult::OK)
     {
         if(m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf()))
             return true;
@@ -80,9 +80,9 @@ bool nodeControl::SetCalibrationData(HatAtomCalibration &Data, std::string &strE
     return false;
 }
 
-bool nodeControl::GetCalibrationData(HatAtomCalibration& Data, std::string& strError)
+bool nodeControl::GetCalibrationData(hat::HatAtomCalibration& Data, std::string& strError)
 {
-  using OpResult = HatsMemMan::OpResult;
+  using OpResult = hat::HatsMemMan::OpResult;
   if (const auto r = m_EEPROMstorage.Load(Data);
     r == OpResult::OK || r == OpResult::atom_not_found)
     return true;
@@ -93,14 +93,14 @@ bool nodeControl::GetCalibrationData(HatAtomCalibration& Data, std::string& strE
 
 bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
 {
-    HatAtomCalibration cal_atom;
+    hat::HatAtomCalibration cal_atom;
 
     //load existing atom
     nodeControl &nc=nodeControl::Instance();
     if(!nc.GetCalibrationData(cal_atom, strError))
         return false;
 
-    const CalAtom::Type type{jObj["cAtom"]};
+    const hat::CalAtom::Type type{jObj["cAtom"]};
 
     size_t nCalPairs;
     if(!cal_atom.GetPairsCount(type, nCalPairs, strError))
@@ -125,7 +125,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 
         size_t pair_ind=0;
         for(auto &el : data) {
-          CalAtomPair cpair;
+          hat::CalAtomPair cpair;
 
           //init the pair:
           if(!cal_atom.GetCalPair(type, pair_ind, cpair, strError))
@@ -157,7 +157,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     auto resp_data=nlohmann::json::array();
     for(size_t pair_ind=0; pair_ind < nCalPairs; pair_ind++)
     {
-        CalAtomPair pair;
+        hat::CalAtomPair pair;
 
         if(!cal_atom.GetCalPair(type, pair_ind, pair, strError))
             return false;
