@@ -100,7 +100,7 @@ protected:
         /*!
          * \brief The board calibration status
          */
-        HatsMemMan::op_result m_CalStatus;
+        HatsMemMan::OpResult m_CalStatus;
 
         /*!
          * \brief true when settings are first loaded from the persist storage
@@ -482,9 +482,9 @@ public:
          * \brief Returns board calibration status
          * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
          */
-        inline bool GetCalStatus(){
-
-            return (HatsMemMan::op_result::OK==m_CalStatus);
+        inline bool GetCalStatus()
+        {
+            return m_CalStatus == HatsMemMan::OpResult::OK;
         }
 
         /*!

@@ -618,7 +618,7 @@ public:
     : m_pFIFObuf{std::move(pFIFObuf)}
   {}
 
-  enum op_result {
+  enum class OpResult {
     OK,
     atom_not_found,
     atom_is_corrupted,
@@ -633,15 +633,14 @@ public:
    * \param rbuf data receive bufer
    * \return read operation result (OK or an error)
    */
-  op_result ReadAtom(unsigned int nAtom, AtomType &nAtomType, CFIFO &rbuf)
+  OpResult ReadAtom(unsigned int nAtom, AtomType &nAtomType, CFIFO &rbuf)
   {
-    if(OK!=m_StorageState)
-      return m_StorageState;
+    if (m_StorageState != OpResult::OK) return m_StorageState;
 
     AtomHeader* pAtom{};
-    op_result res=FindAtomHeader(nAtom, GetMemBuf(), GetMemBufSize(), &pAtom);
-    if(op_result::OK!=res)
-      return res;
+    if (const auto r = FindAtomHeader(nAtom,
+        GetMemBuf(), GetMemBufSize(), &pAtom); r != OpResult::OK)
+      return r;
 
     //check the atom CRC:
     const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
@@ -650,13 +649,14 @@ public:
 
     std::uint16_t calc_crc{dmitigr::crc::crc16((char*)pAtom, dlen + sizeof(AtomHeader))};
     std::uint16_t *pCRC=(uint16_t*)(pData+dlen);
-    if(calc_crc!=*pCRC)
-      return atom_is_corrupted;
+    if (calc_crc != *pCRC)
+      return OpResult::atom_is_corrupted;
 
     //fill the output variables:
     for(int i=0; i<dlen; i++)
       rbuf<<pData[i];
-    return op_result::OK;
+
+    return OpResult::OK;
   }
 
   /*!
@@ -666,26 +666,20 @@ public:
    * \param wbuf data bufer
    * \return read operation result (OK or an error)
    */
-  op_result WriteAtom(unsigned int nAtom, AtomType nAtomType, CFIFO &wbuf)
+  OpResult WriteAtom(unsigned int nAtom, AtomType nAtomType, CFIFO &wbuf)
   {
-    if(OK!=m_StorageState)
-      return m_StorageState;
+    if (m_StorageState != OpResult::OK) return m_StorageState;
 
     unsigned int nAtomsCount=GetAtomsCount();
-    if(nAtom>nAtomsCount)
-      return op_result::atom_not_found;
-
-    bool bAddingNew=(nAtom==nAtomsCount);
+    if (nAtom > nAtomsCount)
+      return OpResult::atom_not_found;
 
     char* pMemBuf{GetMemBuf()};
     AtomHeader* pAtom{};
-    op_result res=FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
-    if(bAddingNew) {
-      if(op_result::atom_not_found!=res)
-        return res;
-    } else if(op_result::OK!=res)
-      return res;
-
+    const bool bAddingNew = nAtom == nAtomsCount;
+    if (const auto r = FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
+      bAddingNew && r != OpResult::atom_not_found || r != OpResult::OK)
+      return r;
 
     //what can happaned here...if atom is not found this is ok, we can write a new one
     //the problem can be if whole storage is corrupted...
@@ -726,7 +720,7 @@ public:
       //also setup the header with the new data:
       header->numatoms = nAtom + 1;
 
-    return op_result::OK;
+    return OpResult::OK;
   }
 
   void SetBuf(std::shared_ptr<CFIFO> pBuf)
@@ -755,11 +749,9 @@ public:
    * If you are working on empty image Reset() must be called instead
    * \return operation result: OK on success
    */
-  op_result Verify()
+  OpResult Verify()
   {
-    op_result res=VerifyStorage(GetMemBuf(), GetMemBufSize());
-    m_StorageState=res;
-    return res;
+    return m_StorageState = VerifyStorage(GetMemBuf(), GetMemBufSize());
   }
 
   /*!
@@ -776,19 +768,15 @@ public:
    * \return operation result: OK on success
    */
   template <typename typeAtom>
-  op_result Load(typeAtom &atom)
+  OpResult Load(typeAtom &atom)
   {
     CFIFO buf;
     AtomType nAtomType;
-    op_result rv=ReadAtom(atom.m_index, nAtomType, buf);
-    if(op_result::OK!=rv)
-      return rv;
-    if(atom.m_type!=nAtomType)
-      return op_result::atom_is_corrupted;
-    if(!atom.load(buf))
-      return op_result::atom_is_corrupted;
-
-    return rv;
+    if (const auto r = ReadAtom(atom.m_index, nAtomType, buf);
+      r == OpResult::OK && (atom.m_type != nAtomType || !atom.load(buf)))
+      return OpResult::atom_is_corrupted;
+    else
+      return r;
   }
 
   /*!
@@ -796,11 +784,9 @@ public:
    * \return operation result: OK on success
    */
   template <typename typeAtom>
-  op_result Store(typeAtom &atom)
+  OpResult Store(typeAtom &atom)
   {
-    if(OK!=m_StorageState)
-      return m_StorageState;
-
+    if (m_StorageState != OpResult::OK) return m_StorageState;
     CFIFO buf;
     atom.store(buf);
     return WriteAtom(atom.m_index, atom.m_type, buf);
@@ -816,7 +802,7 @@ private:
 
   static constexpr std::uint32_t signature{0x69502d52};
   static constexpr std::uint8_t version{1};
-  op_result m_StorageState{storage_isnt_verified};
+  OpResult m_StorageState{OpResult::storage_isnt_verified};
   std::shared_ptr<CFIFO> m_pFIFObuf;
 
   /// @name Memory control
@@ -860,25 +846,25 @@ private:
   /// @name Atom stuff
   /// @{
 
-  op_result FindAtomHeader(unsigned nAtom, char* const pMemBuf,
+  OpResult FindAtomHeader(unsigned nAtom, char* const pMemBuf,
     const std::size_t MemBufSize, AtomHeader** pHeaderBegin)
   {
     const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
     char* mem_buf_end = pMemBuf + MemBufSize;
 
-    op_result rv{op_result::OK};
+    OpResult rv{OpResult::OK};
 
     // Check if nAtom fits the boundares.
     if(nAtom >= header->numatoms) {
       nAtom = header->numatoms;
-      rv = op_result::atom_not_found;
+      rv = OpResult::atom_not_found;
     }
 
     char* pAtomPtr = pMemBuf + sizeof(Header);
     for(unsigned int i{}; i < nAtom; ++i) {
       pAtomPtr += sizeof(AtomHeader) + reinterpret_cast<AtomHeader*>(pAtomPtr)->dlen;
       if (pAtomPtr > mem_buf_end)
-        return op_result::storage_is_corrupted;
+        return OpResult::storage_is_corrupted;
     }
 
     // Always out the pointer to the next atom or at least where it should be.
@@ -886,7 +872,7 @@ private:
     return rv;
   }
 
-  op_result VerifyAtom(const AtomHeader* const pAtom)
+  OpResult VerifyAtom(const AtomHeader* const pAtom)
   {
     //check the atom CRC:
     const auto dlen = pAtom->dlen - 2; // real dlen without CRC
@@ -897,9 +883,9 @@ private:
     const auto crc = *reinterpret_cast<const std::uint16_t*>(pCrcOffset);
     const auto calc_crc = dmitigr::crc::crc16(pAtomOffset, dlen + sizeof(AtomHeader));
     if (crc != calc_crc)
-      return op_result::atom_is_corrupted;
+      return OpResult::atom_is_corrupted;
 
-    return op_result::OK;
+    return OpResult::OK;
   }
 
   /// @}
@@ -907,37 +893,37 @@ private:
   /// @name Storage control
   /// @{
 
-  op_result VerifyStorage(const char* pMemBuf, const std::size_t MemBufSize)
+  OpResult VerifyStorage(const char* pMemBuf, const std::size_t MemBufSize)
   {
     if(MemBufSize < sizeof(Header))
-      return op_result::storage_is_corrupted;
+      return OpResult::storage_is_corrupted;
 
     const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
     const char* const pMemLimit = pMemBuf + MemBufSize;
 
     if (header->signature != signature || header->ver != version
       || header->res || header->eeplen > MemBufSize)
-      return op_result::storage_is_corrupted;
+      return OpResult::storage_is_corrupted;
 
     // Verify all the atoms.
     const std::uint16_t nAtoms{header->numatoms};
     const char* pAtomPtr = pMemBuf + sizeof(Header);
     for(std::uint16_t i{}; i < nAtoms; ++i) {
       const auto* const atom_hdr = reinterpret_cast<const AtomHeader*>(pAtomPtr);
-      const op_result res{VerifyAtom(atom_hdr)};
-      if (res != op_result::OK)
+      const OpResult res{VerifyAtom(atom_hdr)};
+      if (res != OpResult::OK)
         return res;
       pAtomPtr += sizeof(AtomHeader) + atom_hdr->dlen;
       if (pAtomPtr > pMemLimit)
-        return op_result::storage_is_corrupted;
+        return OpResult::storage_is_corrupted;
     }
-    return op_result::OK;
+    return OpResult::OK;
   }
 
-  op_result ResetStorage(char* pMemBuf, const std::size_t MemBufSize)
+  OpResult ResetStorage(char* pMemBuf, const std::size_t MemBufSize)
   {
     if (MemBufSize < sizeof(Header))
-      return op_result::storage_is_corrupted;
+      return OpResult::storage_is_corrupted;
 
     auto* const header = reinterpret_cast<Header*>(pMemBuf);
     header->signature = signature;
@@ -945,7 +931,7 @@ private:
     header->res = 0;
     header->numatoms = 0;
     header->eeplen = sizeof(Header);
-    return op_result::OK;
+    return OpResult::OK;
   }
 
   /// @}

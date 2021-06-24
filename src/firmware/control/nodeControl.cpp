@@ -27,7 +27,7 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     m_EEPROMstorage.SetBuf(pMemBuf);
     m_pEEPROMbus=pBus;
 
-    if (m_EEPROMstorage.Verify() != HatsMemMan::op_result::OK) {
+    if (m_EEPROMstorage.Verify() != HatsMemMan::OpResult::OK) {
       m_EEPROMstorage.Reset();
       HatAtomVendorInfo vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
       m_EEPROMstorage.Store(vinf); //storage is ready
@@ -70,7 +70,7 @@ bool nodeControl::SetCalibrationData(HatAtomCalibration &Data, std::string &strE
      m_CalStatus=m_EEPROMstorage.Store(Data);
      ApplyCalibrationData(Data);
 
-    if(HatsMemMan::op_result::OK==m_CalStatus)
+    if (m_CalStatus == HatsMemMan::OpResult::OK)
     {
         if(m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf()))
             return true;
@@ -79,15 +79,16 @@ bool nodeControl::SetCalibrationData(HatAtomCalibration &Data, std::string &strE
     }
     return false;
 }
-bool nodeControl::GetCalibrationData(HatAtomCalibration &Data, std::string &strError)
+
+bool nodeControl::GetCalibrationData(HatAtomCalibration& Data, std::string& strError)
 {
-    HatsMemMan::op_result res=m_EEPROMstorage.Load(Data);
+  using OpResult = HatsMemMan::OpResult;
+  if (const auto r = m_EEPROMstorage.Load(Data);
+    r == OpResult::OK || r == OpResult::atom_not_found)
+    return true;
 
-    if (HatsMemMan::op_result::OK==res || HatsMemMan::op_result::atom_not_found==res)
-        return true;
-
-    strError="EEPROM image is corrupted";
-    return false;
+  strError = "EEPROM image is corrupted";
+  return false;
 }
 
 bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
