@@ -608,7 +608,7 @@ private:
 };
 
 /// A manager class for working with HATs-EEPROM binary image
-class HatsMemMan {
+class HatsMemMan final {
 public:
   /*!
    * \brief A class constructor
@@ -626,7 +626,6 @@ public:
     storage_isnt_verified
   };
 
-protected:
   /*!
    * \brief ReadAtom reads Atom's raw binary data
    * \param nAtom absolute address of the Atom
@@ -639,17 +638,17 @@ protected:
     if(OK!=m_StorageState)
       return m_StorageState;
 
-    atom_header* pAtom{};
+    AtomHeader* pAtom{};
     op_result res=FindAtomHeader(nAtom, GetMemBuf(), GetMemBufSize(), &pAtom);
     if(op_result::OK!=res)
       return res;
 
     //check the atom CRC:
     const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
-    const char *pData=(const char*)pAtom + sizeof(struct atom_header); //&pAtom->data_begin;
+    const char *pData=(const char*)pAtom + sizeof(AtomHeader); //&pAtom->data_begin;
     nAtomType=static_cast<AtomType>(pAtom->type);
 
-    std::uint16_t calc_crc{dmitigr::crc::crc16((char*)pAtom, dlen+sizeof(atom_header))};
+    std::uint16_t calc_crc{dmitigr::crc::crc16((char*)pAtom, dlen + sizeof(AtomHeader))};
     std::uint16_t *pCRC=(uint16_t*)(pData+dlen);
     if(calc_crc!=*pCRC)
       return atom_is_corrupted;
@@ -679,7 +678,7 @@ protected:
     bool bAddingNew=(nAtom==nAtomsCount);
 
     char* pMemBuf{GetMemBuf()};
-    atom_header* pAtom{};
+    AtomHeader* pAtom{};
     op_result res=FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
     if(bAddingNew) {
       if(op_result::atom_not_found!=res)
@@ -695,12 +694,12 @@ protected:
     unsigned int req_size=wbuf.size();
     int nMemAdjustVal;
     if(bAddingNew) {
-      nMemAdjustVal=req_size+sizeof(atom_header)+2;
+      nMemAdjustVal=req_size+sizeof(AtomHeader)+2;
       AdjustMemBuf((const char*)pAtom, nMemAdjustVal); //completely new
     } else {
       int dlen=pAtom->dlen-2;
       nMemAdjustVal=(int)(req_size - dlen);
-      AdjustMemBuf((char*)pAtom+sizeof(struct atom_header), nMemAdjustVal); //keep header
+      AdjustMemBuf((char*)pAtom+sizeof(AtomHeader), nMemAdjustVal); //keep header
     }
 
 
@@ -715,11 +714,11 @@ protected:
     pAtom->type=static_cast<uint16_t>(nAtomType);
     pAtom->count=nAtom; //also zero-based atom count
     pAtom->dlen=req_size+2;
-    char *pData=(char*)pAtom+sizeof(struct atom_header);
+    char *pData=(char*)pAtom+sizeof(AtomHeader);
     uint16_t *pCRC=(uint16_t*)(pData+req_size);
     for(unsigned int i=0; i<req_size; i++)
       pData[i]=wbuf[i];
-    *pCRC = dmitigr::crc::crc16((char*)pAtom, req_size+sizeof(atom_header)); //set CRC stamp, atom is ready
+    *pCRC = dmitigr::crc::crc16((char*)pAtom, req_size+sizeof(AtomHeader)); //set CRC stamp, atom is ready
 
     auto* const header = reinterpret_cast<Header*>(pMemBuf);
     header->eeplen += nMemAdjustVal;
@@ -729,8 +728,6 @@ protected:
 
     return op_result::OK;
   }
-
-public:
 
   void SetBuf(std::shared_ptr<CFIFO> pBuf)
   {
@@ -809,10 +806,18 @@ public:
     return WriteAtom(atom.m_index, atom.m_type, buf);
   }
 
-protected:
-  op_result m_StorageState=storage_isnt_verified;
+private:
+  struct AtomHeader final {
+    std::uint16_t type{};
+    std::uint16_t count{};
+    std::uint32_t dlen{};
+    // char data_begin;
+  };
 
-  std::shared_ptr<CFIFO>   m_pFIFObuf;
+  static constexpr std::uint32_t signature{0x69502d52};
+  static constexpr std::uint8_t version{1};
+  op_result m_StorageState{storage_isnt_verified};
+  std::shared_ptr<CFIFO> m_pFIFObuf;
 
   /// @name Memory control
   /// @{
@@ -827,7 +832,7 @@ protected:
     return m_pFIFObuf->data();
   }
 
-  int GetMemBufSize()
+  int GetMemBufSize() const noexcept
   {
     return m_pFIFObuf->size();
   }
@@ -851,19 +856,12 @@ protected:
   }
 
   /// @}
-private:
-  static constexpr std::uint32_t signature{0x69502d52};
-  static constexpr unsigned char version{1};
 
-  struct atom_header {
-    std::uint16_t type{};
-    std::uint16_t count{};
-    std::uint32_t dlen{};
-    // char data_begin;
-  };
+  /// @name Atom stuff
+  /// @{
 
   op_result FindAtomHeader(unsigned nAtom, char* const pMemBuf,
-    const std::size_t MemBufSize, atom_header** pHeaderBegin)
+    const std::size_t MemBufSize, AtomHeader** pHeaderBegin)
   {
     const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
     char* mem_buf_end = pMemBuf + MemBufSize;
@@ -878,31 +876,36 @@ private:
 
     char* pAtomPtr = pMemBuf + sizeof(Header);
     for(unsigned int i{}; i < nAtom; ++i) {
-      pAtomPtr += sizeof(atom_header) + reinterpret_cast<atom_header*>(pAtomPtr)->dlen;
+      pAtomPtr += sizeof(AtomHeader) + reinterpret_cast<AtomHeader*>(pAtomPtr)->dlen;
       if (pAtomPtr > mem_buf_end)
         return op_result::storage_is_corrupted;
     }
 
     // Always out the pointer to the next atom or at least where it should be.
-    *pHeaderBegin = reinterpret_cast<atom_header*>(pAtomPtr);
+    *pHeaderBegin = reinterpret_cast<AtomHeader*>(pAtomPtr);
     return rv;
   }
 
-  op_result VerifyAtom(const atom_header* const pAtom)
+  op_result VerifyAtom(const AtomHeader* const pAtom)
   {
     //check the atom CRC:
     const auto dlen = pAtom->dlen - 2; // real dlen without CRC
     const auto* const pAtomOffset = reinterpret_cast<const char*>(pAtom);
-    const auto* const pDataOffset = pAtomOffset + sizeof(atom_header);
+    const auto* const pDataOffset = pAtomOffset + sizeof(AtomHeader);
     const auto* const pCrcOffset = pDataOffset + dlen;
 
     const auto crc = *reinterpret_cast<const std::uint16_t*>(pCrcOffset);
-    const auto calc_crc = dmitigr::crc::crc16(pAtomOffset, dlen + sizeof(atom_header));
+    const auto calc_crc = dmitigr::crc::crc16(pAtomOffset, dlen + sizeof(AtomHeader));
     if (crc != calc_crc)
       return op_result::atom_is_corrupted;
 
     return op_result::OK;
   }
+
+  /// @}
+
+  /// @name Storage control
+  /// @{
 
   op_result VerifyStorage(const char* pMemBuf, const std::size_t MemBufSize)
   {
@@ -920,11 +923,11 @@ private:
     const std::uint16_t nAtoms{header->numatoms};
     const char* pAtomPtr = pMemBuf + sizeof(Header);
     for(std::uint16_t i{}; i < nAtoms; ++i) {
-      const auto* const atom_hdr = reinterpret_cast<const atom_header*>(pAtomPtr);
+      const auto* const atom_hdr = reinterpret_cast<const AtomHeader*>(pAtomPtr);
       const op_result res{VerifyAtom(atom_hdr)};
       if (res != op_result::OK)
         return res;
-      pAtomPtr += sizeof(atom_header) + atom_hdr->dlen;
+      pAtomPtr += sizeof(AtomHeader) + atom_hdr->dlen;
       if (pAtomPtr > pMemLimit)
         return op_result::storage_is_corrupted;
     }
@@ -944,6 +947,8 @@ private:
     header->eeplen = sizeof(Header);
     return op_result::OK;
   }
+
+  /// @}
 };
 
 #endif  // PANDA_TIMESWIPE_COMMON_HATS_HPP
