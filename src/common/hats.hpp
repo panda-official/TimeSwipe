@@ -52,14 +52,14 @@ enum class AtomType : std::uint16_t {
 
 class HatAtomStub final {
 public:
-  explicit HatAtomStub(const int nIndex)
+  explicit HatAtomStub(const int nIndex) noexcept
     : m_index{nIndex}
   {}
 
 private:
   friend class HatsMemMan;
 
-  AtomType m_type{AtomType::Custom};
+  static constexpr AtomType m_type{AtomType::Custom};
   int m_index{};
 
   /*!
@@ -67,14 +67,20 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO &buf){return true;}
+  bool load(CFIFO &buf) noexcept
+  {
+    return true;
+  }
 
   /*!
    * \brief Stores data fields to an ATOM binary image
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO &buf){return true;}
+  bool store(CFIFO &buf) const noexcept
+  {
+    return true;
+  }
 };
 
 /// A vendor info atom.
@@ -223,42 +229,31 @@ private:
 /// GPIO map atom
 class HatAtomGPIOmap final {
 public:
-  HatAtomGPIOmap()
-  {
-    reset();
-  }
+  HatAtomGPIOmap() = default;
 
 private:
   friend class HatsMemMan;
 
-  struct bank_drive final {
+  struct {
     std::uint8_t drive      :4;
     std::uint8_t slew       :2;
     std::uint8_t hysteresis :2;
-  } m_bank_drive;
+  } m_bank_drive{};
 
-  struct power final {
+  struct {
     std::uint8_t back_power :1;
     std::uint8_t reserved   :7;
-  } m_power;
+  } m_power{};
 
-  struct GPIO final {
+  struct {
     std::uint8_t func_sel :3;
     std::uint8_t reserved :2;
     std::uint8_t pulltype :2;
     std::uint8_t is_used  :1;
-  } m_GPIO[28];
+  } m_gpio[28]{};
 
-  AtomType m_type{AtomType::GpioMap};
-  int m_index{1};
-
-    /*!
-     * \brief Fills data fields with zeros
-     */
-  void reset()
-  {
-    std::memset(&m_bank_drive, 0, 30);
-  }
+  static constexpr AtomType m_type{AtomType::GpioMap};
+  static constexpr int m_index{1}; // FIXME ? (should be 2?)
 
     /*!
      * \brief Loads data fields from an ATOM binary image
@@ -301,23 +296,13 @@ private:
 };
 
 class CalAtomPair final {
-private:
-  float m_{1};
-  std::uint16_t b_{};
-
 public:
   CalAtomPair() = default;
 
-  CalAtomPair(const float m, const std::uint16_t b)
+  CalAtomPair(const float m, const std::uint16_t b) noexcept
     : m_{m}
     , b_{b}
   {}
-
-  void set(const float m, const std::uint16_t b) noexcept
-  {
-    m_ = m;
-    b_ = b;
-  }
 
   void set_m(const float m) noexcept
   {
@@ -370,9 +355,14 @@ public:
       }
     return true;
   }
+
+private:
+  float m_{1};
+  std::uint16_t b_{};
 };
 
-struct CalAtom final {
+class CalAtom final {
+public:
   enum class Type : std::uint16_t {
     Header   = 0x0000,
     V_In1    = 0x0001,
@@ -388,7 +378,30 @@ struct CalAtom final {
     Invalid  = 0xFFFF
   };
 
-  struct header final {
+  CalAtom(const CalAtom::Type nType, const std::uint16_t nCount)
+    : m_header{nType, nCount, nCount * sizeof(CalAtomPair)}
+    , m_data{nCount}
+  {}
+
+  std::size_t GetSizeInBytes() const noexcept
+  {
+    return m_header.dlen + sizeof(Header);
+  }
+
+  const std::vector<CalAtomPair>& pairs() const noexcept
+  {
+    return m_data;
+  }
+
+  void set(const std::size_t index, CalAtomPair value)
+  {
+    m_data[index] = value;
+  }
+
+private:
+  friend class HatAtomCalibration;
+
+  struct Header final {
     Type type{};
     std::uint16_t count{};
     std::uint32_t dlen{};
@@ -404,11 +417,11 @@ struct CalAtom final {
   bool load(CFIFO &buf)
   {
     //load the header:
-    header theader;
+    Header theader;
 
     typeSChar ch;
     uint8_t   *pBuf=(uint8_t *)&theader;
-    for(size_t i=0; i<sizeof(header); i++) {
+    for(size_t i=0; i<sizeof(Header); i++) {
       buf >> ch;
       pBuf[i] = (uint8_t)ch;
     }
@@ -428,7 +441,7 @@ struct CalAtom final {
   {
     //store the header:
     uint8_t   *pBuf=(uint8_t *)&m_header;
-    for(std::size_t i{}; i < sizeof(header); ++i)
+    for(std::size_t i{}; i < sizeof(Header); ++i)
       buf << pBuf[i];
 
     //save the rest:
@@ -436,34 +449,33 @@ struct CalAtom final {
       pair.store(buf);
     return true;
   }
-
-  void Setup(const CalAtom::Type nType, const std::uint16_t nCount)
-  {
-    m_header.type = nType;
-    m_header.count = nCount;
-    m_header.dlen = nCount * sizeof(CalAtomPair);
-    m_data.resize(nCount);
-  }
-
-  std::size_t GetSizeInBytes()
-  {
-    return m_header.dlen + sizeof(header);
-  }
 };
 
 class HatAtomCalibration final {
 public:
-  struct Header final {
-    std::uint8_t cversion{};
-    std::uint64_t timestamp{};
-    std::uint16_t numcatoms{};
-    // Total size in bytes of all calibration data (including this header).
-    std::uint32_t callen{};
-  } __attribute__((packed)) m_header;
-
   HatAtomCalibration()
   {
-    reset();
+    // Set data.
+    m_atoms.reserve(9);
+    m_atoms.emplace_back(CalAtom::Type::V_In1, 22);
+    m_atoms.emplace_back(CalAtom::Type::V_In2, 22);
+    m_atoms.emplace_back(CalAtom::Type::V_In3, 22);
+    m_atoms.emplace_back(CalAtom::Type::V_In4, 22);
+    m_atoms.emplace_back(CalAtom::Type::V_supply, 1);
+    m_atoms.emplace_back(CalAtom::Type::C_In1, 22);
+    m_atoms.emplace_back(CalAtom::Type::C_In2, 22);
+    m_atoms.emplace_back(CalAtom::Type::C_In3, 22);
+    m_atoms.emplace_back(CalAtom::Type::C_In4, 22);
+
+    // Set header.
+    m_header.cversion = 1;
+    m_header.timestamp = 0; //???
+    m_header.numcatoms = static_cast<std::uint16_t>(m_atoms.size());
+
+    std::size_t sztotal{sizeof(Header)};
+    for (auto &atom : m_atoms)
+      sztotal += atom.GetSizeInBytes();
+    m_header.callen = sztotal;
   }
 
   const CalAtom& refAtom(const CalAtom::Type type) const noexcept
@@ -474,18 +486,6 @@ public:
   CalAtom& refAtom(const CalAtom::Type type) noexcept
   {
     return const_cast<CalAtom&>(static_cast<const HatAtomCalibration*>(this)->refAtom(type));
-  }
-
-  void FillHeader()
-  {
-    m_header.cversion = 1;
-    m_header.timestamp = 0; //???
-    m_header.numcatoms = static_cast<std::uint16_t>(m_atoms.size());
-
-    std::size_t sztotal{sizeof(Header)};
-    for (auto &atom : m_atoms)
-      sztotal += atom.GetSizeInBytes();
-    m_header.callen = sztotal;
   }
 
   bool CheckAtomIndex(const CalAtom::Type type, std::string &strError,
@@ -510,7 +510,7 @@ public:
     if (!CheckAtomIndex(type, strError))
       return false;
 
-    if (nPairIndex >= refAtom(type).m_data.size()) {
+    if (nPairIndex >= refAtom(type).pairs().size()) {
       strError="wrong pair index";
       return false;
     }
@@ -522,7 +522,7 @@ public:
     if (!CheckAtomIndex(type, strError))
       return false;
 
-    nCount = refAtom(type).m_data.size();
+    nCount = refAtom(type).pairs().size();
     return true;
   }
 
@@ -531,7 +531,7 @@ public:
     if (!CheckPairIndex(type, nPairIndex, strError))
       return false;
 
-    refAtom(type).m_data[nPairIndex] = Pair;
+    refAtom(type).set(nPairIndex, Pair);
     return true;
   }
 
@@ -540,32 +540,24 @@ public:
     if (!CheckPairIndex(type, nPairIndex, strError))
       return false;
 
-    Pair = refAtom(type).m_data[nPairIndex];
+    Pair = refAtom(type).pairs()[nPairIndex];
     return true;
   }
 
 private:
   friend class HatsMemMan;
 
+  struct Header final {
+    std::uint8_t cversion{};
+    std::uint64_t timestamp{};
+    std::uint16_t numcatoms{};
+    // Total size in bytes of all calibration data (including this header).
+    std::uint32_t callen{};
+  } __attribute__((packed)) m_header;
+
   std::vector<CalAtom> m_atoms;
   AtomType m_type{AtomType::Custom};
   int m_index{3};
-
-  /// Fills data fields with default data
-  void reset()
-  {
-    m_atoms.resize(9);
-    m_atoms[0].Setup(CalAtom::Type::V_In1, 22);
-    m_atoms[1].Setup(CalAtom::Type::V_In2, 22);
-    m_atoms[2].Setup(CalAtom::Type::V_In3, 22);
-    m_atoms[3].Setup(CalAtom::Type::V_In4, 22);
-    m_atoms[4].Setup(CalAtom::Type::V_supply, 1);
-    m_atoms[5].Setup(CalAtom::Type::C_In1, 22);
-    m_atoms[6].Setup(CalAtom::Type::C_In2, 22);
-    m_atoms[7].Setup(CalAtom::Type::C_In3, 22);
-    m_atoms[8].Setup(CalAtom::Type::C_In4, 22);
-    FillHeader();
-  }
 
   /*!
    * \brief Loads data fields from an ATOM binary image
@@ -603,9 +595,6 @@ private:
    */
   bool store(CFIFO &buf)
   {
-    //save the header:
-    FillHeader();
-
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
     for (std::size_t i{}; i < sizeof(Header); ++i)
       buf << pBuf[i];
