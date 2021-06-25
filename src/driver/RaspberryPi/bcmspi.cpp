@@ -81,7 +81,7 @@ void CBcmLIB::SPI_waitDone(iSPI nSPI)
         while(!_bsm_spi_is_done()){}
     }
 }
-typeSChar CBcmLIB::SPItransfer(iSPI nSPI, typeSChar ch)
+Character CBcmLIB::SPItransfer(iSPI nSPI, Character ch)
 {
     if(iSPI::SPI0==nSPI)
     {
@@ -141,7 +141,7 @@ bool CBcmSPI::send(CFIFO &msg)
     bcm2835_delay(20); //corresponding to 50KHz
 
     //flow control:
-    typeSChar ch=0;
+    Character ch=0;
     m_ComCntr.start(CSyncSerComFSM::FSM::sendLengthMSB);
     while(m_ComCntr.proc(ch, msg))
     {
@@ -179,11 +179,11 @@ bool CBcmSPI::receive(CFIFO &msg)
     msg=m_recFIFO;
     return  (m_ComCntr.get_state()==CSyncSerComFSM::FSM::recOK);
 }
-bool CBcmSPI::send(typeSChar ch)
+bool CBcmSPI::send(Character ch)
 {
     return false;
 }
-bool CBcmSPI::receive(typeSChar &ch)
+bool CBcmSPI::receive(Character &ch)
 {
     return false;
 }

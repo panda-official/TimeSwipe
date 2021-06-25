@@ -28,7 +28,8 @@
 #include <string>
 #include <vector>
 
-typedef int typeSChar;
+/// Character type.
+using Character = int;
 
 /*!
  * \brief A First-In-First-Out buffer implementation.
@@ -52,7 +53,7 @@ public:
          * \param b a simbol to be inserted according to FIFO order
          * \return reference to this
          */
-        CFIFO & operator <<(typeSChar b)
+        CFIFO & operator <<(Character b)
         {
                 push_back(b);
                 return *this;
@@ -64,7 +65,7 @@ public:
          * \return reference to this
          */
 
-        CFIFO & operator >>(typeSChar &b)
+        CFIFO & operator >>(Character &b)
         {
                 b=at(m_ReadInd++);
                 return *this;
@@ -115,7 +116,7 @@ public:
          * \param b a simbol to be inserted according to FIFO order
          * \return reference to this
          */
-        CFIFOlt& operator<<(typeSChar b)
+        CFIFOlt& operator<<(Character b)
         {
                 if(m_WriteInd>=nBufSize)
                 {
@@ -131,7 +132,7 @@ public:
          * \return reference to this
          */
 
-        CFIFOlt& operator>>(typeSChar &b)
+        CFIFOlt& operator>>(Character &b)
         {
                 b=m_pBuf[m_ReadInd++];
                 return *this;
@@ -230,7 +231,7 @@ struct ISerialEvent
          * \brief "a new character has been received in a FIFO buffer of a serial device"
          * \param ch a character value that has been received
          */
-        virtual void on_rec_char(typeSChar ch)=0;
+        virtual void on_rec_char(Character ch)=0;
 
         //! default constructor
         ISerialEvent()=default;
@@ -278,7 +279,7 @@ protected:
          *  "a new character has been received in a FIFO buffer of a serial device" event
          * \param ch a character that has been recived
          */
-        void Fire_on_rec_char(typeSChar ch)
+        void Fire_on_rec_char(Character ch)
         {
             for(std::vector< std::weak_ptr<ISerialEvent> >::const_iterator i=m_EvSinks.begin(); i!=m_EvSinks.end(); i++)
             {

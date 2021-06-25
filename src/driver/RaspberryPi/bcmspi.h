@@ -28,7 +28,7 @@ public:
     };
 
     bool init_SPI(iSPI nSPI);
-    typeSChar SPItransfer(iSPI nSPI, typeSChar ch);
+    Character SPItransfer(iSPI nSPI, Character ch);
     void      SPI_purge(iSPI nSPI);
     void      SPI_setCS(iSPI nSPI, bool how);
     void      SPI_waitDone(iSPI nSPI);
@@ -53,7 +53,7 @@ public:
 
     bool is_initialzed(){ return m_bSPIInitialized[m_nSPI]; }
 
-    inline typeSChar SPItransfer(typeSChar ch){ return CBcmLIB::SPItransfer(m_nSPI, ch); }
+    inline Character SPItransfer(Character ch){ return CBcmLIB::SPItransfer(m_nSPI, ch); }
     inline void      SPI_purge(){ CBcmLIB::SPI_purge(m_nSPI); }
     inline void      SPI_setCS(bool how) { CBcmLIB::SPI_setCS(m_nSPI, how); }
     inline void      SPI_waitDone(){ CBcmLIB::SPI_waitDone(m_nSPI); }
@@ -62,8 +62,8 @@ public:
 
     bool send(CFIFO &msg) override;
     bool receive(CFIFO &msg) override;
-    virtual bool send(typeSChar ch);
-    virtual bool receive(typeSChar &ch);
+    virtual bool send(Character ch);
+    virtual bool receive(Character &ch);
 
     void set_phpol(bool bPhase, bool bPol) override;
     void set_baud_div(unsigned char div) override;

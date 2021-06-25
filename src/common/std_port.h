@@ -72,7 +72,7 @@ protected:
    *
    * @param ch Incoming character.
    */
-  void parser(typeSChar ch)
+  void parser(Character ch)
   {
     if(m_bTrimming) {
       if(' '==ch)
@@ -171,7 +171,7 @@ public:
    *
    * @param ch Character received.
    */
-  void on_rec_char(typeSChar ch) override
+  void on_rec_char(Character ch) override
   {
     parser(ch);
   }

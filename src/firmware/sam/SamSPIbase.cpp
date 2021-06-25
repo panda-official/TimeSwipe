@@ -156,9 +156,9 @@ bool CSamSPIbase::transfer(CFIFO &out_msg, CFIFO &in_msg)
 
     while(out_msg.in_avail())
     {
-        typeSChar b;
+        Character b;
         out_msg>>b;
-        in_msg<<static_cast<typeSChar>( transfer_char( static_cast<uint32_t>(b)) );
+        in_msg<<static_cast<Character>( transfer_char( static_cast<uint32_t>(b)) );
     }
 
 
@@ -174,7 +174,7 @@ bool CSamSPIbase::send(CFIFO &out_msg)
     //blocking mode:
     while(out_msg.in_avail())
     {
-        typeSChar b;
+        Character b;
         out_msg>>b;
         if( !send_char( static_cast<uint32_t>(b)) )
         {

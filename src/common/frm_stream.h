@@ -128,10 +128,10 @@ protected:
   }
 
   /// Start token used for string extraction.
-  typeSChar m_chStartTocken=' ';
+  Character m_chStartTocken=' ';
 
   /// End token used for string extraction.
-  typeSChar m_chEndTocken='\0';
+  Character m_chEndTocken='\0';
 
   /**
    * @brief Extract a string from the stream.
@@ -141,11 +141,11 @@ protected:
   bool fetch_string(std::string& str)
   {
     bool bProcStr=false;
-    typeSChar Tocken=m_chStartTocken;
+    Character Tocken=m_chStartTocken;
 
     str.clear();
     while(m_pBuf->in_avail()) {
-      typeSChar ch;
+      Character ch;
       *m_pBuf>>ch;
 
       if(ch == Tocken) {
@@ -187,15 +187,15 @@ public:
     m_pBuf=pBuf;
   }
 
-  CFrmStream& operator<<(typeSChar ch)
+  CFrmStream& operator<<(Character ch)
   {
-    frm_vset<typeSChar>(ch);
+    frm_vset<Character>(ch);
     return *this;
   }
 
-  CFrmStream& operator>>(typeSChar& ch)
+  CFrmStream& operator>>(Character& ch)
   {
-    frm_vget<typeSChar>(ch);
+    frm_vget<Character>(ch);
     return *this;
   }
 

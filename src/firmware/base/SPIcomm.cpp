@@ -16,7 +16,7 @@ void CSPIcomm::IRQhandler()
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
     if(pSPI->INTFLAG.bit.RXC)
     {
-        typeSChar ch=pSPI->DATA.bit.DATA;
+        Character ch=pSPI->DATA.bit.DATA;
         m_ComCntr.proc(ch, m_recFIFO);
         return;
     }
@@ -58,7 +58,7 @@ void CSPIcomm::OnIRQ3()
 bool CSPIcomm::send(CFIFO &msg)
 {
     //blocking mode:
-    typeSChar ch;
+    Character ch;
     CSyncSerComFSM cntr;
     cntr.start(CSyncSerComFSM::FSM::sendSilenceFrame);
     while(cntr.proc(ch, msg))
@@ -91,10 +91,9 @@ void CSPIcomm::Update()
     {
         while(m_recFIFOhold.in_avail())
         {
-            typeSChar ch;
+            Character ch;
             m_recFIFOhold>>ch;
             Fire_on_rec_char(ch);
         }
     }
 }
-

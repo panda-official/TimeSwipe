@@ -156,12 +156,12 @@ public:
      * \param ch Ignored
      * \return false
      */
-    virtual bool send(typeSChar ch);
+    virtual bool send(Character ch);
 
     /*!
      * \brief Does nothing
      * \param ch Ignored
      * \return false
      */
-    virtual bool receive(typeSChar &ch);
+    virtual bool receive(Character &ch);
 };

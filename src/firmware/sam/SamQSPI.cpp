@@ -59,7 +59,7 @@ bool CSamQSPI::send(CFIFO &msg)
 {
     while(msg.in_avail())
     {
-        typeSChar b;
+        Character b;
         msg>>b;
 
         //send:

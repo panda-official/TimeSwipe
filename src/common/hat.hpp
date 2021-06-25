@@ -60,6 +60,7 @@ enum class Type : std::uint16_t {
   Invalid2 = 0xFFFF
 };
 
+/// Atom stub.
 class Stub final {
 public:
   explicit Stub(const int nIndex) noexcept
@@ -93,7 +94,7 @@ private:
   }
 };
 
-/// A vendor info atom.
+/// Vendor info atom.
 class VendorInfo final {
 public:
   VendorInfo(const std::array<std::uint32_t, 4> uuid,
@@ -145,10 +146,10 @@ private:
   std::string m_pstr;
 
   /*!
-     * \brief Loads data fields from an ATOM binary image
-     * \param buf ATOM binary image
-     * \return true=successful, false=failure
-     */
+   * \brief Loads data fields from an ATOM binary image
+   * \param buf ATOM binary image
+   * \return true=successful, false=failure
+   */
   bool load(CFIFO& buf)
   {
     //special deserialization:
@@ -157,7 +158,7 @@ private:
       return false;
     //const char *pData=buf.data();
 
-    typeSChar ch;
+    Character ch;
     /*  uint8_t   *pBuf=(uint8_t *)(m_uuid);
         for(int i=0; i<20; i++)
         {
@@ -171,7 +172,7 @@ private:
         buf>>ch;
         pBuf[i]=(uint8_t)ch;
       }
-    typeSChar b0, b1;
+    Character b0, b1;
     buf>>b0>>b1;
     *((uint8_t*)&m_pid)=b0; *( ((uint8_t*)&m_pid) +1 )=b1;
     buf>>b0>>b1;
@@ -277,7 +278,7 @@ private:
     if (nDSize < 30)
       return false;
 
-    typeSChar ch;
+    Character ch;
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_bank_drive);
     for (int i{}; i < 30; ++i) {
       buf >> ch;
@@ -358,7 +359,7 @@ public:
      */
     bool load(CFIFO& buf)
     {
-      typeSChar ch;
+      Character ch;
       auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_);
       for(int i{}; i<6; i++) {
         buf >> ch;
@@ -425,7 +426,7 @@ private:
   {
     // Load header.
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
-    typeSChar ch;
+    Character ch;
     for (std::size_t i{}; i < sizeof(Header); ++i) {
       buf >> ch;
       pBuf[i] = static_cast<std::uint8_t>(ch);
@@ -578,7 +579,7 @@ private:
     //load the header:
     Header theader;
 
-    typeSChar ch;
+    Character ch;
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&theader);
     for (std::size_t i{}; i < sizeof(Header); ++i) {
       buf>>ch;

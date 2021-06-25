@@ -152,7 +152,7 @@ public:
    * @returns FIXME.
    */
   template <typename typeFIFO>
-  bool proc(typeSChar &ch, typeFIFO &msg)
+  bool proc(Character &ch, typeFIFO &msg)
   {
     switch(m_PState) {
       //sending:
