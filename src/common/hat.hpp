@@ -78,7 +78,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO &buf) noexcept
+  bool load(CFIFO& buf) noexcept
   {
     return true;
   }
@@ -88,7 +88,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO &buf) const noexcept
+  bool store(CFIFO& buf) const noexcept
   {
     return true;
   }
@@ -97,7 +97,9 @@ private:
 /// Vendor info atom.
 class VendorInfo final {
 public:
-  VendorInfo(const std::array<std::uint32_t, 4> uuid,
+  using Uuid = std::array<std::uint32_t, 4>;
+
+  VendorInfo(const Uuid uuid,
     const std::uint16_t pid,
     const std::uint16_t pver,
     std::string vstr,
@@ -109,7 +111,7 @@ public:
     , m_pstr{std::move(pstr)}
   {}
 
-  const std::array<std::uint32_t, 4>& uuid() const noexcept
+  const Uuid& uuid() const noexcept
   {
     return m_uuid;
   }
@@ -139,7 +141,7 @@ private:
 
   static constexpr Type m_type{Type::VendorInfo};
   static constexpr int m_index{};
-  std::array<std::uint32_t, 4> m_uuid{};
+  Uuid m_uuid{};
   std::uint16_t m_pid{};
   std::uint16_t m_pver{};
   std::string m_vstr;
@@ -152,50 +154,38 @@ private:
    */
   bool load(CFIFO& buf)
   {
-    //special deserialization:
-    int nDSize=buf.in_avail();
-    if(nDSize<22)
-      return false;
-    //const char *pData=buf.data();
+    if (buf.in_avail() < 22) return false;
 
     Character ch;
-    /*  uint8_t   *pBuf=(uint8_t *)(m_uuid);
-        for(int i=0; i<20; i++)
-        {
-        buf>>ch;
-        pBuf[i]=(uint8_t)ch;
-        }*/
+    auto* const pBuf = reinterpret_cast<std::uint8_t*>(m_uuid.data());
+    for (int i{}; i < sizeof(*m_uuid.data()) * m_uuid.size(); ++i) {
+      buf >> ch;
+      pBuf[i] = static_cast<std::uint8_t>(ch);
+    }
 
-    uint8_t   *pBuf=(uint8_t *)m_uuid.data();
-    for(int i=0; i<16; i++)
-      {
-        buf>>ch;
-        pBuf[i]=(uint8_t)ch;
-      }
     Character b0, b1;
-    buf>>b0>>b1;
-    *((uint8_t*)&m_pid)=b0; *( ((uint8_t*)&m_pid) +1 )=b1;
-    buf>>b0>>b1;
-    *((uint8_t*)&m_pver)=b0; *( ((uint8_t*)&m_pver) +1 )=b1;
+    buf >> b0 >> b1;
+    reinterpret_cast<std::uint8_t*>(&m_pid)[0] = b0;
+    reinterpret_cast<std::uint8_t*>(&m_pid)[1] = b1;
+
+    buf >> b0 >> b1;
+    reinterpret_cast<std::uint8_t*>(&m_pver)[0] = b0;
+    reinterpret_cast<std::uint8_t*>(&m_pver)[1] = b1;
 
     int vslen, pslen;
-    buf>>vslen>>pslen;
+    buf >> vslen >> pslen;
+    m_vstr.resize(vslen);
+    m_pstr.resize(pslen);
+    for (int i{}; i < vslen; ++i) {
+      buf >> ch;
+      m_vstr[i] = ch;
+    }
+    for (int i{}; i < pslen; ++i) {
+      buf >> ch;
+      m_pstr[i] = ch;
+    }
 
-    m_vstr.reserve(vslen);
-    m_pstr.reserve(pslen);
-
-    for(int i=0; i<vslen; i++)
-      {
-        buf>>ch;
-        m_vstr+=ch;
-      }
-    for(int i=0; i<pslen; i++)
-      {
-        buf>>ch;
-        m_pstr+=ch;
-      }
     return true;
-
   }
 
     /*!
@@ -205,34 +195,31 @@ private:
      */
   bool store(CFIFO& buf)
   {
-    //special serialization:
-    int vslen=m_vstr.length();
-    int pslen=m_pstr.length();
-    buf.reserve(22+vslen+pslen); //minimum size
-    /* uint8_t   *pBuf=(uint8_t *)(m_uuid);
-       for(int i=0; i<20; i++)
-       {
-       buf<<pBuf[i];
-       }*/
+    const int vslen = m_vstr.size();
+    const int pslen = m_pstr.size();
 
-    uint8_t   *pBuf=(uint8_t *)m_uuid.data();
-    for(int i=0; i<16; i++)
-      {
-        buf<<pBuf[i];
-      }
-    buf<<*((uint8_t*)&m_pid)<<*( ((uint8_t*)&m_pid) +1 );
-    buf<<*((uint8_t*)&m_pver)<<*( ((uint8_t*)&m_pver) +1 );
+    const auto* const pBuf = reinterpret_cast<std::uint8_t*>(m_uuid.data());
+    for (std::size_t i{}; i < sizeof(*m_uuid.data()) * m_uuid.size(); ++i)
+      buf << pBuf[i];
 
+    {
+      const Character b0{reinterpret_cast<std::uint8_t*>(&m_pid)[0]},
+        b1{reinterpret_cast<std::uint8_t*>(&m_pid)[1]};
+      buf << b0 << b1;
+    }
 
-    buf<<vslen<<pslen;
-    for(int i=0; i<vslen; i++)
-      {
-        buf<<m_vstr[i];
-      }
-    for(int i=0; i<pslen; i++)
-      {
-        buf<<m_pstr[i];
-      }
+    {
+      const Character b0{reinterpret_cast<std::uint8_t*>(&m_pver)[0]},
+        b1{reinterpret_cast<std::uint8_t*>(&m_pver)[1]};
+      buf << b0 << b1;
+    }
+
+    buf << vslen << pslen;
+    for (int i{}; i < vslen; ++i)
+      buf << m_vstr[i];
+    for (int i{}; i < pslen; ++i)
+      buf << m_pstr[i];
+
     return true;
   }
 };
@@ -263,49 +250,42 @@ private:
     std::uint8_t is_used  :1;
   } m_gpio[28]{};
 
+  static constexpr auto kThisSize = sizeof(m_bank_drive) + sizeof(m_power) + sizeof(m_gpio);
   static constexpr Type m_type{Type::GpioMap};
   static constexpr int m_index{1}; // FIXME ? (should be 2?)
 
-    /*!
-     * \brief Loads data fields from an ATOM binary image
-     * \param buf ATOM binary image
-     * \return true=successful, false=failure
-     */
-  bool load(CFIFO &buf)
+  /*!
+   * \brief Loads data fields from an ATOM binary image
+   * \param buf ATOM binary image
+   * \return true=successful, false=failure
+   */
+  bool load(CFIFO& buf)
   {
-    //special deserialization:
-    int nDSize=buf.in_avail();
-    if (nDSize < 30)
-      return false;
+    if (buf.in_avail() < kThisSize) return false;
 
     Character ch;
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_bank_drive);
-    for (int i{}; i < 30; ++i) {
+    auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
+    for (std::size_t i{}; i < kThisSize; ++i) {
       buf >> ch;
       pBuf[i] = static_cast<std::uint8_t>(ch);
     }
     return true;
   }
 
-    /*!
-     * \brief Stores data fields to an ATOM binary image
-     * \param buf ATOM binary image
-     * \return true=successful, false=failure
-     */
+  /*!
+   * \brief Stores data fields to an ATOM binary image
+   * \param buf ATOM binary image
+   * \return true=successful, false=failure
+   */
   bool store(CFIFO &buf)
   {
-    //special serialization:
-    buf.reserve(30);
-
-    uint8_t   *pBuf=(uint8_t *)(&m_bank_drive);
-    for(int i=0; i<30; i++)
-      {
-        buf<<pBuf[i];
-      }
+    const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
+    for (std::size_t i{}; i < kThisSize; ++i) buf << pBuf[i];
     return true;
   }
 };
 
+/// Calibration atom.
 class Calibration final {
 public:
   enum class Type : std::uint16_t {
@@ -360,8 +340,8 @@ public:
     bool load(CFIFO& buf)
     {
       Character ch;
-      auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_);
-      for(int i{}; i<6; i++) {
+      auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
+      for (std::size_t i{}; i < kThisSize; ++i) {
         buf >> ch;
         pBuf[i] = static_cast<std::uint8_t>(ch);
       }
@@ -375,19 +355,22 @@ public:
      */
     bool store(CFIFO& buf)
     {
-      auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_);
-      for(int i{}; i<6; i++)
-        buf << pBuf[i];
+      const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
+      for (std::size_t i{}; i < kThisSize; ++i) buf << pBuf[i];
       return true;
     }
 
   private:
+    friend Calibration;
+
     float m_{1};
     std::uint16_t b_{};
+
+    static constexpr auto kThisSize = sizeof(m_) + sizeof(b_);
   };
 
   Calibration(const Type nType, const std::uint16_t nCount)
-    : m_header{nType, nCount, nCount * sizeof(Data)}
+    : m_header{nType, nCount, nCount * sizeof(Data::kThisSize)}
     , m_data{nCount}
   {}
 
@@ -422,18 +405,18 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO &buf)
+  bool load(CFIFO& buf)
   {
     // Load header.
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
     Character ch;
-    for (std::size_t i{}; i < sizeof(Header); ++i) {
+    for (std::size_t i{}; i < sizeof(m_header); ++i) {
       buf >> ch;
       pBuf[i] = static_cast<std::uint8_t>(ch);
     }
 
     // Load data.
-    for(auto& data : m_data) data.load(buf);
+    for (auto& data : m_data) data.load(buf);
 
     return true;
   }
@@ -446,9 +429,8 @@ private:
   bool store(CFIFO& buf)
   {
     // Save header.
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
-    for (std::size_t i{}; i < sizeof(Header); ++i)
-      buf << pBuf[i];
+    const auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
+    for (std::size_t i{}; i < sizeof(m_header); ++i) buf << pBuf[i];
 
     // Save data.
     for (auto& data : m_data) data.store(buf);
@@ -476,7 +458,7 @@ public:
     m_atoms.emplace_back(atom::Calibration::Type::C_In4, 22);
 
     // Set header.
-    m_header.cversion = 1;
+    m_header.cversion = 0x01;
     m_header.timestamp = 0; //???
     m_header.numcatoms = static_cast<std::uint16_t>(m_atoms.size());
 
@@ -496,7 +478,7 @@ public:
     return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->refAtom(type));
   }
 
-  bool CheckAtomIndex(const atom::Calibration::Type type, std::string &strError,
+  bool CheckAtomIndex(const atom::Calibration::Type type, std::string& strError,
     bool bCheckExistance = true) const noexcept
   {
     if (type == atom::Calibration::Type::Header || type == atom::Calibration::Type::Invalid) {
@@ -510,16 +492,16 @@ public:
         return false;
       }
     }
+
     return true;
   }
 
   bool CheckPairIndex(const atom::Calibration::Type type, const std::size_t nPairIndex, std::string &strError) const noexcept
   {
-    if (!CheckAtomIndex(type, strError))
-      return false;
+    if (!CheckAtomIndex(type, strError)) return false;
 
     if (nPairIndex >= refAtom(type).data().size()) {
-      strError="wrong pair index";
+      strError = "wrong pair index";
       return false;
     }
     return true;
@@ -527,8 +509,7 @@ public:
 
   bool GetPairsCount(const atom::Calibration::Type type, std::size_t& nCount, std::string& strError) const noexcept
   {
-    if (!CheckAtomIndex(type, strError))
-      return false;
+    if (!CheckAtomIndex(type, strError)) return false;
 
     nCount = refAtom(type).data().size();
     return true;
@@ -547,8 +528,7 @@ public:
   bool GetCalPair(const atom::Calibration::Type type, const std::size_t nPairIndex,
     atom::Calibration::Data& data, std::string& strError) const noexcept
   {
-    if (!CheckPairIndex(type, nPairIndex, strError))
-      return false;
+    if (!CheckPairIndex(type, nPairIndex, strError)) return false;
 
     data = refAtom(type).data()[nPairIndex];
     return true;
@@ -574,25 +554,18 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO &buf)
+  bool load(CFIFO& buf)
   {
-    //load the header:
-    Header theader;
-
+    // Load header.
     Character ch;
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&theader);
-    for (std::size_t i{}; i < sizeof(Header); ++i) {
-      buf>>ch;
-      pBuf[i]=(uint8_t)ch;
+    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
+    for (std::size_t i{}; i < sizeof(m_header); ++i) {
+      buf >> ch;
+      pBuf[i] = static_cast<std::uint8_t>(ch);
     }
 
-    //atom's template rules at the moment:
-    if (theader.callen != m_header.callen)
-      return false;
-
-    //load the rest:
-    for(auto &atom : m_atoms)
-      atom.load(buf);
+    // Load data.
+    for (auto& atom : m_atoms) atom.load(buf);
 
     return true;
   }
@@ -603,15 +576,14 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO &buf)
+  bool store(CFIFO& buf)
   {
+    // Save header.
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
-    for (std::size_t i{}; i < sizeof(Header); ++i)
-      buf << pBuf[i];
+    for (std::size_t i{}; i < sizeof(m_header); ++i) buf << pBuf[i];
 
-    //save the rest:
-    for(auto &atom : m_atoms)
-      atom.store(buf);
+    // Save data.
+    for (auto& atom : m_atoms) atom.store(buf);
 
     return true;
   }
@@ -620,14 +592,6 @@ private:
 /// A manager class for working with HATs-EEPROM binary image
 class Manager final {
 public:
-  /*!
-   * \brief A class constructor
-   * \param pFIFObuf a buffer containing EEPROM binary image
-   */
-  explicit Manager(std::shared_ptr<CFIFO> pFIFObuf = {})
-    : m_pFIFObuf{std::move(pFIFObuf)}
-  {}
-
   enum class OpResult {
     OK,
     atom_not_found,
@@ -635,6 +599,14 @@ public:
     storage_is_corrupted,
     storage_isnt_verified
   };
+
+  /*!
+   * \brief A class constructor
+   * \param pFIFObuf a buffer containing EEPROM binary image
+   */
+  explicit Manager(std::shared_ptr<CFIFO> pFIFObuf = {})
+    : m_pFIFObuf{std::move(pFIFObuf)}
+  {}
 
   /*!
    * \brief ReadAtom reads Atom's raw binary data
