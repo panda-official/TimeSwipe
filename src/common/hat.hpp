@@ -461,21 +461,18 @@ public:
     m_header.cversion = 0x01;
     m_header.timestamp = 0; //???
     m_header.numcatoms = static_cast<std::uint16_t>(m_atoms.size());
-
-    std::size_t sztotal{sizeof(Header)};
-    for (auto& atom : m_atoms)
-      sztotal += atom.GetSizeInBytes();
-    m_header.callen = sztotal;
+    m_header.callen = sizeof(Header);
+    for (auto& atom : m_atoms) m_header.callen += atom.GetSizeInBytes();
   }
 
-  const atom::Calibration& refAtom(const atom::Calibration::Type type) const noexcept
+  const atom::Calibration& atom(const atom::Calibration::Type type) const noexcept
   {
     return m_atoms[static_cast<std::uint16_t>(type) - 1];
   }
 
-  atom::Calibration& refAtom(const atom::Calibration::Type type) noexcept
+  atom::Calibration& atom(const atom::Calibration::Type type) noexcept
   {
-    return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->refAtom(type));
+    return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->atom(type));
   }
 
   bool CheckAtomIndex(const atom::Calibration::Type type, std::string& strError,
@@ -500,7 +497,7 @@ public:
   {
     if (!CheckAtomIndex(type, strError)) return false;
 
-    if (nPairIndex >= refAtom(type).data().size()) {
+    if (nPairIndex >= atom(type).data().size()) {
       strError = "wrong pair index";
       return false;
     }
@@ -511,7 +508,7 @@ public:
   {
     if (!CheckAtomIndex(type, strError)) return false;
 
-    nCount = refAtom(type).data().size();
+    nCount = atom(type).data().size();
     return true;
   }
 
@@ -521,7 +518,7 @@ public:
     if (!CheckPairIndex(type, nPairIndex, strError))
       return false;
 
-    refAtom(type).set(nPairIndex, data);
+    atom(type).set(nPairIndex, data);
     return true;
   }
 
@@ -530,7 +527,7 @@ public:
   {
     if (!CheckPairIndex(type, nPairIndex, strError)) return false;
 
-    data = refAtom(type).data()[nPairIndex];
+    data = atom(type).data()[nPairIndex];
     return true;
   }
 
