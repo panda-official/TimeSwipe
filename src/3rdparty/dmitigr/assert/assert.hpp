@@ -25,7 +25,7 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <string>
+#include <type_traits>
 
 namespace dmitigr {
 
@@ -35,6 +35,77 @@ constexpr bool is_debug{true};
 #else
 constexpr bool is_debug{false};
 #endif
+
+/**
+ * An exception class derived from either `std::logic_error` or
+ * `std::runtime_error` which provides the information about the source from
+ * where the exception is thrown.
+ *
+ * @tparam Base The base exception class derived from either `std::logic_error`
+ * or `std::runtime_error`.
+ */
+template<class Base>
+class Sourced_exception : public Base {
+public:
+  /**
+   * Lifted constructors.
+   *
+   * @par Effects
+   * file() returns `nullptr`, line() returns `0`.
+   *
+   * @see file(), line().
+   */
+  using Base::Base;
+
+  /**
+   * The constructor of a logic error.
+   *
+   * @param file The name of file from where the exception thrown.
+   * @param line The line of file from where the exception thrown.
+   * @param what The error description.
+   */
+  Sourced_exception(const char* const file, const int line, const char* const what)
+    : Base{what}
+    , file_{file}
+    , line_{line}
+  {
+    static_assert(std::is_base_of_v<std::logic_error, Sourced_exception>);
+  }
+
+  /**
+   * The constructor of a runtime error with an error code.
+   *
+   * @param file The name of file from where the exception thrown.
+   * @param line The line of file from where the exception thrown.
+   * @param errc The runtime error code/condition.
+   */
+  template<typename T>
+  Sourced_exception(const char* const file, const int line,
+    std::enable_if_t<std::is_enum_v<T>, const T> errc)
+    : Base{errc}
+    , file_{file}
+    , line_{line}
+  {
+    static_assert(std::is_base_of_v<std::runtime_error, Sourced_exception>);
+    static_assert(std::is_enum_v<T>);
+  }
+
+  /// @returns The name of file from where the exception thrown.
+  const char* file() const noexcept
+  {
+    return file_;
+  }
+
+  /// @returns The line of file from where the exception thrown.
+  int line() const noexcept
+  {
+    return line_;
+  }
+
+private:
+  const char* file_{};
+  int line_{};
+};
 
 } // namespace dmitigr
 
@@ -51,11 +122,11 @@ constexpr bool is_debug{false};
   } while (false)
 
 /// Checks `a` always, regardless of `NDEBUG`.
-#define DMITIGR_CHECK_GENERIC(a, E) do {                \
-    if (!(a)) {                                         \
-      throw E{"check (" #a ") failed at "               \
-        __FILE__ ":" DMITIGR_ASSERT_XSTR(__LINE__)};    \
-    }                                                   \
+#define DMITIGR_CHECK_GENERIC(a, Base) do {                             \
+    if (!(a)) {                                                         \
+      throw dmitigr::Sourced_exception<Base>{__FILE__, __LINE__,        \
+        "check (" #a ") failed at " __FILE__ ":" DMITIGR_ASSERT_XSTR(__LINE__)}; \
+    }                                                                   \
   } while (false)
 
 #define DMITIGR_CHECK(a) DMITIGR_CHECK_GENERIC(a, std::logic_error)
