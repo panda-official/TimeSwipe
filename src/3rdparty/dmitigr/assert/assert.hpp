@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <system_error>
 #include <type_traits>
 
 namespace dmitigr {
@@ -80,14 +81,13 @@ public:
    * @param errc The runtime error code/condition.
    */
   template<typename T>
-  Sourced_exception(const char* const file, const int line,
-    std::enable_if_t<std::is_enum_v<T>, const T> errc)
+  Sourced_exception(const char* const file, const int line, const T errc)
     : Base{errc}
     , file_{file}
     , line_{line}
   {
     static_assert(std::is_base_of_v<std::runtime_error, Sourced_exception>);
-    static_assert(std::is_enum_v<T>);
+    static_assert(std::is_error_code_enum_v<T> || std::is_error_condition_enum_v<T>);
   }
 
   /// @returns The name of file from where the exception thrown.
