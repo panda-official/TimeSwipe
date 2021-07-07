@@ -212,8 +212,8 @@ constexpr bool kIsDebug{dmitigr::is_debug};
 /// Basic exception.
 template<class StdError>
 class BasicException :
-    public dmitigr::Sourced_exception<BasicExceptionBase<StdError>> {
-  using Super = dmitigr::Sourced_exception<BasicExceptionBase<StdError>>;
+    public dmitigr::Exception_with_info<BasicExceptionBase<StdError>> {
+  using Super = dmitigr::Exception_with_info<BasicExceptionBase<StdError>>;
   using Super::Super;
 };
 
