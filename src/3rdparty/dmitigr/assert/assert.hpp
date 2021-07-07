@@ -38,41 +38,26 @@ constexpr bool is_debug{false};
 #endif
 
 /**
- * An exception class derived from `std::exception` which provides the
- * information about the source from where the exception is thrown.
- *
- * @tparam Base The base exception class derived from `std::exception`.
+ * An exception mixin class which provides the diagnostic information about
+ * the exception.
  */
-template<class Base>
-class Sourced_exception : public Base {
+class Exception_info {
 public:
-  /**
-   * Lifted constructors.
-   *
-   * @par Effects
-   * file() returns `nullptr`, line() returns `0`.
-   *
-   * @see file(), line().
-   */
-  using Base::Base;
+  /// The destructor.
+  virtual ~Exception_info() = default;
 
   /**
    * The constructor.
    *
-   * @param file The name of file from where the exception thrown.
-   * @param line The line of file from where the exception thrown.
-   * @param desc The error description (what string) or error code/condition.
+   * @param file Value for file() to return.
+   * @param line Value for line() to return.
+   *
+   * @see file(), line().
    */
-  template<typename T>
-  Sourced_exception(const char* const file, const int line, const T desc)
-    : Base{desc}
-    , file_{file}
+  Exception_info(const char* const file, const int line)
+    : file_{file}
     , line_{line}
-  {
-    static_assert(std::is_base_of_v<std::exception, Sourced_exception>);
-    static_assert(std::is_same_v<T, const char*> ||
-      std::is_error_code_enum_v<T> || std::is_error_condition_enum_v<T>);
-  }
+  {}
 
   /// @returns The name of file from where the exception thrown.
   const char* file() const noexcept
@@ -91,6 +76,33 @@ private:
   int line_{};
 };
 
+/**
+ * The base exception class for either logic or runtime errors.
+ *
+ * @tparam Base The base exception class derived from `std::exception`.
+ */
+template<class Base>
+class Exception_with_info : public Exception_info, public Base {
+public:
+  static_assert(std::is_base_of_v<std::exception, Base>);
+
+  /**
+   * The constructor.
+   *
+   * @param file The name of file from where the exception thrown.
+   * @param line The line of file from where the exception thrown.
+   * @param desc The error description (what string) or error code/condition.
+   */
+  template<typename T>
+  Exception_with_info(const char* const file, const int line, const T desc)
+    : Exception_info{file, line}
+    , Base{desc}
+  {
+    static_assert(std::is_same_v<T, const char*> ||
+      std::is_error_code_enum_v<T> || std::is_error_condition_enum_v<T>);
+  }
+};
+
 } // namespace dmitigr
 
 // Helpers
@@ -106,17 +118,18 @@ private:
   } while (false)
 
 /// Checks `a` always, regardless of `NDEBUG`.
-#define DMITIGR_CHECK_GENERIC(a, Base) do {                             \
+#define DMITIGR_CHECK_GENERIC(a, ExceptionWithInfo) do {                \
     if (!(a)) {                                                         \
-      throw dmitigr::Sourced_exception<Base>{__FILE__, __LINE__,        \
+      throw ExceptionWithInfo{__FILE__, __LINE__,                       \
         "check (" #a ") failed at " __FILE__ ":" DMITIGR_ASSERT_XSTR(__LINE__)}; \
     }                                                                   \
   } while (false)
 
-#define DMITIGR_CHECK(a) DMITIGR_CHECK_GENERIC(a, std::logic_error)
-#define DMITIGR_CHECK_ARG(a) DMITIGR_CHECK_GENERIC(a, std::invalid_argument)
-#define DMITIGR_CHECK_DOMAIN(a) DMITIGR_CHECK_GENERIC(a, std::domain_error)
-#define DMITIGR_CHECK_LENGTH(a) DMITIGR_CHECK_GENERIC(a, std::length_error)
-#define DMITIGR_CHECK_RANGE(a) DMITIGR_CHECK_GENERIC(a, std::out_of_range)
+#define DMITIGR_CHECK_GENERIC__(a, Base) DMITIGR_CHECK_GENERIC(a, dmitigr::Exception_with_info<Base>)
+#define DMITIGR_CHECK(a) DMITIGR_CHECK_GENERIC__(a, std::logic_error)
+#define DMITIGR_CHECK_ARG(a) DMITIGR_CHECK_GENERIC__(a, std::invalid_argument)
+#define DMITIGR_CHECK_DOMAIN(a) DMITIGR_CHECK_GENERIC__(a, std::domain_error)
+#define DMITIGR_CHECK_LENGTH(a) DMITIGR_CHECK_GENERIC__(a, std::length_error)
+#define DMITIGR_CHECK_RANGE(a) DMITIGR_CHECK_GENERIC__(a, std::out_of_range)
 
 #endif  // DMITIGR_ASSERT_ASSERT_HPP
