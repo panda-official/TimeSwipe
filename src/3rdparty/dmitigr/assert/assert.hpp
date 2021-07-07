@@ -38,12 +38,10 @@ constexpr bool is_debug{false};
 #endif
 
 /**
- * An exception class derived from either `std::logic_error` or
- * `std::runtime_error` which provides the information about the source from
- * where the exception is thrown.
+ * An exception class derived from `std::exception` which provides the
+ * information about the source from where the exception is thrown.
  *
- * @tparam Base The base exception class derived from either `std::logic_error`
- * or `std::runtime_error`.
+ * @tparam Base The base exception class derived from `std::exception`.
  */
 template<class Base>
 class Sourced_exception : public Base {
@@ -59,35 +57,21 @@ public:
   using Base::Base;
 
   /**
-   * The constructor of a logic error.
+   * The constructor.
    *
    * @param file The name of file from where the exception thrown.
    * @param line The line of file from where the exception thrown.
-   * @param what The error description.
-   */
-  Sourced_exception(const char* const file, const int line, const char* const what)
-    : Base{what}
-    , file_{file}
-    , line_{line}
-  {
-    static_assert(std::is_base_of_v<std::logic_error, Sourced_exception>);
-  }
-
-  /**
-   * The constructor of a runtime error with an error code.
-   *
-   * @param file The name of file from where the exception thrown.
-   * @param line The line of file from where the exception thrown.
-   * @param errc The runtime error code/condition.
+   * @param desc The error description (what string) or error code/condition.
    */
   template<typename T>
-  Sourced_exception(const char* const file, const int line, const T errc)
-    : Base{errc}
+  Sourced_exception(const char* const file, const int line, const T desc)
+    : Base{desc}
     , file_{file}
     , line_{line}
   {
-    static_assert(std::is_base_of_v<std::runtime_error, Sourced_exception>);
-    static_assert(std::is_error_code_enum_v<T> || std::is_error_condition_enum_v<T>);
+    static_assert(std::is_base_of_v<std::exception, Sourced_exception>);
+    static_assert(std::is_same_v<T, const char*> ||
+      std::is_error_code_enum_v<T> || std::is_error_condition_enum_v<T>);
   }
 
   /// @returns The name of file from where the exception thrown.
