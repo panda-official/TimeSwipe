@@ -10,6 +10,8 @@
 #ifndef PANDA_TIMESWIPE_ERROR_HPP
 #define PANDA_TIMESWIPE_ERROR_HPP
 
+#include "../3rdparty/dmitigr/assert.hpp"
+
 #include <cstring>
 #include <stdexcept>
 #include <system_error>
@@ -204,6 +206,38 @@ private:
   std::error_condition condition_;
 };
 
+/// `true` if `NDEBUG` is not set.
+constexpr bool kIsDebug{dmitigr::is_debug};
+
+/// Basic exception.
+template<class StdError>
+class BasicException :
+    public dmitigr::Sourced_exception<BasicExceptionBase<StdError>> {
+  using Super = dmitigr::Sourced_exception<BasicExceptionBase<StdError>>;
+  using Super::Super;
+};
+
 } // namespace panda::timeswipe
+
+#define PANDA_TIMESWIPE_ASSERT(a) DMITIGR_ASSERT(a)
+
+#define PANDA_TIMESWIPE_CHECK_GENERIC(a, Base)                      \
+  DMITIGR_CHECK_GENERIC(a, panda::timeswipe::BasicException<Base>)
+#define PANDA_TIMESWIPE_CHECK(a)                        \
+  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::logic_error)
+#define PANDA_TIMESWIPE_CHECK_ARG(a)                        \
+  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::invalid_argument)
+#define PANDA_TIMESWIPE_CHECK_DOMAIN(a)                 \
+  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::domain_error)
+#define PANDA_TIMESWIPE_CHECK_LENGTH(a)                 \
+  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::length_error)
+#define PANDA_TIMESWIPE_CHECK_RANGE(a)                  \
+  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::out_of_range)
+
+#define PANDA_TIMESWIPE_THROW(errc)                                     \
+  do {                                                                  \
+    using RuntimeError = panda::timeswipe::BasicException<std::runtime_error>; \
+    throw RuntimeError{__FILE__, __LINE__, errc};                       \
+  } while(true)
 
 #endif  // PANDA_TIMESWIPE_ERROR_HPP
