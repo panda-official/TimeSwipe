@@ -35,7 +35,6 @@ void CDMSchannel::UpdateOffsets()
     const auto atom = mes_mode::Voltage == m_MesMode ? Type::V_In1 : Type::C_In1;
     const hat::atom::Calibration::Type type{static_cast<std::uint16_t>(atom) +
       static_cast<std::uint16_t>(m_nChanInd)};
-    hat::atom::Calibration::Data data;
-    cmap.GetCalPair(type, m_nGainIndex, data, strError);
-    m_pDAC->SetRawOutput(data.b());
+    const auto& data = cmap.GetAtom(type).GetData(m_nGainIndex, strError);
+    m_pDAC->SetRawOutput(data.GetB());
 }

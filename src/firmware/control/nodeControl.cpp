@@ -30,13 +30,13 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     if (m_EEPROMstorage.Verify() != hat::Manager::OpResult::OK) {
       m_EEPROMstorage.Reset();
       hat::atom::VendorInfo vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
-      m_EEPROMstorage.Store(vinf); //storage is ready
+      m_EEPROMstorage.Save(vinf); //storage is ready
     }
 
     //fill blank atoms with the stubs:
     for (int i = m_EEPROMstorage.GetAtomsCount(); i < 3; ++i) {
       hat::atom::Stub stub{i};
-      m_EEPROMstorage.Store(stub);
+      m_EEPROMstorage.Save(stub);
     }
 
     hat::CalibrationMap map;
@@ -50,9 +50,8 @@ void nodeControl::ApplyCalibrationData(const hat::CalibrationMap& map)
 
   if (m_pVoltageDAC) {
     std::string strError;
-    hat::atom::Calibration::Data data;
-    map.GetCalPair(hat::atom::Calibration::Type::V_supply, 0, data, strError);
-    m_pVoltageDAC->SetLinearFactors(data.m(), data.b());
+    const auto& data = map.GetAtom(hat::atom::Calibration::Type::V_supply).GetData(0, strError);
+    m_pVoltageDAC->SetLinearFactors(data.GetM(), data.GetB());
     m_pVoltageDAC->SetVal();
   }
 
@@ -62,7 +61,7 @@ void nodeControl::ApplyCalibrationData(const hat::CalibrationMap& map)
 
 bool nodeControl::SetCalibrationData(hat::CalibrationMap& map, std::string& strError)
 {
-  m_CalStatus = m_EEPROMstorage.Store(map);
+  m_CalStatus = m_EEPROMstorage.Save(map);
   ApplyCalibrationData(map);
 
   if (m_CalStatus == hat::Manager::OpResult::OK) {
@@ -94,12 +93,10 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     if (!nc.GetCalibrationData(map, strError))
       return false;
 
-    const hat::atom::Calibration::Type type{jObj["cAtom"]};
+    const auto type = hat::atom::Calibration::MakeType(jObj["cAtom"], strError);
+    if (!strError.empty()) return false;
 
-    size_t nCalPairs;
-    if(!map.GetPairsCount(type, nCalPairs, strError))
-        return false;
-
+    const auto nCalPairs = map.GetAtom(type).GetDataVector().size();
 
     //if call type=set
     if(CCmdCallDescr::ctype::ctSet==ct)
@@ -117,20 +114,17 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 
         size_t pair_ind=0;
         for(auto &el : data) {
-          hat::atom::Calibration::Data data;
-
           //init the pair:
-          if(!map.GetCalPair(type, pair_ind, data, strError))
-            return false;
-
+          auto data = map.GetAtom(type).GetData(pair_ind, strError);
+          if (!strError.empty()) return false;
 
           if (const auto it_m = el.find("m"); it_m != el.end())
-            data.set_m(*it_m);
+            data.SetM(*it_m);
           if (const auto it_b = el.find("b"); it_b != el.end())
-            data.set_b(*it_b);
+            data.SetB(*it_b);
 
-          if (!map.SetCalPair(type, pair_ind, std::move(data), strError))
-            return false;
+          map.GetAtom(type).SetData(pair_ind, std::move(data), strError);
+          if (!strError.empty()) return false;
 
           pair_ind++;
         }
@@ -148,15 +142,13 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 
     auto resp_data = nlohmann::json::array();
     for (std::size_t i{}; i < nCalPairs; ++i) {
-      hat::atom::Calibration::Data data;
-
-      if (!map.GetCalPair(type, i, data, strError))
-        return false;
+      const auto& data = map.GetAtom(type).GetData(i, strError);
+      if (!strError.empty()) return false;
 
       //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
       nlohmann::json jpair;
-      jpair["m"]=data.m();
-      jpair["b"]=data.b();
+      jpair["m"]=data.GetM();
+      jpair["b"]=data.GetB();
       resp_data.emplace_back(jpair);
     }
     jResp["cAtom"]=type;

@@ -25,6 +25,7 @@
 #define PANDA_TIMESWIPE_COMMON_HAT_HPP
 
 #include "../3rdparty/dmitigr/crc.hpp"
+#include "error.hpp"
 #include "Serial.h"
 
 #include <array>
@@ -78,7 +79,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO& buf) noexcept
+  bool Load(CFIFO& buf) noexcept
   {
     return true;
   }
@@ -88,7 +89,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO& buf) const noexcept
+  bool Save(CFIFO& buf) const noexcept
   {
     return true;
   }
@@ -111,27 +112,27 @@ public:
     , m_pstr{std::move(pstr)}
   {}
 
-  const Uuid& uuid() const noexcept
+  const Uuid& GetUuid() const noexcept
   {
     return m_uuid;
   }
 
-  std::uint16_t pid() const noexcept
+  std::uint16_t GetPid() const noexcept
   {
     return m_pid;
   }
 
-  std::uint16_t pver() const noexcept
+  std::uint16_t GetPver() const noexcept
   {
     return m_pver;
   }
 
-  const std::string& vstr() const noexcept
+  const std::string& GetVstr() const noexcept
   {
     return m_vstr;
   }
 
-  const std::string& pstr() const noexcept
+  const std::string& GetPstr() const noexcept
   {
     return m_pstr;
   }
@@ -152,7 +153,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO& buf)
+  bool Load(CFIFO& buf)
   {
     if (buf.in_avail() < 22) return false;
 
@@ -193,7 +194,7 @@ private:
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-  bool store(CFIFO& buf)
+  bool Save(CFIFO& buf)
   {
     const int vslen = m_vstr.size();
     const int pslen = m_pstr.size();
@@ -259,7 +260,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO& buf)
+  bool Load(CFIFO& buf)
   {
     if (buf.in_avail() < kThisSize) return false;
 
@@ -277,7 +278,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO &buf)
+  bool Save(CFIFO &buf)
   {
     const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
     for (std::size_t i{}; i < kThisSize; ++i) buf << pBuf[i];
@@ -288,21 +289,7 @@ private:
 /// Calibration atom.
 class Calibration final {
 public:
-  enum class Type : std::uint16_t {
-    Header   = 0x0000,
-    V_In1    = 0x0001,
-    V_In2    = 0x0002,
-    V_In3    = 0x0003,
-    V_In4    = 0x0004,
-    V_supply = 0x0005,
-    C_In1    = 0x0006,
-    C_In2    = 0x0007,
-    C_In3    = 0x0008,
-    C_In4    = 0x0009,
-    Ana_Out  = 0x000A,
-    Invalid  = 0xFFFF
-  };
-
+  /// Calibration atom data.
   class Data final {
   public:
     Data() = default;
@@ -312,22 +299,22 @@ public:
       , b_{b}
     {}
 
-    void set_m(const float m) noexcept
+    void SetM(const float m) noexcept
     {
       m_ = m;
     }
 
-    void set_b(const std::uint16_t b) noexcept
+    void SetB(const std::uint16_t b) noexcept
     {
       b_ = b;
     }
 
-    float m() const noexcept
+    float GetM() const noexcept
     {
       return m_;
     }
 
-    std::uint16_t b() const noexcept
+    std::uint16_t GetB() const noexcept
     {
       return b_;
     }
@@ -337,7 +324,7 @@ public:
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool load(CFIFO& buf)
+    bool Load(CFIFO& buf)
     {
       Character ch;
       auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
@@ -353,7 +340,7 @@ public:
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool store(CFIFO& buf)
+    bool Save(CFIFO& buf)
     {
       const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
       for (std::size_t i{}; i < kThisSize; ++i) buf << pBuf[i];
@@ -369,23 +356,76 @@ public:
     static constexpr auto kThisSize = sizeof(m_) + sizeof(b_);
   };
 
+  /// Calibration atom type.
+  enum class Type : std::uint16_t {
+    V_In1    = 0x0001,
+    V_In2    = 0x0002,
+    V_In3    = 0x0003,
+    V_In4    = 0x0004,
+    V_supply = 0x0005,
+    C_In1    = 0x0006,
+    C_In2    = 0x0007,
+    C_In3    = 0x0008,
+    C_In4    = 0x0009,
+    Ana_Out  = 0x000A
+  };
+
+  /**
+   * @returns A literal that represents the `value`, or `nullptr` if `value`
+   * doesn't matches to any member of type Type.
+   */
+  static constexpr const char* ToLiteral(const Type value)
+  {
+    switch (value) {
+    case Type::V_In1: return "V_In1";
+    case Type::V_In2: return "V_In2";
+    case Type::V_In3: return "V_In3";
+    case Type::V_In4: return "V_In4";
+    case Type::V_supply: return "V_supply";
+    case Type::C_In1: return "C_In1";
+    case Type::C_In2: return "C_In2";
+    case Type::C_In3: return "C_In3";
+    case Type::C_In4: return "C_In4";
+    case Type::Ana_Out: return "Ana_Out";
+    }
+    return nullptr;
+  }
+
+  /**
+   * @returns A value of type Type converted from `value`. The returned value
+   * is invalid if `err` is not empty after return.
+   */
+  static Type MakeType(const std::uint16_t value, std::string& err)
+  {
+    const Type result{value};
+    if (!ToLiteral(result)) err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomType);
+    return result;
+  }
+
   Calibration(const Type nType, const std::uint16_t nCount)
     : m_header{nType, nCount, nCount * sizeof(Data::kThisSize)}
     , m_data{nCount}
   {}
 
-  std::size_t GetSizeInBytes() const noexcept
+  constexpr std::size_t GetSizeInBytes() const noexcept
   {
     return m_header.dlen + sizeof(Header);
   }
 
-  const std::vector<Data>& data() const noexcept
+  const std::vector<Data>& GetDataVector() const noexcept
   {
     return m_data;
   }
 
-  void set(const std::size_t index, const Data& value)
+  const Data& GetData(const std::size_t index, std::string& err) const
   {
+    if (!(index < m_data.size())) err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
+    return m_data[index];
+  }
+
+  void SetData(const std::size_t index, const Data& value, std::string& err)
+  {
+    if (!(index < m_data.size())) err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
     m_data[index] = value;
   }
 
@@ -405,7 +445,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO& buf)
+  bool Load(CFIFO& buf)
   {
     // Load header.
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
@@ -416,7 +456,7 @@ private:
     }
 
     // Load data.
-    for (auto& data : m_data) data.load(buf);
+    for (auto& data : m_data) data.Load(buf);
 
     return true;
   }
@@ -426,14 +466,14 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO& buf)
+  bool Save(CFIFO& buf)
   {
     // Save header.
     const auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
     for (std::size_t i{}; i < sizeof(m_header); ++i) buf << pBuf[i];
 
     // Save data.
-    for (auto& data : m_data) data.store(buf);
+    for (auto& data : m_data) data.Save(buf);
 
     return true;
   }
@@ -465,70 +505,14 @@ public:
     for (auto& atom : m_atoms) m_header.callen += atom.GetSizeInBytes();
   }
 
-  const atom::Calibration& atom(const atom::Calibration::Type type) const noexcept
+  const atom::Calibration& GetAtom(const atom::Calibration::Type type) const noexcept
   {
     return m_atoms[static_cast<std::uint16_t>(type) - 1];
   }
 
-  atom::Calibration& atom(const atom::Calibration::Type type) noexcept
+  atom::Calibration& GetAtom(const atom::Calibration::Type type) noexcept
   {
-    return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->atom(type));
-  }
-
-  bool CheckAtomIndex(const atom::Calibration::Type type, std::string& strError,
-    bool bCheckExistance = true) const noexcept
-  {
-    if (type == atom::Calibration::Type::Header || type == atom::Calibration::Type::Invalid) {
-      strError = "invalid atom type";
-      return false;
-    }
-
-    if (bCheckExistance) {
-      if (static_cast<std::uint16_t>(type) > m_atoms.size()) {
-        strError = "atom doesn't exist";
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool CheckPairIndex(const atom::Calibration::Type type, const std::size_t nPairIndex, std::string &strError) const noexcept
-  {
-    if (!CheckAtomIndex(type, strError)) return false;
-
-    if (nPairIndex >= atom(type).data().size()) {
-      strError = "wrong pair index";
-      return false;
-    }
-    return true;
-  }
-
-  bool GetPairsCount(const atom::Calibration::Type type, std::size_t& nCount, std::string& strError) const noexcept
-  {
-    if (!CheckAtomIndex(type, strError)) return false;
-
-    nCount = atom(type).data().size();
-    return true;
-  }
-
-  bool SetCalPair(const atom::Calibration::Type type, const std::size_t nPairIndex,
-    const atom::Calibration::Data& data, std::string& strError)
-  {
-    if (!CheckPairIndex(type, nPairIndex, strError))
-      return false;
-
-    atom(type).set(nPairIndex, data);
-    return true;
-  }
-
-  bool GetCalPair(const atom::Calibration::Type type, const std::size_t nPairIndex,
-    atom::Calibration::Data& data, std::string& strError) const noexcept
-  {
-    if (!CheckPairIndex(type, nPairIndex, strError)) return false;
-
-    data = atom(type).data()[nPairIndex];
-    return true;
+    return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->GetAtom(type));
   }
 
 private:
@@ -551,7 +535,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool load(CFIFO& buf)
+  bool Load(CFIFO& buf)
   {
     // Load header.
     Character ch;
@@ -562,7 +546,7 @@ private:
     }
 
     // Load data.
-    for (auto& atom : m_atoms) atom.load(buf);
+    for (auto& atom : m_atoms) atom.Load(buf);
 
     return true;
   }
@@ -573,14 +557,14 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool store(CFIFO& buf)
+  bool Save(CFIFO& buf)
   {
     // Save header.
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(&m_header);
     for (std::size_t i{}; i < sizeof(m_header); ++i) buf << pBuf[i];
 
     // Save data.
-    for (auto& atom : m_atoms) atom.store(buf);
+    for (auto& atom : m_atoms) atom.Save(buf);
 
     return true;
   }
@@ -752,7 +736,7 @@ public:
     CFIFO buf;
     atom::Type type;
     if (const auto r = ReadAtom(atom.m_index, type, buf);
-      r == OpResult::OK && (atom.m_type != type || !atom.load(buf)))
+      r == OpResult::OK && (atom.m_type != type || !atom.Load(buf)))
       return OpResult::atom_is_corrupted;
     else
       return r;
@@ -763,11 +747,11 @@ public:
    * \return operation result: OK on success
    */
   template <typename A>
-  OpResult Store(A& atom)
+  OpResult Save(A& atom)
   {
     if (m_StorageState != OpResult::OK) return m_StorageState;
     CFIFO buf;
-    atom.store(buf);
+    atom.Save(buf);
     return WriteAtom(atom.m_index, atom.m_type, buf);
   }
 
