@@ -25,29 +25,30 @@ namespace panda::timeswipe {
 
 /// Error codes.
 enum class Errc {
-  /// No error.
-  kOk = 0,
+  /** Generic section **/
 
-  /// Generic error.
+  kOk = 0,
   kGeneric = 1,
 
-  /// Pid file lock failed.
-  kPidFileLockFailed = 2,
+  /** PID file section **/
 
-  /// Board is busy.
-  kBoardIsBusy = 1001,
+  kPidFileLockFailed = 1001,
 
-  /// Invalid drift reference.
-  kInvalidDriftReference = 2001,
+  /** Board section **/
 
-  /// No drift references calculated.
-  kNoDriftReferences = 2002,
+  kBoardIsBusy = 2001,
 
-  /// Insufficient drift reference count.
-  kInsufficientDriftReferences = 2003,
+  /** Drift reference section **/
 
-  /// Excessive drift reference count.
-  kExcessiveDriftReferences = 2004
+  kInvalidDriftReference = 3001,
+  kNoDriftReferences = 3002,
+  kInsufficientDriftReferences = 3003,
+  kExcessiveDriftReferences = 3004,
+
+  /** Calibration ATOM section **/
+
+  kInvalidCalibrationAtomType = 4001,
+  kInvalidCalibrationAtomDataIndex = 4002
 };
 
 /// @returns `true` if `errc` indicates an error.
@@ -71,6 +72,8 @@ constexpr const char* ToLiteral(const Errc errc) noexcept
   case Errc::kNoDriftReferences: return "no drift references";
   case Errc::kInsufficientDriftReferences: return "insufficient drift references";
   case Errc::kExcessiveDriftReferences: return "excessive drift references";
+  case Errc::kInvalidCalibrationAtomType: return "invalid calibration atom type";
+  case Errc::kInvalidCalibrationAtomDataIndex: return "invalid calibration atom data index";
   }
   return nullptr;
 }
@@ -179,17 +182,9 @@ namespace panda::timeswipe {
  */
 template<class StdError>
 class BasicExceptionBase : public StdError {
-public:
-  /// @returns Error condition.
-  std::error_condition condition() const noexcept
-  {
-    return condition_;
-  }
-
-protected:
   static_assert(std::is_same_v<std::logic_error, StdError> ||
     std::is_same_v<std::runtime_error, StdError>);
-
+public:
   /**
    * The constructor.
    *
@@ -201,6 +196,12 @@ protected:
     : StdError{what.empty() ? ToLiteralAnyway(errc) : what}
     , condition_{errc}
   {}
+
+  /// @returns Error condition.
+  std::error_condition condition() const noexcept
+  {
+    return condition_;
+  }
 
 private:
   std::error_condition condition_;
@@ -219,8 +220,10 @@ class BasicException :
 
 } // namespace panda::timeswipe
 
-#define PANDA_TIMESWIPE_ASSERT(a) DMITIGR_ASSERT(a)
-
+/*
+ * CHECK macros are for logic errors debugging and should be used in
+ * implementation details only.
+ */
 #define PANDA_TIMESWIPE_CHECK_GENERIC(a, Base)                      \
   DMITIGR_CHECK_GENERIC(a, panda::timeswipe::BasicException<Base>)
 #define PANDA_TIMESWIPE_CHECK(a)                        \
@@ -234,6 +237,7 @@ class BasicException :
 #define PANDA_TIMESWIPE_CHECK_RANGE(a)                  \
   PANDA_TIMESWIPE_CHECK_GENERIC(a, std::out_of_range)
 
+// THROW macro is for runtime errors.
 #define PANDA_TIMESWIPE_THROW(errc)                                     \
   do {                                                                  \
     using RuntimeError = panda::timeswipe::BasicException<std::runtime_error>; \
