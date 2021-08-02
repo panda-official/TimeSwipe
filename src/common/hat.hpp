@@ -41,7 +41,7 @@ class Manager;
 class CalibrationMap;
 
 /// EEPROM header.
-struct Header final {
+struct EepromHeader final {
   std::uint32_t signature{};
   std::uint8_t ver{};
   std::uint8_t res{};
@@ -251,7 +251,6 @@ private:
     std::uint8_t is_used  :1;
   } m_gpio[28]{};
 
-  static constexpr auto kThisSize = sizeof(m_bank_drive) + sizeof(m_power) + sizeof(m_gpio);
   static constexpr Type m_type{Type::GpioMap};
   static constexpr int m_index{1}; // FIXME ? (should be 2?)
 
@@ -262,11 +261,11 @@ private:
    */
   bool Load(CFIFO& buf)
   {
-    if (buf.in_avail() < kThisSize) return false;
+    if (buf.in_avail() < sizeof(*this)) return false;
 
     Character ch;
     auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
-    for (std::size_t i{}; i < kThisSize; ++i) {
+    for (std::size_t i{}; i < sizeof(*this); ++i) {
       buf >> ch;
       pBuf[i] = static_cast<std::uint8_t>(ch);
     }
@@ -281,7 +280,7 @@ private:
   bool Save(CFIFO &buf)
   {
     const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
-    for (std::size_t i{}; i < kThisSize; ++i) buf << pBuf[i];
+    for (std::size_t i{}; i < sizeof(*this); ++i) buf << pBuf[i];
     return true;
   }
 };
@@ -326,9 +325,9 @@ public:
      */
     bool Load(CFIFO& buf)
     {
-      Character ch;
+      Character ch{};
       auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
-      for (std::size_t i{}; i < kThisSize; ++i) {
+      for (std::size_t i{}; i < sizeof(*this); ++i) {
         buf >> ch;
         pBuf[i] = static_cast<std::uint8_t>(ch);
       }
@@ -343,7 +342,7 @@ public:
     bool Save(CFIFO& buf)
     {
       const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
-      for (std::size_t i{}; i < kThisSize; ++i) buf << pBuf[i];
+      for (std::size_t i{}; i < sizeof(*this); ++i) buf << pBuf[i];
       return true;
     }
 
@@ -352,8 +351,6 @@ public:
 
     float m_{1};
     std::uint16_t b_{};
-
-    static constexpr auto kThisSize = sizeof(m_) + sizeof(b_);
   };
 
   /// Calibration atom type.
@@ -398,12 +395,13 @@ public:
   static Type MakeType(const std::uint16_t value, std::string& err)
   {
     const Type result{value};
-    if (!ToLiteral(result)) err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomType);
+    if (!ToLiteral(result))
+      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomType);
     return result;
   }
 
   Calibration(const Type nType, const std::uint16_t nCount)
-    : m_header{nType, nCount, nCount * sizeof(Data::kThisSize)}
+    : m_header{nType, nCount, nCount * sizeof(Data)}
     , m_data{nCount}
   {}
 
@@ -419,13 +417,15 @@ public:
 
   const Data& GetData(const std::size_t index, std::string& err) const
   {
-    if (!(index < m_data.size())) err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
+    if (!(index < m_data.size()))
+      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
     return m_data[index];
   }
 
   void SetData(const std::size_t index, const Data& value, std::string& err)
   {
-    if (!(index < m_data.size())) err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
+    if (!(index < m_data.size()))
+      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
     m_data[index] = value;
   }
 
@@ -436,8 +436,8 @@ private:
     Type type{};
     std::uint16_t count{};
     std::uint32_t dlen{};
+    // data follows next
   } m_header;
-
   std::vector<Data> m_data;
 
   /*!
@@ -586,7 +586,7 @@ public:
    * \param pFIFObuf a buffer containing EEPROM binary image
    */
   explicit Manager(std::shared_ptr<CFIFO> pFIFObuf = {})
-    : m_pFIFObuf{std::move(pFIFObuf)}
+    : fifo_buf_{std::move(pFIFObuf)}
   {}
 
   /*!
@@ -677,7 +677,7 @@ public:
       pData[i]=wbuf[i];
     *pCRC = dmitigr::crc::crc16((char*)pAtom, req_size+sizeof(AtomHeader)); //set CRC stamp, atom is ready
 
-    auto* const header = reinterpret_cast<Header*>(pMemBuf);
+    auto* const header = reinterpret_cast<EepromHeader*>(pMemBuf);
     header->eeplen += nMemAdjustVal;
     if(bAddingNew)
       //also setup the header with the new data:
@@ -688,12 +688,12 @@ public:
 
   void SetBuf(std::shared_ptr<CFIFO> pBuf)
   {
-    m_pFIFObuf = std::move(pBuf);
+    fifo_buf_ = std::move(pBuf);
   }
 
   const std::shared_ptr<CFIFO>& GetBuf() const noexcept
   {
-    return m_pFIFObuf;
+    return fifo_buf_;
   }
 
   /*!
@@ -702,7 +702,7 @@ public:
    */
   unsigned GetAtomsCount() const noexcept
   {
-    return reinterpret_cast<const Header*>(GetMemBuf())->numatoms;
+    return reinterpret_cast<const EepromHeader*>(GetMemBuf())->numatoms;
   }
 
   /*!
@@ -722,7 +722,7 @@ public:
    */
   void Reset()
   {
-    SetMemBufSize(sizeof(Header));
+    SetMemBufSize(sizeof(EepromHeader));
     m_StorageState=ResetStorage(GetMemBuf(), GetMemBufSize());
   }
 
@@ -766,29 +766,29 @@ private:
   static constexpr std::uint32_t signature{0x69502d52};
   static constexpr std::uint8_t version{1};
   OpResult m_StorageState{OpResult::storage_isnt_verified};
-  std::shared_ptr<CFIFO> m_pFIFObuf;
+  std::shared_ptr<CFIFO> fifo_buf_;
 
   /// @name Memory control
   /// @{
 
   const char* GetMemBuf() const noexcept
   {
-    return m_pFIFObuf->data();
+    return fifo_buf_->data();
   }
 
   char* GetMemBuf() noexcept
   {
-    return m_pFIFObuf->data();
+    return fifo_buf_->data();
   }
 
-  int GetMemBufSize() const noexcept
+  std::size_t GetMemBufSize() const noexcept
   {
-    return m_pFIFObuf->size();
+    return fifo_buf_->size();
   }
 
-  void SetMemBufSize(int size)
+  void SetMemBufSize(std::size_t size)
   {
-    m_pFIFObuf->resize(size);
+    fifo_buf_->resize(size);
   }
 
   void AdjustMemBuf(const char *pStart, int nAdjustVal)
@@ -796,12 +796,12 @@ private:
     if(0==nAdjustVal)
       return;
 
-    int req_ind=pStart-m_pFIFObuf->data();
+    int req_ind=pStart-fifo_buf_->data();
     int size=GetMemBufSize();
     if(nAdjustVal>0)
-      m_pFIFObuf->insert(req_ind, nAdjustVal, 0);
+      fifo_buf_->insert(req_ind, nAdjustVal, 0);
     else
-      m_pFIFObuf->erase(req_ind, -nAdjustVal);
+      fifo_buf_->erase(req_ind, -nAdjustVal);
   }
 
   /// @}
@@ -812,7 +812,7 @@ private:
   static OpResult FindAtomHeader(unsigned nAtom, char* const pMemBuf,
     const std::size_t MemBufSize, AtomHeader** pHeaderBegin)
   {
-    const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
+    const auto* const header = reinterpret_cast<const EepromHeader*>(pMemBuf);
     char* mem_buf_end = pMemBuf + MemBufSize;
 
     OpResult rv{OpResult::OK};
@@ -823,7 +823,7 @@ private:
       rv = OpResult::atom_not_found;
     }
 
-    char* pAtomPtr = pMemBuf + sizeof(Header);
+    char* pAtomPtr = pMemBuf + sizeof(EepromHeader);
     for(unsigned int i{}; i < nAtom; ++i) {
       pAtomPtr += sizeof(AtomHeader) + reinterpret_cast<AtomHeader*>(pAtomPtr)->dlen;
       if (pAtomPtr > mem_buf_end)
@@ -858,10 +858,10 @@ private:
 
   OpResult VerifyStorage(const char* pMemBuf, const std::size_t MemBufSize)
   {
-    if(MemBufSize < sizeof(Header))
+    if(MemBufSize < sizeof(EepromHeader))
       return OpResult::storage_is_corrupted;
 
-    const auto* const header = reinterpret_cast<const Header*>(pMemBuf);
+    const auto* const header = reinterpret_cast<const EepromHeader*>(pMemBuf);
     const char* const pMemLimit = pMemBuf + MemBufSize;
 
     if (header->signature != signature || header->ver != version
@@ -870,7 +870,7 @@ private:
 
     // Verify all the atoms.
     const std::uint16_t nAtoms{header->numatoms};
-    const char* pAtomPtr = pMemBuf + sizeof(Header);
+    const char* pAtomPtr = pMemBuf + sizeof(EepromHeader);
     for(std::uint16_t i{}; i < nAtoms; ++i) {
       const auto* const atom_hdr = reinterpret_cast<const AtomHeader*>(pAtomPtr);
       const OpResult res{VerifyAtom(atom_hdr)};
@@ -885,15 +885,15 @@ private:
 
   OpResult ResetStorage(char* pMemBuf, const std::size_t MemBufSize)
   {
-    if (MemBufSize < sizeof(Header))
+    if (MemBufSize < sizeof(EepromHeader))
       return OpResult::storage_is_corrupted;
 
-    auto* const header = reinterpret_cast<Header*>(pMemBuf);
+    auto* const header = reinterpret_cast<EepromHeader*>(pMemBuf);
     header->signature = signature;
     header->ver = version;
     header->res = 0;
     header->numatoms = 0;
-    header->eeplen = sizeof(Header);
+    header->eeplen = sizeof(EepromHeader);
     return OpResult::OK;
   }
 

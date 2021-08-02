@@ -1,20 +1,23 @@
 # Calibration Atom Specification
 Version 2 - 06/2021
 
-## Calibration Atom Data Structure
+## Calibration Data Map
 
 ```
   HEADER  <- Calibration header (Required)
-  C_ATOM1   <- V_In calibration atom
-  C_ATOM2   <- V_Supply calibration atom
-  C_ATOM3   <- C_In calibration atom
-  C_ATOM4   <- Ana_Out calibration atom
+  C_ATOM1 <- V_In calibration atom
+  C_ATOM2 <- V_Supply calibration atom
+  C_ATOM3 <- C_In calibration atom
+  C_ATOM4 <- Ana_Out calibration atom
   ...
   C_ATOMn
 ```
 
-## Calibration Atom Header Structure
-The header shall be r/w in calibration firmware and readonly in release firmware.
+## Calibration Data Map Header
+
+The calibration data map header shall be writable in calibration firmware and
+read-only in release firmware.
+
 ```
   Bytes   Field
   1       cversion     Calibration data format version (0x00 reserved, 0x01 = first version), r/w
@@ -91,10 +94,10 @@ The Real Setting is the actual gain, that is applied to the input signal.
 1.375 | 128   | 176   | 1408
 
 ### V_In Atom Type
-This atom is specific for the TimeSwipe 1.X board. For each of the 22 different gain settings an error correction and voltage conversion line is defined. 
+This atom is specific for the TimeSwipe 1.X board. For each of the 22 different gain settings an error correction and voltage conversion line is defined.
 This line is defined by its zero offset and its slope. y=m*x+b
 The zero offset value is applied by the firmware and shall not be used by the driver.
-The driver shall read the slope of the currently applied hardware gain and multiply it with the measured digit value. 
+The driver shall read the slope of the currently applied hardware gain and multiply it with the measured digit value.
 The resulting value is in the unit mV and not digit anymore.
 
 ```
@@ -108,7 +111,7 @@ This atom is therefore (4+2)*22 = 132 bytes large.
 This atom is specific for the TimeSwipe 1.X board. An error correction line for V_Supply is defined.
 This line is defined by its zero offset and its slope. y=m*x+b
 The unit of the zero Offset value is the DAC Offset digits applied by the ARM Chip. At startup, the ARM Chip will read this value and applies it to the DAC accordingly.
-The unit of the slope is a float, which describes a simple y=f(x) translation curve. 
+The unit of the slope is a float, which describes a simple y=f(x) translation curve.
 This data is used solely by the firmware and shall not be used by the driver.
 
 ```
@@ -119,10 +122,10 @@ This data is used solely by the firmware and shall not be used by the driver.
 This atom is therefore (4+2)*1 = 6 bytes large.
 
 ### C_In Atom Type
-This atom is specific for the TimeSwipe 1.X board. For each of the 22 different gain settings an error correction and voltage conversion line is defined. 
+This atom is specific for the TimeSwipe 1.X board. For each of the 22 different gain settings an error correction and voltage conversion line is defined.
 This line is defined by its zero offset and its slope. y=m*x+b
 The zero offset value is applied by the firmware and shall not be used by the driver.
-The driver shall read the slope of the currently applied hardware gain and multiply it with the measured digit value. 
+The driver shall read the slope of the currently applied hardware gain and multiply it with the measured digit value.
 The resulting value is in the unit mV and not digit anymore.
 
 ```
