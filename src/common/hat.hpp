@@ -157,33 +157,48 @@ private:
   {
     if (buf.in_avail() < 22) return false;
 
-    Character ch;
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(uuid_.data());
-    for (int i{}; i < sizeof(*uuid_.data()) * uuid_.size(); ++i) {
-      buf >> ch;
-      pBuf[i] = static_cast<std::uint8_t>(ch);
+    // Import uuid_.
+    {
+      auto* const uuid_bytes = reinterpret_cast<std::uint8_t*>(uuid_.data());
+      for (int i{}; i < sizeof(*uuid_.data()) * uuid_.size(); ++i) {
+        Character ch;
+        buf >> ch;
+        uuid_bytes[i] = static_cast<std::uint8_t>(ch);
+      }
     }
 
-    Character b0, b1;
-    buf >> b0 >> b1;
-    reinterpret_cast<std::uint8_t*>(&pid_)[0] = b0;
-    reinterpret_cast<std::uint8_t*>(&pid_)[1] = b1;
-
-    buf >> b0 >> b1;
-    reinterpret_cast<std::uint8_t*>(&pver_)[0] = b0;
-    reinterpret_cast<std::uint8_t*>(&pver_)[1] = b1;
-
-    int vslen, pslen;
-    buf >> vslen >> pslen;
-    vstr_.resize(vslen);
-    pstr_.resize(pslen);
-    for (int i{}; i < vslen; ++i) {
-      buf >> ch;
-      vstr_[i] = ch;
+    // Import pid_.
+    {
+      Character b0, b1;
+      buf >> b0 >> b1;
+      reinterpret_cast<std::uint8_t*>(&pid_)[0] = b0;
+      reinterpret_cast<std::uint8_t*>(&pid_)[1] = b1;
     }
-    for (int i{}; i < pslen; ++i) {
-      buf >> ch;
-      pstr_[i] = ch;
+
+    // Import pver_.
+    {
+      Character b0, b1;
+      buf >> b0 >> b1;
+      reinterpret_cast<std::uint8_t*>(&pver_)[0] = b0;
+      reinterpret_cast<std::uint8_t*>(&pver_)[1] = b1;
+    }
+
+    // Import vstr_, pstr_.
+    {
+      int vlen, plen;
+      buf >> vlen >> plen;
+      vstr_.resize(vlen);
+      pstr_.resize(plen);
+      for (int i{}; i < vlen; ++i) {
+        Character ch;
+        buf >> ch;
+        vstr_[i] = ch;
+      }
+      for (int i{}; i < plen; ++i) {
+        Character ch;
+        buf >> ch;
+        pstr_[i] = ch;
+      }
     }
 
     return true;
@@ -196,36 +211,43 @@ private:
      */
   bool Save(CFIFO& buf)
   {
-    const int vslen = vstr_.size();
-    const int pslen = pstr_.size();
+    // Export uuid_.
+    {
+      const auto* const uuid_bytes = reinterpret_cast<std::uint8_t*>(uuid_.data());
+      for (std::size_t i{}; i < sizeof(*uuid_.data()) * uuid_.size(); ++i)
+        buf << uuid_bytes[i];
+    }
 
-    const auto* const pBuf = reinterpret_cast<std::uint8_t*>(uuid_.data());
-    for (std::size_t i{}; i < sizeof(*uuid_.data()) * uuid_.size(); ++i)
-      buf << pBuf[i];
-
+    // Export pid_.
     {
       const Character b0{reinterpret_cast<std::uint8_t*>(&pid_)[0]},
         b1{reinterpret_cast<std::uint8_t*>(&pid_)[1]};
       buf << b0 << b1;
     }
 
+    // Export pver_.
     {
       const Character b0{reinterpret_cast<std::uint8_t*>(&pver_)[0]},
         b1{reinterpret_cast<std::uint8_t*>(&pver_)[1]};
       buf << b0 << b1;
     }
 
-    buf << vslen << pslen;
-    for (int i{}; i < vslen; ++i)
-      buf << vstr_[i];
-    for (int i{}; i < pslen; ++i)
-      buf << pstr_[i];
+    // Export vstr_, pstr_.
+    {
+      const int vlen = vstr_.size();
+      const int plen = pstr_.size();
+      buf << vlen << plen;
+      for (int i{}; i < vlen; ++i)
+        buf << vstr_[i];
+      for (int i{}; i < plen; ++i)
+        buf << pstr_[i];
+    }
 
     return true;
   }
 };
 
-/// GPIO map atom
+/// GPIO map atom.
 class GpioMap final {
 public:
   GpioMap() = default;
@@ -252,7 +274,7 @@ private:
   } gpio_[28]{};
 
   static constexpr Type type_{Type::GpioMap};
-  static constexpr int index_{1}; // FIXME ? (should be 2?)
+  static constexpr int index_{1};
 
   /*!
    * \brief Loads data fields from an ATOM binary image
@@ -261,13 +283,13 @@ private:
    */
   bool Load(CFIFO& buf)
   {
-    if (buf.in_avail() < sizeof(*this)) return false;
-
-    Character ch;
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
+    if (buf.in_avail() < sizeof(*this))
+      return false;
+    auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
     for (std::size_t i{}; i < sizeof(*this); ++i) {
+      Character ch;
       buf >> ch;
-      pBuf[i] = static_cast<std::uint8_t>(ch);
+      this_bytes[i] = static_cast<std::uint8_t>(ch);
     }
     return true;
   }
@@ -279,8 +301,9 @@ private:
    */
   bool Save(CFIFO &buf)
   {
-    const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
-    for (std::size_t i{}; i < sizeof(*this); ++i) buf << pBuf[i];
+    const auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
+    for (std::size_t i{}; i < sizeof(*this); ++i)
+      buf << this_bytes[i];
     return true;
   }
 };
@@ -325,11 +348,13 @@ public:
      */
     bool Load(CFIFO& buf)
     {
-      Character ch{};
-      auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
+      if (buf.in_avail() < sizeof(*this))
+        return false;
+      auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
       for (std::size_t i{}; i < sizeof(*this); ++i) {
+        Character ch;
         buf >> ch;
-        pBuf[i] = static_cast<std::uint8_t>(ch);
+        this_bytes[i] = static_cast<std::uint8_t>(ch);
       }
       return true;
     }
@@ -341,8 +366,9 @@ public:
      */
     bool Save(CFIFO& buf)
     {
-      const auto* const pBuf = reinterpret_cast<std::uint8_t*>(this);
-      for (std::size_t i{}; i < sizeof(*this); ++i) buf << pBuf[i];
+      const auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
+      for (std::size_t i{}; i < sizeof(*this); ++i)
+        buf << this_bytes[i];
       return true;
     }
 
@@ -447,16 +473,17 @@ private:
    */
   bool Load(CFIFO& buf)
   {
-    // Load header.
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&header_);
-    Character ch;
+    // Import header.
+    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
     for (std::size_t i{}; i < sizeof(header_); ++i) {
+      Character ch;
       buf >> ch;
-      pBuf[i] = static_cast<std::uint8_t>(ch);
+      header_bytes[i] = static_cast<std::uint8_t>(ch);
     }
 
-    // Load data.
-    for (auto& data : data_) data.Load(buf);
+    // Import data.
+    for (auto& data : data_)
+      data.Load(buf);
 
     return true;
   }
@@ -468,12 +495,14 @@ private:
    */
   bool Save(CFIFO& buf)
   {
-    // Save header.
-    const auto* const pBuf = reinterpret_cast<std::uint8_t*>(&header_);
-    for (std::size_t i{}; i < sizeof(header_); ++i) buf << pBuf[i];
+    // Export header.
+    const auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
+    for (std::size_t i{}; i < sizeof(header_); ++i)
+      buf << header_bytes[i];
 
-    // Save data.
-    for (auto& data : data_) data.Save(buf);
+    // Export data.
+    for (auto& data : data_)
+      data.Save(buf);
 
     return true;
   }
@@ -502,7 +531,8 @@ public:
     header_.timestamp = 0; //???
     header_.numcatoms = static_cast<std::uint16_t>(atoms_.size());
     header_.callen = sizeof(Header);
-    for (auto& atom : atoms_) header_.callen += atom.GetSizeInBytes();
+    for (auto& atom : atoms_)
+      header_.callen += atom.GetSizeInBytes();
   }
 
   const atom::Calibration& GetAtom(const atom::Calibration::Type type) const noexcept
@@ -528,7 +558,7 @@ private:
 
   std::vector<atom::Calibration> atoms_;
   atom::Type type_{atom::Type::Custom};
-  int index_{3};
+  static constexpr int index_{3};  // FIXME ? (should be 2?)
 
   /*!
    * \brief Loads data fields from an ATOM binary image
@@ -537,16 +567,17 @@ private:
    */
   bool Load(CFIFO& buf)
   {
-    // Load header.
-    Character ch;
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&header_);
+    // Import header.
+    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
     for (std::size_t i{}; i < sizeof(header_); ++i) {
+      Character ch;
       buf >> ch;
-      pBuf[i] = static_cast<std::uint8_t>(ch);
+      header_bytes[i] = static_cast<std::uint8_t>(ch);
     }
 
-    // Load data.
-    for (auto& atom : atoms_) atom.Load(buf);
+    // Import data.
+    for (auto& atom : atoms_)
+      atom.Load(buf);
 
     return true;
   }
@@ -559,12 +590,14 @@ private:
    */
   bool Save(CFIFO& buf)
   {
-    // Save header.
-    auto* const pBuf = reinterpret_cast<std::uint8_t*>(&header_);
-    for (std::size_t i{}; i < sizeof(header_); ++i) buf << pBuf[i];
+    // Export header.
+    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
+    for (std::size_t i{}; i < sizeof(header_); ++i)
+      buf << header_bytes[i];
 
-    // Save data.
-    for (auto& atom : atoms_) atom.Save(buf);
+    // Export data.
+    for (auto& atom : atoms_)
+      atom.Save(buf);
 
     return true;
   }
@@ -583,10 +616,10 @@ public:
 
   /*!
    * \brief A class constructor
-   * \param pFIFObuf a buffer containing EEPROM binary image
+   * \param fifo_buf a buffer containing EEPROM binary image
    */
-  explicit Manager(std::shared_ptr<CFIFO> pFIFObuf = {})
-    : fifo_buf_{std::move(pFIFObuf)}
+  explicit Manager(std::shared_ptr<CFIFO> fifo_buf = {})
+    : fifo_buf_{std::move(fifo_buf)}
   {}
 
   /*!
@@ -598,26 +631,32 @@ public:
    */
   OpResult ReadAtom(unsigned int nAtom, atom::Type& nAtomType, CFIFO& rbuf)
   {
-    if (storage_state_ != OpResult::OK) return storage_state_;
+    if (storage_state_ != OpResult::OK)
+      return storage_state_;
 
-    AtomHeader* pAtom{};
+    // Get the atom.
+    AtomHeader* atom{};
     if (const auto r = FindAtomHeader(nAtom,
-        GetMemBuf(), GetMemBufSize(), &pAtom); r != OpResult::OK)
+        GetMemBuf(), GetMemBufSize(), &atom); r != OpResult::OK)
       return r;
 
-    //check the atom CRC:
-    const unsigned int dlen=pAtom->dlen-2; //real dlen without CRC
-    const char *pData=(const char*)pAtom + sizeof(AtomHeader); //&pAtom->data_begin;
-    nAtomType=static_cast<atom::Type>(pAtom->type);
+    // Set helpers.
+    const auto* const header_bytes = reinterpret_cast<const char*>(atom);
+    const auto* const data_bytes = header_bytes + sizeof(AtomHeader); // &atom->data_begin;
+    const auto dlen = atom->dlen - 2; // real dlen without CRC
 
-    std::uint16_t calc_crc{dmitigr::crc::crc16((char*)pAtom, dlen + sizeof(AtomHeader))};
-    std::uint16_t *pCRC=(uint16_t*)(pData+dlen);
-    if (calc_crc != *pCRC)
-      return OpResult::atom_is_corrupted;
+    // Check the CRC of the atom.
+    {
+      const std::uint16_t calc_crc{dmitigr::crc::crc16(header_bytes, dlen + sizeof(AtomHeader))};
+      const auto* const crc = reinterpret_cast<const std::uint16_t*>(data_bytes + dlen);
+      if (calc_crc != *crc)
+        return OpResult::atom_is_corrupted;
+    }
 
-    //fill the output variables:
-    for(int i=0; i<dlen; i++)
-      rbuf<<pData[i];
+    // Fill the output variables
+    nAtomType = static_cast<atom::Type>(atom->type);
+    for (int i{}; i < dlen; ++i)
+      rbuf << data_bytes[i];
 
     return OpResult::OK;
   }
@@ -686,9 +725,9 @@ public:
     return OpResult::OK;
   }
 
-  void SetBuf(std::shared_ptr<CFIFO> pBuf)
+  void SetBuf(std::shared_ptr<CFIFO> fifo_buf)
   {
-    fifo_buf_ = std::move(pBuf);
+    fifo_buf_ = std::move(fifo_buf);
   }
 
   const std::shared_ptr<CFIFO>& GetBuf() const noexcept
@@ -734,13 +773,11 @@ public:
   template <typename A>
   OpResult Load(A& atom)
   {
-    CFIFO buf;
     atom::Type type;
-    if (const auto r = ReadAtom(atom.index_, type, buf);
-      r == OpResult::OK && (atom.type_ != type || !atom.Load(buf)))
-      return OpResult::atom_is_corrupted;
-    else
-      return r;
+    CFIFO buf;
+    const auto r = ReadAtom(atom.index_, type, buf);
+    return (r == OpResult::OK) && (atom.type_ != type || !atom.Load(buf)) ?
+      OpResult::atom_is_corrupted : r;
   }
 
   /*!
@@ -750,7 +787,8 @@ public:
   template <typename A>
   OpResult Save(A& atom)
   {
-    if (storage_state_ != OpResult::OK) return storage_state_;
+    if (storage_state_ != OpResult::OK)
+      return storage_state_;
     CFIFO buf;
     atom.Save(buf);
     return WriteAtom(atom.index_, atom.type_, buf);
@@ -787,19 +825,19 @@ private:
     return fifo_buf_->size();
   }
 
-  void SetMemBufSize(std::size_t size)
+  void SetMemBufSize(const std::size_t size)
   {
     fifo_buf_->resize(size);
   }
 
-  void AdjustMemBuf(const char *pStart, int nAdjustVal)
+  void AdjustMemBuf(const char* const pStart, const int nAdjustVal)
   {
-    if(0==nAdjustVal)
+    if (!nAdjustVal)
       return;
 
     int req_ind=pStart-fifo_buf_->data();
     int size=GetMemBufSize();
-    if(nAdjustVal>0)
+    if (nAdjustVal>0)
       fifo_buf_->insert(req_ind, nAdjustVal, 0);
     else
       fifo_buf_->erase(req_ind, -nAdjustVal);
@@ -819,13 +857,13 @@ private:
     OpResult rv{OpResult::OK};
 
     // Check if nAtom fits the boundares.
-    if(nAtom >= header->numatoms) {
+    if (nAtom >= header->numatoms) {
       nAtom = header->numatoms;
       rv = OpResult::atom_not_found;
     }
 
     char* pAtomPtr = pMemBuf + sizeof(EepromHeader);
-    for(unsigned int i{}; i < nAtom; ++i) {
+    for (unsigned i{}; i < nAtom; ++i) {
       pAtomPtr += sizeof(AtomHeader) + reinterpret_cast<AtomHeader*>(pAtomPtr)->dlen;
       if (pAtomPtr > mem_buf_end)
         return OpResult::storage_is_corrupted;
