@@ -38,9 +38,9 @@ class  CStorage
 {
 protected:
     /*!
-     * \brief The flag defining if data is downloading(=true) from the storage or uploading to the storage(=false)
+     * \brief The flag defining if data is importing(=true) from the storage or exporting to the storage(=false)
      */
-    bool m_bDownloading=false;
+    bool m_bImporting=false;
 
     bool m_bDefaultSettingsOrder=false;
 
@@ -61,10 +61,10 @@ protected:
 
 public:
     /*!
-     * \brief Is data downloading from the storage or uploading to the storage
-     * \return true=data is downloading, false=data is uploading
+     * \brief Is data importing from the storage or exporting to the storage
+     * \return true=data is importing, false=data is exporting
      */
-    bool IsDownloading(){ return m_bDownloading; }
+    bool IsImporting(){ return m_bImporting; }
 
     bool IsDefaultSettingsOrder(){ return m_bDefaultSettingsOrder; }
 
@@ -120,7 +120,7 @@ struct ISerialize
 {
     /*!
      * \brief Should provide the serialization of the object content
-     * \param st A reference to the storage from which the object content is downloading or uploading to
+     * \param st A reference to the storage from which the object content is importing or exporting to
      */
     virtual void Serialize(CStorage &st)=0;
 

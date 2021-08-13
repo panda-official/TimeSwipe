@@ -105,7 +105,7 @@ protected:
         /*!
          * \brief true when settings are first loaded from the persist storage
          */
-        bool  m_bSettingsLoaded=false;
+        bool  m_bSettingsImported=false;
 
 
         /*!
@@ -241,7 +241,7 @@ public:
             if(bHow)
             {
                 hat::CalibrationMap cal_data;
-                m_CalStatus=m_EEPROMstorage.Load(cal_data);
+                m_CalStatus=m_EEPROMstorage.Import(cal_data);
                 ApplyCalibrationData(cal_data);
             }
         }
@@ -332,15 +332,15 @@ public:
 
 
         /*!
-         * \brief Loads all settings from the persist storage. Should be called once at startup
+         * \brief Imports all settings from the persist storage. Should be called once at startup
          */
-        void LoadSettings(){
+        void ImportSettings(){
 
-            if(!m_bSettingsLoaded)
+            if(!m_bSettingsImported)
             {
                 m_PersistStorage.AddItem(this->shared_from_this());
-                m_PersistStorage.Load();
-                m_bSettingsLoaded=true;
+                m_PersistStorage.Import();
+                m_bSettingsImported=true;
             }
         }
 

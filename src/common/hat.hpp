@@ -75,11 +75,11 @@ private:
   int index_{};
 
   /*!
-   * \brief Loads data fields from an ATOM binary image
+   * \brief Imports data fields from an ATOM binary image
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Load(CFIFO& buf) noexcept
+  bool Import(CFIFO& buf) noexcept
   {
     return true;
   }
@@ -89,7 +89,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Save(CFIFO& buf) const noexcept
+  bool Export(CFIFO& buf) const noexcept
   {
     return true;
   }
@@ -149,11 +149,11 @@ private:
   std::string pstr_;
 
   /*!
-   * \brief Loads data fields from an ATOM binary image
+   * \brief Imports data fields from an ATOM binary image
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Load(CFIFO& buf)
+  bool Import(CFIFO& buf)
   {
     if (buf.in_avail() < 22) return false;
 
@@ -209,7 +209,7 @@ private:
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-  bool Save(CFIFO& buf)
+  bool Export(CFIFO& buf)
   {
     // Export uuid_.
     {
@@ -277,11 +277,11 @@ private:
   static constexpr int index_{1};
 
   /*!
-   * \brief Loads data fields from an ATOM binary image
+   * \brief Imports data fields from an ATOM binary image
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Load(CFIFO& buf)
+  bool Import(CFIFO& buf)
   {
     if (buf.in_avail() < sizeof(*this))
       return false;
@@ -299,7 +299,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Save(CFIFO &buf)
+  bool Export(CFIFO &buf)
   {
     const auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
     for (std::size_t i{}; i < sizeof(*this); ++i)
@@ -342,11 +342,11 @@ public:
     }
 
     /*!
-     * \brief Loads data fields from an ATOM binary image
+     * \brief Imports data fields from an ATOM binary image
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool Load(CFIFO& buf)
+    bool Import(CFIFO& buf)
     {
       if (buf.in_avail() < sizeof(*this))
         return false;
@@ -364,7 +364,7 @@ public:
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool Save(CFIFO& buf)
+    bool Export(CFIFO& buf)
     {
       const auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
       for (std::size_t i{}; i < sizeof(*this); ++i)
@@ -467,11 +467,11 @@ private:
   std::vector<Data> data_;
 
   /*!
-   * \brief Loads data fields from an ATOM binary image
+   * \brief Imports data fields from an ATOM binary image
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Load(CFIFO& buf)
+  bool Import(CFIFO& buf)
   {
     // Import header.
     auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
@@ -483,7 +483,7 @@ private:
 
     // Import data.
     for (auto& data : data_)
-      data.Load(buf);
+      data.Import(buf);
 
     return true;
   }
@@ -493,7 +493,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Save(CFIFO& buf)
+  bool Export(CFIFO& buf)
   {
     // Export header.
     const auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
@@ -502,7 +502,7 @@ private:
 
     // Export data.
     for (auto& data : data_)
-      data.Save(buf);
+      data.Export(buf);
 
     return true;
   }
@@ -561,11 +561,11 @@ private:
   static constexpr int index_{3};  // FIXME ? (should be 2?)
 
   /*!
-   * \brief Loads data fields from an ATOM binary image
+   * \brief Imports data fields from an ATOM binary image
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Load(CFIFO& buf)
+  bool Import(CFIFO& buf)
   {
     // Import header.
     auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
@@ -577,7 +577,7 @@ private:
 
     // Import data.
     for (auto& atom : atoms_)
-      atom.Load(buf);
+      atom.Import(buf);
 
     return true;
   }
@@ -588,7 +588,7 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Save(CFIFO& buf)
+  bool Export(CFIFO& buf)
   {
     // Export header.
     auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
@@ -597,7 +597,7 @@ private:
 
     // Export data.
     for (auto& atom : atoms_)
-      atom.Save(buf);
+      atom.Export(buf);
 
     return true;
   }
@@ -767,16 +767,16 @@ public:
   }
 
   /*!
-   * \brief Loads the atom of given type from the image
+   * \brief Imports the atom of given type from the image
    * \return operation result: OK on success
    */
   template <typename A>
-  OpResult Load(A& atom)
+  OpResult Import(A& atom)
   {
     atom::Type type;
     CFIFO buf;
     const auto r = ReadAtom(atom.index_, type, buf);
-    return (r == OpResult::OK) && (atom.type_ != type || !atom.Load(buf)) ?
+    return (r == OpResult::OK) && (atom.type_ != type || !atom.Import(buf)) ?
       OpResult::atom_is_corrupted : r;
   }
 
@@ -785,12 +785,12 @@ public:
    * \return operation result: OK on success
    */
   template <typename A>
-  OpResult Save(A& atom)
+  OpResult Export(A& atom)
   {
     if (storage_state_ != OpResult::OK)
       return storage_state_;
     CFIFO buf;
-    atom.Save(buf);
+    atom.Export(buf);
     return WriteAtom(atom.index_, atom.type_, buf);
   }
 

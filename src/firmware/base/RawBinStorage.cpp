@@ -22,10 +22,10 @@ CRawBinStorage::CRawBinStorage()
 void CRawBinStorage::__ser(void *pVar, const std::type_info &ti)
 {
 
-    if(m_bDefaultSettingsOrder || !m_bDownloading)
+    if(m_bDefaultSettingsOrder || !m_bImporting)
         return;
 
-    //assume downloading mode only, grab data:
+    //assume importing mode only, grab data:
     unsigned int dsize=4;
     struct CRawBinStorageItem item={(uint8_t *)pVar, dsize};
     m_Items.emplace_back(item);
@@ -39,7 +39,7 @@ void CRawBinStorage::__ser(void *pVar, const std::type_info &ti)
 
 void CRawBinStorage::SetDefaults()
 {
-    m_bDownloading=true;
+    m_bImporting=true;
     m_bDefaultSettingsOrder=true;
 
     for(const auto &obj : m_Dict)
@@ -50,9 +50,9 @@ void CRawBinStorage::SetDefaults()
     m_bDefaultSettingsOrder=false;
 }
 
-void CRawBinStorage::Load()
+void CRawBinStorage::Import()
 {
-    m_bDownloading=true;
+    m_bImporting=true;
     m_bDefaultSettingsOrder=false;
 
     unsigned int stamp=0;
@@ -68,7 +68,7 @@ void CRawBinStorage::Load()
         obj->Serialize(*this);
     }
 
-    m_bDownloading=false;
+    m_bImporting=false;
 }
 void CRawBinStorage::Update()
 {

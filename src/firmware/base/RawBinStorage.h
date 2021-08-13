@@ -42,11 +42,11 @@ struct CRawBinStorageItem
  * 1) The objects which content should be stored must provide a serialization scheme of its internals
  * by implementing ISerialize interface <br />
  * 2) All of this objects initially have to be added to the CRawBinStorage's list by the AddItem() method <br />
- * 3) The Load() method will iterate through the objects list and grab memory layout information
+ * 3) The Import() method will iterate through the objects list and grab memory layout information
  * about each serialized variable of the object. The information will be placed in the CRawBinStorage::m_Items list sequentially.
- * During iterating CRawBinStorage::m_Items list the content of each item will be downloaded from the SmartEEPROM
+ * During iterating CRawBinStorage::m_Items list the content of each item will be imported from the SmartEEPROM
  * if the SmartEEPROM was filled properly <br />
- * 4) After initialization ( AddItem() + Load() ) the Update() method must be called continuously.
+ * 4) After initialization ( AddItem() + Import() ) the Update() method must be called continuously.
  * It will compare the content of each item with the same content stored in the SmartEEPROM
  * and overwrites it when changed. Thus all objects tracked from the CRawBinStorage will be stored automatically
  * without the need for additional calls
@@ -81,7 +81,7 @@ protected:
 
     /*!
      * \brief The method used to grab information about each data primitive of the serialized object
-     *  and to fill it content with the data loaded from the SmartEEPROM
+     *  and to fill it content with the data imported from the SmartEEPROM
      * \param pVar A pointer to the data primitive
      * \param ti The data primitive type information (in C++ RTTI form)
      */
@@ -103,9 +103,9 @@ public:
     }
 
     /*!
-     * \brief Initializes storage internals and download objects content form the SmartEEPROM
+     * \brief Initializes storage internals and imported objects content form the SmartEEPROM
      */
-    void Load();
+    void Import();
 
     void SetDefaults();
 
