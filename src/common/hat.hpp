@@ -209,26 +209,26 @@ private:
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-  bool Export(CFIFO& buf)
+  bool Export(CFIFO& buf) const
   {
     // Export uuid_.
     {
-      const auto* const uuid_bytes = reinterpret_cast<std::uint8_t*>(uuid_.data());
+      const auto* const uuid_bytes = reinterpret_cast<const std::uint8_t*>(uuid_.data());
       for (std::size_t i{}; i < sizeof(*uuid_.data()) * uuid_.size(); ++i)
         buf << uuid_bytes[i];
     }
 
     // Export pid_.
     {
-      const Character b0{reinterpret_cast<std::uint8_t*>(&pid_)[0]},
-        b1{reinterpret_cast<std::uint8_t*>(&pid_)[1]};
+      const Character b0{reinterpret_cast<const std::uint8_t*>(&pid_)[0]},
+        b1{reinterpret_cast<const std::uint8_t*>(&pid_)[1]};
       buf << b0 << b1;
     }
 
     // Export pver_.
     {
-      const Character b0{reinterpret_cast<std::uint8_t*>(&pver_)[0]},
-        b1{reinterpret_cast<std::uint8_t*>(&pver_)[1]};
+      const Character b0{reinterpret_cast<const std::uint8_t*>(&pver_)[0]},
+        b1{reinterpret_cast<const std::uint8_t*>(&pver_)[1]};
       buf << b0 << b1;
     }
 
@@ -299,9 +299,9 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Export(CFIFO &buf)
+  bool Export(CFIFO& buf) const
   {
-    const auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
+    const auto* const this_bytes = reinterpret_cast<const std::uint8_t*>(this);
     for (std::size_t i{}; i < sizeof(*this); ++i)
       buf << this_bytes[i];
     return true;
@@ -364,9 +364,9 @@ public:
      * \param buf ATOM binary image
      * \return true=successful, false=failure
      */
-    bool Export(CFIFO& buf)
+    bool Export(CFIFO& buf) const
     {
-      const auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
+      const auto* const this_bytes = reinterpret_cast<const std::uint8_t*>(this);
       for (std::size_t i{}; i < sizeof(*this); ++i)
         buf << this_bytes[i];
       return true;
@@ -493,10 +493,10 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Export(CFIFO& buf)
+  bool Export(CFIFO& buf) const
   {
     // Export header.
-    const auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
+    const auto* const header_bytes = reinterpret_cast<const std::uint8_t*>(&header_);
     for (std::size_t i{}; i < sizeof(header_); ++i)
       buf << header_bytes[i];
 
@@ -588,10 +588,10 @@ private:
    * \param buf ATOM binary image
    * \return true=successful, false=failure
    */
-  bool Export(CFIFO& buf)
+  bool Export(CFIFO& buf) const
   {
     // Export header.
-    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
+    auto* const header_bytes = reinterpret_cast<const std::uint8_t*>(&header_);
     for (std::size_t i{}; i < sizeof(header_); ++i)
       buf << header_bytes[i];
 
@@ -622,27 +622,28 @@ public:
     : fifo_buf_{std::move(fifo_buf)}
   {}
 
-  /*!
-   * \brief ReadAtom reads Atom's raw binary data
-   * \param nAtom absolute address of the Atom
-   * \param nAtomType atom type to be read out
-   * \param rbuf data receive bufer
-   * \return read operation result (OK or an error)
+  /**
+   * Reads Atom's raw binary data.
+   *
+   * @param pos Atom position (zero-based).
+   * @param[out] type Atom type.
+   * @param[out] Output data buffer.
+   *
+   * @return Operation result.
    */
-  OpResult ReadAtom(unsigned int nAtom, atom::Type& nAtomType, CFIFO& rbuf)
+  OpResult ReadAtom(const unsigned pos, atom::Type& type, CFIFO& output) const
   {
     if (storage_state_ != OpResult::OK)
       return storage_state_;
 
     // Get the atom.
     AtomHeader* atom{};
-    if (const auto r = FindAtomHeader(nAtom,
-        GetMemBuf(), GetMemBufSize(), &atom); r != OpResult::OK)
+    if (const auto r = FindAtomHeader(pos, &atom); r != OpResult::OK)
       return r;
 
     // Set helpers.
     const auto* const header_bytes = reinterpret_cast<const char*>(atom);
-    const auto* const data_bytes = header_bytes + sizeof(AtomHeader); // &atom->data_begin;
+    const auto* const data_bytes = header_bytes + sizeof(AtomHeader); // atom->data_begin;
     const auto dlen = atom->dlen - 2; // real dlen without CRC
 
     // Check the CRC of the atom.
@@ -653,74 +654,71 @@ public:
         return OpResult::atom_is_corrupted;
     }
 
-    // Fill the output variables
-    nAtomType = static_cast<atom::Type>(atom->type);
+    // Fill the out variables.
+    type = static_cast<atom::Type>(atom->type);
     for (int i{}; i < dlen; ++i)
-      rbuf << data_bytes[i];
+      output << data_bytes[i];
 
     return OpResult::OK;
   }
 
-  /*!
-   * \brief WriteAtom writes Atom's raw binary data
-   * \param nAtom absolute address of the Atom
-   * \param nAtomType atom type to be written
-   * \param wbuf data bufer
-   * \return read operation result (OK or an error)
+  /**
+   * Writes atom from the `input` buffer to the specified position.
+   *
+   * @param pos Atom position (zero-based).
+   * @param type Atom type.
+   * @param input Input data buffer.
+   *
+   * @return Operation result.
    */
-  OpResult WriteAtom(unsigned int nAtom, atom::Type nAtomType, CFIFO& wbuf)
+  OpResult WriteAtom(const unsigned pos, const atom::Type type, const CFIFO& input)
   {
-    if (storage_state_ != OpResult::OK) return storage_state_;
+    if (storage_state_ != OpResult::OK)
+      return storage_state_;
 
-    unsigned int nAtomsCount = GetAtomsCount();
-    if (nAtom > nAtomsCount)
+    const auto atom_count = GetAtomCount();
+    if (pos > atom_count)
       return OpResult::atom_not_found;
+    const bool is_adding{pos == atom_count};
 
-    char* pMemBuf{GetMemBuf()};
-    AtomHeader* pAtom{};
-    const bool bAddingNew = nAtom == nAtomsCount;
-    if (const auto r = FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
-      bAddingNew && r != OpResult::atom_not_found || r != OpResult::OK)
+    AtomHeader* atom{};
+    if (const auto r = FindAtomHeader(pos, &atom);
+      is_adding && r != OpResult::atom_not_found || r != OpResult::OK)
       return r;
 
-    //what can happaned here...if atom is not found this is ok, we can write a new one
-    //the problem can be if whole storage is corrupted...
-    //should we check it at the beginning?
-    //lets assume the storage is OK: FindAtomHeader can check the header, not each atom...
-    unsigned int req_size=wbuf.size();
-    int nMemAdjustVal;
-    if(bAddingNew) {
-      nMemAdjustVal=req_size+sizeof(AtomHeader)+2;
-      AdjustMemBuf((const char*)pAtom, nMemAdjustVal); //completely new
-    } else {
-      int dlen=pAtom->dlen-2;
-      nMemAdjustVal=(int)(req_size - dlen);
-      AdjustMemBuf((char*)pAtom+sizeof(AtomHeader), nMemAdjustVal); //keep header
+    // FIXME: check the whole storage for corruption before continuing here.
+    // assert: storage is not corrupted.
+
+    const auto input_size = input.size();
+    const int mem_adjust_size = is_adding ?
+      input_size + sizeof(AtomHeader) + 2 : input_size - atom->dlen + 2;
+    if (is_adding)
+      AdjustMemBuf(reinterpret_cast<const char*>(atom), mem_adjust_size);
+    else
+      AdjustMemBuf(reinterpret_cast<const char*>(atom) + sizeof(AtomHeader), mem_adjust_size); // keep header
+
+    // AdjustMemBuf() reallocates memory and invalidates `atom`! Update it.
+    FindAtomHeader(pos, &atom);
+
+    // Emplace the atom to the reserved by AdjustMemBuf() space.
+    atom->type = static_cast<std::uint16_t>(type);
+    atom->count = pos;
+    atom->dlen = input_size + 2;
+    auto* const atom_bytes = reinterpret_cast<char*>(atom);
+    auto* const atom_data_bytes = atom_bytes + sizeof(AtomHeader);
+    for (std::size_t i{}; i < input_size; ++i)
+      atom_data_bytes[i] = input[i];
+
+    // Set CRC stamp of the atom.
+    *reinterpret_cast<std::uint16_t*>(atom_data_bytes + input_size) =
+      dmitigr::crc::crc16(atom_bytes, input_size + sizeof(AtomHeader));
+
+    // Update the EEPROM header if needed.
+    if (is_adding) {
+      auto* const header = reinterpret_cast<EepromHeader*>(GetMemBuf());
+      header->eeplen += mem_adjust_size;
+      header->numatoms = atom_count + 1;
     }
-
-
-    //will it be the same address after realocation?!
-    //if not have to repeat Finding procedure...
-    if(GetMemBuf()!=pMemBuf) {
-      pMemBuf=GetMemBuf();
-      FindAtomHeader(nAtom, pMemBuf, GetMemBufSize(), &pAtom);
-    }
-
-    //after adjustion, fill the atom struct:
-    pAtom->type=static_cast<uint16_t>(nAtomType);
-    pAtom->count=nAtom; //also zero-based atom count
-    pAtom->dlen=req_size+2;
-    char *pData=(char*)pAtom+sizeof(AtomHeader);
-    uint16_t *pCRC=(uint16_t*)(pData+req_size);
-    for(unsigned int i=0; i<req_size; i++)
-      pData[i]=wbuf[i];
-    *pCRC = dmitigr::crc::crc16((char*)pAtom, req_size+sizeof(AtomHeader)); //set CRC stamp, atom is ready
-
-    auto* const header = reinterpret_cast<EepromHeader*>(pMemBuf);
-    header->eeplen += nMemAdjustVal;
-    if(bAddingNew)
-      //also setup the header with the new data:
-      header->numatoms = nAtom + 1;
 
     return OpResult::OK;
   }
@@ -739,7 +737,7 @@ public:
    * \brief Returns the total atoms count
    * \return
    */
-  unsigned GetAtomsCount() const noexcept
+  std::uint16_t GetAtomCount() const noexcept
   {
     return reinterpret_cast<const EepromHeader*>(GetMemBuf())->numatoms;
   }
@@ -754,7 +752,7 @@ public:
    */
   OpResult Verify()
   {
-    return storage_state_ = VerifyStorage(GetMemBuf(), GetMemBufSize());
+    return storage_state_ = VerifyStorage();
   }
 
   /*!
@@ -763,7 +761,7 @@ public:
   void Reset()
   {
     SetMemBufSize(sizeof(EepromHeader));
-    storage_state_=ResetStorage(GetMemBuf(), GetMemBufSize());
+    storage_state_ = ResetStorage();
   }
 
   /*!
@@ -771,7 +769,7 @@ public:
    * \return operation result: OK on success
    */
   template <typename A>
-  OpResult Import(A& atom)
+  OpResult Get(A& atom) const
   {
     atom::Type type;
     CFIFO buf;
@@ -785,7 +783,7 @@ public:
    * \return operation result: OK on success
    */
   template <typename A>
-  OpResult Export(A& atom)
+  OpResult Put(const A& atom)
   {
     if (storage_state_ != OpResult::OK)
       return storage_state_;
@@ -810,12 +808,7 @@ private:
   /// @name Memory control
   /// @{
 
-  const char* GetMemBuf() const noexcept
-  {
-    return fifo_buf_->data();
-  }
-
-  char* GetMemBuf() noexcept
+  char* GetMemBuf() const noexcept
   {
     return fifo_buf_->data();
   }
@@ -830,17 +823,13 @@ private:
     fifo_buf_->resize(size);
   }
 
-  void AdjustMemBuf(const char* const pStart, const int nAdjustVal)
+  void AdjustMemBuf(const char* const offset, const int adjustment)
   {
-    if (!nAdjustVal)
-      return;
-
-    int req_ind=pStart-fifo_buf_->data();
-    int size=GetMemBufSize();
-    if (nAdjustVal>0)
-      fifo_buf_->insert(req_ind, nAdjustVal, 0);
-    else
-      fifo_buf_->erase(req_ind, -nAdjustVal);
+    const auto position = offset - fifo_buf_->data();
+    if (adjustment > 0)
+      fifo_buf_->insert(position, adjustment, 0);
+    else if (adjustment < 0)
+      fifo_buf_->erase(position, -adjustment);
   }
 
   /// @}
@@ -848,42 +837,40 @@ private:
   /// @name Atom stuff
   /// @{
 
-  static OpResult FindAtomHeader(unsigned nAtom, char* const pMemBuf,
-    const std::size_t MemBufSize, AtomHeader** pHeaderBegin)
+  OpResult FindAtomHeader(unsigned pos, AtomHeader** const header) const
   {
-    const auto* const header = reinterpret_cast<const EepromHeader*>(pMemBuf);
-    char* mem_buf_end = pMemBuf + MemBufSize;
+    OpResult result{OpResult::OK};
+    auto* const mem_buf = GetMemBuf();
+    auto* const mem_buf_end = mem_buf + GetMemBufSize();
+    const auto* const eeprom_header = reinterpret_cast<const EepromHeader*>(mem_buf);
 
-    OpResult rv{OpResult::OK};
-
-    // Check if nAtom fits the boundares.
-    if (nAtom >= header->numatoms) {
-      nAtom = header->numatoms;
-      rv = OpResult::atom_not_found;
+    // Check `pos` and correct if needed.
+    if (pos >= eeprom_header->numatoms) {
+      pos = eeprom_header->numatoms;
+      result = OpResult::atom_not_found;
     }
 
-    char* pAtomPtr = pMemBuf + sizeof(EepromHeader);
-    for (unsigned i{}; i < nAtom; ++i) {
-      pAtomPtr += sizeof(AtomHeader) + reinterpret_cast<AtomHeader*>(pAtomPtr)->dlen;
-      if (pAtomPtr > mem_buf_end)
+    auto* atom = mem_buf + sizeof(EepromHeader);
+    for (unsigned i{}; i < pos; ++i) {
+      atom += sizeof(AtomHeader) + reinterpret_cast<const AtomHeader*>(atom)->dlen;
+      if (atom > mem_buf_end)
         return OpResult::storage_is_corrupted;
     }
+    *header = reinterpret_cast<AtomHeader*>(atom);
 
-    // Always out the pointer to the next atom or at least where it should be.
-    *pHeaderBegin = reinterpret_cast<AtomHeader*>(pAtomPtr);
-    return rv;
+    return result;
   }
 
-  OpResult VerifyAtom(const AtomHeader* const pAtom)
+  OpResult VerifyAtom(const AtomHeader* const atom) const
   {
-    //check the atom CRC:
-    const auto dlen = pAtom->dlen - 2; // real dlen without CRC
-    const auto* const pAtomOffset = reinterpret_cast<const char*>(pAtom);
-    const auto* const pDataOffset = pAtomOffset + sizeof(AtomHeader);
-    const auto* const pCrcOffset = pDataOffset + dlen;
+    // Check the CRC.
+    const auto dlen = atom->dlen - 2; // dlen without CRC
+    const auto* const atom_offset = reinterpret_cast<const char*>(atom);
+    const auto* const data_offset = atom_offset + sizeof(AtomHeader);
+    const auto* const crc_offset = data_offset + dlen;
 
-    const auto crc = *reinterpret_cast<const std::uint16_t*>(pCrcOffset);
-    const auto calc_crc = dmitigr::crc::crc16(pAtomOffset, dlen + sizeof(AtomHeader));
+    const auto crc = *reinterpret_cast<const std::uint16_t*>(crc_offset);
+    const auto calc_crc = dmitigr::crc::crc16(atom_offset, dlen + sizeof(AtomHeader));
     if (crc != calc_crc)
       return OpResult::atom_is_corrupted;
 
@@ -895,39 +882,42 @@ private:
   /// @name Storage control
   /// @{
 
-  OpResult VerifyStorage(const char* pMemBuf, const std::size_t MemBufSize)
+  OpResult VerifyStorage() const
   {
-    if(MemBufSize < sizeof(EepromHeader))
+    const auto* const mem_buf = GetMemBuf();
+    const auto mem_buf_size = GetMemBufSize();
+    if (mem_buf_size < sizeof(EepromHeader))
       return OpResult::storage_is_corrupted;
 
-    const auto* const header = reinterpret_cast<const EepromHeader*>(pMemBuf);
-    const char* const pMemLimit = pMemBuf + MemBufSize;
+    const auto* const header = reinterpret_cast<const EepromHeader*>(mem_buf);
+    const auto* const mem_buf_end = mem_buf + mem_buf_size;
 
     if (header->signature != signature || header->ver != version
-      || header->res || header->eeplen > MemBufSize)
+      || header->res || header->eeplen > mem_buf_size)
       return OpResult::storage_is_corrupted;
 
     // Verify all the atoms.
-    const std::uint16_t nAtoms{header->numatoms};
-    const char* pAtomPtr = pMemBuf + sizeof(EepromHeader);
-    for(std::uint16_t i{}; i < nAtoms; ++i) {
-      const auto* const atom_hdr = reinterpret_cast<const AtomHeader*>(pAtomPtr);
-      const OpResult res{VerifyAtom(atom_hdr)};
-      if (res != OpResult::OK)
-        return res;
-      pAtomPtr += sizeof(AtomHeader) + atom_hdr->dlen;
-      if (pAtomPtr > pMemLimit)
+    const char* atom = mem_buf + sizeof(EepromHeader);
+    for (std::uint16_t i{}; i < header->numatoms; ++i) {
+      const auto* const atom_hdr = reinterpret_cast<const AtomHeader*>(atom);
+      if (const auto r = VerifyAtom(atom_hdr); r != OpResult::OK)
+        return r;
+      atom += sizeof(AtomHeader) + atom_hdr->dlen;
+      if (atom > mem_buf_end)
         return OpResult::storage_is_corrupted;
     }
     return OpResult::OK;
   }
 
-  OpResult ResetStorage(char* pMemBuf, const std::size_t MemBufSize)
+  OpResult ResetStorage()
   {
-    if (MemBufSize < sizeof(EepromHeader))
+    char* const mem_buf = GetMemBuf();
+    const std::size_t mem_buf_size = GetMemBufSize();
+
+    if (mem_buf_size < sizeof(EepromHeader))
       return OpResult::storage_is_corrupted;
 
-    auto* const header = reinterpret_cast<EepromHeader*>(pMemBuf);
+    auto* const header = reinterpret_cast<EepromHeader*>(mem_buf);
     header->signature = signature;
     header->ver = version;
     header->res = 0;

@@ -241,7 +241,7 @@ public:
             if(bHow)
             {
                 hat::CalibrationMap cal_data;
-                m_CalStatus=m_EEPROMstorage.Import(cal_data);
+                m_CalStatus=m_EEPROMstorage.Get(cal_data);
                 ApplyCalibrationData(cal_data);
             }
         }
