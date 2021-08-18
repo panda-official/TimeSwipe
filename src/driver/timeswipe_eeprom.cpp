@@ -1,5 +1,5 @@
 #include "timeswipe_eeprom.hpp"
-#include "../common/hats.hpp"
+#include "../common/hat.hpp"
 #include <memory>
 #include <fstream>
 
@@ -32,25 +32,22 @@ bool TimeSwipeEEPROM::Read(std::string& error) {
     if (str.length() > 127) str.resize(127);
     auto buf = std::make_shared<CFIFO>();
     *buf += str;
-    CHatsMemMan HatMan(buf);
+    const hat::Manager manager{buf};
 
-    //The image has to be verified before use: Verify() methode will check the image consistency and CRCs of the atoms
-    CHatsMemMan::op_result res;
-    res = HatMan.Verify();
-    if (res != CHatsMemMan::OK) {
-        error = "EEPROM verify failed";
-        return false;
+    // Verify EEPROM image.
+    if (manager.Verify() != hat::Manager::OpResult::OK) {
+      error = "EEPROM verify failed";
+      return false;
     }
 
-    //The number of atoms can be obtained as following (optional)
-    unsigned int nAtoms = HatMan.GetAtomsCount();
+    // The number of atoms can be obtained as following (optional)
+    const auto atom_count = manager.GetAtomCount();
 
     //Then obligatory atoms can be obtained:
-    CHatAtomVendorInfo vi;
-    CHatAtomGPIOmap gpio;
-
-    res = HatMan.Load(vi);
-    res = HatMan.Load(gpio);
+    hat::atom::VendorInfo vi;
+    hat::atom::GpioMap gpio;
+    (void)manager.Get(vi);
+    (void)manager.Get(gpio);
 
     /*
     printf("uuid: %x-%x-%x-%x\n", vi.m_uuid[0], vi.m_uuid[1], vi.m_uuid[2], vi.m_uuid[3]);

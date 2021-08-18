@@ -50,12 +50,12 @@ public:
     return true;
   }
 
-  bool send(typeSChar)
+  bool send(Character)
   {
     return false;
   }
 
-  bool receive(typeSChar&)
+  bool receive(Character&)
   {
     return false;
   }

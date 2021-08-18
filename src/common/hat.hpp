@@ -102,6 +102,9 @@ public:
   /// Alias for Uuid.
   using Uuid = std::array<std::uint32_t, 4>;
 
+  /// The default constructor.
+  VendorInfo() = default;
+
   /// The constructor.
   VendorInfo(const Uuid uuid,
     const std::uint16_t pid,
@@ -796,7 +799,7 @@ public:
    *
    * @returns `OpResult::OK` on success.
    */
-  OpResult Verify()
+  OpResult Verify() const
   {
     return storage_state_ = VerifyStorage();
   }
@@ -851,7 +854,7 @@ private:
 
   static constexpr std::uint32_t signature{0x69502d52};
   static constexpr std::uint8_t version{1};
-  OpResult storage_state_{OpResult::storage_isnt_verified};
+  mutable OpResult storage_state_{OpResult::storage_isnt_verified};
   std::shared_ptr<CFIFO> fifo_buf_;
 
   /// @name Memory control
