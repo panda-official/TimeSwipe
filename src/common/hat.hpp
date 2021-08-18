@@ -328,14 +328,14 @@ private:
 /// Calibration atom.
 class Calibration final {
 public:
-  /// Calibration atom data.
-  class Data final {
+  /// Calibration atom entry.
+  class Entry final {
   public:
     /// The default constructor.
-    Data() = default;
+    Entry() = default;
 
     /// The constructor.
-    Data(const float m, const std::uint16_t b) noexcept
+    Entry(const float m, const std::uint16_t b) noexcept
       : m_{m}
       , b_{b}
     {}
@@ -455,8 +455,8 @@ public:
 
   /// The constructor.
   Calibration(const Type type, const std::uint16_t count)
-    : header_{type, count, count * sizeof(Data)}
-    , data_{count}
+    : header_{type, count, count * sizeof(Entry)}
+    , entries_{count}
   {}
 
   /// @returns The size in bytes.
@@ -466,25 +466,25 @@ public:
   }
 
   /// @returns The count of elements.
-  std::size_t GetDataCount() const noexcept
+  std::size_t GetEntryCount() const noexcept
   {
-    return data_.size();
+    return entries_.size();
   }
 
   /// @returns The data of the specified `index`.
-  const Data& GetData(const std::size_t index, std::string& err) const
+  const Entry& GetEntry(const std::size_t index, std::string& err) const
   {
-    if (!(index < data_.size()))
-      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
-    return data_[index];
+    if (!(index < entries_.size()))
+      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomEntryIndex);
+    return entries_[index];
   }
 
   /// Sets the data `value` at the specified `indexe.
-  void SetData(const std::size_t index, const Data& value, std::string& err)
+  void SetEntry(const std::size_t index, const Entry& value, std::string& err)
   {
-    if (!(index < data_.size()))
-      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomDataIndex);
-    data_[index] = value;
+    if (!(index < entries_.size()))
+      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomEntryIndex);
+    entries_[index] = value;
   }
 
 private:
@@ -496,7 +496,7 @@ private:
     std::uint32_t dlen{};
     // data follows next
   } header_;
-  std::vector<Data> data_;
+  std::vector<Entry> entries_;
 
   /**
    * Imports data fields from an ATOM binary image.
@@ -516,8 +516,8 @@ private:
     }
 
     // Import data.
-    for (auto& data : data_)
-      data.Import(buf);
+    for (auto& entry : entries_)
+      entry.Import(buf);
 
     return true;
   }
@@ -537,8 +537,8 @@ private:
       buf << header_bytes[i];
 
     // Export data.
-    for (auto& data : data_)
-      data.Export(buf);
+    for (auto& entry : entries_)
+      entry.Export(buf);
 
     return true;
   }

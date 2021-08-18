@@ -48,7 +48,7 @@ enum class Errc {
   /** Calibration ATOM section **/
 
   kInvalidCalibrationAtomType = 4001,
-  kInvalidCalibrationAtomDataIndex = 4002
+  kInvalidCalibrationAtomEntryIndex = 4002
 };
 
 /// @returns `true` if `errc` indicates an error.
@@ -73,7 +73,7 @@ constexpr const char* ToLiteral(const Errc errc) noexcept
   case Errc::kInsufficientDriftReferences: return "insufficient drift references";
   case Errc::kExcessiveDriftReferences: return "excessive drift references";
   case Errc::kInvalidCalibrationAtomType: return "invalid calibration atom type";
-  case Errc::kInvalidCalibrationAtomDataIndex: return "invalid calibration atom data index";
+  case Errc::kInvalidCalibrationAtomEntryIndex: return "invalid calibration atom entry index";
   }
   return nullptr;
 }

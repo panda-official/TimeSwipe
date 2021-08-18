@@ -50,8 +50,8 @@ void nodeControl::ApplyCalibrationData(const hat::CalibrationMap& map)
 
   if (m_pVoltageDAC) {
     std::string strError;
-    const auto& data = map.GetAtom(hat::atom::Calibration::Type::V_supply).GetData(0, strError);
-    m_pVoltageDAC->SetLinearFactors(data.GetM(), data.GetB());
+    const auto& entry = map.GetAtom(hat::atom::Calibration::Type::V_supply).GetEntry(0, strError);
+    m_pVoltageDAC->SetLinearFactors(entry.GetM(), entry.GetB());
     m_pVoltageDAC->SetVal();
   }
 
@@ -96,7 +96,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     const auto type = hat::atom::Calibration::MakeType(jObj["cAtom"], strError);
     if (!strError.empty()) return false;
 
-    const auto nCalPairs = map.GetAtom(type).GetDataCount();
+    const auto cal_entry_count = map.GetAtom(type).GetEntryCount();
 
     //if call type=set
     if(CCmdCallDescr::ctype::ctSet==ct)
@@ -107,7 +107,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 #endif
 
         auto& data = jObj["data"];
-        if (data.size() > nCalPairs) {
+        if (data.size() > cal_entry_count) {
           strError="wrong data count";
           return false;
         }
@@ -115,15 +115,15 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
         size_t pair_ind=0;
         for(auto &el : data) {
           //init the pair:
-          auto data = map.GetAtom(type).GetData(pair_ind, strError);
+          auto entry = map.GetAtom(type).GetEntry(pair_ind, strError);
           if (!strError.empty()) return false;
 
           if (const auto it_m = el.find("m"); it_m != el.end())
-            data.SetM(*it_m);
+            entry.SetM(*it_m);
           if (const auto it_b = el.find("b"); it_b != el.end())
-            data.SetB(*it_b);
+            entry.SetB(*it_b);
 
-          map.GetAtom(type).SetData(pair_ind, std::move(data), strError);
+          map.GetAtom(type).SetEntry(pair_ind, std::move(entry), strError);
           if (!strError.empty()) return false;
 
           pair_ind++;
@@ -141,14 +141,14 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     //auto resp_data=jResp["data"];//.array();
 
     auto resp_data = nlohmann::json::array();
-    for (std::size_t i{}; i < nCalPairs; ++i) {
-      const auto& data = map.GetAtom(type).GetData(i, strError);
+    for (std::size_t i{}; i < cal_entry_count; ++i) {
+      const auto& entry = map.GetAtom(type).GetEntry(i, strError);
       if (!strError.empty()) return false;
 
       //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
       nlohmann::json jpair;
-      jpair["m"]=data.GetM();
-      jpair["b"]=data.GetB();
+      jpair["m"]=entry.GetM();
+      jpair["b"]=entry.GetB();
       resp_data.emplace_back(jpair);
     }
     jResp["cAtom"]=type;
