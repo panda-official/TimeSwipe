@@ -96,7 +96,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     const auto type = hat::atom::Calibration::MakeType(jObj["cAtom"], strError);
     if (!strError.empty()) return false;
 
-    const auto nCalPairs = map.GetAtom(type).GetDataVector().size();
+    const auto nCalPairs = map.GetAtom(type).GetDataCount();
 
     //if call type=set
     if(CCmdCallDescr::ctype::ctSet==ct)

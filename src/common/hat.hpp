@@ -51,7 +51,7 @@ struct EepromHeader final {
 
 namespace atom {
 
-/// Atom Type.
+/// Atom type.
 enum class Type : std::uint16_t {
   Invalid = 0x0000,
   VendorInfo = 0x0001,
@@ -64,6 +64,7 @@ enum class Type : std::uint16_t {
 /// Atom stub.
 class Stub final {
 public:
+  /// The constructor.
   explicit Stub(const int nIndex) noexcept
     : index_{nIndex}
   {}
@@ -74,22 +75,22 @@ private:
   static constexpr Type type_{Type::Custom};
   int index_{};
 
-  /*!
-   * \brief Imports data fields from an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Simulates successful import of data fields from an ATOM binary image.
+   *
+   * @returns `true`.
    */
-  bool Import(CFIFO& buf) noexcept
+  bool Import(CFIFO&) noexcept
   {
     return true;
   }
 
-  /*!
-   * \brief Stores data fields to an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Simulates successful export of data fields to an ATOM binary image.
+   *
+   * @returns `true`.
    */
-  bool Export(CFIFO& buf) const noexcept
+  bool Export(CFIFO&) const noexcept
   {
     return true;
   }
@@ -98,8 +99,10 @@ private:
 /// Vendor info atom.
 class VendorInfo final {
 public:
+  /// Alias for Uuid.
   using Uuid = std::array<std::uint32_t, 4>;
 
+  /// The constructor.
   VendorInfo(const Uuid uuid,
     const std::uint16_t pid,
     const std::uint16_t pver,
@@ -112,26 +115,31 @@ public:
     , pstr_{std::move(pstr)}
   {}
 
+  /// @returns UUID.
   const Uuid& GetUuid() const noexcept
   {
     return uuid_;
   }
 
+  /// @returns Pid.
   std::uint16_t GetPid() const noexcept
   {
     return pid_;
   }
 
+  /// @returns Pver.
   std::uint16_t GetPver() const noexcept
   {
     return pver_;
   }
 
+  /// @returns Vstr.
   const std::string& GetVstr() const noexcept
   {
     return vstr_;
   }
 
+  /// @returns Pstr.
   const std::string& GetPstr() const noexcept
   {
     return pstr_;
@@ -148,10 +156,12 @@ private:
   std::string vstr_;
   std::string pstr_;
 
-  /*!
-   * \brief Imports data fields from an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Imports data fields from an ATOM binary image.
+   *
+   * @param buf ATOM binary image.
+   *
+   * @returns `true` on success.
    */
   bool Import(CFIFO& buf)
   {
@@ -204,11 +214,13 @@ private:
     return true;
   }
 
-    /*!
-     * \brief Stores data fields to an ATOM binary image
-     * \param buf ATOM binary image
-     * \return true=successful, false=failure
-     */
+  /**
+   * Stores data fields to an ATOM binary image.
+   *
+   * @param buf ATOM binary image.
+   *
+   * @returns `true` on sucess.
+   */
   bool Export(CFIFO& buf) const
   {
     // Export uuid_.
@@ -250,6 +262,7 @@ private:
 /// GPIO map atom.
 class GpioMap final {
 public:
+  /// The default constructor.
   GpioMap() = default;
 
 private:
@@ -276,10 +289,12 @@ private:
   static constexpr Type type_{Type::GpioMap};
   static constexpr int index_{1};
 
-  /*!
-   * \brief Imports data fields from an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Imports data fields from an ATOM binary image.
+   *
+   * @param buf ATOM binary image
+   *
+   * @returns `true` on success.
    */
   bool Import(CFIFO& buf)
   {
@@ -294,10 +309,12 @@ private:
     return true;
   }
 
-  /*!
-   * \brief Stores data fields to an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Stores data fields to an ATOM binary image.
+   *
+   * @param buf ATOM binary image.
+   *
+   * @returns `true` on success.
    */
   bool Export(CFIFO& buf) const
   {
@@ -314,37 +331,45 @@ public:
   /// Calibration atom data.
   class Data final {
   public:
+    /// The default constructor.
     Data() = default;
 
+    /// The constructor.
     Data(const float m, const std::uint16_t b) noexcept
       : m_{m}
       , b_{b}
     {}
 
+    /// Sets `m`.
     void SetM(const float m) noexcept
     {
       m_ = m;
     }
 
+    /// Sets `b`.
     void SetB(const std::uint16_t b) noexcept
     {
       b_ = b;
     }
 
+    /// @returns `m`.
     float GetM() const noexcept
     {
       return m_;
     }
 
+    /// @returns `b`.
     std::uint16_t GetB() const noexcept
     {
       return b_;
     }
 
-    /*!
-     * \brief Imports data fields from an ATOM binary image
-     * \param buf ATOM binary image
-     * \return true=successful, false=failure
+    /**
+     * Imports data fields from an ATOM binary image.
+     *
+     * @param buf ATOM binary image.
+     *
+     * @returns `true` on success.
      */
     bool Import(CFIFO& buf)
     {
@@ -359,10 +384,12 @@ public:
       return true;
     }
 
-    /*!
-     * \brief Stores data fields to an ATOM binary image
-     * \param buf ATOM binary image
-     * \return true=successful, false=failure
+    /**
+     * Exports data fields to an ATOM binary image.
+     *
+     * @param buf ATOM binary image.
+     *
+     * @returns `true` on success.
      */
     bool Export(CFIFO& buf) const
     {
@@ -426,21 +453,25 @@ public:
     return result;
   }
 
-  Calibration(const Type nType, const std::uint16_t nCount)
-    : header_{nType, nCount, nCount * sizeof(Data)}
-    , data_{nCount}
+  /// The constructor.
+  Calibration(const Type type, const std::uint16_t count)
+    : header_{type, count, count * sizeof(Data)}
+    , data_{count}
   {}
 
+  /// @returns The size in bytes.
   constexpr std::size_t GetSizeInBytes() const noexcept
   {
     return header_.dlen + sizeof(Header);
   }
 
-  const std::vector<Data>& GetDataVector() const noexcept
+  /// @returns The count of elements.
+  std::size_t GetDataCount() const noexcept
   {
-    return data_;
+    return data_.size();
   }
 
+  /// @returns The data of the specified `index`.
   const Data& GetData(const std::size_t index, std::string& err) const
   {
     if (!(index < data_.size()))
@@ -448,6 +479,7 @@ public:
     return data_[index];
   }
 
+  /// Sets the data `value` at the specified `indexe.
   void SetData(const std::size_t index, const Data& value, std::string& err)
   {
     if (!(index < data_.size()))
@@ -466,10 +498,12 @@ private:
   } header_;
   std::vector<Data> data_;
 
-  /*!
-   * \brief Imports data fields from an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Imports data fields from an ATOM binary image.
+   *
+   * @param buf ATOM binary image
+   *
+   * @returns `true` on success.
    */
   bool Import(CFIFO& buf)
   {
@@ -488,10 +522,12 @@ private:
     return true;
   }
 
-  /*!
-   * \brief Stores data fields to an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Stores data fields to an ATOM binary image.
+   *
+   * @param buf ATOM binary image.
+   *
+   * @returns `true` on success.
    */
   bool Export(CFIFO& buf) const
   {
@@ -510,8 +546,10 @@ private:
 
 } // namespace atom
 
+/// Calibration map.
 class CalibrationMap final {
 public:
+  /// The default constructor.
   CalibrationMap()
   {
     // Set data.
@@ -535,11 +573,13 @@ public:
       header_.callen += atom.GetSizeInBytes();
   }
 
+  /// @returns Caliration atom of the given `type`.
   const atom::Calibration& GetAtom(const atom::Calibration::Type type) const noexcept
   {
     return atoms_[static_cast<std::uint16_t>(type) - 1];
   }
 
+  /// @overload
   atom::Calibration& GetAtom(const atom::Calibration::Type type) noexcept
   {
     return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->GetAtom(type));
@@ -560,10 +600,12 @@ private:
   atom::Type type_{atom::Type::Custom};
   static constexpr int index_{3};  // FIXME ? (should be 2?)
 
-  /*!
-   * \brief Imports data fields from an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * @brief Imports data fields from an ATOM binary image.
+   *
+   * @param buf ATOM binary image.
+   *
+   * @returns `true` on success.
    */
   bool Import(CFIFO& buf)
   {
@@ -582,11 +624,12 @@ private:
     return true;
   }
 
-
-  /*!
-   * \brief Stores data fields to an ATOM binary image
-   * \param buf ATOM binary image
-   * \return true=successful, false=failure
+  /**
+   * Stores data fields to an ATOM binary image.
+   *
+   * @param buf ATOM binary image.
+   *
+   * @returns `true` on success.
    */
   bool Export(CFIFO& buf) const
   {
@@ -606,6 +649,7 @@ private:
 /// A manager class for working with HATs-EEPROM binary image
 class Manager final {
 public:
+  /// Represents the result of the operation.
   enum class OpResult {
     OK,
     atom_not_found,
@@ -614,9 +658,10 @@ public:
     storage_isnt_verified
   };
 
-  /*!
-   * \brief A class constructor
-   * \param fifo_buf a buffer containing EEPROM binary image
+  /**
+   * The constructor.
+   *
+   * @param fifo_buf The buffer with EEPROM binary image.
    */
   explicit Manager(std::shared_ptr<CFIFO> fifo_buf = {})
     : fifo_buf_{std::move(fifo_buf)}
@@ -723,50 +768,53 @@ public:
     return OpResult::OK;
   }
 
+  /// Sets the EEPROM image buffer.
   void SetBuf(std::shared_ptr<CFIFO> fifo_buf)
   {
     fifo_buf_ = std::move(fifo_buf);
   }
 
+  /// @returns EEPROM image buffer.
   const std::shared_ptr<CFIFO>& GetBuf() const noexcept
   {
     return fifo_buf_;
   }
 
-  /*!
-   * \brief Returns the total atoms count
-   * \return
-   */
+  /// @returns Total atom count.
   std::uint16_t GetAtomCount() const noexcept
   {
     return reinterpret_cast<const EepromHeader*>(GetMemBuf())->numatoms;
   }
 
-  /*!
-   * \brief Checks the image data validity
-   * \details The method must be called before performing any operations on the
-   * binary image. It checks all headers and atoms validity and sets
-   * `storage_state_` to `OpResult::OK` on success. If you are working on empty
-   * image Reset() must be called instead.
-   * \return operation result: OK on success
+  /**
+   * Checks the image data integrity.
+   *
+   * The method must be called before performing any operations on the binary
+   * image. It checks all headers and atoms validity and sets `storage_state_`
+   * to `OpResult::OK` on success. If the image is empty then Reset() must be
+   * called instead.
+   *
+   * @returns `OpResult::OK` on success.
    */
   OpResult Verify()
   {
     return storage_state_ = VerifyStorage();
   }
 
-  /*!
-   * \brief Resets all image data to a default state(atoms count=0). Must be called when start working on empty image
+  /**
+   * Resets all the image data to the default state (zero atom count). Must
+   * be called when start working on empty image.
    */
   void Reset()
   {
-    SetMemBufSize(sizeof(EepromHeader));
+    fifo_buf_->resize(sizeof(EepromHeader));
     storage_state_ = ResetStorage();
   }
 
-  /*!
-   * \brief Imports the atom of given type from the image
-   * \return operation result: OK on success
+  /**
+   * Imports the atom of given type from the image.
+   *
+   * @returns `OpResult::OK` on success.
    */
   template <typename A>
   OpResult Get(A& atom) const
@@ -778,9 +826,10 @@ public:
       OpResult::atom_is_corrupted : r;
   }
 
-  /*!
-   * \brief Stores the atom of given type to the image
-   * \return operation result: OK on success
+  /**
+   * Stores the atom of given type to the image.
+   *
+   * @returns `OpResult::OK` on success.
    */
   template <typename A>
   OpResult Put(const A& atom)
@@ -808,21 +857,19 @@ private:
   /// @name Memory control
   /// @{
 
+  /// @returns Raw pointer to the EEPROM image buffer.
   char* GetMemBuf() const noexcept
   {
     return fifo_buf_->data();
   }
 
+  /// @returns The size of the EEPROM image buffer.
   std::size_t GetMemBufSize() const noexcept
   {
     return fifo_buf_->size();
   }
 
-  void SetMemBufSize(const std::size_t size)
-  {
-    fifo_buf_->resize(size);
-  }
-
+  /// Reallocates EEPROM image buffer according to the given `adjustment`.
   void AdjustMemBuf(const char* const offset, const int adjustment)
   {
     const auto position = offset - fifo_buf_->data();
@@ -837,6 +884,14 @@ private:
   /// @name Atom stuff
   /// @{
 
+  /**
+   * Searchs for the atom with the given `pos` in EEPROM buffer.
+   *
+   * @param pos The position of the atom to find.
+   * @param[out] header The result.
+   *
+   * @returns `OpResult::OK` on success.
+   */
   OpResult FindAtomHeader(unsigned pos, AtomHeader** const header) const
   {
     OpResult result{OpResult::OK};
@@ -850,6 +905,7 @@ private:
       result = OpResult::atom_not_found;
     }
 
+    // Find atom.
     auto* atom = mem_buf + sizeof(EepromHeader);
     for (unsigned i{}; i < pos; ++i) {
       atom += sizeof(AtomHeader) + reinterpret_cast<const AtomHeader*>(atom)->dlen;
@@ -861,6 +917,11 @@ private:
     return result;
   }
 
+  /**
+   * Checks the atom.
+   *
+   * @returns `OpResult::OK` on success.
+   */
   OpResult VerifyAtom(const AtomHeader* const atom) const
   {
     // Check the CRC.
@@ -882,6 +943,11 @@ private:
   /// @name Storage control
   /// @{
 
+  /**
+   * Verifies EEPROM buffer.
+   *
+   * @return `OpResult::OK` on success.
+   */
   OpResult VerifyStorage() const
   {
     const auto* const mem_buf = GetMemBuf();
@@ -909,6 +975,7 @@ private:
     return OpResult::OK;
   }
 
+  /// Invalidates the EEPROM buffer.
   OpResult ResetStorage()
   {
     char* const mem_buf = GetMemBuf();
