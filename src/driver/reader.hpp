@@ -136,9 +136,7 @@ inline void appendChunk(SensorsData& data,
 }
 
 class RecordReader final {
-private:
-  friend class TimeSwipeImpl;
-
+public:
   // read records from hardware buffer
   SensorsData Read()
   {

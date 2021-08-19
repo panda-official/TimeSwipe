@@ -47,8 +47,6 @@ struct Version final {
 Version version() noexcept;
 } // namespace panda::timeswipe::driver
 
-class TimeSwipeImpl;
-
 /**
  * TimeSwipe interface for Sensor
  */
@@ -539,7 +537,8 @@ public:
 
   inline static bool resample_log;
 private:
-  std::unique_ptr<TimeSwipeImpl> impl_;
+  struct Rep;
+  std::unique_ptr<Rep> rep_;
 };
 
 #endif  // PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP

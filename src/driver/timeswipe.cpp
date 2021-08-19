@@ -1,3 +1,21 @@
+// -*- C++ -*-
+
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 #include "pidfile.hpp"
 #include "reader.hpp"
 #include "resampler.hpp"
@@ -31,17 +49,19 @@ Version version() noexcept
 // FIXME!!!
 using namespace panda::timeswipe::driver;
 
-// =============================================================================
+// -----------------------------------------------------------------------------
+// TimeSwipe::Rep
+// -----------------------------------------------------------------------------
 
-class TimeSwipeImpl final {
+class TimeSwipe::Rep final {
 public:
-  ~TimeSwipeImpl()
+  ~Rep()
   {
     Stop();
     clearThreads();
   }
 
-  TimeSwipeImpl(TimeSwipe& self)
+  Rep(TimeSwipe& self)
     : self_{self}
     , pid_file_{"timeswipe"}
   {
@@ -64,9 +84,29 @@ public:
     return record_reader_.Mode();
   }
 
-  void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
-  void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
-  void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
+  void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
+  {
+    record_reader_.Offsets()[0] = offset1;
+    record_reader_.Offsets()[1] = offset2;
+    record_reader_.Offsets()[2] = offset3;
+    record_reader_.Offsets()[3] = offset4;
+  }
+
+  void SetSensorGains(float gain1, float gain2, float gain3, float gain4)
+  {
+    record_reader_.Gains()[0] = 1.0 / gain1;
+    record_reader_.Gains()[1] = 1.0 / gain2;
+    record_reader_.Gains()[2] = 1.0 / gain3;
+    record_reader_.Gains()[3] = 1.0 / gain4;
+  }
+
+  void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
+  {
+    record_reader_.Transmissions()[0] = 1.0 / trans1;
+    record_reader_.Transmissions()[1] = 1.0 / trans2;
+    record_reader_.Transmissions()[2] = 1.0 / trans3;
+    record_reader_.Transmissions()[3] = 1.0 / trans4;
+  }
 
   bool SetSampleRate(const int rate)
   {
@@ -213,9 +253,38 @@ public:
     return IsBusy__(lk);
   }
 
-  bool onEvent(TimeSwipe::OnEventCallback cb);
-  bool onError(TimeSwipe::OnErrorCallback cb);
-  std::string Settings(std::uint8_t set_or_get, const std::string& request, std::string& error);
+  bool onEvent(TimeSwipe::OnEventCallback cb)
+  {
+    if (isStarted())
+      return false;
+    on_event_cb_ = cb;
+    return true;
+  }
+
+  bool onError(TimeSwipe::OnErrorCallback cb)
+  {
+    if (isStarted())
+      return false;
+    on_error_cb_ = cb;
+    return true;
+  }
+
+  std::string Settings(std::uint8_t set_or_get, const std::string& request, std::string& error)
+  {
+    in_spi_.push(std::make_pair(set_or_get, request));
+    std::pair<std::string,std::string> resp;
+
+    if (!work_) {
+      processSPIRequests();
+    }
+
+    while (!out_spi_.pop(resp)) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    error = resp.second;
+
+    return resp.first;
+  }
 
   bool Stop()
   {
@@ -223,7 +292,10 @@ public:
     return Stop__(lk);
   }
 
-  void SetBurstSize(std::size_t burst);
+  void SetBurstSize(std::size_t burst)
+  {
+    burst_size_ = burst;
+  }
 
 private:
   // Min sample rate per second.
@@ -239,7 +311,7 @@ private:
   static_assert(!(kDriftSamplesCount_ % 2));
 
   inline static std::mutex mutex_;
-  inline static TimeSwipeImpl* started_instance_;
+  inline static Rep* started_instance_;
 
   TimeSwipe& self_;
 
@@ -265,33 +337,16 @@ private:
   TimeSwipe::OnErrorCallback on_error_cb_;
 
   bool work_{}; // FIXME: remove
-  bool in_callback_{};
   std::list<std::thread> threads_;
 
   PidFile pid_file_;
 
-  // -----------------------------------------------------------------------------
-  // API
-  // -----------------------------------------------------------------------------
+  bool in_callback_{};
 
-  bool isStarted();
-  void fetcherLoop();
-  void pollerLoop(TimeSwipe::ReadCallback cb);
-  void spiLoop();
-  void receiveEvents();
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-  int emul_button_pressed_{};
-  int emul_button_sent_{};
-  void emulLoop();
-#endif
-
-  void processSPIRequests();
-  void clearThreads();
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
-
+  /*
+   * An automatic resetter of value of in_callback_. `false` will
+   * be assigned upon destruction of the instance of this class.
+   */
   struct Callbacker final {
     Callbacker(const Callbacker&) = delete;
     Callbacker& operator=(const Callbacker&) = delete;
@@ -303,7 +358,7 @@ private:
       self_.in_callback_ = false;
     }
 
-    Callbacker(TimeSwipeImpl& self) noexcept
+    Callbacker(Rep& self) noexcept
       : self_{self}
     {}
 
@@ -315,16 +370,16 @@ private:
     }
 
   private:
-    TimeSwipeImpl& self_;
+    Rep& self_;
   };
 
   /*
    * An automatic restorer of state affected by drift calculation stuff. Stashed
    * state will be restored upon destruction of the instance of this class.
    */
-  struct DriftAffectedStateGuard final {
-  private:
-    friend TimeSwipeImpl;
+  class DriftAffectedStateGuard final {
+    friend Rep;
+
     using Ch = TimeSwipe::Channel;
     using Chmm = TimeSwipe::ChannelMesMode;
 
@@ -336,28 +391,28 @@ private:
     // Restores the state of TimeSwipe instance.
     ~DriftAffectedStateGuard()
     {
-      impl_.burst_size_ = burst_size_;
-      impl_.sample_rate_ = sample_rate_;
-      impl_.resampler_ = std::move(resampler_);
+      rep_.burst_size_ = burst_size_;
+      rep_.sample_rate_ = sample_rate_;
+      rep_.resampler_ = std::move(resampler_);
 
       // Restore input modes.
-      impl_.self_.SetChannelMode(Ch::CH4, chmm4_);
-      impl_.self_.SetChannelMode(Ch::CH3, chmm3_);
-      impl_.self_.SetChannelMode(Ch::CH2, chmm2_);
-      impl_.self_.SetChannelMode(Ch::CH1, chmm1_);
+      rep_.self_.SetChannelMode(Ch::CH4, chmm4_);
+      rep_.self_.SetChannelMode(Ch::CH3, chmm3_);
+      rep_.self_.SetChannelMode(Ch::CH2, chmm2_);
+      rep_.self_.SetChannelMode(Ch::CH1, chmm1_);
     }
 
     // Stores the state and prepares TimeSwipe instance for measurement.
-    DriftAffectedStateGuard(TimeSwipeImpl& impl)
-      : impl_{impl}
-      , sample_rate_{impl_.sample_rate_}
-      , burst_size_{impl_.burst_size_}
+    DriftAffectedStateGuard(Rep& impl)
+      : rep_{impl}
+      , sample_rate_{rep_.sample_rate_}
+      , burst_size_{rep_.burst_size_}
     {
       // Store current input modes.
-      if (!(impl_.self_.GetChannelMode(Ch::CH1, chmm1_) &&
-          impl_.self_.GetChannelMode(Ch::CH2, chmm2_) &&
-          impl_.self_.GetChannelMode(Ch::CH3, chmm3_) &&
-          impl_.self_.GetChannelMode(Ch::CH4, chmm4_)))
+      if (!(rep_.self_.GetChannelMode(Ch::CH1, chmm1_) &&
+          rep_.self_.GetChannelMode(Ch::CH2, chmm2_) &&
+          rep_.self_.GetChannelMode(Ch::CH3, chmm3_) &&
+          rep_.self_.GetChannelMode(Ch::CH4, chmm4_)))
         throw Exception{Errc::kGeneric};
 
       /*
@@ -367,22 +422,209 @@ private:
        * after 1.5 ms.
        */
       for (const auto m : {Ch::CH1, Ch::CH2, Ch::CH3, Ch::CH4}) {
-        if (!impl_.self_.SetChannelMode(m, TimeSwipe::ChannelMesMode::Current))
+        if (!rep_.self_.SetChannelMode(m, TimeSwipe::ChannelMesMode::Current))
           throw Exception{Errc::kGeneric};
       }
-      std::this_thread::sleep_for(impl_.kSwitchingOscillationPeriod_);
+      std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
       // Store the current state of self.
-      resampler_ = impl_.SetSampleRate__(impl_.MaxSampleRate());
-      impl_.SetBurstSize(impl_.kDriftSamplesCount_);
+      resampler_ = rep_.SetSampleRate__(rep_.MaxSampleRate());
+      rep_.SetBurstSize(rep_.kDriftSamplesCount_);
     }
 
-    TimeSwipeImpl& impl_;
-    const decltype(impl_.sample_rate_) sample_rate_;
-    const decltype(impl_.burst_size_) burst_size_;
+    Rep& rep_;
+    const decltype(rep_.sample_rate_) sample_rate_;
+    const decltype(rep_.burst_size_) burst_size_;
     Chmm chmm1_, chmm2_, chmm3_, chmm4_;
-    decltype(impl_.resampler_) resampler_;
+    decltype(rep_.resampler_) resampler_;
   };
+
+  // -----------------------------------------------------------------------------
+  // API
+  // -----------------------------------------------------------------------------
+
+  bool isStarted()
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return started_instance_ != nullptr;
+  }
+
+  void fetcherLoop()
+  {
+    while (work_) {
+      if (const auto data{record_reader_.Read()}; !record_queue_.push(data))
+        ++record_error_count_;
+
+      TimeSwipeEvent event;
+      while (events_.pop(event)) {
+        if (on_event_cb_)
+          Callbacker{*this}(on_event_cb_, std::move(event));
+      }
+    }
+  }
+
+  void pollerLoop(TimeSwipe::ReadCallback callback)
+  {
+    while (work_) {
+      SensorsData records[10];
+      auto num = record_queue_.pop(records);
+      std::uint64_t errors = record_error_count_.fetch_and(0UL);
+
+      if (errors && on_error_cb_)
+        Callbacker{*this}(on_error_cb_, errors);
+
+      if (!num) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        continue;
+      }
+
+      // If there are drift deltas substract them.
+      if (drift_deltas_) {
+        const auto& deltas = *drift_deltas_;
+        for (auto i = 0*num; i < num; ++i) {
+          const auto sz = records[i].SensorsSize();
+          assert(deltas.size() == sz);
+          for (auto j = 0*sz; j < sz; ++j) {
+            auto& values{records[i][j]};
+            const auto delta{deltas[j]};
+            transform(cbegin(values), cend(values), begin(values),
+              [delta](const auto& value) { return value - delta; });
+          }
+        }
+      }
+
+      SensorsData* records_ptr{};
+      SensorsData samples;
+      if (resampler_) {
+        for (std::size_t i = 0; i < num; i++) {
+          auto s = resampler_->apply(std::move(records[i]));
+          samples.append(std::move(s));
+        }
+        records_ptr = &samples;
+      } else {
+        for (std::size_t i = 1; i < num; i++) {
+          records[0].append(std::move(records[i]));
+        }
+        records_ptr = records;
+      }
+
+      if (burst_buffer_.empty() && burst_size_ <= records_ptr->DataSize()) {
+        // optimization if burst buffer not used or smaller than first buffer
+        {
+          Callbacker{*this}(callback, std::move(*records_ptr), errors);
+        }
+        records_ptr->clear();
+      } else {
+        // burst buffer mode
+        burst_buffer_.append(std::move(*records_ptr));
+        records_ptr->clear();
+        if (burst_buffer_.DataSize() >= burst_size_) {
+          {
+            Callbacker{*this}(callback, std::move(burst_buffer_), errors);
+          }
+          burst_buffer_.clear();
+        }
+      }
+    }
+
+    // Flush the resampler instance into the burst buffer.
+    if (resampler_)
+      burst_buffer_.append(resampler_->flush());
+
+    // Flush the remaining values from the burst buffer.
+    if (!in_callback_ && burst_buffer_.DataSize()) {
+      {
+        Callbacker{*this}(callback, std::move(burst_buffer_), 0);
+      }
+      burst_buffer_.clear();
+    }
+  }
+
+  void spiLoop()
+  {
+    while (work_) {
+      receiveEvents();
+      processSPIRequests();
+      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+  }
+
+  void receiveEvents()
+  {
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    if (emul_button_sent_ < emul_button_pressed_) {
+      TimeSwipeEvent::Button btn(true, emul_button_pressed_);
+      emul_button_sent_ = emul_button_pressed_;
+      events_.push(btn);
+    }
+#else
+    for (auto&& event: readBoardEvents())
+      events_.push(event);
+#endif
+  }
+
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+  int emul_button_pressed_{};
+  int emul_button_sent_{};
+
+  void emulLoop()
+  {
+    emul_button_pressed_ = 0;
+    emul_button_sent_ = 0;
+    while (work_) {
+      timeval tv;
+      tv.tv_sec = 1;
+      tv.tv_usec = 0;
+      fd_set read_fds;
+      FD_ZERO(&read_fds);
+      FD_SET(0, &read_fds);
+
+      auto result = select(1, &read_fds, NULL, NULL, &tv);
+      if (result == -1 && errno != EINTR) {
+        std::cerr << "emulLoop: error select" << std::endl;
+        return;
+      } else if (result == -1 && errno == EINTR) {
+        std::cerr << "emulLoop: EINTR select" << std::endl;
+        return;
+      } else {
+        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+          emul_button_pressed_ += 2; // press and release
+          std::string buf;
+          std::getline(std::cin, buf);
+        }
+      }
+    }
+  }
+#endif  // PANDA_TIMESWIPE_FIRMWARE_EMU
+
+  void processSPIRequests()
+  {
+    std::pair<std::uint8_t,std::string> request;
+    while (in_spi_.pop(request)) {
+      std::string error;
+      auto response = request.first ? readBoardSetSettings(request.second, error) : readBoardGetSettings(request.second, error);
+      out_spi_.push(std::make_pair(response, error));
+    }
+  }
+
+  void clearThreads()
+  {
+    auto it = threads_.begin();
+    while (it != threads_.end()) {
+      if (it->get_id() == std::this_thread::get_id()) {
+        ++it;
+        continue;
+      }
+      if(it->joinable()) {
+        it->join();
+      }
+      it = threads_.erase(it);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
 
   static std::filesystem::path TmpDir()
   {
@@ -417,11 +659,11 @@ private:
     record_reader_.Start();
     started_instance_ = this;
     work_ = true;
-    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::fetcherLoop, this)));
-    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::pollerLoop, this, std::move(cb))));
-    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::spiLoop, this)));
+    threads_.push_back(std::thread(std::bind(&Rep::fetcherLoop, this)));
+    threads_.push_back(std::thread(std::bind(&Rep::pollerLoop, this, std::move(cb))));
+    threads_.push_back(std::thread(std::bind(&Rep::spiLoop, this)));
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::emulLoop, this)));
+    threads_.push_back(std::thread(std::bind(&Rep::emulLoop, this)));
 #endif
     return true;
   }
@@ -522,354 +764,119 @@ private:
   }
 };
 
-void TimeSwipeImpl::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
-{
-  record_reader_.Offsets()[0] = offset1;
-  record_reader_.Offsets()[1] = offset2;
-  record_reader_.Offsets()[2] = offset3;
-  record_reader_.Offsets()[3] = offset4;
-}
-
-void TimeSwipeImpl::SetSensorGains(float gain1, float gain2, float gain3, float gain4)
-{
-  record_reader_.Gains()[0] = 1.0 / gain1;
-  record_reader_.Gains()[1] = 1.0 / gain2;
-  record_reader_.Gains()[2] = 1.0 / gain3;
-  record_reader_.Gains()[3] = 1.0 / gain4;
-}
-
-void TimeSwipeImpl::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
-{
-  record_reader_.Transmissions()[0] = 1.0 / trans1;
-  record_reader_.Transmissions()[1] = 1.0 / trans2;
-  record_reader_.Transmissions()[2] = 1.0 / trans3;
-  record_reader_.Transmissions()[3] = 1.0 / trans4;
-}
-
-bool TimeSwipeImpl::onEvent(TimeSwipe::OnEventCallback cb)
-{
-  if (isStarted())
-    return false;
-  on_event_cb_ = cb;
-  return true;
-}
-
-bool TimeSwipeImpl::onError(TimeSwipe::OnErrorCallback cb)
-{
-  if (isStarted())
-    return false;
-  on_error_cb_ = cb;
-  return true;
-}
-
-std::string TimeSwipeImpl::Settings(std::uint8_t set_or_get, const std::string& request, std::string& error)
-{
-  in_spi_.push(std::make_pair(set_or_get, request));
-  std::pair<std::string,std::string> resp;
-
-  if (!work_) {
-    processSPIRequests();
-  }
-
-  while (!out_spi_.pop(resp)) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  error = resp.second;
-
-  return resp.first;
-}
-
-bool TimeSwipeImpl::isStarted()
-{
-  std::lock_guard<std::mutex> lock(mutex_);
-  return started_instance_ != nullptr;
-}
-
-void TimeSwipeImpl::receiveEvents()
-{
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-  if (emul_button_sent_ < emul_button_pressed_) {
-    TimeSwipeEvent::Button btn(true, emul_button_pressed_);
-    emul_button_sent_ = emul_button_pressed_;
-    events_.push(btn);
-  }
-#else
-  for (auto&& event: readBoardEvents())
-    events_.push(event);
-#endif
-}
-
-void TimeSwipeImpl::processSPIRequests()
-{
-  std::pair<std::uint8_t,std::string> request;
-  while (in_spi_.pop(request)) {
-    std::string error;
-    auto response = request.first ? readBoardSetSettings(request.second, error) : readBoardGetSettings(request.second, error);
-    out_spi_.push(std::make_pair(response, error));
-  }
-}
-
-void TimeSwipeImpl::clearThreads()
-{
-  auto it = threads_.begin();
-  while (it != threads_.end()) {
-    if (it->get_id() == std::this_thread::get_id()) {
-      ++it;
-      continue;
-    }
-    if(it->joinable()) {
-      it->join();
-    }
-    it = threads_.erase(it);
-  }
-}
+// -----------------------------------------------------------------------------
+// TimeSwipe
+// -----------------------------------------------------------------------------
 
 TimeSwipe::TimeSwipe()
-{
-  impl_ = std::make_unique<TimeSwipeImpl>(*this);
-}
+  : rep_{std::make_unique<Rep>(*this)}
+{}
 
 TimeSwipe::~TimeSwipe() = default;
 
 void TimeSwipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
 {
-  return impl_->SetSensorOffsets(offset1, offset2, offset3, offset4);
+  return rep_->SetSensorOffsets(offset1, offset2, offset3, offset4);
 }
 
 void TimeSwipe::SetSensorGains(float gain1, float gain2, float gain3, float gain4)
 {
-  return impl_->SetSensorGains(gain1, gain2, gain3, gain4);
+  return rep_->SetSensorGains(gain1, gain2, gain3, gain4);
 }
 
 void TimeSwipe::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
 {
-  return impl_->SetSensorTransmissions(trans1, trans2, trans3, trans4);
+  return rep_->SetSensorTransmissions(trans1, trans2, trans3, trans4);
 }
 
 void TimeSwipe::SetMode(Mode number)
 {
-  return impl_->SetMode(int(number));
+  return rep_->SetMode(int(number));
 }
 
 TimeSwipe::Mode TimeSwipe::GetMode() const noexcept
 {
-  return TimeSwipe::Mode(impl_->GetMode());
+  return TimeSwipe::Mode(rep_->GetMode());
 }
 
 int TimeSwipe::MaxSampleRate() const noexcept
 {
-  return impl_->MaxSampleRate();
+  return rep_->MaxSampleRate();
 }
 
 void TimeSwipe::SetBurstSize(std::size_t burst)
 {
-  return impl_->SetBurstSize(burst);
+  return rep_->SetBurstSize(burst);
 }
 
 bool TimeSwipe::SetSampleRate(const int rate)
 {
-  return impl_->SetSampleRate(rate);
+  return rep_->SetSampleRate(rate);
 }
 
 std::vector<float> TimeSwipe::CalculateDriftReferences()
 {
-  return impl_->CalculateDriftReferences();
+  return rep_->CalculateDriftReferences();
 }
 
 void TimeSwipe::ClearDriftReferences()
 {
-  impl_->ClearDriftReferences();
+  rep_->ClearDriftReferences();
 }
 
 std::vector<float> TimeSwipe::CalculateDriftDeltas()
 {
-  return impl_->CalculateDriftDeltas();
+  return rep_->CalculateDriftDeltas();
 }
 
 void TimeSwipe::ClearDriftDeltas()
 {
-  impl_->ClearDriftDeltas();
+  rep_->ClearDriftDeltas();
 }
 
 std::optional<std::vector<float>> TimeSwipe::DriftReferences(const bool force) const
 {
-  return impl_->DriftReferences(force);
+  return rep_->DriftReferences(force);
 }
 
 std::optional<std::vector<float>> TimeSwipe::DriftDeltas() const
 {
-  return impl_->DriftDeltas();
+  return rep_->DriftDeltas();
 }
 
 bool TimeSwipe::Start(TimeSwipe::ReadCallback cb)
 {
-  return impl_->Start(cb);
+  return rep_->Start(cb);
 }
 
 bool TimeSwipe::IsBusy() const noexcept
 {
-  return impl_->IsBusy();
+  return rep_->IsBusy();
 }
 
 bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb)
 {
-  return impl_->onError(cb);
+  return rep_->onError(cb);
 }
 
 bool TimeSwipe::onEvent(TimeSwipe::OnEventCallback cb)
 {
-  return impl_->onEvent(cb);
+  return rep_->onEvent(cb);
 }
 
 std::string TimeSwipe::SetSettings(const std::string& request, std::string& error)
 {
-  return impl_->Settings(1, request, error);
+  return rep_->Settings(1, request, error);
 }
 
 std::string TimeSwipe::GetSettings(const std::string& request, std::string& error)
 {
-  return impl_->Settings(0, request, error);
-}
-
-void TimeSwipeImpl::fetcherLoop()
-{
-  while (work_) {
-    if (const auto data{record_reader_.Read()}; !record_queue_.push(data))
-      ++record_error_count_;
-
-    TimeSwipeEvent event;
-    while (events_.pop(event)) {
-      if (on_event_cb_)
-        Callbacker{*this}(on_event_cb_, std::move(event));
-    }
-  }
-}
-
-void TimeSwipeImpl::spiLoop()
-{
-  while (work_) {
-    receiveEvents();
-    processSPIRequests();
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
-  }
-}
-
-void TimeSwipeImpl::pollerLoop(TimeSwipe::ReadCallback callback)
-{
-  while (work_) {
-    SensorsData records[10];
-    auto num = record_queue_.pop(records);
-    std::uint64_t errors = record_error_count_.fetch_and(0UL);
-
-    if (errors && on_error_cb_)
-      Callbacker{*this}(on_error_cb_, errors);
-
-    if (!num) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      continue;
-    }
-
-    // If there are drift deltas substract them.
-    if (drift_deltas_) {
-      const auto& deltas = *drift_deltas_;
-      for (auto i = 0*num; i < num; ++i) {
-        const auto sz = records[i].SensorsSize();
-        assert(deltas.size() == sz);
-        for (auto j = 0*sz; j < sz; ++j) {
-          auto& values{records[i][j]};
-          const auto delta{deltas[j]};
-          transform(cbegin(values), cend(values), begin(values),
-            [delta](const auto& value) { return value - delta; });
-        }
-      }
-    }
-
-    SensorsData* records_ptr{};
-    SensorsData samples;
-    if (resampler_) {
-      for (std::size_t i = 0; i < num; i++) {
-        auto s = resampler_->apply(std::move(records[i]));
-        samples.append(std::move(s));
-      }
-      records_ptr = &samples;
-    } else {
-      for (std::size_t i = 1; i < num; i++) {
-        records[0].append(std::move(records[i]));
-      }
-      records_ptr = records;
-    }
-
-    if (burst_buffer_.empty() && burst_size_ <= records_ptr->DataSize()) {
-      // optimization if burst buffer not used or smaller than first buffer
-      {
-        Callbacker{*this}(callback, std::move(*records_ptr), errors);
-      }
-      records_ptr->clear();
-    } else {
-      // burst buffer mode
-      burst_buffer_.append(std::move(*records_ptr));
-      records_ptr->clear();
-      if (burst_buffer_.DataSize() >= burst_size_) {
-        {
-          Callbacker{*this}(callback, std::move(burst_buffer_), errors);
-        }
-        burst_buffer_.clear();
-      }
-    }
-  }
-
-  // Flush the resampler instance into the burst buffer.
-  if (resampler_)
-    burst_buffer_.append(resampler_->flush());
-
-  // Flush the remaining values from the burst buffer.
-  if (!in_callback_ && burst_buffer_.DataSize()) {
-    {
-      Callbacker{*this}(callback, std::move(burst_buffer_), 0);
-    }
-    burst_buffer_.clear();
-  }
-}
-
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-void TimeSwipeImpl::emulLoop()
-{
-  emul_button_pressed_ = 0;
-  emul_button_sent_ = 0;
-  while (work_) {
-    timeval tv;
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
-    fd_set read_fds;
-    FD_ZERO(&read_fds);
-    FD_SET(0, &read_fds);
-
-    auto result = select(1, &read_fds, NULL, NULL, &tv);
-    if (result == -1 && errno != EINTR) {
-      std::cerr << "emulLoop: error select" << std::endl;
-      return;
-    } else if (result == -1 && errno == EINTR) {
-      std::cerr << "emulLoop: EINTR select" << std::endl;
-      return;
-    } else {
-      if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-        emul_button_pressed_ += 2; // press and release
-        std::string buf;
-        std::getline(std::cin, buf);
-      }
-    }
-  }
-}
-#endif
-
-void TimeSwipeImpl::SetBurstSize(std::size_t burst)
-{
-  burst_size_ = burst;
+  return rep_->Settings(0, request, error);
 }
 
 bool TimeSwipe::Stop()
 {
-  return impl_->Stop();
+  return rep_->Stop();
 }
 
 bool TimeSwipe::StartPWM(std::uint8_t num, std::uint32_t frequency,
