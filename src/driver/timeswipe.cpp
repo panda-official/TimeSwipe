@@ -2,7 +2,7 @@
 #include "reader.hpp"
 #include "resampler.hpp"
 #include "timeswipe.hpp"
-#include "timeswipe_eeprom.hpp"
+#include "eeprom.hpp"
 #include "../common/version.hpp"
 
 #include "../3rdparty/dmitigr/filesystem.hpp"
