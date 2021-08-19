@@ -386,10 +386,10 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # ----------------
 
   set(timeswipe_src
+    src/driver/event.cpp
     src/driver/sensor_data.cpp
     src/driver/timeswipe.cpp
     src/driver/timeswipe_eeprom.cpp
-    src/driver/timeswipe_event.cpp
     src/driver/pidfile.cpp
     src/driver/board_iface.cpp
     src/driver/RaspberryPi/bcmspi.cpp
