@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_DRIVER_READER_HPP
 
 #include "board.hpp"
+#include "sensor_data.hpp"
 #include "../3rdparty/dmitigr/assert.hpp"
 
 #include <array>

@@ -21,46 +21,45 @@
 
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <list>
 #include <string>
 #include <thread>
 
-#include "board_iface.hpp"
-#include "gpio/gpio.h"
-#include "timeswipe.hpp"
+#include "types_fwd.hpp"
 
 // PIN NAMES
-static const unsigned char DATA0 = 24; //BCM 24 - PIN 18
-static const unsigned char DATA1 = 25; //BCM 25 - PIN 22
-static const unsigned char DATA2 = 7; //BCM 7 - PIN 26
-static const unsigned char DATA3 = 5; //BCM 5 - PIN 29
-static const unsigned char DATA4 = 6; //BCM 6 - PIN 31
-static const unsigned char DATA5 = 12; //BCM 12 - PIN 32
-static const unsigned char DATA6 = 13; //BCM 13 - PIN 33
-static const unsigned char DATA7 = 16; //BCM 16 - PIN 36
-static const unsigned char CLOCK = 4; //BCM 4 - PIN 7
-static const unsigned char TCO = 14;   //BCM 14 - PIN 8
-static const unsigned char PI_OK = 15; //BCM 15 - PIN 10
-static const unsigned char FAIL = 18; //BCM 18 - PIN 12
-static const unsigned char RESET = 17; //BCM 17 - PIN 11
-static const unsigned char BUTTON = 25; //BCM 25 - PIN 22
+static const std::uint8_t DATA0{24};  // BCM 24 - PIN 18
+static const std::uint8_t DATA1{25};  // BCM 25 - PIN 22
+static const std::uint8_t DATA2{7};   // BCM  7 - PIN 26
+static const std::uint8_t DATA3{5};   // BCM  5 - PIN 29
+static const std::uint8_t DATA4{6};   // BCM  6 - PIN 31
+static const std::uint8_t DATA5{12};  // BCM 12 - PIN 32
+static const std::uint8_t DATA6{13};  // BCM 13 - PIN 33
+static const std::uint8_t DATA7{16};  // BCM 16 - PIN 36
+static const std::uint8_t CLOCK{4};   // BCM  4 - PIN  7
+static const std::uint8_t TCO{14};    // BCM 14 - PIN  8
+static const std::uint8_t PI_OK{15};  // BCM 15 - PIN 10
+static const std::uint8_t FAIL{18};   // BCM 18 - PIN 12
+static const std::uint8_t RESET{17};  // BCM 17 - PIN 11
+static const std::uint8_t BUTTON{25}; // BCM 25 - PIN 22
 
-static const std::array<uint32_t, 8> DATA_POSITION{
-  1UL << DATA0,
-  1UL << DATA1,
-  1UL << DATA2,
-  1UL << DATA3,
-  1UL << DATA4,
-  1UL << DATA5,
-  1UL << DATA6,
-  1UL << DATA7
+static const std::array<std::uint32_t, 8> DATA_POSITION{
+  std::uint32_t{1} << DATA0,
+  std::uint32_t{1} << DATA1,
+  std::uint32_t{1} << DATA2,
+  std::uint32_t{1} << DATA3,
+  std::uint32_t{1} << DATA4,
+  std::uint32_t{1} << DATA5,
+  std::uint32_t{1} << DATA6,
+  std::uint32_t{1} << DATA7
 };
 
-static const uint32_t CLOCK_POSITION = 1UL << CLOCK;
-static const uint32_t TCO_POSITION = 1UL << TCO;
-static const uint32_t PI_STATUS_POSITION = 1UL << PI_OK;
-static const uint32_t FAIL_POSITION = 1UL << FAIL;
-static const uint32_t BUTTON_POSITION = 1UL << BUTTON;
+static const std::uint32_t CLOCK_POSITION{std::uint32_t{1} << CLOCK};
+static const std::uint32_t TCO_POSITION{std::uint32_t{1} << TCO};
+static const std::uint32_t PI_STATUS_POSITION{std::uint32_t{1} << PI_OK};
+static const std::uint32_t FAIL_POSITION{std::uint32_t{1} << FAIL};
+static const std::uint32_t BUTTON_POSITION{std::uint32_t{1} << BUTTON};
 
 /**
  * Initializes GPIO pins.

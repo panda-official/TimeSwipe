@@ -1,8 +1,6 @@
 #include "board_iface.hpp"
 #include "../common/json.hpp"
 
-BoardInterface* BoardInterface::_instance = nullptr;
-
 nlohmann::json str2json(const std::string& str) {
     nlohmann::json j;
     try {
