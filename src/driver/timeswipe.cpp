@@ -907,43 +907,43 @@ bool TimeSwipe::GetPWM(std::uint8_t num, bool& active,
   return BoardGetPWM(num, active, frequency, high, low, repeats, duty_cycle);
 }
 
-void TimeSwipe::TraceSPI(bool val)
+void TimeSwipe::TraceSPI(const bool value)
 {
-  BoardTraceSPI(val);
+  Board::Instance()->SetTraceSPI(value);
 }
 
 bool TimeSwipe::SetChannelMode(Channel nCh, ChannelMesMode nMode)
 {
-  return BoardInterface::get()->setChannelMode(static_cast<unsigned int>(nCh), static_cast<int>(nMode));
+  return Board::Instance()->setChannelMode(static_cast<unsigned int>(nCh), static_cast<int>(nMode));
 }
 
 bool TimeSwipe::GetChannelMode(Channel nCh, ChannelMesMode &nMode)
 {
   std::string strErrMsg;
   int rMode;
-  bool rv=BoardInterface::get()->getChannelMode(static_cast<unsigned int>(nCh), rMode, strErrMsg);
+  bool rv=Board::Instance()->getChannelMode(static_cast<unsigned int>(nCh), rMode, strErrMsg);
   nMode=static_cast<ChannelMesMode>(rMode);
   return rv;
 }
 
 bool TimeSwipe::SetChannelGain(Channel nCh, float Gain)
 {
-  return BoardInterface::get()->setChannelGain(static_cast<unsigned int>(nCh), Gain);
+  return Board::Instance()->setChannelGain(static_cast<unsigned int>(nCh), Gain);
 }
 
 bool TimeSwipe::GetChannelGain(Channel nCh, float &Gain)
 {
   std::string strErrMsg;
-  return BoardInterface::get()->getChannelGain(static_cast<unsigned int>(nCh), Gain, strErrMsg);
+  return Board::Instance()->getChannelGain(static_cast<unsigned int>(nCh), Gain, strErrMsg);
 }
 
 bool TimeSwipe::SetChannelIEPE(Channel nCh, bool bIEPEon)
 {
-  return BoardInterface::get()->setChannelIEPE(static_cast<unsigned int>(nCh), bIEPEon);
+  return Board::Instance()->setChannelIEPE(static_cast<unsigned int>(nCh), bIEPEon);
 }
 
 bool TimeSwipe::GetChannelIEPE(Channel nCh, bool &bIEPEon)
 {
   std::string strErrMsg;
-  return BoardInterface::get()->getChannelIEPE(static_cast<unsigned int>(nCh), bIEPEon, strErrMsg);
+  return Board::Instance()->getChannelIEPE(static_cast<unsigned int>(nCh), bIEPEon, strErrMsg);
 }

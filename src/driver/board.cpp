@@ -23,11 +23,7 @@
 
 #include "../3rdparty/dmitigr/assert.hpp"
 
-#include <atomic>
 #include <mutex>
-
-std::atomic_bool is_board_inited;
-std::atomic_bool is_measurement_started;
 
 // RPI GPIO FUNCTIONS
 void pullGPIO(unsigned pin, unsigned high)
@@ -45,77 +41,6 @@ void initGPIOOutput(unsigned pin)
     INP_GPIO(pin);
     OUT_GPIO(pin);
     pullGPIO(pin, 0);
-}
-
-void InitBoard(const bool force)
-{
-  if (!force && IsBoardInited()) return;
-
-  setup_io();
-  initGPIOInput(DATA0);
-  initGPIOInput(DATA1);
-  initGPIOInput(DATA2);
-  initGPIOInput(DATA3);
-  initGPIOInput(DATA4);
-  initGPIOInput(DATA5);
-  initGPIOInput(DATA6);
-  initGPIOInput(DATA7);
-
-  initGPIOInput(TCO);
-  initGPIOInput(PI_OK);
-  initGPIOInput(FAIL);
-  initGPIOInput(BUTTON);
-
-  // initGPIOOutput(PI_OK);
-  initGPIOOutput(CLOCK);
-  initGPIOOutput(RESET);
-
-  // Initial Reset
-  setGPIOLow(CLOCK);
-  setGPIOHigh(RESET);
-
-  using std::chrono::milliseconds;
-  std::this_thread::sleep_for(milliseconds{1});
-
-  is_board_inited = true;
-}
-
-bool IsBoardInited() noexcept
-{
-  return is_board_inited;
-}
-
-void StartMeasurement(const int mode)
-{
-  DMITIGR_CHECK(IsBoardInited());
-
-  // Select Mode
-  BoardInterface::get()->setMode(mode);
-
-  // Start Measurement
-  using std::chrono::milliseconds;
-  std::this_thread::sleep_for(milliseconds{1});
-  BoardInterface::get()->setEnableADmes(1);
-
-  is_measurement_started = true;
-}
-
-bool IsMeasurementStarted() noexcept
-{
-  return is_measurement_started;
-}
-
-void StopMeasurement()
-{
-  if (!IsMeasurementStarted()) return;
-
-  // Reset Clock
-  setGPIOLow(CLOCK);
-
-  // Stop Measurement
-  BoardInterface::get()->setEnableADmes(0);
-
-  is_measurement_started = false;
 }
 
 void setGPIOHigh(unsigned pin)
@@ -157,7 +82,7 @@ std::list<TimeSwipeEvent> readBoardEvents()
     std::lock_guard<std::mutex> lock(boardMtx);
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::string data;
-    if (BoardInterface::get()->getEvents(data) && !data.empty()) {
+    if (Board::Instance()->getEvents(data) && !data.empty()) {
         if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
         if (data.empty()) return events;
@@ -217,7 +142,7 @@ std::string readBoardGetSettings(const std::string& request, std::string& error)
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
-    return BoardInterface::get()->getGetSettings(request, error);
+    return Board::Instance()->getGetSettings(request, error);
 #endif
 }
 
@@ -226,7 +151,7 @@ std::string readBoardSetSettings(const std::string& request, std::string& error)
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
-    return BoardInterface::get()->getSetSettings(request, error);
+    return Board::Instance()->getSetSettings(request, error);
 #endif
 }
 
@@ -235,7 +160,7 @@ bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low,
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
-    return BoardInterface::get()->startPWM(num, frequency, high, low, repeats, duty_cycle);
+    return Board::Instance()->startPWM(num, frequency, high, low, repeats, duty_cycle);
 #endif
 }
 
@@ -244,7 +169,7 @@ bool BoardStopPWM(uint8_t num) {
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
-    return BoardInterface::get()->stopPWM(num);
+    return Board::Instance()->stopPWM(num);
 #endif
 }
 
@@ -253,13 +178,8 @@ bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high,
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
-    return BoardInterface::get()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);
+    return Board::Instance()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);
 #endif
-}
-
-void BoardTraceSPI(bool val)
-{
-    BoardInterface::trace_spi = val;
 }
 
 // =============================================================================
@@ -269,7 +189,7 @@ nlohmann::json str2json(const std::string& str) {
     try {
         j = nlohmann::json::parse(str);
     } catch (nlohmann::json::parse_error& e) {
-        std::cerr << "BoardInterface: json parse failed data:" << str << "error:" << e.what() << '\n';
+        std::cerr << "Board: json parse failed data:" << str << "error:" << e.what() << '\n';
         return nlohmann::json();
     }
     return j;
@@ -314,7 +234,77 @@ bool json_get(const nlohmann::json& j, const std::string& key, bool& value) {
     return true;
 }
 
-bool BoardInterface::getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+void Board::Init(const bool force)
+{
+  if (!force && Board::Instance()->IsInited()) return;
+
+  setup_io();
+  initGPIOInput(DATA0);
+  initGPIOInput(DATA1);
+  initGPIOInput(DATA2);
+  initGPIOInput(DATA3);
+  initGPIOInput(DATA4);
+  initGPIOInput(DATA5);
+  initGPIOInput(DATA6);
+  initGPIOInput(DATA7);
+
+  initGPIOInput(TCO);
+  initGPIOInput(PI_OK);
+  initGPIOInput(FAIL);
+  initGPIOInput(BUTTON);
+
+  // initGPIOOutput(PI_OK);
+  initGPIOOutput(CLOCK);
+  initGPIOOutput(RESET);
+
+  // Initial Reset
+  setGPIOLow(CLOCK);
+  setGPIOHigh(RESET);
+
+  using std::chrono::milliseconds;
+  std::this_thread::sleep_for(milliseconds{1});
+
+  Instance()->is_board_inited_ = true;
+}
+
+bool Board::IsInited() noexcept
+{
+  return Instance()->is_board_inited_;
+}
+
+void Board::StartMeasurement(const int mode)
+{
+  DMITIGR_CHECK(Board::Instance()->IsInited());
+
+  // Select Mode
+  Instance()->SetMode(mode);
+
+  // Start Measurement
+  using std::chrono::milliseconds;
+  std::this_thread::sleep_for(milliseconds{1});
+  Instance()->SetEnableADmes(true);
+  Instance()->is_measurement_started_ = true;
+}
+
+bool Board::IsMeasurementStarted() noexcept
+{
+  return Instance()->is_measurement_started_;
+}
+
+void Board::StopMeasurement()
+{
+  if (!IsMeasurementStarted()) return;
+
+  // Reset Clock
+  setGPIOLow(CLOCK);
+
+  // Stop Measurement
+  Instance()->SetEnableADmes(false);
+
+  Instance()->is_measurement_started_ = false;
+}
+
+bool Board::getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
     std::string pwm = std::string("PWM") + std::to_string(num+1);
     auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
     std::string err;
@@ -337,7 +327,7 @@ bool BoardInterface::getPWM(uint8_t num, bool& active, uint32_t& frequency, uint
     return true;
 }
 
-bool BoardInterface::startPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
+bool Board::startPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
 
     std::string pwm = std::string("PWM") + std::to_string(num+1);
     auto obj = nlohmann::json::object({});

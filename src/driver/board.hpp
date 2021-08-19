@@ -23,6 +23,7 @@
 #include "RaspberryPi/bcmspi.h"
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <iostream>
@@ -64,32 +65,90 @@ static const std::uint32_t PI_STATUS_POSITION{std::uint32_t{1} << PI_OK};
 static const std::uint32_t FAIL_POSITION{std::uint32_t{1} << FAIL};
 static const std::uint32_t BUTTON_POSITION{std::uint32_t{1} << BUTTON};
 
-class BoardInterface {
+class Board final {
 public:
-  inline static bool trace_spi = false;
-
-  ~BoardInterface()
+  ~Board()
   {
-    if (instance_) delete instance_;
+    delete instance_;
   }
 
-  static BoardInterface* get()
+  static Board* Instance()
   {
-    if (!instance_) instance_ = new BoardInterface();
+    if (!instance_) instance_ = new Board();
     return instance_;
   }
 
-  void setMode(int num)
+  /**
+   * Initializes GPIO pins.
+   *
+   * @param force Forces initialization even if IsBoardInited() returns `true`.
+   *
+   * @par Effects
+   * Restarts TimeSwipe firmware on very first run!
+   *
+   * @see IsBoardInited(), StartMeasurement().
+   */
+  void Init(bool force = false);
+
+  /**
+   * @returns `true` if InitBoard() has been successfully called at least once.
+   *
+   * @par Thread-safety
+   * Thread-safe.
+   *
+   * @see InitBoard().
+   */
+  bool IsInited() noexcept;
+
+  /**
+   * Sends the command to a TimeSwipe firmware to start measurement.
+   *
+   * @param mode Measurement mode.
+   *
+   * @par Requires
+   * `IsBoardInited()`.
+   *
+   * @par Effects
+   * The reader does receive the data from the board.
+   *
+   * @see InitBoard(), StopMeasurement().
+   */
+  void StartMeasurement(int mode);
+
+  /**
+   * @returns `true` if StartBoard() has been successfully called and
+   * StopMeasurement() has not been successfully called yet.
+   *
+   * @par Thread-safety
+   * Thread-safe.
+   */
+  bool IsMeasurementStarted() noexcept;
+
+  /**
+   * Sends the command to a TimeSwipe firmware to stop measurement.
+   *
+   * @par Effects
+   * The reader doesn't receive the data from the board.
+   *
+   * @see InitBoard(), StartMeasurement().
+   */
+  void StopMeasurement();
+
+  void SetTraceSPI(const bool value)
+  {
+    trace_spi_ = value;
+  }
+
+  void SetMode(const int num)
   {
     sendSetCommand("Mode", std::to_string(num));
     std::string answer;
-    //TODO: check answer
     receiveAnswer(answer);
   }
 
-  void setEnableADmes(bool value)
+  void SetEnableADmes(const bool value)
   {
-    sendSetCommand("EnableADmes", value ? "1" : "0" );
+    sendSetCommand("EnableADmes", std::to_string(value));
     std::string answer;
     receiveAnswer(answer);
   }
@@ -104,9 +163,8 @@ public:
   {
     sendSetSettingsCommand(request);
     std::string answer;
-    if (!receiveAnswer(answer, error)) {
+    if (!receiveAnswer(answer, error))
       error = "read SPI failed";
-    }
     return answer;
   }
 
@@ -114,9 +172,8 @@ public:
   {
     sendGetSettingsCommand(request);
     std::string answer;
-    if (!receiveAnswer(answer, error)) {
+    if (!receiveAnswer(answer, error))
       error = "read SPI failed";
-    }
     return answer;
   }
 
@@ -124,14 +181,15 @@ public:
   {
     sendSetCommand("DACsw", value ? "1" : "0");
     std::string answer;
-    if (!receiveStripAnswer(answer)) return false;
+    if (!receiveStripAnswer(answer))
+      return false;
     return answer == (value ? "1" : "0");
   }
 
   // num == 0 -> AOUT3  num == 1 -> AOUT4
   bool setOUT(uint8_t num, int val)
   {
-    std::string var = std::string("AOUT") + (num?"4":"3") + ".raw";
+    std::string var = std::string("AOUT") + (num ? "4" : "3") + ".raw";
     sendSetCommand(var, std::to_string(val));
     std::string answer;
     if (!receiveStripAnswer(answer)) return false;
@@ -151,18 +209,17 @@ public:
       receiveStripAnswer(answer);
       if (answer == "0") return false; // Already stopped
     */
-
     return sendSetCommandCheck(pwm, 0);
   }
 
   // num == 0 -> PWM1  num == 1 -> PWM2
-  bool getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
+  bool getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high,
+    uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
   std::string makeChCmd(unsigned int num, const char *pSubDomain)
   {
-
     char buf[32];
-    std::sprintf(buf, "CH%d.%s", num+1, pSubDomain);
+    std::sprintf(buf, "CH%d.%s", num + 1, pSubDomain);
     return buf;
   }
 
@@ -230,10 +287,13 @@ public:
 
 private:
   CBcmSPI spi_;
+  std::atomic_bool trace_spi_;
+  std::atomic_bool is_board_inited_;
+  std::atomic_bool is_measurement_started_;
 
-  inline static BoardInterface* instance_;
+  inline static Board* instance_;
 
-  BoardInterface()
+  Board()
     : spi_{CBcmLIB::iSPI::SPI0}
   {}
 
@@ -248,7 +308,7 @@ private:
     CFIFO command;
     command += cmd;
     spi_.send(command);
-    if (trace_spi) {
+    if (trace_spi_) {
       std::cerr << "spi: sent: \"" << command << "\"" << std::endl;
     }
   }
@@ -258,12 +318,12 @@ private:
     CFIFO answer;
     if (spi_.receive(answer)) {
       ans = answer;
-      if (trace_spi) {
+      if (trace_spi_) {
         std::cerr << "spi: received: \"" << ans << "\"" << std::endl;
       }
       return true;
     }
-    if (trace_spi) {
+    if (trace_spi_) {
       std::cerr << "spi: receive failed" << std::endl;
     }
     return false;
@@ -301,7 +361,7 @@ private:
   template <class NUMBER>
   bool sendSetCommandCheck(const std::string& variable, const NUMBER& value) {
     sendSetCommand(variable, std::to_string(value));
-    // XXX: if sleep disable and trace_spi=false spi_.receive fails sometimes
+    // XXX: if sleep disable and trace_spi_=false spi_.receive fails sometimes
     //std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     std::string answer;
     receiveStripAnswer(answer);
@@ -332,62 +392,6 @@ private:
   }
 };
 
-/**
- * Initializes GPIO pins.
- *
- * @param force Forces initialization even if IsBoardInited() returns `true`.
- *
- * @par Effects
- * Restarts TimeSwipe firmware on very first run!
- *
- * @see IsBoardInited(), StartMeasurement().
- */
-void InitBoard(bool force = false);
-
-/**
- * @returns `true` if InitBoard() has been successfully called at least once.
- *
- * @par Thread-safety
- * Thread-safe.
- *
- * @see InitBoard().
- */
-bool IsBoardInited() noexcept;
-
-/**
- * Sends the command to a TimeSwipe firmware to start measurement.
- *
- * @param mode Measurement mode.
- *
- * @par Requires
- * `IsBoardInited()`.
- *
- * @par Effects
- * The reader does receive the data from the board.
- *
- * @see InitBoard(), StopMeasurement().
- */
-void StartMeasurement(int mode);
-
-/**
- * @returns `true` if StartBoard() has been successfully called and
- * StopMeasurement() has not been successfully called yet.
- *
- * @par Thread-safety
- * Thread-safe.
- */
-bool IsMeasurementStarted() noexcept;
-
-/**
- * Sends the command to a TimeSwipe firmware to stop measurement.
- *
- * @par Effects
- * The reader doesn't receive the data from the board.
- *
- * @see InitBoard(), StartMeasurement().
- */
-void StopMeasurement();
-
 void pullGPIO(unsigned pin, unsigned high);
 void initGPIOInput(unsigned pin);
 void initGPIOOutput(unsigned pin);
@@ -403,6 +407,5 @@ std::string readBoardSetSettings(const std::string& request, std::string& error)
 bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle);
 bool BoardStopPWM(uint8_t num);
 bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
-void BoardTraceSPI(bool val);
 
 #endif  // PANDA_TIMESWIPE_DRIVER_BOARD

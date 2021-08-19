@@ -191,8 +191,8 @@ public:
   void Init()
   {
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    InitBoard();
-    DMITIGR_ASSERT(IsBoardInited());
+    Board::Instance()->Init();
+    DMITIGR_ASSERT(Board::Instance()->IsInited());
 #endif
   }
 
@@ -204,18 +204,18 @@ public:
     emul_point_begin_ = std::chrono::steady_clock::now();
     emul_sent_ = 0;
 #else
-    DMITIGR_CHECK(IsBoardInited());
-    StartMeasurement(mode_);
-    DMITIGR_ASSERT(IsMeasurementStarted());
+    DMITIGR_CHECK(Board::Instance()->IsInited());
+    Board::Instance()->StartMeasurement(mode_);
+    DMITIGR_ASSERT(Board::Instance()->IsMeasurementStarted());
 #endif
   }
 
   void Stop()
   {
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    DMITIGR_CHECK(IsBoardInited());
-    StopMeasurement();
-    DMITIGR_ASSERT(!IsMeasurementStarted());
+    DMITIGR_CHECK(Board::Instance()->IsInited());
+    Board::Instance()->StopMeasurement();
+    DMITIGR_ASSERT(!Board::Instance()->IsMeasurementStarted());
 #endif
     read_skip_count_ = kInitialInvalidDataSetsCount;
   }
