@@ -48,6 +48,7 @@ void measure(TimeSwipe& ts, const std::filesystem::path& logfile)
   });
   std::this_thread::sleep_for(chrono::seconds{1});
   const auto stopped = ts.Stop();
+  (void)stopped;
   assert(stopped);
 }
 
