@@ -197,7 +197,8 @@ public:
   }
 
   // num == 0 -> PWM1  num == 1 -> PWM2
-  bool startPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle);
+  bool startPWM(uint8_t num, uint32_t frequency, uint32_t high,
+    uint32_t low, uint32_t repeats, float duty_cycle);
 
   // num == 0 -> PWM1  num == 1 -> PWM2
   bool stopPWM(uint8_t num)
@@ -213,8 +214,8 @@ public:
   }
 
   // num == 0 -> PWM1  num == 1 -> PWM2
-  bool getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high,
-    uint32_t& low, uint32_t& repeats, float& duty_cycle);
+  bool getPWM(uint8_t num, bool& active, uint32_t& frequency,
+    uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
   std::string makeChCmd(unsigned int num, const char *pSubDomain)
   {

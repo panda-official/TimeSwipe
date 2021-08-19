@@ -304,31 +304,26 @@ void Board::StopMeasurement()
   Instance()->is_measurement_started_ = false;
 }
 
-bool Board::getPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
+bool Board::getPWM(uint8_t num, bool& active, uint32_t& frequency,
+  uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle)
+{
     std::string pwm = std::string("PWM") + std::to_string(num+1);
-    auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
+    const auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
     std::string err;
-    auto settings = getGetSettings(arr.dump(), err);
-    auto s = str2json(settings);
-    if (s.empty()) return false;
-
-    if (!json_get(s, pwm, active)) return false;
-
-    if (!json_get(s, pwm + ".freq", frequency)) return false;
-
-    if (!json_get(s, pwm + ".high", high)) return false;
-
-    if (!json_get(s, pwm + ".low", low)) return false;
-
-    if (!json_get(s, pwm + ".repeats", repeats)) return false;
-
-    if (!json_get(s, pwm + ".duty", duty_cycle)) return false;
-
-    return true;
+    const auto settings = getGetSettings(arr.dump(), err);
+    const auto s = str2json(settings);
+    return !s.empty() &&
+      json_get(s, pwm, active) &&
+      json_get(s, pwm + ".freq", frequency) &&
+      json_get(s, pwm + ".high", high) &&
+      json_get(s, pwm + ".low", low) &&
+      json_get(s, pwm + ".repeats", repeats) &&
+      json_get(s, pwm + ".duty", duty_cycle);
 }
 
-bool Board::startPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
-
+bool Board::startPWM(uint8_t num, uint32_t frequency, uint32_t high,
+  uint32_t low, uint32_t repeats, float duty_cycle)
+{
     std::string pwm = std::string("PWM") + std::to_string(num+1);
     auto obj = nlohmann::json::object({});
     obj.emplace(pwm + ".freq", frequency);
@@ -339,9 +334,8 @@ bool Board::startPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t lo
     std::string err;
 
     auto settings = getSetSettings(obj.dump(), err);
-    if (str2json(settings).empty()) {
-        return false;
-    }
+    if (str2json(settings).empty())
+      return false;
 
     obj.emplace(pwm, true);
     settings = getSetSettings(obj.dump(), err);
