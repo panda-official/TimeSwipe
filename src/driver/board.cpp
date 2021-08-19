@@ -17,7 +17,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "board.hpp"
-#include "board_iface.hpp"
+#include "protocol.hpp"
 #include "event.hpp"
 #include "gpio/gpio.h"
 #include "../common/json.hpp"
