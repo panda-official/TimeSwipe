@@ -7,6 +7,10 @@
 #ifndef GPIO_H
 #define GPIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*! On all recent OSs, the base of the peripherals is read from a /proc file */
 #define BMC2835_RPI2_DT_FILENAME "/proc/device-tree/soc/ranges"
 
@@ -66,6 +70,8 @@ extern volatile unsigned int *gpio;
 //
 void setup_io();
 
-#include "gpio.c"
+#ifdef __cplusplus
+}
+#endif
 
 #endif //GPIO_H

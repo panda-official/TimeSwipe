@@ -5,6 +5,7 @@
 //  Revised: 15-Feb-2013
 
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
@@ -17,7 +18,7 @@ volatile unsigned int *gpio;
 // Set up a memory regions to access GPIO.
 void setup_io()
 {
-   int mem_fd{-1};
+   int mem_fd = -1;
    if ( (mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) { // test /dev/gpiomem!!! <- not root necessary
        printf("can't open /dev/mem \n");
        exit(-1);
