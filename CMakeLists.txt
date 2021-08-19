@@ -398,11 +398,13 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     )
 
   add_library(panda_timeswipe STATIC ${timeswipe_src})
+
   list(APPEND timeswipe_link_libraries_public pthread)
   dmitigr_append_cppfs(timeswipe_link_libraries_public)
   target_link_libraries(panda_timeswipe
     PUBLIC ${timeswipe_link_libraries_public}
     PRIVATE Boost::boost)
+
   target_compile_definitions(panda_timeswipe PUBLIC
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
