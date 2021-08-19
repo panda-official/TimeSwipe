@@ -390,7 +390,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver/eeprom.cpp
     src/driver/event.cpp
     src/driver/pidfile.cpp
-    src/driver/protocol.cpp
     src/driver/sensor_data.cpp
     src/driver/timeswipe.cpp
     src/driver/RaspberryPi/bcmspi.cpp
