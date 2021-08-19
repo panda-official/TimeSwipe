@@ -164,28 +164,22 @@ int main(int argc, char *argv[])
 
 
     bool ret = tswipe.onEvent([&](TimeSwipeEvent&& event) {
-        if (event.is<TimeSwipeEvent::Button>()) {
-            auto button = event.get<TimeSwipeEvent::Button>();
-            std::cout << "Button event: " <<  (button.pressed() ? "pressed":"released") << " counter: " << button.count() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Gain>()) {
-            auto val = event.get<TimeSwipeEvent::Gain>();
-            std::cout << "Gain event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::SetSecondary>()) {
-            auto val = event.get<TimeSwipeEvent::SetSecondary>();
-            std::cout << "SetSecondary event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Bridge>()) {
-            auto val = event.get<TimeSwipeEvent::Bridge>();
-            std::cout << "Bridge event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Record>()) {
-            auto val = event.get<TimeSwipeEvent::Record>();
-            std::cout << "Record event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Offset>()) {
-            auto val = event.get<TimeSwipeEvent::Offset>();
-            std::cout << "Offset event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Mode>()) {
-            auto val = event.get<TimeSwipeEvent::Mode>();
-            std::cout << "Mode event: " <<  val.value() << std::endl;
-        }
+      if (auto* button = event.Get<TimeSwipeEvent::Button>())
+        std::cout << "Button event: "
+                  << (button->pressed() ? "pressed":"released")
+                  << " counter: " << button->count() << std::endl;
+      else if(auto* gain = event.Get<TimeSwipeEvent::Gain>())
+        std::cout << "Gain event: " << gain->value() << std::endl;
+      else if(auto* val = event.Get<TimeSwipeEvent::SetSecondary>())
+        std::cout << "SetSecondary event: " << val->value() << std::endl;
+      else if(auto* val = event.Get<TimeSwipeEvent::Bridge>())
+        std::cout << "Bridge event: " <<  val->value() << std::endl;
+      else if(auto* val = event.Get<TimeSwipeEvent::Record>())
+        std::cout << "Record event: " <<  val->value() << std::endl;
+      else if(auto* val = event.Get<TimeSwipeEvent::Offset>())
+        std::cout << "Offset event: " <<  val->value() << std::endl;
+      else if(auto* val = event.Get<TimeSwipeEvent::Mode>())
+        std::cout << "Mode event: " <<  val->value() << std::endl;
     });
     if (!ret) {
         std::cerr << "onEvent init failed" << std::endl;

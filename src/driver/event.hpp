@@ -19,152 +19,146 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_EVENT_HPP
 #define PANDA_TIMESWIPE_DRIVER_EVENT_HPP
 
-#include <cstdint>
 #include <memory>
-
-class TimeSwipeEventImpl;
 
 /// Timeswipe event
 class TimeSwipeEvent final {
 public:
-  /**
-   * \brief Button press event
-   */
-  class Button {
+  /// Button pressed event.
+  class Button final {
   public:
+    /// The default constructor.
     Button() = default;
-    Button(bool _pressed, unsigned _count);
-    /**
-     * \brief returns true when pressed and false if released
-     */
+
+    /// The constructor.
+    Button(bool pressed, int count);
+
+    /// @returns `true` when pressed, or `false` if released.
     bool pressed() const;
-    /**
-     * \brief returns press/release counter,
-     * odd value is pressed, even value is released
-     */
-    unsigned count() const;
+
+    /// @returns Pressed (odd value) or released (even value) count.
+    int count() const;
+
   private:
-    bool _pressed;
-    unsigned _count;
+    bool pressed_{};
+    int count_{};
   };
 
-  /**
-   * \brief Gain value event
-   */
-  class Gain {
+  /// Gain value event.
+  class Gain final {
   public:
+    /// The default constructor.
     Gain() = default;
-    Gain(int _value);
-    /**
-     * \brief returns Gain value as number
-     */
+
+    /// The constructor.
+    explicit Gain(int value);
+
+    /// @returns Gain value as number.
     int value() const;
+
   private:
-    int _value;
+    int value_{};
   };
 
-  /**
-   * \brief SetSecondary value event
-   */
+  /// SetSecondary value event.
   class SetSecondary {
   public:
+    /// The default constructor.
     SetSecondary() = default;
-    SetSecondary(int _value);
-    /**
-     * \brief returns SetSecondary value as number
-     */
+
+    /// The constructor.
+    explicit SetSecondary(int value);
+
+    /// @returns SetSecondary value as number.
     int value() const;
+
   private:
-    int _value;
+    int value_{};
   };
 
-  /**
-   * \brief Bridge value event
-   */
+  /// Bridge value event.
   class Bridge {
   public:
+    /// The default constructor.
     Bridge() = default;
-    Bridge(int _value);
-    /**
-     * \brief returns Bridge value as number
-     */
+
+    /// The constructor.
+    Bridge(int value);
+
+    /// @returns Bridge value as number.
     int value() const;
   private:
-    int _value;
+    int value_{};
   };
 
-
-  /**
-   * \brief Record value event
-   */
+  /// Record value event.
   class Record {
   public:
+    /// The default constructor.
     Record() = default;
-    Record(int _value);
-    /**
-     * \brief returns Record value as number
-     */
+
+    /// The constructor.
+    explicit Record(int value);
+
+    /// @returns Record value as number.
     int value() const;
+
   private:
-    int _value;
+    int value_{};
   };
 
-  /**
-   * \brief Offset value event
-   */
+  /// Offset value event.
   class Offset {
   public:
+    /// The default constructor.
     Offset() = default;
-    Offset(int _value);
-    /**
-     * \brief returns Offset value as number
-     */
+
+    /// The constructor.
+    explicit Offset(int value);
+
+    /// @returns Offset value as number.
     int value() const;
+
   private:
-    int _value;
+    int value_{};
   };
 
-  /**
-   * \brief Mode value event
-   */
+  /// Mode value event.
   class Mode {
   public:
+    /// The default constructor.
     Mode() = default;
-    Mode(int _value);
-    /**
-     * \brief returns Mode value as number
-     */
+
+    /// The constructor.
+    Mode(int value);
+
+    /// @returns Mode value as number.
     int value() const;
+
   private:
-    int _value;
+    int value_{};
   };
 
-  /**
-   * \brief Check for interested event
-   */
-  template <class EVENT>
-  bool is() const;
-
-  /**
-   * \brief get interested event
-   */
-  template <class EVENT>
-  const EVENT& get() const;
-
-  TimeSwipeEvent();
+  /// The destructor.
   ~TimeSwipeEvent();
 
-  template <class EVENT>
-  TimeSwipeEvent(EVENT&& ev);
+  /// The default constructor.
+  TimeSwipeEvent();
 
+  /// The constructor.
   template <class EVENT>
-  TimeSwipeEvent(const EVENT& ev);
+  TimeSwipeEvent(EVENT ev);
 
-  TimeSwipeEvent(TimeSwipeEvent&& ev) = default;
-  TimeSwipeEvent(const TimeSwipeEvent& ev) = default;
-  TimeSwipeEvent& operator=(const TimeSwipeEvent&) = default;
+  /**
+   * @returns The pointer to the event, or `nullptr` if this event is not
+   * the event of type `EVENT`.
+   */
+  template <class EVENT>
+  const EVENT* Get() const noexcept;
+
 private:
-  std::shared_ptr<TimeSwipeEventImpl> impl_;
+  struct Rep;
+  std::shared_ptr<Rep> rep_;
 };
 
 #endif  // PANDA_TIMESWIPE_DRIVER_EVENT_HPP

@@ -18,137 +18,132 @@
 
 #include "event.hpp"
 
+#include <type_traits>
 #include <variant>
 
-class TimeSwipeEventImpl {
-    std::variant<
-        TimeSwipeEvent::Button,
-        TimeSwipeEvent::Gain,
-        TimeSwipeEvent::SetSecondary,
-        TimeSwipeEvent::Bridge,
-        TimeSwipeEvent::Record,
-        TimeSwipeEvent::Offset,
-        TimeSwipeEvent::Mode
-        > events;
-    friend class TimeSwipeEvent;
+struct TimeSwipeEvent::Rep final {
+  Rep() = default;
+
+  template<class E>
+  Rep(E&& e)
+    : events{std::move(e)}
+  {}
+
+  std::variant<
+    TimeSwipeEvent::Button,
+    TimeSwipeEvent::Gain,
+    TimeSwipeEvent::SetSecondary,
+    TimeSwipeEvent::Bridge,
+    TimeSwipeEvent::Record,
+    TimeSwipeEvent::Offset,
+    TimeSwipeEvent::Mode
+    > events;
+  friend TimeSwipeEvent;
 };
 
-TimeSwipeEvent::TimeSwipeEvent() {
-    impl_ = std::make_shared<TimeSwipeEventImpl>();
-}
+TimeSwipeEvent::~TimeSwipeEvent() = default;
 
-TimeSwipeEvent::~TimeSwipeEvent() {
-}
+TimeSwipeEvent::TimeSwipeEvent()
+  : rep_{std::make_shared<Rep>()}
+{}
 
-TimeSwipeEvent::Button::Button(bool _pressed, unsigned _count)
-    : _pressed(_pressed)
-    , _count(_count)
+template <class EVENT>
+TimeSwipeEvent::TimeSwipeEvent(EVENT ev)
+  : rep_{std::make_shared<Rep>(std::move(ev))}
+{}
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Button ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Gain ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::SetSecondary ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Bridge ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Record ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Offset ev);
+template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Mode ev);
+
+TimeSwipeEvent::Button::Button(bool pressed, int count)
+  : pressed_{pressed}
+  , count_{count}
+{}
+
+bool TimeSwipeEvent::Button::pressed() const
 {
-}
-bool TimeSwipeEvent::Button::pressed() const {
-    return _pressed;
-}
-unsigned TimeSwipeEvent::Button::count() const {
-    return _count;
+  return pressed_;
 }
 
-TimeSwipeEvent::Gain::Gain(int _value)
-    : _value(_value)
+int TimeSwipeEvent::Button::count() const
 {
-}
-int TimeSwipeEvent::Gain::value() const {
-    return _value;
+  return count_;
 }
 
-TimeSwipeEvent::SetSecondary::SetSecondary(int _value)
-    : _value(_value)
+TimeSwipeEvent::Gain::Gain(int value)
+  : value_{value}
+{}
+
+int TimeSwipeEvent::Gain::value() const
 {
-}
-int TimeSwipeEvent::SetSecondary::value() const {
-    return _value;
+  return value_;
 }
 
-TimeSwipeEvent::Bridge::Bridge(int _value)
-    : _value(_value)
+TimeSwipeEvent::SetSecondary::SetSecondary(int value)
+  : value_{value}
+{}
+
+int TimeSwipeEvent::SetSecondary::value() const
 {
-}
-int TimeSwipeEvent::Bridge::value() const {
-    return _value;
+  return value_;
 }
 
-TimeSwipeEvent::Record::Record(int _value)
-    : _value(_value)
+TimeSwipeEvent::Bridge::Bridge(int value)
+  : value_{value}
+{}
+
+int TimeSwipeEvent::Bridge::value() const
 {
-}
-int TimeSwipeEvent::Record::value() const {
-    return _value;
+  return value_;
 }
 
-TimeSwipeEvent::Offset::Offset(int _value)
-    : _value(_value)
+TimeSwipeEvent::Record::Record(int value)
+  : value_{value}
+{}
+
+int TimeSwipeEvent::Record::value() const
 {
-}
-int TimeSwipeEvent::Offset::value() const {
-    return _value;
+  return value_;
 }
 
-TimeSwipeEvent::Mode::Mode(int _value)
-    : _value(_value)
+TimeSwipeEvent::Offset::Offset(int value)
+  : value_{value}
+{}
+
+int TimeSwipeEvent::Offset::value() const
 {
+  return value_;
 }
-int TimeSwipeEvent::Mode::value() const {
-    return _value;
+
+TimeSwipeEvent::Mode::Mode(int value)
+  : value_(value)
+{}
+
+int TimeSwipeEvent::Mode::value() const
+{
+  return value_;
 }
 
 template <class EVENT>
-bool TimeSwipeEvent::is() const {
-    return std::holds_alternative<EVENT>(impl_->events);
-}
-template bool TimeSwipeEvent::is<TimeSwipeEvent::Button>() const;
-template bool TimeSwipeEvent::is<TimeSwipeEvent::Gain>() const;
-template bool TimeSwipeEvent::is<TimeSwipeEvent::SetSecondary>() const;
-template bool TimeSwipeEvent::is<TimeSwipeEvent::Bridge>() const;
-template bool TimeSwipeEvent::is<TimeSwipeEvent::Record>() const;
-template bool TimeSwipeEvent::is<TimeSwipeEvent::Offset>() const;
-template bool TimeSwipeEvent::is<TimeSwipeEvent::Mode>() const;
-
-template <class EVENT>
-const EVENT& TimeSwipeEvent::get() const {
-    return std::get<EVENT>(impl_->events);
-}
-
-template const TimeSwipeEvent::Button& TimeSwipeEvent::get<TimeSwipeEvent::Button>() const;
-template const TimeSwipeEvent::Gain& TimeSwipeEvent::get<TimeSwipeEvent::Gain>() const;
-template const TimeSwipeEvent::SetSecondary& TimeSwipeEvent::get<TimeSwipeEvent::SetSecondary>() const;
-template const TimeSwipeEvent::Bridge& TimeSwipeEvent::get<TimeSwipeEvent::Bridge>() const;
-template const TimeSwipeEvent::Record& TimeSwipeEvent::get<TimeSwipeEvent::Record>() const;
-template const TimeSwipeEvent::Offset& TimeSwipeEvent::get<TimeSwipeEvent::Offset>() const;
-template const TimeSwipeEvent::Mode& TimeSwipeEvent::get<TimeSwipeEvent::Mode>() const;
-
-template <class EVENT>
-TimeSwipeEvent::TimeSwipeEvent(EVENT&& ev)
-    : TimeSwipeEvent()
+const EVENT* TimeSwipeEvent::Get() const noexcept
 {
-    impl_->events = std::move(ev);
+  return std::visit([](const auto& event)
+  {
+    using E = std::decay_t<decltype(event)>;
+    if constexpr (const EVENT* const null{}; std::is_same_v<E, EVENT>)
+      return &event;
+    else
+      return null;
+  }, rep_->events);
 }
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Button&& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Gain&& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::SetSecondary&& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Bridge&& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Record&& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Offset&& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Mode&& ev);
-
-template <class EVENT>
-TimeSwipeEvent::TimeSwipeEvent(const EVENT& ev)
-    : TimeSwipeEvent()
-{
-    impl_->events = ev;
-}
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Button& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Gain& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::SetSecondary& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Bridge& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Record& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Offset& ev);
-template TimeSwipeEvent::TimeSwipeEvent(TimeSwipeEvent::Mode& ev);
+template const TimeSwipeEvent::Button* TimeSwipeEvent::Get<TimeSwipeEvent::Button>() const noexcept;
+template const TimeSwipeEvent::Gain* TimeSwipeEvent::Get<TimeSwipeEvent::Gain>() const noexcept;
+template const TimeSwipeEvent::SetSecondary* TimeSwipeEvent::Get<TimeSwipeEvent::SetSecondary>() const noexcept;
+template const TimeSwipeEvent::Bridge* TimeSwipeEvent::Get<TimeSwipeEvent::Bridge>() const noexcept;
+template const TimeSwipeEvent::Record* TimeSwipeEvent::Get<TimeSwipeEvent::Record>() const noexcept;
+template const TimeSwipeEvent::Offset* TimeSwipeEvent::Get<TimeSwipeEvent::Offset>() const noexcept;
+template const TimeSwipeEvent::Mode* TimeSwipeEvent::Get<TimeSwipeEvent::Mode>() const noexcept;
