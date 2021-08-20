@@ -281,13 +281,11 @@ public:
     in_spi_.push(std::make_pair(set_or_get, request));
     std::pair<std::string,std::string> resp;
 
-    if (!work_) {
+    if (!work_)
       processSPIRequests();
-    }
 
-    while (!out_spi_.pop(resp)) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    while (!out_spi_.pop(resp))
+      std::this_thread::sleep_for(std::chrono::milliseconds{100});
     error = resp.second;
 
     return resp.first;
@@ -447,14 +445,8 @@ private:
   };
 
   // -----------------------------------------------------------------------------
-  // API
+  // SensorData queueing and pushing
   // -----------------------------------------------------------------------------
-
-  bool isStarted()
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return started_instance_ != nullptr;
-  }
 
   void fetcherLoop()
   {
@@ -556,6 +548,18 @@ private:
     }
   }
 
+  void processSPIRequests()
+  {
+    std::pair<std::uint8_t, std::string> request;
+    while (in_spi_.pop(request)) {
+      std::string error;
+      auto response = request.first ?
+        Board::Instance()->SetSettings(request.second, error) :
+        Board::Instance()->GetSettings(request.second, error);
+      out_spi_.push(std::make_pair(response, error));
+    }
+  }
+
   void receiveEvents()
   {
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
@@ -604,16 +608,20 @@ private:
   }
 #endif  // PANDA_TIMESWIPE_FIRMWARE_EMU
 
-  void processSPIRequests()
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  static std::filesystem::path TmpDir()
   {
-    std::pair<std::uint8_t,std::string> request;
-    while (in_spi_.pop(request)) {
-      std::string error;
-      auto response = request.first ?
-        Board::Instance()->SetSettings(request.second, error) :
-        Board::Instance()->GetSettings(request.second, error);
-      out_spi_.push(std::make_pair(response, error));
-    }
+    const auto cwd = std::filesystem::current_path();
+    return cwd/".pandagmbh"/"timeswipe";
+  }
+
+  bool isStarted() const noexcept
+  {
+    const std::lock_guard<std::mutex> lock{mutex_};
+    return started_instance_ != nullptr;
   }
 
   void clearThreads()
@@ -629,16 +637,6 @@ private:
       }
       it = threads_.erase(it);
     }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
-
-  static std::filesystem::path TmpDir()
-  {
-    const auto cwd = std::filesystem::current_path();
-    return cwd/".pandagmbh"/"timeswipe";
   }
 
   /// @warning Not thread-safe!
