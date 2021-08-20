@@ -8,8 +8,8 @@ Copyright (c) 2019 Panda Team
 #ifndef BCMSPI_H
 #define BCMSPI_H
 
-#include "../../common/SPI.h"
-#include "../../common/SyncCom.h"
+#include "../common/SPI.h"
+#include "../common/SyncCom.h"
 
 class CBcmLIB //a lib wrapper
 {

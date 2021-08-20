@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_DRIVER_BOARD
 
 #include "types_fwd.hpp"
-#include "RaspberryPi/bcmspi.h"
+#include "bcmspi.hpp"
 
 #include <array>
 #include <atomic>

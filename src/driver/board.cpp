@@ -18,7 +18,7 @@
 
 #include "board.hpp"
 #include "event.hpp"
-#include "gpio/gpio.h"
+#include "gpio.h"
 #include "../common/json.hpp"
 
 #include "../3rdparty/dmitigr/assert.hpp"

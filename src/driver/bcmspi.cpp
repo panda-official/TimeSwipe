@@ -5,10 +5,10 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-#include "bcmspi.h"
+#include "bcmspi.hpp"
 #include <iostream>
 
-#include "../../3rdparty/BCMsrc/bcm2835.h"
+#include "../3rdparty/BCMsrc/bcm2835.h"
 bool CBcmLIB::m_bLibInitialized=false;
 bool CBcmLIB::m_bSPIInitialized[2]={false};
 
