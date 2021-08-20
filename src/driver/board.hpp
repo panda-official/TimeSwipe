@@ -191,6 +191,12 @@ public:
   // read records from hardware buffer
   SensorsData ReadSensorData()
   {
+    static const auto WaitForPiOk = []
+    {
+      // for 12MHz Quartz
+      std::this_thread::sleep_for(std::chrono::microseconds(700));
+    };
+
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     // Skip data sets if needed. (First 32 data sets are always invalid.)
     while (read_skip_count_ > 0) {
@@ -251,12 +257,6 @@ public:
     }
     return out;
 #endif
-  }
-
-  void WaitForPiOk()
-  {
-    // for 12MHz Quartz
-    std::this_thread::sleep_for(std::chrono::microseconds(700));
   }
 
   const std::array<std::uint16_t, 4>& Offsets() const noexcept
