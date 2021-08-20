@@ -305,11 +305,6 @@ private:
   std::uint64_t emul_sent_{};
   static constexpr std::size_t emul_rate_{48000};
 #endif
-
-  static constexpr bool isRisingFlank(const bool last, const bool now) noexcept
-  {
-    return !last && now;
-  }
 };
 
 #endif  // PANDA_TIMESWIPE_DRIVER_READER_HPP
