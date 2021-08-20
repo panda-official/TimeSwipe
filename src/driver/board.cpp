@@ -86,7 +86,7 @@ std::list<TimeSwipeEvent> Board::GetEvents()
   std::lock_guard<std::mutex> lock(boardMtx);
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
   std::string data;
-  if (Board::Instance()->getEvents(data) && !data.empty()) {
+  if (getEvents(data) && !data.empty()) {
     if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
     if (data.empty()) return events;
@@ -240,7 +240,7 @@ bool Board::GetPwm(const std::uint8_t num, bool& active, std::uint32_t& frequenc
 
 void Board::Init(const bool force)
 {
-  if (!force && Board::Instance()->IsInited()) return;
+  if (!force && IsInited()) return;
 
   setup_io();
   initGPIOInput(DATA0);
@@ -268,17 +268,17 @@ void Board::Init(const bool force)
   using std::chrono::milliseconds;
   std::this_thread::sleep_for(milliseconds{1});
 
-  Instance()->is_board_inited_ = true;
+  is_board_inited_ = true;
 }
 
 bool Board::IsInited() noexcept
 {
-  return Instance()->is_board_inited_;
+  return is_board_inited_;
 }
 
 void Board::StartMeasurement(const int mode)
 {
-  DMITIGR_CHECK(Board::Instance()->IsInited());
+  DMITIGR_CHECK(IsInited());
 
   // Set mfactors.
   for (std::size_t i{}; i < mfactors_.size(); ++i)
@@ -289,18 +289,18 @@ void Board::StartMeasurement(const int mode)
 #endif
 
   // Select Mode
-  Instance()->SetMode(mode);
+  SetMode(mode);
 
   // Start Measurement
   using std::chrono::milliseconds;
   std::this_thread::sleep_for(milliseconds{1});
-  Instance()->SetEnableADmes(true);
-  Instance()->is_measurement_started_ = true;
+  SetEnableADmes(true);
+  is_measurement_started_ = true;
 }
 
 bool Board::IsMeasurementStarted() noexcept
 {
-  return Instance()->is_measurement_started_;
+  return is_measurement_started_;
 }
 
 void Board::StopMeasurement()
@@ -311,9 +311,9 @@ void Board::StopMeasurement()
   setGPIOLow(CLOCK);
 
   // Stop Measurement
-  Instance()->SetEnableADmes(false);
+  SetEnableADmes(false);
 
-  Instance()->is_measurement_started_ = false;
+  is_measurement_started_ = false;
   read_skip_count_ = kInitialInvalidDataSetsCount;
 }
 
