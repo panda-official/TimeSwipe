@@ -44,39 +44,6 @@
 #include <type_traits>
 #include <vector>
 
-// PIN NAMES
-static const std::uint8_t DATA0{24};  // BCM 24 - PIN 18
-static const std::uint8_t DATA1{25};  // BCM 25 - PIN 22
-static const std::uint8_t DATA2{7};   // BCM  7 - PIN 26
-static const std::uint8_t DATA3{5};   // BCM  5 - PIN 29
-static const std::uint8_t DATA4{6};   // BCM  6 - PIN 31
-static const std::uint8_t DATA5{12};  // BCM 12 - PIN 32
-static const std::uint8_t DATA6{13};  // BCM 13 - PIN 33
-static const std::uint8_t DATA7{16};  // BCM 16 - PIN 36
-static const std::uint8_t CLOCK{4};   // BCM  4 - PIN  7
-static const std::uint8_t TCO{14};    // BCM 14 - PIN  8
-static const std::uint8_t PI_OK{15};  // BCM 15 - PIN 10
-static const std::uint8_t FAIL{18};   // BCM 18 - PIN 12
-static const std::uint8_t RESET{17};  // BCM 17 - PIN 11
-static const std::uint8_t BUTTON{25}; // BCM 25 - PIN 22
-
-static const std::array<std::uint32_t, 8> DATA_POSITION{
-  std::uint32_t{1} << DATA0,
-  std::uint32_t{1} << DATA1,
-  std::uint32_t{1} << DATA2,
-  std::uint32_t{1} << DATA3,
-  std::uint32_t{1} << DATA4,
-  std::uint32_t{1} << DATA5,
-  std::uint32_t{1} << DATA6,
-  std::uint32_t{1} << DATA7
-};
-
-static const std::uint32_t CLOCK_POSITION{std::uint32_t{1} << CLOCK};
-static const std::uint32_t TCO_POSITION{std::uint32_t{1} << TCO};
-static const std::uint32_t PI_STATUS_POSITION{std::uint32_t{1} << PI_OK};
-static const std::uint32_t FAIL_POSITION{std::uint32_t{1} << FAIL};
-static const std::uint32_t BUTTON_POSITION{std::uint32_t{1} << BUTTON};
-
 class Board final {
 public:
   /// The destructor.
@@ -737,8 +704,41 @@ private:
   // GPIO
   // ---------------------------------------------------------------------------
 
+  // PIN NAMES
+  static constexpr std::uint8_t DATA0{24};  // BCM 24 - PIN 18
+  static constexpr std::uint8_t DATA1{25};  // BCM 25 - PIN 22
+  static constexpr std::uint8_t DATA2{7};   // BCM  7 - PIN 26
+  static constexpr std::uint8_t DATA3{5};   // BCM  5 - PIN 29
+  static constexpr std::uint8_t DATA4{6};   // BCM  6 - PIN 31
+  static constexpr std::uint8_t DATA5{12};  // BCM 12 - PIN 32
+  static constexpr std::uint8_t DATA6{13};  // BCM 13 - PIN 33
+  static constexpr std::uint8_t DATA7{16};  // BCM 16 - PIN 36
+  static constexpr std::uint8_t CLOCK{4};   // BCM  4 - PIN  7
+  static constexpr std::uint8_t TCO{14};    // BCM 14 - PIN  8
+  static constexpr std::uint8_t PI_OK{15};  // BCM 15 - PIN 10
+  static constexpr std::uint8_t FAIL{18};   // BCM 18 - PIN 12
+  static constexpr std::uint8_t RESET{17};  // BCM 17 - PIN 11
+  static constexpr std::uint8_t BUTTON{25}; // BCM 25 - PIN 22
+
+  static constexpr std::array<std::uint32_t, 8> DATA_POSITION{
+    std::uint32_t{1} << DATA0,
+    std::uint32_t{1} << DATA1,
+    std::uint32_t{1} << DATA2,
+    std::uint32_t{1} << DATA3,
+    std::uint32_t{1} << DATA4,
+    std::uint32_t{1} << DATA5,
+    std::uint32_t{1} << DATA6,
+    std::uint32_t{1} << DATA7
+  };
+
+  static constexpr std::uint32_t CLOCK_POSITION{std::uint32_t{1} << CLOCK};
+  static constexpr std::uint32_t TCO_POSITION{std::uint32_t{1} << TCO};
+  static constexpr std::uint32_t PI_STATUS_POSITION{std::uint32_t{1} << PI_OK};
+  static constexpr std::uint32_t FAIL_POSITION{std::uint32_t{1} << FAIL};
+  static constexpr std::uint32_t BUTTON_POSITION{std::uint32_t{1} << BUTTON};
+
   // (2^32)-1 - ALL BCM_PINS
-  static const std::uint32_t ALL_32_BITS_ON{0xFFFFFFFF};
+  static constexpr std::uint32_t ALL_32_BITS_ON{0xFFFFFFFF};
 
   static void pullGPIO(const unsigned pin, const unsigned high)
   {
