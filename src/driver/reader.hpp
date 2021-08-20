@@ -53,15 +53,15 @@ struct GpioData final {
 
   static GpioData Read() noexcept
   {
-    setGPIOHigh(CLOCK);
-    sleep55ns();
-    sleep55ns();
+    Board::setGPIOHigh(CLOCK);
+    Board::sleep55ns();
+    Board::sleep55ns();
 
-    setGPIOLow(CLOCK);
-    sleep55ns();
-    sleep55ns();
+    Board::setGPIOLow(CLOCK);
+    Board::sleep55ns();
+    Board::sleep55ns();
 
-    const unsigned int allGPIO{readAllGPIO()};
+    const unsigned int allGPIO{Board::readAllGPIO()};
     const std::uint8_t byte =
       ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
       ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
@@ -72,8 +72,8 @@ struct GpioData final {
       ((allGPIO & DATA_POSITION[6]) >> 12) |  //     1
       ((allGPIO & DATA_POSITION[7]) >> 16);   //     0
 
-    sleep55ns();
-    sleep55ns();
+    Board::sleep55ns();
+    Board::sleep55ns();
 
     return {byte, (allGPIO & TCO_POSITION), (allGPIO & PI_STATUS_POSITION) != 0};
   }
@@ -173,8 +173,8 @@ public:
       if (tco != 0x00004000) break;
     } while (true);
 
-    sleep55ns();
-    sleep55ns();
+    Board::sleep55ns();
+    Board::sleep55ns();
 
     return out;
 #else

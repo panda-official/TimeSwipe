@@ -378,16 +378,22 @@ private:
     sendEventsCommand();
     return receiveAnswer(ev);
   }
-};
 
-void pullGPIO(unsigned pin, unsigned high);
-void initGPIOInput(unsigned pin);
-void initGPIOOutput(unsigned pin);
-void setGPIOHigh(unsigned pin);
-void setGPIOLow(unsigned pin);
-void resetAllGPIO();
-void sleep55ns();
-void sleep8ns();
-unsigned int readAllGPIO();
+  // ---------------------------------------------------------------------------
+  // GPIO
+  // ---------------------------------------------------------------------------
+
+  friend struct GpioData; // REMOVE ME
+  friend class RecordReader; // REMOVE ME
+  static void pullGPIO(unsigned pin, unsigned high);
+  static void initGPIOInput(unsigned pin);
+  static void initGPIOOutput(unsigned pin);
+  static void setGPIOHigh(unsigned pin);
+  static void setGPIOLow(unsigned pin);
+  static void resetAllGPIO();
+  static unsigned readAllGPIO();
+  static void sleep55ns();
+  static void sleep8ns();
+};
 
 #endif  // PANDA_TIMESWIPE_DRIVER_BOARD

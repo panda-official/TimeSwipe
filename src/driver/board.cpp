@@ -25,55 +25,7 @@
 
 #include <mutex>
 
-// RPI GPIO FUNCTIONS
-void pullGPIO(unsigned pin, unsigned high)
-{
-    GPIO_PULL = high << pin;
-}
-
-void initGPIOInput(unsigned pin)
-{
-    INP_GPIO(pin);
-}
-
-void initGPIOOutput(unsigned pin)
-{
-    INP_GPIO(pin);
-    OUT_GPIO(pin);
-    pullGPIO(pin, 0);
-}
-
-void setGPIOHigh(unsigned pin)
-{
-    GPIO_SET = 1 << pin;
-}
-
-void setGPIOLow(unsigned pin)
-{
-    GPIO_CLR = 1 << pin;
-}
-
-static const uint32_t ALL_32_BITS_ON = 0xFFFFFFFF; // (2^32)-1 - ALL BCM_PINS
-void resetAllGPIO()
-{
-    GPIO_CLR = ALL_32_BITS_ON;
-}
-
-void sleep55ns()
-{
-    readAllGPIO();
-}
-
-void sleep8ns()
-{
-    setGPIOHigh(10); // ANY UNUSED PIN!!!
-}
-
-unsigned int readAllGPIO()
-{
-    return (*(gpio + 13) & ALL_32_BITS_ON);
-}
-
+// JSON helpers.
 namespace {
 
 inline nlohmann::json str2json(const std::string& str)
@@ -354,4 +306,59 @@ void Board::StopMeasurement()
   Instance()->SetEnableADmes(false);
 
   Instance()->is_measurement_started_ = false;
+}
+
+// -----------------------------------------------------------------------------
+// GPIO
+// -----------------------------------------------------------------------------
+
+// (2^32)-1 - ALL BCM_PINS
+static const std::uint32_t ALL_32_BITS_ON{0xFFFFFFFF};
+
+// RPI GPIO FUNCTIONS
+void Board::pullGPIO(unsigned pin, unsigned high)
+{
+  GPIO_PULL = high << pin;
+}
+
+void Board::initGPIOInput(unsigned pin)
+{
+  INP_GPIO(pin);
+}
+
+void Board::initGPIOOutput(unsigned pin)
+{
+  INP_GPIO(pin);
+  OUT_GPIO(pin);
+  pullGPIO(pin, 0);
+}
+
+void Board::setGPIOHigh(unsigned pin)
+{
+  GPIO_SET = 1 << pin;
+}
+
+void Board::setGPIOLow(unsigned pin)
+{
+  GPIO_CLR = 1 << pin;
+}
+
+void Board::resetAllGPIO()
+{
+  GPIO_CLR = ALL_32_BITS_ON;
+}
+
+unsigned Board::readAllGPIO()
+{
+  return (*(gpio + 13) & ALL_32_BITS_ON);
+}
+
+void Board::sleep55ns()
+{
+  readAllGPIO();
+}
+
+void Board::sleep8ns()
+{
+  setGPIOHigh(10); // ANY UNUSED PIN!!!
 }
