@@ -18,7 +18,6 @@
 
 #include "board.hpp"
 #include "pidfile.hpp"
-#include "reader.hpp"
 #include "resampler.hpp"
 #include "timeswipe.hpp"
 #include "eeprom.hpp"
@@ -72,41 +71,44 @@ public:
       // Lock here. Second lock from the same process is allowed.
       throw Exception{Errc::kPidFileLockFailed};
 
-    record_reader_.Init();
+    Board::Instance()->Init();
   }
 
   void SetMode(const int number)
   {
-    record_reader_.SetMode(number);
+    read_mode_ = number;
   }
 
   int GetMode() const noexcept
   {
-    return record_reader_.Mode();
+    return read_mode_;
   }
 
   void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
   {
-    record_reader_.Offsets()[0] = offset1;
-    record_reader_.Offsets()[1] = offset2;
-    record_reader_.Offsets()[2] = offset3;
-    record_reader_.Offsets()[3] = offset4;
+    auto* const board = Board::Instance();
+    board->Offsets()[0] = offset1;
+    board->Offsets()[1] = offset2;
+    board->Offsets()[2] = offset3;
+    board->Offsets()[3] = offset4;
   }
 
   void SetSensorGains(float gain1, float gain2, float gain3, float gain4)
   {
-    record_reader_.Gains()[0] = 1.0 / gain1;
-    record_reader_.Gains()[1] = 1.0 / gain2;
-    record_reader_.Gains()[2] = 1.0 / gain3;
-    record_reader_.Gains()[3] = 1.0 / gain4;
+    auto* const board = Board::Instance();
+    board->Gains()[0] = 1.0 / gain1;
+    board->Gains()[1] = 1.0 / gain2;
+    board->Gains()[2] = 1.0 / gain3;
+    board->Gains()[3] = 1.0 / gain4;
   }
 
   void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
   {
-    record_reader_.Transmissions()[0] = 1.0 / trans1;
-    record_reader_.Transmissions()[1] = 1.0 / trans2;
-    record_reader_.Transmissions()[2] = 1.0 / trans3;
-    record_reader_.Transmissions()[3] = 1.0 / trans4;
+    auto* const board = Board::Instance();
+    board->Transmissions()[0] = 1.0 / trans1;
+    board->Transmissions()[1] = 1.0 / trans2;
+    board->Transmissions()[2] = 1.0 / trans3;
+    board->Transmissions()[3] = 1.0 / trans4;
   }
 
   bool SetSampleRate(const int rate)
@@ -323,7 +325,7 @@ private:
   mutable std::optional<std::vector<float>> drift_references_;
   std::optional<std::vector<float>> drift_deltas_;
 
-  RecordReader record_reader_;
+  int read_mode_{};
   // Next buffer must be enough to keep records for 1 s
   constexpr static unsigned queue_size_{kMaxSampleRate_/kMinSampleRate_*2};
   boost::lockfree::spsc_queue<SensorsData, boost::lockfree::capacity<queue_size_>> record_queue_;
@@ -453,7 +455,7 @@ private:
   void fetcherLoop()
   {
     while (work_) {
-      if (const auto data{record_reader_.Read()}; !record_queue_.push(data))
+      if (const auto data{Board::Instance()->ReadSensorData()}; !record_queue_.push(data))
         ++record_error_count_;
 
       TimeSwipeEvent event;
@@ -659,7 +661,7 @@ private:
     }
 
     clearThreads();
-    record_reader_.Start();
+    Board::Instance()->StartMeasurement(read_mode_);
     started_instance_ = this;
     work_ = true;
     threads_.push_back(std::thread(std::bind(&Rep::fetcherLoop, this)));
@@ -685,7 +687,7 @@ private:
     while (record_queue_.pop());
     while (in_spi_.pop());
     while (out_spi_.pop());
-    record_reader_.Stop();
+    Board::Instance()->StopMeasurement();
     return true;
   }
 

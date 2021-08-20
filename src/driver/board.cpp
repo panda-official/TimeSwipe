@@ -280,6 +280,14 @@ void Board::StartMeasurement(const int mode)
 {
   DMITIGR_CHECK(Board::Instance()->IsInited());
 
+  // Set mfactors.
+  for (std::size_t i{}; i < mfactors_.size(); ++i)
+    mfactors_[i] = gains_[i] * transmissions_[i];
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+  emul_point_begin_ = std::chrono::steady_clock::now();
+  emul_sent_ = 0;
+#endif
+
   // Select Mode
   Instance()->SetMode(mode);
 
@@ -306,6 +314,7 @@ void Board::StopMeasurement()
   Instance()->SetEnableADmes(false);
 
   Instance()->is_measurement_started_ = false;
+  read_skip_count_ = kInitialInvalidDataSetsCount;
 }
 
 // -----------------------------------------------------------------------------
