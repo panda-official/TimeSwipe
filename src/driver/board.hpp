@@ -67,6 +67,7 @@ static const std::uint32_t BUTTON_POSITION{std::uint32_t{1} << BUTTON};
 
 class Board final {
 public:
+  /// The destructor.
   ~Board()
   {
     delete instance_;
@@ -81,7 +82,7 @@ public:
   /**
    * Initializes GPIO pins.
    *
-   * @param force Forces initialization even if IsBoardInited() returns `true`.
+   * @param force Forces initialization even if IsInited() returns `true`.
    *
    * @par Effects
    * Restarts TimeSwipe firmware on very first run!
@@ -91,12 +92,12 @@ public:
   void Init(bool force = false);
 
   /**
-   * @returns `true` if InitBoard() has been successfully called at least once.
+   * @returns `true` if Init() has been successfully called at least once.
    *
    * @par Thread-safety
    * Thread-safe.
    *
-   * @see InitBoard().
+   * @see Init().
    */
   bool IsInited() noexcept;
 
@@ -106,12 +107,12 @@ public:
    * @param mode Measurement mode.
    *
    * @par Requires
-   * `IsBoardInited()`.
+   * `IsInited()`.
    *
    * @par Effects
    * The reader does receive the data from the board.
    *
-   * @see InitBoard(), StopMeasurement().
+   * @see Init(), StopMeasurement().
    */
   void StartMeasurement(int mode);
 
