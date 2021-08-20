@@ -159,6 +159,24 @@ public:
 
   std::string SetSettings(const std::string& request, std::string& error);
 
+  /**
+   * @param num Zero-based number of PWM.
+   */
+  bool StartPwm(std::uint8_t num, std::uint32_t frequency, std::uint32_t high,
+    std::uint32_t low, std::uint32_t repeats, float duty_cycle);
+
+  /**
+   * @param num Zero-based number of PWM.
+   */
+  bool StopPwm(std::uint8_t num);
+
+  /**
+   * @param num Zero-based number of PWM.
+   */
+  bool GetPwm(std::uint8_t num, bool& active, std::uint32_t& frequency,
+    std::uint32_t& high, std::uint32_t& low, std::uint32_t& repeats,
+    float& duty_cycle);
+
   bool setDAC(bool value)
   {
     sendSetCommand("DACsw", value ? "1" : "0");
@@ -177,27 +195,6 @@ public:
     if (!receiveStripAnswer(answer)) return false;
     return answer == std::to_string(val);
   }
-
-  // num == 0 -> PWM1  num == 1 -> PWM2
-  bool startPWM(uint8_t num, uint32_t frequency, uint32_t high,
-    uint32_t low, uint32_t repeats, float duty_cycle);
-
-  // num == 0 -> PWM1  num == 1 -> PWM2
-  bool stopPWM(uint8_t num)
-  {
-    std::string pwm = std::string("PWM") + std::to_string(num+1);
-    /*
-      sendGetCommand(pwm);
-      std::string answer;
-      receiveStripAnswer(answer);
-      if (answer == "0") return false; // Already stopped
-    */
-    return sendSetCommandCheck(pwm, 0);
-  }
-
-  // num == 0 -> PWM1  num == 1 -> PWM2
-  bool getPWM(uint8_t num, bool& active, uint32_t& frequency,
-    uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
   std::string makeChCmd(unsigned int num, const char *pSubDomain)
   {
@@ -392,8 +389,5 @@ void resetAllGPIO();
 void sleep55ns();
 void sleep8ns();
 unsigned int readAllGPIO();
-bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle);
-bool BoardStopPWM(uint8_t num);
-bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);
 
 #endif  // PANDA_TIMESWIPE_DRIVER_BOARD

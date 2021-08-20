@@ -74,6 +74,58 @@ unsigned int readAllGPIO()
     return (*(gpio + 13) & ALL_32_BITS_ON);
 }
 
+namespace {
+
+inline nlohmann::json str2json(const std::string& str)
+{
+  nlohmann::json j;
+  try {
+    j = nlohmann::json::parse(str);
+  } catch (nlohmann::json::parse_error& e) {
+    std::cerr << "Board: json parse failed data:" << str << "error:" << e.what() << '\n';
+    return nlohmann::json();
+  }
+  return j;
+}
+
+inline bool json_get(const nlohmann::json& j, const std::string& key, std::string& value)
+{
+  auto it = j.find(key);
+  if (it == j.end()) return false;
+  if (!it->is_string()) return false;
+  value = it->get<std::string>();
+  return true;
+}
+
+inline bool json_get(const nlohmann::json& j, const std::string& key, std::uint32_t& value)
+{
+  auto it = j.find(key);
+  if (it == j.end()) return false;
+  if (!it->is_number_unsigned()) return false;
+  value = it->get<uint32_t>();
+  return true;
+}
+
+inline bool json_get(const nlohmann::json& j, const std::string& key, float& value)
+{
+  auto it = j.find(key);
+  if (it == j.end()) return false;
+  if (!it->is_number_float()) return false;
+  value = it->get<float>();
+  return true;
+}
+
+inline bool json_get(const nlohmann::json& j, const std::string& key, bool& value)
+{
+  auto it = j.find(key);
+  if (it == j.end()) return false;
+  if (!it->is_boolean()) return false;
+  value = it->get<bool>();
+  return true;
+}
+
+} // namespace
+
 static std::mutex boardMtx;
 
 std::list<TimeSwipeEvent> Board::GetEvents()
@@ -151,97 +203,88 @@ std::string Board::GetSettings(const std::string& request, std::string& error)
 #endif
 }
 
-std::string Board::SetSettings(const std::string& request, std::string& error) {
-    std::lock_guard<std::mutex> lock(boardMtx);
+std::string Board::SetSettings(const std::string& request, std::string& error)
+{
+  std::lock_guard<std::mutex> lock(boardMtx);
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return request;
+  return request;
 #else
-    sendSetSettingsCommand(request);
+  sendSetSettingsCommand(request);
+  std::string answer;
+  if (!receiveAnswer(answer, error))
+    error = "read SPI failed";
+  return answer;
+#endif
+}
+
+bool Board::StartPwm(const std::uint8_t num, const std::uint32_t frequency,
+  const std::uint32_t high, const std::uint32_t low, const std::uint32_t repeats,
+  const float duty_cycle)
+{
+  std::lock_guard<std::mutex> lock(boardMtx);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+  return false;
+#else
+  std::string pwm = std::string("PWM") + std::to_string(num+1);
+  auto obj = nlohmann::json::object({});
+  obj.emplace(pwm + ".freq", frequency);
+  obj.emplace(pwm + ".high", high);
+  obj.emplace(pwm + ".low", low);
+  obj.emplace(pwm + ".repeats", repeats);
+  obj.emplace(pwm + ".duty", duty_cycle);
+  std::string err;
+
+  auto settings = SetSettings(obj.dump(), err);
+  if (str2json(settings).empty())
+    return false;
+
+  obj.emplace(pwm, true);
+  settings = SetSettings(obj.dump(), err);
+
+  return !str2json(settings).empty();
+#endif
+}
+
+bool Board::StopPwm(const std::uint8_t num)
+{
+  std::lock_guard<std::mutex> lock(boardMtx);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+  return false;
+#else
+  std::string pwm = std::string("PWM") + std::to_string(num + 1);
+  /*
+    sendGetCommand(pwm);
     std::string answer;
-    if (!receiveAnswer(answer, error))
-      error = "read SPI failed";
-    return answer;
+    receiveStripAnswer(answer);
+    if (answer == "0") return false; // Already stopped
+  */
+  return sendSetCommandCheck(pwm, 0);
 #endif
 }
 
-bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle) {
-    std::lock_guard<std::mutex> lock(boardMtx);
+bool Board::GetPwm(const std::uint8_t num, bool& active, std::uint32_t& frequency,
+  std::uint32_t& high, std::uint32_t& low, std::uint32_t& repeats, float& duty_cycle)
+{
+  std::lock_guard<std::mutex> lock(boardMtx);
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return false;
+  return false;
 #else
-    return Board::Instance()->startPWM(num, frequency, high, low, repeats, duty_cycle);
-#endif
-}
-
-bool BoardStopPWM(uint8_t num) {
-    std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return false;
-#else
-    return Board::Instance()->stopPWM(num);
-#endif
-}
-
-bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle) {
-    std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return false;
-#else
-    return Board::Instance()->getPWM(num, active, frequency, high, low, repeats, duty_cycle);
+  std::string pwm = std::string("PWM") + std::to_string(num+1);
+  const auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
+  std::string err;
+  const auto settings = GetSettings(arr.dump(), err);
+  const auto s = str2json(settings);
+  return !s.empty() &&
+    json_get(s, pwm, active) &&
+    json_get(s, pwm + ".freq", frequency) &&
+    json_get(s, pwm + ".high", high) &&
+    json_get(s, pwm + ".low", low) &&
+    json_get(s, pwm + ".repeats", repeats) &&
+    json_get(s, pwm + ".duty", duty_cycle);
 #endif
 }
 
 // =============================================================================
-
-nlohmann::json str2json(const std::string& str) {
-    nlohmann::json j;
-    try {
-        j = nlohmann::json::parse(str);
-    } catch (nlohmann::json::parse_error& e) {
-        std::cerr << "Board: json parse failed data:" << str << "error:" << e.what() << '\n';
-        return nlohmann::json();
-    }
-    return j;
-}
-
-template <class OUT>
-bool json_get(const nlohmann::json& j, const std::string& key, OUT& value);
-
-template <>
-bool json_get(const nlohmann::json& j, const std::string& key, std::string& value) {
-    auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_string()) return false;
-    value = it->get<std::string>();
-    return true;
-}
-
-template <>
-bool json_get(const nlohmann::json& j, const std::string& key, uint32_t& value) {
-    auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_number_unsigned()) return false;
-    value = it->get<uint32_t>();
-    return true;
-}
-
-template <>
-bool json_get(const nlohmann::json& j, const std::string& key, float& value) {
-    auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_number_float()) return false;
-    value = it->get<float>();
-    return true;
-}
-
-template <>
-bool json_get(const nlohmann::json& j, const std::string& key, bool& value) {
-    auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_boolean()) return false;
-    value = it->get<bool>();
-    return true;
-}
 
 void Board::Init(const bool force)
 {
@@ -311,43 +354,4 @@ void Board::StopMeasurement()
   Instance()->SetEnableADmes(false);
 
   Instance()->is_measurement_started_ = false;
-}
-
-bool Board::getPWM(uint8_t num, bool& active, uint32_t& frequency,
-  uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle)
-{
-    std::string pwm = std::string("PWM") + std::to_string(num+1);
-    const auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
-    std::string err;
-    const auto settings = GetSettings(arr.dump(), err);
-    const auto s = str2json(settings);
-    return !s.empty() &&
-      json_get(s, pwm, active) &&
-      json_get(s, pwm + ".freq", frequency) &&
-      json_get(s, pwm + ".high", high) &&
-      json_get(s, pwm + ".low", low) &&
-      json_get(s, pwm + ".repeats", repeats) &&
-      json_get(s, pwm + ".duty", duty_cycle);
-}
-
-bool Board::startPWM(uint8_t num, uint32_t frequency, uint32_t high,
-  uint32_t low, uint32_t repeats, float duty_cycle)
-{
-    std::string pwm = std::string("PWM") + std::to_string(num+1);
-    auto obj = nlohmann::json::object({});
-    obj.emplace(pwm + ".freq", frequency);
-    obj.emplace(pwm + ".high", high);
-    obj.emplace(pwm + ".low", low);
-    obj.emplace(pwm + ".repeats", repeats);
-    obj.emplace(pwm + ".duty", duty_cycle);
-    std::string err;
-
-    auto settings = SetSettings(obj.dump(), err);
-    if (str2json(settings).empty())
-      return false;
-
-    obj.emplace(pwm, true);
-    settings = SetSettings(obj.dump(), err);
-
-    return !str2json(settings).empty();
 }

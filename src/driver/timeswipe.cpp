@@ -892,13 +892,13 @@ bool TimeSwipe::StartPWM(std::uint8_t num, std::uint32_t frequency,
   else if (low > 4096) return false;
   else if (low > high) return false;
   else if (duty_cycle < 0.001 || duty_cycle > 0.999) return false;
-  return BoardStartPWM(num, frequency, high, low, repeats, duty_cycle);
+  return Board::Instance()->StartPwm(num, frequency, high, low, repeats, duty_cycle);
 }
 
 bool TimeSwipe::StopPWM(std::uint8_t num)
 {
   if (num > 1) return false;
-  return BoardStopPWM(num);
+  return Board::Instance()->StopPwm(num);
 }
 
 bool TimeSwipe::GetPWM(std::uint8_t num, bool& active,
@@ -906,7 +906,7 @@ bool TimeSwipe::GetPWM(std::uint8_t num, bool& active,
   std::uint32_t& low, std::uint32_t& repeats, float& duty_cycle)
 {
   if (num > 1) return false;
-  return BoardGetPWM(num, active, frequency, high, low, repeats, duty_cycle);
+  return Board::Instance()->GetPwm(num, active, frequency, high, low, repeats, duty_cycle);
 }
 
 void TimeSwipe::TraceSPI(const bool value)
