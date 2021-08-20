@@ -32,24 +32,24 @@
 #include <cmath>
 #endif
 
-// chunk-Layout:
-// ------+----------------------------+---------------------------
-//  Byte | Bit7   Bit6   Bit5   Bit4  | Bit3   Bit2   Bit1   Bit0
-// ------+----------------------------+---------------------------
-//     0 | 1-14   2-14   3-14   4-14  | 1-15   2-15   3-15   4-15
-//     1 | 1-12   2-12   3-12   4-12  | 1-13   2-13   3-13   4-13
-//     2 | 1-10   2-10   3-10   4-10  | 1-11   2-11   3-11   4-11
-//     3 |  1-8    2-8    3-8    4-8  |  1-9    2-9    3-9    4-9
-//     4 |  1-6    2-6    3-6    4-6  |  1-7    2-7    3-7    4-7
-//     5 |  1-4    2-4    3-4    4-4  |  1-5    2-5    3-5    4-5
-//     6 |  1-2    2-2    3-2    4-2  |  1-3    2-3    3-3    4-3
-//     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
-using Chunk = std::array<std::uint8_t, 8>;
-
 struct GpioData final {
   std::uint8_t byte{};
   unsigned int tco{};
   bool piOk{};
+
+  // chunk-Layout:
+  // ------+----------------------------+---------------------------
+  //  Byte | Bit7   Bit6   Bit5   Bit4  | Bit3   Bit2   Bit1   Bit0
+  // ------+----------------------------+---------------------------
+  //     0 | 1-14   2-14   3-14   4-14  | 1-15   2-15   3-15   4-15
+  //     1 | 1-12   2-12   3-12   4-12  | 1-13   2-13   3-13   4-13
+  //     2 | 1-10   2-10   3-10   4-10  | 1-11   2-11   3-11   4-11
+  //     3 |  1-8    2-8    3-8    4-8  |  1-9    2-9    3-9    4-9
+  //     4 |  1-6    2-6    3-6    4-6  |  1-7    2-7    3-7    4-7
+  //     5 |  1-4    2-4    3-4    4-4  |  1-5    2-5    3-5    4-5
+  //     6 |  1-2    2-2    3-2    4-2  |  1-3    2-3    3-3    4-3
+  //     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
+  using Chunk = std::array<std::uint8_t, 8>;
 
   static GpioData Read() noexcept
   {
@@ -96,45 +96,45 @@ struct GpioData final {
       result.chunk[i] = Read().byte;
     return result;
   }
-};
 
-inline void appendChunk(SensorsData& data,
-  const Chunk& chunk,
-  const std::array<std::uint16_t, 4>& offsets,
-  const std::array<float, 4>& mfactors)
-{
-  std::array<std::uint16_t, 4> sensors{};
-  static_assert(data.SensorsSize() == 4); // KLUDGE
-  using OffsetValue = std::decay_t<decltype(offsets)>::value_type;
-  using SensorValue = std::decay_t<decltype(sensors)>::value_type;
-  static_assert(sizeof(OffsetValue) == sizeof(SensorValue));
-
-  constexpr auto setBit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
+  static void AppendChunk(SensorsData& data,
+    const Chunk& chunk,
+    const std::array<std::uint16_t, 4>& offsets,
+    const std::array<float, 4>& mfactors)
   {
-    word = (word & ~(1UL << N)) | (bit << N);
-  };
-  constexpr auto getBit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
-  {
-    return (byte & (1UL << N));
-  };
-  for (std::size_t i{}, count{}; i < chunk.size(); ++i) {
-    setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
-    setBit(sensors[1], 15 - count, getBit(chunk[i], 2));
-    setBit(sensors[2], 15 - count, getBit(chunk[i], 1));
-    setBit(sensors[3], 15 - count, getBit(chunk[i], 0));
-    count++;
+    std::array<std::uint16_t, 4> sensors{};
+    static_assert(data.SensorsSize() == 4); // KLUDGE
+    using OffsetValue = std::decay_t<decltype(offsets)>::value_type;
+    using SensorValue = std::decay_t<decltype(sensors)>::value_type;
+    static_assert(sizeof(OffsetValue) == sizeof(SensorValue));
 
-    setBit(sensors[0], 15 - count, getBit(chunk[i], 7));
-    setBit(sensors[1], 15 - count, getBit(chunk[i], 6));
-    setBit(sensors[2], 15 - count, getBit(chunk[i], 5));
-    setBit(sensors[3], 15 - count, getBit(chunk[i], 4));
-    count++;
+    constexpr auto setBit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
+    {
+      word = (word & ~(1UL << N)) | (bit << N);
+    };
+    constexpr auto getBit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
+    {
+      return (byte & (1UL << N));
+    };
+    for (std::size_t i{}, count{}; i < chunk.size(); ++i) {
+      setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
+      setBit(sensors[1], 15 - count, getBit(chunk[i], 2));
+      setBit(sensors[2], 15 - count, getBit(chunk[i], 1));
+      setBit(sensors[3], 15 - count, getBit(chunk[i], 0));
+      count++;
+
+      setBit(sensors[0], 15 - count, getBit(chunk[i], 7));
+      setBit(sensors[1], 15 - count, getBit(chunk[i], 6));
+      setBit(sensors[2], 15 - count, getBit(chunk[i], 5));
+      setBit(sensors[3], 15 - count, getBit(chunk[i], 4));
+      count++;
+    }
+
+    auto& underlying_data{data.data()};
+    for (std::size_t i{}; i < 4; ++i)
+      underlying_data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
   }
-
-  auto& underlying_data{data.data()};
-  for (std::size_t i{}; i < 4; ++i)
-    underlying_data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
-}
+};
 
 class RecordReader final {
 public:
@@ -169,7 +169,7 @@ public:
     out.reserve(8192);
     do {
       const auto [chunk, tco] = GpioData::ReadChunk();
-      appendChunk(out, chunk, offsets_, mfactors_);
+      GpioData::AppendChunk(out, chunk, offsets_, mfactors_);
       if (tco != 0x00004000) break;
     } while (true);
 
