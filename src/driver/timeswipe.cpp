@@ -539,10 +539,25 @@ private:
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // SPI processing
+  // ---------------------------------------------------------------------------
+
   void spiLoop()
   {
     while (work_) {
-      receiveEvents();
+      // Receive events
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+      if (emul_button_sent_ < emul_button_pressed_) {
+        TimeSwipeEvent::Button btn(true, emul_button_pressed_);
+        emul_button_sent_ = emul_button_pressed_;
+        events_.push(btn);
+      }
+#else
+      for (auto&& event: Board::Instance()->GetEvents())
+        events_.push(event);
+#endif
+
       processSPIRequests();
       std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
@@ -558,20 +573,6 @@ private:
         Board::Instance()->GetSettings(request.second, error);
       out_spi_.push(std::make_pair(response, error));
     }
-  }
-
-  void receiveEvents()
-  {
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    if (emul_button_sent_ < emul_button_pressed_) {
-      TimeSwipeEvent::Button btn(true, emul_button_pressed_);
-      emul_button_sent_ = emul_button_pressed_;
-      events_.push(btn);
-    }
-#else
-    for (auto&& event: Board::Instance()->GetEvents())
-      events_.push(event);
-#endif
   }
 
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
