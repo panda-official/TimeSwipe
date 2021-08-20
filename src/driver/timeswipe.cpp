@@ -559,7 +559,7 @@ private:
       events_.push(btn);
     }
 #else
-    for (auto&& event: readBoardEvents())
+    for (auto&& event: Board::Instance()->GetEvents())
       events_.push(event);
 #endif
   }
@@ -603,7 +603,9 @@ private:
     std::pair<std::uint8_t,std::string> request;
     while (in_spi_.pop(request)) {
       std::string error;
-      auto response = request.first ? readBoardSetSettings(request.second, error) : readBoardGetSettings(request.second, error);
+      auto response = request.first ?
+        Board::Instance()->SetSettings(request.second, error) :
+        Board::Instance()->GetSettings(request.second, error);
       out_spi_.push(std::make_pair(response, error));
     }
   }

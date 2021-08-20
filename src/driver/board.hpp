@@ -153,29 +153,11 @@ public:
     receiveAnswer(answer);
   }
 
-  bool getEvents(std::string& ev)
-  {
-    sendEventsCommand();
-    return receiveAnswer(ev);
-  }
+  std::list<TimeSwipeEvent> GetEvents();
 
-  std::string getSetSettings(const std::string& request, std::string& error)
-  {
-    sendSetSettingsCommand(request);
-    std::string answer;
-    if (!receiveAnswer(answer, error))
-      error = "read SPI failed";
-    return answer;
-  }
+  std::string GetSettings(const std::string& request, std::string& error);
 
-  std::string getGetSettings(const std::string& request, std::string& error)
-  {
-    sendGetSettingsCommand(request);
-    std::string answer;
-    if (!receiveAnswer(answer, error))
-      error = "read SPI failed";
-    return answer;
-  }
+  std::string SetSettings(const std::string& request, std::string& error);
 
   bool setDAC(bool value)
   {
@@ -309,9 +291,8 @@ private:
     CFIFO command;
     command += cmd;
     spi_.send(command);
-    if (trace_spi_) {
-      std::cerr << "spi: sent: \"" << command << "\"" << std::endl;
-    }
+    if (trace_spi_)
+      std::clog << "spi: sent: \"" << command << "\"" << std::endl;
   }
 
   bool receiveAnswer(std::string& ans)
@@ -319,21 +300,19 @@ private:
     CFIFO answer;
     if (spi_.receive(answer)) {
       ans = answer;
-      if (trace_spi_) {
-        std::cerr << "spi: received: \"" << ans << "\"" << std::endl;
-      }
+      if (trace_spi_)
+        std::clog << "spi: received: \"" << ans << "\"" << std::endl;
       return true;
     }
-    if (trace_spi_) {
+    if (trace_spi_)
       std::cerr << "spi: receive failed" << std::endl;
-    }
     return false;
   }
 
   bool receiveAnswer(std::string& ans, std::string& error)
   {
-    auto ret = receiveAnswer(ans);
-    if (ret && !ans.empty() && ans[0]=='!') {
+    const auto ret = receiveAnswer(ans);
+    if (ret && !ans.empty() && ans[0] == '!') {
       error = ans;
       ans.clear();
       return false;
@@ -343,7 +322,8 @@ private:
 
   bool receiveStripAnswer(std::string& ans, std::string& error)
   {
-    if (!receiveAnswer(ans,error)) return false;
+    if (!receiveAnswer(ans, error))
+      return false;
     stripAnswer(ans);
     return true;
   }
@@ -359,16 +339,16 @@ private:
     sendCommand(variable + "<" + value + "\n");
   }
 
-  template <class NUMBER>
-  bool sendSetCommandCheck(const std::string& variable, const NUMBER& value) {
+  template <class Number>
+  bool sendSetCommandCheck(const std::string& variable, const Number value) {
     sendSetCommand(variable, std::to_string(value));
-    // XXX: if sleep disable and trace_spi_=false spi_.receive fails sometimes
-    //std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    // // FIXME: if sleep disable and trace_spi_=false spi_.receive fails sometimes
+    // std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     std::string answer;
     receiveStripAnswer(answer);
-    NUMBER num;
-    std::istringstream ss(answer);
-    ss >> num;
+    Number num{};
+    std::istringstream s{answer};
+    s >> num;
     return num == value;
   }
 
@@ -391,6 +371,16 @@ private:
   {
     sendCommand("js>" + request + "\n");
   }
+
+  // ---------------------------------------------------------------------------
+  // Events
+  // ---------------------------------------------------------------------------
+
+  bool getEvents(std::string& ev)
+  {
+    sendEventsCommand();
+    return receiveAnswer(ev);
+  }
 };
 
 void pullGPIO(unsigned pin, unsigned high);
@@ -402,9 +392,6 @@ void resetAllGPIO();
 void sleep55ns();
 void sleep8ns();
 unsigned int readAllGPIO();
-std::list<TimeSwipeEvent> readBoardEvents();
-std::string readBoardGetSettings(const std::string& request, std::string& error);
-std::string readBoardSetSettings(const std::string& request, std::string& error);
 bool BoardStartPWM(uint8_t num, uint32_t frequency, uint32_t high, uint32_t low, uint32_t repeats, float duty_cycle);
 bool BoardStopPWM(uint8_t num);
 bool BoardGetPWM(uint8_t num, bool& active, uint32_t& frequency, uint32_t& high, uint32_t& low, uint32_t& repeats, float& duty_cycle);

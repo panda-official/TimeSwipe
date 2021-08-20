@@ -76,82 +76,91 @@ unsigned int readAllGPIO()
 
 static std::mutex boardMtx;
 
-std::list<TimeSwipeEvent> readBoardEvents()
+std::list<TimeSwipeEvent> Board::GetEvents()
 {
-    std::list<TimeSwipeEvent> events;
-    std::lock_guard<std::mutex> lock(boardMtx);
+  std::list<TimeSwipeEvent> events;
+  std::lock_guard<std::mutex> lock(boardMtx);
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    std::string data;
-    if (Board::Instance()->getEvents(data) && !data.empty()) {
-        if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
+  std::string data;
+  if (Board::Instance()->getEvents(data) && !data.empty()) {
+    if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
-        if (data.empty()) return events;
+    if (data.empty()) return events;
 
-        try {
-            auto j = nlohmann::json::parse(data);
-            auto it_btn = j.find("Button");
-            if (it_btn != j.end() && it_btn->is_boolean()) {
-                auto it_cnt = j.find("ButtonStateCnt");
-                if (it_cnt != j.end() && it_cnt->is_number()) {
-                    events.push_back(TimeSwipeEvent::Button(it_btn->get<bool>(), it_cnt->get<int>()));
-                }
-            }
-
-            auto it = j.find("Gain");
-            if (it != j.end() && it->is_number()) {
-                events.push_back(TimeSwipeEvent::Gain(it->get<int>()));
-            }
-
-            it = j.find("SetSecondary");
-            if (it != j.end() && it->is_number()) {
-                events.push_back(TimeSwipeEvent::SetSecondary(it->get<int>()));
-            }
-
-            it = j.find("Bridge");
-            if (it != j.end() && it->is_number()) {
-                events.push_back(TimeSwipeEvent::Bridge(it->get<int>()));
-            }
-
-            it = j.find("Record");
-            if (it != j.end() && it->is_number()) {
-                events.push_back(TimeSwipeEvent::Record(it->get<int>()));
-            }
-
-            it = j.find("Offset");
-            if (it != j.end() && it->is_number()) {
-                events.push_back(TimeSwipeEvent::Offset(it->get<int>()));
-            }
-
-            it = j.find("Mode");
-            if (it != j.end() && it->is_number()) {
-                events.push_back(TimeSwipeEvent::Mode(it->get<int>()));
-            }
+    try {
+      auto j = nlohmann::json::parse(data);
+      auto it_btn = j.find("Button");
+      if (it_btn != j.end() && it_btn->is_boolean()) {
+        auto it_cnt = j.find("ButtonStateCnt");
+        if (it_cnt != j.end() && it_cnt->is_number()) {
+          events.push_back(TimeSwipeEvent::Button(it_btn->get<bool>(), it_cnt->get<int>()));
         }
-        catch (nlohmann::json::parse_error& e)
-        {
-            // output exception information
-            std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
-        }
+      }
+
+      auto it = j.find("Gain");
+      if (it != j.end() && it->is_number()) {
+        events.push_back(TimeSwipeEvent::Gain(it->get<int>()));
+      }
+
+      it = j.find("SetSecondary");
+      if (it != j.end() && it->is_number()) {
+        events.push_back(TimeSwipeEvent::SetSecondary(it->get<int>()));
+      }
+
+      it = j.find("Bridge");
+      if (it != j.end() && it->is_number()) {
+        events.push_back(TimeSwipeEvent::Bridge(it->get<int>()));
+      }
+
+      it = j.find("Record");
+      if (it != j.end() && it->is_number()) {
+        events.push_back(TimeSwipeEvent::Record(it->get<int>()));
+      }
+
+      it = j.find("Offset");
+      if (it != j.end() && it->is_number()) {
+        events.push_back(TimeSwipeEvent::Offset(it->get<int>()));
+      }
+
+      it = j.find("Mode");
+      if (it != j.end() && it->is_number()) {
+        events.push_back(TimeSwipeEvent::Mode(it->get<int>()));
+      }
     }
+    catch (nlohmann::json::parse_error& e)
+      {
+        // output exception information
+        std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
+      }
+  }
 #endif
-    return events;
+  return events;
 }
 
-std::string readBoardGetSettings(const std::string& request, std::string& error) {
+std::string Board::GetSettings(const std::string& request, std::string& error)
+{
+  std::lock_guard<std::mutex> lock(boardMtx);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+  return request;
+#else
+  sendGetSettingsCommand(request);
+  std::string answer;
+  if (!receiveAnswer(answer, error))
+    error = "read SPI failed";
+  return answer;
+#endif
+}
+
+std::string Board::SetSettings(const std::string& request, std::string& error) {
     std::lock_guard<std::mutex> lock(boardMtx);
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
-    return Board::Instance()->getGetSettings(request, error);
-#endif
-}
-
-std::string readBoardSetSettings(const std::string& request, std::string& error) {
-    std::lock_guard<std::mutex> lock(boardMtx);
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return request;
-#else
-    return Board::Instance()->getSetSettings(request, error);
+    sendSetSettingsCommand(request);
+    std::string answer;
+    if (!receiveAnswer(answer, error))
+      error = "read SPI failed";
+    return answer;
 #endif
 }
 
@@ -310,7 +319,7 @@ bool Board::getPWM(uint8_t num, bool& active, uint32_t& frequency,
     std::string pwm = std::string("PWM") + std::to_string(num+1);
     const auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
     std::string err;
-    const auto settings = getGetSettings(arr.dump(), err);
+    const auto settings = GetSettings(arr.dump(), err);
     const auto s = str2json(settings);
     return !s.empty() &&
       json_get(s, pwm, active) &&
@@ -333,12 +342,12 @@ bool Board::startPWM(uint8_t num, uint32_t frequency, uint32_t high,
     obj.emplace(pwm + ".duty", duty_cycle);
     std::string err;
 
-    auto settings = getSetSettings(obj.dump(), err);
+    auto settings = SetSettings(obj.dump(), err);
     if (str2json(settings).empty())
       return false;
 
     obj.emplace(pwm, true);
-    settings = getSetSettings(obj.dump(), err);
+    settings = SetSettings(obj.dump(), err);
 
     return !str2json(settings).empty();
 }
