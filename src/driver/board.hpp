@@ -177,7 +177,7 @@ public:
     std::uint32_t& high, std::uint32_t& low, std::uint32_t& repeats,
     float& duty_cycle);
 
-  bool setDAC(bool value)
+  bool SetDAC(bool value)
   {
     sendSetCommand("DACsw", value ? "1" : "0");
     std::string answer;
@@ -186,21 +186,16 @@ public:
     return answer == (value ? "1" : "0");
   }
 
-  // num == 0 -> AOUT3  num == 1 -> AOUT4
-  bool setOUT(uint8_t num, int val)
+  /**
+   * @param num Zero-based number of PWM.
+   */
+  bool SetOUT(std::uint8_t num, int val)
   {
     std::string var = std::string("AOUT") + (num ? "4" : "3") + ".raw";
     sendSetCommand(var, std::to_string(val));
     std::string answer;
     if (!receiveStripAnswer(answer)) return false;
     return answer == std::to_string(val);
-  }
-
-  std::string makeChCmd(unsigned int num, const char *pSubDomain)
-  {
-    char buf[32];
-    std::sprintf(buf, "CH%d.%s", num + 1, pSubDomain);
-    return buf;
   }
 
   bool setChannelMode(unsigned int num, int nMode)
@@ -281,6 +276,12 @@ private:
   {
     if (!str.empty() && str.back() == '\n')
       str.pop_back();
+  }
+
+  std::string makeChCmd(const unsigned num, const char* const pSubDomain)
+  {
+    return std::string{"CH"}.append(std::to_string(num + 1))
+      .append(".").append(pSubDomain);
   }
 
   void sendCommand(const std::string& cmd)
