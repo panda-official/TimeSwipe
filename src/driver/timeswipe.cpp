@@ -126,6 +126,10 @@ public:
     return kMaxSampleRate_;
   }
 
+  // ---------------------------------------------------------------------------
+  // Drift Compensation
+  // ---------------------------------------------------------------------------
+
   std::vector<float> CalculateDriftReferences()
   {
     // Collect the data for calculation.
@@ -260,7 +264,7 @@ public:
   {
     if (isStarted())
       return false;
-    on_event_cb_ = cb;
+    on_event_cb_ = std::move(cb);
     return true;
   }
 
@@ -268,7 +272,7 @@ public:
   {
     if (isStarted())
       return false;
-    on_error_cb_ = cb;
+    on_error_cb_ = std::move(cb);
     return true;
   }
 
