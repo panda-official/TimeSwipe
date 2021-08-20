@@ -20,9 +20,12 @@
 #define PANDA_TIMESWIPE_DRIVER_BOARD
 
 #include "bcmspi.hpp"
+#include "event.hpp"
+#include "gpio.h"
 #include "sensor_data.hpp"
 #include "types_fwd.hpp"
 
+#include "../common/json.hpp"
 #include "../3rdparty/dmitigr/assert.hpp"
 
 #include <array>
@@ -34,6 +37,7 @@
 #include <cstdint>
 #include <iostream>
 #include <list>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -95,9 +99,40 @@ public:
    * @par Effects
    * Restarts TimeSwipe firmware on very first run!
    *
-   * @see IsBoardInited(), StartMeasurement().
+   * @see IsInited(), StartMeasurement().
    */
-  void Init(bool force = false);
+  void Init(const bool force = false)
+  {
+    if (!force && IsInited()) return;
+
+    setup_io();
+    initGPIOInput(DATA0);
+    initGPIOInput(DATA1);
+    initGPIOInput(DATA2);
+    initGPIOInput(DATA3);
+    initGPIOInput(DATA4);
+    initGPIOInput(DATA5);
+    initGPIOInput(DATA6);
+    initGPIOInput(DATA7);
+
+    initGPIOInput(TCO);
+    initGPIOInput(PI_OK);
+    initGPIOInput(FAIL);
+    initGPIOInput(BUTTON);
+
+    // initGPIOOutput(PI_OK);
+    initGPIOOutput(CLOCK);
+    initGPIOOutput(RESET);
+
+    // Initial Reset
+    setGPIOLow(CLOCK);
+    setGPIOHigh(RESET);
+
+    using std::chrono::milliseconds;
+    std::this_thread::sleep_for(milliseconds{1});
+
+    is_board_inited_ = true;
+  }
 
   /**
    * @returns `true` if Init() has been successfully called at least once.
@@ -107,7 +142,10 @@ public:
    *
    * @see Init().
    */
-  bool IsInited() noexcept;
+  bool IsInited() noexcept
+  {
+    return is_board_inited_;
+  }
 
   /**
    * Sends the command to a TimeSwipe firmware to start measurement.
@@ -122,16 +160,40 @@ public:
    *
    * @see Init(), StopMeasurement().
    */
-  void StartMeasurement(int mode);
+  void StartMeasurement(const int mode)
+  {
+    DMITIGR_CHECK(IsInited());
+
+    // Set mfactors.
+    for (std::size_t i{}; i < mfactors_.size(); ++i)
+      mfactors_[i] = gains_[i] * transmissions_[i];
+
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    emul_point_begin_ = std::chrono::steady_clock::now();
+    emul_sent_ = 0;
+#endif
+
+    // Select Mode
+    SetMode(mode);
+
+    // Start Measurement
+    using std::chrono::milliseconds;
+    std::this_thread::sleep_for(milliseconds{1});
+    SetEnableADmes(true);
+    is_measurement_started_ = true;
+  }
 
   /**
-   * @returns `true` if StartBoard() has been successfully called and
+   * @returns `true` if StartMeasurement() has been successfully called and
    * StopMeasurement() has not been successfully called yet.
    *
    * @par Thread-safety
    * Thread-safe.
    */
-  bool IsMeasurementStarted() noexcept;
+  bool IsMeasurementStarted() noexcept
+  {
+    return is_measurement_started_;
+  }
 
   /**
    * Sends the command to a TimeSwipe firmware to stop measurement.
@@ -141,7 +203,19 @@ public:
    *
    * @see InitBoard(), StartMeasurement().
    */
-  void StopMeasurement();
+  void StopMeasurement()
+  {
+    if (!IsMeasurementStarted()) return;
+
+    // Reset Clock
+    setGPIOLow(CLOCK);
+
+    // Stop Measurement
+    SetEnableADmes(false);
+
+    is_measurement_started_ = false;
+    read_skip_count_ = kInitialInvalidDataSetsCount;
+  }
 
   // ---------------------------------------------------------------------------
   // Sensor Data Read
@@ -269,29 +343,171 @@ public:
     receiveAnswer(answer);
   }
 
-  std::list<TimeSwipeEvent> GetEvents();
+  std::list<TimeSwipeEvent> GetEvents()
+  {
+    std::list<TimeSwipeEvent> events;
+    std::lock_guard<std::mutex> lock(mutex_);
+#ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
+    std::string data;
+    if (getEvents(data) && !data.empty()) {
+      if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
-  std::string GetSettings(const std::string& request, std::string& error);
+      if (data.empty()) return events;
 
-  std::string SetSettings(const std::string& request, std::string& error);
+      try {
+        auto j = nlohmann::json::parse(data);
+        auto it_btn = j.find("Button");
+        if (it_btn != j.end() && it_btn->is_boolean()) {
+          auto it_cnt = j.find("ButtonStateCnt");
+          if (it_cnt != j.end() && it_cnt->is_number()) {
+            events.push_back(TimeSwipeEvent::Button(it_btn->get<bool>(), it_cnt->get<int>()));
+          }
+        }
+
+        auto it = j.find("Gain");
+        if (it != j.end() && it->is_number()) {
+          events.push_back(TimeSwipeEvent::Gain(it->get<int>()));
+        }
+
+        it = j.find("SetSecondary");
+        if (it != j.end() && it->is_number()) {
+          events.push_back(TimeSwipeEvent::SetSecondary(it->get<int>()));
+        }
+
+        it = j.find("Bridge");
+        if (it != j.end() && it->is_number()) {
+          events.push_back(TimeSwipeEvent::Bridge(it->get<int>()));
+        }
+
+        it = j.find("Record");
+        if (it != j.end() && it->is_number()) {
+          events.push_back(TimeSwipeEvent::Record(it->get<int>()));
+        }
+
+        it = j.find("Offset");
+        if (it != j.end() && it->is_number()) {
+          events.push_back(TimeSwipeEvent::Offset(it->get<int>()));
+        }
+
+        it = j.find("Mode");
+        if (it != j.end() && it->is_number()) {
+          events.push_back(TimeSwipeEvent::Mode(it->get<int>()));
+        }
+      }
+      catch (nlohmann::json::parse_error& e)
+        {
+          // output exception information
+          std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
+        }
+    }
+#endif
+    return events;
+  }
+
+  std::string GetSettings(const std::string& request, std::string& error)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    return request;
+#else
+    sendGetSettingsCommand(request);
+    std::string answer;
+    if (!receiveAnswer(answer, error))
+      error = "read SPI failed";
+    return answer;
+#endif
+  }
+
+  std::string SetSettings(const std::string& request, std::string& error)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    return request;
+#else
+    sendSetSettingsCommand(request);
+    std::string answer;
+    if (!receiveAnswer(answer, error))
+      error = "read SPI failed";
+    return answer;
+#endif
+  }
 
   /**
    * @param num Zero-based number of PWM.
    */
-  bool StartPwm(std::uint8_t num, std::uint32_t frequency, std::uint32_t high,
-    std::uint32_t low, std::uint32_t repeats, float duty_cycle);
+  bool StartPwm(const std::uint8_t num, const std::uint32_t frequency,
+    const std::uint32_t high, const std::uint32_t low, const std::uint32_t repeats,
+    const float duty_cycle)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    return false;
+#else
+    std::string pwm = std::string("PWM") + std::to_string(num+1);
+    auto obj = nlohmann::json::object({});
+    obj.emplace(pwm + ".freq", frequency);
+    obj.emplace(pwm + ".high", high);
+    obj.emplace(pwm + ".low", low);
+    obj.emplace(pwm + ".repeats", repeats);
+    obj.emplace(pwm + ".duty", duty_cycle);
+    std::string err;
+
+    auto settings = SetSettings(obj.dump(), err);
+    if (str2json(settings).empty())
+      return false;
+
+    obj.emplace(pwm, true);
+    settings = SetSettings(obj.dump(), err);
+
+    return !str2json(settings).empty();
+#endif
+  }
 
   /**
    * @param num Zero-based number of PWM.
    */
-  bool StopPwm(std::uint8_t num);
+  bool StopPwm(const std::uint8_t num)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    return false;
+#else
+    std::string pwm = std::string("PWM") + std::to_string(num + 1);
+    /*
+      sendGetCommand(pwm);
+      std::string answer;
+      receiveStripAnswer(answer);
+      if (answer == "0") return false; // Already stopped
+    */
+    return sendSetCommandCheck(pwm, 0);
+#endif
+  }
 
   /**
    * @param num Zero-based number of PWM.
    */
-  bool GetPwm(std::uint8_t num, bool& active, std::uint32_t& frequency,
+  bool GetPwm(const std::uint8_t num, bool& active, std::uint32_t& frequency,
     std::uint32_t& high, std::uint32_t& low, std::uint32_t& repeats,
-    float& duty_cycle);
+    float& duty_cycle)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    return false;
+#else
+    std::string pwm = std::string("PWM") + std::to_string(num+1);
+    const auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
+    std::string err;
+    const auto settings = GetSettings(arr.dump(), err);
+    const auto s = str2json(settings);
+    return !s.empty() &&
+      json_get(s, pwm, active) &&
+      json_get(s, pwm + ".freq", frequency) &&
+      json_get(s, pwm + ".high", high) &&
+      json_get(s, pwm + ".low", low) &&
+      json_get(s, pwm + ".repeats", repeats) &&
+      json_get(s, pwm + ".duty", duty_cycle);
+#endif
+  }
 
   bool SetDAC(bool value)
   {
@@ -381,6 +597,7 @@ private:
   std::atomic_bool trace_spi_;
   std::atomic_bool is_board_inited_;
   std::atomic_bool is_measurement_started_;
+  std::mutex mutex_;
 
   // ---------------------------------------------------------------------------
   // Sensor Data Read section
@@ -520,17 +737,55 @@ private:
   // GPIO
   // ---------------------------------------------------------------------------
 
-  friend struct GpioData; // REMOVE ME
-  friend class RecordReader; // REMOVE ME
-  static void pullGPIO(unsigned pin, unsigned high);
-  static void initGPIOInput(unsigned pin);
-  static void initGPIOOutput(unsigned pin);
-  static void setGPIOHigh(unsigned pin);
-  static void setGPIOLow(unsigned pin);
-  static void resetAllGPIO();
-  static unsigned readAllGPIO();
-  static void sleep55ns();
-  static void sleep8ns();
+  // (2^32)-1 - ALL BCM_PINS
+  static const std::uint32_t ALL_32_BITS_ON{0xFFFFFFFF};
+
+  static void pullGPIO(const unsigned pin, const unsigned high)
+  {
+    GPIO_PULL = high << pin;
+  }
+
+  static void initGPIOInput(const unsigned pin)
+  {
+    INP_GPIO(pin);
+  }
+
+  static void initGPIOOutput(const unsigned pin)
+  {
+    INP_GPIO(pin);
+    OUT_GPIO(pin);
+    pullGPIO(pin, 0);
+  }
+
+  static void setGPIOHigh(const unsigned pin)
+  {
+    GPIO_SET = 1 << pin;
+  }
+
+  static void setGPIOLow(const unsigned pin)
+  {
+    GPIO_CLR = 1 << pin;
+  }
+
+  static void resetAllGPIO()
+  {
+    GPIO_CLR = ALL_32_BITS_ON;
+  }
+
+  static unsigned readAllGPIO()
+  {
+    return (*(gpio + 13) & ALL_32_BITS_ON);
+  }
+
+  static void sleep55ns()
+  {
+    readAllGPIO();
+  }
+
+  static void sleep8ns()
+  {
+    setGPIOHigh(10); // ANY UNUSED PIN!!!
+  }
 
   struct GpioData final {
     std::uint8_t byte{};
@@ -635,6 +890,58 @@ private:
         underlying_data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
     }
   };
+
+  // -------------------------------------------------------------------------
+  // JSON helpers
+  // -------------------------------------------------------------------------
+
+  static nlohmann::json str2json(const std::string& str)
+  {
+    nlohmann::json j;
+    try {
+      j = nlohmann::json::parse(str);
+    } catch (nlohmann::json::parse_error& e) {
+      std::cerr << "Board: json parse failed data:" << str << "error:" << e.what() << '\n';
+      return nlohmann::json();
+    }
+    return j;
+  }
+
+  static bool json_get(const nlohmann::json& j, const std::string& key, std::string& value)
+  {
+    auto it = j.find(key);
+    if (it == j.end()) return false;
+    if (!it->is_string()) return false;
+    value = it->get<std::string>();
+    return true;
+  }
+
+  static bool json_get(const nlohmann::json& j, const std::string& key, std::uint32_t& value)
+  {
+    auto it = j.find(key);
+    if (it == j.end()) return false;
+    if (!it->is_number_unsigned()) return false;
+    value = it->get<uint32_t>();
+    return true;
+  }
+
+  static bool json_get(const nlohmann::json& j, const std::string& key, float& value)
+  {
+    auto it = j.find(key);
+    if (it == j.end()) return false;
+    if (!it->is_number_float()) return false;
+    value = it->get<float>();
+    return true;
+  }
+
+  static bool json_get(const nlohmann::json& j, const std::string& key, bool& value)
+  {
+    auto it = j.find(key);
+    if (it == j.end()) return false;
+    if (!it->is_boolean()) return false;
+    value = it->get<bool>();
+    return true;
+  }
 };
 
 #endif  // PANDA_TIMESWIPE_DRIVER_BOARD
