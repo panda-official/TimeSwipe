@@ -1,10 +1,4 @@
-//  How to access GPIO registers from C-code on the Raspberry-Pi
-//  Example program
-//  15-January-2012
-//  Dom and Gert
-//  Revised: 15-Feb-2013
-
-#include "gpio.h"
+#include "gpio.hpp"
 
 #include <fcntl.h>
 #include <stdint.h>

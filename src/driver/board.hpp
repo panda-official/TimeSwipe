@@ -16,12 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_BOARD
-#define PANDA_TIMESWIPE_DRIVER_BOARD
+#ifndef PANDA_TIMESWIPE_DRIVER_BOARD_HPP
+#define PANDA_TIMESWIPE_DRIVER_BOARD_HPP
 
 #include "bcmspi.hpp"
 #include "event.hpp"
-#include "gpio.h"
+#include "gpio.hpp"
 #include "sensor_data.hpp"
 #include "types_fwd.hpp"
 
@@ -944,4 +944,4 @@ private:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_DRIVER_BOARD
+#endif  // PANDA_TIMESWIPE_DRIVER_BOARD_HPP

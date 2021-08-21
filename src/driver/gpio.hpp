@@ -1,15 +1,23 @@
-//  How to access GPIO registers from C-code on the Raspberry-Pi
-//  Example program
-//  15-January-2012
-//  Dom and Gert
-//  Revised: 15-Feb-2013
+// -*- C++ -*-
 
-#ifndef GPIO_H
-#define GPIO_H
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_GPIO_HPP
+#define PANDA_TIMESWIPE_GPIO_HPP
 
 /*! On all recent OSs, the base of the peripherals is read from a /proc file */
 #define BMC2835_RPI2_DT_FILENAME "/proc/device-tree/soc/ranges"
@@ -70,8 +78,4 @@ extern volatile unsigned int *gpio;
 //
 void setup_io();
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif //GPIO_H
+#endif  // PANDA_TIMESWIPE_GPIO_HPP
