@@ -45,6 +45,8 @@
     (byte & 0x02 ? '1' : '0'), \
     (byte & 0x01 ? '1' : '0')
 
+namespace panda::timeswipe::driver::detail {
+
 volatile unsigned int *gpio;
 
 // Set up a memory regions to access GPIO.
@@ -116,3 +118,5 @@ void setup_io()
    // Always use volatile pointer!
    gpio = (volatile unsigned int *)gpio_map;
 }
+
+} // namespace panda::timeswipe::driver::detail
