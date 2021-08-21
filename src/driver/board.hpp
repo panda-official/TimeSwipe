@@ -742,34 +742,34 @@ private:
 
   static void pullGPIO(const unsigned pin, const unsigned high)
   {
-    GPIO_PULL = high << pin;
+    PANDA_TIMESWIPE_GPIO_PULL = high << pin;
   }
 
   static void initGPIOInput(const unsigned pin)
   {
-    INP_GPIO(pin);
+    PANDA_TIMESWIPE_INP_GPIO(pin);
   }
 
   static void initGPIOOutput(const unsigned pin)
   {
-    INP_GPIO(pin);
-    OUT_GPIO(pin);
+    PANDA_TIMESWIPE_INP_GPIO(pin);
+    PANDA_TIMESWIPE_OUT_GPIO(pin);
     pullGPIO(pin, 0);
   }
 
   static void setGPIOHigh(const unsigned pin)
   {
-    GPIO_SET = 1 << pin;
+    PANDA_TIMESWIPE_GPIO_SET = 1 << pin;
   }
 
   static void setGPIOLow(const unsigned pin)
   {
-    GPIO_CLR = 1 << pin;
+    PANDA_TIMESWIPE_GPIO_CLR = 1 << pin;
   }
 
   static void resetAllGPIO()
   {
-    GPIO_CLR = ALL_32_BITS_ON;
+    PANDA_TIMESWIPE_GPIO_CLR = ALL_32_BITS_ON;
   }
 
   static unsigned readAllGPIO()
