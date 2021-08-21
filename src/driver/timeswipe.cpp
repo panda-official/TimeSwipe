@@ -58,7 +58,7 @@ public:
   ~Rep()
   {
     Stop();
-    clearThreads();
+    joinThreads();
   }
 
   Rep(TimeSwipe& self)
@@ -625,7 +625,7 @@ private:
     return started_instance_ != nullptr;
   }
 
-  void clearThreads()
+  void joinThreads()
   {
     auto it = threads_.begin();
     while (it != threads_.end()) {
@@ -663,7 +663,7 @@ private:
       //return false;
     }
 
-    clearThreads();
+    joinThreads();
     Board::Instance()->StartMeasurement(read_mode_);
     started_instance_ = this;
     work_ = true;
@@ -685,7 +685,7 @@ private:
 
     work_ = false;
 
-    clearThreads();
+    joinThreads();
 
     while (record_queue_.pop());
     while (in_spi_.pop());
