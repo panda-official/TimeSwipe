@@ -391,7 +391,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver/gpio.cpp
     src/driver/pidfile.cpp
     src/driver/sensor_data.cpp
-    src/driver/spi.cpp
     src/driver/timeswipe.cpp
 
     # BCM
