@@ -71,7 +71,7 @@ int main ( int argc, char *argv[] )
       nSPI = std::stoi(argv[1]);
         if ( 0 != nSPI && 1 != nSPI && 2 != nSPI )
         {
-            std::cout << "Wrong SPI number: must be 0 or 1! Use 2 for SPI1 in Slave mode!" << std::endl;
+            std::cout << "Wrong SPI number: must be 0 or 1! Use 2 for AUX in Slave mode!" << std::endl;
             return 0;
         }
     }
@@ -95,7 +95,7 @@ int main ( int argc, char *argv[] )
     if ( bMasterMode )
     {
 
-        BcmSpi spi ( nSPI ? BcmLib::iSPI::SPI1 : BcmLib::iSPI::SPI0 );
+        BcmSpi spi ( nSPI ? BcmLib::SpiPins::kAux : BcmLib::SpiPins::kSpi0 );
 
         if ( !spi.is_initialzed ( ) )
         {

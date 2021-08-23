@@ -23,6 +23,8 @@
 
 #include "../3rdparty/BCMsrc/bcm2835.h"
 
+#include <cstdint>
+
 /// Represents underlying resources of the library.
 class BcmLib {
 protected:
@@ -31,10 +33,10 @@ protected:
 
   ~BcmLib()
   {
-    if (is_spi_initialized_[iSPI::SPI1])
+    if (is_spi_initialized_[SpiPins::kAux])
       bcm2835_aux_spi_end();
 
-    if (is_spi_initialized_[iSPI::SPI0])
+    if (is_spi_initialized_[SpiPins::kSpi0])
       bcm2835_spi_end();
 
     if (is_initialized_)
@@ -53,23 +55,23 @@ protected:
   }
 
 public:
-  enum iSPI {
-    SPI0,
-    SPI1
+  enum SpiPins {
+    kSpi0,
+    kAux
   };
 
-  bool InitSpi(iSPI nSPI)
+  bool InitSpi(const SpiPins pins)
   {
-    if (is_spi_initialized_[nSPI])
+    if (is_spi_initialized_[pins])
       return true;
 
-    return is_spi_initialized_[nSPI] =
-      (iSPI::SPI0 == nSPI) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin();
+    return is_spi_initialized_[pins] =
+      (pins == SpiPins::kSpi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin();
   }
 
-  Character SpiTransfer(iSPI nSPI, Character ch)
+  Character SpiTransfer(const SpiPins pins, const Character ch)
   {
-    if (iSPI::SPI0 != nSPI) {
+    if (pins != SpiPins::kSpi0) {
       char t = ch;
       char r;
       _bcm_aux_spi_transfernb(&t, &r, 1, 1);
@@ -80,15 +82,15 @@ public:
     }
   }
 
-  void SpiPurge(iSPI nSPI)
+  void SpiPurge(const SpiPins pins)
   {
-    if (iSPI::SPI0 == nSPI)
+    if (pins == SpiPins::kSpi0)
       _bcm_spi_purge();
   }
 
-  void SpiSetCs(iSPI nSPI, bool how)
+  void SpiSetCs(const SpiPins pins, const bool how)
   {
-    if (iSPI::SPI0 != nSPI) {
+    if (pins != SpiPins::kSpi0) {
       char t{};
       char r;
       _bcm_aux_spi_transfernb(&t, &r, 1, how ? 1:0);
@@ -96,14 +98,14 @@ public:
       _bsm_spi_cs( how ? 1:0);
   }
 
-  void SpiWaitDone(iSPI nSPI)
+  void SpiWaitDone(const SpiPins pins)
   {
-    if (iSPI::SPI0 == nSPI) while (!_bsm_spi_is_done()){}
+    if (pins == SpiPins::kSpi0) while (!_bsm_spi_is_done()){}
   }
 
-  void SpiSetSpeed(iSPI nSPI, uint32_t speed_hz)
+  void SpiSetSpeed(const SpiPins pins, const std::uint32_t speed_hz)
   {
-    if (iSPI::SPI0 == nSPI)
+    if (pins == SpiPins::kSpi0)
       bcm2835_spi_set_speed_hz(speed_hz);
     else
       bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));

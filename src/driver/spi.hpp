@@ -26,17 +26,17 @@
 
 class BcmSpi : public CSPI, public BcmLib {
 protected:
-  BcmLib::iSPI spi_;
+  BcmLib::SpiPins spi_;
   CFIFO rec_fifo_;
 
 public:
   CSyncSerComFSM com_cntr_;
 
 public:
-  BcmSpi(BcmLib::iSPI nSPI = BcmLib::iSPI::SPI0)
+  BcmSpi(const BcmLib::SpiPins pins = BcmLib::SpiPins::kSpi0)
   {
-    spi_ = nSPI;
-    if (!InitSpi(nSPI))
+    spi_ = pins;
+    if (!InitSpi(pins))
       return;
 
     //set default rate:
@@ -49,7 +49,7 @@ public:
     return is_spi_initialized_[spi_];
   }
 
-  Character SpiTransfer(Character ch)
+  Character SpiTransfer(const Character ch)
   {
     return BcmLib::SpiTransfer(spi_, ch);
   }
@@ -59,7 +59,7 @@ public:
     BcmLib::SpiPurge(spi_);
   }
 
-  void SpiSetCs(bool how)
+  void SpiSetCs(const bool how)
   {
     BcmLib::SpiSetCs(spi_, how);
   }
@@ -69,12 +69,12 @@ public:
     BcmLib::SpiWaitDone(spi_);
   }
 
-  void SpiSetSpeed(uint32_t speed_hz)
+  void SpiSetSpeed(const std::uint32_t speed_hz)
   {
     BcmLib::SpiSetSpeed(spi_, speed_hz);
   }
 
-  bool send(CFIFO &msg) override
+  bool send(CFIFO& msg) override
   {
     if (!is_initialzed())
       return false;
