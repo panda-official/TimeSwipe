@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-class BcmSpi : public CSPI, public BcmLib {
+class BcmSpi final : public CSPI, public BcmLib {
 protected:
   BcmLib::SpiPins spi_;
   CFIFO rec_fifo_;
@@ -122,12 +122,12 @@ public:
     return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
 
-  virtual bool send(Character /*ch*/)
+  bool send(Character /*ch*/)
   {
     return false;
   }
 
-  virtual bool receive(Character& /*ch*/)
+  bool receive(Character& /*ch*/)
   {
     return false;
   }
