@@ -33,223 +33,201 @@ protected:
 
   BcmLib()
   {
-    if(is_initialized_)
+    if (is_initialized_)
       return;
 
-    if(!bcm2835_init())
+    if (!bcm2835_init())
       return;
-    is_initialized_=true;
+
+    is_initialized_ = true;
   }
 
   ~BcmLib()
   {
-    if(is_spi_initialized_[iSPI::SPI0])
-      {
-        bcm2835_spi_end();
-      }
-    if(is_spi_initialized_[iSPI::SPI1])
-      {
-        bcm2835_aux_spi_end();
-      }
-    if(is_initialized_)
-      {
-        bcm2835_close();
-      }
+    if (is_spi_initialized_[iSPI::SPI0])
+      bcm2835_spi_end();
+
+    if (is_spi_initialized_[iSPI::SPI1])
+      bcm2835_aux_spi_end();
+
+    if (is_initialized_)
+      bcm2835_close();
   }
 
-
 public:
-    enum iSPI{
-
-        SPI0=0,
-        SPI1
-    };
+  enum iSPI {
+    SPI0,
+    SPI1
+  };
 
   bool init_SPI(iSPI nSPI)
   {
-    if(is_spi_initialized_[nSPI])
+    if (is_spi_initialized_[nSPI])
       return true;
 
-    bool bRes;
-    if(iSPI::SPI0==nSPI)
-      {
-        bRes=bcm2835_spi_begin() ? true:false;
-      }
-    else
-      {
-        bRes=bcm2835_aux_spi_begin() ? true:false;
-      }
-    is_spi_initialized_[nSPI]=bRes;
-    return bRes;
+    return is_spi_initialized_[nSPI] =
+      (iSPI::SPI0 == nSPI) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin();
   }
 
   Character SPItransfer(iSPI nSPI, Character ch)
   {
-    if(iSPI::SPI0==nSPI)
-      {
-        _bcm_spi_send_char(ch);
-        return _bcm_spi_rec_char();
-      }
-    else
-      {
-        char t=ch;
-        char r;
-        _bcm_aux_spi_transfernb(&t, &r, 1, 1);
-        return r;
-      }
+    if (iSPI::SPI0 != nSPI) {
+      char t=ch;
+      char r;
+      _bcm_aux_spi_transfernb(&t, &r, 1, 1);
+      return r;
+    } else {
+      _bcm_spi_send_char(ch);
+      return _bcm_spi_rec_char();
+    }
   }
 
-  void      SPI_purge(iSPI nSPI)
+  void SPI_purge(iSPI nSPI)
   {
-    if(iSPI::SPI0==nSPI)
-      {
-        _bcm_spi_purge();
-      }
+    if (iSPI::SPI0 == nSPI)
+      _bcm_spi_purge();
   }
 
   void SPI_setCS(iSPI nSPI, bool how)
   {
-    if(iSPI::SPI0==nSPI)
-      {
-        _bsm_spi_cs( how ? 1:0);
-      }
-    else
-      {
-        char t=0, r;
-        _bcm_aux_spi_transfernb(&t, &r, 1, how ? 1:0);
-      }
+    if (iSPI::SPI0 != nSPI) {
+      char t{};
+      char r;
+      _bcm_aux_spi_transfernb(&t, &r, 1, how ? 1:0);
+    } else
+      _bsm_spi_cs( how ? 1:0);
   }
 
-  void      SPI_waitDone(iSPI nSPI)
-    {
-    if(iSPI::SPI0==nSPI)
-    {
-        while(!_bsm_spi_is_done()){}
-    }
-}
-
-  void	  SPI_set_speed_hz(iSPI nSPI, uint32_t speed_hz)
+  void SPI_waitDone(iSPI nSPI)
   {
-    if(iSPI::SPI0==nSPI)
-      {
-        bcm2835_spi_set_speed_hz(speed_hz);
-      }
-    else
-      {
-        bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
-      }
+    if (iSPI::SPI0 == nSPI) while (!_bsm_spi_is_done()){}
   }
 
-
+  void SPI_set_speed_hz(iSPI nSPI, uint32_t speed_hz)
+  {
+    if (iSPI::SPI0 == nSPI)
+      bcm2835_spi_set_speed_hz(speed_hz);
+    else
+      bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
+  }
 };
 
 class CBcmSPI : public CSPI, public BcmLib {
 protected:
-    //bool  m_bInitialized=false;
+  iSPI spi_;
+  CFIFO rec_fifo_;
 
-    iSPI m_nSPI;
-
-    CFIFO m_recFIFO;
 public:
-    CSyncSerComFSM m_ComCntr;
+  CSyncSerComFSM com_cntr_;
 
 public:
   CBcmSPI(iSPI nSPI=iSPI::SPI0)
   {
-    m_nSPI=nSPI;
-    if(!init_SPI(nSPI))
+    spi_ = nSPI;
+    if (!init_SPI(nSPI))
       return;
-
 
     //set default rate:
     //SPI_set_speed_hz(100000);
     SPI_set_speed_hz(50000);
-
   }
 
-    bool is_initialzed(){ return is_spi_initialized_[m_nSPI]; }
+  bool is_initialzed()
+  {
+    return is_spi_initialized_[spi_];
+  }
 
-    inline Character SPItransfer(Character ch){ return BcmLib::SPItransfer(m_nSPI, ch); }
-    inline void      SPI_purge(){ BcmLib::SPI_purge(m_nSPI); }
-    inline void      SPI_setCS(bool how) { BcmLib::SPI_setCS(m_nSPI, how); }
-    inline void      SPI_waitDone(){ BcmLib::SPI_waitDone(m_nSPI); }
-    inline void		 SPI_set_speed_hz(uint32_t speed_hz){ BcmLib::SPI_set_speed_hz(m_nSPI, speed_hz); }
+  Character SPItransfer(Character ch)
+  {
+    return BcmLib::SPItransfer(spi_, ch);
+  }
 
+  void SPI_purge()
+  {
+    BcmLib::SPI_purge(spi_);
+  }
+
+  void SPI_setCS(bool how)
+  {
+    BcmLib::SPI_setCS(spi_, how);
+  }
+
+  void SPI_waitDone()
+  {
+    BcmLib::SPI_waitDone(spi_);
+  }
+
+  void SPI_set_speed_hz(uint32_t speed_hz)
+  {
+    BcmLib::SPI_set_speed_hz(spi_, speed_hz);
+  }
 
   bool send(CFIFO &msg) override
   {
-    {
-      if(!is_initialzed())
-        return false;
+    if (!is_initialzed())
+      return false;
 
-      SPI_purge();
-      SPI_setCS(true);
-      m_recFIFO.reset();
+    SPI_purge();
+    SPI_setCS(true);
+    rec_fifo_.reset();
 
-      //a delay is required for CS to fall:
-      bcm2835_delay(20); //corresponding to 50KHz
+    // A delay CS to fall required.
+    bcm2835_delay(20); //corresponds to 50KHz
 
-      //flow control:
-      Character ch=0;
-      m_ComCntr.start(CSyncSerComFSM::FSM::sendLengthMSB);
-      while(m_ComCntr.proc(ch, msg))
-        {
-          SPItransfer(ch);
-        }
-      if(m_ComCntr.bad()) return false;
+    // Flow control.
+    Character ch=0;
+    com_cntr_.start(CSyncSerComFSM::FSM::sendLengthMSB);
+    while (com_cntr_.proc(ch, msg))
+      SPItransfer(ch);
+    if (com_cntr_.bad())
+      return false;
 
-      SPItransfer(0); //provide add clock...
+    // Provide add clock.
+    SPItransfer(0);
 
+    // Wait for a "done" state.
+    SPI_waitDone();
 
-      //waiting for a "done" state:
-      SPI_waitDone();
+    com_cntr_.start(CSyncSerComFSM::FSM::recSilenceFrame);
+    do
+      ch = SPItransfer(0); //provide a clock
+    while (com_cntr_.proc(ch, rec_fifo_));
 
+    SPI_setCS(false);
 
-      m_ComCntr.start(CSyncSerComFSM::FSM::recSilenceFrame);
-      do
-        {
-          ch=SPItransfer(0); //provide a clock
-        }
-      while(m_ComCntr.proc(ch, m_recFIFO));
+    // A delay for CS to rise required.
+    bcm2835_delay(20); // corresponds to 50KHz
 
-
-      SPI_setCS(false);
-      //a delay is required for CS to rise:
-      bcm2835_delay(20); //corresponding to 50KHz
-
-
-      return true;
-    }
+    return true;
   }
 
-  bool receive(CFIFO &msg) override
+  bool receive(CFIFO& msg) override
   {
-    {
-      if(!is_initialzed())
-        return false;
+    if (!is_initialzed())
+      return false;
 
-      msg=m_recFIFO;
-      return  (m_ComCntr.get_state()==CSyncSerComFSM::FSM::recOK);
-    }
+    msg = rec_fifo_;
+    return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
 
-  virtual bool send(Character ch)
+  virtual bool send(Character /*ch*/)
   {
     return false;
   }
 
-  virtual bool receive(Character &ch)
+  virtual bool receive(Character& /*ch*/)
   {
     return false;
   }
 
-  void set_phpol(bool bPhase, bool bPol) override
+  void set_phpol(bool /*bPhase*/, bool /*bPol*/) override
   {}
 
-  void set_baud_div(unsigned char div) override
+  void set_baud_div(unsigned char /*div*/) override
   {}
 
-  void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel) override
+  void set_tprofile_divs(unsigned char /*CSminDel*/, unsigned char /*IntertransDel*/,
+    unsigned char /*BeforeClockDel*/) override
   {}
 };
 
