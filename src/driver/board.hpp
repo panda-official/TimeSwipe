@@ -560,7 +560,7 @@ public:
   }
 
 private:
-  CBcmSPI spi_;
+  BcmSpi spi_;
   std::atomic_bool trace_spi_;
   std::atomic_bool is_board_inited_;
   std::atomic_bool is_measurement_started_;

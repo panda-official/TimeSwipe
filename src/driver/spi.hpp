@@ -31,17 +31,6 @@ protected:
   inline static bool is_initialized_;
   inline static bool is_spi_initialized_[2];
 
-  BcmLib()
-  {
-    if (is_initialized_)
-      return;
-
-    if (!bcm2835_init())
-      return;
-
-    is_initialized_ = true;
-  }
-
   ~BcmLib()
   {
     if (is_spi_initialized_[iSPI::SPI0])
@@ -52,6 +41,17 @@ protected:
 
     if (is_initialized_)
       bcm2835_close();
+  }
+
+  BcmLib()
+  {
+    if (is_initialized_)
+      return;
+
+    if (!bcm2835_init())
+      return;
+
+    is_initialized_ = true;
   }
 
 public:
@@ -112,16 +112,16 @@ public:
   }
 };
 
-class CBcmSPI : public CSPI, public BcmLib {
+class BcmSpi : public CSPI, public BcmLib {
 protected:
-  iSPI spi_;
+  BcmLib::iSPI spi_;
   CFIFO rec_fifo_;
 
 public:
   CSyncSerComFSM com_cntr_;
 
 public:
-  CBcmSPI(iSPI nSPI=iSPI::SPI0)
+  BcmSpi(BcmLib::iSPI nSPI = BcmLib::iSPI::SPI0)
   {
     spi_ = nSPI;
     if (!init_SPI(nSPI))
