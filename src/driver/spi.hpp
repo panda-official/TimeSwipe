@@ -28,30 +28,30 @@
 
 class BcmLib {
 protected:
-  inline static bool m_bLibInitialized;
-  inline static bool m_bSPIInitialized[2];
+  inline static bool is_initialized_;
+  inline static bool is_spi_initialized_[2];
 
   BcmLib()
   {
-    if(m_bLibInitialized)
+    if(is_initialized_)
       return;
 
     if(!bcm2835_init())
       return;
-    m_bLibInitialized=true;
+    is_initialized_=true;
   }
 
   ~BcmLib()
   {
-    if(m_bSPIInitialized[iSPI::SPI0])
+    if(is_spi_initialized_[iSPI::SPI0])
       {
         bcm2835_spi_end();
       }
-    if(m_bSPIInitialized[iSPI::SPI1])
+    if(is_spi_initialized_[iSPI::SPI1])
       {
         bcm2835_aux_spi_end();
       }
-    if(m_bLibInitialized)
+    if(is_initialized_)
       {
         bcm2835_close();
       }
@@ -67,7 +67,7 @@ public:
 
   bool init_SPI(iSPI nSPI)
   {
-    if(m_bSPIInitialized[nSPI])
+    if(is_spi_initialized_[nSPI])
       return true;
 
     bool bRes;
@@ -79,7 +79,7 @@ public:
       {
         bRes=bcm2835_aux_spi_begin() ? true:false;
       }
-    m_bSPIInitialized[nSPI]=bRes;
+    is_spi_initialized_[nSPI]=bRes;
     return bRes;
   }
 
@@ -167,7 +167,7 @@ public:
 
   }
 
-    bool is_initialzed(){ return m_bSPIInitialized[m_nSPI]; }
+    bool is_initialzed(){ return is_spi_initialized_[m_nSPI]; }
 
     inline Character SPItransfer(Character ch){ return BcmLib::SPItransfer(m_nSPI, ch); }
     inline void      SPI_purge(){ BcmLib::SPI_purge(m_nSPI); }
