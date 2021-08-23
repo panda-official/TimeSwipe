@@ -134,7 +134,7 @@ public:
   }
 
   /// @returns Actual FSM state.
-  FSM get_state()
+  FSM get_state() const noexcept
   {
     return m_PState;
   }

@@ -97,7 +97,7 @@ int main ( int argc, char *argv[] )
 
         BcmSpi spi ( nSPI ? BcmLib::SpiPins::kAux : BcmLib::SpiPins::kSpi0 );
 
-        if ( !spi.is_initialzed ( ) )
+        if (!spi.IsInitialized())
         {
             std::cout << "Failed to initialize BCM SPI-" << nSPI << "Master. Try using sudo!" << std::endl;
             return 0;
@@ -121,7 +121,7 @@ int main ( int argc, char *argv[] )
                     }
                     else
                     {
-                      switch ( spi.com_cntr_.get_state() )
+                      switch ( spi.GetFsmState() )
                         {
                         case CSyncSerComFSM::errLine:
                           std::cout << "!Line_err!";

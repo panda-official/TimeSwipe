@@ -25,13 +25,6 @@
 #include <iostream>
 
 class BcmSpi final : public CSPI, public BcmLib {
-protected:
-  BcmLib::SpiPins spi_;
-  CFIFO rec_fifo_;
-
-public:
-  CSyncSerComFSM com_cntr_;
-
 public:
   BcmSpi(const BcmLib::SpiPins pins = BcmLib::SpiPins::kSpi0)
   {
@@ -44,39 +37,19 @@ public:
     SpiSetSpeed(50000);
   }
 
-  bool is_initialzed()
+  bool IsInitialized() const noexcept
   {
     return is_spi_initialized_[spi_];
   }
 
-  Character SpiTransfer(const Character ch)
+  CSyncSerComFSM::FSM GetFsmState() const noexcept
   {
-    return BcmLib::SpiTransfer(spi_, ch);
-  }
-
-  void SpiPurge()
-  {
-    BcmLib::SpiPurge(spi_);
-  }
-
-  void SpiSetCs(const bool how)
-  {
-    BcmLib::SpiSetCs(spi_, how);
-  }
-
-  void SpiWaitDone()
-  {
-    BcmLib::SpiWaitDone(spi_);
-  }
-
-  void SpiSetSpeed(const std::uint32_t speed_hz)
-  {
-    BcmLib::SpiSetSpeed(spi_, speed_hz);
+    return com_cntr_.get_state();
   }
 
   bool send(CFIFO& msg) override
   {
-    if (!is_initialzed())
+    if (!IsInitialized())
       return false;
 
     SpiPurge();
@@ -115,12 +88,17 @@ public:
 
   bool receive(CFIFO& msg) override
   {
-    if (!is_initialzed())
+    if (!IsInitialized())
       return false;
 
     msg = rec_fifo_;
     return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
+
+private:
+  CSyncSerComFSM com_cntr_;
+  BcmLib::SpiPins spi_;
+  CFIFO rec_fifo_;
 
   bool send(Character /*ch*/)
   {
@@ -141,6 +119,31 @@ public:
   void set_tprofile_divs(unsigned char /*CSminDel*/, unsigned char /*IntertransDel*/,
     unsigned char /*BeforeClockDel*/) override
   {}
+
+  Character SpiTransfer(const Character ch)
+  {
+    return BcmLib::SpiTransfer(spi_, ch);
+  }
+
+  void SpiPurge()
+  {
+    BcmLib::SpiPurge(spi_);
+  }
+
+  void SpiSetCs(const bool how)
+  {
+    BcmLib::SpiSetCs(spi_, how);
+  }
+
+  void SpiWaitDone()
+  {
+    BcmLib::SpiWaitDone(spi_);
+  }
+
+  void SpiSetSpeed(const std::uint32_t speed_hz)
+  {
+    BcmLib::SpiSetSpeed(spi_, speed_hz);
+  }
 };
 
 #endif  // PANDA_TIMESWIPE_SPI_HPP
