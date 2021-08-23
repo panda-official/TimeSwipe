@@ -73,7 +73,7 @@ public:
   {
     if (pins != SpiPins::kSpi0) {
       char t = ch;
-      char r;
+      char r{};
       _bcm_aux_spi_transfernb(&t, &r, 1, 1);
       return r;
     } else {
