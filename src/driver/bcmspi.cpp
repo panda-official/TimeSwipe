@@ -1,18 +1,30 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
+
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "bcmspi.hpp"
+#include "../3rdparty/BCMsrc/bcm2835.h"
+
 #include <iostream>
 
-#include "../3rdparty/BCMsrc/bcm2835.h"
-bool CBcmLIB::m_bLibInitialized=false;
-bool CBcmLIB::m_bSPIInitialized[2]={false};
+bool BcmLib::m_bLibInitialized=false;
+bool BcmLib::m_bSPIInitialized[2]={false};
 
-CBcmLIB::CBcmLIB()
+BcmLib::BcmLib()
 {
     if(m_bLibInitialized)
         return;
@@ -21,7 +33,7 @@ CBcmLIB::CBcmLIB()
         return;
     m_bLibInitialized=true;
 }
-CBcmLIB::~CBcmLIB()
+BcmLib::~BcmLib()
 {
     if(m_bSPIInitialized[iSPI::SPI0])
     {
@@ -37,7 +49,7 @@ CBcmLIB::~CBcmLIB()
     }
 }
 
-bool CBcmLIB::init_SPI(iSPI nSPI)
+bool BcmLib::init_SPI(iSPI nSPI)
 {
     if(m_bSPIInitialized[nSPI])
         return true;
@@ -55,14 +67,14 @@ bool CBcmLIB::init_SPI(iSPI nSPI)
     return bRes;
 }
 
-void CBcmLIB::SPI_purge(iSPI nSPI)
+void BcmLib::SPI_purge(iSPI nSPI)
 {
    if(iSPI::SPI0==nSPI)
    {
        _bcm_spi_purge();
    }
 }
-void CBcmLIB::SPI_setCS(iSPI nSPI, bool how)
+void BcmLib::SPI_setCS(iSPI nSPI, bool how)
 {
     if(iSPI::SPI0==nSPI)
     {
@@ -74,14 +86,14 @@ void CBcmLIB::SPI_setCS(iSPI nSPI, bool how)
         _bcm_aux_spi_transfernb(&t, &r, 1, how ? 1:0);
     }
 }
-void CBcmLIB::SPI_waitDone(iSPI nSPI)
+void BcmLib::SPI_waitDone(iSPI nSPI)
 {
     if(iSPI::SPI0==nSPI)
     {
         while(!_bsm_spi_is_done()){}
     }
 }
-Character CBcmLIB::SPItransfer(iSPI nSPI, Character ch)
+Character BcmLib::SPItransfer(iSPI nSPI, Character ch)
 {
     if(iSPI::SPI0==nSPI)
     {
@@ -97,7 +109,7 @@ Character CBcmLIB::SPItransfer(iSPI nSPI, Character ch)
     }
 }
 
-void CBcmLIB::SPI_set_speed_hz(iSPI nSPI, uint32_t speed_hz)
+void BcmLib::SPI_set_speed_hz(iSPI nSPI, uint32_t speed_hz)
 {
     if(iSPI::SPI0==nSPI)
     {

@@ -95,7 +95,7 @@ int main ( int argc, char *argv[] )
     if ( bMasterMode )
     {
 
-        CBcmSPI spi ( nSPI ? CBcmLIB::iSPI::SPI1 : CBcmLIB::iSPI::SPI0 );
+        CBcmSPI spi ( nSPI ? BcmLib::iSPI::SPI1 : BcmLib::iSPI::SPI0 );
 
         if ( !spi.is_initialzed ( ) )
         {
