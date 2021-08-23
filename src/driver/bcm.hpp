@@ -27,33 +27,6 @@
 
 /// Represents underlying resources of the library.
 class BcmLib {
-protected:
-  inline static bool is_initialized_;
-  inline static bool is_spi_initialized_[2];
-
-  ~BcmLib()
-  {
-    if (is_spi_initialized_[SpiPins::kAux])
-      bcm2835_aux_spi_end();
-
-    if (is_spi_initialized_[SpiPins::kSpi0])
-      bcm2835_spi_end();
-
-    if (is_initialized_)
-      bcm2835_close();
-  }
-
-  BcmLib()
-  {
-    if (is_initialized_)
-      return;
-
-    if (!bcm2835_init())
-      return;
-
-    is_initialized_ = true;
-  }
-
 public:
   enum SpiPins {
     kSpi0,
@@ -109,6 +82,33 @@ public:
       bcm2835_spi_set_speed_hz(speed_hz);
     else
       bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
+  }
+
+protected:
+  inline static bool is_initialized_;
+  inline static bool is_spi_initialized_[2];
+
+  ~BcmLib()
+  {
+    if (is_spi_initialized_[SpiPins::kAux])
+      bcm2835_aux_spi_end();
+
+    if (is_spi_initialized_[SpiPins::kSpi0])
+      bcm2835_spi_end();
+
+    if (is_initialized_)
+      bcm2835_close();
+  }
+
+  BcmLib()
+  {
+    if (is_initialized_)
+      return;
+
+    if (!bcm2835_init())
+      return;
+
+    is_initialized_ = true;
   }
 };
 
