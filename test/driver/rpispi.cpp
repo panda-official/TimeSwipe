@@ -13,7 +13,7 @@ Copyright (c) 2019 Panda Team
  */
 
 #include "../../src/common/Serial.h"
-#include "../../src/driver/bcmspi.hpp"
+#include "../../src/driver/spi.hpp"
 
 #include <cstdlib>
 #include <iostream>

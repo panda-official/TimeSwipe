@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_BOARD_HPP
 #define PANDA_TIMESWIPE_DRIVER_BOARD_HPP
 
-#include "bcmspi.hpp"
+#include "spi.hpp"
 #include "event.hpp"
 #include "gpio.hpp"
 #include "sensor_data.hpp"

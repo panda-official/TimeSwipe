@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "bcmspi.hpp"
+#include "spi.hpp"
 #include "../3rdparty/BCMsrc/bcm2835.h"
 
 #include <iostream>
