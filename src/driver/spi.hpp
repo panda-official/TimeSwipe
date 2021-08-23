@@ -36,12 +36,12 @@ public:
   BcmSpi(BcmLib::iSPI nSPI = BcmLib::iSPI::SPI0)
   {
     spi_ = nSPI;
-    if (!init_SPI(nSPI))
+    if (!InitSpi(nSPI))
       return;
 
     //set default rate:
-    //SPI_set_speed_hz(100000);
-    SPI_set_speed_hz(50000);
+    //SpiSetSpeed(100000);
+    SpiSetSpeed(50000);
   }
 
   bool is_initialzed()
@@ -49,29 +49,29 @@ public:
     return is_spi_initialized_[spi_];
   }
 
-  Character SPItransfer(Character ch)
+  Character SpiTransfer(Character ch)
   {
-    return BcmLib::SPItransfer(spi_, ch);
+    return BcmLib::SpiTransfer(spi_, ch);
   }
 
-  void SPI_purge()
+  void SpiPurge()
   {
-    BcmLib::SPI_purge(spi_);
+    BcmLib::SpiPurge(spi_);
   }
 
-  void SPI_setCS(bool how)
+  void SpiSetCs(bool how)
   {
-    BcmLib::SPI_setCS(spi_, how);
+    BcmLib::SpiSetCs(spi_, how);
   }
 
-  void SPI_waitDone()
+  void SpiWaitDone()
   {
-    BcmLib::SPI_waitDone(spi_);
+    BcmLib::SpiWaitDone(spi_);
   }
 
-  void SPI_set_speed_hz(uint32_t speed_hz)
+  void SpiSetSpeed(uint32_t speed_hz)
   {
-    BcmLib::SPI_set_speed_hz(spi_, speed_hz);
+    BcmLib::SpiSetSpeed(spi_, speed_hz);
   }
 
   bool send(CFIFO &msg) override
@@ -79,8 +79,8 @@ public:
     if (!is_initialzed())
       return false;
 
-    SPI_purge();
-    SPI_setCS(true);
+    SpiPurge();
+    SpiSetCs(true);
     rec_fifo_.reset();
 
     // A delay CS to fall required.
@@ -90,22 +90,22 @@ public:
     Character ch=0;
     com_cntr_.start(CSyncSerComFSM::FSM::sendLengthMSB);
     while (com_cntr_.proc(ch, msg))
-      SPItransfer(ch);
+      SpiTransfer(ch);
     if (com_cntr_.bad())
       return false;
 
     // Provide add clock.
-    SPItransfer(0);
+    SpiTransfer(0);
 
     // Wait for a "done" state.
-    SPI_waitDone();
+    SpiWaitDone();
 
     com_cntr_.start(CSyncSerComFSM::FSM::recSilenceFrame);
     do
-      ch = SPItransfer(0); //provide a clock
+      ch = SpiTransfer(0); //provide a clock
     while (com_cntr_.proc(ch, rec_fifo_));
 
-    SPI_setCS(false);
+    SpiSetCs(false);
 
     // A delay for CS to rise required.
     bcm2835_delay(20); // corresponds to 50KHz

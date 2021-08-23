@@ -58,7 +58,7 @@ public:
     SPI1
   };
 
-  bool init_SPI(iSPI nSPI)
+  bool InitSpi(iSPI nSPI)
   {
     if (is_spi_initialized_[nSPI])
       return true;
@@ -67,7 +67,7 @@ public:
       (iSPI::SPI0 == nSPI) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin();
   }
 
-  Character SPItransfer(iSPI nSPI, Character ch)
+  Character SpiTransfer(iSPI nSPI, Character ch)
   {
     if (iSPI::SPI0 != nSPI) {
       char t = ch;
@@ -80,13 +80,13 @@ public:
     }
   }
 
-  void SPI_purge(iSPI nSPI)
+  void SpiPurge(iSPI nSPI)
   {
     if (iSPI::SPI0 == nSPI)
       _bcm_spi_purge();
   }
 
-  void SPI_setCS(iSPI nSPI, bool how)
+  void SpiSetCs(iSPI nSPI, bool how)
   {
     if (iSPI::SPI0 != nSPI) {
       char t{};
@@ -96,12 +96,12 @@ public:
       _bsm_spi_cs( how ? 1:0);
   }
 
-  void SPI_waitDone(iSPI nSPI)
+  void SpiWaitDone(iSPI nSPI)
   {
     if (iSPI::SPI0 == nSPI) while (!_bsm_spi_is_done()){}
   }
 
-  void SPI_set_speed_hz(iSPI nSPI, uint32_t speed_hz)
+  void SpiSetSpeed(iSPI nSPI, uint32_t speed_hz)
   {
     if (iSPI::SPI0 == nSPI)
       bcm2835_spi_set_speed_hz(speed_hz);
