@@ -23,6 +23,7 @@
 
 #include "../3rdparty/BCMsrc/bcm2835.h"
 
+/// Represents underlying resources of the library.
 class BcmLib {
 protected:
   inline static bool is_initialized_;
@@ -30,11 +31,11 @@ protected:
 
   ~BcmLib()
   {
-    if (is_spi_initialized_[iSPI::SPI0])
-      bcm2835_spi_end();
-
     if (is_spi_initialized_[iSPI::SPI1])
       bcm2835_aux_spi_end();
+
+    if (is_spi_initialized_[iSPI::SPI0])
+      bcm2835_spi_end();
 
     if (is_initialized_)
       bcm2835_close();
@@ -69,7 +70,7 @@ public:
   Character SPItransfer(iSPI nSPI, Character ch)
   {
     if (iSPI::SPI0 != nSPI) {
-      char t=ch;
+      char t = ch;
       char r;
       _bcm_aux_spi_transfernb(&t, &r, 1, 1);
       return r;
