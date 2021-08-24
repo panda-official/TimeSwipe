@@ -19,10 +19,10 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_BOARD_HPP
 #define PANDA_TIMESWIPE_DRIVER_BOARD_HPP
 
-#include "spi.hpp"
+#include "bcmlib.hpp"
 #include "event.hpp"
-#include "gpio.hpp"
 #include "sensor_data.hpp"
+#include "spi.hpp"
 #include "types_fwd.hpp"
 
 #include "../common/json.hpp"
@@ -707,33 +707,6 @@ private:
     //     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
     using Chunk = std::array<std::uint8_t, 8>;
 
-    static GpioData Read() noexcept
-    {
-      setGPIOHigh(CLOCK);
-      sleep55ns();
-      sleep55ns();
-
-      setGPIOLow(CLOCK);
-      sleep55ns();
-      sleep55ns();
-
-      const unsigned int allGPIO{readAllGPIO()};
-      const std::uint8_t byte =
-        ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
-        ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
-        ((allGPIO & DATA_POSITION[2]) >> 2) |   //     5
-        ((allGPIO & DATA_POSITION[3]) >> 1) |   //     4
-        ((allGPIO & DATA_POSITION[4]) >> 3) |   //     3
-        ((allGPIO & DATA_POSITION[5]) >> 10) |  //     2
-        ((allGPIO & DATA_POSITION[6]) >> 12) |  //     1
-        ((allGPIO & DATA_POSITION[7]) >> 16);   //     0
-
-      sleep55ns();
-      sleep55ns();
-
-      return {byte, (allGPIO & TCO_POSITION), (allGPIO & PI_STATUS_POSITION) != 0};
-    }
-
     struct ReadChunkResult final {
       Chunk chunk{};
       unsigned tco{};
@@ -789,6 +762,34 @@ private:
       auto& underlying_data{data.data()};
       for (std::size_t i{}; i < 4; ++i)
         underlying_data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
+    }
+
+  private:
+    static GpioData Read() noexcept
+    {
+      setGPIOHigh(CLOCK);
+      sleep55ns();
+      sleep55ns();
+
+      setGPIOLow(CLOCK);
+      sleep55ns();
+      sleep55ns();
+
+      const unsigned int allGPIO{readAllGPIO()};
+      const std::uint8_t byte =
+        ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
+        ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
+        ((allGPIO & DATA_POSITION[2]) >> 2) |   //     5
+        ((allGPIO & DATA_POSITION[3]) >> 1) |   //     4
+        ((allGPIO & DATA_POSITION[4]) >> 3) |   //     3
+        ((allGPIO & DATA_POSITION[5]) >> 10) |  //     2
+        ((allGPIO & DATA_POSITION[6]) >> 12) |  //     1
+        ((allGPIO & DATA_POSITION[7]) >> 16);   //     0
+
+      sleep55ns();
+      sleep55ns();
+
+      return {byte, (allGPIO & TCO_POSITION), (allGPIO & PI_STATUS_POSITION) != 0};
     }
   };
 
