@@ -304,7 +304,7 @@ public:
   std::list<TimeSwipeEvent> GetEvents()
   {
     std::list<TimeSwipeEvent> events;
-    std::lock_guard<std::mutex> lock(mutex_);
+    const std::lock_guard<std::mutex> lock{mutex_};
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::string data;
     if (getEvents(data) && !data.empty()) {
@@ -426,7 +426,7 @@ public:
    */
   bool StopPwm(const std::uint8_t num)
   {
-    std::lock_guard<std::mutex> lock(mutex_);
+    const std::lock_guard<std::mutex> lock{mutex_};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
