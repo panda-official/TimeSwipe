@@ -17,10 +17,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "board.hpp"
+#include "eeprom.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "timeswipe.hpp"
-#include "eeprom.hpp"
+
+#include "../common/error.hpp"
 #include "../common/version.hpp"
 
 #include "../3rdparty/dmitigr/filesystem.hpp"
@@ -69,7 +71,7 @@ public:
     std::string msg;
     if (!pid_file_.Lock(msg))
       // Lock here. Second lock from the same process is allowed.
-      throw Exception{Errc::kPidFileLockFailed};
+      throw RuntimeException{Errc::kPidFileLockFailed};
 
     Board::Instance()->Init();
   }
@@ -165,7 +167,7 @@ public:
   {
     const std::unique_lock lk{mutex_};
     if (IsBusy__(lk))
-      throw Exception{Errc::kBoardIsBusy};
+      throw RuntimeException{Errc::kBoardIsBusy};
 
     std::filesystem::remove(TmpDir()/"drift_references");
     drift_references_.reset();
@@ -177,7 +179,7 @@ public:
     // Throw away if there are no references.
     const auto refs{DriftReferences()};
     if (!refs)
-      throw Exception{Errc::kNoDriftReferences};
+      throw RuntimeException{Errc::kNoDriftReferences};
 
     // Collect the data for calculation.
     auto data{CollectSensorsData(kDriftSamplesCount_,
@@ -205,7 +207,7 @@ public:
   {
     const std::unique_lock lk{mutex_};
     if (IsBusy__(lk))
-      throw Exception{Errc::kBoardIsBusy};
+      throw RuntimeException{Errc::kBoardIsBusy};
 
     drift_deltas_.reset();
   }
@@ -221,7 +223,7 @@ public:
 
     std::ifstream in{drift_references};
     if (!in)
-      throw Exception{Errc::kInvalidDriftReference};
+      throw RuntimeException{Errc::kInvalidDriftReference};
 
     std::vector<float> refs;
     while (in && refs.size() < SensorsData::SensorsSize()) {
@@ -232,10 +234,10 @@ public:
     if (!in.eof()) {
       float val;
       if (in >> val)
-        throw Exception{Errc::kExcessiveDriftReferences};
+        throw RuntimeException{Errc::kExcessiveDriftReferences};
     }
     if (refs.size() < SensorsData::SensorsSize())
-      throw Exception{Errc::kInsufficientDriftReferences};
+      throw RuntimeException{Errc::kInsufficientDriftReferences};
 
     assert(refs.size() == SensorsData::SensorsSize());
 
@@ -418,7 +420,7 @@ private:
           rep_.self_.GetChannelMode(Ch::CH2, chmm2_) &&
           rep_.self_.GetChannelMode(Ch::CH3, chmm3_) &&
           rep_.self_.GetChannelMode(Ch::CH4, chmm4_)))
-        throw Exception{Errc::kGeneric};
+        throw RuntimeException{Errc::kGeneric};
 
       /*
        * Change input modes to 1.
@@ -428,7 +430,7 @@ private:
        */
       for (const auto m : {Ch::CH1, Ch::CH2, Ch::CH3, Ch::CH4}) {
         if (!rep_.self_.SetChannelMode(m, TimeSwipe::ChannelMesMode::Current))
-          throw Exception{Errc::kGeneric};
+          throw RuntimeException{Errc::kGeneric};
       }
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
@@ -697,8 +699,7 @@ private:
     /// @returns Previous resampler if any.
   std::unique_ptr<TimeSwipeResampler> SetSampleRate__(const int rate)
   {
-    if (!(1 <= rate && rate <= MaxSampleRate()))
-      throw std::invalid_argument{"rate"};
+    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= MaxSampleRate());
 
     auto result{std::move(resampler_)};
     if (rate != MaxSampleRate()) {
@@ -729,7 +730,7 @@ private:
     std::unique_lock lk{mutex_};
 
     if (IsBusy__(lk))
-      throw Exception{Errc::kBoardIsBusy};
+      throw RuntimeException{Errc::kBoardIsBusy};
 
     const auto guard{state_guard(lk)};
 
@@ -741,7 +742,7 @@ private:
         samples_count, &errc, &done, &data, &update]
       (const SensorsData sd, const std::uint64_t errors)
     {
-      if (is_error(errc) || done)
+      if (IsError(errc) || done)
         return;
 
       try {
@@ -751,13 +752,13 @@ private:
         errc = Errc::kGeneric;
       }
 
-      if (is_error(errc) || (!done && data.DataSize() == samples_count)) {
+      if (IsError(errc) || (!done && data.DataSize() == samples_count)) {
         done = true;
         update.notify_one();
       }
     });
     if (!is_started)
-      throw Exception{Errc::kGeneric}; // FIXME: Start__() throw a more detailed error instead
+      throw RuntimeException{Errc::kGeneric}; // FIXME: Start__() throw a more detailed error instead
 
     // Await for notification from the callback.
     update.wait(lk, [&done]{ return done; });
@@ -765,8 +766,8 @@ private:
     Stop__(lk);
 
     // Throw away if the data collection failed.
-    if (is_error(errc))
-      throw Exception{errc};
+    if (IsError(errc))
+      throw RuntimeException{errc};
 
     return data;
   }

@@ -8,6 +8,7 @@
 */
 
 #include "../../src/driver.hpp"
+#include "../../src/common/error.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 
 #include <algorithm>
@@ -19,7 +20,8 @@
 #include <thread>
 
 namespace chrono = std::chrono;
-namespace drv = panda::timeswipe::driver;
+namespace ts = panda::timeswipe;
+namespace drv = ts::driver;
 
 namespace {
 
@@ -66,8 +68,8 @@ int main()
   try {
     assert(!ts.DriftDeltas());
     ts.CalculateDriftDeltas();
-  } catch (const drv::Exception& e) {
-    assert(e.condition() == drv::Errc::kNoDriftReferences);
+  } catch (const ts::RuntimeException& e) {
+    assert(e.condition() == ts::Errc::kNoDriftReferences);
   }
 
   // ---------------------------------------------------------------------------

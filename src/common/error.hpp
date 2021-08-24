@@ -19,6 +19,9 @@
 
 namespace panda::timeswipe {
 
+/// `true` if `NDEBUG` is not set.
+constexpr bool kIsDebug{dmitigr::is_debug};
+
 // -----------------------------------------------------------------------------
 // Errc
 // -----------------------------------------------------------------------------
@@ -170,7 +173,7 @@ template<> struct is_error_condition_enum<panda::timeswipe::Errc> final : true_t
 namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
-// Exception
+// BasicException
 // -----------------------------------------------------------------------------
 
 /**
@@ -181,10 +184,20 @@ namespace panda::timeswipe {
  * @tparam StdError Must be either `std::logic_error` or `std::runtime_error`.
  */
 template<class StdError>
-class BasicExceptionBase : public StdError {
+class BasicException : public StdError {
   static_assert(std::is_same_v<std::logic_error, StdError> ||
     std::is_same_v<std::runtime_error, StdError>);
 public:
+  /**
+   * The constructor of instance which represents the generic error.
+   *
+   * @param what The custom what-string. If ommitted, the value returned by
+   * `ToLiteral(errc)` will be used as a what-string.
+   */
+  BasicException(std::string what = {})
+    : BasicException{Errc::kGeneric, std::move(what)}
+  {}
+
   /**
    * The constructor.
    *
@@ -192,7 +205,7 @@ public:
    * @param what The custom what-string. If ommitted, the value returned by
    * `ToLiteral(errc)` will be used as a what-string.
    */
-  explicit BasicExceptionBase(const Errc errc, std::string what = {})
+  explicit BasicException(const Errc errc, std::string what = {})
     : StdError{what.empty() ? ToLiteralAnyway(errc) : what}
     , condition_{errc}
   {}
@@ -207,16 +220,23 @@ private:
   std::error_condition condition_;
 };
 
-/// `true` if `NDEBUG` is not set.
-constexpr bool kIsDebug{dmitigr::is_debug};
+// -----------------------------------------------------------------------------
+// ExceptionWithInfo
+// -----------------------------------------------------------------------------
 
-/// Basic exception.
+/// Exception with source info.
 template<class StdError>
-class BasicException :
-    public dmitigr::Exception_with_info<BasicExceptionBase<StdError>> {
-  using Super = dmitigr::Exception_with_info<BasicExceptionBase<StdError>>;
+class ExceptionWithInfo :
+    public dmitigr::Exception_with_info<BasicException<StdError>> {
+  using Super = dmitigr::Exception_with_info<BasicException<StdError>>;
   using Super::Super;
 };
+
+// -----------------------------------------------------------------------------
+// RuntimeException
+// -----------------------------------------------------------------------------
+
+using RuntimeException = BasicException<std::runtime_error>;
 
 } // namespace panda::timeswipe
 
@@ -225,7 +245,7 @@ class BasicException :
  * implementation details only.
  */
 #define PANDA_TIMESWIPE_CHECK_GENERIC(a, Base)                      \
-  DMITIGR_CHECK_GENERIC(a, panda::timeswipe::BasicException<Base>)
+  DMITIGR_CHECK_GENERIC(a, panda::timeswipe::ExceptionWithInfo<Base>)
 #define PANDA_TIMESWIPE_CHECK(a)                        \
   PANDA_TIMESWIPE_CHECK_GENERIC(a, std::logic_error)
 #define PANDA_TIMESWIPE_CHECK_ARG(a)                        \
@@ -240,8 +260,8 @@ class BasicException :
 // THROW macro is for runtime errors.
 #define PANDA_TIMESWIPE_THROW(errc)                                     \
   do {                                                                  \
-    using RuntimeError = panda::timeswipe::BasicException<std::runtime_error>; \
-    throw RuntimeError{__FILE__, __LINE__, errc};                       \
+    using E = panda::timeswipe::ExceptionWithInfo<std::runtime_error>;  \
+    throw E{__FILE__, __LINE__, errc};                                  \
   } while(true)
 
 #endif  // PANDA_TIMESWIPE_ERROR_HPP

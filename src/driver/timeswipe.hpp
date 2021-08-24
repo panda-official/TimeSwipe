@@ -19,7 +19,6 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 #define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 
-#include "error.hpp"
 #include "event.hpp"
 #include "sensor_data.hpp"
 
