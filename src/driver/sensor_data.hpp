@@ -48,7 +48,10 @@ public:
    *
    * @return number of data entries each sensor has
    */
-  std::size_t DataSize() const noexcept;
+  std::size_t DataSize() const noexcept
+  {
+    return !data_.empty() ? data_[0].size() : 0;
+  }
 
   /**
    * \brief Access sensor data
@@ -57,7 +60,10 @@ public:
    *
    * @return number of data entries each sensor has
    */
-  std::vector<float>& operator[](std::size_t num) noexcept;
+  std::vector<float>& operator[](const std::size_t num) noexcept
+  {
+    return data_[num];
+  }
 
   /// @overload
   const Value& operator[](const std::size_t index) const noexcept
@@ -65,15 +71,61 @@ public:
     return data_[index];
   }
 
-  CONTAINER& data();
-  void reserve(std::size_t num);
-  void resize(std::size_t new_size);
-  void clear() noexcept;
-  bool empty() const noexcept;
-  void append(const SensorsData& other);
-  void append(const SensorsData& other, std::size_t count);
-  void erase_front(std::size_t count) noexcept;
-  void erase_back(std::size_t count) noexcept;
+  CONTAINER& data()
+  {
+    return data_;
+  }
+
+  void reserve(const std::size_t num)
+  {
+    for (std::size_t i = 0; i < SENSORS; i++)
+      data_[i].reserve(num);
+  }
+
+  void resize(const std::size_t new_size)
+  {
+    for (std::size_t i = 0; i < SENSORS; i++)
+      data_[i].resize(new_size);
+  }
+
+  void clear() noexcept
+  {
+    for (std::size_t i = 0; i < SENSORS; i++)
+      data_[i].clear();
+  }
+
+  bool empty() const noexcept
+  {
+    return DataSize() == 0;
+  }
+
+  void append(const SensorsData& other)
+  {
+    append(other, other.DataSize());
+  }
+
+  void append(const SensorsData& other, const std::size_t count)
+  {
+    for (std::size_t i = 0; i < SENSORS; ++i) {
+      const auto in_size = std::min<std::size_t>(other.data_[i].size(), count);
+      const auto out_offset = data_[i].size();
+      data_[i].resize(data_[i].size() + in_size);
+      const auto b = other.data_[i].begin();
+      std::copy(b, b + in_size, data_[i].begin() + out_offset);
+    }
+  }
+
+  void erase_front(const std::size_t count) noexcept
+  {
+    for (std::size_t i = 0; i < SENSORS; i++)
+      data_[i].erase(data_[i].begin(), data_[i].begin() + count);
+  }
+
+  void erase_back(const std::size_t count) noexcept
+  {
+    for (std::size_t i = 0; i < SENSORS; i++)
+      data_[i].resize(data_[i].size() - count);
+  }
 
   /// @name Iterators
   /// @{
