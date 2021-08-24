@@ -303,14 +303,14 @@ public:
 
   std::list<TimeSwipeEvent> GetEvents()
   {
-    std::list<TimeSwipeEvent> events;
+    std::list<TimeSwipeEvent> result;
     const std::lock_guard<std::mutex> lock{mutex_};
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::string data;
     if (getEvents(data) && !data.empty()) {
       if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
-      if (data.empty()) return events;
+      if (data.empty()) return result;
 
       try {
         auto j = nlohmann::json::parse(data);
@@ -318,38 +318,38 @@ public:
         if (it_btn != j.end() && it_btn->is_boolean()) {
           auto it_cnt = j.find("ButtonStateCnt");
           if (it_cnt != j.end() && it_cnt->is_number()) {
-            events.push_back(TimeSwipeEvent::Button(it_btn->get<bool>(), it_cnt->get<int>()));
+            result.push_back(TimeSwipeEvent::Button(it_btn->get<bool>(), it_cnt->get<int>()));
           }
         }
 
         auto it = j.find("Gain");
         if (it != j.end() && it->is_number()) {
-          events.push_back(TimeSwipeEvent::Gain(it->get<int>()));
+          result.push_back(TimeSwipeEvent::Gain(it->get<int>()));
         }
 
         it = j.find("SetSecondary");
         if (it != j.end() && it->is_number()) {
-          events.push_back(TimeSwipeEvent::SetSecondary(it->get<int>()));
+          result.push_back(TimeSwipeEvent::SetSecondary(it->get<int>()));
         }
 
         it = j.find("Bridge");
         if (it != j.end() && it->is_number()) {
-          events.push_back(TimeSwipeEvent::Bridge(it->get<int>()));
+          result.push_back(TimeSwipeEvent::Bridge(it->get<int>()));
         }
 
         it = j.find("Record");
         if (it != j.end() && it->is_number()) {
-          events.push_back(TimeSwipeEvent::Record(it->get<int>()));
+          result.push_back(TimeSwipeEvent::Record(it->get<int>()));
         }
 
         it = j.find("Offset");
         if (it != j.end() && it->is_number()) {
-          events.push_back(TimeSwipeEvent::Offset(it->get<int>()));
+          result.push_back(TimeSwipeEvent::Offset(it->get<int>()));
         }
 
         it = j.find("Mode");
         if (it != j.end() && it->is_number()) {
-          events.push_back(TimeSwipeEvent::Mode(it->get<int>()));
+          result.push_back(TimeSwipeEvent::Mode(it->get<int>()));
         }
       }
       catch (nlohmann::json::parse_error& e)
@@ -359,7 +359,7 @@ public:
         }
     }
 #endif
-    return events;
+    return result;
   }
 
   std::string GetSettings(const std::string& request, std::string& error)
