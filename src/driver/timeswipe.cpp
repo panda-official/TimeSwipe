@@ -917,7 +917,7 @@ bool TimeSwipe::GetPWM(std::uint8_t num, bool& active,
 
 void TimeSwipe::TraceSPI(const bool value)
 {
-  Board::Instance()->SetTraceSPI(value);
+  Board::Instance()->SetTraceSpi(value);
 }
 
 bool TimeSwipe::SetChannelMode(Channel nCh, ChannelMesMode nMode)

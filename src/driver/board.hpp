@@ -291,23 +291,18 @@ public:
 
   // ===========================================================================
 
-  void SetTraceSPI(const bool value)
-  {
-    trace_spi_ = value;
-  }
-
   void SetMode(const int num)
   {
-    sendSetCommand("Mode", std::to_string(num));
+    spi_.sendSetCommand("Mode", std::to_string(num));
     std::string answer;
-    receiveAnswer(answer);
+    spi_.receiveAnswer(answer);
   }
 
   void SetEnableADmes(const bool value)
   {
-    sendSetCommand("EnableADmes", std::to_string(value));
+    spi_.sendSetCommand("EnableADmes", std::to_string(value));
     std::string answer;
-    receiveAnswer(answer);
+    spi_.receiveAnswer(answer);
   }
 
   std::list<TimeSwipeEvent> GetEvents()
@@ -373,13 +368,13 @@ public:
 
   std::string GetSettings(const std::string& request, std::string& error)
   {
-    std::lock_guard<std::mutex> lock(mutex_);
+    const std::lock_guard<std::mutex> lock{mutex_};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
-    sendGetSettingsCommand(request);
+    spi_.sendGetSettingsCommand(request);
     std::string answer;
-    if (!receiveAnswer(answer, error))
+    if (!spi_.receiveAnswer(answer, error))
       error = "read SPI failed";
     return answer;
 #endif
@@ -387,13 +382,13 @@ public:
 
   std::string SetSettings(const std::string& request, std::string& error)
   {
-    std::lock_guard<std::mutex> lock(mutex_);
+    const std::lock_guard<std::mutex> lock{mutex_};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
-    sendSetSettingsCommand(request);
+    spi_.sendSetSettingsCommand(request);
     std::string answer;
-    if (!receiveAnswer(answer, error))
+    if (!spi_.receiveAnswer(answer, error))
       error = "read SPI failed";
     return answer;
 #endif
@@ -406,7 +401,7 @@ public:
     const std::uint32_t high, const std::uint32_t low, const std::uint32_t repeats,
     const float duty_cycle)
   {
-    std::lock_guard<std::mutex> lock(mutex_);
+    const std::lock_guard<std::mutex> lock{mutex_};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
@@ -446,7 +441,7 @@ public:
       receiveStripAnswer(answer);
       if (answer == "0") return false; // Already stopped
     */
-    return sendSetCommandCheck(pwm, 0);
+    return spi_.sendSetCommandCheck(pwm, 0);
 #endif
   }
 
@@ -478,11 +473,16 @@ public:
 
   bool SetDAC(bool value)
   {
-    sendSetCommand("DACsw", value ? "1" : "0");
+    spi_.sendSetCommand("DACsw", value ? "1" : "0");
     std::string answer;
-    if (!receiveStripAnswer(answer))
+    if (!spi_.receiveStripAnswer(answer))
       return false;
     return answer == (value ? "1" : "0");
+  }
+
+  void SetTraceSpi(const bool value)
+  {
+    spi_.SetTrace(value);
   }
 
   /**
@@ -491,77 +491,76 @@ public:
   bool SetOUT(std::uint8_t num, int val)
   {
     std::string var = std::string("AOUT") + (num ? "4" : "3") + ".raw";
-    sendSetCommand(var, std::to_string(val));
+    spi_.sendSetCommand(var, std::to_string(val));
     std::string answer;
-    if (!receiveStripAnswer(answer)) return false;
+    if (!spi_.receiveStripAnswer(answer)) return false;
     return answer == std::to_string(val);
   }
 
   bool setChannelMode(unsigned int num, int nMode)
   {
-    sendSetCommand(makeChCmd(num, "mode"), std::to_string(nMode));
+    spi_.sendSetCommand(BcmSpi::makeChCmd(num, "mode"), std::to_string(nMode));
     std::string answer;
-    if (!receiveStripAnswer(answer)) return false;
+    if (!spi_.receiveStripAnswer(answer)) return false;
     return answer == std::to_string(nMode);
   }
 
   bool getChannelMode(unsigned int num, int &nMode, std::string& error)
   {
-    sendGetCommand(makeChCmd(num, "mode"));
+    spi_.sendGetCommand(BcmSpi::makeChCmd(num, "mode"));
     std::string answer;
-    if (!receiveAnswer(answer, error)) {
-      nMode=0;
+    if (!spi_.receiveAnswer(answer, error)) {
+      nMode = 0;
       return false;
     }
-    nMode=std::stoi(answer);
+    nMode = std::stoi(answer);
     return true;
 
   }
 
   bool setChannelGain(unsigned int num, float Gain)
   {
-    sendSetCommand(makeChCmd(num, "gain"), std::to_string(Gain));
+    spi_.sendSetCommand(BcmSpi::makeChCmd(num, "gain"), std::to_string(Gain));
     std::string answer;
-    if (!receiveStripAnswer(answer)) return false;
+    if (!spi_.receiveStripAnswer(answer)) return false;
     return true;
   }
 
   bool getChannelGain(unsigned int num, float &Gain, std::string& error)
   {
-    sendGetCommand(makeChCmd(num, "gain"));
+    spi_.sendGetCommand(BcmSpi::makeChCmd(num, "gain"));
     std::string answer;
-    if (!receiveAnswer(answer, error)) {
-      Gain=0;
+    if (!spi_.receiveAnswer(answer, error)) {
+      Gain = 0;
       return false;
     }
-    Gain=std::stof(answer);
+    Gain = std::stof(answer);
     return true;
 
   }
 
   bool setChannelIEPE(unsigned int num, bool bIEPE)
   {
-    sendSetCommand(makeChCmd(num, "iepe"), std::to_string(bIEPE));
+    spi_.sendSetCommand(BcmSpi::makeChCmd(num, "iepe"), std::to_string(bIEPE));
     std::string answer;
-    if (!receiveStripAnswer(answer)) return false;
+    if (!spi_.receiveStripAnswer(answer)) return false;
     return true;
   }
 
   bool getChannelIEPE(unsigned int num, bool &bIEPE, std::string& error)
   {
-    sendGetCommand(makeChCmd(num, "iepe"));
+    spi_.sendGetCommand(BcmSpi::makeChCmd(num, "iepe"));
     std::string answer;
-    if (!receiveAnswer(answer, error)) {
-      bIEPE=0;
+    if (!spi_.receiveAnswer(answer, error)) {
+      bIEPE = 0;
       return false;
     }
-    bIEPE=std::stoi(answer);
+    bIEPE = std::stoi(answer);
     return true;
   }
 
 private:
   BcmSpi spi_;
-  std::atomic_bool trace_spi_;
   std::atomic_bool is_board_inited_;
   std::atomic_bool is_measurement_started_;
   std::mutex mutex_;
@@ -592,112 +591,14 @@ private:
     : spi_{BcmSpi::SpiPins::kSpi0}
   {}
 
-  static void stripAnswer(std::string& str) noexcept
-  {
-    if (!str.empty() && str.back() == '\n')
-      str.pop_back();
-  }
-
-  std::string makeChCmd(const unsigned num, const char* const pSubDomain)
-  {
-    return std::string{"CH"}.append(std::to_string(num + 1))
-      .append(".").append(pSubDomain);
-  }
-
-  void sendCommand(const std::string& cmd)
-  {
-    CFIFO command;
-    command += cmd;
-    spi_.send(command);
-    if (trace_spi_)
-      std::clog << "spi: sent: \"" << command << "\"" << std::endl;
-  }
-
-  bool receiveAnswer(std::string& ans)
-  {
-    CFIFO answer;
-    if (spi_.receive(answer)) {
-      ans = answer;
-      if (trace_spi_)
-        std::clog << "spi: received: \"" << ans << "\"" << std::endl;
-      return true;
-    }
-    if (trace_spi_)
-      std::cerr << "spi: receive failed" << std::endl;
-    return false;
-  }
-
-  bool receiveAnswer(std::string& ans, std::string& error)
-  {
-    const auto ret = receiveAnswer(ans);
-    if (ret && !ans.empty() && ans[0] == '!') {
-      error = ans;
-      ans.clear();
-      return false;
-    }
-    return ret;
-  }
-
-  bool receiveStripAnswer(std::string& ans, std::string& error)
-  {
-    if (!receiveAnswer(ans, error))
-      return false;
-    stripAnswer(ans);
-    return true;
-  }
-
-  bool receiveStripAnswer(std::string& ans)
-  {
-    std::string error;
-    return receiveStripAnswer(ans, error);
-  }
-
-  void sendSetCommand(const std::string& variable, const std::string& value)
-  {
-    sendCommand(variable + "<" + value + "\n");
-  }
-
-  template <class Number>
-  bool sendSetCommandCheck(const std::string& variable, const Number value) {
-    sendSetCommand(variable, std::to_string(value));
-    // // FIXME: if sleep disable and trace_spi_=false spi_.receive fails sometimes
-    // std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-    std::string answer;
-    receiveStripAnswer(answer);
-    Number num{};
-    std::istringstream s{answer};
-    s >> num;
-    return num == value;
-  }
-
-  void sendGetCommand(const std::string& variable)
-  {
-    sendCommand(variable + ">\n");
-  }
-
-  void sendEventsCommand()
-  {
-    sendCommand("je>\n");
-  }
-
-  void sendSetSettingsCommand(const std::string& request)
-  {
-    sendCommand("js<" + request + "\n");
-  }
-
-  void sendGetSettingsCommand(const std::string& request)
-  {
-    sendCommand("js>" + request + "\n");
-  }
-
   // ---------------------------------------------------------------------------
   // Events
   // ---------------------------------------------------------------------------
 
   bool getEvents(std::string& ev)
   {
-    sendEventsCommand();
-    return receiveAnswer(ev);
+    spi_.sendEventsCommand();
+    return spi_.receiveAnswer(ev);
   }
 
   // ---------------------------------------------------------------------------

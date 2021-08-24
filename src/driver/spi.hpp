@@ -23,6 +23,7 @@
 #include "../common/SyncCom.h"
 #include "../3rdparty/BCMsrc/bcm2835.h"
 
+#include <atomic>
 #include <cstdint>
 #include <iostream>
 
@@ -79,6 +80,10 @@ public:
     return com_cntr_.get_state();
   }
 
+  // ---------------------------------------------------------------------------
+  // Communication
+  // ---------------------------------------------------------------------------
+
   bool send(CFIFO& msg) override
   {
     if (!IsInitialized())
@@ -127,23 +132,94 @@ public:
     return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
 
+  static std::string makeChCmd(const unsigned num, const char* const pSubDomain)
+  {
+    return std::string{"CH"}.append(std::to_string(num + 1))
+      .append(".").append(pSubDomain);
+  }
+
+  void sendSetCommand(const std::string& variable, const std::string& value)
+  {
+    sendCommand(variable + "<" + value + "\n");
+  }
+
+  void sendGetCommand(const std::string& variable)
+  {
+    sendCommand(variable + ">\n");
+  }
+
+  bool receiveAnswer(std::string& ans)
+  {
+    CFIFO answer;
+    if (receive(answer)) {
+      ans = answer;
+      if (trace_spi_)
+        std::clog << "spi: received: \"" << ans << "\"" << std::endl;
+      return true;
+    }
+    if (trace_spi_)
+      std::cerr << "spi: receive failed" << std::endl;
+    return false;
+  }
+
+  bool receiveAnswer(std::string& ans, std::string& error)
+  {
+    const auto ret = receiveAnswer(ans);
+    if (ret && !ans.empty() && ans[0] == '!') {
+      error = ans;
+      ans.clear();
+      return false;
+    }
+    return ret;
+  }
+
+  bool receiveStripAnswer(std::string& ans)
+  {
+    std::string error;
+    return receiveStripAnswer(ans, error);
+  }
+
+  void sendSetSettingsCommand(const std::string& request)
+  {
+    sendCommand("js<" + request + "\n");
+  }
+
+  void sendGetSettingsCommand(const std::string& request)
+  {
+    sendCommand("js>" + request + "\n");
+  }
+
+  void sendEventsCommand()
+  {
+    sendCommand("je>\n");
+  }
+
+  template <class Number>
+  bool sendSetCommandCheck(const std::string& variable, const Number value) {
+    sendSetCommand(variable, std::to_string(value));
+    // // FIXME: if sleep disable and trace_spi_=false receive() fails sometimes
+    // std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    std::string answer;
+    receiveStripAnswer(answer);
+    Number num{};
+    std::istringstream s{answer};
+    s >> num;
+    return num == value;
+  }
+
+  void SetTrace(const bool value)
+  {
+    trace_spi_ = value;
+  }
+
 private:
   inline static bool is_initialized_;
   inline static bool is_spi_initialized_[2];
 
+  std::atomic_bool trace_spi_{};
   CSyncSerComFSM com_cntr_;
   SpiPins pins_;
   CFIFO rec_fifo_;
-
-  bool send(Character /*ch*/)
-  {
-    return false;
-  }
-
-  bool receive(Character& /*ch*/)
-  {
-    return false;
-  }
 
   void set_phpol(bool /*bPhase*/, bool /*bPol*/) override
   {}
@@ -195,6 +271,29 @@ private:
       bcm2835_spi_set_speed_hz(speed_hz);
     else
       bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
+  }
+
+  // ===========================================================================
+
+  void sendCommand(const std::string& cmd)
+  {
+    CFIFO command;
+    command += cmd;
+    send(command);
+    if (trace_spi_)
+      std::clog << "spi: sent: \"" << command << "\"" << std::endl;
+  }
+
+  bool receiveStripAnswer(std::string& ans, std::string& error)
+  {
+    if (!receiveAnswer(ans, error))
+      return false;
+
+    // Strip.
+    if (!ans.empty() && ans.back() == '\n')
+      ans.pop_back();
+
+    return true;
   }
 };
 
