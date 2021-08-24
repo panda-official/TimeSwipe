@@ -184,10 +184,6 @@ public:
     read_skip_count_ = kInitialInvalidDataSetsCount;
   }
 
-  // ---------------------------------------------------------------------------
-  // Sensor Data Read
-  // ---------------------------------------------------------------------------
-
   // read records from hardware buffer
   SensorsData ReadSensorData()
   {
@@ -452,7 +448,7 @@ public:
     std::uint32_t& high, std::uint32_t& low, std::uint32_t& repeats,
     float& duty_cycle)
   {
-    std::lock_guard<std::mutex> lock(mutex_);
+    const std::lock_guard<std::mutex> lock{mutex_};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
@@ -497,7 +493,7 @@ public:
     return answer == std::to_string(val);
   }
 
-  bool setChannelMode(unsigned int num, int nMode)
+  bool SetChannelMode(unsigned int num, int nMode)
   {
     spi_.sendSetCommand(BcmSpi::makeChCmd(num, "mode"), std::to_string(nMode));
     std::string answer;
@@ -505,7 +501,7 @@ public:
     return answer == std::to_string(nMode);
   }
 
-  bool getChannelMode(unsigned int num, int &nMode, std::string& error)
+  bool GetChannelMode(unsigned int num, int &nMode, std::string& error)
   {
     spi_.sendGetCommand(BcmSpi::makeChCmd(num, "mode"));
     std::string answer;
@@ -518,7 +514,7 @@ public:
 
   }
 
-  bool setChannelGain(unsigned int num, float Gain)
+  bool SetChannelGain(unsigned int num, float Gain)
   {
     spi_.sendSetCommand(BcmSpi::makeChCmd(num, "gain"), std::to_string(Gain));
     std::string answer;
@@ -526,7 +522,7 @@ public:
     return true;
   }
 
-  bool getChannelGain(unsigned int num, float &Gain, std::string& error)
+  bool GetChannelGain(unsigned int num, float &Gain, std::string& error)
   {
     spi_.sendGetCommand(BcmSpi::makeChCmd(num, "gain"));
     std::string answer;
@@ -539,7 +535,7 @@ public:
 
   }
 
-  bool setChannelIEPE(unsigned int num, bool bIEPE)
+  bool SetChannelIEPE(unsigned int num, bool bIEPE)
   {
     spi_.sendSetCommand(BcmSpi::makeChCmd(num, "iepe"), std::to_string(bIEPE));
     std::string answer;
@@ -547,7 +543,7 @@ public:
     return true;
   }
 
-  bool getChannelIEPE(unsigned int num, bool &bIEPE, std::string& error)
+  bool GetChannelIEPE(unsigned int num, bool &bIEPE, std::string& error)
   {
     spi_.sendGetCommand(BcmSpi::makeChCmd(num, "iepe"));
     std::string answer;
