@@ -303,11 +303,17 @@ public:
 
   std::list<TimeSwipeEvent> GetEvents()
   {
+    const auto get_events = [this](std::string& ev)
+    {
+      spi_.sendEventsCommand();
+      return spi_.receiveAnswer(ev);
+    };
+
     std::list<TimeSwipeEvent> result;
     const std::lock_guard<std::mutex> lock{mutex_};
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::string data;
-    if (getEvents(data) && !data.empty()) {
+    if (get_events(data) && !data.empty()) {
       if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
       if (data.empty()) return result;
@@ -586,16 +592,6 @@ private:
   Board()
     : spi_{BcmSpi::SpiPins::kSpi0}
   {}
-
-  // ---------------------------------------------------------------------------
-  // Events
-  // ---------------------------------------------------------------------------
-
-  bool getEvents(std::string& ev)
-  {
-    spi_.sendEventsCommand();
-    return spi_.receiveAnswer(ev);
-  }
 
   // ---------------------------------------------------------------------------
   // GPIO
