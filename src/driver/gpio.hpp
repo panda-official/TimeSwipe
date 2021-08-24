@@ -41,7 +41,7 @@
 namespace panda::timeswipe::driver::detail {
 
 // I/O access
-volatile unsigned int* gpio;
+volatile unsigned int* bcm_gpio;
 
 /// Init memory to access GPIO.
 inline void setup_io() noexcept
@@ -105,7 +105,7 @@ inline void setup_io() noexcept
   }
 
   // Always use volatile pointer!
-  gpio = (volatile unsigned int *)gpio_map;
+  bcm_gpio = (volatile unsigned int *)gpio_map;
 }
 
 } // namespace panda::timeswipe::driver::detail
@@ -154,17 +154,17 @@ inline void setup_io() noexcept
  * PANDA_TIMESWIPE_OUT_GPIO(x) or PANDA_TIMESWIPE_SET_GPIO_ALT(x,y).
  */
 
-#define PANDA_TIMESWIPE_INP_GPIO(g) *(panda::timeswipe::driver::detail::gpio+((g)/10)) &= ~(7<<(((g)%10)*3))
-#define PANDA_TIMESWIPE_OUT_GPIO(g) *(panda::timeswipe::driver::detail::gpio+((g)/10)) |=  (1<<(((g)%10)*3))
-#define PANDA_TIMESWIPE_SET_GPIO_ALT(g,a) *(panda::timeswipe::driver::detail::gpio+(((g)/10))) |= (((a)<=3?(a)+4:(a)==4?3:2)<<(((g)%10)*3))
+#define PANDA_TIMESWIPE_INP_GPIO(g) *(panda::timeswipe::driver::detail::bcm_gpio+((g)/10)) &= ~(7<<(((g)%10)*3))
+#define PANDA_TIMESWIPE_OUT_GPIO(g) *(panda::timeswipe::driver::detail::bcm_gpio+((g)/10)) |=  (1<<(((g)%10)*3))
+#define PANDA_TIMESWIPE_SET_GPIO_ALT(g,a) *(panda::timeswipe::driver::detail::bcm_gpio+(((g)/10))) |= (((a)<=3?(a)+4:(a)==4?3:2)<<(((g)%10)*3))
 
-#define PANDA_TIMESWIPE_GPIO_SET *(panda::timeswipe::driver::detail::gpio+7)  // sets bits which are 1, ignores bits which are 0
-#define PANDA_TIMESWIPE_GPIO_CLR *(panda::timeswipe::driver::detail::gpio+10) // clears bits which are 1, ignores bits which are 0
+#define PANDA_TIMESWIPE_GPIO_SET *(panda::timeswipe::driver::detail::bcm_gpio+7)  // sets bits which are 1, ignores bits which are 0
+#define PANDA_TIMESWIPE_GPIO_CLR *(panda::timeswipe::driver::detail::bcm_gpio+10) // clears bits which are 1, ignores bits which are 0
 
-#define PANDA_TIMESWIPE_GET_GPIO(g) (*(panda::timeswipe::driver::detail::gpio+13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
+#define PANDA_TIMESWIPE_GET_GPIO(g) (*(panda::timeswipe::driver::detail::bcm_gpio+13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
 
-#define PANDA_TIMESWIPE_GPIO_PULL *(panda::timeswipe::driver::detail::gpio+37) // Pull up/pull down
-#define PANDA_TIMESWIPE_GPIO_PULLCLK0 *(panda::timeswipe::driver::detail::gpio+38) // Pull up/pull down clock
+#define PANDA_TIMESWIPE_GPIO_PULL *(panda::timeswipe::driver::detail::bcm_gpio+37) // Pull up/pull down
+#define PANDA_TIMESWIPE_GPIO_PULLCLK0 *(panda::timeswipe::driver::detail::bcm_gpio+38) // Pull up/pull down clock
 
 using panda::timeswipe::driver::detail::setup_io; // REMOVE ME
 

@@ -675,7 +675,7 @@ private:
 
   static unsigned readAllGPIO()
   {
-    return (*(panda::timeswipe::driver::detail::gpio + 13) & ALL_32_BITS_ON);
+    return (*(panda::timeswipe::driver::detail::bcm_gpio + 13) & ALL_32_BITS_ON);
   }
 
   static void sleep55ns()
