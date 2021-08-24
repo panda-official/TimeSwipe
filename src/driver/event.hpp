@@ -20,6 +20,8 @@
 #define PANDA_TIMESWIPE_DRIVER_EVENT_HPP
 
 #include <memory>
+#include <type_traits>
+#include <variant>
 
 /// Timeswipe event
 class TimeSwipeEvent final {
@@ -28,16 +30,25 @@ public:
   class Button final {
   public:
     /// The default constructor.
-    Button() = default;
+    Button() noexcept = default;
 
     /// The constructor.
-    Button(bool pressed, int count);
+    Button(const bool pressed, const int count)
+      : pressed_{pressed}
+      , count_{count}
+    {}
 
     /// @returns `true` when pressed, or `false` if released.
-    bool pressed() const;
+    bool pressed() const
+    {
+      return pressed_;
+    }
 
     /// @returns Pressed (odd value) or released (even value) count.
-    int count() const;
+    int count() const
+    {
+      return count_;
+    }
 
   private:
     bool pressed_{};
@@ -48,13 +59,18 @@ public:
   class Gain final {
   public:
     /// The default constructor.
-    Gain() = default;
+    Gain() noexcept = default;
 
     /// The constructor.
-    explicit Gain(int value);
+    explicit Gain(const int value)
+      : value_{value}
+    {}
 
     /// @returns Gain value as number.
-    int value() const;
+    int value() const
+    {
+      return value_;
+    }
 
   private:
     int value_{};
@@ -64,13 +80,18 @@ public:
   class SetSecondary {
   public:
     /// The default constructor.
-    SetSecondary() = default;
+    SetSecondary() noexcept = default;
 
     /// The constructor.
-    explicit SetSecondary(int value);
+    explicit SetSecondary(const int value)
+      : value_{value}
+    {}
 
     /// @returns SetSecondary value as number.
-    int value() const;
+    int value() const
+    {
+      return value_;
+    }
 
   private:
     int value_{};
@@ -80,13 +101,19 @@ public:
   class Bridge {
   public:
     /// The default constructor.
-    Bridge() = default;
+    Bridge() noexcept = default;
 
     /// The constructor.
-    Bridge(int value);
+    Bridge(const int value)
+      : value_{value}
+    {}
 
     /// @returns Bridge value as number.
-    int value() const;
+    int value() const
+    {
+      return value_;
+    }
+
   private:
     int value_{};
   };
@@ -95,13 +122,18 @@ public:
   class Record {
   public:
     /// The default constructor.
-    Record() = default;
+    Record() noexcept = default;
 
     /// The constructor.
-    explicit Record(int value);
+    explicit Record(const int value)
+      : value_{value}
+    {}
 
     /// @returns Record value as number.
-    int value() const;
+    int value() const
+    {
+      return value_;
+    }
 
   private:
     int value_{};
@@ -111,13 +143,18 @@ public:
   class Offset {
   public:
     /// The default constructor.
-    Offset() = default;
+    Offset() noexcept = default;
 
     /// The constructor.
-    explicit Offset(int value);
+    explicit Offset(const int value)
+      : value_{value}
+    {}
 
     /// @returns Offset value as number.
-    int value() const;
+    int value() const
+    {
+      return value_;
+    }
 
   private:
     int value_{};
@@ -127,38 +164,53 @@ public:
   class Mode {
   public:
     /// The default constructor.
-    Mode() = default;
+    Mode() noexcept = default;
 
     /// The constructor.
-    Mode(int value);
+    Mode(const int value)
+      : value_(value)
+    {}
 
     /// @returns Mode value as number.
-    int value() const;
+    int value() const
+    {
+      return value_;
+    }
 
   private:
     int value_{};
   };
 
-  /// The destructor.
-  ~TimeSwipeEvent();
-
   /// The default constructor.
-  TimeSwipeEvent();
+  TimeSwipeEvent() noexcept = default;
 
   /// The constructor.
-  template <class EVENT>
-  TimeSwipeEvent(EVENT ev);
+  template <class E>
+  TimeSwipeEvent(E&& e)
+    : event_{std::move(e)}
+  {}
 
   /**
    * @returns The pointer to the event, or `nullptr` if this event is not
-   * the event of type `EVENT`.
+   * the event of type `Event`.
    */
-  template <class EVENT>
-  const EVENT* Get() const noexcept;
+  template <class Event>
+  const Event* Get() const noexcept
+  {
+    return std::visit([](const auto& event)
+    {
+      using E = std::decay_t<decltype(event)>;
+      const Event* const null{};
+      (void)null;
+      if constexpr (std::is_same_v<E, Event>)
+        return &event;
+      else
+        return null;
+    }, event_);
+  }
 
 private:
-  struct Rep;
-  std::shared_ptr<Rep> rep_;
+  std::variant<Button, Gain, SetSecondary, Bridge, Record, Offset, Mode> event_;
 };
 
 #endif  // PANDA_TIMESWIPE_DRIVER_EVENT_HPP

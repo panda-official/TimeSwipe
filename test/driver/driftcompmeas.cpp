@@ -50,6 +50,7 @@ void measure(TimeSwipe& ts, const std::chrono::milliseconds dur)
   });
   std::this_thread::sleep_for(dur);
   const auto stopped = ts.Stop();
+  (void)stopped;
   assert(stopped);
 
   // Print the results
