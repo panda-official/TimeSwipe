@@ -386,7 +386,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # ----------------
 
   set(timeswipe_src
-    src/driver/gpio.cpp
     src/driver/timeswipe.cpp
 
     # BCM
