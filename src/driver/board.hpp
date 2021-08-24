@@ -589,7 +589,7 @@ private:
   inline static Board* instance_;
 
   Board()
-    : spi_{BcmLib::SpiPins::kSpi0}
+    : spi_{BcmSpi::SpiPins::kSpi0}
   {}
 
   static void stripAnswer(std::string& str) noexcept

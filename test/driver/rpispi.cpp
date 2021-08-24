@@ -95,7 +95,7 @@ int main ( int argc, char *argv[] )
     if ( bMasterMode )
     {
 
-        BcmSpi spi ( nSPI ? BcmLib::SpiPins::kAux : BcmLib::SpiPins::kSpi0 );
+        BcmSpi spi ( nSPI ? BcmSpi::SpiPins::kAux : BcmSpi::SpiPins::kSpi0 );
 
         if (!spi.IsInitialized())
         {

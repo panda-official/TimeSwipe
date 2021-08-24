@@ -19,17 +19,49 @@
 #ifndef PANDA_TIMESWIPE_SPI_HPP
 #define PANDA_TIMESWIPE_SPI_HPP
 
-#include "bcm.hpp"
 #include "../common/SPI.h"
+#include "../common/SyncCom.h"
+#include "../3rdparty/BCMsrc/bcm2835.h"
 
+#include <cstdint>
 #include <iostream>
 
-class BcmSpi final : public CSPI, public BcmLib {
+class BcmSpi final : public CSPI {
 public:
-  BcmSpi(const BcmLib::SpiPins pins = BcmLib::SpiPins::kSpi0)
+  enum SpiPins {
+    kSpi0,
+    kAux
+  };
+
+  ~BcmSpi()
   {
-    spi_ = pins;
-    if (!InitSpi(pins))
+    if (is_spi_initialized_[SpiPins::kAux])
+      bcm2835_aux_spi_end();
+
+    if (is_spi_initialized_[SpiPins::kSpi0])
+      bcm2835_spi_end();
+
+    if (is_initialized_)
+      bcm2835_close();
+  }
+
+  BcmSpi(const SpiPins pins = SpiPins::kSpi0)
+    : pins_{pins}
+  {
+    // FIXME: throw exceptions on errors instead of just return.
+
+    /// Initialize BCM.
+    if (is_initialized_)
+      return;
+    else if (!bcm2835_init())
+      return;
+    is_initialized_ = true;
+
+    /// Initialize SPI.
+    if (is_spi_initialized_[pins_])
+      return;
+    else if ( !(is_spi_initialized_[pins_] =
+        (pins_ == SpiPins::kSpi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
       return;
 
     //set default rate:
@@ -39,7 +71,7 @@ public:
 
   bool IsInitialized() const noexcept
   {
-    return is_spi_initialized_[spi_];
+    return is_spi_initialized_[pins_];
   }
 
   CSyncSerComFSM::FSM GetFsmState() const noexcept
@@ -96,8 +128,11 @@ public:
   }
 
 private:
+  inline static bool is_initialized_;
+  inline static bool is_spi_initialized_[2];
+
   CSyncSerComFSM com_cntr_;
-  BcmLib::SpiPins spi_;
+  SpiPins pins_;
   CFIFO rec_fifo_;
 
   bool send(Character /*ch*/)
@@ -122,27 +157,44 @@ private:
 
   Character SpiTransfer(const Character ch)
   {
-    return BcmLib::SpiTransfer(spi_, ch);
+    if (pins_ != SpiPins::kSpi0) {
+      char t = ch;
+      char r{};
+      _bcm_aux_spi_transfernb(&t, &r, 1, 1);
+      return r;
+    } else {
+      _bcm_spi_send_char(ch);
+      return _bcm_spi_rec_char();
+    }
   }
 
   void SpiPurge()
   {
-    BcmLib::SpiPurge(spi_);
+    if (pins_ == SpiPins::kSpi0)
+      _bcm_spi_purge();
   }
 
   void SpiSetCs(const bool how)
   {
-    BcmLib::SpiSetCs(spi_, how);
+    if (pins_ != SpiPins::kSpi0) {
+      char t{};
+      char r;
+      _bcm_aux_spi_transfernb(&t, &r, 1, how);
+    } else
+      _bsm_spi_cs(how);
   }
 
   void SpiWaitDone()
   {
-    BcmLib::SpiWaitDone(spi_);
+    if (pins_ == SpiPins::kSpi0) while (!_bsm_spi_is_done()){}
   }
 
   void SpiSetSpeed(const std::uint32_t speed_hz)
   {
-    BcmLib::SpiSetSpeed(spi_, speed_hz);
+    if (pins_ == SpiPins::kSpi0)
+      bcm2835_spi_set_speed_hz(speed_hz);
+    else
+      bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
   }
 };
 
