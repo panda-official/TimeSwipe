@@ -146,7 +146,7 @@ public:
     return is_board_inited_;
   }
 
-  bool Start(TimeSwipe::ReadCallback callback)
+  bool Start(ReadCallback callback)
   {
     const std::unique_lock lk{global_mutex};
     return Start__(lk, std::move(callback));
@@ -158,7 +158,7 @@ public:
     return IsBusy__(lk);
   }
 
-  bool OnEvent(TimeSwipe::OnEventCallback cb)
+  bool OnEvent(OnEventCallback cb)
   {
     if (isStarted())
       return false;
@@ -166,7 +166,7 @@ public:
     return true;
   }
 
-  bool OnError(TimeSwipe::OnErrorCallback cb)
+  bool OnError(OnErrorCallback cb)
   {
     if (isStarted())
       return false;
@@ -497,7 +497,7 @@ private:
   // Next buffer must be enough to keep records for 1 s
   constexpr static unsigned queue_size_{kMaxSampleRate_/kMinSampleRate_*2};
   boost::lockfree::spsc_queue<SensorsData, boost::lockfree::capacity<queue_size_>> record_queue_;
-  std::atomic_uint64_t record_error_count_{0};
+  std::atomic_uint64_t record_error_count_{};
   std::size_t burst_size_{};
   SensorsData burst_buffer_;
 
@@ -511,8 +511,8 @@ private:
   // Callbacks data
   // ---------------------------------------------------------------------------
 
-  TimeSwipe::OnEventCallback on_event_cb_;
-  TimeSwipe::OnErrorCallback on_error_cb_;
+  OnEventCallback on_event_cb_;
+  OnErrorCallback on_error_cb_;
   bool in_callback_{};
 
   // ---------------------------------------------------------------------------
@@ -576,8 +576,8 @@ private:
   class DriftAffectedStateGuard final {
     friend Rep;
 
-    using Ch = TimeSwipe::Channel;
-    using Chmm = TimeSwipe::ChannelMesMode;
+    using Ch = Channel;
+    using Chmm = ChannelMesMode;
 
     DriftAffectedStateGuard(const DriftAffectedStateGuard&) = delete;
     DriftAffectedStateGuard& operator=(const DriftAffectedStateGuard&) = delete;
@@ -618,7 +618,7 @@ private:
        * after 1.5 ms.
        */
       for (const auto m : {Ch::CH1, Ch::CH2, Ch::CH3, Ch::CH4}) {
-        if (!rep_.SetChannelMode(m, TimeSwipe::ChannelMesMode::Current))
+        if (!rep_.SetChannelMode(m, ChannelMesMode::Current))
           throw RuntimeException{Errc::kGeneric};
       }
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
@@ -1192,7 +1192,7 @@ private:
     }
   }
 
-  void pollerLoop(TimeSwipe::ReadCallback callback)
+  void pollerLoop(ReadCallback callback)
   {
     while (work_) {
       SensorsData records[10];
@@ -1377,7 +1377,7 @@ private:
   }
 
   /// @warning Not thread-safe!
-  bool Start__(const std::unique_lock<std::mutex>& lk, TimeSwipe::ReadCallback&& cb)
+  bool Start__(const std::unique_lock<std::mutex>& lk, ReadCallback&& cb)
   {
     if (IsBusy__(lk)) {
       std::cerr << "TimeSwipe drift calculation/compensation or reading in progress,"
