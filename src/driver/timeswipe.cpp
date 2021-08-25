@@ -522,8 +522,6 @@ private:
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_measurement_started_{};
 
-  inline static Rep* started_instance_;
-
   /*
    * An automatic resetter of value of in_callback_. `false` will
    * be assigned upon destruction of the instance of this class.
@@ -1336,8 +1334,7 @@ private:
 
   bool isStarted() const noexcept
   {
-    const std::lock_guard<std::mutex> lock{global_mutex};
-    return started_instance_ != nullptr;
+    return is_measurement_started_;
   }
 
   void joinThreads()
@@ -1358,7 +1355,7 @@ private:
   /// @warning Not thread-safe!
   bool IsBusy__(const std::unique_lock<std::mutex>&) const noexcept
   {
-    return work_ || started_instance_ || in_callback_;
+    return work_ || is_measurement_started_ || in_callback_;
   }
 
   /// @warning Not thread-safe!
@@ -1406,7 +1403,6 @@ private:
       is_measurement_started_ = true;
     }
 
-    started_instance_ = this;
     work_ = true;
     threads_.emplace_back(&Rep::fetcherLoop, this);
     threads_.emplace_back(&Rep::pollerLoop, this, std::move(callback));
@@ -1420,9 +1416,8 @@ private:
   /// @warning Not thread-safe!
   bool Stop__(const std::unique_lock<std::mutex>&)
   {
-    if (!work_ || started_instance_ != this)
+    if (!work_ || !is_measurement_started_)
       return false;
-    started_instance_ = nullptr;
 
     work_ = false;
 
