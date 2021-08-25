@@ -62,7 +62,7 @@ Version version() noexcept
 using namespace panda::timeswipe::driver;
 
 // -----------------------------------------------------------------------------
-// TimeSwipe::Rep
+// class TimeSwipe::Rep
 // -----------------------------------------------------------------------------
 
 class TimeSwipe::Rep final {
@@ -595,6 +595,10 @@ private:
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_measurement_started_{};
 
+  // ---------------------------------------------------------------------------
+  // RAII protectors
+  // ---------------------------------------------------------------------------
+
   /*
    * An automatic resetter of value of in_callback_. `false` will
    * be assigned upon destruction of the instance of this class.
@@ -692,7 +696,7 @@ private:
   };
 
   // ---------------------------------------------------------------------------
-  // GPIO
+  // GPIO stuff
   // ---------------------------------------------------------------------------
 
   // PIN NAMES
@@ -884,7 +888,7 @@ private:
   };
 
   // ---------------------------------------------------------------------------
-  // SPI
+  // SPI stuff
   // ---------------------------------------------------------------------------
 
   void SpiSetTrace(const bool value)
@@ -1154,7 +1158,7 @@ private:
   }
 
   // -----------------------------------------------------------------------------
-  // SensorData queueing and pushing
+  // Sensor data reading, queueing and pushing stuff
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
@@ -1162,8 +1166,8 @@ private:
   {
     static const auto WaitForPiOk = []
     {
-      // for 12MHz Quartz
-      std::this_thread::sleep_for(std::chrono::microseconds(700));
+      /// Matches 12MHz Quartz.
+      std::this_thread::sleep_for(std::chrono::microseconds{700});
     };
 
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
@@ -1246,8 +1250,8 @@ private:
   {
     while (is_measurement_started_) {
       SensorsData records[10];
-      auto num = record_queue_.pop(records);
-      std::uint64_t errors = record_error_count_.fetch_and(0UL);
+      const auto num = record_queue_.pop(records);
+      const std::uint64_t errors = record_error_count_.fetch_and(0UL);
 
       if (errors && on_error_cb_)
         Callbacker{*this}(on_error_cb_, errors);
@@ -1396,13 +1400,12 @@ private:
   static std::filesystem::path TmpDir()
   {
     const auto cwd = std::filesystem::current_path();
-    return cwd/".pandagmbh"/"timeswipe";
+    return cwd/".panda"/"timeswipe";
   }
 
   void joinThreads()
   {
-    auto it = threads_.begin();
-    while (it != threads_.end()) {
+    for (auto it = threads_.begin(); it != threads_.end();) {
       if (it->get_id() == std::this_thread::get_id()) {
         ++it;
         continue;
@@ -1461,7 +1464,7 @@ private:
     {
       static std::mutex mutex; // Dummy mutex actually: `done` is atomic already.
       std::unique_lock lock{mutex};
-      update.wait(lock, [&done]{ return done; });
+      update.wait(lock, [&done]{ return done.load(); });
     }
     DMITIGR_ASSERT(done);
     Stop();
@@ -1527,7 +1530,7 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// TimeSwipe
+// class TimeSwipe
 // -----------------------------------------------------------------------------
 
 TimeSwipe& TimeSwipe::GetInstance()

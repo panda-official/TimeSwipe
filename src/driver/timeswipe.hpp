@@ -357,7 +357,7 @@ public:
    * @brief Calculates drift references.
    *
    * The calculated references are stored to
-   * `<CWD>/.pandagmbh/timeswipe/drift_reference` for persistent storage until
+   * `<CWD>/.panda/timeswipe/drift_reference` for persistent storage until
    * either it deleted directly or by calling ClearDriftReferences().
    *
    * @par Requires
@@ -383,7 +383,7 @@ public:
    *
    * @par Effects
    * `!DriftReferences() && !DriftDeltas()`. Removes the file
-   * `<CWD>/.pandagmbh/timeswipe/drift_references`.
+   * `<CWD>/.panda/timeswipe/drift_references`.
    *
    * @par Exception safety guarantee
    * Strong.
@@ -432,7 +432,7 @@ public:
    * Otherwise, the last cached value will be returned.
    *
    * @throws An Exception with the code `Errc::kInvalidDriftReference` if
-   * file `<CWD>/.pandagmbh/timeswipe/drift_references` contains a junk.
+   * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
    * @see CalculateDriftReferences(), ClearDriftReferences(), DriftDeltas().
    */
