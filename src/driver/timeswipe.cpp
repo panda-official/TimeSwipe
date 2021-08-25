@@ -139,8 +139,7 @@ public:
 
   bool IsBusy() const noexcept
   {
-    const std::unique_lock lk{global_mutex};
-    return IsBusy__(lk);
+    return is_measurement_started_ || in_callback_;
   }
 
   bool OnEvent(OnEventCallback cb)
@@ -297,7 +296,7 @@ public:
   bool SetSampleRate(const int rate)
   {
     const std::unique_lock lk{global_mutex};
-    if (!IsBusy__(lk)) {
+    if (!IsBusy()) {
       SetSampleRate__(rate);
       return true;
     } else
@@ -347,7 +346,7 @@ public:
   void ClearDriftReferences()
   {
     const std::unique_lock lk{global_mutex};
-    if (IsBusy__(lk))
+    if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
     std::filesystem::remove(TmpDir()/"drift_references");
@@ -387,7 +386,7 @@ public:
   void ClearDriftDeltas()
   {
     const std::unique_lock lk{global_mutex};
-    if (IsBusy__(lk))
+    if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
     drift_deltas_.reset();
@@ -498,7 +497,7 @@ private:
 
   OnEventCallback on_event_cb_;
   OnErrorCallback on_error_cb_;
-  bool in_callback_{};
+  std::atomic_bool in_callback_{};
 
   // ---------------------------------------------------------------------------
   // Firmware emulation data
@@ -1347,15 +1346,9 @@ private:
   }
 
   /// @warning Not thread-safe!
-  bool IsBusy__(const std::unique_lock<std::mutex>&) const noexcept
-  {
-    return is_measurement_started_ || in_callback_;
-  }
-
-  /// @warning Not thread-safe!
   bool Start__(const std::unique_lock<std::mutex>& lk, ReadCallback&& callback)
   {
-    if (IsBusy__(lk)) {
+    if (IsBusy()) {
       std::cerr << "TimeSwipe drift calculation/compensation or reading in progress,"
                 << " or other instance started, or called from callback function."
                 << std::endl;
@@ -1471,7 +1464,7 @@ private:
   {
     std::unique_lock lk{global_mutex};
 
-    if (IsBusy__(lk))
+    if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
     const auto guard{state_guard(lk)};
