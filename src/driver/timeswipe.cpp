@@ -440,7 +440,7 @@ public:
     // Collect the data for calculation.
     auto data{CollectSensorsData(kDriftSamplesCount_,
       [this]{return DriftAffectedStateGuard{*this};})};
-    assert(refs->size() == data.SensorsSize());
+    DMITIGR_ASSERT(refs->size() == data.SensorsSize());
 
     // Discard the first half.
     data.erase_front(kDriftSamplesCount_ / 2);
@@ -494,7 +494,7 @@ public:
     if (refs.size() < SensorsData::SensorsSize())
       throw RuntimeException{Errc::kInsufficientDriftReferences};
 
-    assert(refs.size() == SensorsData::SensorsSize());
+    DMITIGR_ASSERT(refs.size() == SensorsData::SensorsSize());
 
     // Cache and return references.
     return drift_references_ = refs;
@@ -1266,7 +1266,7 @@ private:
         const auto& deltas = *drift_deltas_;
         for (auto i = 0*num; i < num; ++i) {
           const auto sz = records[i].SensorsSize();
-          assert(deltas.size() == sz);
+          DMITIGR_ASSERT(deltas.size() == sz);
           for (auto j = 0*sz; j < sz; ++j) {
             auto& values{records[i][j]};
             const auto delta{deltas[j]};
