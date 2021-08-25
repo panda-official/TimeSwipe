@@ -145,7 +145,7 @@ public:
 
   bool OnEvent(OnEventCallback cb)
   {
-    if (isStarted())
+    if (is_measurement_started_)
       return false;
     on_event_cb_ = std::move(cb);
     return true;
@@ -153,7 +153,7 @@ public:
 
   bool OnError(OnErrorCallback cb)
   {
-    if (isStarted())
+    if (is_measurement_started_)
       return false;
     on_error_cb_ = std::move(cb);
     return true;
@@ -1330,11 +1330,6 @@ private:
   {
     const auto cwd = std::filesystem::current_path();
     return cwd/".pandagmbh"/"timeswipe";
-  }
-
-  bool isStarted() const noexcept
-  {
-    return is_measurement_started_;
   }
 
   void joinThreads()
