@@ -87,7 +87,7 @@ public:
       // Lock here. Second lock from the same process is allowed.
       throw RuntimeException{Errc::kPidFileLockFailed};
 
-    Init();
+    InitGpio();
   }
 
   /**
@@ -97,12 +97,10 @@ public:
    *
    * @par Effects
    * Restarts TimeSwipe firmware on very first run!
-   *
-   * @see IsInited(), StartMeasurement().
    */
-  void Init(const bool force = false)
+  void InitGpio(const bool force = false)
   {
-    if (!force && IsInited()) return;
+    if (!force && is_gpio_inited_) return;
 
     setup_io();
     initGPIOInput(DATA0);
@@ -130,20 +128,7 @@ public:
     using std::chrono::milliseconds;
     std::this_thread::sleep_for(milliseconds{1});
 
-    is_board_inited_ = true;
-  }
-
-  /**
-   * @returns `true` if Init() has been successfully called at least once.
-   *
-   * @par Thread-safety
-   * Thread-safe.
-   *
-   * @see Init().
-   */
-  bool IsInited() noexcept
-  {
-    return is_board_inited_;
+    is_gpio_inited_ = true;
   }
 
   bool Start(ReadCallback&& callback)
@@ -534,8 +519,8 @@ private:
   bool work_{}; // FIXME: remove
   PidFile pid_file_;
   BcmSpi spi_;
-  std::atomic_bool is_board_inited_;
-  std::atomic_bool is_measurement_started_;
+  std::atomic_bool is_gpio_inited_{};
+  std::atomic_bool is_measurement_started_{};
 
   inline static Rep* started_instance_;
 
@@ -1400,7 +1385,7 @@ private:
      * Effects: the reader does receive the data from the board.
      */
     {
-      DMITIGR_CHECK(IsInited());
+      DMITIGR_ASSERT(is_gpio_inited_);
 
       // Set mfactors.
       for (std::size_t i{}; i < mfactors_.size(); ++i)
