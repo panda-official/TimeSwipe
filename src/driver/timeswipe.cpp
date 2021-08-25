@@ -164,7 +164,7 @@ public:
     in_spi_.push(std::make_pair(set_or_get, request));
     std::pair<std::string,std::string> resp;
 
-    if (!work_)
+    if (!is_measurement_started_)
       processSPIRequests();
 
     while (!out_spi_.pop(resp))
@@ -516,7 +516,6 @@ private:
   // Other data
   // ---------------------------------------------------------------------------
 
-  bool work_{}; // FIXME: remove
   PidFile pid_file_;
   BcmSpi spi_;
   std::atomic_bool is_gpio_inited_{};
@@ -1163,7 +1162,7 @@ private:
 
   void fetcherLoop()
   {
-    while (work_) {
+    while (is_measurement_started_) {
       if (const auto data{ReadSensorData()}; !record_queue_.push(data))
         ++record_error_count_;
 
@@ -1177,7 +1176,7 @@ private:
 
   void pollerLoop(ReadCallback callback)
   {
-    while (work_) {
+    while (is_measurement_started_) {
       SensorsData records[10];
       auto num = record_queue_.pop(records);
       std::uint64_t errors = record_error_count_.fetch_and(0UL);
@@ -1258,7 +1257,7 @@ private:
 
   void spiLoop()
   {
-    while (work_) {
+    while (is_measurement_started_) {
       // Receive events
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
       if (emul_button_sent_ < emul_button_pressed_) {
@@ -1296,7 +1295,7 @@ private:
   {
     emul_button_pressed_ = 0;
     emul_button_sent_ = 0;
-    while (work_) {
+    while (is_measurement_started_) {
       timeval tv;
       tv.tv_sec = 1;
       tv.tv_usec = 0;
@@ -1350,7 +1349,7 @@ private:
   /// @warning Not thread-safe!
   bool IsBusy__(const std::unique_lock<std::mutex>&) const noexcept
   {
-    return work_ || is_measurement_started_ || in_callback_;
+    return is_measurement_started_ || in_callback_;
   }
 
   /// @warning Not thread-safe!
@@ -1398,7 +1397,6 @@ private:
       is_measurement_started_ = true;
     }
 
-    work_ = true;
     threads_.emplace_back(&Rep::fetcherLoop, this);
     threads_.emplace_back(&Rep::pollerLoop, this, std::move(callback));
     threads_.emplace_back(&Rep::spiLoop, this);
@@ -1411,10 +1409,8 @@ private:
   /// @warning Not thread-safe!
   bool Stop__(const std::unique_lock<std::mutex>&)
   {
-    if (!work_ || !is_measurement_started_)
+    if (!is_measurement_started_)
       return false;
-
-    work_ = false;
 
     joinThreads();
 
