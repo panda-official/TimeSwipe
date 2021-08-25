@@ -77,9 +77,8 @@ public:
     joinThreads();
   }
 
-  Rep(TimeSwipe& self)
-    : self_{self}
-    , pid_file_{"timeswipe"}
+  Rep()
+    : pid_file_{"timeswipe"}
     , spi_{BcmSpi::SpiPins::kSpi0}
   {
     const std::lock_guard lock{global_mutex};
@@ -532,7 +531,6 @@ private:
   // Other data
   // ---------------------------------------------------------------------------
 
-  TimeSwipe& self_; // back reference
   bool work_{}; // FIXME: remove
   PidFile pid_file_;
   BcmSpi spi_;
@@ -594,10 +592,10 @@ private:
       rep_.resampler_ = std::move(resampler_);
 
       // Restore input modes.
-      rep_.self_.SetChannelMode(Ch::CH4, chmm4_);
-      rep_.self_.SetChannelMode(Ch::CH3, chmm3_);
-      rep_.self_.SetChannelMode(Ch::CH2, chmm2_);
-      rep_.self_.SetChannelMode(Ch::CH1, chmm1_);
+      rep_.SetChannelMode(Ch::CH4, chmm4_);
+      rep_.SetChannelMode(Ch::CH3, chmm3_);
+      rep_.SetChannelMode(Ch::CH2, chmm2_);
+      rep_.SetChannelMode(Ch::CH1, chmm1_);
     }
 
     // Stores the state and prepares TimeSwipe instance for measurement.
@@ -607,10 +605,10 @@ private:
       , burst_size_{rep_.burst_size_}
     {
       // Store current input modes.
-      if (!(rep_.self_.GetChannelMode(Ch::CH1, chmm1_) &&
-          rep_.self_.GetChannelMode(Ch::CH2, chmm2_) &&
-          rep_.self_.GetChannelMode(Ch::CH3, chmm3_) &&
-          rep_.self_.GetChannelMode(Ch::CH4, chmm4_)))
+      if (!(rep_.GetChannelMode(Ch::CH1, chmm1_) &&
+          rep_.GetChannelMode(Ch::CH2, chmm2_) &&
+          rep_.GetChannelMode(Ch::CH3, chmm3_) &&
+          rep_.GetChannelMode(Ch::CH4, chmm4_)))
         throw RuntimeException{Errc::kGeneric};
 
       /*
@@ -620,7 +618,7 @@ private:
        * after 1.5 ms.
        */
       for (const auto m : {Ch::CH1, Ch::CH2, Ch::CH3, Ch::CH4}) {
-        if (!rep_.self_.SetChannelMode(m, TimeSwipe::ChannelMesMode::Current))
+        if (!rep_.SetChannelMode(m, TimeSwipe::ChannelMesMode::Current))
           throw RuntimeException{Errc::kGeneric};
       }
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
@@ -1610,7 +1608,7 @@ TimeSwipe& TimeSwipe::GetInstance()
 }
 
 TimeSwipe::TimeSwipe()
-  : rep_{std::make_unique<Rep>(*this)}
+  : rep_{std::make_unique<Rep>()}
 {}
 
 TimeSwipe::~TimeSwipe() = default;
