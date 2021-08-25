@@ -146,7 +146,7 @@ public:
     return is_board_inited_;
   }
 
-  bool Start(ReadCallback callback)
+  bool Start(ReadCallback&& callback)
   {
     const std::unique_lock lk{global_mutex};
     return Start__(lk, std::move(callback));
@@ -1377,7 +1377,7 @@ private:
   }
 
   /// @warning Not thread-safe!
-  bool Start__(const std::unique_lock<std::mutex>& lk, ReadCallback&& cb)
+  bool Start__(const std::unique_lock<std::mutex>& lk, ReadCallback&& callback)
   {
     if (IsBusy__(lk)) {
       std::cerr << "TimeSwipe drift calculation/compensation or reading in progress,"
@@ -1424,7 +1424,7 @@ private:
     started_instance_ = this;
     work_ = true;
     threads_.push_back(std::thread(std::bind(&Rep::fetcherLoop, this)));
-    threads_.push_back(std::thread(std::bind(&Rep::pollerLoop, this, std::move(cb))));
+    threads_.push_back(std::thread(std::bind(&Rep::pollerLoop, this, std::move(callback))));
     threads_.push_back(std::thread(std::bind(&Rep::spiLoop, this)));
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     threads_.push_back(std::thread(std::bind(&Rep::emulLoop, this)));
