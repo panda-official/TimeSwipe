@@ -50,10 +50,6 @@
 #include <thread>
 #include <type_traits>
 
-namespace {
-std::mutex global_mutex;
-} // namespace
-
 namespace panda::timeswipe::driver {
 Version version() noexcept
 {
@@ -81,7 +77,6 @@ public:
     : pid_file_{"timeswipe"}
     , spi_{BcmSpi::SpiPins::kSpi0}
   {
-    const std::lock_guard lock{global_mutex};
     std::string msg;
     if (!pid_file_.Lock(msg))
       // Lock here. Second lock from the same process is allowed.
@@ -133,8 +128,55 @@ public:
 
   bool Start(ReadCallback&& callback)
   {
-    const std::unique_lock lk{global_mutex};
-    return Start__(lk, std::move(callback));
+    if (IsBusy()) {
+      std::cerr << "TimeSwipe drift calculation/compensation or reading in progress,"
+                << " or other instance started, or called from callback function."
+                << std::endl;
+      return false;
+    }
+
+    std::string err;
+    if (!TimeSwipeEEPROM::Read(err)) {
+      std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
+      //TODO: uncomment once parsing implemented
+      //return false;
+    }
+
+    joinThreads();
+
+    /*
+     * Sends the command to a TimeSwipe firmware to start measurement.
+     * Effects: the reader does receive the data from the board.
+     */
+    {
+      DMITIGR_ASSERT(is_gpio_inited_);
+
+      // Set mfactors.
+      for (std::size_t i{}; i < mfactors_.size(); ++i)
+        mfactors_[i] = gains_[i] * transmissions_[i];
+
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+      emul_point_begin_ = std::chrono::steady_clock::now();
+      emul_sent_ = 0;
+#endif
+
+      // Set mode.
+      SpiSetMode(static_cast<int>(read_mode_));
+
+      // Start measurement.
+      using std::chrono::milliseconds;
+      std::this_thread::sleep_for(milliseconds{1});
+      SpiSetEnableADmes(true);
+      is_measurement_started_ = true;
+    }
+
+    threads_.emplace_back(&Rep::fetcherLoop, this);
+    threads_.emplace_back(&Rep::pollerLoop, this, std::move(callback));
+    threads_.emplace_back(&Rep::spiLoop, this);
+#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+    threads_.emplace_back(&Rep::emulLoop, this);
+#endif
+    return true;
   }
 
   bool IsBusy() const noexcept
@@ -175,8 +217,33 @@ public:
 
   bool Stop()
   {
-    const std::unique_lock lk{global_mutex};
-    return Stop__(lk);
+    if (!is_measurement_started_)
+      return false;
+
+    joinThreads();
+
+    while (record_queue_.pop());
+    while (in_spi_.pop());
+    while (out_spi_.pop());
+
+    /*
+     * Sends the command to a TimeSwipe firmware to stop measurement.
+     * Effects: the reader doesn't receive the data from the board.
+     */
+    {
+      if (!is_measurement_started_) return false;
+
+      // Reset Clock
+      setGPIOLow(CLOCK);
+
+      // Stop Measurement
+      SpiSetEnableADmes(false);
+
+      is_measurement_started_ = false;
+      read_skip_count_ = kInitialInvalidDataSetsCount;
+    }
+
+    return true;
   }
 
   bool StartPWM(const std::uint8_t num,
@@ -293,14 +360,24 @@ public:
     transmissions_[3] = 1.0 / trans4;
   }
 
-  bool SetSampleRate(const int rate)
+  /// @returns Previous resampler if any.
+  std::unique_ptr<TimeSwipeResampler> SetSampleRate(const int rate)
   {
-    const std::unique_lock lk{global_mutex};
-    if (!IsBusy()) {
-      SetSampleRate__(rate);
-      return true;
+    if (IsBusy()) return {};
+
+    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= MaxSampleRate());
+
+    auto result{std::move(resampler_)};
+    if (rate != MaxSampleRate()) {
+      const auto rates_gcd = std::gcd(rate, MaxSampleRate());
+      const auto up = rate / rates_gcd;
+      const auto down = MaxSampleRate() / rates_gcd;
+      resampler_ = std::make_unique<TimeSwipeResampler>(TimeSwipeResamplerOptions{up, down});
     } else
-      return false;
+      resampler_.reset();
+
+    sample_rate_ = rate;
+    return result;
   }
 
   int MaxSampleRate() const noexcept
@@ -316,7 +393,7 @@ public:
   {
     // Collect the data for calculation.
     auto data{CollectSensorsData(kDriftSamplesCount_, // 5 ms
-      [this](const auto&){return DriftAffectedStateGuard{*this};})};
+      [this]{return DriftAffectedStateGuard{*this};})};
 
     // Discard the first half.
     data.erase_front(kDriftSamplesCount_ / 2);
@@ -345,7 +422,6 @@ public:
 
   void ClearDriftReferences()
   {
-    const std::unique_lock lk{global_mutex};
     if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
@@ -363,7 +439,7 @@ public:
 
     // Collect the data for calculation.
     auto data{CollectSensorsData(kDriftSamplesCount_,
-      [this](const auto&){ return DriftAffectedStateGuard{*this}; })};
+      [this]{return DriftAffectedStateGuard{*this};})};
     assert(refs->size() == data.SensorsSize());
 
     // Discard the first half.
@@ -385,7 +461,6 @@ public:
 
   void ClearDriftDeltas()
   {
-    const std::unique_lock lk{global_mutex};
     if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
@@ -605,7 +680,7 @@ private:
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
       // Store the current state of self.
-      resampler_ = rep_.SetSampleRate__(rep_.MaxSampleRate());
+      resampler_ = rep_.SetSampleRate(rep_.MaxSampleRate());
       rep_.SetBurstSize(rep_.kDriftSamplesCount_);
     }
 
@@ -840,7 +915,6 @@ private:
     };
 
     std::list<TimeSwipeEvent> result;
-    const std::lock_guard<std::mutex> lock{global_mutex};
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::string data;
     if (get_events(data) && !data.empty()) {
@@ -900,7 +974,6 @@ private:
 
   std::string SpiGetSettings(const std::string& request, std::string& error)
   {
-    // const std::lock_guard<std::mutex> lock{global_mutex};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
@@ -914,7 +987,6 @@ private:
 
   std::string SpiSetSettings(const std::string& request, std::string& error)
   {
-    // const std::lock_guard<std::mutex> lock{global_mutex};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
@@ -933,7 +1005,6 @@ private:
     const std::uint32_t high, const std::uint32_t low, const std::uint32_t repeats,
     const float duty_cycle)
   {
-    // const std::lock_guard<std::mutex> lock{global_mutex};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
@@ -962,7 +1033,6 @@ private:
    */
   bool SpiStopPwm(const std::uint8_t num)
   {
-    // const std::lock_guard<std::mutex> lock{global_mutex};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
@@ -984,7 +1054,6 @@ private:
     std::uint32_t& high, std::uint32_t& low, std::uint32_t& repeats,
     float& duty_cycle)
   {
-    // const std::lock_guard<std::mutex> lock{global_mutex};
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
@@ -1345,135 +1414,28 @@ private:
     }
   }
 
-  /// @warning Not thread-safe!
-  bool Start__(const std::unique_lock<std::mutex>& lk, ReadCallback&& callback)
-  {
-    if (IsBusy()) {
-      std::cerr << "TimeSwipe drift calculation/compensation or reading in progress,"
-                << " or other instance started, or called from callback function."
-                << std::endl;
-      return false;
-    }
-
-    std::string err;
-    if (!TimeSwipeEEPROM::Read(err)) {
-      std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
-      //TODO: uncomment once parsing implemented
-      //return false;
-    }
-
-    joinThreads();
-
-    /*
-     * Sends the command to a TimeSwipe firmware to start measurement.
-     * Effects: the reader does receive the data from the board.
-     */
-    {
-      DMITIGR_ASSERT(is_gpio_inited_);
-
-      // Set mfactors.
-      for (std::size_t i{}; i < mfactors_.size(); ++i)
-        mfactors_[i] = gains_[i] * transmissions_[i];
-
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-      emul_point_begin_ = std::chrono::steady_clock::now();
-      emul_sent_ = 0;
-#endif
-
-      // Set mode.
-      SpiSetMode(static_cast<int>(read_mode_));
-
-      // Start measurement.
-      using std::chrono::milliseconds;
-      std::this_thread::sleep_for(milliseconds{1});
-      SpiSetEnableADmes(true);
-      is_measurement_started_ = true;
-    }
-
-    threads_.emplace_back(&Rep::fetcherLoop, this);
-    threads_.emplace_back(&Rep::pollerLoop, this, std::move(callback));
-    threads_.emplace_back(&Rep::spiLoop, this);
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    threads_.emplace_back(&Rep::emulLoop, this);
-#endif
-    return true;
-  }
-
-  /// @warning Not thread-safe!
-  bool Stop__(const std::unique_lock<std::mutex>&)
-  {
-    if (!is_measurement_started_)
-      return false;
-
-    joinThreads();
-
-    while (record_queue_.pop());
-    while (in_spi_.pop());
-    while (out_spi_.pop());
-
-    /*
-     * Sends the command to a TimeSwipe firmware to stop measurement.
-     * Effects: the reader doesn't receive the data from the board.
-     */
-    {
-      if (!is_measurement_started_) return false;
-
-      // Reset Clock
-      setGPIOLow(CLOCK);
-
-      // Stop Measurement
-      SpiSetEnableADmes(false);
-
-      is_measurement_started_ = false;
-      read_skip_count_ = kInitialInvalidDataSetsCount;
-    }
-
-    return true;
-  }
-
-    /// @returns Previous resampler if any.
-  std::unique_ptr<TimeSwipeResampler> SetSampleRate__(const int rate)
-  {
-    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= MaxSampleRate());
-
-    auto result{std::move(resampler_)};
-    if (rate != MaxSampleRate()) {
-      const auto rates_gcd = std::gcd(rate, MaxSampleRate());
-      const auto up = rate / rates_gcd;
-      const auto down = MaxSampleRate() / rates_gcd;
-      resampler_ = std::make_unique<TimeSwipeResampler>(TimeSwipeResamplerOptions{up, down});
-    } else
-      resampler_.reset();
-
-    sample_rate_ = rate;
-    return result;
-  }
-
   /**
    * @brief Collects the specified samples count.
    *
    * @returns The collected sensor data.
    *
    * @param samples_count A number of samples to collect.
-   * @param state_guard A function which takes an argument of type
-   * `std::unique_lock` and returns an object which can be used for
-   * automatic resourse cleanup (e.g. RAII state keeper and restorer).
+   * @param state_guard A function without arguments which returns an object
+   * for automatic resourse cleanup (e.g. RAII state keeper and restorer).
    */
   template<typename F>
   SensorsData CollectSensorsData(const std::size_t samples_count, F&& state_guard)
   {
-    std::unique_lock lk{global_mutex};
-
     if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
-    const auto guard{state_guard(lk)};
+    const auto guard{state_guard()};
 
     Errc errc{};
-    bool done{};
+    std::atomic_bool done{};
     SensorsData data;
     std::condition_variable update;
-    const bool is_started = Start__(lk, [this,
+    const bool is_started = Start([this,
         samples_count, &errc, &done, &data, &update]
       (const SensorsData sd, const std::uint64_t errors)
     {
@@ -1493,12 +1455,16 @@ private:
       }
     });
     if (!is_started)
-      throw RuntimeException{Errc::kGeneric}; // FIXME: Start__() throw a more detailed error instead
+      throw RuntimeException{Errc::kGeneric}; // FIXME: Start() throw a more detailed error instead
 
     // Await for notification from the callback.
-    update.wait(lk, [&done]{ return done; });
-    assert(done);
-    Stop__(lk);
+    {
+      static std::mutex mutex; // Dummy mutex actually: `done` is atomic already.
+      std::unique_lock lock{mutex};
+      update.wait(lock, [&done]{ return done; });
+    }
+    DMITIGR_ASSERT(done);
+    Stop();
 
     // Throw away if the data collection failed.
     if (IsError(errc))
@@ -1566,7 +1532,6 @@ private:
 
 TimeSwipe& TimeSwipe::GetInstance()
 {
-  const std::lock_guard lock{global_mutex};
   if (!instance_) instance_.reset(new TimeSwipe);
   return *instance_;
 }
@@ -1614,7 +1579,7 @@ void TimeSwipe::SetBurstSize(const std::size_t burst)
 
 bool TimeSwipe::SetSampleRate(const int rate)
 {
-  return rep_->SetSampleRate(rate);
+  return static_cast<bool>(rep_->SetSampleRate(rate));
 }
 
 std::vector<float> TimeSwipe::CalculateDriftReferences()
