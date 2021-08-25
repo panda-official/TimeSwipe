@@ -27,7 +27,7 @@ void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [-- time <runtime>] [--samplerate <hz>] [--log-resample] [--trace-spi]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [-- time <runtime>] [--samplerate <hz>] [--trace-spi]'" << std::endl;
     std::cerr << "default for <configname> is ./datlog.json" << std::endl;
     std::cerr << "possible values: PRIMARY NORM DIGITAL. default for <input_type> is the first one from <configname>" << std::endl;
     std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
@@ -81,8 +81,6 @@ int main(int argc, char *argv[])
             }
             samplerate = std::stoi (argv[i+1] );
             ++i;
-        } else if (!strcmp(argv[i],"--log-resample")) {
-            TimeSwipe::resample_log = true;
         } else if (!strcmp(argv[i],"--trace-spi")) {
             trace_spi = true;
         } else {

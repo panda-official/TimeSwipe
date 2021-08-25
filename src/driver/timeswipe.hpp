@@ -530,8 +530,6 @@ public:
   /// Enables or disables SPI command tracing by using standard error output stream.
   void TraceSPI(bool val);
 
-  inline static bool resample_log;
-
 private:
   struct Rep;
   std::unique_ptr<Rep> rep_;
