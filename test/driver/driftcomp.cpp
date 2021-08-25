@@ -58,7 +58,7 @@ void measure(TimeSwipe& ts, const std::filesystem::path& logfile)
 
 int main()
 {
-  TimeSwipe ts;
+  auto& ts = TimeSwipe::GetInstance();
   assert(!ts.IsBusy());
 
   ts.ClearDriftReferences();

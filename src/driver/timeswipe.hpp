@@ -22,12 +22,8 @@
 #include "event.hpp"
 #include "sensor_data.hpp"
 
-#include <array>
 #include <cstdint>
 #include <functional>
-#include <iostream> // included here because std::cerr can be used by
-                    // TimeSwipe::TimeSwipe() and the instance of TimeSwipe
-                    // can be defined as a static object
 #include <memory>
 #include <optional>
 #include <string>
@@ -60,23 +56,23 @@ public:
   ~TimeSwipe();
 
   /**
-   * Default-constructible.
+   * @returns The instance of this class.
    *
    * @par Effects
    * Restarts TimeSwipe firmware on very first run!
    */
-  TimeSwipe();
+  static TimeSwipe& GetInstance();
 
-  /// Move-constructible.
-  TimeSwipe(TimeSwipe&&) = default;
+  /// Non move-constructible.
+  TimeSwipe(TimeSwipe&&) = delete;
 
-  /// Move-assignable.
-  TimeSwipe& operator=(TimeSwipe&&) = default;
+  /// Non move-assignable.
+  TimeSwipe& operator=(TimeSwipe&&) = delete;
 
-  /// No copy-constructible.
+  /// Non copy-constructible.
   TimeSwipe(const TimeSwipe&) = delete;
 
-  /// No copy-assignable.
+  /// Non copy-assignable.
   TimeSwipe& operator=(const TimeSwipe&) = delete;
 
   /**
@@ -535,9 +531,13 @@ public:
   void TraceSPI(bool val);
 
   inline static bool resample_log;
+
 private:
   struct Rep;
   std::unique_ptr<Rep> rep_;
+  inline static std::unique_ptr<TimeSwipe> instance_;
+
+  TimeSwipe();
 };
 
 #endif  // PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP

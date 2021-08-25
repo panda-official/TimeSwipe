@@ -37,7 +37,7 @@ void usage(const char* name)
 
 int main(int argc, char *argv[])
 {
-    TimeSwipe tswipe;
+    auto& tswipe = TimeSwipe::GetInstance();
 
     bool start = false;
     bool stop = false;
