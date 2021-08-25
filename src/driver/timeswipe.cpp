@@ -1423,11 +1423,11 @@ private:
 
     started_instance_ = this;
     work_ = true;
-    threads_.push_back(std::thread(std::bind(&Rep::fetcherLoop, this)));
-    threads_.push_back(std::thread(std::bind(&Rep::pollerLoop, this, std::move(callback))));
-    threads_.push_back(std::thread(std::bind(&Rep::spiLoop, this)));
+    threads_.emplace_back(&Rep::fetcherLoop, this);
+    threads_.emplace_back(&Rep::pollerLoop, this, std::move(callback));
+    threads_.emplace_back(&Rep::spiLoop, this);
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    threads_.push_back(std::thread(std::bind(&Rep::emulLoop, this)));
+    threads_.emplace_back(&Rep::emulLoop, this);
 #endif
     return true;
   }
