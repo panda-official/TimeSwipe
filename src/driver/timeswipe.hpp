@@ -506,23 +506,23 @@ public:
   /**
    * \brief Register callback for event
    *
-   * onEvent must be called before @ref Start called, otherwise register fails
+   * OnEvent must be called before @ref Start called, otherwise register fails
    *
    * @param cb callback called with event received
    * @return false if register callback failed, true otherwise
    */
-  bool onEvent(OnEventCallback cb);
+  bool OnEvent(OnEventCallback cb);
 
   using OnErrorCallback = std::function<void(std::uint64_t)>;
   /**
    * \brief Register error callback
    *
-   * onError must be called before @ref Start called, otherwise register fails
+   * OnError must be called before @ref Start called, otherwise register fails
    *
    * @param cb callback called once read error occurred
    * @return false if register callback failed, true otherwise
    */
-  bool onError(OnErrorCallback cb);
+  bool OnError(OnErrorCallback cb);
 
   /**
    * \brief Stop reading Sensor loop

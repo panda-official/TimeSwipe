@@ -68,16 +68,16 @@ try {
   ts.SetSampleRate(sample_rate);
   ts.SetBurstSize(sample_rate / frequency);
 
-  ts.onEvent([](const ::TimeSwipeEvent& event)
+  ts.OnEvent([](const ::TimeSwipeEvent& event)
   {
     try {
       if (auto* gain = event.Get<TimeSwipeEvent::Gain>()) {
         std::cout << "Gain event: " << gain->value() << std::endl;
       }
     } catch (const std::exception& e) {
-      std::clog << "onEvent: " << e.what() << '\n';
+      std::clog << "OnEvent: " << e.what() << '\n';
     } catch (...) {
-      std::clog << "onEvent: unknown error\n";
+      std::clog << "OnEvent: unknown error\n";
     }
   });
 

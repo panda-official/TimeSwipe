@@ -76,6 +76,60 @@ public:
     Board::Instance()->Init();
   }
 
+  bool Start(TimeSwipe::ReadCallback callback)
+  {
+    const std::unique_lock lk{mutex_};
+    return Start__(lk, std::move(callback));
+  }
+
+  bool IsBusy() const noexcept
+  {
+    const std::unique_lock lk{mutex_};
+    return IsBusy__(lk);
+  }
+
+  bool OnEvent(TimeSwipe::OnEventCallback cb)
+  {
+    if (isStarted())
+      return false;
+    on_event_cb_ = std::move(cb);
+    return true;
+  }
+
+  bool OnError(TimeSwipe::OnErrorCallback cb)
+  {
+    if (isStarted())
+      return false;
+    on_error_cb_ = std::move(cb);
+    return true;
+  }
+
+  std::string Settings(const std::uint8_t set_or_get, const std::string& request, std::string& error)
+  {
+    in_spi_.push(std::make_pair(set_or_get, request));
+    std::pair<std::string,std::string> resp;
+
+    if (!work_)
+      processSPIRequests();
+
+    while (!out_spi_.pop(resp))
+      std::this_thread::sleep_for(std::chrono::milliseconds{100});
+    error = resp.second;
+
+    return resp.first;
+  }
+
+  bool Stop()
+  {
+    const std::unique_lock lk{mutex_};
+    return Stop__(lk);
+  }
+
+  void SetBurstSize(const std::size_t burst)
+  {
+    burst_size_ = burst;
+  }
+
   void SetMode(const int number)
   {
     read_mode_ = number;
@@ -248,60 +302,6 @@ public:
   std::optional<std::vector<float>> DriftDeltas() const
   {
     return drift_deltas_;
-  }
-
-  bool Start(TimeSwipe::ReadCallback callback)
-  {
-    const std::unique_lock lk{mutex_};
-    return Start__(lk, std::move(callback));
-  }
-
-  bool IsBusy() const noexcept
-  {
-    const std::unique_lock lk{mutex_};
-    return IsBusy__(lk);
-  }
-
-  bool onEvent(TimeSwipe::OnEventCallback cb)
-  {
-    if (isStarted())
-      return false;
-    on_event_cb_ = std::move(cb);
-    return true;
-  }
-
-  bool onError(TimeSwipe::OnErrorCallback cb)
-  {
-    if (isStarted())
-      return false;
-    on_error_cb_ = std::move(cb);
-    return true;
-  }
-
-  std::string Settings(std::uint8_t set_or_get, const std::string& request, std::string& error)
-  {
-    in_spi_.push(std::make_pair(set_or_get, request));
-    std::pair<std::string,std::string> resp;
-
-    if (!work_)
-      processSPIRequests();
-
-    while (!out_spi_.pop(resp))
-      std::this_thread::sleep_for(std::chrono::milliseconds{100});
-    error = resp.second;
-
-    return resp.first;
-  }
-
-  bool Stop()
-  {
-    const std::unique_lock lk{mutex_};
-    return Stop__(lk);
-  }
-
-  void SetBurstSize(std::size_t burst)
-  {
-    burst_size_ = burst;
   }
 
 private:
@@ -863,14 +863,14 @@ bool TimeSwipe::IsBusy() const noexcept
   return rep_->IsBusy();
 }
 
-bool TimeSwipe::onError(TimeSwipe::OnErrorCallback cb)
+bool TimeSwipe::OnError(TimeSwipe::OnErrorCallback cb)
 {
-  return rep_->onError(cb);
+  return rep_->OnError(cb);
 }
 
-bool TimeSwipe::onEvent(TimeSwipe::OnEventCallback cb)
+bool TimeSwipe::OnEvent(TimeSwipe::OnEventCallback cb)
 {
-  return rep_->onEvent(cb);
+  return rep_->OnEvent(cb);
 }
 
 std::string TimeSwipe::SetSettings(const std::string& request, std::string& error)

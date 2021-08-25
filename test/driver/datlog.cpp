@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     };
 
 
-    bool ret = tswipe.onEvent([&](TimeSwipeEvent&& event) {
+    bool ret = tswipe.OnEvent([&](TimeSwipeEvent&& event) {
       if (auto* button = event.Get<TimeSwipeEvent::Button>())
         std::cout << "Button event: "
                   << (button->pressed() ? "pressed":"released")
@@ -182,15 +182,15 @@ int main(int argc, char *argv[])
         std::cout << "Mode event: " <<  val->value() << std::endl;
     });
     if (!ret) {
-        std::cerr << "onEvent init failed" << std::endl;
+        std::cerr << "OnEvent init failed" << std::endl;
         return 1;
     }
 
-    ret = tswipe.onError([&](uint64_t errors) {
+    ret = tswipe.OnError([&](uint64_t errors) {
         std::cout << "Got errors: " << errors << std::endl;
     });
     if (!ret) {
-        std::cerr << "onError init failed" << std::endl;
+        std::cerr << "OnError init failed" << std::endl;
         return 1;
     }
 
