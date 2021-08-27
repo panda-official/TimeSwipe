@@ -37,7 +37,7 @@ void usage(const char* name)
 
 int main(int argc, char *argv[])
 {
-    auto& tswipe = TimeSwipe::GetInstance();
+    auto& tswipe = panda::timeswipe::driver::TimeSwipe::GetInstance();
 
     bool start = false;
     bool stop = false;

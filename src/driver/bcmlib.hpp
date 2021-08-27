@@ -28,8 +28,8 @@
 // $Id: bcm2835.c,v 1.28 2020/01/11 05:07:13 mikem Exp mikem $
 */
 
-#ifndef PANDA_TIMESWIPE_BCMLIB_HPP
-#define PANDA_TIMESWIPE_BCMLIB_HPP
+#ifndef PANDA_TIMESWIPE_DRIVER_BCMLIB_HPP
+#define PANDA_TIMESWIPE_DRIVER_BCMLIB_HPP
 
 #include <fcntl.h>
 #include <stdint.h>
@@ -166,6 +166,4 @@ inline void setup_io() noexcept
 #define PANDA_TIMESWIPE_GPIO_PULL *(panda::timeswipe::driver::detail::bcm_gpio+37) // Pull up/pull down
 #define PANDA_TIMESWIPE_GPIO_PULLCLK0 *(panda::timeswipe::driver::detail::bcm_gpio+38) // Pull up/pull down clock
 
-using panda::timeswipe::driver::detail::setup_io; // REMOVE ME
-
-#endif  // PANDA_TIMESWIPE_BCMLIB_HPP
+#endif  // PANDA_TIMESWIPE_DRIVER_BCMLIB_HPP

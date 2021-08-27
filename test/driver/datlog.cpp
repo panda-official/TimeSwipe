@@ -22,6 +22,8 @@
 
 #include <unistd.h>
 
+namespace drv = panda::timeswipe::driver;
+
 std::function<void(int)> shutdown_handler;
 void signal_handler(int signal) { shutdown_handler(signal); }
 
@@ -89,10 +91,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    static std::unordered_map<std::string,TimeSwipe::Mode> const modes = {
-        {"PRIMARY",TimeSwipe::Mode::Primary},
-        {"NORM",TimeSwipe::Mode::Norm},
-        {"DIGITAL",TimeSwipe::Mode::Digital},
+    static std::unordered_map<std::string, drv::TimeSwipe::Mode> const modes = {
+      {"PRIMARY", drv::TimeSwipe::Mode::Primary},
+      {"NORM", drv::TimeSwipe::Mode::Norm},
+      {"DIGITAL", drv::TimeSwipe::Mode::Digital},
     };
 
     std::ifstream iconfigname;
@@ -122,7 +124,7 @@ int main(int argc, char *argv[])
     }
 
 
-    auto& tswipe = TimeSwipe::GetInstance();
+    auto& tswipe = drv::TimeSwipe::GetInstance();
     tswipe.TraceSPI(trace_spi);
 
     // Board Preparation
@@ -161,6 +163,7 @@ int main(int argc, char *argv[])
     };
 
 
+    using drv::TimeSwipeEvent;
     bool ret = tswipe.OnEvent([&](TimeSwipeEvent&& event) {
       if (auto* button = event.Get<TimeSwipeEvent::Button>())
         std::cout << "Button event: "

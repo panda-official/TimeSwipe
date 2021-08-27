@@ -23,6 +23,7 @@
 namespace chrono = std::chrono;
 namespace fs = std::filesystem;
 namespace progpar = dmitigr::progpar;
+namespace drv = panda::timeswipe::driver;
 
 inline progpar::Program_parameters params;
 
@@ -64,14 +65,14 @@ try {
     throw std::runtime_error{"frequency cannot be greater than sample-rate"};
 
   // Initialize TimeSwipe.
-  auto& ts = TimeSwipe::GetInstance();
+  auto& ts = drv::TimeSwipe::GetInstance();
   ts.SetSampleRate(sample_rate);
   ts.SetBurstSize(sample_rate / frequency);
 
-  ts.OnEvent([](const ::TimeSwipeEvent& event)
+  ts.OnEvent([](const drv::TimeSwipeEvent& event)
   {
     try {
-      if (auto* gain = event.Get<TimeSwipeEvent::Gain>()) {
+      if (auto* gain = event.Get<drv::TimeSwipeEvent::Gain>()) {
         std::cout << "Gain event: " << gain->value() << std::endl;
       }
     } catch (const std::exception& e) {

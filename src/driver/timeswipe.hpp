@@ -31,6 +31,7 @@
 #include <vector>
 
 namespace panda::timeswipe::driver {
+
 /// A driver version.
 struct Version final {
   int major{};
@@ -40,7 +41,6 @@ struct Version final {
 
 /// @returns The driver version.
 Version version() noexcept;
-} // namespace panda::timeswipe::driver
 
 /**
  * TimeSwipe interface for Sensor
@@ -537,5 +537,7 @@ private:
 
   TimeSwipe();
 };
+
+} // namespace panda::timeswipe::driver
 
 #endif  // PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP

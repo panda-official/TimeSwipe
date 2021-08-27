@@ -51,15 +51,12 @@
 #include <type_traits>
 
 namespace panda::timeswipe::driver {
+
 Version version() noexcept
 {
   namespace ver = version;
   return {ver::major, ver::minor, ver::patch};
 }
-} // namespace panda::timeswipe::driver
-
-// FIXME!!!
-using namespace panda::timeswipe::driver;
 
 // -----------------------------------------------------------------------------
 // class TimeSwipe::Rep
@@ -75,7 +72,7 @@ public:
 
   Rep()
     : pid_file_{"timeswipe"}
-    , spi_{BcmSpi::SpiPins::kSpi0}
+    , spi_{detail::BcmSpi::SpiPins::kSpi0}
   {
     std::string msg;
     if (!pid_file_.Lock(msg))
@@ -97,7 +94,7 @@ public:
   {
     if (!force && is_gpio_inited_) return;
 
-    setup_io();
+    detail::setup_io();
     initGPIOInput(DATA0);
     initGPIOInput(DATA1);
     initGPIOInput(DATA2);
@@ -136,7 +133,7 @@ public:
     }
 
     std::string err;
-    if (!TimeSwipeEEPROM::Read(err)) {
+    if (!detail::TimeSwipeEEPROM::Read(err)) {
       std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
       //TODO: uncomment once parsing implemented
       //return false;
@@ -361,7 +358,7 @@ public:
   }
 
   /// @returns Previous resampler if any.
-  std::unique_ptr<TimeSwipeResampler> SetSampleRate(const int rate)
+  std::unique_ptr<detail::TimeSwipeResampler> SetSampleRate(const int rate)
   {
     if (IsBusy()) return {};
 
@@ -372,7 +369,8 @@ public:
       const auto rates_gcd = std::gcd(rate, MaxSampleRate());
       const auto up = rate / rates_gcd;
       const auto down = MaxSampleRate() / rates_gcd;
-      resampler_ = std::make_unique<TimeSwipeResampler>(TimeSwipeResamplerOptions{up, down});
+      resampler_ = std::make_unique<detail::TimeSwipeResampler>
+        (detail::TimeSwipeResamplerOptions{up, down});
     } else
       resampler_.reset();
 
@@ -527,7 +525,7 @@ private:
   // ---------------------------------------------------------------------------
 
   int sample_rate_{kMaxSampleRate_};
-  std::unique_ptr<TimeSwipeResampler> resampler_;
+  std::unique_ptr<detail::TimeSwipeResampler> resampler_;
 
   // ---------------------------------------------------------------------------
   // Drift compensation data
@@ -590,8 +588,8 @@ private:
   // Other data
   // ---------------------------------------------------------------------------
 
-  PidFile pid_file_;
-  BcmSpi spi_;
+  detail::PidFile pid_file_;
+  detail::BcmSpi spi_;
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_measurement_started_{};
 
@@ -1099,7 +1097,7 @@ private:
 
   bool SpiSetChannelMode(const unsigned num, const int nMode)
   {
-    spi_.sendSetCommand(BcmSpi::makeChCmd(num, "mode"), std::to_string(nMode));
+    spi_.sendSetCommand(detail::BcmSpi::makeChCmd(num, "mode"), std::to_string(nMode));
     std::string answer;
     if (!spi_.receiveStripAnswer(answer)) return false;
     return answer == std::to_string(nMode);
@@ -1107,7 +1105,7 @@ private:
 
   bool SpiGetChannelMode(const unsigned num, int& nMode, std::string& error)
   {
-    spi_.sendGetCommand(BcmSpi::makeChCmd(num, "mode"));
+    spi_.sendGetCommand(detail::BcmSpi::makeChCmd(num, "mode"));
     std::string answer;
     if (!spi_.receiveAnswer(answer, error)) {
       nMode = 0;
@@ -1119,7 +1117,7 @@ private:
 
   bool SpiSetChannelGain(const unsigned num, const float Gain)
   {
-    spi_.sendSetCommand(BcmSpi::makeChCmd(num, "gain"), std::to_string(Gain));
+    spi_.sendSetCommand(detail::BcmSpi::makeChCmd(num, "gain"), std::to_string(Gain));
     std::string answer;
     if (!spi_.receiveStripAnswer(answer)) return false;
     return true;
@@ -1127,7 +1125,7 @@ private:
 
   bool SpiGetChannelGain(const unsigned num, float& Gain, std::string& error)
   {
-    spi_.sendGetCommand(BcmSpi::makeChCmd(num, "gain"));
+    spi_.sendGetCommand(detail::BcmSpi::makeChCmd(num, "gain"));
     std::string answer;
     if (!spi_.receiveAnswer(answer, error)) {
       Gain = 0;
@@ -1139,7 +1137,7 @@ private:
 
   bool SpiSetiepe(const unsigned num, const bool bIEPE)
   {
-    spi_.sendSetCommand(BcmSpi::makeChCmd(num, "iepe"), std::to_string(bIEPE));
+    spi_.sendSetCommand(detail::BcmSpi::makeChCmd(num, "iepe"), std::to_string(bIEPE));
     std::string answer;
     if (!spi_.receiveStripAnswer(answer)) return false;
     return true;
@@ -1147,7 +1145,7 @@ private:
 
   bool SpiGetiepe(const unsigned num, bool& bIEPE, std::string& error)
   {
-    spi_.sendGetCommand(BcmSpi::makeChCmd(num, "iepe"));
+    spi_.sendGetCommand(detail::BcmSpi::makeChCmd(num, "iepe"));
     std::string answer;
     if (!spi_.receiveAnswer(answer, error)) {
       bIEPE = 0;
@@ -1706,3 +1704,5 @@ bool TimeSwipe::GetChannelIEPE(const Channel nCh, bool& bIEPEon)
 {
   return rep_->GetChannelIEPE(nCh, bIEPEon);
 }
+
+} // namespace panda::timeswipe::driver

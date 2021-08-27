@@ -10,8 +10,6 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
 
-#include "../3rdparty/dmitigr/assert.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -19,6 +17,8 @@
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
+
+namespace panda::timeswipe::driver::detail {
 
 /**
  * @brief Signal extrapolation method.
@@ -159,9 +159,12 @@ public:
     static_assert(std::is_same_v<ItCtg, std::random_access_iterator_tag>);
 
     const auto coefs_size = std::distance(coefs_first, coefs_last);
-    DMITIGR_ASSERT(up_rate > 0);
-    DMITIGR_ASSERT(down_rate > 0);
-    DMITIGR_ASSERT(coefs_size);
+    if (up_rate <= 0)
+      throw std::invalid_argument{"up_rate"};
+    else if (down_rate <= 0)
+      throw std::invalid_argument{"down_rate"};
+    else if (!coefs_size)
+      throw std::invalid_argument{"coefs_first or coefs_last"};
 
     // Initial coefficients with padding.
     transposed_coefs_.resize(coefs_size + (up_rate - coefs_size % up_rate));
@@ -552,5 +555,7 @@ auto resample(const unsigned up_rate, const unsigned down_rate,
   resampler(out);
   return result;
 }
+
+} // namespace panda::timeswipe::driver::detail
 
 #endif  // PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP

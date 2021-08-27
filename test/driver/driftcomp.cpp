@@ -32,7 +32,7 @@ void log(const std::vector<float>& data)
   std::clog << std::endl;
 }
 
-void measure(TimeSwipe& ts, const std::filesystem::path& logfile)
+void measure(drv::TimeSwipe& ts, const std::filesystem::path& logfile)
 {
   ts.SetSampleRate(48000);
   ts.SetBurstSize(48000 / 10);
@@ -58,7 +58,7 @@ void measure(TimeSwipe& ts, const std::filesystem::path& logfile)
 
 int main()
 {
-  auto& ts = TimeSwipe::GetInstance();
+  auto& ts = drv::TimeSwipe::GetInstance();
   assert(!ts.IsBusy());
 
   ts.ClearDriftReferences();

@@ -25,6 +25,8 @@
 #include <memory>
 #include <string>
 
+namespace panda::timeswipe::driver::detail {
+
 class TimeSwipeEEPROM {
 public:
   static bool Read(std::string& error)
@@ -89,5 +91,7 @@ public:
     return true;
   }
 };
+
+} // namespace panda::timeswipe::driver::detail
 
 #endif  // PANDA_TIMESWIPE_DRIVER_EEPROM_HPP

@@ -32,10 +32,11 @@
 #include <utility>
 #include <vector>
 
+namespace drv = panda::timeswipe::driver;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
-using Sensor_value = SensorsData::Value::value_type;
-constexpr auto sensor_count = SensorsData::SensorsSize();
+using Sensor_value = drv::SensorsData::Value::value_type;
+constexpr auto sensor_count = drv::SensorsData::SensorsSize();
 
 namespace {
 
@@ -174,7 +175,7 @@ inline Input_file open_input_file(const std::filesystem::path& path)
 
 enum class Output_format { bin, csv };
 
-inline void write_output(std::ostream& out, const Output_format format, const SensorsData& records)
+inline void write_output(std::ostream& out, const Output_format format, const drv::SensorsData& records)
 {
   const auto sample_rate = records.DataSize();
   const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
@@ -259,7 +260,7 @@ try {
     throw std::runtime_error{"either input file is likely corrupted or incorrect sample rate specified"};
 
   // Create the resampler options instance.
-  TimeSwipeResamplerOptions r_opts{up_factor, down_factor};
+  drv::detail::TimeSwipeResamplerOptions r_opts{up_factor, down_factor};
 
   // Parse --sensors option.
   const auto sensors = []
@@ -318,6 +319,7 @@ try {
   // Parse --extrapolation option.
   r_opts.extrapolation([]
   {
+    using drv::detail::SignalExtrapolation;
     if (const auto o = params["extrapolation"]) {
       if (const auto& v = o.value()) {
         if (*v == "zero")
@@ -444,14 +446,14 @@ try {
 
   // Define the convenient function for resampling and output.
   unsigned entry_count{};
-  const auto process_records = [&](SensorsData&& records)
+  const auto process_records = [&](drv::SensorsData&& records)
   {
     static const auto proc_recs = [&]
     {
-      std::function<void(SensorsData&&, bool)> process_records;
+      std::function<void(drv::SensorsData&&, bool)> process_records;
       if (is_resampling_mode()) {
-        const auto resampler = std::make_shared<TimeSwipeResampler>(r_opts);
-        process_records = [resampler, &os, output_format](SensorsData&& records, const bool end)
+        const auto resampler = std::make_shared<drv::detail::TimeSwipeResampler>(r_opts);
+        process_records = [resampler, &os, output_format](drv::SensorsData&& records, const bool end)
         {
           auto recs = resampler->apply(std::move(records));
           write_output(os, output_format, recs);
@@ -462,7 +464,7 @@ try {
           records.clear();
         };
       } else {
-        process_records = [&os, output_format](SensorsData&& records, const bool /*end*/)
+        process_records = [&os, output_format](drv::SensorsData&& records, const bool /*end*/)
         {
           write_output(os, output_format, records);
           records.clear();
@@ -491,7 +493,7 @@ try {
         records[j].push_back(buf[idx - 1]);
     }
   };
-  SensorsData records;
+  drv::SensorsData records;
   records.reserve(sample_rate);
   std::array<Sensor_value, sensor_count> buf;
   if (input_file.is_binary) {

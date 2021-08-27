@@ -21,6 +21,8 @@ Copyright (c) 2019 Panda Team
 #include <sstream>
 #include <string>
 
+namespace drv = panda::timeswipe::driver;
+
 class CNixConsole final : public CSerial {
 public:
   bool send(CFIFO &msg) override
@@ -94,7 +96,7 @@ int main ( int argc, char *argv[] )
 
     if ( bMasterMode )
     {
-
+        using drv::detail::BcmSpi;
         BcmSpi spi ( nSPI ? BcmSpi::SpiPins::kAux : BcmSpi::SpiPins::kSpi0 );
 
         if (!spi.IsInitialized())

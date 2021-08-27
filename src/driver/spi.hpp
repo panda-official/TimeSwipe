@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <iostream>
 
+namespace panda::timeswipe::driver::detail {
+
 class BcmSpi final : public CSPI {
 public:
   enum SpiPins {
@@ -296,5 +298,7 @@ private:
     return true;
   }
 };
+
+} // namespace panda::timeswipe::driver::detail
 
 #endif  // PANDA_TIMESWIPE_SPI_HPP

@@ -36,6 +36,8 @@
 #include <vector>
 #include <utility>
 
+namespace panda::timeswipe::driver::detail {
+
 /// A timeswipe resampler options.
 /// FIXME: merge up_factor() and down_factor() into factors().
 class TimeSwipeResamplerOptions final {
@@ -515,5 +517,7 @@ private:
     std::cout << std::endl;
   }
 };
+
+} // namespace panda::timeswipe::driver::detail
 
 #endif  // PANDA_TIMESWIPE_DRIVER_RESAMPLER_HPP

@@ -28,6 +28,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+namespace panda::timeswipe::driver::detail {
+
 class PidFile final {
 public:
   /// The destructor.
@@ -115,5 +117,7 @@ private:
     }
   }
 };
+
+} // namespace panda::timeswipe::driver::detail
 
 #endif  // PANDA_TIMESWIPE_DRIVER_PIDFILE_HPP

@@ -23,7 +23,9 @@
 #include <type_traits>
 #include <variant>
 
-/// Timeswipe event
+namespace panda::timeswipe::driver {
+
+/// Timeswipe event.
 class TimeSwipeEvent final {
 public:
   /// Button pressed event.
@@ -212,5 +214,7 @@ public:
 private:
   std::variant<Button, Gain, SetSecondary, Bridge, Record, Offset, Mode> event_;
 };
+
+} // namespace panda::timeswipe::driver
 
 #endif  // PANDA_TIMESWIPE_DRIVER_EVENT_HPP

@@ -23,6 +23,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace panda::timeswipe::driver {
+
 /// Sensor data.
 class SensorsData final {
   static constexpr std::size_t SENSORS = 4;
@@ -170,5 +172,7 @@ public:
 private:
   CONTAINER data_;
 };
+
+} // namespace panda::timeswipe::driver
 
 #endif  // PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
