@@ -388,7 +388,7 @@ public:
 
     // Initializing the underlying resamplers and the associated states.
     for (auto& rs : rstates_)
-      rs = ResamplerState{options_, firc};
+      rs = State{options_, firc};
   }
 
   /// @returns The options instance.
@@ -464,11 +464,11 @@ public:
 private:
   using R = Fir_resampler<float>;
   Options options_;
-  struct ResamplerState final {
-    ResamplerState() = default;
+  struct State final {
+    State() = default;
 
     template<class T>
-    explicit ResamplerState(const Options& options, const std::vector<T>& firc)
+    explicit State(const Options& options, const std::vector<T>& firc)
       : resampler{options.up_factor(), options.down_factor(),
                   cbegin(firc), cend(firc), options.extrapolation()}
       , unskipped_leading_count{options.crop_extra() ? leading_skip_count(resampler) : 0}
@@ -477,7 +477,7 @@ private:
     R resampler;
     std::size_t unskipped_leading_count{};
   };
-  std::array<ResamplerState, Sensors_data::sensor_count()> rstates_;
+  std::array<State, Sensors_data::sensor_count()> rstates_;
 
   template<typename F>
   Sensors_data resample(F&& run)
