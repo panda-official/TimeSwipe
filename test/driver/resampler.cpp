@@ -35,8 +35,8 @@
 namespace drv = panda::timeswipe::driver;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
-using Sensor_value = drv::SensorsData::Value::value_type;
-constexpr auto sensor_count = drv::SensorsData::SensorsSize();
+using Sensor_value = drv::Sensors_data::Value::value_type;
+constexpr auto sensor_count = drv::Sensors_data::SensorsSize();
 
 namespace {
 
@@ -175,7 +175,7 @@ inline Input_file open_input_file(const std::filesystem::path& path)
 
 enum class Output_format { bin, csv };
 
-inline void write_output(std::ostream& out, const Output_format format, const drv::SensorsData& records)
+inline void write_output(std::ostream& out, const Output_format format, const drv::Sensors_data& records)
 {
   const auto sample_rate = records.DataSize();
   const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
@@ -446,14 +446,14 @@ try {
 
   // Define the convenient function for resampling and output.
   unsigned entry_count{};
-  const auto process_records = [&](drv::SensorsData&& records)
+  const auto process_records = [&](drv::Sensors_data&& records)
   {
     static const auto proc_recs = [&]
     {
-      std::function<void(drv::SensorsData&&, bool)> process_records;
+      std::function<void(drv::Sensors_data&&, bool)> process_records;
       if (is_resampling_mode()) {
         const auto resampler = std::make_shared<drv::detail::Resampler>(r_opts);
-        process_records = [resampler, &os, output_format](drv::SensorsData&& records, const bool end)
+        process_records = [resampler, &os, output_format](drv::Sensors_data&& records, const bool end)
         {
           auto recs = resampler->apply(std::move(records));
           write_output(os, output_format, recs);
@@ -464,7 +464,7 @@ try {
           records.clear();
         };
       } else {
-        process_records = [&os, output_format](drv::SensorsData&& records, const bool /*end*/)
+        process_records = [&os, output_format](drv::Sensors_data&& records, const bool /*end*/)
         {
           write_output(os, output_format, records);
           records.clear();
@@ -493,7 +493,7 @@ try {
         records[j].push_back(buf[idx - 1]);
     }
   };
-  drv::SensorsData records;
+  drv::Sensors_data records;
   records.reserve(sample_rate);
   std::array<Sensor_value, sensor_count> buf;
   if (input_file.is_binary) {

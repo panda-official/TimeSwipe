@@ -479,7 +479,7 @@ public:
       throw RuntimeException{Errc::kInvalidDriftReference};
 
     std::vector<float> refs;
-    while (in && refs.size() < SensorsData::SensorsSize()) {
+    while (in && refs.size() < Sensors_data::SensorsSize()) {
       float val;
       if (in >> val)
         refs.push_back(val);
@@ -489,10 +489,10 @@ public:
       if (in >> val)
         throw RuntimeException{Errc::kExcessiveDriftReferences};
     }
-    if (refs.size() < SensorsData::SensorsSize())
+    if (refs.size() < Sensors_data::SensorsSize())
       throw RuntimeException{Errc::kInsufficientDriftReferences};
 
-    DMITIGR_ASSERT(refs.size() == SensorsData::SensorsSize());
+    DMITIGR_ASSERT(refs.size() == Sensors_data::SensorsSize());
 
     // Cache and return references.
     return drift_references_ = refs;
@@ -553,10 +553,10 @@ private:
 
   // Next buffer must be enough to keep records for 1 s
   constexpr static unsigned queue_size_{kMaxSampleRate_/kMinSampleRate_*2};
-  boost::lockfree::spsc_queue<SensorsData, boost::lockfree::capacity<queue_size_>> record_queue_;
+  boost::lockfree::spsc_queue<Sensors_data, boost::lockfree::capacity<queue_size_>> record_queue_;
   std::atomic_uint64_t record_error_count_{};
   std::size_t burst_size_{};
-  SensorsData burst_buffer_;
+  Sensors_data burst_buffer_;
 
   boost::lockfree::spsc_queue<std::pair<std::uint8_t, std::string>, boost::lockfree::capacity<1024>> in_spi_;
   boost::lockfree::spsc_queue<std::pair<std::string, std::string>, boost::lockfree::capacity<1024>> out_spi_;
@@ -818,7 +818,7 @@ private:
       return result;
     }
 
-    static void AppendChunk(SensorsData& data,
+    static void AppendChunk(Sensors_data& data,
       const Chunk& chunk,
       const std::array<std::uint16_t, 4>& offsets,
       const std::array<float, 4>& mfactors)
@@ -1160,7 +1160,7 @@ private:
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
-  SensorsData ReadSensorsData()
+  Sensors_data ReadSensorsData()
   {
     static const auto WaitForPiOk = []
     {
@@ -1192,7 +1192,7 @@ private:
      * becomes high it indicates that the RAM is full (failure - data loss).
      * So, check this case.
      */
-    SensorsData out;
+    Sensors_data out;
     out.reserve(8192);
     do {
       const auto [chunk, tco] = GpioData::ReadChunk();
@@ -1206,7 +1206,7 @@ private:
     return out;
 #else
     namespace chrono = std::chrono;
-    SensorsData out;
+    Sensors_data out;
     auto& data{out.data()};
     while (true) {
       emul_point_end_ = chrono::steady_clock::now();
@@ -1247,7 +1247,7 @@ private:
   void pollerLoop(ReadCallback callback)
   {
     while (is_measurement_started_) {
-      SensorsData records[10];
+      Sensors_data records[10];
       const auto num = record_queue_.pop(records);
       const std::uint64_t errors = record_error_count_.fetch_and(0UL);
 
@@ -1274,8 +1274,8 @@ private:
         }
       }
 
-      SensorsData* records_ptr{};
-      SensorsData samples;
+      Sensors_data* records_ptr{};
+      Sensors_data samples;
       if (resampler_) {
         for (std::size_t i = 0; i < num; i++) {
           auto s = resampler_->apply(std::move(records[i]));
@@ -1425,7 +1425,7 @@ private:
    * for automatic resourse cleanup (e.g. RAII state keeper and restorer).
    */
   template<typename F>
-  SensorsData CollectSensorsData(const std::size_t samples_count, F&& state_guard)
+  Sensors_data CollectSensorsData(const std::size_t samples_count, F&& state_guard)
   {
     if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
@@ -1434,11 +1434,11 @@ private:
 
     Errc errc{};
     std::atomic_bool done{};
-    SensorsData data;
+    Sensors_data data;
     std::condition_variable update;
     const bool is_started = Start([this,
         samples_count, &errc, &done, &data, &update]
-      (const SensorsData sd, const std::uint64_t errors)
+      (const Sensors_data sd, const std::uint64_t errors)
     {
       if (IsError(errc) || done)
         return;

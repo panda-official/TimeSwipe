@@ -26,7 +26,7 @@
 namespace panda::timeswipe::driver {
 
 /// Sensor data.
-class SensorsData final {
+class Sensors_data final {
   static constexpr std::size_t SENSORS = 4;
   using CONTAINER = std::array<std::vector<float>, SENSORS>;
 public:
@@ -101,12 +101,12 @@ public:
     return DataSize() == 0;
   }
 
-  void append(const SensorsData& other)
+  void append(const Sensors_data& other)
   {
     append(other, other.DataSize());
   }
 
-  void append(const SensorsData& other, const std::size_t count)
+  void append(const Sensors_data& other, const std::size_t count)
   {
     for (std::size_t i = 0; i < SENSORS; ++i) {
       const auto in_size = std::min<std::size_t>(other.data_[i].size(), count);

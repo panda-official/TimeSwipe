@@ -402,7 +402,7 @@ public:
    *
    * @returns The resampled records.
    */
-  SensorsData apply(SensorsData&& records)
+  Sensors_data apply(Sensors_data&& records)
   {
     return resample([this, &records](const std::size_t column_index)
     {
@@ -411,7 +411,7 @@ public:
       auto& input = records[column_index];
       const auto input_size = input.size();
       if (!input_size)
-        return SensorsData::Value{}; // short-circuit
+        return Sensors_data::Value{}; // short-circuit
 
       // Apply the filter.
       auto result = zero_result(resampler, input_size);
@@ -438,14 +438,14 @@ public:
    * @remarks Normally, this method should be called after the resampling of
    * the last chunk of data.
    */
-  SensorsData flush()
+  Sensors_data flush()
   {
     return resample([this](const std::size_t column_index)
     {
       auto& rstate = rstates_[column_index];
       auto& resampler = rstate.resampler;
       if (!resampler.is_applied())
-        return SensorsData::Value{}; // short-circuit
+        return Sensors_data::Value{}; // short-circuit
 
       // Flush the end samples.
       auto result = zero_result(resampler, resampler.coefs_per_phase() - 1);
@@ -477,22 +477,22 @@ private:
     R resampler;
     std::size_t unskipped_leading_count{};
   };
-  std::array<ResamplerState, SensorsData::SensorsSize()> rstates_;
+  std::array<ResamplerState, Sensors_data::SensorsSize()> rstates_;
 
   template<typename F>
-  SensorsData resample(F&& run)
+  Sensors_data resample(F&& run)
   {
-    SensorsData result;
-    constexpr auto sz = SensorsData::SensorsSize();
+    Sensors_data result;
+    constexpr auto sz = Sensors_data::SensorsSize();
     for (auto i = 0*sz; i < sz; ++i)
       result[i] = run(i);
     return result;
   }
 
-  static SensorsData::Value zero_result(const R& resampler, const std::size_t input_size)
+  static Sensors_data::Value zero_result(const R& resampler, const std::size_t input_size)
   {
     const auto result_size = resampler.output_sequence_size(input_size);
-    return SensorsData::Value(result_size);
+    return Sensors_data::Value(result_size);
   }
 
   static std::size_t leading_skip_count(const R& resampler) noexcept

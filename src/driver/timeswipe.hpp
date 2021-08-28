@@ -450,14 +450,14 @@ public:
   /**
    * \brief Read sensors callback function pointer
    */
-  using ReadCallback = std::function<void(SensorsData, std::uint64_t errors)>;
+  using ReadCallback = std::function<void(Sensors_data, std::uint64_t errors)>;
 
   /**
    * \brief Start reading Sensor loop
    *
    * Only one instance of @ref TimeSwipe can be running each moment of the time
    *
-   * After each sensor read complete cb called with vector of @ref SensorsData
+   * After each sensor read complete cb called with vector of @ref Sensors_data
    *
    * Buffer is for 1 second data if \p cb works longer than 1 second, next data can be loosed and next callback called with non-zero errors
    *
