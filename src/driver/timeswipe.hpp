@@ -75,18 +75,14 @@ public:
   /// Non copy-assignable.
   TimeSwipe& operator=(const TimeSwipe&) = delete;
 
-  /**
-   * @enum TimeSwipe::Mode
-   *
-   * \brief Input mode
-   */
+  /// Input mode.
   enum class Mode {
     /// IEPE.
-    Primary,
+    iepe,
     /// Normal signal.
-    Norm,
+    normal,
     /// Digital.
-    Digital
+    digital
   };
 
   /**

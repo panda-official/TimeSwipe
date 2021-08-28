@@ -1544,18 +1544,18 @@ TimeSwipe::~TimeSwipe() = default;
 
 auto TimeSwipe::to_mode(const std::string_view value) -> Mode
 {
-  if (value == "primary") return TimeSwipe::Mode::Primary;
-  else if (value == "norm") return TimeSwipe::Mode::Norm;
-  else if (value == "digital") return TimeSwipe::Mode::Digital;
+  if (value == "iepe") return TimeSwipe::Mode::iepe;
+  else if (value == "normal") return TimeSwipe::Mode::normal;
+  else if (value == "digital") return TimeSwipe::Mode::digital;
   else throw std::invalid_argument{"invalid text representation of TimeSwipe::Mode"};
 }
 
 std::string_view TimeSwipe::to_string_view(const Mode value)
 {
   switch (value) {
-  case Mode::Primary: return "primary";
-  case Mode::Norm: return "norm";
-  case Mode::Digital: return "digital";
+  case Mode::iepe: return "iepe";
+  case Mode::normal: return "normal";
+  case Mode::digital: return "digital";
   }
   throw std::invalid_argument{"invalid value of TimeSwipe::Mode"};
 }

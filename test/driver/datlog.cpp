@@ -92,9 +92,9 @@ int main(int argc, char *argv[])
     }
 
     static std::unordered_map<std::string, drv::TimeSwipe::Mode> const modes = {
-      {"PRIMARY", drv::TimeSwipe::Mode::Primary},
-      {"NORM", drv::TimeSwipe::Mode::Norm},
-      {"DIGITAL", drv::TimeSwipe::Mode::Digital},
+      {"PRIMARY", drv::TimeSwipe::Mode::iepe},
+      {"NORM", drv::TimeSwipe::Mode::normal},
+      {"DIGITAL", drv::TimeSwipe::Mode::digital},
     };
 
     std::ifstream iconfigname;
