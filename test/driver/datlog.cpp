@@ -165,22 +165,22 @@ int main(int argc, char *argv[])
 
     using drv::Event;
     bool ret = tswipe.OnEvent([&](Event&& event) {
-      if (auto* button = event.Get<Event::Button>())
+      if (auto* button = event.get<Event::Button>())
         std::cout << "Button event: "
-                  << (button->IsPressed() ? "pressed":"released")
-                  << " counter: " << button->GetCount() << std::endl;
-      else if(auto* gain = event.Get<Event::Gain>())
-        std::cout << "Gain event: " << gain->GetValue() << std::endl;
-      else if(auto* val = event.Get<Event::SetSecondary>())
-        std::cout << "SetSecondary event: " << val->GetValue() << std::endl;
-      else if(auto* val = event.Get<Event::Bridge>())
-        std::cout << "Bridge event: " <<  val->GetValue() << std::endl;
-      else if(auto* val = event.Get<Event::Record>())
-        std::cout << "Record event: " <<  val->GetValue() << std::endl;
-      else if(auto* val = event.Get<Event::Offset>())
-        std::cout << "Offset event: " <<  val->GetValue() << std::endl;
-      else if(auto* val = event.Get<Event::Mode>())
-        std::cout << "Mode event: " <<  val->GetValue() << std::endl;
+                  << (button->is_pressed() ? "pressed":"released")
+                  << " counter: " << button->count() << std::endl;
+      else if(auto* gain = event.get<Event::Gain>())
+        std::cout << "Gain event: " << gain->value() << std::endl;
+      else if(auto* val = event.get<Event::Set_secondary>())
+        std::cout << "Set_secondary event: " << val->value() << std::endl;
+      else if(auto* val = event.get<Event::Bridge>())
+        std::cout << "Bridge event: " <<  val->value() << std::endl;
+      else if(auto* val = event.get<Event::Record>())
+        std::cout << "Record event: " <<  val->value() << std::endl;
+      else if(auto* val = event.get<Event::Offset>())
+        std::cout << "Offset event: " <<  val->value() << std::endl;
+      else if(auto* val = event.get<Event::Mode>())
+        std::cout << "Mode event: " <<  val->value() << std::endl;
     });
     if (!ret) {
         std::cerr << "OnEvent init failed" << std::endl;

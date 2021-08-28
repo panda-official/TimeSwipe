@@ -28,7 +28,7 @@
 namespace panda::timeswipe::driver::detail {
 
 struct Eeprom final {
-  static bool Read(std::string& error)
+  static bool read(std::string& error)
   {
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     const char* i2c_file = "/sys/class/i2c-adapter/i2c-0/0-0050/eeprom";

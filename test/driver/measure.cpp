@@ -72,8 +72,8 @@ try {
   ts.OnEvent([](const drv::Event& event)
   {
     try {
-      if (auto* gain = event.Get<drv::Event::Gain>()) {
-        std::cout << "Gain event: " << gain->GetValue() << std::endl;
+      if (auto* gain = event.get<drv::Event::Gain>()) {
+        std::cout << "Gain event: " << gain->value() << std::endl;
       }
     } catch (const std::exception& e) {
       std::clog << "OnEvent: " << e.what() << '\n';

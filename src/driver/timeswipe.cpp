@@ -94,7 +94,7 @@ public:
   {
     if (!force && is_gpio_inited_) return;
 
-    detail::SetupIo();
+    detail::setup_io();
     initGPIOInput(DATA0);
     initGPIOInput(DATA1);
     initGPIOInput(DATA2);
@@ -133,7 +133,7 @@ public:
     }
 
     std::string err;
-    if (!detail::Eeprom::Read(err)) {
+    if (!detail::Eeprom::read(err)) {
       std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
       //TODO: uncomment once parsing implemented
       //return false;
@@ -939,9 +939,9 @@ private:
           result.push_back(Event::Gain(it->get<int>()));
         }
 
-        it = j.find("SetSecondary");
+        it = j.find("Set_secondary");
         if (it != j.end() && it->is_number()) {
-          result.push_back(Event::SetSecondary(it->get<int>()));
+          result.push_back(Event::Set_secondary(it->get<int>()));
         }
 
         it = j.find("Bridge");

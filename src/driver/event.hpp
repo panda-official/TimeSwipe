@@ -41,13 +41,13 @@ public:
     {}
 
     /// @returns `true` when pressed, or `false` if released.
-    bool IsPressed() const noexcept
+    bool is_pressed() const noexcept
     {
       return is_pressed_;
     }
 
     /// @returns Pressed (odd value) or released (even value) count.
-    int GetCount() const noexcept
+    int count() const noexcept
     {
       return count_;
     }
@@ -69,7 +69,7 @@ public:
     {}
 
     /// @returns Gain value as number.
-    int GetValue() const noexcept
+    int value() const noexcept
     {
       return value_;
     }
@@ -78,19 +78,19 @@ public:
     int value_{};
   };
 
-  /// SetSecondary value event.
-  class SetSecondary {
+  /// Set_secondary value event.
+  class Set_secondary {
   public:
     /// The default constructor.
-    SetSecondary() noexcept = default;
+    Set_secondary() noexcept = default;
 
     /// The constructor.
-    explicit SetSecondary(const int value)
+    explicit Set_secondary(const int value)
       : value_{value}
     {}
 
-    /// @returns SetSecondary value as number.
-    int GetValue() const noexcept
+    /// @returns Set_secondary value as number.
+    int value() const noexcept
     {
       return value_;
     }
@@ -111,7 +111,7 @@ public:
     {}
 
     /// @returns Bridge value as number.
-    int GetValue() const noexcept
+    int value() const noexcept
     {
       return value_;
     }
@@ -132,7 +132,7 @@ public:
     {}
 
     /// @returns Record value as number.
-    int GetValue() const noexcept
+    int value() const noexcept
     {
       return value_;
     }
@@ -153,7 +153,7 @@ public:
     {}
 
     /// @returns Offset value as number.
-    int GetValue() const noexcept
+    int value() const noexcept
     {
       return value_;
     }
@@ -174,7 +174,7 @@ public:
     {}
 
     /// @returns Mode value as number.
-    int GetValue() const noexcept
+    int value() const noexcept
     {
       return value_;
     }
@@ -197,7 +197,7 @@ public:
    * the event of type `Event`.
    */
   template <class Ev>
-  const Ev* Get() const noexcept
+  const Ev* get() const noexcept
   {
     return std::visit([](const auto& event)
     {
@@ -212,7 +212,7 @@ public:
   }
 
 private:
-  std::variant<Button, Gain, SetSecondary, Bridge, Record, Offset, Mode> event_;
+  std::variant<Button, Gain, Set_secondary, Bridge, Record, Offset, Mode> event_;
 };
 
 } // namespace panda::timeswipe::driver
