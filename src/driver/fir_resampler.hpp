@@ -25,7 +25,7 @@ namespace panda::timeswipe::driver::detail {
  *
  * @see https://pywavelets.readthedocs.io/en/latest/ref/signal-extension-modes.html
  */
-enum class SignalExtrapolation : unsigned char {
+enum class Signal_extrapolation : unsigned char {
   /**
    * @brief Signal is extended by adding zero samples.
    *
@@ -150,7 +150,7 @@ public:
   template<typename InputIt>
   FirResampler(const unsigned up_rate, const unsigned down_rate,
     const InputIt coefs_first, const InputIt coefs_last,
-    const SignalExtrapolation signal_extrapolation = SignalExtrapolation::zero)
+    const Signal_extrapolation signal_extrapolation = Signal_extrapolation::zero)
     : up_rate_{up_rate}
     , down_rate_{down_rate}
     , signal_extrapolation_{signal_extrapolation}
@@ -259,9 +259,9 @@ public:
     if (!is_applied_) {
       // Handle simple extrapolation methods.
       switch (signal_extrapolation_) {
-      case SignalExtrapolation::zero:
+      case Signal_extrapolation::zero:
         goto resample; // already done upon construction
-      case SignalExtrapolation::smooth: {
+      case Signal_extrapolation::smooth: {
         const auto sz = state_.size();
         const auto [x1, x2] = in_size > 1 ?
           std::make_pair(first[0], first[1]):
@@ -270,7 +270,7 @@ public:
           state_[sz - k] = x1 - k*(x2 - x1);
         goto resample;
       }
-      case SignalExtrapolation::constant:
+      case Signal_extrapolation::constant:
         fill(begin(state_), end(state_), *first);
         goto resample;
       default:;
@@ -287,26 +287,26 @@ public:
 
       // Handle more complicated extrapolation methods by modifying the state buffer.
       switch (signal_extrapolation_) {
-      case SignalExtrapolation::zero:;
+      case Signal_extrapolation::zero:;
         [[fallthrough]];
-      case SignalExtrapolation::smooth:
+      case Signal_extrapolation::smooth:
         [[fallthrough]];
-      case SignalExtrapolation::constant:;
+      case Signal_extrapolation::constant:;
         assert(false);
         std::terminate();
-      case SignalExtrapolation::symmetric:
+      case Signal_extrapolation::symmetric:
         reverse(begin(state_), end(state_));
         break;
-      case SignalExtrapolation::reflect:
+      case Signal_extrapolation::reflect:
         reflect_left(state_);
         break;
-      case SignalExtrapolation::periodic:
+      case Signal_extrapolation::periodic:
         break;
-      case SignalExtrapolation::antisymmetric:
+      case Signal_extrapolation::antisymmetric:
         reverse(begin(state_), end(state_));
         for_each(begin(state_), end(state_), [](auto& x){ x = -x; });
         break;
-      case SignalExtrapolation::antireflect:
+      case Signal_extrapolation::antireflect:
         auto reflected = state_;
         reflect_left(reflected);
         if (const auto sz = state_.size(); sz >= 2) {
@@ -391,10 +391,10 @@ public:
     const auto b = begin(extra);
     const auto e = end(extra);
     switch (signal_extrapolation_) {
-    case SignalExtrapolation::zero:
+    case Signal_extrapolation::zero:
       fill(b, e, Input{});
       break;
-    case SignalExtrapolation::smooth: {
+    case Signal_extrapolation::smooth: {
       using Value = typename decltype(extra)::value_type;
       const auto sz = extra.size();
       const auto [xn, xn_1] = extra.size() > 1 ?
@@ -404,22 +404,22 @@ public:
         extra[k - 1] = xn + k*(xn - xn_1);
       break;
     }
-    case SignalExtrapolation::constant:
+    case Signal_extrapolation::constant:
       fill(b, e, state_.back());
       break;
-    case SignalExtrapolation::symmetric:
+    case Signal_extrapolation::symmetric:
       reverse(b, e);
       break;
-    case SignalExtrapolation::reflect:
+    case Signal_extrapolation::reflect:
       reflect_right(extra);
       break;
-    case SignalExtrapolation::periodic:
+    case Signal_extrapolation::periodic:
       break;
-    case SignalExtrapolation::antisymmetric:
+    case Signal_extrapolation::antisymmetric:
       reverse(b, e);
       for_each(b, e, [](auto& x){ x = -x; });
       break;
-    case SignalExtrapolation::antireflect:
+    case Signal_extrapolation::antireflect:
       auto reflected = extra;
       reflect_right(reflected);
       if (const auto sz = extra.size(); sz >= 2) {
@@ -484,7 +484,7 @@ private:
   bool is_flushed_{};
   unsigned up_rate_{};
   unsigned down_rate_{};
-  SignalExtrapolation signal_extrapolation_{SignalExtrapolation::zero};
+  Signal_extrapolation signal_extrapolation_{Signal_extrapolation::zero};
   unsigned coefs_phase_{}; // next phase of the filter to use (mod up_rate_)
   unsigned apply_offset_{}; // the amount of samples to skip upon apply()
   typename std::vector<Coeff>::size_type coefs_per_phase_{}; // transposed_coefs_.size() / up_rate_
@@ -535,7 +535,7 @@ template<typename InputIt, typename CoefInputIt>
 auto resample(const unsigned up_rate, const unsigned down_rate,
   const CoefInputIt coefs_first, const CoefInputIt coefs_last,
   const InputIt first, const InputIt last,
-  const SignalExtrapolation extrapolation = SignalExtrapolation::zero)
+  const Signal_extrapolation extrapolation = Signal_extrapolation::zero)
 {
   using InputItCtg = typename std::iterator_traits<InputIt>::iterator_category;
   using CoefInputItCtg = typename std::iterator_traits<CoefInputIt>::iterator_category;

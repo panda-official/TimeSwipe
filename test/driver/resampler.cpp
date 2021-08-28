@@ -319,29 +319,29 @@ try {
   // Parse --extrapolation option.
   r_opts.extrapolation([]
   {
-    using drv::detail::SignalExtrapolation;
+    using drv::detail::Signal_extrapolation;
     if (const auto o = params["extrapolation"]) {
       if (const auto& v = o.value()) {
         if (*v == "zero")
-          return SignalExtrapolation::zero;
+          return Signal_extrapolation::zero;
         else if (*v == "constant")
-          return SignalExtrapolation::constant;
+          return Signal_extrapolation::constant;
         else if (*v == "symmetric")
-          return SignalExtrapolation::symmetric;
+          return Signal_extrapolation::symmetric;
         else if (*v == "reflect")
-          return SignalExtrapolation::reflect;
+          return Signal_extrapolation::reflect;
         else if (*v == "periodic")
-          return SignalExtrapolation::periodic;
+          return Signal_extrapolation::periodic;
         else if (*v == "smooth")
-          return SignalExtrapolation::smooth;
+          return Signal_extrapolation::smooth;
         else if (*v == "antisymmetric")
-          return SignalExtrapolation::antisymmetric;
+          return Signal_extrapolation::antisymmetric;
         else if (*v == "antireflect")
-          return SignalExtrapolation::antireflect;
+          return Signal_extrapolation::antireflect;
       }
       exit_usage();
     } else
-      return SignalExtrapolation::zero;
+      return Signal_extrapolation::zero;
   }());
 
   // Parse --no-crop-extra option.

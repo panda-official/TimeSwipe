@@ -49,7 +49,7 @@ public:
    * `freq.size() == ampl.size()`.
    */
   ResamplerOptions(const unsigned up_factor = 1, const unsigned down_factor = 1,
-    const SignalExtrapolation extrapolation = SignalExtrapolation::zero,
+    const Signal_extrapolation extrapolation = Signal_extrapolation::zero,
     const unsigned flength = 0,
     std::vector<double> freq = {}, std::vector<double> ampl = {})
     : up_factor_{up_factor}
@@ -116,7 +116,7 @@ public:
    *
    * @returns *this.
    */
-  ResamplerOptions& extrapolation(const SignalExtrapolation value) noexcept
+  ResamplerOptions& extrapolation(const Signal_extrapolation value) noexcept
   {
     extrapolation_ = value;
     DMITIGR_ASSERT(is_invariant_ok());
@@ -124,15 +124,15 @@ public:
   }
 
   /// @returns The signal extrapolation mode.
-  SignalExtrapolation extrapolation() const noexcept
+  Signal_extrapolation extrapolation() const noexcept
   {
     return extrapolation_;
   }
 
   /// @returns The default extrapolation mode.
-  static SignalExtrapolation default_extrapolation() noexcept
+  static Signal_extrapolation default_extrapolation() noexcept
   {
-    return SignalExtrapolation::zero;
+    return Signal_extrapolation::zero;
   }
 
   /**
@@ -246,7 +246,7 @@ public:
 private:
   unsigned up_factor_{};
   unsigned down_factor_{};
-  SignalExtrapolation extrapolation_{SignalExtrapolation::zero};
+  Signal_extrapolation extrapolation_{Signal_extrapolation::zero};
   bool crop_extra_{true};
   unsigned filter_length_{};
   std::vector<double> freq_;
