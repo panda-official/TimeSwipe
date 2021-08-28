@@ -117,7 +117,7 @@ enum class Signal_extrapolation : unsigned char {
  * and Filter Banks, Prentice Hall PTR, 1993.
  */
 template<typename In, typename Coef = In, typename Out = std::common_type_t<In, Coef>>
-class FirResampler final {
+class Fir_resampler final {
 public:
   /// An alias of input element type.
   using Input = In;
@@ -129,7 +129,7 @@ public:
   using Output = Out;
 
   /// The default constructor.
-  FirResampler() = default;
+  Fir_resampler() = default;
 
   /**
    * @brief The constructor.
@@ -148,7 +148,7 @@ public:
    *       0, h[8], h[5], h[2],   // flipped phase 2 coefs (zero-padded)
    */
   template<typename InputIt>
-  FirResampler(const unsigned up_rate, const unsigned down_rate,
+  Fir_resampler(const unsigned up_rate, const unsigned down_rate,
     const InputIt coefs_first, const InputIt coefs_last,
     const Signal_extrapolation signal_extrapolation = Signal_extrapolation::zero)
     : up_rate_{up_rate}
@@ -185,29 +185,29 @@ public:
   }
 
   /// Non copy-constructible.
-  FirResampler(const FirResampler&) = delete;
+  Fir_resampler(const Fir_resampler&) = delete;
 
   /// Non copy-assignable.
-  FirResampler& operator=(const FirResampler&) = delete;
+  Fir_resampler& operator=(const Fir_resampler&) = delete;
 
   /// Move-constructible.
-  FirResampler(FirResampler&& rhs) noexcept
+  Fir_resampler(Fir_resampler&& rhs) noexcept
   {
     swap(rhs);
   }
 
   /// Move-assignable.
-  FirResampler& operator=(FirResampler&& rhs) noexcept
+  Fir_resampler& operator=(Fir_resampler&& rhs) noexcept
   {
     if (this != &rhs) {
-      FirResampler tmp{std::move(rhs)};
+      Fir_resampler tmp{std::move(rhs)};
       swap(tmp);
     }
     return *this;
   }
 
   /// Swappable.
-  void swap(FirResampler& rhs) noexcept
+  void swap(Fir_resampler& rhs) noexcept
   {
     using std::swap;
     swap(up_rate_, rhs.up_rate_);
@@ -544,7 +544,7 @@ auto resample(const unsigned up_rate, const unsigned down_rate,
 
   using In = typename std::iterator_traits<InputIt>::value_type;
   using Coef = typename std::iterator_traits<CoefInputIt>::value_type;
-  using R = FirResampler<In, Coef>;
+  using R = Fir_resampler<In, Coef>;
   using Out = typename R::Output;
   R resampler{up_rate, down_rate, coefs_first, coefs_last, extrapolation};
   const auto end_sz = resampler.output_sequence_size(resampler.coefs_per_phase() - 1);

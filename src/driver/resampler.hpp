@@ -290,7 +290,7 @@ private:
 /**
  * @brief A TimeSwipe resampler.
  *
- * This class is the wrapper of the class FirResampler and provides the
+ * This class is the wrapper of the class Fir_resampler and provides the
  * stream-style API in order to resample the chunks of variable length. After
  * the resampling of the last chunk, the method flush() should be called in
  * order to resample and flush the extrapolated (extra) sequence of length of
@@ -299,7 +299,7 @@ private:
  * @remarks Both excess leading and excess trailing samples (which are actually
  * artifacts of the resampling) will be cropped automatically.
  *
- * @see apply(), flush(), FirResampler.
+ * @see apply(), flush(), Fir_resampler.
  */
 class Resampler final {
 public:
@@ -462,7 +462,7 @@ public:
   }
 
 private:
-  using R = FirResampler<float>;
+  using R = Fir_resampler<float>;
   Options options_;
   struct ResamplerState final {
     ResamplerState() = default;
