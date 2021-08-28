@@ -1542,6 +1542,24 @@ TimeSwipe::TimeSwipe()
 
 TimeSwipe::~TimeSwipe() = default;
 
+auto TimeSwipe::to_mode(const std::string_view value) -> Mode
+{
+  if (value == "primary") return TimeSwipe::Mode::Primary;
+  else if (value == "norm") return TimeSwipe::Mode::Norm;
+  else if (value == "digital") return TimeSwipe::Mode::Digital;
+  else throw std::invalid_argument{"invalid text representation of TimeSwipe::Mode"};
+}
+
+std::string_view TimeSwipe::to_string_view(const Mode value)
+{
+  switch (value) {
+  case Mode::Primary: return "primary";
+  case Mode::Norm: return "norm";
+  case Mode::Digital: return "digital";
+  }
+  throw std::invalid_argument{"invalid value of TimeSwipe::Mode"};
+}
+
 void TimeSwipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
 {
   return rep_->SetSensorOffsets(offset1, offset2, offset3, offset4);

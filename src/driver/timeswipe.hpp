@@ -95,13 +95,7 @@ public:
    * @throws `std::invalid_argument` if `value` doesn't corresponds to any
    * member of Mode.
    */
-  static Mode ToMode(const std::string_view value)
-  {
-    if (value == "primary") return TimeSwipe::Mode::Primary;
-    else if (value == "norm") return TimeSwipe::Mode::Norm;
-    else if (value == "digital") return TimeSwipe::Mode::Digital;
-    else throw std::invalid_argument{"invalid text representation of TimeSwipe::Mode"};
-  }
+  static Mode to_mode(const std::string_view value);
 
   /**
    * @returns The value of type `std::string_view` converted from `value`.
@@ -109,15 +103,7 @@ public:
    * @throws `std::invalid_argument` if `value` doesn't corresponds to any
    * member of Mode.
    */
-  static std::string_view ToStringView(const Mode value)
-  {
-    switch (value) {
-    case Mode::Primary: return "primary";
-    case Mode::Norm: return "norm";
-    case Mode::Digital: return "digital";
-    }
-    throw std::invalid_argument{"invalid value of TimeSwipe::Mode"};
-  }
+  static std::string_view to_string_view(const Mode value);
 
   /** @enum TimeSwipe::Channels
    *
