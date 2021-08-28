@@ -36,7 +36,7 @@ constexpr auto square(T value) noexcept
 
 /// @returns Quotient ceil of `num1` and `num2`.
 template<typename T, typename U>
-constexpr auto quotientCeil(const T num1, const U num2) noexcept
+constexpr auto quotient_ceil(const T num1, const U num2) noexcept
 {
   return num1 / num2 + (num1 % num2) % 2;
 }
