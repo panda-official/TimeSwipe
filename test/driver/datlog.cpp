@@ -167,20 +167,20 @@ int main(int argc, char *argv[])
     bool ret = tswipe.OnEvent([&](Event&& event) {
       if (auto* button = event.Get<Event::Button>())
         std::cout << "Button event: "
-                  << (button->pressed() ? "pressed":"released")
-                  << " counter: " << button->count() << std::endl;
+                  << (button->IsPressed() ? "pressed":"released")
+                  << " counter: " << button->GetCount() << std::endl;
       else if(auto* gain = event.Get<Event::Gain>())
-        std::cout << "Gain event: " << gain->value() << std::endl;
+        std::cout << "Gain event: " << gain->GetValue() << std::endl;
       else if(auto* val = event.Get<Event::SetSecondary>())
-        std::cout << "SetSecondary event: " << val->value() << std::endl;
+        std::cout << "SetSecondary event: " << val->GetValue() << std::endl;
       else if(auto* val = event.Get<Event::Bridge>())
-        std::cout << "Bridge event: " <<  val->value() << std::endl;
+        std::cout << "Bridge event: " <<  val->GetValue() << std::endl;
       else if(auto* val = event.Get<Event::Record>())
-        std::cout << "Record event: " <<  val->value() << std::endl;
+        std::cout << "Record event: " <<  val->GetValue() << std::endl;
       else if(auto* val = event.Get<Event::Offset>())
-        std::cout << "Offset event: " <<  val->value() << std::endl;
+        std::cout << "Offset event: " <<  val->GetValue() << std::endl;
       else if(auto* val = event.Get<Event::Mode>())
-        std::cout << "Mode event: " <<  val->value() << std::endl;
+        std::cout << "Mode event: " <<  val->GetValue() << std::endl;
     });
     if (!ret) {
         std::cerr << "OnEvent init failed" << std::endl;

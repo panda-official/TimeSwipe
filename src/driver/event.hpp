@@ -36,24 +36,24 @@ public:
 
     /// The constructor.
     Button(const bool pressed, const int count)
-      : pressed_{pressed}
+      : is_pressed_{pressed}
       , count_{count}
     {}
 
     /// @returns `true` when pressed, or `false` if released.
-    bool pressed() const
+    bool IsPressed() const noexcept
     {
-      return pressed_;
+      return is_pressed_;
     }
 
     /// @returns Pressed (odd value) or released (even value) count.
-    int count() const
+    int GetCount() const noexcept
     {
       return count_;
     }
 
   private:
-    bool pressed_{};
+    bool is_pressed_{};
     int count_{};
   };
 
@@ -69,7 +69,7 @@ public:
     {}
 
     /// @returns Gain value as number.
-    int value() const
+    int GetValue() const noexcept
     {
       return value_;
     }
@@ -90,7 +90,7 @@ public:
     {}
 
     /// @returns SetSecondary value as number.
-    int value() const
+    int GetValue() const noexcept
     {
       return value_;
     }
@@ -111,7 +111,7 @@ public:
     {}
 
     /// @returns Bridge value as number.
-    int value() const
+    int GetValue() const noexcept
     {
       return value_;
     }
@@ -132,7 +132,7 @@ public:
     {}
 
     /// @returns Record value as number.
-    int value() const
+    int GetValue() const noexcept
     {
       return value_;
     }
@@ -153,7 +153,7 @@ public:
     {}
 
     /// @returns Offset value as number.
-    int value() const
+    int GetValue() const noexcept
     {
       return value_;
     }
@@ -174,7 +174,7 @@ public:
     {}
 
     /// @returns Mode value as number.
-    int value() const
+    int GetValue() const noexcept
     {
       return value_;
     }
