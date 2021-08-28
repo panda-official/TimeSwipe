@@ -27,88 +27,75 @@ namespace panda::timeswipe::driver {
 
 /// Sensor data.
 class Sensors_data final {
-  static constexpr std::size_t SENSORS = 4;
-  using CONTAINER = std::array<std::vector<float>, SENSORS>;
 public:
-  using Value = std::vector<float>;
+  using value_type = std::vector<float>;
+  using size_type = value_type::size_type;
 
-  /**
-   * \brief Get number of sensors
-   *
-   *
-   * @return number of sensors
-   */
-  static constexpr std::size_t SensorsSize() noexcept
+  /// @returns Max sensor count.
+  static constexpr std::size_t max_sensor_count() noexcept
   {
-    static_assert(SENSORS > 0);
-    return SENSORS;
+    return max_sensor_count_;
   }
 
-  /**
-   * \brief Get number of data entries
-   *
-   *
-   * @return number of data entries each sensor has
-   */
-  std::size_t DataSize() const noexcept
+  /// @returns The sensor count.
+  static constexpr std::size_t sensor_count() noexcept
+  {
+    return max_sensor_count();
+  }
+
+  /// @returns The number of values per sensor.
+  size_type size() const noexcept
   {
     return !data_.empty() ? data_[0].size() : 0;
   }
 
-  /**
-   * \brief Access sensor data
-   *
-   * @param num - sensor number. Valid values from 0 to @ref SensorsSize-1
-   *
-   * @return number of data entries each sensor has
-   */
-  std::vector<float>& operator[](const std::size_t num) noexcept
-  {
-    return data_[num];
-  }
-
-  /// @overload
-  const Value& operator[](const std::size_t index) const noexcept
+  /// @returns The reference to the value at the given `index`.
+  const value_type& operator[](const size_type index) const noexcept
   {
     return data_[index];
   }
 
-  CONTAINER& data()
+  /// @overload
+  value_type& operator[](const size_type index) noexcept
   {
-    return data_;
+    return const_cast<value_type&>(static_cast<const Sensors_data*>(this)->operator[](index));
   }
 
-  void reserve(const std::size_t num)
+  void reserve(const size_type size)
   {
-    for (std::size_t i = 0; i < SENSORS; i++)
-      data_[i].reserve(num);
+    const auto sc = sensor_count();
+    for (std::size_t i{}; i < sc; ++i)
+      data_[i].reserve(size);
   }
 
-  void resize(const std::size_t new_size)
+  void resize(const size_type size)
   {
-    for (std::size_t i = 0; i < SENSORS; i++)
-      data_[i].resize(new_size);
+    const auto sc = sensor_count();
+    for (std::size_t i{}; i < sc; ++i)
+      data_[i].resize(size);
   }
 
   void clear() noexcept
   {
-    for (std::size_t i = 0; i < SENSORS; i++)
+    const auto sc = sensor_count();
+    for (std::size_t i{}; i < sc; ++i)
       data_[i].clear();
   }
 
   bool empty() const noexcept
   {
-    return DataSize() == 0;
+    return !size();
   }
 
   void append(const Sensors_data& other)
   {
-    append(other, other.DataSize());
+    append(other, other.size());
   }
 
-  void append(const Sensors_data& other, const std::size_t count)
+  void append(const Sensors_data& other, const size_type count)
   {
-    for (std::size_t i = 0; i < SENSORS; ++i) {
+    const auto sc = sensor_count();
+    for (std::size_t i{}; i < sc; ++i) {
       const auto in_size = std::min<std::size_t>(other.data_[i].size(), count);
       const auto out_offset = data_[i].size();
       data_[i].resize(data_[i].size() + in_size);
@@ -117,15 +104,17 @@ public:
     }
   }
 
-  void erase_front(const std::size_t count) noexcept
+  void erase_front(const size_type count) noexcept
   {
-    for (std::size_t i = 0; i < SENSORS; i++)
+    const auto sc = sensor_count();
+    for (std::size_t i{}; i < sc; i++)
       data_[i].erase(data_[i].begin(), data_[i].begin() + count);
   }
 
-  void erase_back(const std::size_t count) noexcept
+  void erase_back(const size_type count) noexcept
   {
-    for (std::size_t i = 0; i < SENSORS; i++)
+    const auto sc = sensor_count();
+    for (std::size_t i{}; i < sc; i++)
       data_[i].resize(data_[i].size() - count);
   }
 
@@ -170,7 +159,9 @@ public:
 
   /// @}
 private:
-  CONTAINER data_;
+  static constexpr std::size_t max_sensor_count_{4};
+  using Array = std::array<std::vector<float>, max_sensor_count_>;
+  Array data_;
 };
 
 } // namespace panda::timeswipe::driver

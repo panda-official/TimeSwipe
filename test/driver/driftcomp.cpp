@@ -41,7 +41,7 @@ void measure(drv::TimeSwipe& ts, const std::filesystem::path& logfile)
   log.precision(5 + 4);
   ts.Start([&log](auto data, const auto)
   {
-    const auto row_count{data.DataSize()};
+    const auto row_count{data.size()};
     for (auto row{0*row_count}; row < row_count; ++row) {
       for (const auto& channel : data)
         log << channel[row] << " ";

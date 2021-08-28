@@ -397,7 +397,7 @@ public:
     data.erase_front(kDriftSamplesCount_ / 2);
 
     // Take averages of measured data (references).
-    std::vector<float> result(data.SensorsSize());
+    std::vector<float> result(data.sensor_count());
     transform(data.cbegin(), data.cend(), result.begin(), [](const auto& dat)
     {
       return static_cast<float>(dmitigr::math::avg(dat));
@@ -438,13 +438,13 @@ public:
     // Collect the data for calculation.
     auto data{CollectSensorsData(kDriftSamplesCount_,
       [this]{return DriftAffectedStateGuard{*this};})};
-    DMITIGR_ASSERT(refs->size() == data.SensorsSize());
+    DMITIGR_ASSERT(refs->size() == data.sensor_count());
 
     // Discard the first half.
     data.erase_front(kDriftSamplesCount_ / 2);
 
     // Take averages of measured data (references) and subtract the references.
-    std::vector<float> result(data.SensorsSize());
+    std::vector<float> result(data.sensor_count());
     transform(data.cbegin(), data.cend(), refs->cbegin(), result.begin(),
       [](const auto& dat, const auto ref)
       {
@@ -479,7 +479,7 @@ public:
       throw RuntimeException{Errc::kInvalidDriftReference};
 
     std::vector<float> refs;
-    while (in && refs.size() < Sensors_data::SensorsSize()) {
+    while (in && refs.size() < Sensors_data::sensor_count()) {
       float val;
       if (in >> val)
         refs.push_back(val);
@@ -489,10 +489,10 @@ public:
       if (in >> val)
         throw RuntimeException{Errc::kExcessiveDriftReferences};
     }
-    if (refs.size() < Sensors_data::SensorsSize())
+    if (refs.size() < Sensors_data::sensor_count())
       throw RuntimeException{Errc::kInsufficientDriftReferences};
 
-    DMITIGR_ASSERT(refs.size() == Sensors_data::SensorsSize());
+    DMITIGR_ASSERT(refs.size() == Sensors_data::sensor_count());
 
     // Cache and return references.
     return drift_references_ = refs;
@@ -824,7 +824,7 @@ private:
       const std::array<float, 4>& mfactors)
     {
       std::array<std::uint16_t, 4> sensors{};
-      static_assert(data.SensorsSize() == 4); // KLUDGE
+      static_assert(data.sensor_count() == 4); // KLUDGE
       using OffsetValue = std::decay_t<decltype(offsets)>::value_type;
       using SensorValue = std::decay_t<decltype(sensors)>::value_type;
       static_assert(sizeof(OffsetValue) == sizeof(SensorValue));
@@ -851,9 +851,8 @@ private:
         count++;
       }
 
-      auto& underlying_data{data.data()};
       for (std::size_t i{}; i < 4; ++i)
-        underlying_data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
+        data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
     }
 
   private:
@@ -1263,7 +1262,7 @@ private:
       if (drift_deltas_) {
         const auto& deltas = *drift_deltas_;
         for (auto i = 0*num; i < num; ++i) {
-          const auto sz = records[i].SensorsSize();
+          const auto sz = records[i].sensor_count();
           DMITIGR_ASSERT(deltas.size() == sz);
           for (auto j = 0*sz; j < sz; ++j) {
             auto& values{records[i][j]};
@@ -1289,7 +1288,7 @@ private:
         records_ptr = records;
       }
 
-      if (burst_buffer_.empty() && burst_size_ <= records_ptr->DataSize()) {
+      if (burst_buffer_.empty() && burst_size_ <= records_ptr->size()) {
         // optimization if burst buffer not used or smaller than first buffer
         {
           Callbacker{*this}(callback, std::move(*records_ptr), errors);
@@ -1299,7 +1298,7 @@ private:
         // burst buffer mode
         burst_buffer_.append(std::move(*records_ptr));
         records_ptr->clear();
-        if (burst_buffer_.DataSize() >= burst_size_) {
+        if (burst_buffer_.size() >= burst_size_) {
           {
             Callbacker{*this}(callback, std::move(burst_buffer_), errors);
           }
@@ -1313,7 +1312,7 @@ private:
       burst_buffer_.append(resampler_->flush());
 
     // Flush the remaining values from the burst buffer.
-    if (!in_callback_ && burst_buffer_.DataSize()) {
+    if (!in_callback_ && burst_buffer_.size()) {
       {
         Callbacker{*this}(callback, std::move(burst_buffer_), 0);
       }
@@ -1444,13 +1443,13 @@ private:
         return;
 
       try {
-        if (data.DataSize() < samples_count)
-          data.append(sd, samples_count - data.DataSize());
+        if (data.size() < samples_count)
+          data.append(sd, samples_count - data.size());
       } catch (...) {
         errc = Errc::kGeneric;
       }
 
-      if (IsError(errc) || (!done && data.DataSize() == samples_count)) {
+      if (IsError(errc) || (!done && data.size() == samples_count)) {
         done = true;
         update.notify_one();
       }

@@ -29,7 +29,7 @@ void measure(drv::TimeSwipe& ts, const std::chrono::milliseconds dur)
 {
   ts.SetSampleRate(48000);
   ts.SetBurstSize(48000);
-  constexpr auto channel_count{drv::Sensors_data::SensorsSize()};
+  constexpr auto channel_count{drv::Sensors_data::sensor_count()};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
   ts.Start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
@@ -109,7 +109,7 @@ try {
     // Normally, it means the first program run.
     const auto refs{ts.CalculateDriftReferences()};
     (void)refs;
-    assert(refs.size() == Sensors_data::SensorsSize());
+    assert(refs.size() == Sensors_data::sensor_count());
   }
   assert(ts.DriftReferences());
 
@@ -117,7 +117,7 @@ try {
   assert(!ts.DriftDeltas());
   auto deltas{ts.CalculateDriftDeltas()};
   (void)deltas;
-  assert(deltas.size() == Sensors_data::SensorsSize());
+  assert(deltas.size() == Sensors_data::sensor_count());
   assert(ts.DriftDeltas());
 
   // Measure.
