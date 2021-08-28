@@ -260,7 +260,7 @@ try {
     throw std::runtime_error{"either input file is likely corrupted or incorrect sample rate specified"};
 
   // Create the resampler options instance.
-  drv::detail::TimeSwipeResamplerOptions r_opts{up_factor, down_factor};
+  drv::detail::ResamplerOptions r_opts{up_factor, down_factor};
 
   // Parse --sensors option.
   const auto sensors = []
@@ -452,7 +452,7 @@ try {
     {
       std::function<void(drv::SensorsData&&, bool)> process_records;
       if (is_resampling_mode()) {
-        const auto resampler = std::make_shared<drv::detail::TimeSwipeResampler>(r_opts);
+        const auto resampler = std::make_shared<drv::detail::Resampler>(r_opts);
         process_records = [resampler, &os, output_format](drv::SensorsData&& records, const bool end)
         {
           auto recs = resampler->apply(std::move(records));

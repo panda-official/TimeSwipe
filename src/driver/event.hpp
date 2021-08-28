@@ -26,7 +26,7 @@
 namespace panda::timeswipe::driver {
 
 /// Timeswipe event.
-class TimeSwipeEvent final {
+class Event final {
 public:
   /// Button pressed event.
   class Button final {
@@ -184,11 +184,11 @@ public:
   };
 
   /// The default constructor.
-  TimeSwipeEvent() noexcept = default;
+  Event() noexcept = default;
 
   /// The constructor.
   template <class E>
-  TimeSwipeEvent(E&& e)
+  Event(E&& e)
     : event_{std::move(e)}
   {}
 
@@ -196,13 +196,13 @@ public:
    * @returns The pointer to the event, or `nullptr` if this event is not
    * the event of type `Event`.
    */
-  template <class Event>
-  const Event* Get() const noexcept
+  template <class Ev>
+  const Ev* Get() const noexcept
   {
     return std::visit([](const auto& event)
     {
       using E = std::decay_t<decltype(event)>;
-      const Event* const null{};
+      const Ev* const null{};
       (void)null;
       if constexpr (std::is_same_v<E, Event>)
         return &event;

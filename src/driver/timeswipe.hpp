@@ -498,7 +498,7 @@ public:
    */
   std::string GetSettings(const std::string& request, std::string& error);
 
-  using OnEventCallback = std::function<void(TimeSwipeEvent&& event)>;
+  using OnEventCallback = std::function<void(Event&& event)>;
   /**
    * \brief Register callback for event
    *

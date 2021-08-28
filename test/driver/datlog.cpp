@@ -163,23 +163,23 @@ int main(int argc, char *argv[])
     };
 
 
-    using drv::TimeSwipeEvent;
-    bool ret = tswipe.OnEvent([&](TimeSwipeEvent&& event) {
-      if (auto* button = event.Get<TimeSwipeEvent::Button>())
+    using drv::Event;
+    bool ret = tswipe.OnEvent([&](Event&& event) {
+      if (auto* button = event.Get<Event::Button>())
         std::cout << "Button event: "
                   << (button->pressed() ? "pressed":"released")
                   << " counter: " << button->count() << std::endl;
-      else if(auto* gain = event.Get<TimeSwipeEvent::Gain>())
+      else if(auto* gain = event.Get<Event::Gain>())
         std::cout << "Gain event: " << gain->value() << std::endl;
-      else if(auto* val = event.Get<TimeSwipeEvent::SetSecondary>())
+      else if(auto* val = event.Get<Event::SetSecondary>())
         std::cout << "SetSecondary event: " << val->value() << std::endl;
-      else if(auto* val = event.Get<TimeSwipeEvent::Bridge>())
+      else if(auto* val = event.Get<Event::Bridge>())
         std::cout << "Bridge event: " <<  val->value() << std::endl;
-      else if(auto* val = event.Get<TimeSwipeEvent::Record>())
+      else if(auto* val = event.Get<Event::Record>())
         std::cout << "Record event: " <<  val->value() << std::endl;
-      else if(auto* val = event.Get<TimeSwipeEvent::Offset>())
+      else if(auto* val = event.Get<Event::Offset>())
         std::cout << "Offset event: " <<  val->value() << std::endl;
-      else if(auto* val = event.Get<TimeSwipeEvent::Mode>())
+      else if(auto* val = event.Get<Event::Mode>())
         std::cout << "Mode event: " <<  val->value() << std::endl;
     });
     if (!ret) {

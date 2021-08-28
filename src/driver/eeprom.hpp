@@ -27,8 +27,7 @@
 
 namespace panda::timeswipe::driver::detail {
 
-class TimeSwipeEEPROM {
-public:
+struct Eeprom final {
   static bool Read(std::string& error)
   {
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU

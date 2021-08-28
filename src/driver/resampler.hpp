@@ -21,7 +21,7 @@
 
 #include "fir_resampler.hpp"
 #include "math.hpp"
-#include "timeswipe.hpp"
+#include "sensor_data.hpp"
 #include "../3rdparty/dmitigr/assert.hpp"
 
 #include <algorithm>
@@ -40,7 +40,7 @@ namespace panda::timeswipe::driver::detail {
 
 /// A timeswipe resampler options.
 /// FIXME: merge up_factor() and down_factor() into factors().
-class TimeSwipeResamplerOptions final {
+class ResamplerOptions final {
 public:
   /**
    * @brief The constructor.
@@ -48,7 +48,7 @@ public:
    * @par Requires
    * `freq.size() == ampl.size()`.
    */
-  TimeSwipeResamplerOptions(const unsigned up_factor = 1, const unsigned down_factor = 1,
+  ResamplerOptions(const unsigned up_factor = 1, const unsigned down_factor = 1,
     const SignalExtrapolation extrapolation = SignalExtrapolation::zero,
     const unsigned flength = 0,
     std::vector<double> freq = {}, std::vector<double> ampl = {})
@@ -68,7 +68,7 @@ public:
    *
    * @returns *this.
    */
-  TimeSwipeResamplerOptions& up_factor(const unsigned value) noexcept
+  ResamplerOptions& up_factor(const unsigned value) noexcept
   {
     up_factor__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -92,7 +92,7 @@ public:
    *
    * @returns *this.
    */
-  TimeSwipeResamplerOptions& down_factor(const unsigned value) noexcept
+  ResamplerOptions& down_factor(const unsigned value) noexcept
   {
     down_factor__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -116,7 +116,7 @@ public:
    *
    * @returns *this.
    */
-  TimeSwipeResamplerOptions& extrapolation(const SignalExtrapolation value) noexcept
+  ResamplerOptions& extrapolation(const SignalExtrapolation value) noexcept
   {
     extrapolation_ = value;
     DMITIGR_ASSERT(is_invariant_ok());
@@ -144,7 +144,7 @@ public:
    *
    * @returns *this.
    */
-  TimeSwipeResamplerOptions& crop_extra(const bool value) noexcept
+  ResamplerOptions& crop_extra(const bool value) noexcept
   {
     crop_extra_ = value;
     DMITIGR_ASSERT(is_invariant_ok());
@@ -168,7 +168,7 @@ public:
    *
    * @returns *this.
    */
-  TimeSwipeResamplerOptions& filter_length(const unsigned value) noexcept
+  ResamplerOptions& filter_length(const unsigned value) noexcept
   {
     filter_length__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -197,7 +197,7 @@ public:
    *
    * @see firls().
    */
-  TimeSwipeResamplerOptions& freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
+  ResamplerOptions& freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
   {
     DMITIGR_ASSERT(freq.size() == ampl.size());
     freq_ampl__(std::move(freq), std::move(ampl));
@@ -301,13 +301,13 @@ private:
  *
  * @see apply(), flush(), FirResampler.
  */
-class TimeSwipeResampler final {
+class Resampler final {
 public:
-  /// An alias of TimeSwipeResamplerOptions.
-  using Options = TimeSwipeResamplerOptions;
+  /// An alias of ResamplerOptions.
+  using Options = ResamplerOptions;
 
   /// The constructor.
-  TimeSwipeResampler(Options options)
+  Resampler(Options options)
     : options_{std::move(options)}
   {
     // Calculate FIR coefficients.

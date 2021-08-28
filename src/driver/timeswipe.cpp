@@ -94,7 +94,7 @@ public:
   {
     if (!force && is_gpio_inited_) return;
 
-    detail::setup_io();
+    detail::SetupIo();
     initGPIOInput(DATA0);
     initGPIOInput(DATA1);
     initGPIOInput(DATA2);
@@ -133,7 +133,7 @@ public:
     }
 
     std::string err;
-    if (!detail::TimeSwipeEEPROM::Read(err)) {
+    if (!detail::Eeprom::Read(err)) {
       std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
       //TODO: uncomment once parsing implemented
       //return false;
@@ -358,7 +358,7 @@ public:
   }
 
   /// @returns Previous resampler if any.
-  std::unique_ptr<detail::TimeSwipeResampler> SetSampleRate(const int rate)
+  std::unique_ptr<detail::Resampler> SetSampleRate(const int rate)
   {
     if (IsBusy()) return {};
 
@@ -369,8 +369,8 @@ public:
       const auto rates_gcd = std::gcd(rate, MaxSampleRate());
       const auto up = rate / rates_gcd;
       const auto down = MaxSampleRate() / rates_gcd;
-      resampler_ = std::make_unique<detail::TimeSwipeResampler>
-        (detail::TimeSwipeResamplerOptions{up, down});
+      resampler_ = std::make_unique<detail::Resampler>
+        (detail::ResamplerOptions{up, down});
     } else
       resampler_.reset();
 
@@ -525,7 +525,7 @@ private:
   // ---------------------------------------------------------------------------
 
   int sample_rate_{kMaxSampleRate_};
-  std::unique_ptr<detail::TimeSwipeResampler> resampler_;
+  std::unique_ptr<detail::Resampler> resampler_;
 
   // ---------------------------------------------------------------------------
   // Drift compensation data
@@ -560,7 +560,7 @@ private:
 
   boost::lockfree::spsc_queue<std::pair<std::uint8_t, std::string>, boost::lockfree::capacity<1024>> in_spi_;
   boost::lockfree::spsc_queue<std::pair<std::string, std::string>, boost::lockfree::capacity<1024>> out_spi_;
-  boost::lockfree::spsc_queue<TimeSwipeEvent, boost::lockfree::capacity<128>> events_;
+  boost::lockfree::spsc_queue<Event, boost::lockfree::capacity<128>> events_;
 
   std::list<std::thread> threads_;
 
@@ -908,7 +908,7 @@ private:
     spi_.receiveAnswer(answer);
   }
 
-  std::list<TimeSwipeEvent> SpiGetEvents()
+  std::list<Event> SpiGetEvents()
   {
     const auto get_events = [this](std::string& ev)
     {
@@ -916,7 +916,7 @@ private:
       return spi_.receiveAnswer(ev);
     };
 
-    std::list<TimeSwipeEvent> result;
+    std::list<Event> result;
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     std::string data;
     if (get_events(data) && !data.empty()) {
@@ -930,38 +930,38 @@ private:
         if (it_btn != j.end() && it_btn->is_boolean()) {
           auto it_cnt = j.find("ButtonStateCnt");
           if (it_cnt != j.end() && it_cnt->is_number()) {
-            result.push_back(TimeSwipeEvent::Button(it_btn->get<bool>(), it_cnt->get<int>()));
+            result.push_back(Event::Button(it_btn->get<bool>(), it_cnt->get<int>()));
           }
         }
 
         auto it = j.find("Gain");
         if (it != j.end() && it->is_number()) {
-          result.push_back(TimeSwipeEvent::Gain(it->get<int>()));
+          result.push_back(Event::Gain(it->get<int>()));
         }
 
         it = j.find("SetSecondary");
         if (it != j.end() && it->is_number()) {
-          result.push_back(TimeSwipeEvent::SetSecondary(it->get<int>()));
+          result.push_back(Event::SetSecondary(it->get<int>()));
         }
 
         it = j.find("Bridge");
         if (it != j.end() && it->is_number()) {
-          result.push_back(TimeSwipeEvent::Bridge(it->get<int>()));
+          result.push_back(Event::Bridge(it->get<int>()));
         }
 
         it = j.find("Record");
         if (it != j.end() && it->is_number()) {
-          result.push_back(TimeSwipeEvent::Record(it->get<int>()));
+          result.push_back(Event::Record(it->get<int>()));
         }
 
         it = j.find("Offset");
         if (it != j.end() && it->is_number()) {
-          result.push_back(TimeSwipeEvent::Offset(it->get<int>()));
+          result.push_back(Event::Offset(it->get<int>()));
         }
 
         it = j.find("Mode");
         if (it != j.end() && it->is_number()) {
-          result.push_back(TimeSwipeEvent::Mode(it->get<int>()));
+          result.push_back(Event::Mode(it->get<int>()));
         }
       }
       catch (nlohmann::json::parse_error& e)
@@ -1160,7 +1160,7 @@ private:
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
-  SensorsData ReadSensorData()
+  SensorsData ReadSensorsData()
   {
     static const auto WaitForPiOk = []
     {
@@ -1233,10 +1233,10 @@ private:
   void fetcherLoop()
   {
     while (is_measurement_started_) {
-      if (const auto data{ReadSensorData()}; !record_queue_.push(data))
+      if (const auto data{ReadSensorsData()}; !record_queue_.push(data))
         ++record_error_count_;
 
-      TimeSwipeEvent event;
+      Event event;
       while (events_.pop(event)) {
         if (on_event_cb_)
           Callbacker{*this}(on_event_cb_, std::move(event));
@@ -1331,7 +1331,7 @@ private:
       // Receive events
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
       if (emul_button_sent_ < emul_button_pressed_) {
-        TimeSwipeEvent::Button btn(true, emul_button_pressed_);
+        Event::Button btn{true, emul_button_pressed_};
         emul_button_sent_ = emul_button_pressed_;
         events_.push(btn);
       }

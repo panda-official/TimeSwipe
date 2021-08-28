@@ -82,7 +82,7 @@ namespace panda::timeswipe::driver::detail {
 volatile unsigned int* bcm_gpio;
 
 /// Init memory to access GPIO.
-inline void setup_io() noexcept
+inline void SetupIo() noexcept
 {
   int mem_fd = -1;
   if ( (mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) { // test /dev/gpiomem!!! <- not root necessary

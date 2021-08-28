@@ -69,10 +69,10 @@ try {
   ts.SetSampleRate(sample_rate);
   ts.SetBurstSize(sample_rate / frequency);
 
-  ts.OnEvent([](const drv::TimeSwipeEvent& event)
+  ts.OnEvent([](const drv::Event& event)
   {
     try {
-      if (auto* gain = event.Get<drv::TimeSwipeEvent::Gain>()) {
+      if (auto* gain = event.Get<drv::Event::Gain>()) {
         std::cout << "Gain event: " << gain->value() << std::endl;
       }
     } catch (const std::exception& e) {
