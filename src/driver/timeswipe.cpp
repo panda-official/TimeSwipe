@@ -1530,7 +1530,7 @@ private:
 // class TimeSwipe
 // -----------------------------------------------------------------------------
 
-TimeSwipe& TimeSwipe::GetInstance()
+TimeSwipe& TimeSwipe::instance()
 {
   if (!instance_) instance_.reset(new TimeSwipe);
   return *instance_;

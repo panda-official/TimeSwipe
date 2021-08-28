@@ -65,7 +65,7 @@ try {
     throw std::runtime_error{"frequency cannot be greater than sample-rate"};
 
   // Initialize TimeSwipe.
-  auto& ts = drv::TimeSwipe::GetInstance();
+  auto& ts = drv::TimeSwipe::instance();
   ts.SetSampleRate(sample_rate);
   ts.SetBurstSize(sample_rate / frequency);
 

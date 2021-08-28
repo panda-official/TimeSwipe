@@ -61,7 +61,7 @@ public:
    * @par Effects
    * Restarts TimeSwipe firmware on very first run!
    */
-  static TimeSwipe& GetInstance();
+  static TimeSwipe& instance();
 
   /// Non move-constructible.
   TimeSwipe(TimeSwipe&&) = delete;

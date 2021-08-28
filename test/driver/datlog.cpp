@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     }
 
 
-    auto& tswipe = drv::TimeSwipe::GetInstance();
+    auto& tswipe = drv::TimeSwipe::instance();
     tswipe.TraceSPI(trace_spi);
 
     // Board Preparation
