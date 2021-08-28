@@ -96,8 +96,8 @@ int main ( int argc, char *argv[] )
 
     if ( bMasterMode )
     {
-        using drv::detail::BcmSpi;
-        BcmSpi spi ( nSPI ? BcmSpi::SpiPins::kAux : BcmSpi::SpiPins::kSpi0 );
+        using drv::detail::Bcm_spi;
+        Bcm_spi spi ( nSPI ? Bcm_spi::Spi_pins::aux : Bcm_spi::Spi_pins::spi0 );
 
         if (!spi.IsInitialized())
         {

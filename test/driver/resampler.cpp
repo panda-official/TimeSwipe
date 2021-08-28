@@ -260,7 +260,7 @@ try {
     throw std::runtime_error{"either input file is likely corrupted or incorrect sample rate specified"};
 
   // Create the resampler options instance.
-  drv::detail::ResamplerOptions r_opts{up_factor, down_factor};
+  drv::detail::Resampler_options r_opts{up_factor, down_factor};
 
   // Parse --sensors option.
   const auto sensors = []

@@ -30,10 +30,10 @@
 
 namespace panda::timeswipe::driver::detail {
 
-class PidFile final {
+class Pid_file final {
 public:
   /// The destructor.
-  ~PidFile()
+  ~Pid_file()
   {
     unlock();
   }
@@ -43,7 +43,7 @@ public:
    *
    * @param name Unique application name.
    */
-  PidFile(const std::string& name)
+  Pid_file(const std::string& name)
     : fname_{name}
   {
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
@@ -62,7 +62,7 @@ public:
    *
    * @returns `false` if pidloc failed, and `error` has detailed error description.
    */
-  bool Lock(std::string& error)
+  bool lock(std::string& error)
   {
     if (locked_) return true;
     fd_ = open(fname_.c_str(), O_CREAT | O_RDWR, 0600);

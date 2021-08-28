@@ -29,26 +29,26 @@
 
 namespace panda::timeswipe::driver::detail {
 
-class BcmSpi final : public CSPI {
+class Bcm_spi final : public CSPI {
 public:
-  enum SpiPins {
-    kSpi0,
-    kAux
+  enum Spi_pins {
+    spi0,
+    aux
   };
 
-  ~BcmSpi()
+  ~Bcm_spi()
   {
-    if (is_spi_initialized_[SpiPins::kAux])
+    if (is_spi_initialized_[Spi_pins::aux])
       bcm2835_aux_spi_end();
 
-    if (is_spi_initialized_[SpiPins::kSpi0])
+    if (is_spi_initialized_[Spi_pins::spi0])
       bcm2835_spi_end();
 
     if (is_initialized_)
       bcm2835_close();
   }
 
-  BcmSpi(const SpiPins pins = SpiPins::kSpi0)
+  Bcm_spi(const Spi_pins pins = Spi_pins::spi0)
     : pins_{pins}
   {
     // FIXME: throw exceptions on errors instead of just return.
@@ -64,7 +64,7 @@ public:
     if (is_spi_initialized_[pins_])
       return;
     else if ( !(is_spi_initialized_[pins_] =
-        (pins_ == SpiPins::kSpi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
+        (pins_ == Spi_pins::spi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
       return;
 
     //set default rate:
@@ -220,7 +220,7 @@ private:
 
   std::atomic_bool trace_spi_{};
   CSyncSerComFSM com_cntr_;
-  SpiPins pins_;
+  Spi_pins pins_;
   CFIFO rec_fifo_;
 
   void set_phpol(bool /*bPhase*/, bool /*bPol*/) override
@@ -235,7 +235,7 @@ private:
 
   Character SpiTransfer(const Character ch)
   {
-    if (pins_ != SpiPins::kSpi0) {
+    if (pins_ != Spi_pins::spi0) {
       char t = ch;
       char r{};
       _bcm_aux_spi_transfernb(&t, &r, 1, 1);
@@ -248,13 +248,13 @@ private:
 
   void SpiPurge()
   {
-    if (pins_ == SpiPins::kSpi0)
+    if (pins_ == Spi_pins::spi0)
       _bcm_spi_purge();
   }
 
   void SpiSetCs(const bool how)
   {
-    if (pins_ != SpiPins::kSpi0) {
+    if (pins_ != Spi_pins::spi0) {
       char t{};
       char r;
       _bcm_aux_spi_transfernb(&t, &r, 1, how);
@@ -264,12 +264,12 @@ private:
 
   void SpiWaitDone()
   {
-    if (pins_ == SpiPins::kSpi0) while (!_bsm_spi_is_done()){}
+    if (pins_ == Spi_pins::spi0) while (!_bsm_spi_is_done()){}
   }
 
   void SpiSetSpeed(const std::uint32_t speed_hz)
   {
-    if (pins_ == SpiPins::kSpi0)
+    if (pins_ == Spi_pins::spi0)
       bcm2835_spi_set_speed_hz(speed_hz);
     else
       bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));

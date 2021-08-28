@@ -72,10 +72,10 @@ public:
 
   Rep()
     : pid_file_{"timeswipe"}
-    , spi_{detail::BcmSpi::SpiPins::kSpi0}
+    , spi_{detail::Bcm_spi::Spi_pins::spi0}
   {
     std::string msg;
-    if (!pid_file_.Lock(msg))
+    if (!pid_file_.lock(msg))
       // Lock here. Second lock from the same process is allowed.
       throw RuntimeException{Errc::kPidFileLockFailed};
 
@@ -370,7 +370,7 @@ public:
       const auto up = rate / rates_gcd;
       const auto down = MaxSampleRate() / rates_gcd;
       resampler_ = std::make_unique<detail::Resampler>
-        (detail::ResamplerOptions{up, down});
+        (detail::Resampler_options{up, down});
     } else
       resampler_.reset();
 
@@ -588,8 +588,8 @@ private:
   // Other data
   // ---------------------------------------------------------------------------
 
-  detail::PidFile pid_file_;
-  detail::BcmSpi spi_;
+  detail::Pid_file pid_file_;
+  detail::Bcm_spi spi_;
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_measurement_started_{};
 
@@ -1097,7 +1097,7 @@ private:
 
   bool SpiSetChannelMode(const unsigned num, const int nMode)
   {
-    spi_.sendSetCommand(detail::BcmSpi::makeChCmd(num, "mode"), std::to_string(nMode));
+    spi_.sendSetCommand(detail::Bcm_spi::makeChCmd(num, "mode"), std::to_string(nMode));
     std::string answer;
     if (!spi_.receiveStripAnswer(answer)) return false;
     return answer == std::to_string(nMode);
@@ -1105,7 +1105,7 @@ private:
 
   bool SpiGetChannelMode(const unsigned num, int& nMode, std::string& error)
   {
-    spi_.sendGetCommand(detail::BcmSpi::makeChCmd(num, "mode"));
+    spi_.sendGetCommand(detail::Bcm_spi::makeChCmd(num, "mode"));
     std::string answer;
     if (!spi_.receiveAnswer(answer, error)) {
       nMode = 0;
@@ -1117,7 +1117,7 @@ private:
 
   bool SpiSetChannelGain(const unsigned num, const float Gain)
   {
-    spi_.sendSetCommand(detail::BcmSpi::makeChCmd(num, "gain"), std::to_string(Gain));
+    spi_.sendSetCommand(detail::Bcm_spi::makeChCmd(num, "gain"), std::to_string(Gain));
     std::string answer;
     if (!spi_.receiveStripAnswer(answer)) return false;
     return true;
@@ -1125,7 +1125,7 @@ private:
 
   bool SpiGetChannelGain(const unsigned num, float& Gain, std::string& error)
   {
-    spi_.sendGetCommand(detail::BcmSpi::makeChCmd(num, "gain"));
+    spi_.sendGetCommand(detail::Bcm_spi::makeChCmd(num, "gain"));
     std::string answer;
     if (!spi_.receiveAnswer(answer, error)) {
       Gain = 0;
@@ -1137,7 +1137,7 @@ private:
 
   bool SpiSetiepe(const unsigned num, const bool bIEPE)
   {
-    spi_.sendSetCommand(detail::BcmSpi::makeChCmd(num, "iepe"), std::to_string(bIEPE));
+    spi_.sendSetCommand(detail::Bcm_spi::makeChCmd(num, "iepe"), std::to_string(bIEPE));
     std::string answer;
     if (!spi_.receiveStripAnswer(answer)) return false;
     return true;
@@ -1145,7 +1145,7 @@ private:
 
   bool SpiGetiepe(const unsigned num, bool& bIEPE, std::string& error)
   {
-    spi_.sendGetCommand(detail::BcmSpi::makeChCmd(num, "iepe"));
+    spi_.sendGetCommand(detail::Bcm_spi::makeChCmd(num, "iepe"));
     std::string answer;
     if (!spi_.receiveAnswer(answer, error)) {
       bIEPE = 0;

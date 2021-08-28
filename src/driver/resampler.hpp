@@ -40,7 +40,7 @@ namespace panda::timeswipe::driver::detail {
 
 /// A timeswipe resampler options.
 /// FIXME: merge up_factor() and down_factor() into factors().
-class ResamplerOptions final {
+class Resampler_options final {
 public:
   /**
    * @brief The constructor.
@@ -48,7 +48,7 @@ public:
    * @par Requires
    * `freq.size() == ampl.size()`.
    */
-  ResamplerOptions(const unsigned up_factor = 1, const unsigned down_factor = 1,
+  Resampler_options(const unsigned up_factor = 1, const unsigned down_factor = 1,
     const Signal_extrapolation extrapolation = Signal_extrapolation::zero,
     const unsigned flength = 0,
     std::vector<double> freq = {}, std::vector<double> ampl = {})
@@ -68,7 +68,7 @@ public:
    *
    * @returns *this.
    */
-  ResamplerOptions& up_factor(const unsigned value) noexcept
+  Resampler_options& up_factor(const unsigned value) noexcept
   {
     up_factor__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -92,7 +92,7 @@ public:
    *
    * @returns *this.
    */
-  ResamplerOptions& down_factor(const unsigned value) noexcept
+  Resampler_options& down_factor(const unsigned value) noexcept
   {
     down_factor__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -116,7 +116,7 @@ public:
    *
    * @returns *this.
    */
-  ResamplerOptions& extrapolation(const Signal_extrapolation value) noexcept
+  Resampler_options& extrapolation(const Signal_extrapolation value) noexcept
   {
     extrapolation_ = value;
     DMITIGR_ASSERT(is_invariant_ok());
@@ -144,7 +144,7 @@ public:
    *
    * @returns *this.
    */
-  ResamplerOptions& crop_extra(const bool value) noexcept
+  Resampler_options& crop_extra(const bool value) noexcept
   {
     crop_extra_ = value;
     DMITIGR_ASSERT(is_invariant_ok());
@@ -168,7 +168,7 @@ public:
    *
    * @returns *this.
    */
-  ResamplerOptions& filter_length(const unsigned value) noexcept
+  Resampler_options& filter_length(const unsigned value) noexcept
   {
     filter_length__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -197,7 +197,7 @@ public:
    *
    * @see firls().
    */
-  ResamplerOptions& freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
+  Resampler_options& freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
   {
     DMITIGR_ASSERT(freq.size() == ampl.size());
     freq_ampl__(std::move(freq), std::move(ampl));
@@ -303,8 +303,8 @@ private:
  */
 class Resampler final {
 public:
-  /// An alias of ResamplerOptions.
-  using Options = ResamplerOptions;
+  /// An alias of Resampler_options.
+  using Options = Resampler_options;
 
   /// The constructor.
   Resampler(Options options)

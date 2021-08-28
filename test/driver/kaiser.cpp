@@ -26,7 +26,7 @@ int main()
     {
       for (unsigned up{up_from}; up <= up_to; ++up) {
         for (unsigned down{1}; down <= max_factor; ++down) {
-          ResamplerOptions opts{up, down};
+          Resampler_options opts{up, down};
           Resampler resampler{std::move(opts)};
         }
       }
