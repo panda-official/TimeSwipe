@@ -890,29 +890,29 @@ private:
 
   void SpiSetTrace(const bool value)
   {
-    spi_.SetTrace(value);
+    spi_.enable_tracing(value);
   }
 
   void SpiSetMode(const int num)
   {
-    spi_.sendSetCommand("Mode", std::to_string(num));
+    spi_.send_set_command("Mode", std::to_string(num));
     std::string answer;
-    spi_.receiveAnswer(answer);
+    spi_.receive_answer(answer);
   }
 
   void SpiSetEnableADmes(const bool value)
   {
-    spi_.sendSetCommand("EnableADmes", std::to_string(value));
+    spi_.send_set_command("EnableADmes", std::to_string(value));
     std::string answer;
-    spi_.receiveAnswer(answer);
+    spi_.receive_answer(answer);
   }
 
   std::list<Event> SpiGetEvents()
   {
     const auto get_events = [this](std::string& ev)
     {
-      spi_.sendEventsCommand();
-      return spi_.receiveAnswer(ev);
+      spi_.send_events_command();
+      return spi_.receive_answer(ev);
     };
 
     std::list<Event> result;
@@ -978,9 +978,9 @@ private:
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
-    spi_.sendGetSettingsCommand(request);
+    spi_.send_get_settings_command(request);
     std::string answer;
-    if (!spi_.receiveAnswer(answer, error))
+    if (!spi_.receive_answer(answer, error))
       error = "read SPI failed";
     return answer;
 #endif
@@ -991,9 +991,9 @@ private:
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return request;
 #else
-    spi_.sendSetSettingsCommand(request);
+    spi_.send_set_settings_command(request);
     std::string answer;
-    if (!spi_.receiveAnswer(answer, error))
+    if (!spi_.receive_answer(answer, error))
       error = "read SPI failed";
     return answer;
 #endif
@@ -1044,7 +1044,7 @@ private:
       receiveStripAnswer(answer);
       if (answer == "0") return false; // Already stopped
     */
-    return spi_.sendSetCommandCheck(pwm, 0);
+    return spi_.send_set_command_check(pwm, 0);
 #endif
   }
 
@@ -1075,9 +1075,9 @@ private:
 
   bool SpiSetDACsw(const bool value)
   {
-    spi_.sendSetCommand("DACsw", value ? "1" : "0");
+    spi_.send_set_command("DACsw", value ? "1" : "0");
     std::string answer;
-    if (!spi_.receiveStripAnswer(answer))
+    if (!spi_.receive_strip_answer(answer))
       return false;
     return answer == (value ? "1" : "0");
   }
@@ -1088,25 +1088,25 @@ private:
   bool SpiSetAOUT(const std::uint8_t num, const int val)
   {
     std::string var = std::string("AOUT") + (num ? "4" : "3") + ".raw";
-    spi_.sendSetCommand(var, std::to_string(val));
+    spi_.send_set_command(var, std::to_string(val));
     std::string answer;
-    if (!spi_.receiveStripAnswer(answer)) return false;
+    if (!spi_.receive_strip_answer(answer)) return false;
     return answer == std::to_string(val);
   }
 
   bool SpiSetChannelMode(const unsigned num, const int nMode)
   {
-    spi_.sendSetCommand(detail::Bcm_spi::makeChCmd(num, "mode"), std::to_string(nMode));
+    spi_.send_set_command(detail::Bcm_spi::make_channel_command(num, "mode"), std::to_string(nMode));
     std::string answer;
-    if (!spi_.receiveStripAnswer(answer)) return false;
+    if (!spi_.receive_strip_answer(answer)) return false;
     return answer == std::to_string(nMode);
   }
 
   bool SpiGetChannelMode(const unsigned num, int& nMode, std::string& error)
   {
-    spi_.sendGetCommand(detail::Bcm_spi::makeChCmd(num, "mode"));
+    spi_.send_get_command(detail::Bcm_spi::make_channel_command(num, "mode"));
     std::string answer;
-    if (!spi_.receiveAnswer(answer, error)) {
+    if (!spi_.receive_answer(answer, error)) {
       nMode = 0;
       return false;
     }
@@ -1116,17 +1116,17 @@ private:
 
   bool SpiSetChannelGain(const unsigned num, const float Gain)
   {
-    spi_.sendSetCommand(detail::Bcm_spi::makeChCmd(num, "gain"), std::to_string(Gain));
+    spi_.send_set_command(detail::Bcm_spi::make_channel_command(num, "gain"), std::to_string(Gain));
     std::string answer;
-    if (!spi_.receiveStripAnswer(answer)) return false;
+    if (!spi_.receive_strip_answer(answer)) return false;
     return true;
   }
 
   bool SpiGetChannelGain(const unsigned num, float& Gain, std::string& error)
   {
-    spi_.sendGetCommand(detail::Bcm_spi::makeChCmd(num, "gain"));
+    spi_.send_get_command(detail::Bcm_spi::make_channel_command(num, "gain"));
     std::string answer;
-    if (!spi_.receiveAnswer(answer, error)) {
+    if (!spi_.receive_answer(answer, error)) {
       Gain = 0;
       return false;
     }
@@ -1136,17 +1136,17 @@ private:
 
   bool SpiSetiepe(const unsigned num, const bool bIEPE)
   {
-    spi_.sendSetCommand(detail::Bcm_spi::makeChCmd(num, "iepe"), std::to_string(bIEPE));
+    spi_.send_set_command(detail::Bcm_spi::make_channel_command(num, "iepe"), std::to_string(bIEPE));
     std::string answer;
-    if (!spi_.receiveStripAnswer(answer)) return false;
+    if (!spi_.receive_strip_answer(answer)) return false;
     return true;
   }
 
   bool SpiGetiepe(const unsigned num, bool& bIEPE, std::string& error)
   {
-    spi_.sendGetCommand(detail::Bcm_spi::makeChCmd(num, "iepe"));
+    spi_.send_get_command(detail::Bcm_spi::make_channel_command(num, "iepe"));
     std::string answer;
-    if (!spi_.receiveAnswer(answer, error)) {
+    if (!spi_.receive_answer(answer, error)) {
       bIEPE = 0;
       return false;
     }

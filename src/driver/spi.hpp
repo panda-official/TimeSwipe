@@ -68,16 +68,16 @@ public:
       return;
 
     //set default rate:
-    //SpiSetSpeed(100000);
-    SpiSetSpeed(50000);
+    //set_speed(100000);
+    set_speed(50000);
   }
 
-  bool IsInitialized() const noexcept
+  bool is_initialized() const noexcept
   {
     return is_spi_initialized_[pins_];
   }
 
-  CSyncSerComFSM::FSM GetFsmState() const noexcept
+  CSyncSerComFSM::FSM fsm_state() const noexcept
   {
     return com_cntr_.get_state();
   }
@@ -88,11 +88,11 @@ public:
 
   bool send(CFIFO& msg) override
   {
-    if (!IsInitialized())
+    if (!is_initialized())
       return false;
 
-    SpiPurge();
-    SpiSetCs(true);
+    purge();
+    set_cs(true);
     rec_fifo_.reset();
 
     // A delay CS to fall required.
@@ -102,22 +102,22 @@ public:
     Character ch=0;
     com_cntr_.start(CSyncSerComFSM::FSM::sendLengthMSB);
     while (com_cntr_.proc(ch, msg))
-      SpiTransfer(ch);
+      transfer(ch);
     if (com_cntr_.bad())
       return false;
 
     // Provide add clock.
-    SpiTransfer(0);
+    transfer(0);
 
     // Wait for a "done" state.
-    SpiWaitDone();
+    wait_done();
 
     com_cntr_.start(CSyncSerComFSM::FSM::recSilenceFrame);
     do
-      ch = SpiTransfer(0); //provide a clock
+      ch = transfer(0); //provide a clock
     while (com_cntr_.proc(ch, rec_fifo_));
 
-    SpiSetCs(false);
+    set_cs(false);
 
     // A delay for CS to rise required.
     bcm2835_delay(20); // corresponds to 50KHz
@@ -127,46 +127,47 @@ public:
 
   bool receive(CFIFO& msg) override
   {
-    if (!IsInitialized())
+    if (!is_initialized())
       return false;
 
     msg = rec_fifo_;
     return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
 
-  static std::string makeChCmd(const unsigned num, const char* const pSubDomain)
+  static std::string make_channel_command(const unsigned num,
+    const char* const pSubDomain)
   {
     return std::string{"CH"}.append(std::to_string(num + 1))
       .append(".").append(pSubDomain);
   }
 
-  void sendSetCommand(const std::string& variable, const std::string& value)
+  void send_set_command(const std::string& variable, const std::string& value)
   {
-    sendCommand(variable + "<" + value + "\n");
+    send_command(variable + "<" + value + "\n");
   }
 
-  void sendGetCommand(const std::string& variable)
+  void send_get_command(const std::string& variable)
   {
-    sendCommand(variable + ">\n");
+    send_command(variable + ">\n");
   }
 
-  bool receiveAnswer(std::string& ans)
+  bool receive_answer(std::string& ans)
   {
     CFIFO answer;
     if (receive(answer)) {
       ans = answer;
-      if (trace_spi_)
+      if (is_tracing_enabled_)
         std::clog << "spi: received: \"" << ans << "\"" << std::endl;
       return true;
     }
-    if (trace_spi_)
+    if (is_tracing_enabled_)
       std::cerr << "spi: receive failed" << std::endl;
     return false;
   }
 
-  bool receiveAnswer(std::string& ans, std::string& error)
+  bool receive_answer(std::string& ans, std::string& error)
   {
-    const auto ret = receiveAnswer(ans);
+    const auto ret = receive_answer(ans);
     if (ret && !ans.empty() && ans[0] == '!') {
       error = ans;
       ans.clear();
@@ -175,50 +176,55 @@ public:
     return ret;
   }
 
-  bool receiveStripAnswer(std::string& ans)
+  bool receive_strip_answer(std::string& ans)
   {
     std::string error;
-    return receiveStripAnswer(ans, error);
+    return receive_strip_answer(ans, error);
   }
 
-  void sendSetSettingsCommand(const std::string& request)
+  void send_set_settings_command(const std::string& request)
   {
-    sendCommand("js<" + request + "\n");
+    send_command("js<" + request + "\n");
   }
 
-  void sendGetSettingsCommand(const std::string& request)
+  void send_get_settings_command(const std::string& request)
   {
-    sendCommand("js>" + request + "\n");
+    send_command("js>" + request + "\n");
   }
 
-  void sendEventsCommand()
+  void send_events_command()
   {
-    sendCommand("je>\n");
+    send_command("je>\n");
   }
 
   template <class Number>
-  bool sendSetCommandCheck(const std::string& variable, const Number value) {
-    sendSetCommand(variable, std::to_string(value));
-    // // FIXME: if sleep disable and trace_spi_=false receive() fails sometimes
+  bool send_set_command_check(const std::string& variable, const Number value) {
+    send_set_command(variable, std::to_string(value));
+    // // FIXME: if sleep disable and is_tracing_enabled__=false receive() fails sometimes
     // std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     std::string answer;
-    receiveStripAnswer(answer);
+    receive_strip_answer(answer);
     Number num{};
     std::istringstream s{answer};
     s >> num;
     return num == value;
   }
 
-  void SetTrace(const bool value)
+  void enable_tracing(const bool value)
   {
-    trace_spi_ = value;
+    is_tracing_enabled_ = value;
+  }
+
+  bool is_tracing_enabled() const noexcept
+  {
+    return is_tracing_enabled_;
   }
 
 private:
   inline static bool is_initialized_;
   inline static bool is_spi_initialized_[2];
 
-  std::atomic_bool trace_spi_{};
+  std::atomic_bool is_tracing_enabled_{};
   CSyncSerComFSM com_cntr_;
   Spi_pins pins_;
   CFIFO rec_fifo_;
@@ -233,7 +239,7 @@ private:
     unsigned char /*BeforeClockDel*/) override
   {}
 
-  Character SpiTransfer(const Character ch)
+  Character transfer(const Character ch)
   {
     if (pins_ != Spi_pins::spi0) {
       char t = ch;
@@ -246,13 +252,13 @@ private:
     }
   }
 
-  void SpiPurge()
+  void purge()
   {
     if (pins_ == Spi_pins::spi0)
       _bcm_spi_purge();
   }
 
-  void SpiSetCs(const bool how)
+  void set_cs(const bool how)
   {
     if (pins_ != Spi_pins::spi0) {
       char t{};
@@ -262,12 +268,12 @@ private:
       _bsm_spi_cs(how);
   }
 
-  void SpiWaitDone()
+  void wait_done()
   {
     if (pins_ == Spi_pins::spi0) while (!_bsm_spi_is_done()){}
   }
 
-  void SpiSetSpeed(const std::uint32_t speed_hz)
+  void set_speed(const std::uint32_t speed_hz)
   {
     if (pins_ == Spi_pins::spi0)
       bcm2835_spi_set_speed_hz(speed_hz);
@@ -277,18 +283,18 @@ private:
 
   // ===========================================================================
 
-  void sendCommand(const std::string& cmd)
+  void send_command(const std::string& cmd)
   {
     CFIFO command;
     command += cmd;
     send(command);
-    if (trace_spi_)
+    if (is_tracing_enabled_)
       std::clog << "spi: sent: \"" << command << "\"" << std::endl;
   }
 
-  bool receiveStripAnswer(std::string& ans, std::string& error)
+  bool receive_strip_answer(std::string& ans, std::string& error)
   {
-    if (!receiveAnswer(ans, error))
+    if (!receive_answer(ans, error))
       return false;
 
     // Strip.

@@ -99,7 +99,7 @@ int main ( int argc, char *argv[] )
         using drv::detail::Bcm_spi;
         Bcm_spi spi ( nSPI ? Bcm_spi::Spi_pins::aux : Bcm_spi::Spi_pins::spi0 );
 
-        if (!spi.IsInitialized())
+        if (!spi.is_initialized())
         {
             std::cout << "Failed to initialize BCM SPI-" << nSPI << "Master. Try using sudo!" << std::endl;
             return 0;
@@ -123,7 +123,7 @@ int main ( int argc, char *argv[] )
                     }
                     else
                     {
-                      switch ( spi.GetFsmState() )
+                      switch ( spi.fsm_state() )
                         {
                         case CSyncSerComFSM::errLine:
                           std::cout << "!Line_err!";
