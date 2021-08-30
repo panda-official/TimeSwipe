@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 
 
 
-    tswipe.SetMode(modes.at(configitem["MODE"]));
+    tswipe.set_mode(modes.at(configitem["MODE"]));
 
     const auto& offs = configitem["SENSOR_OFFSET"];
     tswipe.SetSensorOffsets(offs[0], offs[1], offs[2], offs[3]);

@@ -282,12 +282,12 @@ public:
     SpiSetTrace(value);
   }
 
-  bool SetChannelMode(const int channel, const ChannelMesMode mode)
+  bool SetChannelMode(const int channel, const Measurement_mode mode)
   {
     return SpiSetChannelMode(channel, mode);
   }
 
-  bool GetChannelMode(const int channel, ChannelMesMode& mode)
+  bool GetChannelMode(const int channel, Measurement_mode& mode)
   {
     std::string err;
     return SpiGetChannelMode(channel, mode, err);
@@ -320,12 +320,12 @@ public:
     burst_size_ = burst;
   }
 
-  void SetMode(const Mode mode)
+  void set_mode(const Mode mode)
   {
     read_mode_ = mode;
   }
 
-  Mode GetMode() const noexcept
+  Mode mode() const noexcept
   {
     return read_mode_;
   }
@@ -670,7 +670,7 @@ private:
        * after 1.5 ms.
        */
       for (const auto m : {1, 2, 3, 4}) {
-        if (!rep_.SetChannelMode(m, ChannelMesMode::Current))
+        if (!rep_.SetChannelMode(m, Measurement_mode::Current))
           throw RuntimeException{Errc::kGeneric};
       }
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
@@ -683,7 +683,7 @@ private:
     Rep& rep_;
     const decltype(rep_.sample_rate_) sample_rate_;
     const decltype(rep_.burst_size_) burst_size_;
-    ChannelMesMode chmm1_, chmm2_, chmm3_, chmm4_;
+    Measurement_mode chmm1_, chmm2_, chmm3_, chmm4_;
     decltype(rep_.resampler_) resampler_;
   };
 
@@ -1088,7 +1088,7 @@ private:
     return answer == std::to_string(val);
   }
 
-  bool SpiSetChannelMode(const int channel, const ChannelMesMode mode)
+  bool SpiSetChannelMode(const int channel, const Measurement_mode mode)
   {
     spi_.send_set_command(detail::Bcm_spi::make_channel_command(channel, "mode"),
       std::to_string(static_cast<int>(mode)));
@@ -1097,15 +1097,15 @@ private:
     return answer == std::to_string(static_cast<int>(mode));
   }
 
-  bool SpiGetChannelMode(const int channel, ChannelMesMode& mode, std::string& err)
+  bool SpiGetChannelMode(const int channel, Measurement_mode& mode, std::string& err)
   {
     spi_.send_get_command(detail::Bcm_spi::make_channel_command(channel, "mode"));
     std::string answer;
     if (!spi_.receive_answer(answer, err)) {
-      mode = static_cast<ChannelMesMode>(0);
+      mode = static_cast<Measurement_mode>(0);
       return false;
     }
-    mode = static_cast<ChannelMesMode>(std::stoi(answer));
+    mode = static_cast<Measurement_mode>(std::stoi(answer));
     return true;
   }
 
@@ -1568,14 +1568,14 @@ void TimeSwipe::SetSensorTransmissions(float trans1, float trans2, float trans3,
   return rep_->SetSensorTransmissions(trans1, trans2, trans3, trans4);
 }
 
-void TimeSwipe::SetMode(const Mode mode)
+void TimeSwipe::set_mode(const Mode mode)
 {
-  return rep_->SetMode(mode);
+  return rep_->set_mode(mode);
 }
 
-auto TimeSwipe::GetMode() const noexcept -> Mode
+auto TimeSwipe::mode() const noexcept -> Mode
 {
-  return rep_->GetMode();
+  return rep_->mode();
 }
 
 int TimeSwipe::MaxSampleRate() const noexcept
@@ -1685,12 +1685,12 @@ void TimeSwipe::TraceSPI(const bool value)
   rep_->TraceSPI(value);
 }
 
-bool TimeSwipe::SetChannelMode(const int channel, const ChannelMesMode mode)
+bool TimeSwipe::SetChannelMode(const int channel, const Measurement_mode mode)
 {
   return rep_->SetChannelMode(channel, mode);
 }
 
-bool TimeSwipe::GetChannelMode(const int channel, ChannelMesMode& mode)
+bool TimeSwipe::GetChannelMode(const int channel, Measurement_mode& mode)
 {
   return rep_->GetChannelMode(channel, mode);
 }

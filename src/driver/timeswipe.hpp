@@ -101,29 +101,17 @@ public:
    */
   static std::string_view to_string_view(const Mode value);
 
-  /** @enum TimeSwipe::ChannelMesMode
-   *
-   * @brief The channel measurement mode
-   *
-   */
-  enum class ChannelMesMode {
+  /// Measurement mode.
+  enum class Measurement_mode {
     Voltage,
     Current
   };
 
-  /**
-   * \brief Setup hardware mode
-   *
-   * @param number - one of @ref Mode
-   */
-  void SetMode(Mode number);
+  /// Sets the input mode.
+  void set_mode(Mode mode);
 
-  /**
-   * \brief Get current hardware mode
-   *
-   * @return current mode
-   */
-  Mode GetMode() const noexcept;
+  /// @returns Input mode.
+  Mode mode() const noexcept;
 
   /**
    * \brief Setup Sensor offsets
@@ -214,7 +202,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
-  bool SetChannelMode(int channel, ChannelMesMode nMode);
+  bool SetChannelMode(int channel, Measurement_mode nMode);
 
 
   /**
@@ -224,7 +212,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
-  bool GetChannelMode(int channel, ChannelMesMode &nMode);
+  bool GetChannelMode(int channel, Measurement_mode &nMode);
 
 
   /**
