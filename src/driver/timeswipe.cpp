@@ -282,40 +282,37 @@ public:
     SpiSetTrace(value);
   }
 
-  bool SetChannelMode(const Channel nCh, const ChannelMesMode nMode)
+  bool SetChannelMode(const int channel, const ChannelMesMode mode)
   {
-    return SpiSetChannelMode(static_cast<unsigned int>(nCh), static_cast<int>(nMode));
+    return SpiSetChannelMode(channel, mode);
   }
 
-  bool GetChannelMode(const Channel nCh, ChannelMesMode& nMode)
-  {
-    std::string strErrMsg;
-    int rMode;
-    const bool rv = SpiGetChannelMode(static_cast<unsigned int>(nCh), rMode, strErrMsg);
-    nMode = static_cast<ChannelMesMode>(rMode);
-    return rv;
-  }
-
-  bool SetChannelGain(const Channel nCh, const float gain)
-  {
-    return SpiSetChannelGain(static_cast<unsigned int>(nCh), gain);
-  }
-
-  bool GetChannelGain(const Channel nCh, float& gain)
+  bool GetChannelMode(const int channel, ChannelMesMode& mode)
   {
     std::string err;
-    return SpiGetChannelGain(static_cast<unsigned int>(nCh), gain, err);
+    return SpiGetChannelMode(channel, mode, err);
   }
 
-  bool SetChannelIEPE(const Channel nCh, const bool bIEPEon)
+  bool SetChannelGain(const int channel, const float gain)
   {
-    return SpiSetiepe(static_cast<unsigned>(nCh), bIEPEon);
+    return SpiSetChannelGain(channel, gain);
   }
 
-  bool GetChannelIEPE(const Channel nCh, bool& bIEPEon)
+  bool GetChannelGain(const int channel, float& gain)
   {
     std::string err;
-    return SpiGetiepe(static_cast<unsigned int>(nCh), bIEPEon, err);
+    return SpiGetChannelGain(channel, gain, err);
+  }
+
+  bool SetChannelIEPE(const int channel, const bool iepe)
+  {
+    return SpiSetiepe(channel, iepe);
+  }
+
+  bool GetChannelIEPE(const int channel, bool& iepe)
+  {
+    std::string err;
+    return SpiGetiepe(channel, iepe, err);
   }
 
   void SetBurstSize(const std::size_t burst)
@@ -634,9 +631,6 @@ private:
   class DriftAffectedStateGuard final {
     friend Rep;
 
-    using Ch = Channel;
-    using Chmm = ChannelMesMode;
-
     DriftAffectedStateGuard(const DriftAffectedStateGuard&) = delete;
     DriftAffectedStateGuard& operator=(const DriftAffectedStateGuard&) = delete;
     DriftAffectedStateGuard(DriftAffectedStateGuard&&) = delete;
@@ -650,10 +644,10 @@ private:
       rep_.resampler_ = std::move(resampler_);
 
       // Restore input modes.
-      rep_.SetChannelMode(Ch::CH4, chmm4_);
-      rep_.SetChannelMode(Ch::CH3, chmm3_);
-      rep_.SetChannelMode(Ch::CH2, chmm2_);
-      rep_.SetChannelMode(Ch::CH1, chmm1_);
+      rep_.SetChannelMode(4, chmm4_);
+      rep_.SetChannelMode(3, chmm3_);
+      rep_.SetChannelMode(2, chmm2_);
+      rep_.SetChannelMode(1, chmm1_);
     }
 
     // Stores the state and prepares TimeSwipe instance for measurement.
@@ -663,10 +657,10 @@ private:
       , burst_size_{rep_.burst_size_}
     {
       // Store current input modes.
-      if (!(rep_.GetChannelMode(Ch::CH1, chmm1_) &&
-          rep_.GetChannelMode(Ch::CH2, chmm2_) &&
-          rep_.GetChannelMode(Ch::CH3, chmm3_) &&
-          rep_.GetChannelMode(Ch::CH4, chmm4_)))
+      if (!(rep_.GetChannelMode(1, chmm1_) &&
+          rep_.GetChannelMode(2, chmm2_) &&
+          rep_.GetChannelMode(3, chmm3_) &&
+          rep_.GetChannelMode(4, chmm4_)))
         throw RuntimeException{Errc::kGeneric};
 
       /*
@@ -675,7 +669,7 @@ private:
        * the measured value, which completely (according to PSpice) decays
        * after 1.5 ms.
        */
-      for (const auto m : {Ch::CH1, Ch::CH2, Ch::CH3, Ch::CH4}) {
+      for (const auto m : {1, 2, 3, 4}) {
         if (!rep_.SetChannelMode(m, ChannelMesMode::Current))
           throw RuntimeException{Errc::kGeneric};
       }
@@ -689,7 +683,7 @@ private:
     Rep& rep_;
     const decltype(rep_.sample_rate_) sample_rate_;
     const decltype(rep_.burst_size_) burst_size_;
-    Chmm chmm1_, chmm2_, chmm3_, chmm4_;
+    ChannelMesMode chmm1_, chmm2_, chmm3_, chmm4_;
     decltype(rep_.resampler_) resampler_;
   };
 
@@ -1094,63 +1088,62 @@ private:
     return answer == std::to_string(val);
   }
 
-  bool SpiSetChannelMode(const unsigned num, const int nMode)
+  bool SpiSetChannelMode(const int channel, const ChannelMesMode mode)
   {
-    spi_.send_set_command(detail::Bcm_spi::make_channel_command(num, "mode"), std::to_string(nMode));
+    spi_.send_set_command(detail::Bcm_spi::make_channel_command(channel, "mode"),
+      std::to_string(static_cast<int>(mode)));
     std::string answer;
     if (!spi_.receive_strip_answer(answer)) return false;
-    return answer == std::to_string(nMode);
+    return answer == std::to_string(static_cast<int>(mode));
   }
 
-  bool SpiGetChannelMode(const unsigned num, int& nMode, std::string& error)
+  bool SpiGetChannelMode(const int channel, ChannelMesMode& mode, std::string& err)
   {
-    spi_.send_get_command(detail::Bcm_spi::make_channel_command(num, "mode"));
+    spi_.send_get_command(detail::Bcm_spi::make_channel_command(channel, "mode"));
     std::string answer;
-    if (!spi_.receive_answer(answer, error)) {
-      nMode = 0;
+    if (!spi_.receive_answer(answer, err)) {
+      mode = static_cast<ChannelMesMode>(0);
       return false;
     }
-    nMode = std::stoi(answer);
+    mode = static_cast<ChannelMesMode>(std::stoi(answer));
     return true;
   }
 
-  bool SpiSetChannelGain(const unsigned num, const float Gain)
+  bool SpiSetChannelGain(const int channel, const float gain)
   {
-    spi_.send_set_command(detail::Bcm_spi::make_channel_command(num, "gain"), std::to_string(Gain));
+    spi_.send_set_command(detail::Bcm_spi::make_channel_command(channel, "gain"),
+      std::to_string(gain));
     std::string answer;
-    if (!spi_.receive_strip_answer(answer)) return false;
-    return true;
+    return spi_.receive_strip_answer(answer);
   }
 
-  bool SpiGetChannelGain(const unsigned num, float& Gain, std::string& error)
+  bool SpiGetChannelGain(const int channel, float& gain, std::string& err)
   {
-    spi_.send_get_command(detail::Bcm_spi::make_channel_command(num, "gain"));
+    spi_.send_get_command(detail::Bcm_spi::make_channel_command(channel, "gain"));
     std::string answer;
-    if (!spi_.receive_answer(answer, error)) {
-      Gain = 0;
+    if (!spi_.receive_answer(answer, err)) {
+      gain = 0;
       return false;
     }
-    Gain = std::stof(answer);
+    gain = std::stof(answer);
     return true;
   }
 
-  bool SpiSetiepe(const unsigned num, const bool bIEPE)
+  bool SpiSetiepe(const int channel, const bool iepe)
   {
-    spi_.send_set_command(detail::Bcm_spi::make_channel_command(num, "iepe"), std::to_string(bIEPE));
+    spi_.send_set_command(detail::Bcm_spi::make_channel_command(channel, "iepe"),
+      std::to_string(iepe));
     std::string answer;
-    if (!spi_.receive_strip_answer(answer)) return false;
-    return true;
+    return spi_.receive_strip_answer(answer);
   }
 
-  bool SpiGetiepe(const unsigned num, bool& bIEPE, std::string& error)
+  bool SpiGetiepe(const int channel, bool& iepe, std::string& err)
   {
-    spi_.send_get_command(detail::Bcm_spi::make_channel_command(num, "iepe"));
+    spi_.send_get_command(detail::Bcm_spi::make_channel_command(channel, "iepe"));
     std::string answer;
-    if (!spi_.receive_answer(answer, error)) {
-      bIEPE = 0;
-      return false;
-    }
-    bIEPE = std::stoi(answer);
+    if (!spi_.receive_answer(answer, err))
+      return iepe = false;
+    iepe = std::stoi(answer);
     return true;
   }
 
@@ -1692,34 +1685,34 @@ void TimeSwipe::TraceSPI(const bool value)
   rep_->TraceSPI(value);
 }
 
-bool TimeSwipe::SetChannelMode(const Channel nCh, const ChannelMesMode nMode)
+bool TimeSwipe::SetChannelMode(const int channel, const ChannelMesMode mode)
 {
-  return rep_->SetChannelMode(nCh, nMode);
+  return rep_->SetChannelMode(channel, mode);
 }
 
-bool TimeSwipe::GetChannelMode(Channel nCh, ChannelMesMode& nMode)
+bool TimeSwipe::GetChannelMode(const int channel, ChannelMesMode& mode)
 {
-  return rep_->GetChannelMode(nCh, nMode);
+  return rep_->GetChannelMode(channel, mode);
 }
 
-bool TimeSwipe::SetChannelGain(const Channel nCh, const float gain)
+bool TimeSwipe::SetChannelGain(const int channel, const float gain)
 {
-  return rep_->SetChannelGain(nCh, gain);
+  return rep_->SetChannelGain(channel, gain);
 }
 
-bool TimeSwipe::GetChannelGain(const Channel nCh, float& gain)
+bool TimeSwipe::GetChannelGain(const int channel, float& gain)
 {
-  return rep_->GetChannelGain(nCh, gain);
+  return rep_->GetChannelGain(channel, gain);
 }
 
-bool TimeSwipe::SetChannelIEPE(const Channel nCh, const bool bIEPEon)
+bool TimeSwipe::SetChannelIEPE(const int channel, const bool iepe)
 {
-  return rep_->SetChannelIEPE(nCh, bIEPEon);
+  return rep_->SetChannelIEPE(channel, iepe);
 }
 
-bool TimeSwipe::GetChannelIEPE(const Channel nCh, bool& bIEPEon)
+bool TimeSwipe::GetChannelIEPE(const int channel, bool& iepe)
 {
-  return rep_->GetChannelIEPE(nCh, bIEPEon);
+  return rep_->GetChannelIEPE(channel, iepe);
 }
 
 } // namespace panda::timeswipe::driver

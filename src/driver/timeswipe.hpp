@@ -101,18 +101,6 @@ public:
    */
   static std::string_view to_string_view(const Mode value);
 
-  /** @enum TimeSwipe::Channels
-   *
-   * \brief Board channel index
-   *
-   */
-  enum class Channel {
-    CH1,
-    CH2,
-    CH3,
-    CH4
-  };
-
   /** @enum TimeSwipe::ChannelMesMode
    *
    * @brief The channel measurement mode
@@ -122,7 +110,6 @@ public:
     Voltage,
     Current
   };
-
 
   /**
    * \brief Setup hardware mode
@@ -222,12 +209,12 @@ public:
 
   /**
    * @brief Sets the channel measurement mode: Voltage or Current
-   * @param[in] nCh - the channel to be set
+   * @param[in] channel The channel to be set
    * @param[in] nMode - the measurement mode: Voltage or Current
    *
    * @return true on operation success, false otherwise
    */
-  bool SetChannelMode(Channel nCh, ChannelMesMode nMode);
+  bool SetChannelMode(int channel, ChannelMesMode nMode);
 
 
   /**
@@ -237,7 +224,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
-  bool GetChannelMode(Channel nCh, ChannelMesMode &nMode);
+  bool GetChannelMode(int channel, ChannelMesMode &nMode);
 
 
   /**
@@ -245,45 +232,45 @@ public:
    * @details Sets the gain value in the range [1/8 : 128*1.375].
    *  If the value doesn't correspond to available gain it will be fitted to the closest available gain
    *
-   * @param[in] nCh - the channel to be set
+   * @param[in] channel The channel to be set
    * @param[in] Gain - the gain value to be set
    *
    * @return true on operation success, false otherwise
    */
-  bool SetChannelGain(Channel nCh, float Gain);
+  bool SetChannelGain(int channel, float Gain);
 
 
   /**
    * @brief Requests the channel gain value
    *
-   * @param[in] nCh - the channel to be requested
+   * @param[in] channel The channel to be requested
    * @param[out] Gain - the actual gain of the channel
    *
    * @return true on operation success, false otherwise
    */
-  bool GetChannelGain(Channel nCh, float &Gain);
+  bool GetChannelGain(int channel, float &Gain);
 
 
   /**
    * @brief Switches channel IEPE mode ON/OFF
    *
-   * @param[in] nCh - the channel to be set
+   * @param[in] channel The channel to be set
    * @param[in] bIEPEon - the state of the IEPE switch to be set
    *
    * @return true on operation success, false otherwise
    */
-  bool SetChannelIEPE(Channel nCh, bool bIEPEon);
+  bool SetChannelIEPE(int channel, bool bIEPEon);
 
 
   /**
    * @brief Requests the channel IEPE mode
    *
-   * @param[in] nCh - the channel to be requested
+   * @param[in] channel The channel to be requested
    * @param[out] bIEPEon - the actual state of the IEPE switch
    *
    * @return true on operation success, false otherwise
    */
-  bool GetChannelIEPE(Channel nCh, bool &bIEPEon);
+  bool GetChannelIEPE(int channel, bool &bIEPEon);
 
   /// @returns Max possible sample rate.
   int MaxSampleRate() const noexcept;
