@@ -260,10 +260,10 @@ public:
     return SpiStartPwm(index, frequency, low, high, repeat_count, duty_cycle);
   }
 
-  bool StopPWM(const std::uint8_t num)
+  bool stop_pwm(const int index)
   {
-    if (num > 1) return false;
-    return SpiStopPwm(num);
+    DMITIGR_CHECK_ARG(0 <= index && index <= 1);
+    return SpiStopPwm(index);
   }
 
   bool GetPWM(const std::uint8_t num,
@@ -1023,15 +1023,12 @@ private:
 #endif
   }
 
-  /**
-   * @param num Zero-based number of PWM.
-   */
-  bool SpiStopPwm(const std::uint8_t num)
+  bool SpiStopPwm(const int index)
   {
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
-    std::string pwm = std::string("PWM") + std::to_string(num + 1);
+    std::string pwm = std::string("PWM") + std::to_string(index + 1);
     /*
       sendGetCommand(pwm);
       std::string answer;
@@ -1668,9 +1665,9 @@ bool TimeSwipe::start_pwm(const int index,
   return rep_->start_pwm(index, frequency, low, high, repeat_count, duty_cycle);
 }
 
-bool TimeSwipe::StopPWM(const std::uint8_t num)
+bool TimeSwipe::stop_pwm(const int index)
 {
-  return rep_->StopPWM(num);
+  return rep_->stop_pwm(index);
 }
 
 bool TimeSwipe::GetPWM(std::uint8_t num, bool& active,

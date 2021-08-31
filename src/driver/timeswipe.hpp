@@ -184,14 +184,15 @@ public:
     int low = 0, int high = 4095, int repeat_count = 0, float duty_cycle = 0.5);
 
   /**
-   * \brief Stop PWM generator
-   * Method can be called in any time.
+   * Stops the PWM generator.
    *
-   * @param numb - output number - possible values 0 or 1
+   * This method can be called even after the call of start().
+   *
+   * @param index PWM index. Must be in range `[0, 1]`.
    *
    * @return false if at least wrong parameter given or generator already in stop state
    */
-  bool StopPWM(std::uint8_t num);
+  bool stop_pwm(int index);
 
   /**
    * \brief Get PWM generator state if it is in a Start state

@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
             }
         } else if (stop) {
             std::cout << "stop " << i << std::endl;
-            if (!tswipe.StopPWM(i)) {
+            if (!tswipe.stop_pwm(i)) {
                 std::cout << "stop " << i << " failed" << std::endl;
             } else {
                 std::cout << "stop " << i << " succeded" << std::endl;
