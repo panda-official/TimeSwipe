@@ -122,7 +122,10 @@ public:
    * @param offset2
    * @param offset3
    * @param offset4
+   *
+   * @warning THIS METHOD WILL BE REMOVED!
    */
+  [[deprecated]]
   void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
 
   /**
@@ -134,7 +137,10 @@ public:
    * @param gain2
    * @param gain3
    * @param gain4
+   *
+   * @warning THIS METHOD WILL BE REMOVED!
    */
+  [[deprecated]]
   void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
 
   /**
@@ -146,27 +152,36 @@ public:
    * @param trans2
    * @param trans3
    * @param trans4
+   *
+   * @warning THIS METHOD WILL BE REPLACED!
    */
+  [[deprecated]]
   void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
 
   /**
-   * \brief Start PWM generator
-   * Method can be called in any time.
+   * Starts the PWM generator.
    *
-   * @param num - output number - possible values are 0 or 1
-   * @param frequency - periods per second - possible values between 1 and 1000
-   * @param high - PWM signal high value - possible values are 0..4095 high >= low, default is 4095
-   * @param low - PWM signal low value - possible values are 0..4095 low <= high, default is 0
-   * @param repeats - number of periods to repeat. PWM generator will work (repeats/frequency) seconds
-   *                  after repeats number get exhausted PWM goes to stop state and StartPWM can be called again
-   *                  0 is for unlimited repeats (default)
-   * @param duty_cycle - part of PWM period when signal is in high state. 0.001 duty_cycle <= 0.999. default value is 0.5
+   * This method can be called even after the call of start().
+   *
+   * @param index PWM index. Must be in range `[0, 1]`.
+   * @param frequency Periods per second. Must be in range `[1, 1000]`.
+   * @param low PWM signal low value. Must be in range `[0, 4095]`.
+   * @param high PWM signal high value. Must be in range `[0, 4095]`.
+   * @param repeat_count The number of repeat periods. PWM generator will work
+   * `(repeat_count / frequency)` seconds and after that goes to stop state and
+   * this method can be called again. The value of `0` means infinity.
+   * @param duty_cycle The length of the PWM period when signal is in high state.
+   * Must be in range `(0, 1)`.
+   *
+   * @par Requires
+   * `(0 <= index && index <= 1) && (1 <= frequency && frequency <= 1000) &&
+   * (0 <= low && low <= 4095) && (0 <= high && high <= 4095) && (low <= high) &&
+   * (repeat_count >= 0) && (0 < duty_cycle && duty_cycle < 1)`.
    *
    * @return false if at least one wrong parameter given or generator already in start state
    */
-  bool StartPWM(std::uint8_t num, std::uint32_t frequency,
-    std::uint32_t high = 4095, std::uint32_t low = 0,
-    std::uint32_t repeats = 0, float duty_cycle = 0.5);
+  bool start_pwm(int index, int frequency,
+    int low = 0, int high = 4095, int repeat_count = 0, float duty_cycle = 0.5);
 
   /**
    * \brief Stop PWM generator

@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
         if (!num_both && num != i) continue;
         if (start) {
             std::cout << "start " << i <<" freq: " << freq << " high: " << high << " low: " << low << " repeats: " << repeats << " duty: " << duty << std::endl;
-            if (!tswipe.StartPWM(i, freq, high, low, repeats, duty)) {
+            if (!tswipe.start_pwm(i, freq, high, low, repeats, duty)) {
                 std::cout << "start " << i << " failed" << std::endl;
             } else {
                 std::cout << "start " << i << " succeded" << std::endl;

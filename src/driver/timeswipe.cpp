@@ -243,20 +243,21 @@ public:
     return true;
   }
 
-  bool StartPWM(const std::uint8_t num,
-    const std::uint32_t frequency,
-    const std::uint32_t high,
-    const std::uint32_t low,
-    const std::uint32_t repeats,
+  bool start_pwm(const int index,
+    const int frequency,
+    const int low,
+    const int high,
+    const int repeat_count,
     const float duty_cycle)
   {
-    if (num > 1) return false;
-    else if (frequency < 1 || frequency > 1000) return false;
-    else if (high > 4096) return false;
-    else if (low > 4096) return false;
-    else if (low > high) return false;
-    else if (duty_cycle < 0.001 || duty_cycle > 0.999) return false;
-    return SpiStartPwm(num, frequency, high, low, repeats, duty_cycle);
+    DMITIGR_CHECK_ARG(0 <= index && index <= 1);
+    DMITIGR_CHECK_ARG(1 <= frequency && frequency <= 1000);
+    DMITIGR_CHECK_ARG(0 <= low && low <= 4095);
+    DMITIGR_CHECK_ARG(0 <= high && high <= 4095);
+    DMITIGR_CHECK_ARG(low <= high);
+    DMITIGR_CHECK_ARG(repeat_count >= 0);
+    DMITIGR_CHECK_ARG(0 < duty_cycle && duty_cycle < 1);
+    return SpiStartPwm(index, frequency, low, high, repeat_count, duty_cycle);
   }
 
   bool StopPWM(const std::uint8_t num)
@@ -996,22 +997,21 @@ private:
   /**
    * @param num Zero-based number of PWM.
    */
-  bool SpiStartPwm(const std::uint8_t num, const std::uint32_t frequency,
-    const std::uint32_t high, const std::uint32_t low, const std::uint32_t repeats,
+  bool SpiStartPwm(const int index, const int frequency,
+    const int low, const int high, const int repeat_count,
     const float duty_cycle)
   {
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
-    std::string pwm = std::string("PWM") + std::to_string(num+1);
+    std::string err;
+    std::string pwm = std::string("PWM") + std::to_string(index + 1);
     auto obj = nlohmann::json::object({});
     obj.emplace(pwm + ".freq", frequency);
-    obj.emplace(pwm + ".high", high);
     obj.emplace(pwm + ".low", low);
-    obj.emplace(pwm + ".repeats", repeats);
+    obj.emplace(pwm + ".high", high);
+    obj.emplace(pwm + ".repeats", repeat_count);
     obj.emplace(pwm + ".duty", duty_cycle);
-    std::string err;
-
     auto settings = SpiSetSettings(obj.dump(), err);
     if (str2json(settings).empty())
       return false;
@@ -1658,14 +1658,14 @@ bool TimeSwipe::Stop()
   return rep_->Stop();
 }
 
-bool TimeSwipe::StartPWM(const std::uint8_t num,
-  const std::uint32_t frequency,
-  const std::uint32_t high,
-  const std::uint32_t low,
-  const std::uint32_t repeats,
+bool TimeSwipe::start_pwm(const int index,
+  const int frequency,
+  const int low,
+  const int high,
+  const int repeat_count,
   const float duty_cycle)
 {
-  return rep_->StartPWM(num, frequency, high, low, repeats, duty_cycle);
+  return rep_->start_pwm(index, frequency, low, high, repeat_count, duty_cycle);
 }
 
 bool TimeSwipe::StopPWM(const std::uint8_t num)
