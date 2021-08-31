@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     }
 
     tswipe.set_sample_rate(samplerate);
-    tswipe.SetBurstSize(samplerate);
+    tswipe.set_burst_size(samplerate);
 
 
 

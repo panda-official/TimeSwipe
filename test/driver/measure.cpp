@@ -67,7 +67,7 @@ try {
   // Initialize TimeSwipe.
   auto& ts = drv::TimeSwipe::instance();
   ts.set_sample_rate(sample_rate);
-  ts.SetBurstSize(sample_rate / frequency);
+  ts.set_burst_size(sample_rate / frequency);
 
   ts.OnEvent([](const drv::Event& event)
   {

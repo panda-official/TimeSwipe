@@ -267,7 +267,7 @@ public:
   int max_sample_rate() const noexcept;
 
   /**
-   * @brief Set sample rate. Default value is max_sample_rate().
+   * Set sample rate. Default value is max_sample_rate().
    *
    * @param rate - new sample rate
    *
@@ -282,13 +282,14 @@ public:
   void set_sample_rate(int rate);
 
   /**
-   * \brief Setup Burst buffer size
+   * Sets the burst buffer size.
    *
-   * This method notifies the driver to return at least burstNum records to the cb of @ref Start function per each call
+   * @param size The number of records that the driver should deliver into the
+   * callback.
    *
-   * @param burstNum - number of records in burst buffer
+   * @see start().
    */
-  void SetBurstSize(std::size_t burstNum);
+  void set_burst_size(std::size_t size);
 
   /// @name Drift Compensation
   ///

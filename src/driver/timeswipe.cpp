@@ -299,9 +299,9 @@ public:
     return SpiGetiepe(channel, iepe, err);
   }
 
-  void SetBurstSize(const std::size_t burst)
+  void set_burst_size(const std::size_t size)
   {
-    burst_size_ = burst;
+    burst_size_ = size;
   }
 
   void set_mode(const Mode mode)
@@ -661,7 +661,7 @@ private:
 
       // Store the current state of self.
       resampler_ = rep_.set_sample_rate(rep_.max_sample_rate());
-      rep_.SetBurstSize(rep_.kDriftSamplesCount_);
+      rep_.set_burst_size(rep_.kDriftSamplesCount_);
     }
 
     Rep& rep_;
@@ -1564,9 +1564,9 @@ void TimeSwipe::set_sample_rate(const int rate)
   rep_->set_sample_rate(rate);
 }
 
-void TimeSwipe::SetBurstSize(const std::size_t burst)
+void TimeSwipe::set_burst_size(const std::size_t size)
 {
-  return rep_->SetBurstSize(burst);
+  return rep_->set_burst_size(size);
 }
 
 std::vector<float> TimeSwipe::CalculateDriftReferences()
