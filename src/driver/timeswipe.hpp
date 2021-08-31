@@ -342,7 +342,7 @@ public:
    * `!IsBusy()`.
    *
    * @par Effects
-   * `!DriftReferences() && !DriftDeltas()`. Removes the file
+   * `!drift_references() && !DriftDeltas()`. Removes the file
    * `<CWD>/.panda/timeswipe/drift_references`.
    *
    * @par Exception safety guarantee
@@ -356,7 +356,7 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Requires
-   * `DriftReferences() && !IsBusy()`.
+   * `drift_references() && !IsBusy()`.
    *
    * @par Effects
    * `!IsBusy() && DriftDeltas()`.
@@ -396,7 +396,7 @@ public:
    *
    * @see CalculateDriftReferences(), clear_drift_references(), DriftDeltas().
    */
-  std::optional<std::vector<float>> DriftReferences(bool force = {}) const;
+  std::optional<std::vector<float>> drift_references(bool force = {}) const;
 
   /**
    * @returns The calculated drift deltas.

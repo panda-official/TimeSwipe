@@ -105,13 +105,13 @@ try {
     }
   }
 
-  if (!ts.DriftReferences()) {
+  if (!ts.drift_references()) {
     // Normally, it means the first program run.
     const auto refs{ts.calculate_drift_references()};
     (void)refs;
     assert(refs.size() == Sensors_data::sensor_count());
   }
-  assert(ts.DriftReferences());
+  assert(ts.drift_references());
 
   // Calculate deltas.
   assert(!ts.DriftDeltas());

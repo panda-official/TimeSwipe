@@ -412,7 +412,7 @@ public:
   std::vector<float> calculate_drift_deltas()
   {
     // Throw away if there are no references.
-    const auto refs{DriftReferences()};
+    const auto refs{drift_references()};
     if (!refs)
       throw RuntimeException{Errc::kNoDriftReferences};
 
@@ -446,7 +446,7 @@ public:
     drift_deltas_.reset();
   }
 
-  std::optional<std::vector<float>> DriftReferences(const bool force = {}) const
+  std::optional<std::vector<float>> drift_references(const bool force = {}) const
   {
     if (!force && drift_references_)
       return drift_references_;
@@ -1589,9 +1589,9 @@ void TimeSwipe::clear_drift_deltas()
   rep_->clear_drift_deltas();
 }
 
-std::optional<std::vector<float>> TimeSwipe::DriftReferences(const bool force) const
+std::optional<std::vector<float>> TimeSwipe::drift_references(const bool force) const
 {
-  return rep_->DriftReferences(force);
+  return rep_->drift_references(force);
 }
 
 std::optional<std::vector<float>> TimeSwipe::DriftDeltas() const
