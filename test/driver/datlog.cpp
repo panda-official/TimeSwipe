@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
     std::string input;
     int runtime = 10;
     int samplerate = 48000;
-    bool trace_spi = false;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i],"--config")) {
@@ -83,8 +82,6 @@ int main(int argc, char *argv[])
             }
             samplerate = std::stoi (argv[i+1] );
             ++i;
-        } else if (!strcmp(argv[i],"--trace-spi")) {
-            trace_spi = true;
         } else {
             usage(argv[0]);
             return 1;
@@ -125,7 +122,6 @@ int main(int argc, char *argv[])
 
 
     auto& tswipe = drv::TimeSwipe::instance();
-    tswipe.TraceSPI(trace_spi);
 
     // Board Preparation
     if (!config_script.empty())
@@ -149,13 +145,13 @@ int main(int argc, char *argv[])
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
     shutdown_handler = [&](int /*signal*/) {
-        tswipe.Stop();
+        tswipe.stop();
         exit(1);
     };
 
 
     using drv::Event;
-    bool ret = tswipe.OnEvent([&](Event&& event) {
+    tswipe.set_event_handler([&](Event&& event) {
       if (auto* button = event.get<Event::Button>())
         std::cout << "Button event: "
                   << (button->is_pressed() ? "pressed":"released")
@@ -173,23 +169,13 @@ int main(int argc, char *argv[])
       else if(auto* val = event.get<Event::Mode>())
         std::cout << "Mode event: " <<  val->value() << std::endl;
     });
-    if (!ret) {
-        std::cerr << "OnEvent init failed" << std::endl;
-        return 1;
-    }
 
-    ret = tswipe.OnError([&](uint64_t errors) {
-        std::cout << "Got errors: " << errors << std::endl;
+    tswipe.set_error_handler([&](const std::uint64_t errors)
+    {
+      std::cout << "Got errors: " << errors << std::endl;
     });
-    if (!ret) {
-        std::cerr << "OnError init failed" << std::endl;
-        return 1;
-    }
-
     tswipe.set_sample_rate(samplerate);
     tswipe.set_burst_size(samplerate);
-
-
 
     // Board Start
     int counter = 0;
@@ -217,10 +203,8 @@ int main(int argc, char *argv[])
     std::this_thread::sleep_for(std::chrono::seconds(runtime));
 
     // Board Stop
-    if (!tswipe.Stop()) {
-        std::cerr << "timeswipe stop failed" << std::endl;
-        return -1;
-    }
+    tswipe.stop();
+
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float> diff = end - start;
     std::cout << "time: " << diff.count() << "s records: " << counter << " rec/sec: " << counter / diff.count() << "\n";

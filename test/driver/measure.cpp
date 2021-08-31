@@ -69,7 +69,7 @@ try {
   ts.set_sample_rate(sample_rate);
   ts.set_burst_size(sample_rate / frequency);
 
-  ts.OnEvent([](const drv::Event& event)
+  ts.set_event_handler([](drv::Event&& event)
   {
     try {
       if (auto* gain = event.get<drv::Event::Gain>()) {
@@ -143,8 +143,7 @@ try {
     });
     std::unique_lock lk{finished_mutex};
     finish.wait(lk, [&finished]{ return finished; });
-    if (!ts.Stop())
-      std::cerr << "cannot stop the driver\n";
+    ts.stop();
   }
 
   // Cleanup.

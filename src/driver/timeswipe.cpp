@@ -66,7 +66,7 @@ class TimeSwipe::Rep final {
 public:
   ~Rep()
   {
-    Stop();
+    stop();
     joinThreads();
   }
 
@@ -169,20 +169,20 @@ public:
     return is_measurement_started_ || in_handler_;
   }
 
-  bool OnEvent(OnEventCallback cb)
+  void set_event_handler(Event_handler&& handler)
   {
     if (is_measurement_started_)
-      return false;
-    on_event_cb_ = std::move(cb);
-    return true;
+      throw RuntimeException{Errc::kBoardIsBusy};
+
+    event_handler_ = std::move(handler);
   }
 
-  bool OnError(OnErrorCallback cb)
+  void set_error_handler(Error_handler&& handler)
   {
     if (is_measurement_started_)
-      return false;
-    on_error_cb_ = std::move(cb);
-    return true;
+      throw RuntimeException{Errc::kBoardIsBusy};
+
+    error_handler_ = std::move(handler);
   }
 
   std::string settings(const bool set, const std::string& request)
@@ -202,10 +202,9 @@ public:
     return resp.first;
   }
 
-  bool Stop()
+  void stop()
   {
-    if (!is_measurement_started_)
-      return false;
+    if (!is_measurement_started_) return;
 
     joinThreads();
 
@@ -218,7 +217,7 @@ public:
      * Effects: the reader doesn't receive the data from the board.
      */
     {
-      if (!is_measurement_started_) return false;
+      if (!is_measurement_started_) return;
 
       // Reset Clock
       setGPIOLow(CLOCK);
@@ -229,8 +228,6 @@ public:
       is_measurement_started_ = false;
       read_skip_count_ = kInitialInvalidDataSetsCount;
     }
-
-    return true;
   }
 
   bool start_pwm(const int index, const Pwm_state& state)
@@ -249,11 +246,6 @@ public:
   {
     DMITIGR_CHECK_ARG(0 <= index && index <= 1);
     return SpiGetPwm(index);
-  }
-
-  void TraceSPI(const bool value)
-  {
-    SpiSetTrace(value);
   }
 
   bool SetChannelMode(const int channel, const Measurement_mode mode)
@@ -539,8 +531,8 @@ private:
   // Callbacks data
   // ---------------------------------------------------------------------------
 
-  OnEventCallback on_event_cb_;
-  OnErrorCallback on_error_cb_;
+  Event_handler event_handler_;
+  Error_handler error_handler_;
   std::atomic_bool in_handler_{};
 
   // ---------------------------------------------------------------------------
@@ -855,11 +847,6 @@ private:
   // ---------------------------------------------------------------------------
   // SPI stuff
   // ---------------------------------------------------------------------------
-
-  void SpiSetTrace(const bool value)
-  {
-    spi_.enable_tracing(value);
-  }
 
   void SpiSetMode(const int num)
   {
@@ -1192,8 +1179,8 @@ private:
 
       Event event;
       while (events_.pop(event)) {
-        if (on_event_cb_)
-          Callbacker{*this}(on_event_cb_, std::move(event));
+        if (event_handler_)
+          Callbacker{*this}(event_handler_, std::move(event));
       }
     }
   }
@@ -1205,8 +1192,8 @@ private:
       const auto num = record_queue_.pop(records);
       const std::uint64_t errors = record_error_count_.fetch_and(0UL);
 
-      if (errors && on_error_cb_)
-        Callbacker{*this}(on_error_cb_, errors);
+      if (errors && error_handler_)
+        Callbacker{*this}(error_handler_, errors);
 
       if (!num) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -1416,7 +1403,7 @@ private:
       update.wait(lock, [&done]{ return done.load(); });
     }
     DMITIGR_ASSERT(done);
-    Stop();
+    stop();
 
     // Throw away if the data collection failed.
     if (IsError(errc))
@@ -1596,14 +1583,19 @@ bool TimeSwipe::is_busy() const noexcept
   return rep_->is_busy();
 }
 
-bool TimeSwipe::OnError(OnErrorCallback cb)
+void TimeSwipe::stop()
 {
-  return rep_->OnError(std::move(cb));
+  return rep_->stop();
 }
 
-bool TimeSwipe::OnEvent(OnEventCallback cb)
+void TimeSwipe::set_event_handler(Event_handler&& handler)
 {
-  return rep_->OnEvent(std::move(cb));
+  return rep_->set_event_handler(std::move(handler));
+}
+
+void TimeSwipe::set_error_handler(Error_handler&& handler)
+{
+  return rep_->set_error_handler(std::move(handler));
 }
 
 std::string TimeSwipe::set_settings(const std::string& request)
@@ -1614,11 +1606,6 @@ std::string TimeSwipe::set_settings(const std::string& request)
 std::string TimeSwipe::settings(const std::string& request)
 {
   return rep_->settings(0, request);
-}
-
-bool TimeSwipe::Stop()
-{
-  return rep_->Stop();
 }
 
 bool TimeSwipe::start_pwm(const int index, const Pwm_state& state)
@@ -1634,11 +1621,6 @@ bool TimeSwipe::stop_pwm(const int index)
 std::optional<Pwm_state> TimeSwipe::pwm_state(const int index)
 {
   return rep_->pwm_state(index);
-}
-
-void TimeSwipe::TraceSPI(const bool value)
-{
-  rep_->TraceSPI(value);
 }
 
 bool TimeSwipe::SetChannelMode(const int channel, const Measurement_mode mode)

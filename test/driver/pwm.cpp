@@ -111,8 +111,6 @@ int main(int argc, char *argv[])
             }
             state.duty_cycle(std::stof(argv[i+1]));
             ++i;
-        } else if (!strcmp(argv[i],"--trace-spi")) {
-            tswipe.TraceSPI(true);
         } else {
             std::cerr << "unkown argument \"" << argv[i] << "\"" << std::endl;
             usage(argv[0]);

@@ -438,11 +438,49 @@ public:
   void start(Sensor_data_handler handler);
 
   /**
-   * @returns `true` if this instance is busy on read the sensor input.
+   * @returns `true` if the board is busy (measurement in progress).
    *
    * @see calculate_drift_references(), calculate_drift_deltas(), Start().
    */
   bool is_busy() const noexcept;
+
+  /**
+   * Stops the measurement.
+   *
+   * @par Effects
+   * `!is_busy()`.
+   */
+  void stop();
+
+  /**
+   * An alias of a function to handle the incoming events.
+   *
+   * @see start().
+   */
+  using Event_handler = std::function<void(Event&&)>;
+
+  /**
+   * Sets the event handler.
+   *
+   * @par Requires
+   * `!is_busy()`.
+   */
+  void set_event_handler(Event_handler&& handler);
+
+  /**
+   * An alias of a function to handle sensor data read errors.
+   *
+   * @see start().
+   */
+  using Error_handler = std::function<void(std::uint64_t)>;
+
+  /**
+   * Sets the error handler.
+   *
+   * @par Requires
+   * `!is_busy()`.
+   */
+  void set_error_handler(Error_handler&& handler);
 
   /**
    * Sets the board settings.
@@ -461,38 +499,6 @@ public:
    * @param request The request in JSON format.
    */
   std::string settings(const std::string& request);
-
-  using OnEventCallback = std::function<void(Event&& event)>;
-  /**
-   * \brief Register callback for event
-   *
-   * OnEvent must be called before @ref Start called, otherwise register fails
-   *
-   * @param cb callback called with event received
-   * @return false if register callback failed, true otherwise
-   */
-  bool OnEvent(OnEventCallback cb);
-
-  using OnErrorCallback = std::function<void(std::uint64_t)>;
-  /**
-   * \brief Register error callback
-   *
-   * OnError must be called before @ref Start called, otherwise register fails
-   *
-   * @param cb callback called once read error occurred
-   * @return false if register callback failed, true otherwise
-   */
-  bool OnError(OnErrorCallback cb);
-
-  /**
-   * \brief Stop reading Sensor loop
-   *
-   * @return true is stop succeeded, false otherwise
-   */
-  bool Stop();
-
-  /// Enables or disables SPI command tracing by using standard error output stream.
-  void TraceSPI(bool val);
 
 private:
   struct Rep;
