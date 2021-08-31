@@ -123,21 +123,10 @@ public:
     is_gpio_inited_ = true;
   }
 
-  bool Start(ReadCallback&& callback)
+  void start(Sensor_data_handler&& handler)
   {
-    if (IsBusy()) {
-      std::cerr << "TimeSwipe drift calculation/compensation or reading in progress,"
-                << " or other instance started, or called from callback function."
-                << std::endl;
-      return false;
-    }
-
-    std::string err;
-    if (!detail::Eeprom::read(err)) {
-      std::cerr << "EEPROM read failed: \"" << err << "\"" << std::endl;
-      //TODO: uncomment once parsing implemented
-      //return false;
-    }
+    if (IsBusy())
+      throw RuntimeException{Errc::kBoardIsBusy};
 
     joinThreads();
 
@@ -168,17 +157,16 @@ public:
     }
 
     threads_.emplace_back(&Rep::fetcherLoop, this);
-    threads_.emplace_back(&Rep::pollerLoop, this, std::move(callback));
+    threads_.emplace_back(&Rep::pollerLoop, this, std::move(handler));
     threads_.emplace_back(&Rep::spiLoop, this);
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     threads_.emplace_back(&Rep::emulLoop, this);
 #endif
-    return true;
   }
 
   bool IsBusy() const noexcept
   {
-    return is_measurement_started_ || in_callback_;
+    return is_measurement_started_ || in_handler_;
   }
 
   bool OnEvent(OnEventCallback cb)
@@ -551,7 +539,7 @@ private:
 
   OnEventCallback on_event_cb_;
   OnErrorCallback on_error_cb_;
-  std::atomic_bool in_callback_{};
+  std::atomic_bool in_handler_{};
 
   // ---------------------------------------------------------------------------
   // Firmware emulation data
@@ -579,7 +567,7 @@ private:
   // ---------------------------------------------------------------------------
 
   /*
-   * An automatic resetter of value of in_callback_. `false` will
+   * An automatic resetter of value of in_handler_. `false` will
    * be assigned upon destruction of the instance of this class.
    */
   struct Callbacker final {
@@ -590,7 +578,7 @@ private:
 
     ~Callbacker()
     {
-      self_.in_callback_ = false;
+      self_.in_handler_ = false;
     }
 
     Callbacker(Rep& self) noexcept
@@ -598,10 +586,10 @@ private:
     {}
 
     template<typename F, typename ... Types>
-    auto operator()(const F& callback, Types&& ... args)
+    auto operator()(const F& handler, Types&& ... args)
     {
-      self_.in_callback_ = true;
-      return callback(std::forward<Types>(args)...);
+      self_.in_handler_ = true;
+      return handler(std::forward<Types>(args)...);
     }
 
   private:
@@ -1208,7 +1196,7 @@ private:
     }
   }
 
-  void pollerLoop(ReadCallback callback)
+  void pollerLoop(Sensor_data_handler handler)
   {
     while (is_measurement_started_) {
       Sensors_data records[10];
@@ -1256,7 +1244,7 @@ private:
       if (burst_buffer_.empty() && burst_size_ <= records_ptr->size()) {
         // optimization if burst buffer not used or smaller than first buffer
         {
-          Callbacker{*this}(callback, std::move(*records_ptr), errors);
+          Callbacker{*this}(handler, std::move(*records_ptr), errors);
         }
         records_ptr->clear();
       } else {
@@ -1265,7 +1253,7 @@ private:
         records_ptr->clear();
         if (burst_buffer_.size() >= burst_size_) {
           {
-            Callbacker{*this}(callback, std::move(burst_buffer_), errors);
+            Callbacker{*this}(handler, std::move(burst_buffer_), errors);
           }
           burst_buffer_.clear();
         }
@@ -1277,9 +1265,9 @@ private:
       burst_buffer_.append(resampler_->flush());
 
     // Flush the remaining values from the burst buffer.
-    if (!in_callback_ && burst_buffer_.size()) {
+    if (!in_handler_ && burst_buffer_.size()) {
       {
-        Callbacker{*this}(callback, std::move(burst_buffer_), 0);
+        Callbacker{*this}(handler, std::move(burst_buffer_), 0);
       }
       burst_buffer_.clear();
     }
@@ -1400,8 +1388,7 @@ private:
     std::atomic_bool done{};
     Sensors_data data;
     std::condition_variable update;
-    const bool is_started = Start([this,
-        samples_count, &errc, &done, &data, &update]
+    start([this, samples_count, &errc, &done, &data, &update]
       (const Sensors_data sd, const std::uint64_t errors)
     {
       if (IsError(errc) || done)
@@ -1419,10 +1406,8 @@ private:
         update.notify_one();
       }
     });
-    if (!is_started)
-      throw RuntimeException{Errc::kGeneric}; // FIXME: Start() throw a more detailed error instead
 
-    // Await for notification from the callback.
+    // Await for notification from the handler.
     {
       static std::mutex mutex; // Dummy mutex actually: `done` is atomic already.
       std::unique_lock lock{mutex};
@@ -1599,9 +1584,9 @@ std::optional<std::vector<float>> TimeSwipe::drift_deltas() const
   return rep_->drift_deltas();
 }
 
-bool TimeSwipe::Start(ReadCallback cb)
+void TimeSwipe::start(Sensor_data_handler handler)
 {
-  return rep_->Start(std::move(cb));
+  rep_->start(std::move(handler));
 }
 
 bool TimeSwipe::IsBusy() const noexcept

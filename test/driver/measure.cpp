@@ -93,7 +93,7 @@ try {
     std::ofstream log_file;
     std::ofstream elog_file;
 
-    const auto is_started = ts.Start([
+    ts.start([
         logs_ready = false, &log_file, &elog_file,
         i = 0u, count,
         d = Dur{}, delta = duration_cast<Dur>(seconds{1}) / frequency, duration = duration_cast<Dur>(duration),
@@ -141,13 +141,10 @@ try {
           logs_ready = false;
       }
     });
-    if (is_started) {
-      std::unique_lock lk{finished_mutex};
-      finish.wait(lk, [&finished]{ return finished; });
-      if (!ts.Stop())
-        std::cerr << "cannot stop the driver\n";
-    } else
-      throw std::runtime_error{"cannot start the driver"};
+    std::unique_lock lk{finished_mutex};
+    finish.wait(lk, [&finished]{ return finished; });
+    if (!ts.Stop())
+      std::cerr << "cannot stop the driver\n";
   }
 
   // Cleanup.

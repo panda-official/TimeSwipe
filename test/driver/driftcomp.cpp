@@ -39,7 +39,7 @@ void measure(drv::TimeSwipe& ts, const std::filesystem::path& logfile)
   constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
   std::ofstream log{logfile, log_mode};
   log.precision(5 + 4);
-  ts.Start([&log](auto data, const auto)
+  ts.start([&log](const auto data, const auto)
   {
     const auto row_count{data.size()};
     for (auto row{0*row_count}; row < row_count; ++row) {

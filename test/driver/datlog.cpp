@@ -202,29 +202,25 @@ int main(int argc, char *argv[])
 
     // Board Start
     int counter = 0;
-    ret = tswipe.Start([&](auto&& records, uint64_t /*errors*/) {
-        counter += records.size();
-            for (size_t i = 0; i < records.size(); i++) {
-                if (i == 0) {
-                    for (size_t j = 0; j < records.sensor_count(); j++) {
-                        if (j != 0) std::cout << "\t";
-                        std::cout << records[j][i];
-                    }
-                    std::cout << '\n';
-                }
-                if (dump) {
-                    for (size_t j = 0; j < records.sensor_count(); j++) {
-                        if (j != 0) data_log << "\t";
-                        data_log << records[j][i];
-                    }
-                    data_log << '\n';
-                }
-            }
+    tswipe.start([&](auto&& records, uint64_t /*errors*/) {
+      counter += records.size();
+      for (size_t i = 0; i < records.size(); i++) {
+        if (i == 0) {
+          for (size_t j = 0; j < records.sensor_count(); j++) {
+            if (j != 0) std::cout << "\t";
+            std::cout << records[j][i];
+          }
+          std::cout << '\n';
+        }
+        if (dump) {
+          for (size_t j = 0; j < records.sensor_count(); j++) {
+            if (j != 0) data_log << "\t";
+            data_log << records[j][i];
+          }
+          data_log << '\n';
+        }
+      }
     });
-    if (!ret) {
-        std::cerr << "timeswipe start failed" << std::endl;
-        return -1;
-    }
 
     auto start = std::chrono::system_clock::now();
     std::this_thread::sleep_for(std::chrono::seconds(runtime));

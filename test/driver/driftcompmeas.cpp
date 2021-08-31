@@ -32,7 +32,7 @@ void measure(drv::TimeSwipe& ts, const std::chrono::milliseconds dur)
   constexpr auto channel_count{drv::Sensors_data::sensor_count()};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
-  ts.Start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
+  ts.start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
   {
     for (auto i{0*channel_count}; i < channel_count; ++i) {
       const auto& channel{data[i]};

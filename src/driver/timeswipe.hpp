@@ -408,30 +408,34 @@ public:
   /// @}
 
   /**
-   * \brief Read sensors callback function pointer
+   * An alias of a function to handle the incoming sensor data.
+   *
+   * @param data Portion of incoming data to consume.
+   * @param error_count The number of errors (data losts).
+   *
+   * @see start().
    */
-  using ReadCallback = std::function<void(Sensors_data, std::uint64_t errors)>;
+  using Sensor_data_handler = std::function<void(Sensors_data data, int error_count)>;
 
   /**
-   * \brief Start reading Sensor loop
+   * Initiates the start of measurement.
    *
-   * Only one instance of @ref TimeSwipe can be running each moment of the time
+   * @par Effects
+   * Repeatedly calls `handler`. The call frequency of the handler is depends on
+   * the burst_size() - the greater it's value, the less frequent `handler` is
+   * called. If the `burst_size() == sample_rate()` then the `handler` is called
+   * `1` time per second.
    *
-   * After each sensor read complete cb called with vector of @ref Sensors_data
+   * @warning The `handler` **must** spend no more than `burst_size() / sample_rate()`
+   * seconds on processing the incoming data! Otherwise, the driver will throttle
+   * and some the sensor data will be skipped.
    *
-   * Buffer is for 1 second data if \p cb works longer than 1 second, next data can be loosed and next callback called with non-zero errors
-   *
-   * Function starts two threads: one thread reads sensor values to the ring buffer, second thread polls ring buffer and calls @ref cb
-   *
-   * Function can not be called from callback
-   *
-   * @param cb
-   * @return false if reading procedure start failed, otherwise true
+   * @warning This method cannot be called from `handler`!
    *
    * @par Effects
    * `IsBusy()`.
    */
-  bool Start(ReadCallback cb);
+  void start(Sensor_data_handler handler);
 
   /**
    * @returns `true` if this instance is busy on read the sensor input.
