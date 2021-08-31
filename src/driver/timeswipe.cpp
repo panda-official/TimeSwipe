@@ -243,21 +243,10 @@ public:
     return true;
   }
 
-  bool start_pwm(const int index,
-    const int frequency,
-    const int low,
-    const int high,
-    const int repeat_count,
-    const float duty_cycle)
+  bool start_pwm(const int index, const Pwm_state& state)
   {
     DMITIGR_CHECK_ARG(0 <= index && index <= 1);
-    DMITIGR_CHECK_ARG(1 <= frequency && frequency <= 1000);
-    DMITIGR_CHECK_ARG(0 <= low && low <= 4095);
-    DMITIGR_CHECK_ARG(0 <= high && high <= 4095);
-    DMITIGR_CHECK_ARG(low <= high);
-    DMITIGR_CHECK_ARG(repeat_count >= 0);
-    DMITIGR_CHECK_ARG(0 < duty_cycle && duty_cycle < 1);
-    return SpiStartPwm(index, frequency, low, high, repeat_count, duty_cycle);
+    return SpiStartPwm(index, state);
   }
 
   bool stop_pwm(const int index)
@@ -266,16 +255,10 @@ public:
     return SpiStopPwm(index);
   }
 
-  bool GetPWM(const std::uint8_t num,
-    bool& active,
-    std::uint32_t& frequency,
-    std::uint32_t& high,
-    std::uint32_t& low,
-    std::uint32_t& repeats,
-    float& duty_cycle)
+  std::optional<Pwm_state> pwm_state(const int index)
   {
-    if (num > 1) return false;
-    return SpiGetPwm(num, active, frequency, high, low, repeats, duty_cycle);
+    DMITIGR_CHECK_ARG(0 <= index && index <= 1);
+    return SpiGetPwm(index);
   }
 
   void TraceSPI(const bool value)
@@ -994,12 +977,7 @@ private:
 #endif
   }
 
-  /**
-   * @param num Zero-based number of PWM.
-   */
-  bool SpiStartPwm(const int index, const int frequency,
-    const int low, const int high, const int repeat_count,
-    const float duty_cycle)
+  bool SpiStartPwm(const int index, const Pwm_state& state)
   {
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
@@ -1007,11 +985,11 @@ private:
     std::string err;
     std::string pwm = std::string("PWM") + std::to_string(index + 1);
     auto obj = nlohmann::json::object({});
-    obj.emplace(pwm + ".freq", frequency);
-    obj.emplace(pwm + ".low", low);
-    obj.emplace(pwm + ".high", high);
-    obj.emplace(pwm + ".repeats", repeat_count);
-    obj.emplace(pwm + ".duty", duty_cycle);
+    obj.emplace(pwm + ".freq", state.frequency());
+    obj.emplace(pwm + ".low", state.low());
+    obj.emplace(pwm + ".high", state.high());
+    obj.emplace(pwm + ".repeats", state.repeat_count());
+    obj.emplace(pwm + ".duty", state.duty_cycle());
     auto settings = SpiSetSettings(obj.dump(), err);
     if (str2json(settings).empty())
       return false;
@@ -1039,28 +1017,25 @@ private:
 #endif
   }
 
-  /**
-   * @param num Zero-based number of PWM.
-   */
-  bool SpiGetPwm(const std::uint8_t num, bool& active, std::uint32_t& frequency,
-    std::uint32_t& high, std::uint32_t& low, std::uint32_t& repeats,
-    float& duty_cycle)
+  std::optional<Pwm_state> SpiGetPwm(const int index)
   {
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     return false;
 #else
-    std::string pwm = std::string("PWM") + std::to_string(num+1);
+    std::string pwm = std::string("PWM") + std::to_string(index + 1);
     const auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
     std::string err;
     const auto settings = SpiGetSettings(arr.dump(), err);
-    const auto s = str2json(settings);
-    return !s.empty() &&
-      json_get(s, pwm, active) &&
-      json_get(s, pwm + ".freq", frequency) &&
-      json_get(s, pwm + ".high", high) &&
-      json_get(s, pwm + ".low", low) &&
-      json_get(s, pwm + ".repeats", repeats) &&
-      json_get(s, pwm + ".duty", duty_cycle);
+    const auto json = str2json(settings);
+    if (!json.empty() && json_get_bool(json, pwm)) {
+      return Pwm_state{}
+        .frequency(json_get_unsigned(json, pwm + ".freq"))
+        .high(json_get_unsigned(json, pwm + ".high"))
+        .low(json_get_unsigned(json, pwm + ".low"))
+        .repeat_count(json_get_unsigned(json, pwm + ".repeats"))
+        .duty_cycle(json_get_float(json, pwm + ".duty"));
+    }
+    return {};
 #endif
   }
 
@@ -1479,40 +1454,44 @@ private:
     return j;
   }
 
-  static bool json_get(const nlohmann::json& j, const std::string& key, std::string& value)
+  static std::string json_get_string(const nlohmann::json& j, const std::string& key)
   {
     auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_string()) return false;
-    value = it->get<std::string>();
-    return true;
+    if (it == j.end())
+      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+    if (!it->is_string())
+      throw std::runtime_error{"invalid string in JSON"};
+    return it->get<std::string>();
   }
 
-  static bool json_get(const nlohmann::json& j, const std::string& key, std::uint32_t& value)
+  static std::uint32_t json_get_unsigned(const nlohmann::json& j, const std::string& key)
   {
     auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_number_unsigned()) return false;
-    value = it->get<uint32_t>();
-    return true;
+    if (it == j.end())
+      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+    if (!it->is_number_unsigned())
+      throw std::runtime_error{"invalid unsigned in JSON"};
+    return it->get<std::uint32_t>();
   }
 
-  static bool json_get(const nlohmann::json& j, const std::string& key, float& value)
+  static float json_get_float(const nlohmann::json& j, const std::string& key)
   {
     auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_number_float()) return false;
-    value = it->get<float>();
-    return true;
+    if (it == j.end())
+      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+    if (!it->is_number_float())
+      throw std::runtime_error{"invalid float in JSON"};
+    return it->get<float>();
   }
 
-  static bool json_get(const nlohmann::json& j, const std::string& key, bool& value)
+  static bool json_get_bool(const nlohmann::json& j, const std::string& key)
   {
     auto it = j.find(key);
-    if (it == j.end()) return false;
-    if (!it->is_boolean()) return false;
-    value = it->get<bool>();
-    return true;
+    if (it == j.end())
+      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+    if (!it->is_boolean())
+      throw std::runtime_error{"invalid boolean in JSON"};
+    return it->get<bool>();
   }
 };
 
@@ -1655,14 +1634,9 @@ bool TimeSwipe::Stop()
   return rep_->Stop();
 }
 
-bool TimeSwipe::start_pwm(const int index,
-  const int frequency,
-  const int low,
-  const int high,
-  const int repeat_count,
-  const float duty_cycle)
+bool TimeSwipe::start_pwm(const int index, const Pwm_state& state)
 {
-  return rep_->start_pwm(index, frequency, low, high, repeat_count, duty_cycle);
+  return rep_->start_pwm(index, state);
 }
 
 bool TimeSwipe::stop_pwm(const int index)
@@ -1670,11 +1644,9 @@ bool TimeSwipe::stop_pwm(const int index)
   return rep_->stop_pwm(index);
 }
 
-bool TimeSwipe::GetPWM(std::uint8_t num, bool& active,
-  std::uint32_t& frequency, std::uint32_t& high,
-  std::uint32_t& low, std::uint32_t& repeats, float& duty_cycle)
+std::optional<Pwm_state> TimeSwipe::pwm_state(const int index)
 {
-  return rep_->GetPWM(num, active, frequency, high, low, repeats, duty_cycle);
+  return rep_->pwm_state(index);
 }
 
 void TimeSwipe::TraceSPI(const bool value)

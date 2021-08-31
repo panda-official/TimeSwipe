@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 
 #include "event.hpp"
+#include "pwm_state.hpp"
 #include "sensor_data.hpp"
 
 #include <cstdint>
@@ -161,27 +162,17 @@ public:
   /**
    * Starts the PWM generator.
    *
-   * This method can be called even after the call of start().
+   * PWM generator will run for `(state.repeat_count() / state.frequency())`
+   * seconds and stop.
+   *
+   * @remarks This method can be called even after the call of start().
    *
    * @param index PWM index. Must be in range `[0, 1]`.
-   * @param frequency Periods per second. Must be in range `[1, 1000]`.
-   * @param low PWM signal low value. Must be in range `[0, 4095]`.
-   * @param high PWM signal high value. Must be in range `[0, 4095]`.
-   * @param repeat_count The number of repeat periods. PWM generator will work
-   * `(repeat_count / frequency)` seconds and after that goes to stop state and
-   * this method can be called again. The value of `0` means infinity.
-   * @param duty_cycle The length of the PWM period when signal is in high state.
-   * Must be in range `(0, 1)`.
-   *
-   * @par Requires
-   * `(0 <= index && index <= 1) && (1 <= frequency && frequency <= 1000) &&
-   * (0 <= low && low <= 4095) && (0 <= high && high <= 4095) && (low <= high) &&
-   * (repeat_count >= 0) && (0 < duty_cycle && duty_cycle < 1)`.
+   * @param state PWM state.
    *
    * @return false if at least one wrong parameter given or generator already in start state
    */
-  bool start_pwm(int index, int frequency,
-    int low = 0, int high = 4095, int repeat_count = 0, float duty_cycle = 0.5);
+  bool start_pwm(int index, const Pwm_state& state);
 
   /**
    * Stops the PWM generator.
@@ -195,21 +186,13 @@ public:
   bool stop_pwm(int index);
 
   /**
-   * \brief Get PWM generator state if it is in a Start state
-   * Method can be called in any time.
+   * Gets the PWM generator's state.
    *
-   * @param[in] num - output number - possible values 0 or 1
-   * @param[out] active - pwm active flag, if active is false other parameters can not be considered valid
-   * other parameters are output references to paramteres with same names in @ref StartPWM
-   * they are valid only if true returned
+   * @param index The PWM index. Must be in range [0, 1].
    *
-   * @return false if num parameter is wrong or generator is in stop state
+   * @returns The PWM state if the PWM of the given `index` is active.
    */
-
-  bool GetPWM(std::uint8_t num, bool& active,
-    std::uint32_t& frequency, std::uint32_t& high,
-    std::uint32_t& low, std::uint32_t& repeats, float& duty_cycle);
-
+  std::optional<Pwm_state> pwm_state(int index);
 
   /**
    * @brief Sets the channel measurement mode: Voltage or Current
@@ -220,7 +203,6 @@ public:
    */
   bool SetChannelMode(int channel, Measurement_mode nMode);
 
-
   /**
    * @brief Requests the channel measurement mode
    * @param[in] nCh - the channel to be requested
@@ -229,7 +211,6 @@ public:
    * @return true on operation success, false otherwise
    */
   bool GetChannelMode(int channel, Measurement_mode &nMode);
-
 
   /**
    * @brief Sets the channel gain value

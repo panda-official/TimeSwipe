@@ -29,27 +29,25 @@ void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " <command> [--num <num>] [--freq <freq>] [--high <high>] [--low <low>] [--repeats <repeats>] [--duty <duty>] [--trace-spi]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " <command> [--index <index>] [--freq <freq>] [--high <high>] [--low <low>] [--repeats <repeats>] [--duty <duty>] [--trace-spi]'" << std::endl;
     std::cerr << "command is one of start stop get" << std::endl;
-    std::cerr << "num is only valid for start or stop commands" << std::endl;
+    std::cerr << "index is only valid for start or stop commands" << std::endl;
     std::cerr << "duty, freq, high, low, repeats, duty are valid for start command" << std::endl;
 }
 
 int main(int argc, char *argv[])
 {
-    auto& tswipe = panda::timeswipe::driver::TimeSwipe::instance();
+    namespace drv = panda::timeswipe::driver;
+    auto& tswipe = drv::TimeSwipe::instance();
 
     bool start = false;
     bool stop = false;
     bool get = false;
-    uint8_t num = 0;
-    uint32_t freq = 1;
-    uint32_t high = 4095;
-    uint32_t low = 0;
-    uint32_t repeats = 0;
-    float duty = 0.5;
+    int index = 0;
+    drv::Pwm_state state;
+    state.frequency(1).high(4095).low(0).repeat_count(0).duty_cycle(.5);
 
-    bool num_both = true;
+    bool both = true;
 
     if (argc < 2) {
         usage(argv[0]);
@@ -70,48 +68,48 @@ int main(int argc, char *argv[])
                 usage(argv[0]);
                 return 1;
             }
-            num = atoi(argv[i+1]);
+            index = std::stoi(argv[i+1]);
             ++i;
-            if (num > 1) {
-                std::cerr << "num can be 0 or 1 only" << std::endl;
+            if (index > 1) {
+                std::cerr << "index can be 0 or 1 only" << std::endl;
                 usage(argv[0]);
                 return 1;
             }
-            num_both = false;
+            both = false;
         } else if (!strcmp(argv[i],"--freq")) {
             if (i+1 > argc) {
                 usage(argv[0]);
                 return 1;
             }
-            freq = atoi(argv[i+1]);
+            state.frequency(std::stoi(argv[i+1]));
             ++i;
         } else if (!strcmp(argv[i],"--high")) {
             if (i+1 > argc) {
                 usage(argv[0]);
                 return 1;
             }
-            high = atoi(argv[i+1]);
+            state.high(std::stoi(argv[i+1]));
             ++i;
         } else if (!strcmp(argv[i],"--low")) {
             if (i+1 > argc) {
                 usage(argv[0]);
                 return 1;
             }
-            low = atoi(argv[i+1]);
+            state.low(std::stoi(argv[i+1]));
             ++i;
         } else if (!strcmp(argv[i],"--repeats")) {
             if (i+1 > argc) {
                 usage(argv[0]);
                 return 1;
             }
-            repeats = atoi(argv[i+1]);
+            state.repeat_count(std::stoi(argv[i+1]));
             ++i;
         } else if (!strcmp(argv[i],"--duty")) {
             if (i+1 > argc) {
                 usage(argv[0]);
                 return 1;
             }
-            duty = atof(argv[i+1]);
+            state.duty_cycle(std::stof(argv[i+1]));
             ++i;
         } else if (!strcmp(argv[i],"--trace-spi")) {
             tswipe.TraceSPI(true);
@@ -123,10 +121,16 @@ int main(int argc, char *argv[])
     }
 
     for (int i = 0; i < 2; i++) {
-        if (!num_both && num != i) continue;
+        if (!both && index != i) continue;
         if (start) {
-            std::cout << "start " << i <<" freq: " << freq << " high: " << high << " low: " << low << " repeats: " << repeats << " duty: " << duty << std::endl;
-            if (!tswipe.start_pwm(i, freq, high, low, repeats, duty)) {
+          std::cout << "start " << i
+                    << " freq: " << state.frequency()
+                    << " high: " << state.high()
+                    << " low: " << state.low()
+                    << " repeats: " << state.repeat_count()
+                    << " duty: " << state.duty_cycle()
+                    << std::endl;
+            if (!tswipe.start_pwm(i, state)) {
                 std::cout << "start " << i << " failed" << std::endl;
             } else {
                 std::cout << "start " << i << " succeded" << std::endl;
@@ -140,16 +144,16 @@ int main(int argc, char *argv[])
             }
         } else if (get) {
             std::cout << "get " << i << std::endl;
-            bool active;
-            if (!tswipe.GetPWM(i, active, freq, high, low, repeats, duty)) {
-                std::cout << "get " << i << " failed" << std::endl;
-            } else {
-                if (active) {
-                    std::cout << "get " << i << " active: " << active <<" freq: " << freq << " high: " << high << " low: " << low << " repeats: " << repeats << " duty: " << duty << std::endl;
-                } else {
-                    std::cout << "get " << i << " active: " << active << std::endl;
-                }
-            }
+            if (auto pwm = tswipe.pwm_state(i)) {
+              std::cout << "get " << i
+                        << " freq: " << pwm->frequency()
+                        << " high: " << pwm->high()
+                        << " low: " << pwm->low()
+                        << " repeats: " << pwm->repeat_count()
+                        << " duty: " << pwm->duty_cycle()
+                        << std::endl;
+            } else
+              std::cout << "get " << i << " failed" << std::endl;
         }
     }
     return 0;
