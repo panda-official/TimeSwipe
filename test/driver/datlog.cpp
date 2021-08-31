@@ -128,18 +128,9 @@ int main(int argc, char *argv[])
     tswipe.TraceSPI(trace_spi);
 
     // Board Preparation
-    if(!config_script.empty())
-    {
-        //configure the board before start:
-        std::string strErrMsg;
-        tswipe.SetSettings(config_script.dump(), strErrMsg);
-        if(!strErrMsg.empty())
-        {
-            std::cout << "Board configuration error: " << strErrMsg << std::endl;
-        }
-    }
-
-
+    if (!config_script.empty())
+      //configure the board before start:
+      tswipe.set_settings(config_script.dump());
 
     tswipe.set_mode(modes.at(configitem["MODE"]));
 

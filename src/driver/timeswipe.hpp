@@ -445,22 +445,22 @@ public:
   bool is_busy() const noexcept;
 
   /**
-   * \brief Send SPI SetSettings request and receive the answer
+   * Sets the board settings.
    *
-   * @param request - request json string
-   * @param error - output error
-   * @return json-formatted answer, set error if error occured
+   * @returns The board settings in JSON format.
+   *
+   * @param request The request in JSON format.
    */
-  std::string SetSettings(const std::string& request, std::string& error);
+  std::string set_settings(const std::string& request);
 
   /**
-   * \brief Send SPI GetSettings request and receive the answer
+   * Gets the board settings.
    *
-   * @param request - request json string
-   * @param error - output error
-   * @return json-formatted answer, set error if error occured
+   * @returns The board settings in JSON format.
+   *
+   * @param request The request in JSON format.
    */
-  std::string GetSettings(const std::string& request, std::string& error);
+  std::string settings(const std::string& request);
 
   using OnEventCallback = std::function<void(Event&& event)>;
   /**

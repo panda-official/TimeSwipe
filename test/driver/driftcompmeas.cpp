@@ -96,12 +96,8 @@ try {
     nlohmann::json config;
     in >> config;
     if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
-      if (!cs->empty()) {
-        std::string msg;
-        ts.SetSettings(cs->dump(), msg);
-        if(!msg.empty())
-          throw std::invalid_argument{"invalid config: " + msg};
-      }
+      if (!cs->empty())
+        ts.set_settings(cs->dump());
     }
   }
 

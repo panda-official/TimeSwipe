@@ -185,17 +185,19 @@ public:
     return true;
   }
 
-  std::string Settings(const std::uint8_t set_or_get, const std::string& request, std::string& error)
+  std::string settings(const bool set, const std::string& request)
   {
-    in_spi_.push(std::make_pair(set_or_get, request));
-    std::pair<std::string,std::string> resp;
+    in_spi_.push(std::make_pair(set, request));
 
     if (!is_measurement_started_)
       processSPIRequests();
 
+    std::pair<std::string, std::string> resp;
     while (!out_spi_.pop(resp))
       std::this_thread::sleep_for(std::chrono::milliseconds{100});
-    error = resp.second;
+
+    if (!resp.second.empty())
+      throw RuntimeException{resp.second};
 
     return resp.first;
   }
@@ -1604,14 +1606,14 @@ bool TimeSwipe::OnEvent(OnEventCallback cb)
   return rep_->OnEvent(std::move(cb));
 }
 
-std::string TimeSwipe::SetSettings(const std::string& request, std::string& error)
+std::string TimeSwipe::set_settings(const std::string& request)
 {
-  return rep_->Settings(1, request, error);
+  return rep_->settings(1, request);
 }
 
-std::string TimeSwipe::GetSettings(const std::string& request, std::string& error)
+std::string TimeSwipe::settings(const std::string& request)
 {
-  return rep_->Settings(0, request, error);
+  return rep_->settings(0, request);
 }
 
 bool TimeSwipe::Stop()
