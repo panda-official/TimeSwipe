@@ -339,7 +339,7 @@ public:
    * Clears drift references if any.
    *
    * @par Requires
-   * `!IsBusy()`.
+   * `!is_busy()`.
    *
    * @par Effects
    * `!drift_references() && !drift_deltas()`. Removes the file
@@ -356,10 +356,10 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Requires
-   * `drift_references() && !IsBusy()`.
+   * `drift_references() && !is_busy()`.
    *
    * @par Effects
-   * `!IsBusy() && drift_deltas()`.
+   * `!is_busy() && drift_deltas()`.
    * After calling the `Start()`, calculated deltas will be substracted from
    * each input value of the corresponding channel.
    *
@@ -373,7 +373,7 @@ public:
    * @brief Clears drift deltas if any.
    *
    * @par Requires
-   * `!IsBusy()`.
+   * `!is_busy()`.
    *
    * @par Effects
    * Input values of the corresponding channel will not be affected by deltas.
@@ -433,7 +433,7 @@ public:
    * @warning This method cannot be called from `handler`!
    *
    * @par Effects
-   * `IsBusy()`.
+   * `is_busy()`.
    */
   void start(Sensor_data_handler handler);
 
@@ -442,7 +442,7 @@ public:
    *
    * @see calculate_drift_references(), calculate_drift_deltas(), Start().
    */
-  bool IsBusy() const noexcept;
+  bool is_busy() const noexcept;
 
   /**
    * \brief Send SPI SetSettings request and receive the answer

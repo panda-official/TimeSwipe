@@ -125,7 +125,7 @@ public:
 
   void start(Sensor_data_handler&& handler)
   {
-    if (IsBusy())
+    if (is_busy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
     joinThreads();
@@ -164,7 +164,7 @@ public:
 #endif
   }
 
-  bool IsBusy() const noexcept
+  bool is_busy() const noexcept
   {
     return is_measurement_started_ || in_handler_;
   }
@@ -329,7 +329,7 @@ public:
   /// @returns Previous resampler if any.
   std::unique_ptr<detail::Resampler> set_sample_rate(const int rate)
   {
-    if (IsBusy()) return {};
+    if (is_busy()) return {};
 
     PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= max_sample_rate());
 
@@ -389,7 +389,7 @@ public:
 
   void clear_drift_references()
   {
-    if (IsBusy())
+    if (is_busy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
     std::filesystem::remove(TmpDir()/"drift_references");
@@ -428,7 +428,7 @@ public:
 
   void clear_drift_deltas()
   {
-    if (IsBusy())
+    if (is_busy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
     drift_deltas_.reset();
@@ -1379,7 +1379,7 @@ private:
   template<typename F>
   Sensors_data CollectSensorsData(const std::size_t samples_count, F&& state_guard)
   {
-    if (IsBusy())
+    if (is_busy())
       throw RuntimeException{Errc::kBoardIsBusy};
 
     const auto guard{state_guard()};
@@ -1589,9 +1589,9 @@ void TimeSwipe::start(Sensor_data_handler handler)
   rep_->start(std::move(handler));
 }
 
-bool TimeSwipe::IsBusy() const noexcept
+bool TimeSwipe::is_busy() const noexcept
 {
-  return rep_->IsBusy();
+  return rep_->is_busy();
 }
 
 bool TimeSwipe::OnError(OnErrorCallback cb)
