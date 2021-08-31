@@ -399,7 +399,7 @@ public:
     return result;
   }
 
-  void ClearDriftReferences()
+  void clear_drift_references()
   {
     if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
@@ -1574,9 +1574,9 @@ std::vector<float> TimeSwipe::calculate_drift_references()
   return rep_->calculate_drift_references();
 }
 
-void TimeSwipe::ClearDriftReferences()
+void TimeSwipe::clear_drift_references()
 {
-  rep_->ClearDriftReferences();
+  rep_->clear_drift_references();
 }
 
 std::vector<float> TimeSwipe::CalculateDriftDeltas()

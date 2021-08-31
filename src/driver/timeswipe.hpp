@@ -336,7 +336,7 @@ public:
   std::vector<float> calculate_drift_references();
 
   /**
-   * @brief Clears drift references if any.
+   * Clears drift references if any.
    *
    * @par Requires
    * `!IsBusy()`.
@@ -350,7 +350,7 @@ public:
    *
    * @see CalculateDriftReferences(), ClearDriftDeltas().
    */
-  void ClearDriftReferences();
+  void clear_drift_references();
 
   /**
    * @brief Calculates drift deltas based on calculated drift references.
@@ -381,7 +381,7 @@ public:
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see CalculateDriftDeltas(), ClearDriftReferences().
+   * @see CalculateDriftDeltas(), clear_drift_references().
    */
   void ClearDriftDeltas();
 
@@ -394,7 +394,7 @@ public:
    * @throws An Exception with the code `Errc::kInvalidDriftReference` if
    * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
-   * @see CalculateDriftReferences(), ClearDriftReferences(), DriftDeltas().
+   * @see CalculateDriftReferences(), clear_drift_references(), DriftDeltas().
    */
   std::optional<std::vector<float>> DriftReferences(bool force = {}) const;
 

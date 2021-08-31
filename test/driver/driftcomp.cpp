@@ -61,7 +61,7 @@ int main()
   auto& ts = drv::TimeSwipe::instance();
   assert(!ts.IsBusy());
 
-  ts.ClearDriftReferences();
+  ts.clear_drift_references();
   assert(!ts.DriftReferences(false));
   assert(!ts.DriftReferences(true));
 
@@ -172,7 +172,7 @@ int main()
   // Clear references
   // ---------------------------------------------------------------------------
 
-  ts.ClearDriftReferences();
+  ts.clear_drift_references();
   assert(!ts.DriftReferences(false));
   assert(!ts.DriftReferences(true));
 }
