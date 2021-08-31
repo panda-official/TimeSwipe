@@ -27,7 +27,7 @@ namespace {
 
 void measure(drv::TimeSwipe& ts, const std::chrono::milliseconds dur)
 {
-  ts.SetSampleRate(48000);
+  ts.set_sample_rate(48000);
   ts.SetBurstSize(48000);
   constexpr auto channel_count{drv::Sensors_data::sensor_count()};
   std::vector<double> aavg(channel_count);

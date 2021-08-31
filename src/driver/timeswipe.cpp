@@ -339,7 +339,7 @@ public:
   }
 
   /// @returns Previous resampler if any.
-  std::unique_ptr<detail::Resampler> SetSampleRate(const int rate)
+  std::unique_ptr<detail::Resampler> set_sample_rate(const int rate)
   {
     if (IsBusy()) return {};
 
@@ -660,7 +660,7 @@ private:
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
       // Store the current state of self.
-      resampler_ = rep_.SetSampleRate(rep_.max_sample_rate());
+      resampler_ = rep_.set_sample_rate(rep_.max_sample_rate());
       rep_.SetBurstSize(rep_.kDriftSamplesCount_);
     }
 
@@ -1559,14 +1559,14 @@ int TimeSwipe::max_sample_rate() const noexcept
   return rep_->max_sample_rate();
 }
 
+void TimeSwipe::set_sample_rate(const int rate)
+{
+  rep_->set_sample_rate(rate);
+}
+
 void TimeSwipe::SetBurstSize(const std::size_t burst)
 {
   return rep_->SetBurstSize(burst);
-}
-
-bool TimeSwipe::SetSampleRate(const int rate)
-{
-  return static_cast<bool>(rep_->SetSampleRate(rate));
 }
 
 std::vector<float> TimeSwipe::CalculateDriftReferences()

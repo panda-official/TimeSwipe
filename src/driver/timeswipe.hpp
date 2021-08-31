@@ -267,6 +267,21 @@ public:
   int max_sample_rate() const noexcept;
 
   /**
+   * @brief Set sample rate. Default value is max_sample_rate().
+   *
+   * @param rate - new sample rate
+   *
+   * @par Requires
+   * `(!is_busy() && (1 <= rate && rate <= max_sample_rate())).
+   *
+   * @warning It's highly recommended not to use the rate for which
+   * `(max_sample_rate() % rate != 0)` for best performance! In other words
+   * the lower the value of `std::gcd(max_sample_rate(), rate)`, the worse
+   * the performance of the resampling.
+   */
+  void set_sample_rate(int rate);
+
+  /**
    * \brief Setup Burst buffer size
    *
    * This method notifies the driver to return at least burstNum records to the cb of @ref Start function per each call
@@ -274,22 +289,6 @@ public:
    * @param burstNum - number of records in burst buffer
    */
   void SetBurstSize(std::size_t burstNum);
-
-  /**
-   * @brief Set sample rate. Default value is MaxSampleRate().
-   *
-   * @param rate - new sample rate
-   * @return false on wrong rate value requested
-   *
-   * @par Requires
-   * `(!IsBusy() && (1 <= rate && rate <= MaxSampleRate())).
-   *
-   * @warning It's highly recommended not to use the rate for which
-   * `(MaxSampleRate() % rate != 0)` for best performance. In other words
-   * the lower the value of `std::gcd(MaxSampleRate(), rate)`, the worse
-   * the performance of the underlying resampler.
-   */
-  bool SetSampleRate(int rate);
 
   /// @name Drift Compensation
   ///

@@ -34,7 +34,7 @@ void log(const std::vector<float>& data)
 
 void measure(drv::TimeSwipe& ts, const std::filesystem::path& logfile)
 {
-  ts.SetSampleRate(48000);
+  ts.set_sample_rate(48000);
   ts.SetBurstSize(48000 / 10);
   constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
   std::ofstream log{logfile, log_mode};
