@@ -25,7 +25,10 @@
 
 #include <atomic>
 #include <cstdint>
+#ifdef PANDA_TIMESWIPE_TRACE_SPI
 #include <iostream>
+#endif
+#include <thread>
 
 namespace panda::timeswipe::driver::detail {
 
@@ -156,12 +159,14 @@ public:
     CFIFO answer;
     if (receive(answer)) {
       ans = answer;
-      if (is_tracing_enabled_)
-        std::clog << "spi: received: \"" << ans << "\"" << std::endl;
+#ifdef PANDA_TIMESWIPE_TRACE_SPI
+      std::clog << "spi: received: \"" << ans << "\"" << std::endl;
+#endif
       return true;
     }
-    if (is_tracing_enabled_)
-      std::cerr << "spi: receive failed" << std::endl;
+#ifdef PANDA_TIMESWIPE_TRACE_SPI
+    std::clog << "spi: receive failed" << std::endl;
+#endif
     return false;
   }
 
@@ -200,8 +205,8 @@ public:
   template <class Number>
   bool send_set_command_check(const std::string& variable, const Number value) {
     send_set_command(variable, std::to_string(value));
-    // // FIXME: if sleep disable and is_tracing_enabled__=false receive() fails sometimes
-    // std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    // FIXME: if sleep disable receive() fails sometimes.
+    std::this_thread::sleep_for(std::chrono::nanoseconds{1});
     std::string answer;
     receive_strip_answer(answer);
     Number num{};
@@ -210,21 +215,10 @@ public:
     return num == value;
   }
 
-  void enable_tracing(const bool value)
-  {
-    is_tracing_enabled_ = value;
-  }
-
-  bool is_tracing_enabled() const noexcept
-  {
-    return is_tracing_enabled_;
-  }
-
 private:
   inline static bool is_initialized_;
   inline static bool is_spi_initialized_[2];
 
-  std::atomic_bool is_tracing_enabled_{};
   CSyncSerComFSM com_cntr_;
   Spi_pins pins_;
   CFIFO rec_fifo_;
@@ -238,6 +232,8 @@ private:
   void set_tprofile_divs(unsigned char /*CSminDel*/, unsigned char /*IntertransDel*/,
     unsigned char /*BeforeClockDel*/) override
   {}
+
+  using CSPI::transfer;
 
   Character transfer(const Character ch)
   {
@@ -288,8 +284,9 @@ private:
     CFIFO command;
     command += cmd;
     send(command);
-    if (is_tracing_enabled_)
-      std::clog << "spi: sent: \"" << command << "\"" << std::endl;
+#ifdef PANDA_TIMESWIPE_TRACE_SPI
+    std::clog << "spi: sent: \"" << command << "\"" << std::endl;
+#endif
   }
 
   bool receive_strip_answer(std::string& ans, std::string& error)

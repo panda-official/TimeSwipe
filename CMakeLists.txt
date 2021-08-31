@@ -38,6 +38,9 @@ set(PANDA_ARM On CACHE BOOL
 set(PANDA_ARM64 Off CACHE BOOL
   "Build for ARM64?")
 
+set(PANDA_TIMESWIPE_TRACE_SPI Off CACHE BOOL
+  "Build with SPI tracing?")
+
 set(PANDA_TIMESWIPE_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
@@ -403,6 +406,11 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
     )
+  if(PANDA_TIMESWIPE_TRACE_SPI)
+    target_compile_definitions(panda_timeswipe PRIVATE
+      PANDA_TIMESWIPE_TRACE_SPI
+      )
+  endif()
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
   if(NOT CMAKE_CROSSCOMPILING)
