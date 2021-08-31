@@ -201,6 +201,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
+  [[deprecated]]
   bool SetChannelMode(int channel, Measurement_mode nMode);
 
   /**
@@ -210,6 +211,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
+  [[deprecated]]
   bool GetChannelMode(int channel, Measurement_mode &nMode);
 
   /**
@@ -222,6 +224,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
+  [[deprecated]]
   bool SetChannelGain(int channel, float Gain);
 
 
@@ -233,6 +236,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
+  [[deprecated]]
   bool GetChannelGain(int channel, float &Gain);
 
 
@@ -244,6 +248,7 @@ public:
    *
    * @return true on operation success, false otherwise
    */
+  [[deprecated]]
   bool SetChannelIEPE(int channel, bool bIEPEon);
 
 
@@ -255,10 +260,11 @@ public:
    *
    * @return true on operation success, false otherwise
    */
+  [[deprecated]]
   bool GetChannelIEPE(int channel, bool &bIEPEon);
 
   /// @returns Max possible sample rate.
-  int MaxSampleRate() const noexcept;
+  int max_sample_rate() const noexcept;
 
   /**
    * \brief Setup Burst buffer size

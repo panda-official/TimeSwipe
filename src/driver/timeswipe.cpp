@@ -343,13 +343,13 @@ public:
   {
     if (IsBusy()) return {};
 
-    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= MaxSampleRate());
+    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= max_sample_rate());
 
     auto result{std::move(resampler_)};
-    if (rate != MaxSampleRate()) {
-      const auto rates_gcd = std::gcd(rate, MaxSampleRate());
+    if (rate != max_sample_rate()) {
+      const auto rates_gcd = std::gcd(rate, max_sample_rate());
       const auto up = rate / rates_gcd;
-      const auto down = MaxSampleRate() / rates_gcd;
+      const auto down = max_sample_rate() / rates_gcd;
       resampler_ = std::make_unique<detail::Resampler>
         (detail::Resampler_options{up, down});
     } else
@@ -359,9 +359,9 @@ public:
     return result;
   }
 
-  int MaxSampleRate() const noexcept
+  int max_sample_rate() const noexcept
   {
-    return kMaxSampleRate_;
+    return max_sample_rate_;
   }
 
   // ---------------------------------------------------------------------------
@@ -490,22 +490,22 @@ private:
   // ---------------------------------------------------------------------------
 
   // Min sample rate per second.
-  constexpr static int kMinSampleRate_{32};
+  constexpr static int min_sample_rate_{32};
   // Max sample rate per second.
-  constexpr static int kMaxSampleRate_{48000};
+  constexpr static int max_sample_rate_{48000};
 
   // "Switching oscillation" completely (according to PSpice) decays after 1.5ms.
   constexpr static std::chrono::microseconds kSwitchingOscillationPeriod_{1500};
 
   // Only 5ms of raw data is needed. (5ms * 48kHz = 240 values.)
-  constexpr static std::size_t kDriftSamplesCount_{5*kMaxSampleRate_/1000};
+  constexpr static std::size_t kDriftSamplesCount_{5*max_sample_rate_/1000};
   static_assert(!(kDriftSamplesCount_ % 2));
 
   // ---------------------------------------------------------------------------
   // Resampling data
   // ---------------------------------------------------------------------------
 
-  int sample_rate_{kMaxSampleRate_};
+  int sample_rate_{max_sample_rate_};
   std::unique_ptr<detail::Resampler> resampler_;
 
   // ---------------------------------------------------------------------------
@@ -533,7 +533,7 @@ private:
   // ---------------------------------------------------------------------------
 
   // Next buffer must be enough to keep records for 1 s
-  constexpr static unsigned queue_size_{kMaxSampleRate_/kMinSampleRate_*2};
+  constexpr static unsigned queue_size_{max_sample_rate_/min_sample_rate_*2};
   boost::lockfree::spsc_queue<Sensors_data, boost::lockfree::capacity<queue_size_>> record_queue_;
   std::atomic_uint64_t record_error_count_{};
   std::size_t burst_size_{};
@@ -660,7 +660,7 @@ private:
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
       // Store the current state of self.
-      resampler_ = rep_.SetSampleRate(rep_.MaxSampleRate());
+      resampler_ = rep_.SetSampleRate(rep_.max_sample_rate());
       rep_.SetBurstSize(rep_.kDriftSamplesCount_);
     }
 
@@ -1554,9 +1554,9 @@ auto TimeSwipe::mode() const noexcept -> Mode
   return rep_->mode();
 }
 
-int TimeSwipe::MaxSampleRate() const noexcept
+int TimeSwipe::max_sample_rate() const noexcept
 {
-  return rep_->MaxSampleRate();
+  return rep_->max_sample_rate();
 }
 
 void TimeSwipe::SetBurstSize(const std::size_t burst)
