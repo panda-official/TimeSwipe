@@ -348,7 +348,7 @@ public:
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see CalculateDriftReferences(), ClearDriftDeltas().
+   * @see CalculateDriftReferences(), clear_drift_deltas().
    */
   void clear_drift_references();
 
@@ -383,7 +383,7 @@ public:
    *
    * @see calculate_drift_deltas(), clear_drift_references().
    */
-  void ClearDriftDeltas();
+  void clear_drift_deltas();
 
   /**
    * @returns The calculated drift references.

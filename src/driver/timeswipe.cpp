@@ -438,7 +438,7 @@ public:
     return result;
   }
 
-  void ClearDriftDeltas()
+  void clear_drift_deltas()
   {
     if (IsBusy())
       throw RuntimeException{Errc::kBoardIsBusy};
@@ -1584,9 +1584,9 @@ std::vector<float> TimeSwipe::calculate_drift_deltas()
   return rep_->calculate_drift_deltas();
 }
 
-void TimeSwipe::ClearDriftDeltas()
+void TimeSwipe::clear_drift_deltas()
 {
-  rep_->ClearDriftDeltas();
+  rep_->clear_drift_deltas();
 }
 
 std::optional<std::vector<float>> TimeSwipe::DriftReferences(const bool force) const

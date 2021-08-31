@@ -126,7 +126,7 @@ int main()
   assert(!ts.IsBusy());
   std::clog << "done" << std::endl;
 
-  ts.ClearDriftDeltas();
+  ts.clear_drift_deltas();
   assert(!ts.DriftDeltas());
 
   std::clog << "Measuring uncompensated..." << std::endl;
@@ -160,7 +160,7 @@ int main()
   assert(!ts.IsBusy());
   std::clog << "done" << std::endl;
 
-  ts.ClearDriftDeltas();
+  ts.clear_drift_deltas();
   assert(!ts.DriftDeltas());
 
   std::clog << "Measuring uncompensated 2..." << std::endl;
