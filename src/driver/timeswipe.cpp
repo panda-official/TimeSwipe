@@ -479,7 +479,7 @@ public:
     return drift_references_ = refs;
   }
 
-  std::optional<std::vector<float>> DriftDeltas() const
+  std::optional<std::vector<float>> drift_deltas() const
   {
     return drift_deltas_;
   }
@@ -1594,9 +1594,9 @@ std::optional<std::vector<float>> TimeSwipe::drift_references(const bool force) 
   return rep_->drift_references(force);
 }
 
-std::optional<std::vector<float>> TimeSwipe::DriftDeltas() const
+std::optional<std::vector<float>> TimeSwipe::drift_deltas() const
 {
-  return rep_->DriftDeltas();
+  return rep_->drift_deltas();
 }
 
 bool TimeSwipe::Start(ReadCallback cb)

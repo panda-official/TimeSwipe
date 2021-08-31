@@ -342,7 +342,7 @@ public:
    * `!IsBusy()`.
    *
    * @par Effects
-   * `!drift_references() && !DriftDeltas()`. Removes the file
+   * `!drift_references() && !drift_deltas()`. Removes the file
    * `<CWD>/.panda/timeswipe/drift_references`.
    *
    * @par Exception safety guarantee
@@ -359,13 +359,13 @@ public:
    * `drift_references() && !IsBusy()`.
    *
    * @par Effects
-   * `!IsBusy() && DriftDeltas()`.
+   * `!IsBusy() && drift_deltas()`.
    * After calling the `Start()`, calculated deltas will be substracted from
    * each input value of the corresponding channel.
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see DriftDeltas(), CalculateDriftReferences(), Start().
+   * @see drift_deltas(), CalculateDriftReferences(), Start().
    */
   std::vector<float> calculate_drift_deltas();
 
@@ -394,7 +394,7 @@ public:
    * @throws An Exception with the code `Errc::kInvalidDriftReference` if
    * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
-   * @see CalculateDriftReferences(), clear_drift_references(), DriftDeltas().
+   * @see CalculateDriftReferences(), clear_drift_references(), drift_deltas().
    */
   std::optional<std::vector<float>> drift_references(bool force = {}) const;
 
@@ -403,7 +403,7 @@ public:
    *
    * @see calculate_drift_deltas().
    */
-  std::optional<std::vector<float>> DriftDeltas() const;
+  std::optional<std::vector<float>> drift_deltas() const;
 
   /// @}
 

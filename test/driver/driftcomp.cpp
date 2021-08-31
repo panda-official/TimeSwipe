@@ -66,7 +66,7 @@ int main()
   assert(!ts.drift_references(true));
 
   try {
-    assert(!ts.DriftDeltas());
+    assert(!ts.drift_deltas());
     ts.calculate_drift_deltas();
   } catch (const ts::RuntimeException& e) {
     assert(e.condition() == ts::Errc::kNoDriftReferences);
@@ -104,7 +104,7 @@ int main()
   // Calculate deltas
   // ---------------------------------------------------------------------------
 
-  assert(!ts.DriftDeltas());
+  assert(!ts.drift_deltas());
   auto deltas{ts.calculate_drift_deltas()};
   assert(deltas.size() == refs.size());
   std::clog << "Calculated deltas: ";
@@ -112,7 +112,7 @@ int main()
 
   assert(!ts.IsBusy());
   {
-    const auto deltas1{ts.DriftDeltas()};
+    const auto deltas1{ts.drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }
@@ -127,7 +127,7 @@ int main()
   std::clog << "done" << std::endl;
 
   ts.clear_drift_deltas();
-  assert(!ts.DriftDeltas());
+  assert(!ts.drift_deltas());
 
   std::clog << "Measuring uncompensated..." << std::endl;
   measure(ts, "drift_compensation-uncompensated.log");
@@ -138,7 +138,7 @@ int main()
   // Calculate deltas 2
   // ---------------------------------------------------------------------------
 
-  assert(!ts.DriftDeltas());
+  assert(!ts.drift_deltas());
   deltas = ts.calculate_drift_deltas();
   assert(deltas.size() == refs.size());
   std::clog << "Calculated deltas 2: ";
@@ -146,7 +146,7 @@ int main()
 
   assert(!ts.IsBusy());
   {
-    const auto deltas1{ts.DriftDeltas()};
+    const auto deltas1{ts.drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }
@@ -161,7 +161,7 @@ int main()
   std::clog << "done" << std::endl;
 
   ts.clear_drift_deltas();
-  assert(!ts.DriftDeltas());
+  assert(!ts.drift_deltas());
 
   std::clog << "Measuring uncompensated 2..." << std::endl;
   measure(ts, "drift_compensation-uncompensated2.log");
