@@ -314,26 +314,26 @@ public:
   /// @{
 
   /**
-   * @brief Calculates drift references.
+   * Calculates drift references.
    *
    * The calculated references are stored to
    * `<CWD>/.panda/timeswipe/drift_reference` for persistent storage until
-   * either it deleted directly or by calling ClearDriftReferences().
+   * either it deleted directly or by calling clear_drift_references().
    *
    * @par Requires
-   * `!IsBusy()`.
+   * `!is_busy()`.
    *
    * @par Effects
-   * `!IsBusy() && DriftReferences()`.
+   * `!is_busy() && drift_references()`.
    *
    * @par Exception safety guarantee
    * Basic.
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see DriftReferences(), ClearDriftReferences(), CalculateDriftDeltas().
+   * @see drift_references(), clear_drift_references(), calculate_drift_deltas().
    */
-  std::vector<float> CalculateDriftReferences();
+  std::vector<float> calculate_drift_references();
 
   /**
    * @brief Clears drift references if any.

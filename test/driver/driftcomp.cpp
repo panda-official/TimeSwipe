@@ -76,7 +76,7 @@ int main()
   // Calculate references
   // ---------------------------------------------------------------------------
 
-  const auto refs{ts.CalculateDriftReferences()};
+  const auto refs{ts.calculate_drift_references()};
   assert(refs.size() == SensorsData::SensorsSize());
   std::clog << "Calculated references: ";
   log(refs);

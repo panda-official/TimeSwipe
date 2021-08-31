@@ -368,7 +368,7 @@ public:
   // Drift Compensation
   // ---------------------------------------------------------------------------
 
-  std::vector<float> CalculateDriftReferences()
+  std::vector<float> calculate_drift_references()
   {
     // Collect the data for calculation.
     auto data{CollectSensorsData(kDriftSamplesCount_, // 5 ms
@@ -1569,9 +1569,9 @@ void TimeSwipe::set_burst_size(const std::size_t size)
   return rep_->set_burst_size(size);
 }
 
-std::vector<float> TimeSwipe::CalculateDriftReferences()
+std::vector<float> TimeSwipe::calculate_drift_references()
 {
-  return rep_->CalculateDriftReferences();
+  return rep_->calculate_drift_references();
 }
 
 void TimeSwipe::ClearDriftReferences()
