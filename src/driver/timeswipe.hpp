@@ -348,7 +348,7 @@ public:
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see CalculateDriftReferences(), clear_drift_deltas().
+   * @see calculate_drift_references(), clear_drift_deltas().
    */
   void clear_drift_references();
 
@@ -365,7 +365,7 @@ public:
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see drift_deltas(), CalculateDriftReferences(), Start().
+   * @see drift_deltas(), calculate_drift_references(), Start().
    */
   std::vector<float> calculate_drift_deltas();
 
@@ -394,7 +394,7 @@ public:
    * @throws An Exception with the code `Errc::kInvalidDriftReference` if
    * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
-   * @see CalculateDriftReferences(), clear_drift_references(), drift_deltas().
+   * @see calculate_drift_references(), clear_drift_references(), drift_deltas().
    */
   std::optional<std::vector<float>> drift_references(bool force = {}) const;
 
@@ -436,7 +436,7 @@ public:
   /**
    * @returns `true` if this instance is busy on read the sensor input.
    *
-   * @see CalculateDriftReferences(), calculate_drift_deltas(), Start().
+   * @see calculate_drift_references(), calculate_drift_deltas(), Start().
    */
   bool IsBusy() const noexcept;
 
