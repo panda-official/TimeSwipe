@@ -409,7 +409,7 @@ public:
     drift_deltas_.reset();
   }
 
-  std::vector<float> CalculateDriftDeltas()
+  std::vector<float> calculate_drift_deltas()
   {
     // Throw away if there are no references.
     const auto refs{DriftReferences()};
@@ -1579,9 +1579,9 @@ void TimeSwipe::clear_drift_references()
   rep_->clear_drift_references();
 }
 
-std::vector<float> TimeSwipe::CalculateDriftDeltas()
+std::vector<float> TimeSwipe::calculate_drift_deltas()
 {
-  return rep_->CalculateDriftDeltas();
+  return rep_->calculate_drift_deltas();
 }
 
 void TimeSwipe::ClearDriftDeltas()

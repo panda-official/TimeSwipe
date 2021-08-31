@@ -367,7 +367,7 @@ public:
    *
    * @see DriftDeltas(), CalculateDriftReferences(), Start().
    */
-  std::vector<float> CalculateDriftDeltas();
+  std::vector<float> calculate_drift_deltas();
 
   /**
    * @brief Clears drift deltas if any.
@@ -381,7 +381,7 @@ public:
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see CalculateDriftDeltas(), clear_drift_references().
+   * @see calculate_drift_deltas(), clear_drift_references().
    */
   void ClearDriftDeltas();
 
@@ -401,7 +401,7 @@ public:
   /**
    * @returns The calculated drift deltas.
    *
-   * @see CalculateDriftDeltas().
+   * @see calculate_drift_deltas().
    */
   std::optional<std::vector<float>> DriftDeltas() const;
 
@@ -436,7 +436,7 @@ public:
   /**
    * @returns `true` if this instance is busy on read the sensor input.
    *
-   * @see CalculateDriftReferences(), CalculateDriftDeltas(), Start().
+   * @see CalculateDriftReferences(), calculate_drift_deltas(), Start().
    */
   bool IsBusy() const noexcept;
 

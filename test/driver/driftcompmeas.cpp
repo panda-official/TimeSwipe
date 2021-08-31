@@ -115,7 +115,7 @@ try {
 
   // Calculate deltas.
   assert(!ts.DriftDeltas());
-  auto deltas{ts.CalculateDriftDeltas()};
+  auto deltas{ts.calculate_drift_deltas()};
   (void)deltas;
   assert(deltas.size() == Sensors_data::sensor_count());
   assert(ts.DriftDeltas());

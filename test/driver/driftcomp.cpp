@@ -67,7 +67,7 @@ int main()
 
   try {
     assert(!ts.DriftDeltas());
-    ts.CalculateDriftDeltas();
+    ts.calculate_drift_deltas();
   } catch (const ts::RuntimeException& e) {
     assert(e.condition() == ts::Errc::kNoDriftReferences);
   }
@@ -105,7 +105,7 @@ int main()
   // ---------------------------------------------------------------------------
 
   assert(!ts.DriftDeltas());
-  auto deltas{ts.CalculateDriftDeltas()};
+  auto deltas{ts.calculate_drift_deltas()};
   assert(deltas.size() == refs.size());
   std::clog << "Calculated deltas: ";
   log(deltas);
@@ -139,7 +139,7 @@ int main()
   // ---------------------------------------------------------------------------
 
   assert(!ts.DriftDeltas());
-  deltas = ts.CalculateDriftDeltas();
+  deltas = ts.calculate_drift_deltas();
   assert(deltas.size() == refs.size());
   std::clog << "Calculated deltas 2: ";
   log(deltas);
