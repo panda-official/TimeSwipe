@@ -73,7 +73,7 @@ try {
   {
     try {
       if (auto* gain = event.get<drv::Event::Gain>()) {
-        std::cout << "Gain event: " << gain->value() << std::endl;
+        std::cout << "Gain event: " << gain->get_value() << std::endl;
       }
     } catch (const std::exception& e) {
       std::clog << "OnEvent: " << e.what() << '\n';

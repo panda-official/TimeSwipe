@@ -47,7 +47,7 @@ public:
     }
 
     /// @returns Pressed (odd value) or released (even value) count.
-    int count() const noexcept
+    int get_count() const noexcept
     {
       return count_;
     }
@@ -69,7 +69,7 @@ public:
     {}
 
     /// @returns Gain value as number.
-    int value() const noexcept
+    int get_value() const noexcept
     {
       return value_;
     }
@@ -90,7 +90,7 @@ public:
     {}
 
     /// @returns Set_secondary value as number.
-    int value() const noexcept
+    int get_value() const noexcept
     {
       return value_;
     }
@@ -111,7 +111,7 @@ public:
     {}
 
     /// @returns Bridge value as number.
-    int value() const noexcept
+    int get_value() const noexcept
     {
       return value_;
     }
@@ -132,7 +132,7 @@ public:
     {}
 
     /// @returns Record value as number.
-    int value() const noexcept
+    int get_value() const noexcept
     {
       return value_;
     }
@@ -153,7 +153,7 @@ public:
     {}
 
     /// @returns Offset value as number.
-    int value() const noexcept
+    int get_value() const noexcept
     {
       return value_;
     }
@@ -174,7 +174,7 @@ public:
     {}
 
     /// @returns Mode value as number.
-    int value() const noexcept
+    int get_value() const noexcept
     {
       return value_;
     }

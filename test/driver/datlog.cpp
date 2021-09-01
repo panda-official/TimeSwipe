@@ -155,19 +155,19 @@ int main(int argc, char *argv[])
       if (auto* button = event.get<Event::Button>())
         std::cout << "Button event: "
                   << (button->is_pressed() ? "pressed":"released")
-                  << " counter: " << button->count() << std::endl;
+                  << " counter: " << button->get_count() << std::endl;
       else if(auto* gain = event.get<Event::Gain>())
-        std::cout << "Gain event: " << gain->value() << std::endl;
+        std::cout << "Gain event: " << gain->get_value() << std::endl;
       else if(auto* val = event.get<Event::Set_secondary>())
-        std::cout << "Set_secondary event: " << val->value() << std::endl;
+        std::cout << "Set_secondary event: " << val->get_value() << std::endl;
       else if(auto* val = event.get<Event::Bridge>())
-        std::cout << "Bridge event: " <<  val->value() << std::endl;
+        std::cout << "Bridge event: " <<  val->get_value() << std::endl;
       else if(auto* val = event.get<Event::Record>())
-        std::cout << "Record event: " <<  val->value() << std::endl;
+        std::cout << "Record event: " <<  val->get_value() << std::endl;
       else if(auto* val = event.get<Event::Offset>())
-        std::cout << "Offset event: " <<  val->value() << std::endl;
+        std::cout << "Offset event: " <<  val->get_value() << std::endl;
       else if(auto* val = event.get<Event::Mode>())
-        std::cout << "Mode event: " <<  val->value() << std::endl;
+        std::cout << "Mode event: " <<  val->get_value() << std::endl;
     });
 
     tswipe.set_error_handler([&](const std::uint64_t errors)
