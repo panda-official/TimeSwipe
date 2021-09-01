@@ -24,12 +24,14 @@
 #include "timeswipe.hpp"
 
 #include "../common/error.hpp"
+#include "../common/gain.hpp"
 #include "../common/json.hpp"
 #include "../common/version.hpp"
 
 #include "../3rdparty/dmitigr/assert.hpp"
 #include "../3rdparty/dmitigr/filesystem.hpp"
 #include "../3rdparty/dmitigr/math.hpp"
+#include "../3rdparty/dmitigr/rajson.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 
@@ -131,6 +133,45 @@ public:
       throw Runtime_exception{Errc::board_is_busy};
 
     joinThreads();
+
+    // Read the calibration data.
+    calibration_map_ = [this]
+    {
+      namespace rajson = dmitigr::rajson;
+
+      using Ct = hat::atom::Calibration::Type;
+
+      hat::Calibration_map result;
+      for (const auto ct :
+             {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
+              Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4}) {
+        spi_.send_get_settings_command(R"({"cAtom":)" + std::to_string(static_cast<int>(ct)) + R"(})");
+        std::string ans, err;
+        if (!spi_.receive_strip_answer(ans, err))
+          throw Runtime_exception{"SPI receive failed"};
+
+        const auto doc = rajson::to_document(ans);
+        const rajson::Value_view doc_view{doc};
+        const auto doc_cal_entries = doc_view.mandatory("data");
+        if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
+          auto& atom = result.get_atom(ct);
+          const auto cal_entries = v.GetArray();
+          const auto cal_entries_size = cal_entries.Size();
+          for (std::size_t i{}; i < cal_entries_size; ++i) {
+            const rajson::Value_view cal_entry{cal_entries[i]};
+            if (!cal_entry.value().IsObject())
+              throw Runtime_exception{"calibration entry not an object"};
+            const auto slope = cal_entry.mandatory<float>("m");
+            const auto offset = cal_entry.mandatory<std::int16_t>("b");
+            const hat::atom::Calibration::Entry entry{slope, offset};
+            std::string err;
+            atom.set_entry(i, entry, err);
+          }
+        } else
+          throw Runtime_exception{"invalid calibration data"};
+      }
+      return result;
+    }();
 
     /*
      * Sends the command to a Timeswipe firmware to start measurement.
@@ -510,6 +551,7 @@ private:
   std::array<float, 4> transmissions_{1, 1, 1, 1};
   std::array<float, 4> mfactors_{};
   Mode read_mode_{};
+  hat::Calibration_map calibration_map_;
 
   // ---------------------------------------------------------------------------
   // Queues data
