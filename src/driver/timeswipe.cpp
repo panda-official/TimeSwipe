@@ -74,11 +74,13 @@ public:
     : pid_file_{"timeswipe"}
     , spi_{detail::Bcm_spi::Spi_pins::spi0}
   {
+    // Lock PID file.
     std::string msg;
     if (!pid_file_.lock(msg))
       // Lock here. Second lock from the same process is allowed.
       throw Runtime_exception{Errc::pid_file_lock_failed};
 
+    // Initialize GPIO.
     InitGpio();
   }
 
@@ -171,7 +173,7 @@ public:
 
   void set_event_handler(Event_handler&& handler)
   {
-    if (is_measurement_started_)
+    if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
 
     event_handler_ = std::move(handler);
@@ -179,7 +181,7 @@ public:
 
   void set_error_handler(Error_handler&& handler)
   {
-    if (is_measurement_started_)
+    if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
 
     error_handler_ = std::move(handler);
@@ -206,6 +208,7 @@ public:
   {
     if (!is_measurement_started_) return;
 
+    is_measurement_started_ = false;
     joinThreads();
 
     while (record_queue_.pop());
@@ -217,15 +220,13 @@ public:
      * Effects: the reader doesn't receive the data from the board.
      */
     {
-      if (!is_measurement_started_) return;
-
       // Reset Clock
       setGPIOLow(CLOCK);
 
       // Stop Measurement
       SpiSetEnableADmes(false);
 
-      is_measurement_started_ = false;
+      // Reset state.
       read_skip_count_ = kInitialInvalidDataSetsCount;
     }
   }
@@ -1349,9 +1350,8 @@ private:
         ++it;
         continue;
       }
-      if(it->joinable()) {
+      if (it->joinable())
         it->join();
-      }
       it = threads_.erase(it);
     }
   }
