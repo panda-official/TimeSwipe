@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-// PANDA TimeSwipe Project
+// PANDA Timeswipe Project
 // Copyright (C) 2021  PANDA GmbH
 
 // This program is free software: you can redistribute it and/or modify
@@ -59,10 +59,10 @@ Version version() noexcept
 }
 
 // -----------------------------------------------------------------------------
-// class TimeSwipe::Rep
+// class Timeswipe::Rep
 // -----------------------------------------------------------------------------
 
-class TimeSwipe::Rep final {
+class Timeswipe::Rep final {
 public:
   ~Rep()
   {
@@ -88,7 +88,7 @@ public:
    * @param force Forces initialization even if IsInited() returns `true`.
    *
    * @par Effects
-   * Restarts TimeSwipe firmware on very first run!
+   * Restarts Timeswipe firmware on very first run!
    */
   void InitGpio(const bool force = false)
   {
@@ -131,7 +131,7 @@ public:
     joinThreads();
 
     /*
-     * Sends the command to a TimeSwipe firmware to start measurement.
+     * Sends the command to a Timeswipe firmware to start measurement.
      * Effects: the reader does receive the data from the board.
      */
     {
@@ -213,7 +213,7 @@ public:
     while (out_spi_.pop());
 
     /*
-     * Sends the command to a TimeSwipe firmware to stop measurement.
+     * Sends the command to a Timeswipe firmware to stop measurement.
      * Effects: the reader doesn't receive the data from the board.
      */
     {
@@ -602,7 +602,7 @@ private:
     DriftAffectedStateGuard(DriftAffectedStateGuard&&) = delete;
     DriftAffectedStateGuard& operator=(DriftAffectedStateGuard&&) = delete;
 
-    // Restores the state of TimeSwipe instance.
+    // Restores the state of Timeswipe instance.
     ~DriftAffectedStateGuard()
     {
       rep_.burst_size_ = burst_size_;
@@ -616,7 +616,7 @@ private:
       rep_.SetChannelMode(1, chmm1_);
     }
 
-    // Stores the state and prepares TimeSwipe instance for measurement.
+    // Stores the state and prepares Timeswipe instance for measurement.
     DriftAffectedStateGuard(Rep& impl)
       : rep_{impl}
       , sample_rate_{rep_.sample_rate_}
@@ -1470,185 +1470,185 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// class TimeSwipe
+// class Timeswipe
 // -----------------------------------------------------------------------------
 
-TimeSwipe& TimeSwipe::instance()
+Timeswipe& Timeswipe::instance()
 {
-  if (!instance_) instance_.reset(new TimeSwipe);
+  if (!instance_) instance_.reset(new Timeswipe);
   return *instance_;
 }
 
-TimeSwipe::TimeSwipe()
+Timeswipe::Timeswipe()
   : rep_{std::make_unique<Rep>()}
 {}
 
-TimeSwipe::~TimeSwipe() = default;
+Timeswipe::~Timeswipe() = default;
 
-auto TimeSwipe::to_mode(const std::string_view value) -> Mode
+auto Timeswipe::to_mode(const std::string_view value) -> Mode
 {
-  if (value == "iepe") return TimeSwipe::Mode::iepe;
-  else if (value == "normal") return TimeSwipe::Mode::normal;
-  else if (value == "digital") return TimeSwipe::Mode::digital;
-  else throw std::invalid_argument{"invalid text representation of TimeSwipe::Mode"};
+  if (value == "iepe") return Timeswipe::Mode::iepe;
+  else if (value == "normal") return Timeswipe::Mode::normal;
+  else if (value == "digital") return Timeswipe::Mode::digital;
+  else throw std::invalid_argument{"invalid text representation of Timeswipe::Mode"};
 }
 
-std::string_view TimeSwipe::to_string_view(const Mode value)
+std::string_view Timeswipe::to_string_view(const Mode value)
 {
   switch (value) {
   case Mode::iepe: return "iepe";
   case Mode::normal: return "normal";
   case Mode::digital: return "digital";
   }
-  throw std::invalid_argument{"invalid value of TimeSwipe::Mode"};
+  throw std::invalid_argument{"invalid value of Timeswipe::Mode"};
 }
 
-void TimeSwipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
+void Timeswipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
 {
   return rep_->SetSensorOffsets(offset1, offset2, offset3, offset4);
 }
 
-void TimeSwipe::SetSensorGains(float gain1, float gain2, float gain3, float gain4)
+void Timeswipe::SetSensorGains(float gain1, float gain2, float gain3, float gain4)
 {
   return rep_->SetSensorGains(gain1, gain2, gain3, gain4);
 }
 
-void TimeSwipe::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
+void Timeswipe::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
 {
   return rep_->SetSensorTransmissions(trans1, trans2, trans3, trans4);
 }
 
-void TimeSwipe::set_mode(const Mode mode)
+void Timeswipe::set_mode(const Mode mode)
 {
   return rep_->set_mode(mode);
 }
 
-auto TimeSwipe::mode() const noexcept -> Mode
+auto Timeswipe::mode() const noexcept -> Mode
 {
   return rep_->mode();
 }
 
-int TimeSwipe::max_sample_rate() const noexcept
+int Timeswipe::max_sample_rate() const noexcept
 {
   return rep_->max_sample_rate();
 }
 
-void TimeSwipe::set_sample_rate(const int rate)
+void Timeswipe::set_sample_rate(const int rate)
 {
   rep_->set_sample_rate(rate);
 }
 
-void TimeSwipe::set_burst_size(const std::size_t size)
+void Timeswipe::set_burst_size(const std::size_t size)
 {
   return rep_->set_burst_size(size);
 }
 
-std::vector<float> TimeSwipe::calculate_drift_references()
+std::vector<float> Timeswipe::calculate_drift_references()
 {
   return rep_->calculate_drift_references();
 }
 
-void TimeSwipe::clear_drift_references()
+void Timeswipe::clear_drift_references()
 {
   rep_->clear_drift_references();
 }
 
-std::vector<float> TimeSwipe::calculate_drift_deltas()
+std::vector<float> Timeswipe::calculate_drift_deltas()
 {
   return rep_->calculate_drift_deltas();
 }
 
-void TimeSwipe::clear_drift_deltas()
+void Timeswipe::clear_drift_deltas()
 {
   rep_->clear_drift_deltas();
 }
 
-std::optional<std::vector<float>> TimeSwipe::drift_references(const bool force) const
+std::optional<std::vector<float>> Timeswipe::drift_references(const bool force) const
 {
   return rep_->drift_references(force);
 }
 
-std::optional<std::vector<float>> TimeSwipe::drift_deltas() const
+std::optional<std::vector<float>> Timeswipe::drift_deltas() const
 {
   return rep_->drift_deltas();
 }
 
-void TimeSwipe::start(Sensor_data_handler handler)
+void Timeswipe::start(Sensor_data_handler handler)
 {
   rep_->start(std::move(handler));
 }
 
-bool TimeSwipe::is_busy() const noexcept
+bool Timeswipe::is_busy() const noexcept
 {
   return rep_->is_busy();
 }
 
-void TimeSwipe::stop()
+void Timeswipe::stop()
 {
   return rep_->stop();
 }
 
-void TimeSwipe::set_event_handler(Event_handler&& handler)
+void Timeswipe::set_event_handler(Event_handler&& handler)
 {
   return rep_->set_event_handler(std::move(handler));
 }
 
-void TimeSwipe::set_error_handler(Error_handler&& handler)
+void Timeswipe::set_error_handler(Error_handler&& handler)
 {
   return rep_->set_error_handler(std::move(handler));
 }
 
-std::string TimeSwipe::set_settings(const std::string& request)
+std::string Timeswipe::set_settings(const std::string& request)
 {
   return rep_->settings(1, request);
 }
 
-std::string TimeSwipe::settings(const std::string& request)
+std::string Timeswipe::settings(const std::string& request)
 {
   return rep_->settings(0, request);
 }
 
-bool TimeSwipe::start_pwm(const int index, const Pwm_state& state)
+bool Timeswipe::start_pwm(const int index, const Pwm_state& state)
 {
   return rep_->start_pwm(index, state);
 }
 
-bool TimeSwipe::stop_pwm(const int index)
+bool Timeswipe::stop_pwm(const int index)
 {
   return rep_->stop_pwm(index);
 }
 
-std::optional<Pwm_state> TimeSwipe::pwm_state(const int index)
+std::optional<Pwm_state> Timeswipe::pwm_state(const int index)
 {
   return rep_->pwm_state(index);
 }
 
-bool TimeSwipe::SetChannelMode(const int channel, const Measurement_mode mode)
+bool Timeswipe::SetChannelMode(const int channel, const Measurement_mode mode)
 {
   return rep_->SetChannelMode(channel, mode);
 }
 
-bool TimeSwipe::GetChannelMode(const int channel, Measurement_mode& mode)
+bool Timeswipe::GetChannelMode(const int channel, Measurement_mode& mode)
 {
   return rep_->GetChannelMode(channel, mode);
 }
 
-bool TimeSwipe::SetChannelGain(const int channel, const float gain)
+bool Timeswipe::SetChannelGain(const int channel, const float gain)
 {
   return rep_->SetChannelGain(channel, gain);
 }
 
-bool TimeSwipe::GetChannelGain(const int channel, float& gain)
+bool Timeswipe::GetChannelGain(const int channel, float& gain)
 {
   return rep_->GetChannelGain(channel, gain);
 }
 
-bool TimeSwipe::SetChannelIEPE(const int channel, const bool iepe)
+bool Timeswipe::SetChannelIEPE(const int channel, const bool iepe)
 {
   return rep_->SetChannelIEPE(channel, iepe);
 }
 
-bool TimeSwipe::GetChannelIEPE(const int channel, bool& iepe)
+bool Timeswipe::GetChannelIEPE(const int channel, bool& iepe)
 {
   return rep_->GetChannelIEPE(channel, iepe);
 }

@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-// PANDA TimeSwipe Project
+// PANDA Timeswipe Project
 // Copyright (C) 2021  PANDA GmbH
 
 // This program is free software: you can redistribute it and/or modify
@@ -43,10 +43,8 @@ struct Version final {
 /// @returns The driver version.
 Version version() noexcept;
 
-/**
- * TimeSwipe interface for Sensor
- */
-class TimeSwipe final {
+/// The Timeswipe board.
+class Timeswipe final {
 public:
   /**
    * The destructor.
@@ -54,27 +52,27 @@ public:
    * @par Effects
    * Same as for Stop().
    */
-  ~TimeSwipe();
+  ~Timeswipe();
 
   /**
    * @returns The instance of this class.
    *
    * @par Effects
-   * Restarts TimeSwipe firmware on very first run!
+   * Restarts Timeswipe firmware on very first run!
    */
-  static TimeSwipe& instance();
+  static Timeswipe& instance();
 
   /// Non move-constructible.
-  TimeSwipe(TimeSwipe&&) = delete;
+  Timeswipe(Timeswipe&&) = delete;
 
   /// Non move-assignable.
-  TimeSwipe& operator=(TimeSwipe&&) = delete;
+  Timeswipe& operator=(Timeswipe&&) = delete;
 
   /// Non copy-constructible.
-  TimeSwipe(const TimeSwipe&) = delete;
+  Timeswipe(const Timeswipe&) = delete;
 
   /// Non copy-assignable.
-  TimeSwipe& operator=(const TimeSwipe&) = delete;
+  Timeswipe& operator=(const Timeswipe&) = delete;
 
   /// Input mode.
   enum class Mode {
@@ -294,7 +292,7 @@ public:
   /// @name Drift Compensation
   ///
   /// @brief This API provides a way to compensate the long term drift of the
-  /// measurement hardware when making long term measurements with the TimeSwipe
+  /// measurement hardware when making long term measurements with the Timeswipe
   /// board.
   ///
   /// @detail The approach assumes the calculation for each channel of the
@@ -503,9 +501,9 @@ public:
 private:
   struct Rep;
   std::unique_ptr<Rep> rep_;
-  inline static std::unique_ptr<TimeSwipe> instance_;
+  inline static std::unique_ptr<Timeswipe> instance_;
 
-  TimeSwipe();
+  Timeswipe();
 };
 
 } // namespace panda::timeswipe::driver

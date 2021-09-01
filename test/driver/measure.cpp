@@ -64,8 +64,8 @@ try {
   if (frequency > sample_rate)
     throw std::runtime_error{"frequency cannot be greater than sample-rate"};
 
-  // Initialize TimeSwipe.
-  auto& ts = drv::TimeSwipe::instance();
+  // Initialize Timeswipe.
+  auto& ts = drv::Timeswipe::instance();
   ts.set_sample_rate(sample_rate);
   ts.set_burst_size(sample_rate / frequency);
 
@@ -82,7 +82,7 @@ try {
     }
   });
 
-  // Start TimeSwipe. (Measure.)
+  // Start Timeswipe. (Measure.)
   {
     using chrono::duration_cast;
     using Dur = chrono::nanoseconds;

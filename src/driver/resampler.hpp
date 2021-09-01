@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-// PANDA TimeSwipe Project
+// PANDA Timeswipe Project
 // Copyright (C) 2021  PANDA GmbH / Dmitry Igrishin
 
 // This program is free software: you can redistribute it and/or modify
@@ -288,7 +288,7 @@ private:
 };
 
 /**
- * @brief A TimeSwipe resampler.
+ * @brief A Timeswipe resampler.
  *
  * This class is the wrapper of the class Fir_resampler and provides the
  * stream-style API in order to resample the chunks of variable length. After

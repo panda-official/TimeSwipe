@@ -25,7 +25,7 @@ namespace math = dmitigr::math;
 
 namespace {
 
-void measure(drv::TimeSwipe& ts, const std::chrono::milliseconds dur)
+void measure(drv::Timeswipe& ts, const std::chrono::milliseconds dur)
 {
   ts.set_sample_rate(48000);
   ts.set_burst_size(48000);
@@ -79,7 +79,7 @@ void measure(drv::TimeSwipe& ts, const std::chrono::milliseconds dur)
 
 int main(const int argc, const char* const argv[])
 try {
-  auto& ts = drv::TimeSwipe::instance();
+  auto& ts = drv::Timeswipe::instance();
   assert(!ts.IsBusy());
 
   // Set the measure duration.

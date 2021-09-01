@@ -88,10 +88,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    static std::unordered_map<std::string, drv::TimeSwipe::Mode> const modes = {
-      {"PRIMARY", drv::TimeSwipe::Mode::iepe},
-      {"NORM", drv::TimeSwipe::Mode::normal},
-      {"DIGITAL", drv::TimeSwipe::Mode::digital},
+    static std::unordered_map<std::string, drv::Timeswipe::Mode> const modes = {
+      {"PRIMARY", drv::Timeswipe::Mode::iepe},
+      {"NORM", drv::Timeswipe::Mode::normal},
+      {"DIGITAL", drv::Timeswipe::Mode::digital},
     };
 
     std::ifstream iconfigname;
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     }
 
 
-    auto& tswipe = drv::TimeSwipe::instance();
+    auto& tswipe = drv::Timeswipe::instance();
 
     // Board Preparation
     if (!config_script.empty())
