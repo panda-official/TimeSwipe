@@ -20,18 +20,13 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_STR_STR_HPP
-#define DMITIGR_STR_STR_HPP
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#include "c_str.hpp"
-#include "line.hpp"
-#include "numeric.hpp"
-#include "predicate.hpp"
-#include "sequence.hpp"
-#include "simple_phrase.hpp"
-#include "stream.hpp"
-#include "substr.hpp"
-#include "transform.hpp"
-#include "version.hpp"
+#ifndef DMITIGR_RAJSON_HPP
+#define DMITIGR_RAJSON_HPP
 
-#endif  // DMITIGR_STR_STR_HPP
+#include "rajson/rajson.hpp"
+
+#endif  // DMITIGR_RAJSON_HPP

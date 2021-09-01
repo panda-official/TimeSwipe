@@ -20,18 +20,12 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_STR_STR_HPP
-#define DMITIGR_STR_STR_HPP
+#ifndef DMITIGR_RAJSON_RAJSON_HPP
+#define DMITIGR_RAJSON_RAJSON_HPP
 
-#include "c_str.hpp"
-#include "line.hpp"
-#include "numeric.hpp"
-#include "predicate.hpp"
-#include "sequence.hpp"
-#include "simple_phrase.hpp"
-#include "stream.hpp"
-#include "substr.hpp"
-#include "transform.hpp"
+#include "fwd.hpp"
+#include "conversions.hpp"
+#include "value_view.hpp"
 #include "version.hpp"
 
-#endif  // DMITIGR_STR_STR_HPP
+#endif  // DMITIGR_RAJSON_RAJSON_HPP
