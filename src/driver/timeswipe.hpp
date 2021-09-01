@@ -110,7 +110,7 @@ public:
   void set_mode(Mode mode);
 
   /// @returns Input mode.
-  Mode mode() const noexcept;
+  Mode get_mode() const noexcept;
 
   /**
    * \brief Setup Sensor offsets
@@ -262,7 +262,7 @@ public:
   bool GetChannelIEPE(int channel, bool &bIEPEon);
 
   /// @returns Max possible sample rate.
-  int max_sample_rate() const noexcept;
+  int get_max_sample_rate() const noexcept;
 
   /**
    * Set sample rate. Default value is max_sample_rate().
@@ -322,14 +322,14 @@ public:
    * `!is_busy()`.
    *
    * @par Effects
-   * `!is_busy() && drift_references()`.
+   * `!is_busy() && get_drift_references()`.
    *
    * @par Exception safety guarantee
    * Basic.
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see drift_references(), clear_drift_references(), calculate_drift_deltas().
+   * @see get_drift_references(), clear_drift_references(), calculate_drift_deltas().
    */
   std::vector<float> calculate_drift_references();
 
@@ -340,7 +340,7 @@ public:
    * `!is_busy()`.
    *
    * @par Effects
-   * `!drift_references() && !drift_deltas()`. Removes the file
+   * `!get_drift_references() && !get_drift_deltas()`. Removes the file
    * `<CWD>/.panda/timeswipe/drift_references`.
    *
    * @par Exception safety guarantee
@@ -354,16 +354,16 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Requires
-   * `drift_references() && !is_busy()`.
+   * `get_drift_references() && !is_busy()`.
    *
    * @par Effects
-   * `!is_busy() && drift_deltas()`.
+   * `!is_busy() && get_drift_deltas()`.
    * After calling the `start()`, calculated deltas will be substracted from
    * each input value of the corresponding channel.
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see drift_deltas(), calculate_drift_references(), start().
+   * @see get_drift_deltas(), calculate_drift_references(), start().
    */
   std::vector<float> calculate_drift_deltas();
 
@@ -392,16 +392,16 @@ public:
    * @throws An Exception with the code `Errc::kInvalidDriftReference` if
    * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
-   * @see calculate_drift_references(), clear_drift_references(), drift_deltas().
+   * @see calculate_drift_references(), clear_drift_references(), get_drift_deltas().
    */
-  std::optional<std::vector<float>> drift_references(bool force = {}) const;
+  std::optional<std::vector<float>> get_drift_references(bool force = {}) const;
 
   /**
    * @returns The calculated drift deltas.
    *
    * @see calculate_drift_deltas().
    */
-  std::optional<std::vector<float>> drift_deltas() const;
+  std::optional<std::vector<float>> get_drift_deltas() const;
 
   /// @}
 

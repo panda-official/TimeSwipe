@@ -99,11 +99,11 @@ try {
     }
   }
 
-  if (!ts.drift_references()) {
+  if (!ts.get_drift_references()) {
     // Normally, it means the first program run.
     const auto refs{ts.calculate_drift_references()};
     (void)refs;
-    assert(refs.size() == Sensors_data::sensor_count());
+    assert(refs.size() == Sensors_data::get_sensor_count());
   }
   assert(ts.drift_references());
 

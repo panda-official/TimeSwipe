@@ -291,7 +291,7 @@ public:
     read_mode_ = mode;
   }
 
-  Mode mode() const noexcept
+  Mode get_mode() const noexcept
   {
     return read_mode_;
   }
@@ -325,13 +325,13 @@ public:
   {
     if (is_busy()) return {};
 
-    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= max_sample_rate());
-
+    const auto max_rate = get_max_sample_rate();
+    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= max_rate);
     auto result{std::move(resampler_)};
-    if (rate != max_sample_rate()) {
-      const auto rates_gcd = std::gcd(rate, max_sample_rate());
+    if (rate != max_rate) {
+      const auto rates_gcd = std::gcd(rate, max_rate);
       const auto up = rate / rates_gcd;
-      const auto down = max_sample_rate() / rates_gcd;
+      const auto down = max_rate / rates_gcd;
       resampler_ = std::make_unique<detail::Resampler>
         (detail::Resampler_options{up, down});
     } else
@@ -341,7 +341,7 @@ public:
     return result;
   }
 
-  int max_sample_rate() const noexcept
+  int get_max_sample_rate() const noexcept
   {
     return max_sample_rate_;
   }
@@ -394,7 +394,7 @@ public:
   std::vector<float> calculate_drift_deltas()
   {
     // Throw away if there are no references.
-    const auto refs{drift_references()};
+    const auto refs{get_drift_references()};
     if (!refs)
       throw Runtime_exception{Errc::no_drift_references};
 
@@ -428,7 +428,7 @@ public:
     drift_deltas_.reset();
   }
 
-  std::optional<std::vector<float>> drift_references(const bool force = {}) const
+  std::optional<std::vector<float>> get_drift_references(const bool force = {}) const
   {
     if (!force && drift_references_)
       return drift_references_;
@@ -461,7 +461,7 @@ public:
     return drift_references_ = refs;
   }
 
-  std::optional<std::vector<float>> drift_deltas() const
+  std::optional<std::vector<float>> get_drift_deltas() const
   {
     return drift_deltas_;
   }
@@ -642,7 +642,7 @@ private:
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
       // Store the current state of self.
-      resampler_ = rep_.set_sample_rate(rep_.max_sample_rate());
+      resampler_ = rep_.set_sample_rate(rep_.get_max_sample_rate());
       rep_.set_burst_size(rep_.kDriftSamplesCount_);
     }
 
@@ -1523,14 +1523,14 @@ void Timeswipe::set_mode(const Mode mode)
   return rep_->set_mode(mode);
 }
 
-auto Timeswipe::mode() const noexcept -> Mode
+auto Timeswipe::get_mode() const noexcept -> Mode
 {
-  return rep_->mode();
+  return rep_->get_mode();
 }
 
-int Timeswipe::max_sample_rate() const noexcept
+int Timeswipe::get_max_sample_rate() const noexcept
 {
-  return rep_->max_sample_rate();
+  return rep_->get_max_sample_rate();
 }
 
 void Timeswipe::set_sample_rate(const int rate)
@@ -1563,14 +1563,14 @@ void Timeswipe::clear_drift_deltas()
   rep_->clear_drift_deltas();
 }
 
-std::optional<std::vector<float>> Timeswipe::drift_references(const bool force) const
+std::optional<std::vector<float>> Timeswipe::get_drift_references(const bool force) const
 {
-  return rep_->drift_references(force);
+  return rep_->get_drift_references(force);
 }
 
-std::optional<std::vector<float>> Timeswipe::drift_deltas() const
+std::optional<std::vector<float>> Timeswipe::get_drift_deltas() const
 {
-  return rep_->drift_deltas();
+  return rep_->get_drift_deltas();
 }
 
 void Timeswipe::start(Sensor_data_handler handler)

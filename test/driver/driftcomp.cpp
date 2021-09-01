@@ -81,8 +81,8 @@ int main()
 
   assert(!ts.IsBusy());
   {
-    const auto refs1{ts.drift_references(false)};
-    const auto refs2{ts.drift_references(true)};
+    const auto refs1{ts.get_drift_references(false)};
+    const auto refs2{ts.get_drift_references(true)};
     assert(refs1);
     assert(refs2);
     std::vector<int> refsi(refs.size());
@@ -110,7 +110,7 @@ int main()
 
   assert(!ts.IsBusy());
   {
-    const auto deltas1{ts.drift_deltas()};
+    const auto deltas1{ts.get_drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }
@@ -144,7 +144,7 @@ int main()
 
   assert(!ts.IsBusy());
   {
-    const auto deltas1{ts.drift_deltas()};
+    const auto deltas1{ts.get_drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }
