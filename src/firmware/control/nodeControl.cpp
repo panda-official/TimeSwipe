@@ -30,17 +30,17 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     if (m_EEPROMstorage.verify() != hat::Manager::Op_result::ok) {
       m_EEPROMstorage.reset();
       hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
-      m_EEPROMstorage.Put(vinf); //storage is ready
+      m_EEPROMstorage.set(vinf); //storage is ready
     }
 
     //fill blank atoms with the stubs:
     for (int i = m_EEPROMstorage.get_atom_count(); i < 3; ++i) {
       hat::atom::Stub stub{i};
-      m_EEPROMstorage.Put(stub);
+      m_EEPROMstorage.set(stub);
     }
 
     hat::Calibration_map map;
-    m_CalStatus = m_EEPROMstorage.Get(map);
+    m_CalStatus = m_EEPROMstorage.get(map);
     ApplyCalibrationData(map);
 }
 
@@ -61,7 +61,7 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
 
 bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& strError)
 {
-  m_CalStatus = m_EEPROMstorage.Put(map);
+  m_CalStatus = m_EEPROMstorage.set(map);
   ApplyCalibrationData(map);
 
   if (m_CalStatus == hat::Manager::Op_result::ok) {
@@ -73,10 +73,10 @@ bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& str
   return false;
 }
 
-bool nodeControl::GetCalibrationData(hat::Calibration_map& Data, std::string& strError)
+bool nodeControl::GetCalibrationData(hat::Calibration_map& data, std::string& strError)
 {
   using Op_result = hat::Manager::Op_result;
-  if (const auto r = m_EEPROMstorage.Get(Data);
+  if (const auto r = m_EEPROMstorage.get(data);
     r == Op_result::ok || r == Op_result::atom_not_found)
     return true;
 

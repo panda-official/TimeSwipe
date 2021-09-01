@@ -712,7 +712,22 @@ public:
   }
 
   /**
-   * Puts atom from the `input` buffer to the specified position.
+   * Imports the atom of given type from the image.
+   *
+   * @returns `Op_result::ok` on success.
+   */
+  template <typename A>
+  Op_result get(A& atom) const
+  {
+    atom::Type type;
+    CFIFO buf;
+    const auto r = get_atom(atom.index_, type, buf);
+    return (r == Op_result::ok) && (atom.type_ != type || !atom.Import(buf)) ?
+      Op_result::atom_corrupted : r;
+  }
+
+  /**
+   * Set atom from the `input` buffer to the specified position.
    *
    * @param pos Atom position (zero-based).
    * @param type Atom type.
@@ -720,7 +735,7 @@ public:
    *
    * @return Operation result.
    */
-  Op_result put_atom(const unsigned pos, const atom::Type type, const CFIFO& input)
+  Op_result set_atom(const unsigned pos, const atom::Type type, const CFIFO& input)
   {
     if (storage_state_ != Op_result::ok)
       return storage_state_;
@@ -742,14 +757,14 @@ public:
     const int mem_adjust_size = is_adding ?
       input_size + sizeof(Atom_header) + 2 : input_size - atom->dlen + 2;
     if (is_adding)
-      AdjustMemBuf(reinterpret_cast<const char*>(atom), mem_adjust_size);
+      adjust_mem_buf(reinterpret_cast<const char*>(atom), mem_adjust_size);
     else
-      AdjustMemBuf(reinterpret_cast<const char*>(atom) + sizeof(Atom_header), mem_adjust_size); // keep header
+      adjust_mem_buf(reinterpret_cast<const char*>(atom) + sizeof(Atom_header), mem_adjust_size); // keep header
 
-    // AdjustMemBuf() reallocates memory and invalidates `atom`! Update it.
+    // adjust_mem_buf() reallocates memory and invalidates `atom`! Update it.
     get_atom_header(pos, &atom);
 
-    // Emplace the atom to the reserved by AdjustMemBuf() space.
+    // Emplace the atom to the reserved by adjust_mem_buf() space.
     atom->type = static_cast<std::uint16_t>(type);
     atom->count = pos;
     atom->dlen = input_size + 2;
@@ -770,6 +785,21 @@ public:
     }
 
     return Op_result::ok;
+  }
+
+  /**
+   * Stores the atom of given type to the image.
+   *
+   * @returns `Op_result::ok` on success.
+   */
+  template <typename A>
+  Op_result set(const A& atom)
+  {
+    if (storage_state_ != Op_result::ok)
+      return storage_state_;
+    CFIFO buf;
+    atom.Export(buf);
+    return set_atom(atom.index_, atom.type_, buf);
   }
 
   /// Sets the EEPROM image buffer.
@@ -815,36 +845,6 @@ public:
     storage_state_ = reset_storage();
   }
 
-  /**
-   * Imports the atom of given type from the image.
-   *
-   * @returns `Op_result::ok` on success.
-   */
-  template <typename A>
-  Op_result Get(A& atom) const
-  {
-    atom::Type type;
-    CFIFO buf;
-    const auto r = get_atom(atom.index_, type, buf);
-    return (r == Op_result::ok) && (atom.type_ != type || !atom.Import(buf)) ?
-      Op_result::atom_corrupted : r;
-  }
-
-  /**
-   * Stores the atom of given type to the image.
-   *
-   * @returns `Op_result::ok` on success.
-   */
-  template <typename A>
-  Op_result Put(const A& atom)
-  {
-    if (storage_state_ != Op_result::ok)
-      return storage_state_;
-    CFIFO buf;
-    atom.Export(buf);
-    return put_atom(atom.index_, atom.type_, buf);
-  }
-
 private:
   struct Atom_header final {
     std::uint16_t type{};
@@ -874,7 +874,7 @@ private:
   }
 
   /// Reallocates EEPROM image buffer according to the given `adjustment`.
-  void AdjustMemBuf(const char* const offset, const int adjustment)
+  void adjust_mem_buf(const char* const offset, const int adjustment)
   {
     const auto position = offset - fifo_buf_->data();
     if (adjustment > 0)
