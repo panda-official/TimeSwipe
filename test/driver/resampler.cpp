@@ -317,7 +317,7 @@ try {
   }();
 
   // Parse --extrapolation option.
-  r_opts.extrapolation([]
+  r_opts.set_extrapolation([]
   {
     using drv::detail::Signal_extrapolation;
     if (const auto o = params["extrapolation"]) {
@@ -345,7 +345,7 @@ try {
   }());
 
   // Parse --no-crop-extra option.
-  r_opts.crop_extra(not []
+  r_opts.set_crop_extra(not []
   {
     bool result{};
     if (const auto o = params["no-crop-extra"]) {
@@ -358,7 +358,7 @@ try {
   }());
 
   // Parse --filter-length option.
-  r_opts.filter_length([]
+  r_opts.set_filter_length([]
   {
     if (const auto o = params["filter-length"]) {
       if (const auto& v = o.value()) {
@@ -420,7 +420,7 @@ try {
 
       return std::make_pair(std::move(freq), std::move(ampl));
     }();
-    r_opts.freq_ampl(freq, ampl);
+    r_opts.set_freq_ampl(freq, ampl);
   }
 
   // Parse optional output-file argument.

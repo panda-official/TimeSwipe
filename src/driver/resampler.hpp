@@ -68,7 +68,7 @@ public:
    *
    * @returns *this.
    */
-  Resampler_options& up_factor(const unsigned value) noexcept
+  Resampler_options& set_up_factor(const unsigned value) noexcept
   {
     up_factor__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -76,13 +76,13 @@ public:
   }
 
   /// @returns The up-factor.
-  unsigned up_factor() const noexcept
+  unsigned get_up_factor() const noexcept
   {
     return up_factor_;
   }
 
   /// @returns The default up-factor.
-  static unsigned default_up_factor() noexcept
+  static unsigned get_default_up_factor() noexcept
   {
     return 1;
   }
@@ -92,7 +92,7 @@ public:
    *
    * @returns *this.
    */
-  Resampler_options& down_factor(const unsigned value) noexcept
+  Resampler_options& set_down_factor(const unsigned value) noexcept
   {
     down_factor__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -100,13 +100,13 @@ public:
   }
 
   /// @returns The down-factor.
-  unsigned down_factor() const noexcept
+  unsigned get_down_factor() const noexcept
   {
     return down_factor_;
   }
 
   /// @returns The default down-factor.
-  static unsigned default_down_factor() noexcept
+  static unsigned get_default_down_factor() noexcept
   {
     return 1;
   }
@@ -116,7 +116,7 @@ public:
    *
    * @returns *this.
    */
-  Resampler_options& extrapolation(const Signal_extrapolation value) noexcept
+  Resampler_options& set_extrapolation(const Signal_extrapolation value) noexcept
   {
     extrapolation_ = value;
     DMITIGR_ASSERT(is_invariant_ok());
@@ -124,13 +124,13 @@ public:
   }
 
   /// @returns The signal extrapolation mode.
-  Signal_extrapolation extrapolation() const noexcept
+  Signal_extrapolation get_extrapolation() const noexcept
   {
     return extrapolation_;
   }
 
   /// @returns The default extrapolation mode.
-  static Signal_extrapolation default_extrapolation() noexcept
+  static Signal_extrapolation get_default_extrapolation() noexcept
   {
     return Signal_extrapolation::zero;
   }
@@ -144,7 +144,7 @@ public:
    *
    * @returns *this.
    */
-  Resampler_options& crop_extra(const bool value) noexcept
+  Resampler_options& set_crop_extra(const bool value) noexcept
   {
     crop_extra_ = value;
     DMITIGR_ASSERT(is_invariant_ok());
@@ -152,13 +152,13 @@ public:
   }
 
   /// @returns The crop extra samples mode.
-  bool crop_extra() const noexcept
+  bool get_crop_extra() const noexcept
   {
     return crop_extra_;
   }
 
   /// @returns The default crop extra samples mode.
-  static bool default_crop_extra() noexcept
+  static bool get_default_crop_extra() noexcept
   {
     return true;
   }
@@ -168,7 +168,7 @@ public:
    *
    * @returns *this.
    */
-  Resampler_options& filter_length(const unsigned value) noexcept
+  Resampler_options& set_filter_length(const unsigned value) noexcept
   {
     filter_length__(value);
     DMITIGR_ASSERT(is_invariant_ok());
@@ -176,13 +176,13 @@ public:
   }
 
   /// @returns The filter length.
-  unsigned filter_length() const noexcept
+  unsigned get_filter_length() const noexcept
   {
     return filter_length_;
   }
 
   /// @returns The default filter length.
-  unsigned default_filter_length() const noexcept
+  unsigned get_default_filter_length() const noexcept
   {
     return 2 * 10 * std::max(up_factor_, down_factor_) + 1;
   }
@@ -197,7 +197,7 @@ public:
    *
    * @see firls().
    */
-  Resampler_options& freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
+  Resampler_options& set_freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
   {
     DMITIGR_ASSERT(freq.size() == ampl.size());
     freq_ampl__(std::move(freq), std::move(ampl));
@@ -210,13 +210,13 @@ public:
    *
    * @see firls().
    */
-  const std::vector<double>& freq() const noexcept
+  const std::vector<double>& get_freq() const noexcept
   {
     return freq_;
   }
 
   /// @returns The default pairs of frequency band edges.
-  std::vector<double> default_freq() const
+  std::vector<double> get_default_freq() const
   {
     /*
      * Note: when the band_numerator is 1 some of the default
@@ -232,13 +232,13 @@ public:
    *
    * @see firls().
    */
-  const std::vector<double>& ampl() const noexcept
+  const std::vector<double>& get_ampl() const noexcept
   {
     return ampl_;
   }
 
   /// @returns The default amplitude values of the function at each frequency point.
-  static std::vector<double> default_ampl()
+  static std::vector<double> get_default_ampl()
   {
     return {1, 1, 0, 0};
   }
@@ -262,24 +262,24 @@ private:
 
   void up_factor__(const unsigned value) noexcept
   {
-    up_factor_ = value ? value : default_up_factor();
+    up_factor_ = value ? value : get_default_up_factor();
   }
 
   void down_factor__(const unsigned value) noexcept
   {
-    down_factor_ = value ? value : default_down_factor();
+    down_factor_ = value ? value : get_default_down_factor();
   }
 
   void filter_length__(const unsigned value) noexcept
   {
-    filter_length_ = value ? value : default_filter_length();
+    filter_length_ = value ? value : get_default_filter_length();
   }
 
   void freq_ampl__(std::vector<double>&& freq, std::vector<double>&& ampl) noexcept
   {
     if (freq.empty()) {
-      freq_ = default_freq();
-      ampl_ = default_ampl();
+      freq_ = get_default_freq();
+      ampl_ = get_default_ampl();
     } else {
       freq_ = std::move(freq);
       ampl_ = std::move(ampl);
@@ -314,10 +314,10 @@ public:
     const auto firc = [this]
     {
       std::clog << "Calculating FIR coefficients...";
-      std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
+      std::vector<double> firc = firls(options_.get_filter_length() - 1, options_.get_freq(), options_.get_ampl());
       if (firc.size() > std::numeric_limits<int>::max())
         throw std::runtime_error{"too many FIR coefficients required"};
-      DMITIGR_ASSERT(options_.filter_length() == firc.size());
+      DMITIGR_ASSERT(options_.get_filter_length() == firc.size());
       std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
 
@@ -332,7 +332,7 @@ public:
       std::vector<double> result(firc.size());
 
       // Create convenient applicator of Kaiser window and adder of the result of application.
-      const auto apply_kaiser_and_sum = [&firc, &result, u = options_.up_factor()](const double beta)
+      const auto apply_kaiser_and_sum = [&firc, &result, u = options_.get_up_factor()](const double beta)
       {
         const auto window = kaiser(firc.size(), beta);
         DMITIGR_ASSERT(firc.size() == window.size());
@@ -362,7 +362,7 @@ public:
 
       // Find the most suitable shape factor step by step by delta (in-)decrementing.
       constexpr double inf{}, sup{30};
-      const auto up_factor = options_.up_factor();
+      const auto up_factor = options_.get_up_factor();
       for (double prev_beta{initial_beta}, prev_sum{initial_sum};;) {
         const double beta = prev_beta + delta;
         const double sum = apply_kaiser_and_sum(beta);
@@ -374,8 +374,8 @@ public:
           break;
         } else if (!(inf < beta && beta < sup))
           throw std::runtime_error{"unable to guess shape factor for Kaiser window"
-              " (probably, either up-factor "+std::to_string(options_.up_factor())+
-              " or down-factor "+std::to_string(options_.down_factor())+
+              " (probably, either up-factor "+std::to_string(options_.get_up_factor())+
+              " or down-factor "+std::to_string(options_.get_down_factor())+
               " are exorbitant to handle)"};
 
         prev_beta = beta;
@@ -392,7 +392,7 @@ public:
   }
 
   /// @returns The options instance.
-  const Options& options() const noexcept
+  const Options& get_options() const noexcept
   {
     return options_;
   }
@@ -414,12 +414,12 @@ public:
         return Sensors_data::value_type{}; // short-circuit
 
       // Apply the filter.
-      auto result = zero_result(resampler, input_size);
+      auto result = make_zero_result(resampler, input_size);
       const auto out = resampler.apply(cbegin(input), cend(input), begin(result));
       using Sz = decltype(result.size());
       DMITIGR_ASSERT(result.size() == static_cast<Sz>(std::distance(begin(result), out)));
       if (rstate.unskipped_leading_count) {
-        DMITIGR_ASSERT(options_.crop_extra());
+        DMITIGR_ASSERT(options_.get_crop_extra());
         const auto b = cbegin(result);
         const auto skip_count = std::min<std::size_t>(rstate.unskipped_leading_count, result.size());
         result.erase(b, b + skip_count);
@@ -448,9 +448,9 @@ public:
         return Sensors_data::value_type{}; // short-circuit
 
       // Flush the end samples.
-      auto result = zero_result(resampler, resampler.get_coefs_per_phase() - 1);
-      if (options_.crop_extra()) {
-        const auto skip_count = trailing_skip_count(resampler);
+      auto result = make_zero_result(resampler, resampler.get_coefs_per_phase() - 1);
+      if (options_.get_crop_extra()) {
+        const auto skip_count = get_trailing_skip_count(resampler);
         DMITIGR_ASSERT(skip_count < result.size());
         resampler.flush(begin(result));
         result.resize(result.size() - skip_count);
@@ -469,9 +469,9 @@ private:
 
     template<class T>
     explicit State(const Options& options, const std::vector<T>& firc)
-      : resampler{options.up_factor(), options.down_factor(),
-                  cbegin(firc), cend(firc), options.extrapolation()}
-      , unskipped_leading_count{options.crop_extra() ? leading_skip_count(resampler) : 0}
+      : resampler{options.get_up_factor(), options.get_down_factor(),
+                  cbegin(firc), cend(firc), options.get_extrapolation()}
+      , unskipped_leading_count{options.get_crop_extra() ? get_leading_skip_count(resampler) : 0}
     {}
 
     R resampler;
@@ -489,18 +489,18 @@ private:
     return result;
   }
 
-  static Sensors_data::value_type zero_result(const R& resampler, const std::size_t input_size)
+  static Sensors_data::value_type make_zero_result(const R& resampler, const std::size_t input_size)
   {
     const auto result_size = resampler.get_output_sequence_size(input_size);
     return Sensors_data::value_type(result_size);
   }
 
-  static std::size_t leading_skip_count(const R& resampler) noexcept
+  static std::size_t get_leading_skip_count(const R& resampler) noexcept
   {
     return resampler.get_output_sequence_size(resampler.get_coefs_per_phase() - 1) / 2;
   }
 
-  static std::size_t trailing_skip_count(const R& resampler) noexcept
+  static std::size_t get_trailing_skip_count(const R& resampler) noexcept
   {
     const auto sz = resampler.get_output_sequence_size(resampler.get_coefs_per_phase() - 1);
     return (sz + sz % 2) / 2;
