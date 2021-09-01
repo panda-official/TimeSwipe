@@ -187,6 +187,18 @@ public:
     return receive_strip_answer(ans, error);
   }
 
+  bool receive_strip_answer(std::string& ans, std::string& error)
+  {
+    if (!receive_answer(ans, error))
+      return false;
+
+    // Strip.
+    if (!ans.empty() && ans.back() == '\n')
+      ans.pop_back();
+
+    return true;
+  }
+
   void send_set_settings_command(const std::string& request)
   {
     send_command("js<" + request + "\n");
@@ -287,18 +299,6 @@ private:
 #ifdef PANDA_TIMESWIPE_TRACE_SPI
     std::clog << "spi: sent: \"" << command << "\"" << std::endl;
 #endif
-  }
-
-  bool receive_strip_answer(std::string& ans, std::string& error)
-  {
-    if (!receive_answer(ans, error))
-      return false;
-
-    // Strip.
-    if (!ans.empty() && ans.back() == '\n')
-      ans.pop_back();
-
-    return true;
   }
 };
 
