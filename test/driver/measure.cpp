@@ -116,9 +116,9 @@ try {
 
       // Write data.
       const auto begin = chrono::system_clock::now();
-      const auto row_count{data.size()};
+      const auto row_count{data.get_size()};
       for (std::size_t row{}; row < row_count; ++row) {
-        for (std::size_t col{}; col < data.sensor_count(); ++col)
+        for (std::size_t col{}; col < data.get_sensor_count(); ++col)
           log_file << data[col][row] << " ";
         log_file << "\n";
       }

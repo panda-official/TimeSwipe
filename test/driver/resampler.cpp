@@ -36,7 +36,7 @@ namespace drv = panda::timeswipe::driver;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
 using Sensor_value = drv::Sensors_data::value_type::value_type;
-constexpr auto sensor_count = drv::Sensors_data::sensor_count();
+constexpr auto sensor_count = drv::Sensors_data::get_sensor_count();
 
 namespace {
 
@@ -177,7 +177,7 @@ enum class Output_format { bin, csv };
 
 inline void write_output(std::ostream& out, const Output_format format, const drv::Sensors_data& records)
 {
-  const auto sample_rate = records.size();
+  const auto sample_rate = records.get_size();
   const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
   if (!columns_count)
     return;

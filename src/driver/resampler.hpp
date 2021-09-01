@@ -477,14 +477,14 @@ private:
     R resampler;
     std::size_t unskipped_leading_count{};
   };
-  std::array<State, Sensors_data::sensor_count()> rstates_;
+  std::array<State, Sensors_data::get_sensor_count()> rstates_;
 
   template<typename F>
   Sensors_data resample(F&& run)
   {
     Sensors_data result;
-    constexpr auto sz = Sensors_data::sensor_count();
-    for (auto i = 0*sz; i < sz; ++i)
+    constexpr auto sc = Sensors_data::get_sensor_count();
+    for (auto i = 0*sc; i < sc; ++i)
       result[i] = run(i);
     return result;
   }

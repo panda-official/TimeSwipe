@@ -32,21 +32,27 @@ public:
   using size_type = value_type::size_type;
 
   /// @returns Max sensor count.
-  static constexpr std::size_t max_sensor_count() noexcept
+  static constexpr std::size_t get_max_sensor_count() noexcept
   {
     return max_sensor_count_;
   }
 
   /// @returns The sensor count.
-  static constexpr std::size_t sensor_count() noexcept
+  static constexpr std::size_t get_sensor_count() noexcept
   {
-    return max_sensor_count();
+    return get_max_sensor_count();
   }
 
   /// @returns The number of values per sensor.
-  size_type size() const noexcept
+  size_type get_size() const noexcept
   {
     return !data_.empty() ? data_[0].size() : 0;
+  }
+
+  /// For STL compatibility.
+  size_type size() const noexcept
+  {
+    return get_size();
   }
 
   /// @returns The reference to the value at the given `index`.
@@ -63,38 +69,44 @@ public:
 
   void reserve(const size_type size)
   {
-    const auto sc = sensor_count();
+    const auto sc = get_sensor_count();
     for (std::size_t i{}; i < sc; ++i)
       data_[i].reserve(size);
   }
 
   void resize(const size_type size)
   {
-    const auto sc = sensor_count();
+    const auto sc = get_sensor_count();
     for (std::size_t i{}; i < sc; ++i)
       data_[i].resize(size);
   }
 
   void clear() noexcept
   {
-    const auto sc = sensor_count();
+    const auto sc = get_sensor_count();
     for (std::size_t i{}; i < sc; ++i)
       data_[i].clear();
   }
 
+  bool is_empty() const noexcept
+  {
+    return !get_size();
+  }
+
+  /// For STL compatibility.
   bool empty() const noexcept
   {
-    return !size();
+    return is_empty();
   }
 
   void append(const Sensors_data& other)
   {
-    append(other, other.size());
+    append(other, other.get_size());
   }
 
   void append(const Sensors_data& other, const size_type count)
   {
-    const auto sc = sensor_count();
+    const auto sc = get_sensor_count();
     for (std::size_t i{}; i < sc; ++i) {
       const auto in_size = std::min<std::size_t>(other.data_[i].size(), count);
       const auto out_offset = data_[i].size();
@@ -106,14 +118,14 @@ public:
 
   void erase_front(const size_type count) noexcept
   {
-    const auto sc = sensor_count();
+    const auto sc = get_sensor_count();
     for (std::size_t i{}; i < sc; i++)
       data_[i].erase(data_[i].begin(), data_[i].begin() + count);
   }
 
   void erase_back(const size_type count) noexcept
   {
-    const auto sc = sensor_count();
+    const auto sc = get_sensor_count();
     for (std::size_t i{}; i < sc; i++)
       data_[i].resize(data_[i].size() - count);
   }

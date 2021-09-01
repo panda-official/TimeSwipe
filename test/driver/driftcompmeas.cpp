@@ -29,7 +29,7 @@ void measure(drv::Timeswipe& ts, const std::chrono::milliseconds dur)
 {
   ts.set_sample_rate(48000);
   ts.set_burst_size(48000);
-  constexpr auto channel_count{drv::Sensors_data::sensor_count()};
+  constexpr auto channel_count{drv::Sensors_data::get_sensor_count()};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
   ts.start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
