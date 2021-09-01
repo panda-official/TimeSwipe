@@ -338,33 +338,33 @@ public:
     Entry() = default;
 
     /// The constructor.
-    Entry(const float m, const std::uint16_t b) noexcept
-      : m_{m}
-      , b_{b}
+    Entry(const float slope, const std::int16_t offset) noexcept
+      : slope_{slope}
+      , offset_{offset}
     {}
 
-    /// Sets `m`.
-    void set_m(const float m) noexcept
+    /// @returns `slope`.
+    float get_slope() const noexcept
     {
-      m_ = m;
+      return slope_;
     }
 
-    /// Sets `b`.
-    void set_b(const std::uint16_t b) noexcept
+    /// Sets `slope`.
+    void set_slope(const float slope) noexcept
     {
-      b_ = b;
+      slope_ = slope;
     }
 
-    /// @returns `m`.
-    float get_m() const noexcept
+    /// @returns `offset`.
+    std::int16_t get_offset() const noexcept
     {
-      return m_;
+      return offset_;
     }
 
-    /// @returns `b`.
-    std::uint16_t get_b() const noexcept
+    /// Sets `offset`.
+    void set_offset(const std::int16_t offset) noexcept
     {
-      return b_;
+      offset_ = offset;
     }
 
     /**
@@ -405,8 +405,8 @@ public:
   private:
     friend Calibration;
 
-    float m_{1};
-    std::uint16_t b_{};
+    float slope_{1};
+    std::int16_t offset_{};
   };
 
   /// Calibration atom type.

@@ -51,7 +51,7 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
   if (m_pVoltageDAC) {
     std::string strError;
     const auto& entry = map.get_atom(hat::atom::Calibration::Type::v_supply).get_entry(0, strError);
-    m_pVoltageDAC->SetLinearFactors(entry.get_m(), entry.get_b());
+    m_pVoltageDAC->SetLinearFactors(entry.get_slope(), entry.get_offset());
     m_pVoltageDAC->SetVal();
   }
 
@@ -119,9 +119,9 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
           if (!strError.empty()) return false;
 
           if (const auto it_m = el.find("m"); it_m != el.end())
-            entry.set_m(*it_m);
+            entry.set_slope(*it_m);
           if (const auto it_b = el.find("b"); it_b != el.end())
-            entry.set_b(*it_b);
+            entry.set_offset(*it_b);
 
           map.get_atom(type).set_entry(pair_ind, std::move(entry), strError);
           if (!strError.empty()) return false;
@@ -147,8 +147,8 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 
       //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
       nlohmann::json jpair;
-      jpair["m"]=entry.get_m();
-      jpair["b"]=entry.get_b();
+      jpair["m"]=entry.get_slope();
+      jpair["b"]=entry.get_offset();
       resp_data.emplace_back(jpair);
     }
     jResp["cAtom"]=type;

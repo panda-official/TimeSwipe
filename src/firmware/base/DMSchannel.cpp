@@ -36,5 +36,5 @@ void CDMSchannel::UpdateOffsets()
     const hat::atom::Calibration::Type type{static_cast<std::uint16_t>(atom) +
       static_cast<std::uint16_t>(m_nChanInd)};
     const auto& entry = cmap.get_atom(type).get_entry(m_nGainIndex, strError);
-    m_pDAC->SetRawOutput(entry.get_b());
+    m_pDAC->SetRawOutput(entry.get_offset());
 }
