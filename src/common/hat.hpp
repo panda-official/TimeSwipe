@@ -427,7 +427,7 @@ public:
    * @returns A literal that represents the `value`, or `nullptr` if `value`
    * doesn't matches to any member of type Type.
    */
-  static constexpr const char* to_literal(const Type value)
+  static constexpr const char* make_literal(const Type value)
   {
     switch (value) {
     case Type::v_in1: return "v_in1";
@@ -451,8 +451,8 @@ public:
   static Type make_type(const std::uint16_t value, std::string& err)
   {
     const Type result{value};
-    if (!to_literal(result))
-      err = timeswipe::to_literal(Errc::invalid_calibration_atom_type);
+    if (!make_literal(result))
+      err = timeswipe::make_literal(Errc::invalid_calibration_atom_type);
     return result;
   }
 
@@ -478,7 +478,7 @@ public:
   const Entry& get_entry(const std::size_t index, std::string& err) const
   {
     if (!(index < entries_.size()))
-      err = timeswipe::to_literal(Errc::invalid_calibration_atom_entry_index);
+      err = timeswipe::make_literal(Errc::invalid_calibration_atom_entry_index);
     return entries_[index];
   }
 
@@ -486,7 +486,7 @@ public:
   Calibration& set_entry(const std::size_t index, const Entry& value, std::string& err)
   {
     if (!(index < entries_.size()))
-      err = timeswipe::to_literal(Errc::invalid_calibration_atom_entry_index);
+      err = timeswipe::make_literal(Errc::invalid_calibration_atom_entry_index);
     entries_[index] = value;
     return *this;
   }

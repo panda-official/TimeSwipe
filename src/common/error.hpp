@@ -64,7 +64,7 @@ constexpr bool is_error(const Errc errc) noexcept
  * @returns The literal representation of the `errc`, or `nullptr`
  * if `errc` does not corresponds to any value defined by Errc.
  */
-constexpr const char* to_literal(const Errc errc) noexcept
+constexpr const char* make_literal(const Errc errc) noexcept
 {
   switch (errc) {
   case Errc::ok: return "ok";
@@ -82,13 +82,13 @@ constexpr const char* to_literal(const Errc errc) noexcept
 }
 
 /**
- * @returns The literal returned by `to_literal(errc)`, or literal
- * `unknown error` if `to_literal(errc)` returned `nullptr`.
+ * @returns The literal returned by `make_literal(errc)`, or literal
+ * `unknown error` if `make_literal(errc)` returned `nullptr`.
  */
-constexpr const char* to_literal_anyway(const Errc errc) noexcept
+constexpr const char* make_literal_anyway(const Errc errc) noexcept
 {
   constexpr const char* unknown{"unknown error"};
-  const char* const literal{to_literal(errc)};
+  const char* const literal{make_literal(errc)};
   return literal ? literal : unknown;
 }
 
@@ -120,7 +120,7 @@ public:
    */
   std::string message(const int ev) const override
   {
-    const char* const desc{to_literal_anyway(static_cast<Errc>(ev))};
+    const char* const desc{make_literal_anyway(static_cast<Errc>(ev))};
     constexpr const char* const sep{": "};
     std::string result;
     result.reserve(std::strlen(name()) + std::strlen(sep) + std::strlen(desc));
@@ -192,7 +192,7 @@ public:
    * The constructor of instance which represents the generic error.
    *
    * @param what The custom what-string. If ommitted, the value returned by
-   * `to_literal(errc)` will be used as a what-string.
+   * `make_literal(errc)` will be used as a what-string.
    */
   Basic_exception(std::string what = {})
     : Basic_exception{Errc::generic, std::move(what)}
@@ -203,10 +203,10 @@ public:
    *
    * @param errc The error condition.
    * @param what The custom what-string. If ommitted, the value returned by
-   * `to_literal(errc)` will be used as a what-string.
+   * `make_literal(errc)` will be used as a what-string.
    */
   explicit Basic_exception(const Errc errc, std::string what = {})
-    : StdError{what.empty() ? to_literal_anyway(errc) : what}
+    : StdError{what.empty() ? make_literal_anyway(errc) : what}
     , condition_{errc}
   {}
 
