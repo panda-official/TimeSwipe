@@ -66,8 +66,8 @@ int main()
   try {
     assert(!ts.drift_deltas());
     ts.calculate_drift_deltas();
-  } catch (const ts::RuntimeException& e) {
-    assert(e.condition() == ts::Errc::kNoDriftReferences);
+  } catch (const ts::Runtime_exception& e) {
+    assert(e.condition() == ts::Errc::no_drift_references);
   }
 
   // ---------------------------------------------------------------------------

@@ -77,7 +77,7 @@ public:
     std::string msg;
     if (!pid_file_.lock(msg))
       // Lock here. Second lock from the same process is allowed.
-      throw RuntimeException{Errc::kPidFileLockFailed};
+      throw Runtime_exception{Errc::pid_file_lock_failed};
 
     InitGpio();
   }
@@ -126,7 +126,7 @@ public:
   void start(Sensor_data_handler&& handler)
   {
     if (is_busy())
-      throw RuntimeException{Errc::kBoardIsBusy};
+      throw Runtime_exception{Errc::board_is_busy};
 
     joinThreads();
 
@@ -172,7 +172,7 @@ public:
   void set_event_handler(Event_handler&& handler)
   {
     if (is_measurement_started_)
-      throw RuntimeException{Errc::kBoardIsBusy};
+      throw Runtime_exception{Errc::board_is_busy};
 
     event_handler_ = std::move(handler);
   }
@@ -180,7 +180,7 @@ public:
   void set_error_handler(Error_handler&& handler)
   {
     if (is_measurement_started_)
-      throw RuntimeException{Errc::kBoardIsBusy};
+      throw Runtime_exception{Errc::board_is_busy};
 
     error_handler_ = std::move(handler);
   }
@@ -197,7 +197,7 @@ public:
       std::this_thread::sleep_for(std::chrono::milliseconds{100});
 
     if (!resp.second.empty())
-      throw RuntimeException{resp.second};
+      throw Runtime_exception{resp.second};
 
     return resp.first;
   }
@@ -384,7 +384,7 @@ public:
   void clear_drift_references()
   {
     if (is_busy())
-      throw RuntimeException{Errc::kBoardIsBusy};
+      throw Runtime_exception{Errc::board_is_busy};
 
     std::filesystem::remove(TmpDir()/"drift_references");
     drift_references_.reset();
@@ -396,7 +396,7 @@ public:
     // Throw away if there are no references.
     const auto refs{drift_references()};
     if (!refs)
-      throw RuntimeException{Errc::kNoDriftReferences};
+      throw Runtime_exception{Errc::no_drift_references};
 
     // Collect the data for calculation.
     auto data{CollectSensorsData(kDriftSamplesCount_,
@@ -423,7 +423,7 @@ public:
   void clear_drift_deltas()
   {
     if (is_busy())
-      throw RuntimeException{Errc::kBoardIsBusy};
+      throw Runtime_exception{Errc::board_is_busy};
 
     drift_deltas_.reset();
   }
@@ -439,7 +439,7 @@ public:
 
     std::ifstream in{drift_references};
     if (!in)
-      throw RuntimeException{Errc::kInvalidDriftReference};
+      throw Runtime_exception{Errc::invalid_drift_reference};
 
     std::vector<float> refs;
     while (in && refs.size() < Sensors_data::sensor_count()) {
@@ -450,10 +450,10 @@ public:
     if (!in.eof()) {
       float val;
       if (in >> val)
-        throw RuntimeException{Errc::kExcessiveDriftReferences};
+        throw Runtime_exception{Errc::excessive_drift_references};
     }
     if (refs.size() < Sensors_data::sensor_count())
-      throw RuntimeException{Errc::kInsufficientDriftReferences};
+      throw Runtime_exception{Errc::insufficient_drift_references};
 
     DMITIGR_ASSERT(refs.size() == Sensors_data::sensor_count());
 
@@ -627,7 +627,7 @@ private:
           rep_.GetChannelMode(2, chmm2_) &&
           rep_.GetChannelMode(3, chmm3_) &&
           rep_.GetChannelMode(4, chmm4_)))
-        throw RuntimeException{Errc::kGeneric};
+        throw Runtime_exception{Errc::generic};
 
       /*
        * Change input modes to 1.
@@ -637,7 +637,7 @@ private:
        */
       for (const auto m : {1, 2, 3, 4}) {
         if (!rep_.SetChannelMode(m, Measurement_mode::Current))
-          throw RuntimeException{Errc::kGeneric};
+          throw Runtime_exception{Errc::generic};
       }
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
@@ -1369,7 +1369,7 @@ private:
   Sensors_data CollectSensorsData(const std::size_t samples_count, F&& state_guard)
   {
     if (is_busy())
-      throw RuntimeException{Errc::kBoardIsBusy};
+      throw Runtime_exception{Errc::board_is_busy};
 
     const auto guard{state_guard()};
 
@@ -1380,17 +1380,17 @@ private:
     start([this, samples_count, &errc, &done, &data, &update]
       (const Sensors_data sd, const std::uint64_t errors)
     {
-      if (IsError(errc) || done)
+      if (is_error(errc) || done)
         return;
 
       try {
         if (data.size() < samples_count)
           data.append(sd, samples_count - data.size());
       } catch (...) {
-        errc = Errc::kGeneric;
+        errc = Errc::generic;
       }
 
-      if (IsError(errc) || (!done && data.size() == samples_count)) {
+      if (is_error(errc) || (!done && data.size() == samples_count)) {
         done = true;
         update.notify_one();
       }
@@ -1406,8 +1406,8 @@ private:
     stop();
 
     // Throw away if the data collection failed.
-    if (IsError(errc))
-      throw RuntimeException{errc};
+    if (is_error(errc))
+      throw Runtime_exception{errc};
 
     return data;
   }

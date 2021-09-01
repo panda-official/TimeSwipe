@@ -427,7 +427,7 @@ public:
    * @returns A literal that represents the `value`, or `nullptr` if `value`
    * doesn't matches to any member of type Type.
    */
-  static constexpr const char* ToLiteral(const Type value)
+  static constexpr const char* to_literal(const Type value)
   {
     switch (value) {
     case Type::V_In1: return "V_In1";
@@ -451,8 +451,8 @@ public:
   static Type MakeType(const std::uint16_t value, std::string& err)
   {
     const Type result{value};
-    if (!ToLiteral(result))
-      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomType);
+    if (!to_literal(result))
+      err = timeswipe::to_literal(Errc::invalid_calibration_atom_type);
     return result;
   }
 
@@ -478,7 +478,7 @@ public:
   const Entry& GetEntry(const std::size_t index, std::string& err) const
   {
     if (!(index < entries_.size()))
-      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomEntryIndex);
+      err = timeswipe::to_literal(Errc::invalid_calibration_atom_entry_index);
     return entries_[index];
   }
 
@@ -486,7 +486,7 @@ public:
   void SetEntry(const std::size_t index, const Entry& value, std::string& err)
   {
     if (!(index < entries_.size()))
-      err = timeswipe::ToLiteral(Errc::kInvalidCalibrationAtomEntryIndex);
+      err = timeswipe::to_literal(Errc::invalid_calibration_atom_entry_index);
     entries_[index] = value;
   }
 

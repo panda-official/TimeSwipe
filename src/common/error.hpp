@@ -20,7 +20,7 @@
 namespace panda::timeswipe {
 
 /// `true` if `NDEBUG` is not set.
-constexpr bool kIsDebug{dmitigr::is_debug};
+constexpr bool is_debug{dmitigr::is_debug};
 
 // -----------------------------------------------------------------------------
 // Errc
@@ -30,65 +30,65 @@ constexpr bool kIsDebug{dmitigr::is_debug};
 enum class Errc {
   /** Generic section **/
 
-  kOk = 0,
-  kGeneric = 1,
+  ok = 0,
+  generic = 1,
 
   /** PID file section **/
 
-  kPidFileLockFailed = 1001,
+  pid_file_lock_failed = 1001,
 
   /** Board section **/
 
-  kBoardIsBusy = 2001,
+  board_is_busy = 2001,
 
   /** Drift reference section **/
 
-  kInvalidDriftReference = 3001,
-  kNoDriftReferences = 3002,
-  kInsufficientDriftReferences = 3003,
-  kExcessiveDriftReferences = 3004,
+  invalid_drift_reference = 3001,
+  no_drift_references = 3002,
+  insufficient_drift_references = 3003,
+  excessive_drift_references = 3004,
 
   /** Calibration ATOM section **/
 
-  kInvalidCalibrationAtomType = 4001,
-  kInvalidCalibrationAtomEntryIndex = 4002
+  invalid_calibration_atom_type = 4001,
+  invalid_calibration_atom_entry_index = 4002
 };
 
 /// @returns `true` if `errc` indicates an error.
-constexpr bool IsError(const Errc errc) noexcept
+constexpr bool is_error(const Errc errc) noexcept
 {
-  return errc != Errc::kOk;
+  return errc != Errc::ok;
 }
 
 /**
  * @returns The literal representation of the `errc`, or `nullptr`
  * if `errc` does not corresponds to any value defined by Errc.
  */
-constexpr const char* ToLiteral(const Errc errc) noexcept
+constexpr const char* to_literal(const Errc errc) noexcept
 {
   switch (errc) {
-  case Errc::kOk: return "ok";
-  case Errc::kGeneric: return "generic error";
-  case Errc::kPidFileLockFailed: return "PID file lock failed";
-  case Errc::kBoardIsBusy: return "board is busy";
-  case Errc::kInvalidDriftReference: return "invalid drift reference";
-  case Errc::kNoDriftReferences: return "no drift references";
-  case Errc::kInsufficientDriftReferences: return "insufficient drift references";
-  case Errc::kExcessiveDriftReferences: return "excessive drift references";
-  case Errc::kInvalidCalibrationAtomType: return "invalid calibration atom type";
-  case Errc::kInvalidCalibrationAtomEntryIndex: return "invalid calibration atom entry index";
+  case Errc::ok: return "ok";
+  case Errc::generic: return "generic error";
+  case Errc::pid_file_lock_failed: return "PID file lock failed";
+  case Errc::board_is_busy: return "board is busy";
+  case Errc::invalid_drift_reference: return "invalid drift reference";
+  case Errc::no_drift_references: return "no drift references";
+  case Errc::insufficient_drift_references: return "insufficient drift references";
+  case Errc::excessive_drift_references: return "excessive drift references";
+  case Errc::invalid_calibration_atom_type: return "invalid calibration atom type";
+  case Errc::invalid_calibration_atom_entry_index: return "invalid calibration atom entry index";
   }
   return nullptr;
 }
 
 /**
- * @returns The literal returned by `ToLiteral(errc)`, or literal `unknown error`
- * if `ToLiteral(errc)` returned `nullptr`.
+ * @returns The literal returned by `to_literal(errc)`, or literal
+ * `unknown error` if `to_literal(errc)` returned `nullptr`.
  */
-constexpr const char* ToLiteralAnyway(const Errc errc) noexcept
+constexpr const char* to_literal_anyway(const Errc errc) noexcept
 {
   constexpr const char* unknown{"unknown error"};
-  const char* const literal{ToLiteral(errc)};
+  const char* const literal{to_literal(errc)};
   return literal ? literal : unknown;
 }
 
@@ -101,7 +101,7 @@ constexpr const char* ToLiteralAnyway(const Errc errc) noexcept
  *
  * @brief A category of driver errors.
  */
-class ErrorCategory final : public std::error_category {
+class Error_category final : public std::error_category {
 public:
   /// @returns The literal `panda_timeswipe_error`.
   const char* name() const noexcept override
@@ -120,7 +120,7 @@ public:
    */
   std::string message(const int ev) const override
   {
-    const char* const desc{ToLiteralAnyway(static_cast<Errc>(ev))};
+    const char* const desc{to_literal_anyway(static_cast<Errc>(ev))};
     constexpr const char* const sep{": "};
     std::string result;
     result.reserve(std::strlen(name()) + std::strlen(sep) + std::strlen(desc));
@@ -131,11 +131,11 @@ public:
 /**
  * @ingroup errors
  *
- * @returns The reference to the instance of type ErrorCategory.
+ * @returns The reference to the instance of type Error_category.
  */
-inline const ErrorCategory& ErrorCategoryInstance() noexcept
+inline const Error_category& error_category() noexcept
 {
-  static const ErrorCategory instance;
+  static const Error_category instance;
   return instance;
 }
 
@@ -146,11 +146,11 @@ inline const ErrorCategory& ErrorCategoryInstance() noexcept
 /**
  * @ingroup errors
  *
- * @returns `std::error_condition(int(errc), ErrorCategoryInstance())`.
+ * @returns `std::error_condition(int(errc), error_category())`.
  */
 inline std::error_condition make_error_condition(const Errc errc) noexcept
 {
-  return std::error_condition{static_cast<int>(errc), ErrorCategoryInstance()};
+  return std::error_condition{static_cast<int>(errc), error_category()};
 }
 
 } // namespace panda::timeswipe
@@ -173,7 +173,7 @@ template<> struct is_error_condition_enum<panda::timeswipe::Errc> final : true_t
 namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
-// BasicException
+// Basic_exception
 // -----------------------------------------------------------------------------
 
 /**
@@ -184,7 +184,7 @@ namespace panda::timeswipe {
  * @tparam StdError Must be either `std::logic_error` or `std::runtime_error`.
  */
 template<class StdError>
-class BasicException : public StdError {
+class Basic_exception : public StdError {
   static_assert(std::is_same_v<std::logic_error, StdError> ||
     std::is_same_v<std::runtime_error, StdError>);
 public:
@@ -192,10 +192,10 @@ public:
    * The constructor of instance which represents the generic error.
    *
    * @param what The custom what-string. If ommitted, the value returned by
-   * `ToLiteral(errc)` will be used as a what-string.
+   * `to_literal(errc)` will be used as a what-string.
    */
-  BasicException(std::string what = {})
-    : BasicException{Errc::kGeneric, std::move(what)}
+  Basic_exception(std::string what = {})
+    : Basic_exception{Errc::generic, std::move(what)}
   {}
 
   /**
@@ -203,10 +203,10 @@ public:
    *
    * @param errc The error condition.
    * @param what The custom what-string. If ommitted, the value returned by
-   * `ToLiteral(errc)` will be used as a what-string.
+   * `to_literal(errc)` will be used as a what-string.
    */
-  explicit BasicException(const Errc errc, std::string what = {})
-    : StdError{what.empty() ? ToLiteralAnyway(errc) : what}
+  explicit Basic_exception(const Errc errc, std::string what = {})
+    : StdError{what.empty() ? to_literal_anyway(errc) : what}
     , condition_{errc}
   {}
 
@@ -221,22 +221,22 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// ExceptionWithInfo
+// Exception_with_info
 // -----------------------------------------------------------------------------
 
 /// Exception with source info.
 template<class StdError>
-class ExceptionWithInfo :
-    public dmitigr::Exception_with_info<BasicException<StdError>> {
-  using Super = dmitigr::Exception_with_info<BasicException<StdError>>;
+class Exception_with_info :
+    public dmitigr::Exception_with_info<Basic_exception<StdError>> {
+  using Super = dmitigr::Exception_with_info<Basic_exception<StdError>>;
   using Super::Super;
 };
 
 // -----------------------------------------------------------------------------
-// RuntimeException
+// Runtime_exception
 // -----------------------------------------------------------------------------
 
-using RuntimeException = BasicException<std::runtime_error>;
+using Runtime_exception = Basic_exception<std::runtime_error>;
 
 } // namespace panda::timeswipe
 
@@ -244,8 +244,8 @@ using RuntimeException = BasicException<std::runtime_error>;
  * CHECK macros are for logic errors debugging and should be used in
  * implementation details only.
  */
-#define PANDA_TIMESWIPE_CHECK_GENERIC(a, Base)                      \
-  DMITIGR_CHECK_GENERIC(a, panda::timeswipe::ExceptionWithInfo<Base>)
+#define PANDA_TIMESWIPE_CHECK_GENERIC(a, Base)                          \
+  DMITIGR_CHECK_GENERIC(a, panda::timeswipe::Exception_with_info<Base>)
 #define PANDA_TIMESWIPE_CHECK(a)                        \
   PANDA_TIMESWIPE_CHECK_GENERIC(a, std::logic_error)
 #define PANDA_TIMESWIPE_CHECK_ARG(a)                        \
@@ -260,7 +260,7 @@ using RuntimeException = BasicException<std::runtime_error>;
 // THROW macro is for runtime errors.
 #define PANDA_TIMESWIPE_THROW(errc)                                     \
   do {                                                                  \
-    using E = panda::timeswipe::ExceptionWithInfo<std::runtime_error>;  \
+    using E = panda::timeswipe::Exception_with_info<std::runtime_error>; \
     throw E{__FILE__, __LINE__, errc};                                  \
   } while(true)
 
