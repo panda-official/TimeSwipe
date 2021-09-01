@@ -358,12 +358,12 @@ public:
    *
    * @par Effects
    * `!is_busy() && drift_deltas()`.
-   * After calling the `Start()`, calculated deltas will be substracted from
+   * After calling the `start()`, calculated deltas will be substracted from
    * each input value of the corresponding channel.
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see drift_deltas(), calculate_drift_references(), Start().
+   * @see drift_deltas(), calculate_drift_references(), start().
    */
   std::vector<float> calculate_drift_deltas();
 
@@ -438,7 +438,7 @@ public:
   /**
    * @returns `true` if the board is busy (measurement in progress).
    *
-   * @see calculate_drift_references(), calculate_drift_deltas(), Start().
+   * @see calculate_drift_references(), calculate_drift_deltas(), start().
    */
   bool is_busy() const noexcept;
 
