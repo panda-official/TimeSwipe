@@ -80,7 +80,7 @@ private:
    *
    * @returns `true`.
    */
-  bool Import(CFIFO&) noexcept
+  bool reset(CFIFO&) noexcept
   {
     return true;
   }
@@ -90,7 +90,7 @@ private:
    *
    * @returns `true`.
    */
-  bool Export(CFIFO&) const noexcept
+  bool dump(CFIFO&) const noexcept
   {
     return true;
   }
@@ -160,13 +160,13 @@ private:
   std::string pstr_;
 
   /**
-   * Imports data fields from an ATOM binary image.
+   * Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
    * @returns `true` on success.
    */
-  bool Import(CFIFO& buf)
+  bool reset(CFIFO& buf)
   {
     if (buf.in_avail() < 22) return false;
 
@@ -224,7 +224,7 @@ private:
    *
    * @returns `true` on sucess.
    */
-  bool Export(CFIFO& buf) const
+  bool dump(CFIFO& buf) const
   {
     // Export uuid_.
     {
@@ -293,13 +293,13 @@ private:
   static constexpr int index_{1};
 
   /**
-   * Imports data fields from an ATOM binary image.
+   * Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image
    *
    * @returns `true` on success.
    */
-  bool Import(CFIFO& buf)
+  bool reset(CFIFO& buf)
   {
     if (buf.in_avail() < sizeof(*this))
       return false;
@@ -319,7 +319,7 @@ private:
    *
    * @returns `true` on success.
    */
-  bool Export(CFIFO& buf) const
+  bool dump(CFIFO& buf) const
   {
     const auto* const this_bytes = reinterpret_cast<const std::uint8_t*>(this);
     for (std::size_t i{}; i < sizeof(*this); ++i)
@@ -368,13 +368,13 @@ public:
     }
 
     /**
-     * Imports data fields from an ATOM binary image.
+     * Resets data fields from an ATOM binary image.
      *
      * @param buf ATOM binary image.
      *
      * @returns `true` on success.
      */
-    bool Import(CFIFO& buf)
+    bool reset(CFIFO& buf)
     {
       if (buf.in_avail() < sizeof(*this))
         return false;
@@ -394,7 +394,7 @@ public:
      *
      * @returns `true` on success.
      */
-    bool Export(CFIFO& buf) const
+    bool dump(CFIFO& buf) const
     {
       const auto* const this_bytes = reinterpret_cast<const std::uint8_t*>(this);
       for (std::size_t i{}; i < sizeof(*this); ++i)
@@ -503,13 +503,13 @@ private:
   std::vector<Entry> entries_;
 
   /**
-   * Imports data fields from an ATOM binary image.
+   * Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image
    *
    * @returns `true` on success.
    */
-  bool Import(CFIFO& buf)
+  bool reset(CFIFO& buf)
   {
     // Import header.
     auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
@@ -521,7 +521,7 @@ private:
 
     // Import data.
     for (auto& entry : entries_)
-      entry.Import(buf);
+      entry.reset(buf);
 
     return true;
   }
@@ -533,7 +533,7 @@ private:
    *
    * @returns `true` on success.
    */
-  bool Export(CFIFO& buf) const
+  bool dump(CFIFO& buf) const
   {
     // Export header.
     const auto* const header_bytes = reinterpret_cast<const std::uint8_t*>(&header_);
@@ -542,7 +542,7 @@ private:
 
     // Export data.
     for (auto& entry : entries_)
-      entry.Export(buf);
+      entry.dump(buf);
 
     return true;
   }
@@ -605,13 +605,13 @@ private:
   static constexpr int index_{3};  // FIXME ? (should be 2?)
 
   /**
-   * @brief Imports data fields from an ATOM binary image.
+   * Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
    * @returns `true` on success.
    */
-  bool Import(CFIFO& buf)
+  bool reset(CFIFO& buf)
   {
     // Import header.
     auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
@@ -623,7 +623,7 @@ private:
 
     // Import data.
     for (auto& atom : atoms_)
-      atom.Import(buf);
+      atom.reset(buf);
 
     return true;
   }
@@ -635,7 +635,7 @@ private:
    *
    * @returns `true` on success.
    */
-  bool Export(CFIFO& buf) const
+  bool dump(CFIFO& buf) const
   {
     // Export header.
     auto* const header_bytes = reinterpret_cast<const std::uint8_t*>(&header_);
@@ -644,7 +644,7 @@ private:
 
     // Export data.
     for (auto& atom : atoms_)
-      atom.Export(buf);
+      atom.dump(buf);
 
     return true;
   }
@@ -712,7 +712,7 @@ public:
   }
 
   /**
-   * Imports the atom of given type from the image.
+   * Resets the atom of given type from the image.
    *
    * @returns `Op_result::ok` on success.
    */
@@ -722,7 +722,7 @@ public:
     atom::Type type;
     CFIFO buf;
     const auto r = get_atom(atom.index_, type, buf);
-    return (r == Op_result::ok) && (atom.type_ != type || !atom.Import(buf)) ?
+    return (r == Op_result::ok) && (atom.type_ != type || !atom.reset(buf)) ?
       Op_result::atom_corrupted : r;
   }
 
@@ -798,7 +798,7 @@ public:
     if (storage_state_ != Op_result::ok)
       return storage_state_;
     CFIFO buf;
-    atom.Export(buf);
+    atom.dump(buf);
     return set_atom(atom.index_, atom.type_, buf);
   }
 
