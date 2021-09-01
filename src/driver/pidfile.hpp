@@ -100,6 +100,12 @@ public:
     return true;
   }
 
+  /// @returns `true` if locked.
+  bool is_locked() const noexcept
+  {
+    return locked_;
+  }
+
 private:
   std::string fname_;
   int fd_{-1};
