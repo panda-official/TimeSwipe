@@ -90,7 +90,7 @@ public:
    * @throws `std::invalid_argument` if `value` doesn't corresponds to any
    * member of Mode.
    */
-  static Mode to_mode(const std::string_view value);
+  static Mode make_mode(const std::string_view value);
 
   /**
    * @returns The value of type `std::string_view` converted from `value`.
@@ -98,7 +98,7 @@ public:
    * @throws `std::invalid_argument` if `value` doesn't corresponds to any
    * member of Mode.
    */
-  static std::string_view to_string_view(const Mode value);
+  static std::string_view make_string_view(const Mode value);
 
   /// Measurement mode.
   enum class Measurement_mode {

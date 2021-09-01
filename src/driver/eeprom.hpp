@@ -61,19 +61,19 @@ struct Eeprom final {
     const hat::Manager manager{buf};
 
     // Verify EEPROM image.
-    if (manager.Verify() != hat::Manager::OpResult::OK) {
+    if (manager.verify() != hat::Manager::Op_result::ok) {
       error = "EEPROM verify failed";
       return false;
     }
 
     // The number of atoms can be obtained as following (optional)
-    const auto atom_count = manager.GetAtomCount();
+    const auto atom_count = manager.get_atom_count();
 
     //Then obligatory atoms can be obtained:
-    hat::atom::VendorInfo vi;
-    hat::atom::GpioMap gpio;
-    (void)manager.Get(vi);
-    (void)manager.Get(gpio);
+    hat::atom::Vendor_info vi;
+    hat::atom::Gpio_map gpio;
+    (void)manager.get(vi);
+    (void)manager.get(gpio);
 
     /*
       printf("uuid: %x-%x-%x-%x\n", vi.m_uuid[0], vi.m_uuid[1], vi.m_uuid[2], vi.m_uuid[3]);

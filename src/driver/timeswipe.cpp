@@ -1485,7 +1485,7 @@ Timeswipe::Timeswipe()
 
 Timeswipe::~Timeswipe() = default;
 
-auto Timeswipe::to_mode(const std::string_view value) -> Mode
+auto Timeswipe::make_mode(const std::string_view value) -> Mode
 {
   if (value == "iepe") return Timeswipe::Mode::iepe;
   else if (value == "normal") return Timeswipe::Mode::normal;
@@ -1493,7 +1493,7 @@ auto Timeswipe::to_mode(const std::string_view value) -> Mode
   else throw std::invalid_argument{"invalid text representation of Timeswipe::Mode"};
 }
 
-std::string_view Timeswipe::to_string_view(const Mode value)
+std::string_view Timeswipe::make_string_view(const Mode value)
 {
   switch (value) {
   case Mode::iepe: return "iepe";
