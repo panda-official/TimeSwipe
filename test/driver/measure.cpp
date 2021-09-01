@@ -68,7 +68,6 @@ try {
   auto& ts = drv::Timeswipe::instance();
   ts.set_sample_rate(sample_rate);
   ts.set_burst_size(sample_rate / frequency);
-
   ts.set_event_handler([](drv::Event&& event)
   {
     try {
@@ -135,8 +134,8 @@ try {
         i++;
         if (i >= count) {
           const std::lock_guard lk{finished_mutex};
-          finish.notify_one();
           finished = true;
+          finish.notify_one();
         } else
           logs_ready = false;
       }
