@@ -100,7 +100,7 @@ protected:
         /*!
          * \brief The board calibration status
          */
-        hat::Manager::OpResult m_CalStatus;
+        hat::Manager::Op_result m_CalStatus;
 
         /*!
          * \brief true when settings are first loaded from the persist storage
@@ -200,7 +200,7 @@ protected:
          * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
          * \param Data
          */
-        void ApplyCalibrationData(const hat::CalibrationMap& map);
+        void ApplyCalibrationData(const hat::Calibration_map& map);
 
         /*!
          * \brief JSON handler to store/retrieve calibration atoms.
@@ -240,7 +240,7 @@ public:
             m_bCalEnabled=bHow;
             if(bHow)
             {
-                hat::CalibrationMap cal_data;
+                hat::Calibration_map cal_data;
                 m_CalStatus=m_EEPROMstorage.Get(cal_data);
                 ApplyCalibrationData(cal_data);
             }
@@ -484,7 +484,7 @@ public:
          */
         inline bool GetCalStatus()
         {
-          return m_CalStatus == hat::Manager::OpResult::OK;
+          return m_CalStatus == hat::Manager::Op_result::ok;
         }
 
         /*!
@@ -500,7 +500,7 @@ public:
          * \param strError - the operation error (if occurred)
          * \return true on success, false otherwise (actual error is placed into the strError )
          */
-        bool SetCalibrationData(hat::CalibrationMap& map, std::string &strError);
+        bool SetCalibrationData(hat::Calibration_map& map, std::string &strError);
 
         /*!
          * \brief Retrieves the calibration data preloaded into the EEPROM image RAM storage
@@ -508,7 +508,7 @@ public:
          * \param strError - the operation error (if occurred)
          * \return true on success, false otherwise (actual error is placed into the strError )
          */
-        bool GetCalibrationData(hat::CalibrationMap &Data, std::string &strError);
+        bool GetCalibrationData(hat::Calibration_map &Data, std::string &strError);
 
         /*!
          * \brief Starts/Stops the board cooler

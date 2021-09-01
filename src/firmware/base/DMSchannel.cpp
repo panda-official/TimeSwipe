@@ -28,13 +28,13 @@ void CDMSchannel::UpdateOffsets()
         return;
 
     std::string strError;
-    hat::CalibrationMap cmap;
+    hat::Calibration_map cmap;
     m_pCont->GetCalibrationData(cmap, strError);
 
     using Type = hat::atom::Calibration::Type;
-    const auto atom = mes_mode::Voltage == m_MesMode ? Type::V_In1 : Type::C_In1;
+    const auto atom = mes_mode::Voltage == m_MesMode ? Type::v_in1 : Type::c_in1;
     const hat::atom::Calibration::Type type{static_cast<std::uint16_t>(atom) +
       static_cast<std::uint16_t>(m_nChanInd)};
-    const auto& entry = cmap.GetAtom(type).GetEntry(m_nGainIndex, strError);
-    m_pDAC->SetRawOutput(entry.GetB());
+    const auto& entry = cmap.get_atom(type).get_entry(m_nGainIndex, strError);
+    m_pDAC->SetRawOutput(entry.get_b());
 }

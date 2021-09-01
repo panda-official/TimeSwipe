@@ -38,10 +38,10 @@ namespace panda::timeswipe::hat {
 class Manager;
 
 /// Forward declaration of the calibration map.
-class CalibrationMap;
+class Calibration_map;
 
 /// EEPROM header.
-struct EepromHeader final {
+struct Eeprom_header final {
   std::uint32_t signature{};
   std::uint8_t ver{};
   std::uint8_t res{};
@@ -53,26 +53,26 @@ namespace atom {
 
 /// Atom type.
 enum class Type : std::uint16_t {
-  Invalid = 0x0000,
-  VendorInfo = 0x0001,
-  GpioMap = 0x0002,
-  LinuxDeviceTreeBlob = 0x0003,
-  Custom = 0x0004,
-  Invalid2 = 0xFFFF
+  invalid = 0x0000,
+  vendor_info = 0x0001,
+  gpio_map = 0x0002,
+  linux_device_tree_blob = 0x0003,
+  custom = 0x0004,
+  invalid2 = 0xFFFF
 };
 
 /// Atom stub.
 class Stub final {
 public:
   /// The constructor.
-  explicit Stub(const int nIndex) noexcept
-    : index_{nIndex}
+  explicit Stub(const int index) noexcept
+    : index_{index}
   {}
 
 private:
   friend hat::Manager;
 
-  static constexpr Type type_{Type::Custom};
+  static constexpr Type type_{Type::custom};
   int index_{};
 
   /**
@@ -97,16 +97,16 @@ private:
 };
 
 /// Vendor info atom.
-class VendorInfo final {
+class Vendor_info final {
 public:
   /// Alias for Uuid.
   using Uuid = std::array<std::uint32_t, 4>;
 
   /// The default constructor.
-  VendorInfo() = default;
+  Vendor_info() = default;
 
   /// The constructor.
-  VendorInfo(const Uuid uuid,
+  Vendor_info(const Uuid uuid,
     const std::uint16_t pid,
     const std::uint16_t pver,
     std::string vstr,
@@ -119,31 +119,31 @@ public:
   {}
 
   /// @returns UUID.
-  const Uuid& GetUuid() const noexcept
+  const Uuid& get_uuid() const noexcept
   {
     return uuid_;
   }
 
   /// @returns Pid.
-  std::uint16_t GetPid() const noexcept
+  std::uint16_t get_pid() const noexcept
   {
     return pid_;
   }
 
   /// @returns Pver.
-  std::uint16_t GetPver() const noexcept
+  std::uint16_t get_pver() const noexcept
   {
     return pver_;
   }
 
   /// @returns Vstr.
-  const std::string& GetVstr() const noexcept
+  const std::string& get_vstr() const noexcept
   {
     return vstr_;
   }
 
   /// @returns Pstr.
-  const std::string& GetPstr() const noexcept
+  const std::string& get_pstr() const noexcept
   {
     return pstr_;
   }
@@ -151,7 +151,7 @@ public:
 private:
   friend hat::Manager;
 
-  static constexpr Type type_{Type::VendorInfo};
+  static constexpr Type type_{Type::vendor_info};
   static constexpr int index_{};
   Uuid uuid_{};
   std::uint16_t pid_{};
@@ -263,10 +263,10 @@ private:
 };
 
 /// GPIO map atom.
-class GpioMap final {
+class Gpio_map final {
 public:
   /// The default constructor.
-  GpioMap() = default;
+  Gpio_map() = default;
 
 private:
   friend hat::Manager;
@@ -289,7 +289,7 @@ private:
     std::uint8_t is_used  :1;
   } gpio_[28]{};
 
-  static constexpr Type type_{Type::GpioMap};
+  static constexpr Type type_{Type::gpio_map};
   static constexpr int index_{1};
 
   /**
@@ -344,25 +344,25 @@ public:
     {}
 
     /// Sets `m`.
-    void SetM(const float m) noexcept
+    void set_m(const float m) noexcept
     {
       m_ = m;
     }
 
     /// Sets `b`.
-    void SetB(const std::uint16_t b) noexcept
+    void set_b(const std::uint16_t b) noexcept
     {
       b_ = b;
     }
 
     /// @returns `m`.
-    float GetM() const noexcept
+    float get_m() const noexcept
     {
       return m_;
     }
 
     /// @returns `b`.
-    std::uint16_t GetB() const noexcept
+    std::uint16_t get_b() const noexcept
     {
       return b_;
     }
@@ -411,16 +411,16 @@ public:
 
   /// Calibration atom type.
   enum class Type : std::uint16_t {
-    V_In1    = 0x0001,
-    V_In2    = 0x0002,
-    V_In3    = 0x0003,
-    V_In4    = 0x0004,
-    V_supply = 0x0005,
-    C_In1    = 0x0006,
-    C_In2    = 0x0007,
-    C_In3    = 0x0008,
-    C_In4    = 0x0009,
-    Ana_Out  = 0x000A
+    v_in1    = 0x0001,
+    v_in2    = 0x0002,
+    v_in3    = 0x0003,
+    v_in4    = 0x0004,
+    v_supply = 0x0005,
+    c_in1    = 0x0006,
+    c_in2    = 0x0007,
+    c_in3    = 0x0008,
+    c_in4    = 0x0009,
+    ana_out  = 0x000A
   };
 
   /**
@@ -430,16 +430,16 @@ public:
   static constexpr const char* to_literal(const Type value)
   {
     switch (value) {
-    case Type::V_In1: return "V_In1";
-    case Type::V_In2: return "V_In2";
-    case Type::V_In3: return "V_In3";
-    case Type::V_In4: return "V_In4";
-    case Type::V_supply: return "V_supply";
-    case Type::C_In1: return "C_In1";
-    case Type::C_In2: return "C_In2";
-    case Type::C_In3: return "C_In3";
-    case Type::C_In4: return "C_In4";
-    case Type::Ana_Out: return "Ana_Out";
+    case Type::v_in1: return "v_in1";
+    case Type::v_in2: return "v_in2";
+    case Type::v_in3: return "v_in3";
+    case Type::v_in4: return "v_in4";
+    case Type::v_supply: return "v_supply";
+    case Type::c_in1: return "c_in1";
+    case Type::c_in2: return "c_in2";
+    case Type::c_in3: return "c_in3";
+    case Type::c_in4: return "c_in4";
+    case Type::ana_out: return "ana_out";
     }
     return nullptr;
   }
@@ -448,7 +448,7 @@ public:
    * @returns A value of type Type converted from `value`. The returned value
    * is invalid if `err` is not empty after return.
    */
-  static Type MakeType(const std::uint16_t value, std::string& err)
+  static Type make_type(const std::uint16_t value, std::string& err)
   {
     const Type result{value};
     if (!to_literal(result))
@@ -463,35 +463,36 @@ public:
   {}
 
   /// @returns The size in bytes.
-  constexpr std::size_t GetSizeInBytes() const noexcept
+  constexpr std::size_t get_size_in_bytes() const noexcept
   {
     return header_.dlen + sizeof(Header);
   }
 
-  /// @returns The count of elements.
-  std::size_t GetEntryCount() const noexcept
+  /// @returns The count of entries.
+  std::size_t get_entry_count() const noexcept
   {
     return entries_.size();
   }
 
   /// @returns The data of the specified `index`.
-  const Entry& GetEntry(const std::size_t index, std::string& err) const
+  const Entry& get_entry(const std::size_t index, std::string& err) const
   {
     if (!(index < entries_.size()))
       err = timeswipe::to_literal(Errc::invalid_calibration_atom_entry_index);
     return entries_[index];
   }
 
-  /// Sets the data `value` at the specified `indexe.
-  void SetEntry(const std::size_t index, const Entry& value, std::string& err)
+  /// Sets the entry `value` at the specified `index`.
+  Calibration& set_entry(const std::size_t index, const Entry& value, std::string& err)
   {
     if (!(index < entries_.size()))
       err = timeswipe::to_literal(Errc::invalid_calibration_atom_entry_index);
     entries_[index] = value;
+    return *this;
   }
 
 private:
-  friend hat::CalibrationMap;
+  friend hat::Calibration_map;
 
   struct Header final {
     Type type{};
@@ -550,22 +551,22 @@ private:
 } // namespace atom
 
 /// Calibration map.
-class CalibrationMap final {
+class Calibration_map final {
 public:
   /// The default constructor.
-  CalibrationMap()
+  Calibration_map()
   {
     // Set data.
     atoms_.reserve(9);
-    atoms_.emplace_back(atom::Calibration::Type::V_In1, 22);
-    atoms_.emplace_back(atom::Calibration::Type::V_In2, 22);
-    atoms_.emplace_back(atom::Calibration::Type::V_In3, 22);
-    atoms_.emplace_back(atom::Calibration::Type::V_In4, 22);
-    atoms_.emplace_back(atom::Calibration::Type::V_supply, 1);
-    atoms_.emplace_back(atom::Calibration::Type::C_In1, 22);
-    atoms_.emplace_back(atom::Calibration::Type::C_In2, 22);
-    atoms_.emplace_back(atom::Calibration::Type::C_In3, 22);
-    atoms_.emplace_back(atom::Calibration::Type::C_In4, 22);
+    atoms_.emplace_back(atom::Calibration::Type::v_in1, 22);
+    atoms_.emplace_back(atom::Calibration::Type::v_in2, 22);
+    atoms_.emplace_back(atom::Calibration::Type::v_in3, 22);
+    atoms_.emplace_back(atom::Calibration::Type::v_in4, 22);
+    atoms_.emplace_back(atom::Calibration::Type::v_supply, 1);
+    atoms_.emplace_back(atom::Calibration::Type::c_in1, 22);
+    atoms_.emplace_back(atom::Calibration::Type::c_in2, 22);
+    atoms_.emplace_back(atom::Calibration::Type::c_in3, 22);
+    atoms_.emplace_back(atom::Calibration::Type::c_in4, 22);
 
     // Set header.
     header_.cversion = 0x01;
@@ -573,19 +574,19 @@ public:
     header_.numcatoms = static_cast<std::uint16_t>(atoms_.size());
     header_.callen = sizeof(Header);
     for (auto& atom : atoms_)
-      header_.callen += atom.GetSizeInBytes();
+      header_.callen += atom.get_size_in_bytes();
   }
 
   /// @returns Caliration atom of the given `type`.
-  const atom::Calibration& GetAtom(const atom::Calibration::Type type) const noexcept
+  const atom::Calibration& get_atom(const atom::Calibration::Type type) const noexcept
   {
     return atoms_[static_cast<std::uint16_t>(type) - 1];
   }
 
   /// @overload
-  atom::Calibration& GetAtom(const atom::Calibration::Type type) noexcept
+  atom::Calibration& get_atom(const atom::Calibration::Type type) noexcept
   {
-    return const_cast<atom::Calibration&>(static_cast<const CalibrationMap*>(this)->GetAtom(type));
+    return const_cast<atom::Calibration&>(static_cast<const Calibration_map*>(this)->get_atom(type));
   }
 
 private:
@@ -600,7 +601,7 @@ private:
   } __attribute__((packed)) header_;
 
   std::vector<atom::Calibration> atoms_;
-  atom::Type type_{atom::Type::Custom};
+  atom::Type type_{atom::Type::custom};
   static constexpr int index_{3};  // FIXME ? (should be 2?)
 
   /**
@@ -653,12 +654,12 @@ private:
 class Manager final {
 public:
   /// Represents the result of the operation.
-  enum class OpResult {
-    OK,
+  enum class Op_result {
+    ok,
     atom_not_found,
-    atom_is_corrupted,
-    storage_is_corrupted,
-    storage_isnt_verified
+    atom_corrupted,
+    storage_corrupted,
+    storage_unverified
   };
 
   /**
@@ -679,27 +680,27 @@ public:
    *
    * @return Operation result.
    */
-  OpResult ReadAtom(const unsigned pos, atom::Type& type, CFIFO& output) const
+  Op_result read_atom(const unsigned pos, atom::Type& type, CFIFO& output) const
   {
-    if (storage_state_ != OpResult::OK)
+    if (storage_state_ != Op_result::ok)
       return storage_state_;
 
     // Get the atom.
-    AtomHeader* atom{};
-    if (const auto r = FindAtomHeader(pos, &atom); r != OpResult::OK)
+    Atom_header* atom{};
+    if (const auto r = FindAtomHeader(pos, &atom); r != Op_result::ok)
       return r;
 
     // Set helpers.
     const auto* const header_bytes = reinterpret_cast<const char*>(atom);
-    const auto* const data_bytes = header_bytes + sizeof(AtomHeader); // atom->data_begin;
+    const auto* const data_bytes = header_bytes + sizeof(Atom_header); // atom->data_begin;
     const auto dlen = atom->dlen - 2; // real dlen without CRC
 
     // Check the CRC of the atom.
     {
-      const std::uint16_t calc_crc{dmitigr::crc::crc16(header_bytes, dlen + sizeof(AtomHeader))};
+      const std::uint16_t calc_crc{dmitigr::crc::crc16(header_bytes, dlen + sizeof(Atom_header))};
       const auto* const crc = reinterpret_cast<const std::uint16_t*>(data_bytes + dlen);
       if (calc_crc != *crc)
-        return OpResult::atom_is_corrupted;
+        return Op_result::atom_corrupted;
     }
 
     // Fill the out variables.
@@ -707,7 +708,7 @@ public:
     for (int i{}; i < dlen; ++i)
       output << data_bytes[i];
 
-    return OpResult::OK;
+    return Op_result::ok;
   }
 
   /**
@@ -719,19 +720,19 @@ public:
    *
    * @return Operation result.
    */
-  OpResult WriteAtom(const unsigned pos, const atom::Type type, const CFIFO& input)
+  Op_result WriteAtom(const unsigned pos, const atom::Type type, const CFIFO& input)
   {
-    if (storage_state_ != OpResult::OK)
+    if (storage_state_ != Op_result::ok)
       return storage_state_;
 
     const auto atom_count = GetAtomCount();
     if (pos > atom_count)
-      return OpResult::atom_not_found;
+      return Op_result::atom_not_found;
     const bool is_adding{pos == atom_count};
 
-    AtomHeader* atom{};
+    Atom_header* atom{};
     if (const auto r = FindAtomHeader(pos, &atom);
-      is_adding && r != OpResult::atom_not_found || r != OpResult::OK)
+      is_adding && r != Op_result::atom_not_found || r != Op_result::ok)
       return r;
 
     // FIXME: check the whole storage for corruption before continuing here.
@@ -739,11 +740,11 @@ public:
 
     const auto input_size = input.size();
     const int mem_adjust_size = is_adding ?
-      input_size + sizeof(AtomHeader) + 2 : input_size - atom->dlen + 2;
+      input_size + sizeof(Atom_header) + 2 : input_size - atom->dlen + 2;
     if (is_adding)
       AdjustMemBuf(reinterpret_cast<const char*>(atom), mem_adjust_size);
     else
-      AdjustMemBuf(reinterpret_cast<const char*>(atom) + sizeof(AtomHeader), mem_adjust_size); // keep header
+      AdjustMemBuf(reinterpret_cast<const char*>(atom) + sizeof(Atom_header), mem_adjust_size); // keep header
 
     // AdjustMemBuf() reallocates memory and invalidates `atom`! Update it.
     FindAtomHeader(pos, &atom);
@@ -753,22 +754,22 @@ public:
     atom->count = pos;
     atom->dlen = input_size + 2;
     auto* const atom_bytes = reinterpret_cast<char*>(atom);
-    auto* const atom_data_bytes = atom_bytes + sizeof(AtomHeader);
+    auto* const atom_data_bytes = atom_bytes + sizeof(Atom_header);
     for (std::size_t i{}; i < input_size; ++i)
       atom_data_bytes[i] = input[i];
 
     // Set CRC stamp of the atom.
     *reinterpret_cast<std::uint16_t*>(atom_data_bytes + input_size) =
-      dmitigr::crc::crc16(atom_bytes, input_size + sizeof(AtomHeader));
+      dmitigr::crc::crc16(atom_bytes, input_size + sizeof(Atom_header));
 
     // Update the EEPROM header if needed.
     if (is_adding) {
-      auto* const header = reinterpret_cast<EepromHeader*>(GetMemBuf());
+      auto* const header = reinterpret_cast<Eeprom_header*>(GetMemBuf());
       header->eeplen += mem_adjust_size;
       header->numatoms = atom_count + 1;
     }
 
-    return OpResult::OK;
+    return Op_result::ok;
   }
 
   /// Sets the EEPROM image buffer.
@@ -786,7 +787,7 @@ public:
   /// @returns Total atom count.
   std::uint16_t GetAtomCount() const noexcept
   {
-    return reinterpret_cast<const EepromHeader*>(GetMemBuf())->numatoms;
+    return reinterpret_cast<const Eeprom_header*>(GetMemBuf())->numatoms;
   }
 
   /**
@@ -794,12 +795,12 @@ public:
    *
    * The method must be called before performing any operations on the binary
    * image. It checks all headers and atoms validity and sets `storage_state_`
-   * to `OpResult::OK` on success. If the image is empty then Reset() must be
+   * to `Op_result::ok` on success. If the image is empty then Reset() must be
    * called instead.
    *
-   * @returns `OpResult::OK` on success.
+   * @returns `Op_result::ok` on success.
    */
-  OpResult Verify() const
+  Op_result Verify() const
   {
     return storage_state_ = VerifyStorage();
   }
@@ -810,34 +811,34 @@ public:
    */
   void Reset()
   {
-    fifo_buf_->resize(sizeof(EepromHeader));
+    fifo_buf_->resize(sizeof(Eeprom_header));
     storage_state_ = ResetStorage();
   }
 
   /**
    * Imports the atom of given type from the image.
    *
-   * @returns `OpResult::OK` on success.
+   * @returns `Op_result::ok` on success.
    */
   template <typename A>
-  OpResult Get(A& atom) const
+  Op_result Get(A& atom) const
   {
     atom::Type type;
     CFIFO buf;
-    const auto r = ReadAtom(atom.index_, type, buf);
-    return (r == OpResult::OK) && (atom.type_ != type || !atom.Import(buf)) ?
-      OpResult::atom_is_corrupted : r;
+    const auto r = read_atom(atom.index_, type, buf);
+    return (r == Op_result::ok) && (atom.type_ != type || !atom.Import(buf)) ?
+      Op_result::atom_corrupted : r;
   }
 
   /**
    * Stores the atom of given type to the image.
    *
-   * @returns `OpResult::OK` on success.
+   * @returns `Op_result::ok` on success.
    */
   template <typename A>
-  OpResult Put(const A& atom)
+  Op_result Put(const A& atom)
   {
-    if (storage_state_ != OpResult::OK)
+    if (storage_state_ != Op_result::ok)
       return storage_state_;
     CFIFO buf;
     atom.Export(buf);
@@ -845,7 +846,7 @@ public:
   }
 
 private:
-  struct AtomHeader final {
+  struct Atom_header final {
     std::uint16_t type{};
     std::uint16_t count{};
     std::uint32_t dlen{};
@@ -854,7 +855,7 @@ private:
 
   static constexpr std::uint32_t signature{0x69502d52};
   static constexpr std::uint8_t version{1};
-  mutable OpResult storage_state_{OpResult::storage_isnt_verified};
+  mutable Op_result storage_state_{Op_result::storage_unverified};
   std::shared_ptr<CFIFO> fifo_buf_;
 
   /// @name Memory control
@@ -893,29 +894,29 @@ private:
    * @param pos The position of the atom to find.
    * @param[out] header The result.
    *
-   * @returns `OpResult::OK` on success.
+   * @returns `Op_result::ok` on success.
    */
-  OpResult FindAtomHeader(unsigned pos, AtomHeader** const header) const
+  Op_result FindAtomHeader(unsigned pos, Atom_header** const header) const
   {
-    OpResult result{OpResult::OK};
+    Op_result result{Op_result::ok};
     auto* const mem_buf = GetMemBuf();
     auto* const mem_buf_end = mem_buf + GetMemBufSize();
-    const auto* const eeprom_header = reinterpret_cast<const EepromHeader*>(mem_buf);
+    const auto* const eeprom_header = reinterpret_cast<const Eeprom_header*>(mem_buf);
 
     // Check `pos` and correct if needed.
     if (pos >= eeprom_header->numatoms) {
       pos = eeprom_header->numatoms;
-      result = OpResult::atom_not_found;
+      result = Op_result::atom_not_found;
     }
 
     // Find atom.
-    auto* atom = mem_buf + sizeof(EepromHeader);
+    auto* atom = mem_buf + sizeof(Eeprom_header);
     for (unsigned i{}; i < pos; ++i) {
-      atom += sizeof(AtomHeader) + reinterpret_cast<const AtomHeader*>(atom)->dlen;
+      atom += sizeof(Atom_header) + reinterpret_cast<const Atom_header*>(atom)->dlen;
       if (atom > mem_buf_end)
-        return OpResult::storage_is_corrupted;
+        return Op_result::storage_corrupted;
     }
-    *header = reinterpret_cast<AtomHeader*>(atom);
+    *header = reinterpret_cast<Atom_header*>(atom);
 
     return result;
   }
@@ -923,22 +924,22 @@ private:
   /**
    * Checks the atom.
    *
-   * @returns `OpResult::OK` on success.
+   * @returns `Op_result::ok` on success.
    */
-  OpResult VerifyAtom(const AtomHeader* const atom) const
+  Op_result VerifyAtom(const Atom_header* const atom) const
   {
     // Check the CRC.
     const auto dlen = atom->dlen - 2; // dlen without CRC
     const auto* const atom_offset = reinterpret_cast<const char*>(atom);
-    const auto* const data_offset = atom_offset + sizeof(AtomHeader);
+    const auto* const data_offset = atom_offset + sizeof(Atom_header);
     const auto* const crc_offset = data_offset + dlen;
 
     const auto crc = *reinterpret_cast<const std::uint16_t*>(crc_offset);
-    const auto calc_crc = dmitigr::crc::crc16(atom_offset, dlen + sizeof(AtomHeader));
+    const auto calc_crc = dmitigr::crc::crc16(atom_offset, dlen + sizeof(Atom_header));
     if (crc != calc_crc)
-      return OpResult::atom_is_corrupted;
+      return Op_result::atom_corrupted;
 
-    return OpResult::OK;
+    return Op_result::ok;
   }
 
   /// @}
@@ -949,51 +950,51 @@ private:
   /**
    * Verifies EEPROM buffer.
    *
-   * @return `OpResult::OK` on success.
+   * @return `Op_result::ok` on success.
    */
-  OpResult VerifyStorage() const
+  Op_result VerifyStorage() const
   {
     const auto* const mem_buf = GetMemBuf();
     const auto mem_buf_size = GetMemBufSize();
-    if (mem_buf_size < sizeof(EepromHeader))
-      return OpResult::storage_is_corrupted;
+    if (mem_buf_size < sizeof(Eeprom_header))
+      return Op_result::storage_corrupted;
 
-    const auto* const header = reinterpret_cast<const EepromHeader*>(mem_buf);
+    const auto* const header = reinterpret_cast<const Eeprom_header*>(mem_buf);
     const auto* const mem_buf_end = mem_buf + mem_buf_size;
 
     if (header->signature != signature || header->ver != version
       || header->res || header->eeplen > mem_buf_size)
-      return OpResult::storage_is_corrupted;
+      return Op_result::storage_corrupted;
 
     // Verify all the atoms.
-    const char* atom = mem_buf + sizeof(EepromHeader);
+    const char* atom = mem_buf + sizeof(Eeprom_header);
     for (std::uint16_t i{}; i < header->numatoms; ++i) {
-      const auto* const atom_hdr = reinterpret_cast<const AtomHeader*>(atom);
-      if (const auto r = VerifyAtom(atom_hdr); r != OpResult::OK)
+      const auto* const atom_hdr = reinterpret_cast<const Atom_header*>(atom);
+      if (const auto r = VerifyAtom(atom_hdr); r != Op_result::ok)
         return r;
-      atom += sizeof(AtomHeader) + atom_hdr->dlen;
+      atom += sizeof(Atom_header) + atom_hdr->dlen;
       if (atom > mem_buf_end)
-        return OpResult::storage_is_corrupted;
+        return Op_result::storage_corrupted;
     }
-    return OpResult::OK;
+    return Op_result::ok;
   }
 
   /// Invalidates the EEPROM buffer.
-  OpResult ResetStorage()
+  Op_result ResetStorage()
   {
     char* const mem_buf = GetMemBuf();
     const std::size_t mem_buf_size = GetMemBufSize();
 
-    if (mem_buf_size < sizeof(EepromHeader))
-      return OpResult::storage_is_corrupted;
+    if (mem_buf_size < sizeof(Eeprom_header))
+      return Op_result::storage_corrupted;
 
-    auto* const header = reinterpret_cast<EepromHeader*>(mem_buf);
+    auto* const header = reinterpret_cast<Eeprom_header*>(mem_buf);
     header->signature = signature;
     header->ver = version;
     header->res = 0;
     header->numatoms = 0;
-    header->eeplen = sizeof(EepromHeader);
-    return OpResult::OK;
+    header->eeplen = sizeof(Eeprom_header);
+    return Op_result::ok;
   }
 
   /// @}

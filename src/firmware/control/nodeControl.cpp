@@ -27,9 +27,9 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     m_EEPROMstorage.SetBuf(pMemBuf);
     m_pEEPROMbus=pBus;
 
-    if (m_EEPROMstorage.Verify() != hat::Manager::OpResult::OK) {
+    if (m_EEPROMstorage.Verify() != hat::Manager::Op_result::ok) {
       m_EEPROMstorage.Reset();
-      hat::atom::VendorInfo vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
+      hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
       m_EEPROMstorage.Put(vinf); //storage is ready
     }
 
@@ -39,19 +39,19 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
       m_EEPROMstorage.Put(stub);
     }
 
-    hat::CalibrationMap map;
+    hat::Calibration_map map;
     m_CalStatus = m_EEPROMstorage.Get(map);
     ApplyCalibrationData(map);
 }
 
-void nodeControl::ApplyCalibrationData(const hat::CalibrationMap& map)
+void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
 {
   if (!m_bCalEnabled) return;
 
   if (m_pVoltageDAC) {
     std::string strError;
-    const auto& entry = map.GetAtom(hat::atom::Calibration::Type::V_supply).GetEntry(0, strError);
-    m_pVoltageDAC->SetLinearFactors(entry.GetM(), entry.GetB());
+    const auto& entry = map.get_atom(hat::atom::Calibration::Type::v_supply).get_entry(0, strError);
+    m_pVoltageDAC->SetLinearFactors(entry.get_m(), entry.get_b());
     m_pVoltageDAC->SetVal();
   }
 
@@ -59,12 +59,12 @@ void nodeControl::ApplyCalibrationData(const hat::CalibrationMap& map)
   for (auto &el : m_pMesChans) el->UpdateOffsets();
 }
 
-bool nodeControl::SetCalibrationData(hat::CalibrationMap& map, std::string& strError)
+bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& strError)
 {
   m_CalStatus = m_EEPROMstorage.Put(map);
   ApplyCalibrationData(map);
 
-  if (m_CalStatus == hat::Manager::OpResult::OK) {
+  if (m_CalStatus == hat::Manager::Op_result::ok) {
     if (m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf()))
       return true;
 
@@ -73,11 +73,11 @@ bool nodeControl::SetCalibrationData(hat::CalibrationMap& map, std::string& strE
   return false;
 }
 
-bool nodeControl::GetCalibrationData(hat::CalibrationMap& Data, std::string& strError)
+bool nodeControl::GetCalibrationData(hat::Calibration_map& Data, std::string& strError)
 {
-  using OpResult = hat::Manager::OpResult;
+  using Op_result = hat::Manager::Op_result;
   if (const auto r = m_EEPROMstorage.Get(Data);
-    r == OpResult::OK || r == OpResult::atom_not_found)
+    r == Op_result::ok || r == Op_result::atom_not_found)
     return true;
 
   strError = "EEPROM image is corrupted";
@@ -86,17 +86,17 @@ bool nodeControl::GetCalibrationData(hat::CalibrationMap& Data, std::string& str
 
 bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
 {
-    hat::CalibrationMap map;
+    hat::Calibration_map map;
 
     //load existing atom
     auto& nc = nodeControl::Instance();
     if (!nc.GetCalibrationData(map, strError))
       return false;
 
-    const auto type = hat::atom::Calibration::MakeType(jObj["cAtom"], strError);
+    const auto type = hat::atom::Calibration::make_type(jObj["cAtom"], strError);
     if (!strError.empty()) return false;
 
-    const auto cal_entry_count = map.GetAtom(type).GetEntryCount();
+    const auto cal_entry_count = map.get_atom(type).get_entry_count();
 
     //if call type=set
     if(CCmdCallDescr::ctype::ctSet==ct)
@@ -115,15 +115,15 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
         size_t pair_ind=0;
         for(auto &el : data) {
           //init the pair:
-          auto entry = map.GetAtom(type).GetEntry(pair_ind, strError);
+          auto entry = map.get_atom(type).get_entry(pair_ind, strError);
           if (!strError.empty()) return false;
 
           if (const auto it_m = el.find("m"); it_m != el.end())
-            entry.SetM(*it_m);
+            entry.set_m(*it_m);
           if (const auto it_b = el.find("b"); it_b != el.end())
-            entry.SetB(*it_b);
+            entry.set_b(*it_b);
 
-          map.GetAtom(type).SetEntry(pair_ind, std::move(entry), strError);
+          map.get_atom(type).set_entry(pair_ind, std::move(entry), strError);
           if (!strError.empty()) return false;
 
           pair_ind++;
@@ -142,13 +142,13 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 
     auto resp_data = nlohmann::json::array();
     for (std::size_t i{}; i < cal_entry_count; ++i) {
-      const auto& entry = map.GetAtom(type).GetEntry(i, strError);
+      const auto& entry = map.get_atom(type).get_entry(i, strError);
       if (!strError.empty()) return false;
 
       //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
       nlohmann::json jpair;
-      jpair["m"]=entry.GetM();
-      jpair["b"]=entry.GetB();
+      jpair["m"]=entry.get_m();
+      jpair["b"]=entry.get_b();
       resp_data.emplace_back(jpair);
     }
     jResp["cAtom"]=type;
