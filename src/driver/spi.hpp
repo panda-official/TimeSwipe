@@ -80,7 +80,7 @@ public:
     return is_spi_initialized_[pins_];
   }
 
-  CSyncSerComFSM::FSM fsm_state() const noexcept
+  CSyncSerComFSM::FSM get_fsm_state() const noexcept
   {
     return com_cntr_.get_state();
   }
