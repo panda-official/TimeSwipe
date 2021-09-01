@@ -24,17 +24,17 @@ nodeControl::nodeControl()
 
 void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf)
 {
-    m_EEPROMstorage.SetBuf(pMemBuf);
+    m_EEPROMstorage.set_buf(pMemBuf);
     m_pEEPROMbus=pBus;
 
-    if (m_EEPROMstorage.Verify() != hat::Manager::Op_result::ok) {
-      m_EEPROMstorage.Reset();
+    if (m_EEPROMstorage.verify() != hat::Manager::Op_result::ok) {
+      m_EEPROMstorage.reset();
       hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
       m_EEPROMstorage.Put(vinf); //storage is ready
     }
 
     //fill blank atoms with the stubs:
-    for (int i = m_EEPROMstorage.GetAtomCount(); i < 3; ++i) {
+    for (int i = m_EEPROMstorage.get_atom_count(); i < 3; ++i) {
       hat::atom::Stub stub{i};
       m_EEPROMstorage.Put(stub);
     }
@@ -65,7 +65,7 @@ bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& str
   ApplyCalibrationData(map);
 
   if (m_CalStatus == hat::Manager::Op_result::ok) {
-    if (m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf()))
+    if (m_pEEPROMbus->send(*m_EEPROMstorage.get_buf()))
       return true;
 
     strError="failed to write EEPROM";
