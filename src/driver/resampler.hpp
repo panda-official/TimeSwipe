@@ -448,7 +448,7 @@ public:
         return Sensors_data::value_type{}; // short-circuit
 
       // Flush the end samples.
-      auto result = zero_result(resampler, resampler.coefs_per_phase() - 1);
+      auto result = zero_result(resampler, resampler.get_coefs_per_phase() - 1);
       if (options_.crop_extra()) {
         const auto skip_count = trailing_skip_count(resampler);
         DMITIGR_ASSERT(skip_count < result.size());
@@ -491,18 +491,18 @@ private:
 
   static Sensors_data::value_type zero_result(const R& resampler, const std::size_t input_size)
   {
-    const auto result_size = resampler.output_sequence_size(input_size);
+    const auto result_size = resampler.get_output_sequence_size(input_size);
     return Sensors_data::value_type(result_size);
   }
 
   static std::size_t leading_skip_count(const R& resampler) noexcept
   {
-    return resampler.output_sequence_size(resampler.coefs_per_phase() - 1) / 2;
+    return resampler.get_output_sequence_size(resampler.get_coefs_per_phase() - 1) / 2;
   }
 
   static std::size_t trailing_skip_count(const R& resampler) noexcept
   {
-    const auto sz = resampler.output_sequence_size(resampler.coefs_per_phase() - 1);
+    const auto sz = resampler.get_output_sequence_size(resampler.get_coefs_per_phase() - 1);
     return (sz + sz % 2) / 2;
   }
 

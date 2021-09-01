@@ -464,7 +464,7 @@ public:
    * @returns The required size of the output sequence, i.e. how many samples
    * will be written out upon processing the input sequence of size `in_size`.
    */
-  std::size_t output_sequence_size(const std::size_t in_size) const noexcept
+  std::size_t get_output_sequence_size(const std::size_t in_size) const noexcept
   {
     const auto np = in_size * up_rate_;
     std::size_t result = np / down_rate_;
@@ -474,7 +474,7 @@ public:
   }
 
   /// @returns The number of coefficients per phase.
-  unsigned coefs_per_phase() const noexcept
+  unsigned get_coefs_per_phase() const noexcept
   {
     return coefs_per_phase_;
   }
