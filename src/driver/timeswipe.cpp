@@ -1082,7 +1082,7 @@ private:
 
   bool SpiSetChannelMode(const int channel, const Measurement_mode mode)
   {
-    spi_.send_set_command(detail::Bcm_spi::make_channel_command(channel, "mode"),
+    spi_.send_set_command(detail::Bcm_spi::get_channel_command(channel, "mode"),
       std::to_string(static_cast<int>(mode)));
     std::string answer;
     if (!spi_.receive_strip_answer(answer)) return false;
@@ -1091,7 +1091,7 @@ private:
 
   bool SpiGetChannelMode(const int channel, Measurement_mode& mode, std::string& err)
   {
-    spi_.send_get_command(detail::Bcm_spi::make_channel_command(channel, "mode"));
+    spi_.send_get_command(detail::Bcm_spi::get_channel_command(channel, "mode"));
     std::string answer;
     if (!spi_.receive_answer(answer, err)) {
       mode = static_cast<Measurement_mode>(0);
@@ -1103,7 +1103,7 @@ private:
 
   bool SpiSetChannelGain(const int channel, const float gain)
   {
-    spi_.send_set_command(detail::Bcm_spi::make_channel_command(channel, "gain"),
+    spi_.send_set_command(detail::Bcm_spi::get_channel_command(channel, "gain"),
       std::to_string(gain));
     std::string answer;
     return spi_.receive_strip_answer(answer);
@@ -1111,7 +1111,7 @@ private:
 
   bool SpiGetChannelGain(const int channel, float& gain, std::string& err)
   {
-    spi_.send_get_command(detail::Bcm_spi::make_channel_command(channel, "gain"));
+    spi_.send_get_command(detail::Bcm_spi::get_channel_command(channel, "gain"));
     std::string answer;
     if (!spi_.receive_answer(answer, err)) {
       gain = 0;
@@ -1123,7 +1123,7 @@ private:
 
   bool SpiSetiepe(const int channel, const bool iepe)
   {
-    spi_.send_set_command(detail::Bcm_spi::make_channel_command(channel, "iepe"),
+    spi_.send_set_command(detail::Bcm_spi::get_channel_command(channel, "iepe"),
       std::to_string(iepe));
     std::string answer;
     return spi_.receive_strip_answer(answer);
@@ -1131,7 +1131,7 @@ private:
 
   bool SpiGetiepe(const int channel, bool& iepe, std::string& err)
   {
-    spi_.send_get_command(detail::Bcm_spi::make_channel_command(channel, "iepe"));
+    spi_.send_get_command(detail::Bcm_spi::get_channel_command(channel, "iepe"));
     std::string answer;
     if (!spi_.receive_answer(answer, err))
       return iepe = false;
