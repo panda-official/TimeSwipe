@@ -19,6 +19,7 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_PIDFILE_HPP
 #define PANDA_TIMESWIPE_DRIVER_PIDFILE_HPP
 
+#include <cstring>
 #include <cerrno>
 #include <string>
 

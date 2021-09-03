@@ -17,7 +17,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "bcmlib.hpp"
-#include "eeprom.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "spi.hpp"
@@ -25,6 +24,7 @@
 
 #include "../common/error.hpp"
 #include "../common/gain.hpp"
+#include "../common/hat.hpp"
 #include "../common/json.hpp"
 #include "../common/version.hpp"
 
