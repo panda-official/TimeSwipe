@@ -69,7 +69,7 @@ public:
   ~Rep()
   {
     stop();
-    joinThreads();
+    join_threads();
   }
 
   Rep()
@@ -83,7 +83,7 @@ public:
       throw Runtime_exception{Errc::pid_file_lock_failed};
 
     // Initialize GPIO.
-    InitGpio();
+    init_gpio();
   }
 
   /**
@@ -94,32 +94,32 @@ public:
    * @par Effects
    * Restarts Timeswipe firmware on very first run!
    */
-  void InitGpio(const bool force = false)
+  void init_gpio(const bool force = false)
   {
     if (!force && is_gpio_inited_) return;
 
     detail::setup_io();
-    initGPIOInput(DATA0);
-    initGPIOInput(DATA1);
-    initGPIOInput(DATA2);
-    initGPIOInput(DATA3);
-    initGPIOInput(DATA4);
-    initGPIOInput(DATA5);
-    initGPIOInput(DATA6);
-    initGPIOInput(DATA7);
+    init_gpio_input(DATA0);
+    init_gpio_input(DATA1);
+    init_gpio_input(DATA2);
+    init_gpio_input(DATA3);
+    init_gpio_input(DATA4);
+    init_gpio_input(DATA5);
+    init_gpio_input(DATA6);
+    init_gpio_input(DATA7);
 
-    initGPIOInput(TCO);
-    initGPIOInput(PI_OK);
-    initGPIOInput(FAIL);
-    initGPIOInput(BUTTON);
+    init_gpio_input(TCO);
+    init_gpio_input(PI_OK);
+    init_gpio_input(FAIL);
+    init_gpio_input(BUTTON);
 
-    // initGPIOOutput(PI_OK);
-    initGPIOOutput(CLOCK);
-    initGPIOOutput(RESET);
+    // init_gpio_output(PI_OK);
+    init_gpio_output(CLOCK);
+    init_gpio_output(RESET);
 
     // Initial Reset
-    setGPIOLow(CLOCK);
-    setGPIOHigh(RESET);
+    set_gpio_low(CLOCK);
+    set_gpio_high(RESET);
 
     using std::chrono::milliseconds;
     std::this_thread::sleep_for(milliseconds{1});
@@ -132,7 +132,7 @@ public:
     if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
 
-    joinThreads();
+    join_threads();
 
     // Read the calibration data.
     calibration_map_ = [this]
@@ -196,11 +196,11 @@ public:
       is_measurement_started_ = true;
     }
 
-    threads_.emplace_back(&Rep::fetcherLoop, this);
-    threads_.emplace_back(&Rep::pollerLoop, this, std::move(handler));
-    threads_.emplace_back(&Rep::eventsLoop, this);
+    threads_.emplace_back(&Rep::fetcher_loop, this);
+    threads_.emplace_back(&Rep::poller_loop, this, std::move(handler));
+    threads_.emplace_back(&Rep::events_loop, this);
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    threads_.emplace_back(&Rep::emulLoop, this);
+    threads_.emplace_back(&Rep::emul_loop, this);
 #endif
   }
 
@@ -251,7 +251,7 @@ public:
     if (!is_measurement_started_) return;
 
     is_measurement_started_ = false;
-    joinThreads();
+    join_threads();
 
     while (record_queue_.pop());
 
@@ -261,7 +261,7 @@ public:
      */
     {
       // Reset Clock
-      setGPIOLow(CLOCK);
+      set_gpio_low(CLOCK);
 
       // Stop Measurement
       SpiSetEnableADmes(false);
@@ -333,7 +333,7 @@ public:
   std::vector<float> calculate_drift_references()
   {
     // Collect the data for calculation.
-    auto data{CollectSensorsData(kDriftSamplesCount_, // 5 ms
+    auto data{collect_sensors_data(kDriftSamplesCount_, // 5 ms
       [this]{return DriftAffectedStateGuard{*this};})};
 
     // Discard the first half.
@@ -346,11 +346,11 @@ public:
       return static_cast<float>(dmitigr::math::avg(dat));
     });
 
-    // Put references to the TmpDir/drift_references.
-    const auto tmp_dir{TmpDir()};
-    std::filesystem::create_directories(tmp_dir);
+    // Put references to the tmp_dir/drift_references.
+    const auto tmp = tmp_dir();
+    std::filesystem::create_directories(tmp);
     constexpr auto open_flags{std::ios_base::out | std::ios_base::trunc};
-    std::ofstream refs_file{tmp_dir/"drift_references", open_flags};
+    std::ofstream refs_file{tmp/"drift_references", open_flags};
     for (auto i = 0*result.size(); i < result.size() - 1; ++i)
       refs_file << result[i] << " ";
     refs_file << result.back() << "\n";
@@ -366,7 +366,7 @@ public:
     if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
 
-    std::filesystem::remove(TmpDir()/"drift_references");
+    std::filesystem::remove(tmp_dir()/"drift_references");
     drift_references_.reset();
     drift_deltas_.reset();
   }
@@ -379,7 +379,7 @@ public:
       throw Runtime_exception{Errc::no_drift_references};
 
     // Collect the data for calculation.
-    auto data{CollectSensorsData(kDriftSamplesCount_,
+    auto data{collect_sensors_data(kDriftSamplesCount_,
       [this]{return DriftAffectedStateGuard{*this};})};
     DMITIGR_ASSERT(refs->size() == data.get_sensor_count());
 
@@ -413,7 +413,7 @@ public:
     if (!force && drift_references_)
       return drift_references_;
 
-    const auto drift_references{TmpDir()/"drift_references"};
+    const auto drift_references{tmp_dir()/"drift_references"};
     if (!std::filesystem::exists(drift_references))
       return std::nullopt;
 
@@ -682,24 +682,24 @@ private:
     PANDA_TIMESWIPE_GPIO_PULL = high << pin;
   }
 
-  static void initGPIOInput(const unsigned pin)
+  static void init_gpio_input(const unsigned pin)
   {
     PANDA_TIMESWIPE_INP_GPIO(pin);
   }
 
-  static void initGPIOOutput(const unsigned pin)
+  static void init_gpio_output(const unsigned pin)
   {
     PANDA_TIMESWIPE_INP_GPIO(pin);
     PANDA_TIMESWIPE_OUT_GPIO(pin);
     pullGPIO(pin, 0);
   }
 
-  static void setGPIOHigh(const unsigned pin)
+  static void set_gpio_high(const unsigned pin)
   {
     PANDA_TIMESWIPE_GPIO_SET = 1 << pin;
   }
 
-  static void setGPIOLow(const unsigned pin)
+  static void set_gpio_low(const unsigned pin)
   {
     PANDA_TIMESWIPE_GPIO_CLR = 1 << pin;
   }
@@ -709,25 +709,25 @@ private:
     PANDA_TIMESWIPE_GPIO_CLR = ALL_32_BITS_ON;
   }
 
-  static unsigned readAllGPIO()
+  static unsigned read_all_gpio()
   {
     return (*(panda::timeswipe::driver::detail::bcm_gpio + 13) & ALL_32_BITS_ON);
   }
 
-  static void sleep55ns()
+  static void sleep_for_55ns()
   {
-    readAllGPIO();
+    read_all_gpio();
   }
 
-  static void sleep8ns()
+  static void sleep_for_8ns()
   {
-    setGPIOHigh(10); // ANY UNUSED PIN!!!
+    set_gpio_high(10); // ANY UNUSED PIN!!!
   }
 
-  struct GpioData final {
+  struct Gpio_data final {
     std::uint8_t byte{};
     unsigned int tco{};
-    bool piOk{};
+    bool pi_ok{};
 
     // chunk-Layout:
     // ------+----------------------------+---------------------------
@@ -743,26 +743,26 @@ private:
     //     7 |  1-0    2-0    3-0    4-0  |  1-1    2-1    3-1    4-1
     using Chunk = std::array<std::uint8_t, 8>;
 
-    struct ReadChunkResult final {
+    struct Read_chunk_result final {
       Chunk chunk{};
       unsigned tco{};
     };
 
-    static ReadChunkResult ReadChunk() noexcept
+    static Read_chunk_result read_chunk() noexcept
     {
-      ReadChunkResult result;
-      result.chunk[0] = Read().byte;
+      Read_chunk_result result;
+      result.chunk[0] = read().byte;
       {
-        const auto d{Read()};
+        const auto d = read();
         result.chunk[1] = d.byte;
         result.tco = d.tco;
       }
       for (unsigned i{2u}; i < result.chunk.size(); ++i)
-        result.chunk[i] = Read().byte;
+        result.chunk[i] = read().byte;
       return result;
     }
 
-    static void AppendChunk(Sensors_data& data,
+    static void append_chunk(Sensors_data& data,
       const Chunk& chunk,
       const std::array<std::uint16_t, 4>& offsets,
       const std::array<float, 4>& mfactors)
@@ -773,25 +773,25 @@ private:
       using Sensor_value = std::decay_t<decltype(sensors)>::value_type;
       static_assert(sizeof(Offset_value) == sizeof(Sensor_value));
 
-      constexpr auto setBit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
+      constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
       {
         word = (word & ~(1UL << N)) | (bit << N);
       };
-      constexpr auto getBit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
+      constexpr auto get_bit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
       {
         return (byte & (1UL << N));
       };
       for (std::size_t i{}, count{}; i < chunk.size(); ++i) {
-        setBit(sensors[0], 15 - count, getBit(chunk[i], 3));
-        setBit(sensors[1], 15 - count, getBit(chunk[i], 2));
-        setBit(sensors[2], 15 - count, getBit(chunk[i], 1));
-        setBit(sensors[3], 15 - count, getBit(chunk[i], 0));
+        set_bit(sensors[0], 15 - count, get_bit(chunk[i], 3));
+        set_bit(sensors[1], 15 - count, get_bit(chunk[i], 2));
+        set_bit(sensors[2], 15 - count, get_bit(chunk[i], 1));
+        set_bit(sensors[3], 15 - count, get_bit(chunk[i], 0));
         count++;
 
-        setBit(sensors[0], 15 - count, getBit(chunk[i], 7));
-        setBit(sensors[1], 15 - count, getBit(chunk[i], 6));
-        setBit(sensors[2], 15 - count, getBit(chunk[i], 5));
-        setBit(sensors[3], 15 - count, getBit(chunk[i], 4));
+        set_bit(sensors[0], 15 - count, get_bit(chunk[i], 7));
+        set_bit(sensors[1], 15 - count, get_bit(chunk[i], 6));
+        set_bit(sensors[2], 15 - count, get_bit(chunk[i], 5));
+        set_bit(sensors[3], 15 - count, get_bit(chunk[i], 4));
         count++;
       }
 
@@ -800,31 +800,31 @@ private:
     }
 
   private:
-    static GpioData Read() noexcept
+    static Gpio_data read() noexcept
     {
-      setGPIOHigh(CLOCK);
-      sleep55ns();
-      sleep55ns();
+      set_gpio_high(CLOCK);
+      sleep_for_55ns();
+      sleep_for_55ns();
 
-      setGPIOLow(CLOCK);
-      sleep55ns();
-      sleep55ns();
+      set_gpio_low(CLOCK);
+      sleep_for_55ns();
+      sleep_for_55ns();
 
-      const unsigned int allGPIO{readAllGPIO()};
+      const unsigned int all_gpio{read_all_gpio()};
       const std::uint8_t byte =
-        ((allGPIO & DATA_POSITION[0]) >> 17) |  // Bit 7
-        ((allGPIO & DATA_POSITION[1]) >> 19) |  //     6
-        ((allGPIO & DATA_POSITION[2]) >> 2) |   //     5
-        ((allGPIO & DATA_POSITION[3]) >> 1) |   //     4
-        ((allGPIO & DATA_POSITION[4]) >> 3) |   //     3
-        ((allGPIO & DATA_POSITION[5]) >> 10) |  //     2
-        ((allGPIO & DATA_POSITION[6]) >> 12) |  //     1
-        ((allGPIO & DATA_POSITION[7]) >> 16);   //     0
+        ((all_gpio & DATA_POSITION[0]) >> 17) |  // Bit 7
+        ((all_gpio & DATA_POSITION[1]) >> 19) |  //     6
+        ((all_gpio & DATA_POSITION[2]) >> 2) |   //     5
+        ((all_gpio & DATA_POSITION[3]) >> 1) |   //     4
+        ((all_gpio & DATA_POSITION[4]) >> 3) |   //     3
+        ((all_gpio & DATA_POSITION[5]) >> 10) |  //     2
+        ((all_gpio & DATA_POSITION[6]) >> 12) |  //     1
+        ((all_gpio & DATA_POSITION[7]) >> 16);   //     0
 
-      sleep55ns();
-      sleep55ns();
+      sleep_for_55ns();
+      sleep_for_55ns();
 
-      return {byte, (allGPIO & TCO_POSITION), (allGPIO & PI_STATUS_POSITION) != 0};
+      return {byte, (all_gpio & TCO_POSITION), (all_gpio & PI_STATUS_POSITION) != 0};
     }
   };
 
@@ -910,9 +910,9 @@ private:
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
-  Sensors_data ReadSensorsData()
+  Sensors_data read_sensors_data()
   {
-    static const auto WaitForPiOk = []
+    static const auto wait_for_pi_ok = []
     {
       /// Matches 12MHz Quartz.
       std::this_thread::sleep_for(std::chrono::microseconds{700});
@@ -921,16 +921,16 @@ private:
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     // Skip data sets if needed. (First 32 data sets are always invalid.)
     while (read_skip_count_ > 0) {
-      WaitForPiOk();
+      wait_for_pi_ok();
       while (true) {
-        const auto [chunk, tco] = GpioData::ReadChunk();
+        const auto [chunk, tco] = Gpio_data::read_chunk();
         if (tco != 0x00004000) break;
       }
       --read_skip_count_;
     }
 
     // Wait the RAM A or RAM B becomes available for reading.
-    WaitForPiOk();
+    wait_for_pi_ok();
 
     /*
      * Read the data sets. The amount of data depends on the counterstate
@@ -945,13 +945,13 @@ private:
     Sensors_data out;
     out.reserve(8192);
     do {
-      const auto [chunk, tco] = GpioData::ReadChunk();
-      GpioData::AppendChunk(out, chunk, offsets_, mfactors_);
+      const auto [chunk, tco] = Gpio_data::read_chunk();
+      Gpio_data::append_chunk(out, chunk, offsets_, mfactors_);
       if (tco != 0x00004000) break;
     } while (true);
 
-    sleep55ns();
-    sleep55ns();
+    sleep_for_55ns();
+    sleep_for_55ns();
 
     return out;
 #else
@@ -962,9 +962,9 @@ private:
       emul_point_end_ = chrono::steady_clock::now();
       const std::uint64_t diff_us{chrono::duration_cast<chrono::microseconds>
         (emul_point_end_ - emul_point_begin_).count()};
-      const std::uint64_t wouldSent{diff_us * emul_rate_ / 1000 / 1000};
-      if (wouldSent > emul_sent_) {
-        while (emul_sent_++ < wouldSent) {
+      const std::uint64_t would_sent{diff_us * emul_rate_ / 1000 / 1000};
+      if (would_sent > emul_sent_) {
+        while (emul_sent_++ < would_sent) {
           const auto val{int(3276 * std::sin(angle_) + 32767)};
           angle_ += (2.0 * M_PI) / emul_rate_;
           data[0].push_back(val);
@@ -980,10 +980,10 @@ private:
 #endif
   }
 
-  void fetcherLoop()
+  void fetcher_loop()
   {
     while (is_measurement_started_) {
-      if (const auto data{ReadSensorsData()}; !record_queue_.push(data))
+      if (const auto data = read_sensors_data(); !record_queue_.push(data))
         ++record_error_count_;
 
       Event event;
@@ -994,7 +994,7 @@ private:
     }
   }
 
-  void pollerLoop(Sensor_data_handler handler)
+  void poller_loop(Sensor_data_handler handler)
   {
     while (is_measurement_started_) {
       Sensors_data records[10];
@@ -1005,7 +1005,7 @@ private:
         Callbacker{*this}(error_handler_, errors);
 
       if (!num) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds{1});
         continue;
       }
 
@@ -1075,7 +1075,7 @@ private:
   // Events processing
   // ---------------------------------------------------------------------------
 
-  void eventsLoop()
+  void events_loop()
   {
     while (is_measurement_started_) {
       // Receive events
@@ -1098,7 +1098,7 @@ private:
   int emul_button_pressed_{};
   int emul_button_sent_{};
 
-  void emulLoop()
+  void emul_loop()
   {
     emul_button_pressed_ = 0;
     emul_button_sent_ = 0;
@@ -1112,10 +1112,10 @@ private:
 
       auto result = select(1, &read_fds, NULL, NULL, &tv);
       if (result == -1 && errno != EINTR) {
-        std::cerr << "emulLoop: error select" << std::endl;
+        std::cerr << "emul_loop: error select" << std::endl;
         return;
       } else if (result == -1 && errno == EINTR) {
-        std::cerr << "emulLoop: EINTR select" << std::endl;
+        std::cerr << "emul_loop: EINTR select" << std::endl;
         return;
       } else {
         if (FD_ISSET(STDIN_FILENO, &read_fds)) {
@@ -1132,13 +1132,13 @@ private:
   // Helpers
   // ---------------------------------------------------------------------------
 
-  static std::filesystem::path TmpDir()
+  static std::filesystem::path tmp_dir()
   {
     const auto cwd = std::filesystem::current_path();
     return cwd/".panda"/"timeswipe";
   }
 
-  void joinThreads()
+  void join_threads()
   {
     for (auto it = threads_.begin(); it != threads_.end();) {
       if (it->get_id() == std::this_thread::get_id()) {
@@ -1161,7 +1161,7 @@ private:
    * for automatic resourse cleanup (e.g. RAII state keeper and restorer).
    */
   template<typename F>
-  Sensors_data CollectSensorsData(const std::size_t samples_count, F&& state_guard)
+  Sensors_data collect_sensors_data(const std::size_t samples_count, F&& state_guard)
   {
     if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
