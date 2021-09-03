@@ -148,7 +148,7 @@ public:
         spi_.send_get_settings_command(R"({"cAtom":)" + std::to_string(static_cast<int>(ct)) + R"(})");
         std::string ans, err;
         if (!spi_.receive_strip_answer(ans, err))
-          throw Runtime_exception{"SPI receive failed"};
+          throw Runtime_exception{"SPI receive error: " + err};
 
         const auto doc = rajson::to_document(ans);
         const rajson::Value_view doc_view{doc};
@@ -201,7 +201,7 @@ public:
 
     threads_.emplace_back(&Rep::fetcherLoop, this);
     threads_.emplace_back(&Rep::pollerLoop, this, std::move(handler));
-    threads_.emplace_back(&Rep::spiLoop, this);
+    threads_.emplace_back(&Rep::eventsLoop, this);
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     threads_.emplace_back(&Rep::emulLoop, this);
 #endif
@@ -228,22 +228,43 @@ public:
     error_handler_ = std::move(handler);
   }
 
-  std::string settings(const bool set, const std::string& request)
+  void set_state(const State& state)
   {
-    in_spi_.push(std::make_pair(set, request));
-
-    if (!is_measurement_started_)
-      processSPIRequests();
-
-    std::pair<std::string, std::string> resp;
-    while (!out_spi_.pop(resp))
-      std::this_thread::sleep_for(std::chrono::milliseconds{100});
-
-    if (!resp.second.empty())
-      throw Runtime_exception{resp.second};
-
-    return resp.first;
+    spi_.send_set_settings_command(state.to_stringified_json());
+    std::string response, error;
+    if (!spi_.receive_strip_answer(response, error))
+      throw Runtime_exception{"SPI receive error: " + error};
+    state_.reset(); // invalidate cache (this could be optimized)
   }
+
+  const State& state() const
+  {
+    if (!state_) {
+      spi_.send_get_settings_command("");
+      std::string response, error;
+      if (!spi_.receive_strip_answer(response, error))
+        throw Runtime_exception{"SPI receive error: " + error};
+      state_.emplace(response);
+    }
+    return *state_;
+  }
+
+  // std::string spi_queue_request(const Spi_request_type type, const std::string& request)
+  // {
+  //   in_spi_.push(std::make_pair(type, request));
+
+  //   if (!is_measurement_started_)
+  //     spi_process_requests();
+
+  //   std::pair<std::string, std::string> response;
+  //   while (!out_spi_.pop(response))
+  //     std::this_thread::sleep_for(std::chrono::milliseconds{100});
+
+  //   if (!response.second.empty())
+  //     throw Runtime_exception{response.second};
+
+  //   return response.first;
+  // }
 
   void stop()
   {
@@ -253,8 +274,8 @@ public:
     joinThreads();
 
     while (record_queue_.pop());
-    while (in_spi_.pop());
-    while (out_spi_.pop());
+    // while (in_spi_.pop());
+    // while (out_spi_.pop());
 
     /*
      * Sends the command to a Timeswipe firmware to stop measurement.
@@ -270,24 +291,6 @@ public:
       // Reset state.
       read_skip_count_ = kInitialInvalidDataSetsCount;
     }
-  }
-
-  bool start_pwm(const int index, const Pwm_state& state)
-  {
-    DMITIGR_CHECK_ARG(0 <= index && index <= 1);
-    return SpiStartPwm(index, state);
-  }
-
-  bool stop_pwm(const int index)
-  {
-    DMITIGR_CHECK_ARG(0 <= index && index <= 1);
-    return SpiStopPwm(index);
-  }
-
-  std::optional<Pwm_state> pwm_state(const int index)
-  {
-    DMITIGR_CHECK_ARG(0 <= index && index <= 1);
-    return SpiGetPwm(index);
   }
 
   bool SetChannelMode(const int channel, const Measurement_mode mode)
@@ -552,6 +555,7 @@ private:
   std::array<float, 4> mfactors_{};
   Mode read_mode_{};
   hat::Calibration_map calibration_map_;
+  mutable std::optional<State> state_;
 
   // ---------------------------------------------------------------------------
   // Queues data
@@ -564,8 +568,13 @@ private:
   std::size_t burst_size_{};
   Sensors_data burst_buffer_;
 
-  boost::lockfree::spsc_queue<std::pair<std::uint8_t, std::string>, boost::lockfree::capacity<1024>> in_spi_;
-  boost::lockfree::spsc_queue<std::pair<std::string, std::string>, boost::lockfree::capacity<1024>> out_spi_;
+  // enum class Spi_request_type {
+  //   set_state,
+  //   get_state,
+  //   get_events
+  // };
+  // boost::lockfree::spsc_queue<std::pair<Spi_request_type, std::string>, boost::lockfree::capacity<1024>> in_spi_;
+  // boost::lockfree::spsc_queue<std::pair<std::string, std::string>, boost::lockfree::capacity<1024>> out_spi_;
   boost::lockfree::spsc_queue<Event, boost::lockfree::capacity<128>> events_;
 
   std::list<std::thread> threads_;
@@ -595,7 +604,7 @@ private:
   // ---------------------------------------------------------------------------
 
   detail::Pid_file pid_file_;
-  detail::Bcm_spi spi_;
+  mutable detail::Bcm_spi spi_;
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_measurement_started_{};
 
@@ -971,114 +980,52 @@ private:
     return result;
   }
 
-  std::string SpiGetSettings(const std::string& request, std::string& error)
-  {
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return request;
-#else
-    spi_.send_get_settings_command(request);
-    std::string answer;
-    if (!spi_.receive_answer(answer, error))
-      error = "read SPI failed";
-    return answer;
-#endif
-  }
+//   std::string SpiGetSettings(const std::string& request, std::string& error)
+//   {
+// #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+//     return request;
+// #else
+//     spi_.send_get_settings_command(request);
+//     std::string answer;
+//     if (!spi_.receive_answer(answer, error))
+//       error = "read SPI failed";
+//     return answer;
+// #endif
+//   }
 
-  std::string SpiSetSettings(const std::string& request, std::string& error)
-  {
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return request;
-#else
-    spi_.send_set_settings_command(request);
-    std::string answer;
-    if (!spi_.receive_answer(answer, error))
-      error = "read SPI failed";
-    return answer;
-#endif
-  }
+//   std::string SpiSetSettings(const std::string& request, std::string& error)
+//   {
+// #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
+//     return request;
+// #else
+//     spi_.send_set_settings_command(request);
+//     std::string answer;
+//     if (!spi_.receive_answer(answer, error))
+//       error = "read SPI failed";
+//     return answer;
+// #endif
+//   }
 
-  bool SpiStartPwm(const int index, const Pwm_state& state)
-  {
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return false;
-#else
-    std::string err;
-    std::string pwm = std::string("PWM") + std::to_string(index + 1);
-    auto obj = nlohmann::json::object({});
-    obj.emplace(pwm + ".freq", state.frequency());
-    obj.emplace(pwm + ".low", state.low());
-    obj.emplace(pwm + ".high", state.high());
-    obj.emplace(pwm + ".repeats", state.repeat_count());
-    obj.emplace(pwm + ".duty", state.duty_cycle());
-    auto settings = SpiSetSettings(obj.dump(), err);
-    if (str2json(settings).empty())
-      return false;
-
-    obj.emplace(pwm, true);
-    settings = SpiSetSettings(obj.dump(), err);
-
-    return !str2json(settings).empty();
-#endif
-  }
-
-  bool SpiStopPwm(const int index)
-  {
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return false;
-#else
-    std::string pwm = std::string("PWM") + std::to_string(index + 1);
-    /*
-      sendGetCommand(pwm);
-      std::string answer;
-      receiveStripAnswer(answer);
-      if (answer == "0") return false; // Already stopped
-    */
-    return spi_.send_set_command_check(pwm, 0);
-#endif
-  }
-
-  std::optional<Pwm_state> SpiGetPwm(const int index)
-  {
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    return false;
-#else
-    std::string pwm = std::string("PWM") + std::to_string(index + 1);
-    const auto arr = nlohmann::json::array({pwm, pwm + ".freq", pwm + ".high", pwm + ".low", pwm + ".repeats", pwm + ".duty"});
-    std::string err;
-    const auto settings = SpiGetSettings(arr.dump(), err);
-    const auto json = str2json(settings);
-    if (!json.empty() && json_get_bool(json, pwm)) {
-      return Pwm_state{}
-        .frequency(json_get_unsigned(json, pwm + ".freq"))
-        .high(json_get_unsigned(json, pwm + ".high"))
-        .low(json_get_unsigned(json, pwm + ".low"))
-        .repeat_count(json_get_unsigned(json, pwm + ".repeats"))
-        .duty_cycle(json_get_float(json, pwm + ".duty"));
-    }
-    return {};
-#endif
-  }
-
-  bool SpiSetDACsw(const bool value)
-  {
-    spi_.send_set_command("DACsw", value ? "1" : "0");
-    std::string answer;
-    if (!spi_.receive_strip_answer(answer))
-      return false;
-    return answer == (value ? "1" : "0");
-  }
+  // bool SpiSetDACsw(const bool value)
+  // {
+  //   spi_.send_set_command("DACsw", value ? "1" : "0");
+  //   std::string answer;
+  //   if (!spi_.receive_strip_answer(answer))
+  //     return false;
+  //   return answer == (value ? "1" : "0");
+  // }
 
   /**
    * @param num Zero-based number of PWM.
    */
-  bool SpiSetAOUT(const std::uint8_t num, const int val)
-  {
-    std::string var = std::string("AOUT") + (num ? "4" : "3") + ".raw";
-    spi_.send_set_command(var, std::to_string(val));
-    std::string answer;
-    if (!spi_.receive_strip_answer(answer)) return false;
-    return answer == std::to_string(val);
-  }
+  // bool SpiSetAOUT(const std::uint8_t num, const int val)
+  // {
+  //   std::string var = std::string("AOUT") + (num ? "4" : "3") + ".raw";
+  //   spi_.send_set_command(var, std::to_string(val));
+  //   std::string answer;
+  //   if (!spi_.receive_strip_answer(answer)) return false;
+  //   return answer == std::to_string(val);
+  // }
 
   bool SpiSetChannelMode(const int channel, const Measurement_mode mode)
   {
@@ -1309,7 +1256,7 @@ private:
   // SPI processing
   // ---------------------------------------------------------------------------
 
-  void spiLoop()
+  void eventsLoop()
   {
     while (is_measurement_started_) {
       // Receive events
@@ -1324,22 +1271,30 @@ private:
         events_.push(event);
 #endif
 
-      processSPIRequests();
-      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+      // spi_process_requests();
+      std::this_thread::sleep_for(std::chrono::milliseconds{20});
     }
   }
 
-  void processSPIRequests()
-  {
-    std::pair<std::uint8_t, std::string> request;
-    while (in_spi_.pop(request)) {
-      std::string error;
-      auto response = request.first ?
-        SpiSetSettings(request.second, error) :
-        SpiGetSettings(request.second, error);
-      out_spi_.push(std::make_pair(response, error));
-    }
-  }
+  // void spi_process_requests()
+  // {
+  //   std::pair<Spi_request_type, std::string> request;
+  //   while (in_spi_.pop(request)) {
+  //     std::string error, response;
+  //     switch (request.first) {
+  //     case Spi_request_type::set_state:
+  //       response = SpiSetSettings(request.second, error);
+  //       break;
+  //     case Spi_request_type::get_state:
+  //       response = SpiGetSettings(request.second, error);
+  //       break;
+  //     case Spi_request_type::get_events:
+  //       response = SpiGetEvents(request.second, error);
+  //       break;
+  //     }
+  //     out_spi_.push(std::make_pair(response, error));
+  //   }
+  // }
 
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
   int emul_button_pressed_{};
@@ -1458,57 +1413,57 @@ private:
   // JSON helpers
   // -------------------------------------------------------------------------
 
-  static nlohmann::json str2json(const std::string& str)
-  {
-    nlohmann::json j;
-    try {
-      j = nlohmann::json::parse(str);
-    } catch (nlohmann::json::parse_error& e) {
-      std::cerr << "Board: json parse failed data:" << str << "error:" << e.what() << '\n';
-      return nlohmann::json();
-    }
-    return j;
-  }
+  // static nlohmann::json str2json(const std::string& str)
+  // {
+  //   nlohmann::json j;
+  //   try {
+  //     j = nlohmann::json::parse(str);
+  //   } catch (nlohmann::json::parse_error& e) {
+  //     std::cerr << "Board: json parse failed data:" << str << "error:" << e.what() << '\n';
+  //     return nlohmann::json();
+  //   }
+  //   return j;
+  // }
 
-  static std::string json_get_string(const nlohmann::json& j, const std::string& key)
-  {
-    auto it = j.find(key);
-    if (it == j.end())
-      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-    if (!it->is_string())
-      throw std::runtime_error{"invalid string in JSON"};
-    return it->get<std::string>();
-  }
+  // static std::string json_get_string(const nlohmann::json& j, const std::string& key)
+  // {
+  //   auto it = j.find(key);
+  //   if (it == j.end())
+  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+  //   if (!it->is_string())
+  //     throw std::runtime_error{"invalid string in JSON"};
+  //   return it->get<std::string>();
+  // }
 
-  static std::uint32_t json_get_unsigned(const nlohmann::json& j, const std::string& key)
-  {
-    auto it = j.find(key);
-    if (it == j.end())
-      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-    if (!it->is_number_unsigned())
-      throw std::runtime_error{"invalid unsigned in JSON"};
-    return it->get<std::uint32_t>();
-  }
+  // static std::uint32_t json_get_unsigned(const nlohmann::json& j, const std::string& key)
+  // {
+  //   auto it = j.find(key);
+  //   if (it == j.end())
+  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+  //   if (!it->is_number_unsigned())
+  //     throw std::runtime_error{"invalid unsigned in JSON"};
+  //   return it->get<std::uint32_t>();
+  // }
 
-  static float json_get_float(const nlohmann::json& j, const std::string& key)
-  {
-    auto it = j.find(key);
-    if (it == j.end())
-      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-    if (!it->is_number_float())
-      throw std::runtime_error{"invalid float in JSON"};
-    return it->get<float>();
-  }
+  // static float json_get_float(const nlohmann::json& j, const std::string& key)
+  // {
+  //   auto it = j.find(key);
+  //   if (it == j.end())
+  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+  //   if (!it->is_number_float())
+  //     throw std::runtime_error{"invalid float in JSON"};
+  //   return it->get<float>();
+  // }
 
-  static bool json_get_bool(const nlohmann::json& j, const std::string& key)
-  {
-    auto it = j.find(key);
-    if (it == j.end())
-      throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-    if (!it->is_boolean())
-      throw std::runtime_error{"invalid boolean in JSON"};
-    return it->get<bool>();
-  }
+  // static bool json_get_bool(const nlohmann::json& j, const std::string& key)
+  // {
+  //   auto it = j.find(key);
+  //   if (it == j.end())
+  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
+  //   if (!it->is_boolean())
+  //     throw std::runtime_error{"invalid boolean in JSON"};
+  //   return it->get<bool>();
+  // }
 };
 
 // -----------------------------------------------------------------------------
@@ -1640,29 +1595,14 @@ void Timeswipe::set_error_handler(Error_handler&& handler)
   return rep_->set_error_handler(std::move(handler));
 }
 
-std::string Timeswipe::set_settings(const std::string& request)
+void Timeswipe::set_state(const State& state)
 {
-  return rep_->settings(1, request);
+  return rep_->set_state(state);
 }
 
-std::string Timeswipe::settings(const std::string& request)
+auto Timeswipe::state() const -> const State&
 {
-  return rep_->settings(0, request);
-}
-
-bool Timeswipe::start_pwm(const int index, const Pwm_state& state)
-{
-  return rep_->start_pwm(index, state);
-}
-
-bool Timeswipe::stop_pwm(const int index)
-{
-  return rep_->stop_pwm(index);
-}
-
-std::optional<Pwm_state> Timeswipe::pwm_state(const int index)
-{
-  return rep_->pwm_state(index);
+  return rep_->state();
 }
 
 bool Timeswipe::SetChannelMode(const int channel, const Measurement_mode mode)

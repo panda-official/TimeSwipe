@@ -32,6 +32,7 @@ enum class Errc {
 
   ok = 0,
   generic = 1,
+  out_of_range = 2,
 
   /** PID file section **/
 
@@ -69,6 +70,7 @@ constexpr const char* make_literal(const Errc errc) noexcept
   switch (errc) {
   case Errc::ok: return "ok";
   case Errc::generic: return "generic error";
+  case Errc::out_of_range: return "out of range";
   case Errc::pid_file_lock_failed: return "PID file lock failed";
   case Errc::board_is_busy: return "board is busy";
   case Errc::invalid_drift_reference: return "invalid drift reference";

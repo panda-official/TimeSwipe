@@ -18,6 +18,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <thread>
 
 #include <unistd.h>
@@ -29,7 +30,7 @@ void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " <command> [--index <index>] [--freq <freq>] [--high <high>] [--low <low>] [--repeats <repeats>] [--duty <duty>] [--trace-spi]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " <pwm_index> <command> [--freq <freq>] [--high <high>] [--low <low>] [--repeats <repeats>] [--duty <duty>] [--trace-spi]'" << std::endl;
     std::cerr << "command is one of start stop get" << std::endl;
     std::cerr << "index is only valid for start or stop commands" << std::endl;
     std::cerr << "duty, freq, high, low, repeats, duty are valid for start command" << std::endl;
@@ -43,116 +44,114 @@ int main(int argc, char *argv[])
     bool start = false;
     bool stop = false;
     bool get = false;
-    int index = 0;
-    drv::Pwm_state state;
-    state.frequency(1).high(4095).low(0).repeat_count(0).duty_cycle(.5);
+    int pwm_index{};
+    drv::Timeswipe_state state;
+    for (int i{}; i < 2; ++i) {
+      state
+        .set_pwm_frequency(i, 1)
+        .set_pwm_high(i, 4095)
+        .set_pwm_low(i, 0)
+        .set_pwm_repeat_count(i, 0)
+        .set_pwm_duty_cycle(i, .5);
+    }
 
     bool both = true;
 
-    if (argc < 2) {
+    if (argc < 3) {
         usage(argv[0]);
         return 1;
     }
+
     std::string command = argv[1];
     if (command == "start") start = true;
     else if (command == "stop") stop = true;
     else if (command == "get") get = true;
     else {
+      usage(argv[0]);
+      return 1;
+    }
+
+    pwm_index = std::stoi(argv[2]);
+    if (pwm_index < 0 || pwm_index > 1) {
+      std::cerr << "index must be in range [0, 1]" << std::endl;
+      usage(argv[0]);
+      return 1;
+    }
+    both = false;
+
+    for (int i{3}; i < argc; ++i) {
+      if (!strcmp(argv[i],"--freq")) {
+        if (i+1 > argc) {
+          usage(argv[0]);
+          return 1;
+        }
+        state.set_pwm_frequency(pwm_index, std::stoi(argv[i+1]));
+        ++i;
+      } else if (!strcmp(argv[i],"--high")) {
+        if (i+1 > argc) {
+          usage(argv[0]);
+          return 1;
+        }
+        state.set_pwm_high(pwm_index, std::stoi(argv[i+1]));
+        ++i;
+      } else if (!strcmp(argv[i],"--low")) {
+        if (i+1 > argc) {
+          usage(argv[0]);
+          return 1;
+        }
+        state.set_pwm_low(pwm_index, std::stoi(argv[i+1]));
+        ++i;
+      } else if (!strcmp(argv[i],"--repeats")) {
+        if (i+1 > argc) {
+          usage(argv[0]);
+          return 1;
+        }
+        state.set_pwm_repeat_count(pwm_index, std::stoi(argv[i+1]));
+        ++i;
+      } else if (!strcmp(argv[i],"--duty")) {
+        if (i+1 > argc) {
+          usage(argv[0]);
+          return 1;
+        }
+        state.set_pwm_duty_cycle(pwm_index, std::stof(argv[i+1]));
+        ++i;
+      } else {
+        std::cerr << "unkown argument \"" << argv[i] << "\"" << std::endl;
         usage(argv[0]);
         return 1;
+      }
     }
 
-    for (int i = 2; i < argc; i++) {
-        if (!strcmp(argv[i],"--num")) {
-            if (i+1 > argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            index = std::stoi(argv[i+1]);
-            ++i;
-            if (index > 1) {
-                std::cerr << "index can be 0 or 1 only" << std::endl;
-                usage(argv[0]);
-                return 1;
-            }
-            both = false;
-        } else if (!strcmp(argv[i],"--freq")) {
-            if (i+1 > argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            state.frequency(std::stoi(argv[i+1]));
-            ++i;
-        } else if (!strcmp(argv[i],"--high")) {
-            if (i+1 > argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            state.high(std::stoi(argv[i+1]));
-            ++i;
-        } else if (!strcmp(argv[i],"--low")) {
-            if (i+1 > argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            state.low(std::stoi(argv[i+1]));
-            ++i;
-        } else if (!strcmp(argv[i],"--repeats")) {
-            if (i+1 > argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            state.repeat_count(std::stoi(argv[i+1]));
-            ++i;
-        } else if (!strcmp(argv[i],"--duty")) {
-            if (i+1 > argc) {
-                usage(argv[0]);
-                return 1;
-            }
-            state.duty_cycle(std::stof(argv[i+1]));
-            ++i;
-        } else {
-            std::cerr << "unkown argument \"" << argv[i] << "\"" << std::endl;
-            usage(argv[0]);
-            return 1;
-        }
+    for (int i{}; i < 2; ++i) {
+      if (!both && pwm_index != i) continue;
+      if (start) {
+        std::cout << "start " << i
+                  << " freq: " << *state.pwm_frequency(i)
+                  << " high: " << *state.pwm_high(i)
+                  << " low: " << *state.pwm_low(i)
+                  << " repeats: " << *state.pwm_repeat_count(i)
+                  << " duty: " << *state.pwm_duty_cycle(i)
+                  << std::endl;
+        state.set_pwm_start(i, true);
+        tswipe.set_state(state);
+        std::cout << "start " << i << " succeded" << std::endl;
+      } else if (stop) {
+        std::cout << "stop " << i << std::endl;
+        state.set_pwm_start(i, false);
+        tswipe.set_state(state);
+        std::cout << "stop " << i << " succeded" << std::endl;
+      } else if (get) {
+        std::cout << "get " << i << std::endl;
+        const auto& state = tswipe.state();
+        std::cout << "get " << i
+                  << " freq: " << *state.pwm_frequency(i)
+                  << " high: " << *state.pwm_high(i)
+                  << " low: " << *state.pwm_low(i)
+                  << " repeats: " << *state.pwm_repeat_count(i)
+                  << " duty: " << *state.pwm_duty_cycle(i)
+                  << std::endl;
+      }
     }
 
-    for (int i = 0; i < 2; i++) {
-        if (!both && index != i) continue;
-        if (start) {
-          std::cout << "start " << i
-                    << " freq: " << state.frequency()
-                    << " high: " << state.high()
-                    << " low: " << state.low()
-                    << " repeats: " << state.repeat_count()
-                    << " duty: " << state.duty_cycle()
-                    << std::endl;
-            if (!tswipe.start_pwm(i, state)) {
-                std::cout << "start " << i << " failed" << std::endl;
-            } else {
-                std::cout << "start " << i << " succeded" << std::endl;
-            }
-        } else if (stop) {
-            std::cout << "stop " << i << std::endl;
-            if (!tswipe.stop_pwm(i)) {
-                std::cout << "stop " << i << " failed" << std::endl;
-            } else {
-                std::cout << "stop " << i << " succeded" << std::endl;
-            }
-        } else if (get) {
-            std::cout << "get " << i << std::endl;
-            if (auto pwm = tswipe.pwm_state(i)) {
-              std::cout << "get " << i
-                        << " freq: " << pwm->frequency()
-                        << " high: " << pwm->high()
-                        << " low: " << pwm->low()
-                        << " repeats: " << pwm->repeat_count()
-                        << " duty: " << pwm->duty_cycle()
-                        << std::endl;
-            } else
-              std::cout << "get " << i << " failed" << std::endl;
-        }
-    }
     return 0;
 }

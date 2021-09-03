@@ -95,7 +95,7 @@ try {
     in >> config;
     if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
       if (!cs->empty())
-        ts.set_settings(cs->dump());
+        ts.set_state(drv::Timeswipe_state{cs->dump()});
     }
   }
 

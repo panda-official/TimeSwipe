@@ -125,8 +125,7 @@ int main(int argc, char *argv[])
 
     // Board Preparation
     if (!config_script.empty())
-      //configure the board before start:
-      tswipe.set_settings(config_script.dump());
+      tswipe.set_state(drv::Timeswipe_state{config_script.dump()});
 
     tswipe.set_mode(modes.at(configitem["MODE"]));
 

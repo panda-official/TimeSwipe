@@ -20,8 +20,8 @@
 #define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 
 #include "event.hpp"
-#include "pwm_state.hpp"
 #include "sensor_data.hpp"
+#include "timeswipe_state.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -46,6 +46,9 @@ Version version() noexcept;
 /// The Timeswipe board.
 class Timeswipe final {
 public:
+  /// An alias of the board state.
+  using State = Timeswipe_state;
+
   /**
    * The destructor.
    *
@@ -156,41 +159,6 @@ public:
    */
   [[deprecated]]
   void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
-
-  /**
-   * Starts the PWM generator.
-   *
-   * PWM generator will run for `(state.repeat_count() / state.frequency())`
-   * seconds and stop.
-   *
-   * @remarks This method can be called even after the call of start().
-   *
-   * @param index PWM index. Must be in range `[0, 1]`.
-   * @param state PWM state.
-   *
-   * @return false if at least one wrong parameter given or generator already in start state
-   */
-  bool start_pwm(int index, const Pwm_state& state);
-
-  /**
-   * Stops the PWM generator.
-   *
-   * This method can be called even after the call of start().
-   *
-   * @param index PWM index. Must be in range `[0, 1]`.
-   *
-   * @return false if at least wrong parameter given or generator already in stop state
-   */
-  bool stop_pwm(int index);
-
-  /**
-   * Gets the PWM generator's state.
-   *
-   * @param index The PWM index. Must be in range [0, 1].
-   *
-   * @returns The PWM state if the PWM of the given `index` is active.
-   */
-  std::optional<Pwm_state> pwm_state(int index);
 
   /**
    * @brief Sets the channel measurement mode: Voltage or Current
@@ -389,7 +357,7 @@ public:
    * @param force Forces the reading of references from a filesystem if `true`.
    * Otherwise, the last cached value will be returned.
    *
-   * @throws An Exception with the code `Errc::kInvalidDriftReference` if
+   * @throws An Exception with the code `Errc::invalid_drift_reference` if
    * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
    * @see calculate_drift_references(), clear_drift_references(), get_drift_deltas().
@@ -481,22 +449,18 @@ public:
   void set_error_handler(Error_handler&& handler);
 
   /**
-   * Sets the board settings.
+   * Sets the board state.
    *
-   * @returns The board settings in JSON format.
-   *
-   * @param request The request in JSON format.
+   * @returns The actual board state after applying the given `state`.
    */
-  std::string set_settings(const std::string& request);
+  void set_state(const State& state);
 
   /**
-   * Gets the board settings.
+   * Gets the board state.
    *
-   * @returns The board settings in JSON format.
-   *
-   * @param request The request in JSON format.
+   * @returns The actual board state.
    */
-  std::string settings(const std::string& request);
+  const State& state() const;
 
 private:
   struct Rep;
