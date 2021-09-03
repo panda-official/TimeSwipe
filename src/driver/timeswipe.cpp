@@ -74,7 +74,7 @@ public:
 
   Rep()
     : pid_file_{"timeswipe"}
-    , spi_{detail::Bcm_spi::Spi_pins::spi0}
+    , spi_{detail::Bcm_spi::Pins::spi0}
   {
     // Lock PID file.
     std::string msg;
@@ -843,7 +843,7 @@ private:
   {
     const auto get_events = [this](std::string& ev)
     {
-      spi_.send_events_command();
+      spi_.send_get_events_command();
       return spi_.receive_answer(ev);
     };
 

@@ -34,24 +34,26 @@ namespace panda::timeswipe::driver::detail {
 
 class Bcm_spi final : public CSPI {
 public:
-  enum Spi_pins {
+  enum Pins {
     spi0,
     aux
   };
 
+  /// The destructor.
   ~Bcm_spi()
   {
-    if (is_spi_initialized_[Spi_pins::aux])
+    if (is_spi_initialized_[Pins::aux])
       bcm2835_aux_spi_end();
 
-    if (is_spi_initialized_[Spi_pins::spi0])
+    if (is_spi_initialized_[Pins::spi0])
       bcm2835_spi_end();
 
     if (is_initialized_)
       bcm2835_close();
   }
 
-  Bcm_spi(const Spi_pins pins = Spi_pins::spi0)
+  /// The constructor.
+  explicit Bcm_spi(const Pins pins = Pins::spi0)
     : pins_{pins}
   {
     // FIXME: throw exceptions on errors instead of just return.
@@ -67,11 +69,10 @@ public:
     if (is_spi_initialized_[pins_])
       return;
     else if ( !(is_spi_initialized_[pins_] =
-        (pins_ == Spi_pins::spi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
+        (pins_ == Pins::spi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
       return;
 
-    //set default rate:
-    //set_speed(100000);
+    // Set default rate
     set_speed(50000);
   }
 
@@ -99,15 +100,17 @@ public:
     rec_fifo_.reset();
 
     // A delay CS to fall required.
-    bcm2835_delay(20); //corresponds to 50KHz
+    bcm2835_delay(20); // corresponds to 50KHz
 
     // Flow control.
-    Character ch=0;
-    com_cntr_.start(CSyncSerComFSM::FSM::sendLengthMSB);
-    while (com_cntr_.proc(ch, msg))
-      transfer(ch);
-    if (com_cntr_.bad())
-      return false;
+    {
+      Character ch{};
+      com_cntr_.start(CSyncSerComFSM::FSM::sendLengthMSB);
+      while (com_cntr_.proc(ch, msg))
+        transfer(ch);
+      if (com_cntr_.bad())
+        return false;
+    }
 
     // Provide add clock.
     transfer(0);
@@ -115,10 +118,13 @@ public:
     // Wait for a "done" state.
     wait_done();
 
-    com_cntr_.start(CSyncSerComFSM::FSM::recSilenceFrame);
-    do
-      ch = transfer(0); //provide a clock
-    while (com_cntr_.proc(ch, rec_fifo_));
+    {
+      Character ch{};
+      com_cntr_.start(CSyncSerComFSM::FSM::recSilenceFrame);
+      do
+        ch = transfer(0); // provide a clock
+      while (com_cntr_.proc(ch, rec_fifo_));
+    }
 
     set_cs(false);
 
@@ -137,21 +143,40 @@ public:
     return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
 
-  static std::string make_channel_command(const int num,
-    const char* const pSubDomain)
+  bool send(const std::string& command)
   {
-    return std::string{"CH"}.append(std::to_string(num + 1))
-      .append(".").append(pSubDomain);
+    CFIFO cmd;
+    cmd += command;
+    const auto res = send(cmd);
+#ifdef PANDA_TIMESWIPE_TRACE_SPI
+    std::clog << "spi: sent: \"" << command << "\"" << std::endl;
+#endif
+    return res;
   }
 
   void send_set_command(const std::string& variable, const std::string& value)
   {
-    send_command(variable + "<" + value + "\n");
+    send(variable + "<" + value + "\n");
   }
 
   void send_get_command(const std::string& variable)
   {
-    send_command(variable + ">\n");
+    send(variable + ">\n");
+  }
+
+  void send_set_settings_command(const std::string& request)
+  {
+    send("js<" + request + "\n");
+  }
+
+  void send_get_settings_command(const std::string& request)
+  {
+    send("js>" + request + "\n");
+  }
+
+  void send_get_events_command()
+  {
+    send("je>\n");
   }
 
   bool receive_answer(std::string& ans)
@@ -181,12 +206,6 @@ public:
     return ret;
   }
 
-  bool receive_strip_answer(std::string& ans)
-  {
-    std::string error;
-    return receive_strip_answer(ans, error);
-  }
-
   bool receive_strip_answer(std::string& ans, std::string& error)
   {
     if (!receive_answer(ans, error))
@@ -199,32 +218,10 @@ public:
     return true;
   }
 
-  void send_set_settings_command(const std::string& request)
+  bool receive_strip_answer(std::string& ans)
   {
-    send_command("js<" + request + "\n");
-  }
-
-  void send_get_settings_command(const std::string& request)
-  {
-    send_command("js>" + request + "\n");
-  }
-
-  void send_events_command()
-  {
-    send_command("je>\n");
-  }
-
-  template <class Number>
-  bool send_set_command_check(const std::string& variable, const Number value) {
-    send_set_command(variable, std::to_string(value));
-    // FIXME: if sleep disable receive() fails sometimes.
-    std::this_thread::sleep_for(std::chrono::nanoseconds{1});
-    std::string answer;
-    receive_strip_answer(answer);
-    Number num{};
-    std::istringstream s{answer};
-    s >> num;
-    return num == value;
+    std::string error;
+    return receive_strip_answer(ans, error);
   }
 
 private:
@@ -232,7 +229,7 @@ private:
   inline static bool is_spi_initialized_[2];
 
   CSyncSerComFSM com_cntr_;
-  Spi_pins pins_;
+  Pins pins_;
   CFIFO rec_fifo_;
 
   void set_phpol(bool /*bPhase*/, bool /*bPol*/) override
@@ -249,7 +246,7 @@ private:
 
   Character transfer(const Character ch)
   {
-    if (pins_ != Spi_pins::spi0) {
+    if (pins_ != Pins::spi0) {
       char t = ch;
       char r{};
       _bcm_aux_spi_transfernb(&t, &r, 1, 1);
@@ -262,13 +259,13 @@ private:
 
   void purge()
   {
-    if (pins_ == Spi_pins::spi0)
+    if (pins_ == Pins::spi0)
       _bcm_spi_purge();
   }
 
   void set_cs(const bool how)
   {
-    if (pins_ != Spi_pins::spi0) {
+    if (pins_ != Pins::spi0) {
       char t{};
       char r;
       _bcm_aux_spi_transfernb(&t, &r, 1, how);
@@ -278,27 +275,15 @@ private:
 
   void wait_done()
   {
-    if (pins_ == Spi_pins::spi0) while (!_bsm_spi_is_done()){}
+    if (pins_ == Pins::spi0) while (!_bsm_spi_is_done()){}
   }
 
   void set_speed(const std::uint32_t speed_hz)
   {
-    if (pins_ == Spi_pins::spi0)
+    if (pins_ == Pins::spi0)
       bcm2835_spi_set_speed_hz(speed_hz);
     else
       bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
-  }
-
-  // ===========================================================================
-
-  void send_command(const std::string& cmd)
-  {
-    CFIFO command;
-    command += cmd;
-    send(command);
-#ifdef PANDA_TIMESWIPE_TRACE_SPI
-    std::clog << "spi: sent: \"" << command << "\"" << std::endl;
-#endif
   }
 };
 

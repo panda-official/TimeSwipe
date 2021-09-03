@@ -97,7 +97,7 @@ int main ( int argc, char *argv[] )
     if ( bMasterMode )
     {
         using drv::detail::Bcm_spi;
-        Bcm_spi spi ( nSPI ? Bcm_spi::Spi_pins::aux : Bcm_spi::Spi_pins::spi0 );
+        Bcm_spi spi ( nSPI ? Bcm_spi::Pins::aux : Bcm_spi::Pins::spi0 );
 
         if (!spi.is_initialized())
         {
