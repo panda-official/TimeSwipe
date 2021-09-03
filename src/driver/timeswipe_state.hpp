@@ -19,6 +19,8 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_TIMESWIPE_STATE_HPP
 #define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_STATE_HPP
 
+#include "../common/basics.hpp"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -40,6 +42,34 @@ public:
 
   /// @returns The result of conversion of this instance to a stringified JSON.
   std::string to_stringified_json() const;
+
+  /// @name Channel control
+  ///
+  /// @brief This API provides a way to control of PWM.
+  ///
+  /// Channel indexes must be in range `[0, 3]`.
+  ///
+  /// @{
+
+  /// Sets the channel measurement mode.
+  Timeswipe_state& set_channel_measurement_mode(int index, Measurement_mode value);
+
+  /// @returns The value of channel measurement mode.
+  std::optional<Measurement_mode> channel_measurement_mode(int index) const;
+
+  /// Sets the channel gain.
+  Timeswipe_state& set_channel_gain(int index, float value);
+
+  /// @returns The value of channel gain.
+  std::optional<float> channel_gain(int index) const;
+
+  /// Sets the channel IEPE.
+  Timeswipe_state& set_channel_iepe(int index, bool value);
+
+  /// @returns The value of channel IEPE.
+  std::optional<bool> channel_iepe(int index) const;
+
+  /// @}
 
   /// @name PWM control
   ///

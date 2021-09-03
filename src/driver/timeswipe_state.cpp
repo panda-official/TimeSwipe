@@ -26,6 +26,17 @@
 
 namespace rajson = dmitigr::rajson;
 
+namespace dmitigr::rajson {
+template<>
+struct Conversions<panda::timeswipe::Measurement_mode> final {
+  template<class Encoding, class Allocator>
+  static auto from(const rapidjson::GenericValue<Encoding, Allocator>& value)
+  {
+    return static_cast<panda::timeswipe::Measurement_mode>(to<int>(value));
+  }
+};
+} // namespace dmitigr::rajson
+
 namespace panda::timeswipe::driver {
 
 // -----------------------------------------------------------------------------
@@ -44,6 +55,38 @@ struct Timeswipe_state::Rep final {
   {
     return rajson::to_stringified(doc_);
   }
+
+  void set_channel_measurement_mode(const int index, const Measurement_mode value)
+  {
+    set_member("CH", index + 1, "mode", static_cast<int>(value));
+  }
+
+  std::optional<Measurement_mode> channel_measurement_mode(const int index) const
+  {
+    return member<Measurement_mode>("CH", index + 1, "mode");
+  }
+
+  void set_channel_gain(const int index, const float value)
+  {
+    set_member("CH", index + 1, "gain", value);
+  }
+
+  std::optional<float> channel_gain(const int index) const
+  {
+    return member<float>("CH", index + 1, "gain");
+  }
+
+  void set_channel_iepe(const int index, const bool value)
+  {
+    set_member("CH", index + 1, "iepe", value);
+  }
+
+  std::optional<bool> channel_iepe(const int index) const
+  {
+    return member<bool>("CH", index + 1, "iepe");
+  }
+
+  // ---------------------------------------------------------------------------
 
   void set_pwm_start(const int index, const bool value)
   {
@@ -182,6 +225,42 @@ std::string Timeswipe_state::to_stringified_json() const
 Timeswipe_state::Timeswipe_state(const std::string_view stringified_json)
   : rep_{std::make_unique<Rep>(stringified_json)}
 {}
+
+Timeswipe_state& Timeswipe_state::set_channel_measurement_mode(const int index,
+  const Measurement_mode value)
+{
+  rep_->set_channel_measurement_mode(index, value);
+  return *this;
+}
+
+std::optional<Measurement_mode> Timeswipe_state::channel_measurement_mode(const int index) const
+{
+  return rep_->channel_measurement_mode(index);
+}
+
+Timeswipe_state& Timeswipe_state::set_channel_gain(const int index, const float value)
+{
+  rep_->set_channel_gain(index, value);
+  return *this;
+}
+
+std::optional<float> Timeswipe_state::channel_gain(const int index) const
+{
+  return rep_->channel_gain(index);
+}
+
+Timeswipe_state& Timeswipe_state::set_channel_iepe(const int index, const bool value)
+{
+  rep_->set_channel_iepe(index, value);
+  return *this;
+}
+
+std::optional<bool> Timeswipe_state::channel_iepe(const int index) const
+{
+  return rep_->channel_iepe(index);
+}
+
+// -----------------------------------------------------------------------------
 
 Timeswipe_state& Timeswipe_state::set_pwm_start(const int index, const bool value)
 {
