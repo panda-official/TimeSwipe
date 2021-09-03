@@ -65,55 +65,17 @@ public:
    */
   static Timeswipe& instance();
 
-  /// Non move-constructible.
-  Timeswipe(Timeswipe&&) = delete;
-
-  /// Non move-assignable.
-  Timeswipe& operator=(Timeswipe&&) = delete;
-
   /// Non copy-constructible.
   Timeswipe(const Timeswipe&) = delete;
 
   /// Non copy-assignable.
   Timeswipe& operator=(const Timeswipe&) = delete;
 
-  /// Input mode.
-  enum class Mode {
-    /// IEPE.
-    iepe,
-    /// Normal signal.
-    normal,
-    /// Digital.
-    digital
-  };
+  /// Non move-constructible.
+  Timeswipe(Timeswipe&&) = delete;
 
-  /**
-   * @returns The value of type `Mode` converted from `value`.
-   *
-   * @throws `std::invalid_argument` if `value` doesn't corresponds to any
-   * member of Mode.
-   */
-  static Mode make_mode(const std::string_view value);
-
-  /**
-   * @returns The value of type `std::string_view` converted from `value`.
-   *
-   * @throws `std::invalid_argument` if `value` doesn't corresponds to any
-   * member of Mode.
-   */
-  static std::string_view make_string_view(const Mode value);
-
-  /// Measurement mode.
-  enum class Measurement_mode {
-    Voltage,
-    Current
-  };
-
-  /// Sets the input mode.
-  void set_mode(Mode mode);
-
-  /// @returns Input mode.
-  Mode get_mode() const noexcept;
+  /// Non move-assignable.
+  Timeswipe& operator=(Timeswipe&&) = delete;
 
   /**
    * \brief Setup Sensor offsets
@@ -159,75 +121,6 @@ public:
    */
   [[deprecated]]
   void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
-
-  /**
-   * @brief Sets the channel measurement mode: Voltage or Current
-   * @param[in] channel The channel to be set
-   * @param[in] nMode - the measurement mode: Voltage or Current
-   *
-   * @return true on operation success, false otherwise
-   */
-  [[deprecated]]
-  bool SetChannelMode(int channel, Measurement_mode nMode);
-
-  /**
-   * @brief Requests the channel measurement mode
-   * @param[in] nCh - the channel to be requested
-   * @param[out] nMode - the actual measurement mode: Voltage or Current
-   *
-   * @return true on operation success, false otherwise
-   */
-  [[deprecated]]
-  bool GetChannelMode(int channel, Measurement_mode &nMode);
-
-  /**
-   * @brief Sets the channel gain value
-   * @details Sets the gain value in the range [1/8 : 128*1.375].
-   *  If the value doesn't correspond to available gain it will be fitted to the closest available gain
-   *
-   * @param[in] channel The channel to be set
-   * @param[in] Gain - the gain value to be set
-   *
-   * @return true on operation success, false otherwise
-   */
-  [[deprecated]]
-  bool SetChannelGain(int channel, float Gain);
-
-
-  /**
-   * @brief Requests the channel gain value
-   *
-   * @param[in] channel The channel to be requested
-   * @param[out] Gain - the actual gain of the channel
-   *
-   * @return true on operation success, false otherwise
-   */
-  [[deprecated]]
-  bool GetChannelGain(int channel, float &Gain);
-
-
-  /**
-   * @brief Switches channel IEPE mode ON/OFF
-   *
-   * @param[in] channel The channel to be set
-   * @param[in] bIEPEon - the state of the IEPE switch to be set
-   *
-   * @return true on operation success, false otherwise
-   */
-  [[deprecated]]
-  bool SetChannelIEPE(int channel, bool bIEPEon);
-
-
-  /**
-   * @brief Requests the channel IEPE mode
-   *
-   * @param[in] channel The channel to be requested
-   * @param[out] bIEPEon - the actual state of the IEPE switch
-   *
-   * @return true on operation success, false otherwise
-   */
-  [[deprecated]]
-  bool GetChannelIEPE(int channel, bool &bIEPEon);
 
   /// @returns Max possible sample rate.
   int get_max_sample_rate() const noexcept;

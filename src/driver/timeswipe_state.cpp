@@ -22,6 +22,7 @@
 #include "../3rdparty/dmitigr/assert.hpp"
 #include "../3rdparty/dmitigr/rajson.hpp"
 
+#include <algorithm>
 #include <utility>
 
 namespace rajson = dmitigr::rajson;
@@ -33,6 +34,15 @@ struct Conversions<panda::timeswipe::Measurement_mode> final {
   static auto from(const rapidjson::GenericValue<Encoding, Allocator>& value)
   {
     return static_cast<panda::timeswipe::Measurement_mode>(to<int>(value));
+  }
+};
+
+template<>
+struct Conversions<panda::timeswipe::Signal_mode> final {
+  template<class Encoding, class Allocator>
+  static auto from(const rapidjson::GenericValue<Encoding, Allocator>& value)
+  {
+    return static_cast<panda::timeswipe::Signal_mode>(to<int>(value));
   }
 };
 } // namespace dmitigr::rajson
@@ -51,10 +61,45 @@ struct Timeswipe_state::Rep final {
     : doc_{rajson::to_document(stringified_json)}
   {}
 
+  Rep(const Rep& rhs)
+  {
+    doc_.CopyFrom(rhs.doc_, doc_.GetAllocator(), true);
+  }
+
+  Rep& operator=(const Rep& rhs)
+  {
+    Rep tmp{rhs};
+    swap(tmp);
+    return *this;
+  }
+
+  Rep(Rep&&) = default;
+
+  Rep& operator=(Rep&&) = default;
+
+  void swap(Rep& rhs) noexcept
+  {
+    doc_.Swap(rhs.doc_);
+  }
+
   std::string to_stringified_json() const
   {
     return rajson::to_stringified(doc_);
   }
+
+  // ---------------------------------------------------------------------------
+
+  void set_signal_mode(const Signal_mode mode)
+  {
+    set_member("Mode", static_cast<int>(mode));
+  }
+
+  std::optional<Signal_mode> signal_mode() const
+  {
+    return member<Signal_mode>("Mode");
+  }
+
+  // ---------------------------------------------------------------------------
 
   void set_channel_measurement_mode(const int index, const Measurement_mode value)
   {
@@ -178,7 +223,7 @@ private:
     return root_name.append(std::to_string(index)).append(".").append(sub_name);
   }
 
-  /// Sets PWM at `index` to `value`.
+  /// Sets `root_name` variable with index `index` to `value`.
   template<typename T>
   void set_member(std::string root_name, const int index, T&& value)
   {
@@ -192,7 +237,14 @@ private:
     set_member(member_name(std::move(root_name), index, sub_name), std::forward<T>(value));
   }
 
-  /// @returns The value of PWM at `index`.
+  /// @returns The value of `root_name` variable.
+  template<typename T>
+  std::optional<T> member(const std::string_view root_name) const
+  {
+    return rajson::Value_view{doc_}.optional<T>(root_name);
+  }
+
+  /// @returns The variable at `index`.
   template<typename T>
   std::optional<T> member(std::string root_name, const int index) const
   {
@@ -213,18 +265,61 @@ private:
 
 Timeswipe_state::~Timeswipe_state() = default;
 
+Timeswipe_state::Timeswipe_state(const Timeswipe_state& rhs)
+  : rep_{std::make_unique<Rep>(*rhs.rep_)}
+{}
+
+Timeswipe_state& Timeswipe_state::operator=(const Timeswipe_state& rhs)
+{
+  Timeswipe_state tmp{rhs};
+  swap(tmp);
+  return *this;
+}
+
+Timeswipe_state::Timeswipe_state(Timeswipe_state&& rhs)
+  : rep_{std::move(rhs.rep_)}
+{}
+
+Timeswipe_state& Timeswipe_state::operator=(Timeswipe_state&& rhs)
+{
+  Timeswipe_state tmp{std::move(rhs)};
+  swap(tmp);
+  return *this;
+}
+
 Timeswipe_state::Timeswipe_state()
   : rep_{std::make_unique<Rep>()}
 {}
+
+Timeswipe_state::Timeswipe_state(const std::string_view stringified_json)
+  : rep_{std::make_unique<Rep>(stringified_json)}
+{}
+
+void Timeswipe_state::swap(Timeswipe_state& other) noexcept
+{
+  using std::swap;
+  swap(rep_, other.rep_);
+}
 
 std::string Timeswipe_state::to_stringified_json() const
 {
   return rep_->to_stringified_json();
 }
 
-Timeswipe_state::Timeswipe_state(const std::string_view stringified_json)
-  : rep_{std::make_unique<Rep>(stringified_json)}
-{}
+// -----------------------------------------------------------------------------
+
+Timeswipe_state& Timeswipe_state::set_signal_mode(const Signal_mode mode)
+{
+  rep_->set_signal_mode(mode);
+  return *this;
+}
+
+std::optional<Signal_mode> Timeswipe_state::signal_mode() const
+{
+  return rep_->signal_mode();
+}
+
+// -----------------------------------------------------------------------------
 
 Timeswipe_state& Timeswipe_state::set_channel_measurement_mode(const int index,
   const Measurement_mode value)

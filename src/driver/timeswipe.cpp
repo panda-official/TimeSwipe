@@ -189,9 +189,6 @@ public:
       emul_sent_ = 0;
 #endif
 
-      // Set mode.
-      SpiSetMode(static_cast<int>(read_mode_));
-
       // Start measurement.
       using std::chrono::milliseconds;
       std::this_thread::sleep_for(milliseconds{1});
@@ -249,23 +246,6 @@ public:
     return *state_;
   }
 
-  // std::string spi_queue_request(const Spi_request_type type, const std::string& request)
-  // {
-  //   in_spi_.push(std::make_pair(type, request));
-
-  //   if (!is_measurement_started_)
-  //     spi_process_requests();
-
-  //   std::pair<std::string, std::string> response;
-  //   while (!out_spi_.pop(response))
-  //     std::this_thread::sleep_for(std::chrono::milliseconds{100});
-
-  //   if (!response.second.empty())
-  //     throw Runtime_exception{response.second};
-
-  //   return response.first;
-  // }
-
   void stop()
   {
     if (!is_measurement_started_) return;
@@ -274,8 +254,6 @@ public:
     joinThreads();
 
     while (record_queue_.pop());
-    // while (in_spi_.pop());
-    // while (out_spi_.pop());
 
     /*
      * Sends the command to a Timeswipe firmware to stop measurement.
@@ -293,52 +271,9 @@ public:
     }
   }
 
-  bool SetChannelMode(const int channel, const Measurement_mode mode)
-  {
-    return SpiSetChannelMode(channel, mode);
-  }
-
-  bool GetChannelMode(const int channel, Measurement_mode& mode)
-  {
-    std::string err;
-    return SpiGetChannelMode(channel, mode, err);
-  }
-
-  bool SetChannelGain(const int channel, const float gain)
-  {
-    return SpiSetChannelGain(channel, gain);
-  }
-
-  bool GetChannelGain(const int channel, float& gain)
-  {
-    std::string err;
-    return SpiGetChannelGain(channel, gain, err);
-  }
-
-  bool SetChannelIEPE(const int channel, const bool iepe)
-  {
-    return SpiSetiepe(channel, iepe);
-  }
-
-  bool GetChannelIEPE(const int channel, bool& iepe)
-  {
-    std::string err;
-    return SpiGetiepe(channel, iepe, err);
-  }
-
   void set_burst_size(const std::size_t size)
   {
     burst_size_ = size;
-  }
-
-  void set_mode(const Mode mode)
-  {
-    read_mode_ = mode;
-  }
-
-  Mode get_mode() const noexcept
-  {
-    return read_mode_;
   }
 
   void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
@@ -553,7 +488,6 @@ private:
   std::array<float, 4> gains_{1, 1, 1, 1};
   std::array<float, 4> transmissions_{1, 1, 1, 1};
   std::array<float, 4> mfactors_{};
-  Mode read_mode_{};
   hat::Calibration_map calibration_map_;
   mutable std::optional<State> state_;
 
@@ -567,16 +501,7 @@ private:
   std::atomic_uint64_t record_error_count_{};
   std::size_t burst_size_{};
   Sensors_data burst_buffer_;
-
-  // enum class Spi_request_type {
-  //   set_state,
-  //   get_state,
-  //   get_events
-  // };
-  // boost::lockfree::spsc_queue<std::pair<Spi_request_type, std::string>, boost::lockfree::capacity<1024>> in_spi_;
-  // boost::lockfree::spsc_queue<std::pair<std::string, std::string>, boost::lockfree::capacity<1024>> out_spi_;
   boost::lockfree::spsc_queue<Event, boost::lockfree::capacity<128>> events_;
-
   std::list<std::thread> threads_;
 
   // ---------------------------------------------------------------------------
@@ -662,10 +587,10 @@ private:
       rep_.resampler_ = std::move(resampler_);
 
       // Restore input modes.
-      rep_.SetChannelMode(4, chmm4_);
-      rep_.SetChannelMode(3, chmm3_);
-      rep_.SetChannelMode(2, chmm2_);
-      rep_.SetChannelMode(1, chmm1_);
+      State state;
+      for (int i{}; i < chmm_.size(); ++i)
+        state.set_channel_measurement_mode(i, chmm_[i]);
+      rep_.set_state(state);
     }
 
     // Stores the state and prepares Timeswipe instance for measurement.
@@ -675,25 +600,32 @@ private:
       , burst_size_{rep_.burst_size_}
     {
       // Store current input modes.
-      if (!(rep_.GetChannelMode(1, chmm1_) &&
-          rep_.GetChannelMode(2, chmm2_) &&
-          rep_.GetChannelMode(3, chmm3_) &&
-          rep_.GetChannelMode(4, chmm4_)))
-        throw Runtime_exception{Errc::generic};
+      const auto channel_mode = [this](const int index)
+      {
+        if (const auto mm = rep_.state().channel_measurement_mode(index))
+          return *mm;
+        else
+          throw Runtime_exception{Errc::invalid_board_state};
+      };
+      for (int i{}; i < chmm_.size(); ++i)
+        chmm_[i] = channel_mode(i);
 
       /*
-       * Change input modes to 1.
+       * Change input modes to `current`.
        * This will cause a "switching oscillation" appears at the output of
        * the measured value, which completely (according to PSpice) decays
        * after 1.5 ms.
        */
-      for (const auto m : {1, 2, 3, 4}) {
-        if (!rep_.SetChannelMode(m, Measurement_mode::Current))
-          throw Runtime_exception{Errc::generic};
+      {
+        State state;
+        for (int i{}; i < chmm_.size(); ++i)
+          state.set_channel_measurement_mode(i, Measurement_mode::Current);
+        rep_.set_state(state);
       }
+
       std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
 
-      // Store the current state of self.
+      // Store the other current state of rep_.
       resampler_ = rep_.set_sample_rate(rep_.get_max_sample_rate());
       rep_.set_burst_size(rep_.kDriftSamplesCount_);
     }
@@ -701,7 +633,7 @@ private:
     Rep& rep_;
     const decltype(rep_.sample_rate_) sample_rate_;
     const decltype(rep_.burst_size_) burst_size_;
-    Measurement_mode chmm1_, chmm2_, chmm3_, chmm4_;
+    std::array<Measurement_mode, 4> chmm_;
     decltype(rep_.resampler_) resampler_;
   };
 
@@ -900,13 +832,6 @@ private:
   // SPI stuff
   // ---------------------------------------------------------------------------
 
-  void SpiSetMode(const int num)
-  {
-    spi_.send_set_command("Mode", std::to_string(num));
-    std::string answer;
-    spi_.receive_answer(answer);
-  }
-
   void SpiSetEnableADmes(const bool value)
   {
     spi_.send_set_command("EnableADmes", std::to_string(value));
@@ -978,112 +903,6 @@ private:
     }
 #endif
     return result;
-  }
-
-//   std::string SpiGetSettings(const std::string& request, std::string& error)
-//   {
-// #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-//     return request;
-// #else
-//     spi_.send_get_settings_command(request);
-//     std::string answer;
-//     if (!spi_.receive_answer(answer, error))
-//       error = "read SPI failed";
-//     return answer;
-// #endif
-//   }
-
-//   std::string SpiSetSettings(const std::string& request, std::string& error)
-//   {
-// #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-//     return request;
-// #else
-//     spi_.send_set_settings_command(request);
-//     std::string answer;
-//     if (!spi_.receive_answer(answer, error))
-//       error = "read SPI failed";
-//     return answer;
-// #endif
-//   }
-
-  // bool SpiSetDACsw(const bool value)
-  // {
-  //   spi_.send_set_command("DACsw", value ? "1" : "0");
-  //   std::string answer;
-  //   if (!spi_.receive_strip_answer(answer))
-  //     return false;
-  //   return answer == (value ? "1" : "0");
-  // }
-
-  /**
-   * @param num Zero-based number of PWM.
-   */
-  // bool SpiSetAOUT(const std::uint8_t num, const int val)
-  // {
-  //   std::string var = std::string("AOUT") + (num ? "4" : "3") + ".raw";
-  //   spi_.send_set_command(var, std::to_string(val));
-  //   std::string answer;
-  //   if (!spi_.receive_strip_answer(answer)) return false;
-  //   return answer == std::to_string(val);
-  // }
-
-  bool SpiSetChannelMode(const int channel, const Measurement_mode mode)
-  {
-    spi_.send_set_command(detail::Bcm_spi::get_channel_command(channel, "mode"),
-      std::to_string(static_cast<int>(mode)));
-    std::string answer;
-    if (!spi_.receive_strip_answer(answer)) return false;
-    return answer == std::to_string(static_cast<int>(mode));
-  }
-
-  bool SpiGetChannelMode(const int channel, Measurement_mode& mode, std::string& err)
-  {
-    spi_.send_get_command(detail::Bcm_spi::get_channel_command(channel, "mode"));
-    std::string answer;
-    if (!spi_.receive_answer(answer, err)) {
-      mode = static_cast<Measurement_mode>(0);
-      return false;
-    }
-    mode = static_cast<Measurement_mode>(std::stoi(answer));
-    return true;
-  }
-
-  bool SpiSetChannelGain(const int channel, const float gain)
-  {
-    spi_.send_set_command(detail::Bcm_spi::get_channel_command(channel, "gain"),
-      std::to_string(gain));
-    std::string answer;
-    return spi_.receive_strip_answer(answer);
-  }
-
-  bool SpiGetChannelGain(const int channel, float& gain, std::string& err)
-  {
-    spi_.send_get_command(detail::Bcm_spi::get_channel_command(channel, "gain"));
-    std::string answer;
-    if (!spi_.receive_answer(answer, err)) {
-      gain = 0;
-      return false;
-    }
-    gain = std::stof(answer);
-    return true;
-  }
-
-  bool SpiSetiepe(const int channel, const bool iepe)
-  {
-    spi_.send_set_command(detail::Bcm_spi::get_channel_command(channel, "iepe"),
-      std::to_string(iepe));
-    std::string answer;
-    return spi_.receive_strip_answer(answer);
-  }
-
-  bool SpiGetiepe(const int channel, bool& iepe, std::string& err)
-  {
-    spi_.send_get_command(detail::Bcm_spi::get_channel_command(channel, "iepe"));
-    std::string answer;
-    if (!spi_.receive_answer(answer, err))
-      return iepe = false;
-    iepe = std::stoi(answer);
-    return true;
   }
 
   // -----------------------------------------------------------------------------
@@ -1253,7 +1072,7 @@ private:
   }
 
   // ---------------------------------------------------------------------------
-  // SPI processing
+  // Events processing
   // ---------------------------------------------------------------------------
 
   void eventsLoop()
@@ -1271,30 +1090,9 @@ private:
         events_.push(event);
 #endif
 
-      // spi_process_requests();
       std::this_thread::sleep_for(std::chrono::milliseconds{20});
     }
   }
-
-  // void spi_process_requests()
-  // {
-  //   std::pair<Spi_request_type, std::string> request;
-  //   while (in_spi_.pop(request)) {
-  //     std::string error, response;
-  //     switch (request.first) {
-  //     case Spi_request_type::set_state:
-  //       response = SpiSetSettings(request.second, error);
-  //       break;
-  //     case Spi_request_type::get_state:
-  //       response = SpiGetSettings(request.second, error);
-  //       break;
-  //     case Spi_request_type::get_events:
-  //       response = SpiGetEvents(request.second, error);
-  //       break;
-  //     }
-  //     out_spi_.push(std::make_pair(response, error));
-  //   }
-  // }
 
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
   int emul_button_pressed_{};
@@ -1408,62 +1206,6 @@ private:
 
     return data;
   }
-
-  // -------------------------------------------------------------------------
-  // JSON helpers
-  // -------------------------------------------------------------------------
-
-  // static nlohmann::json str2json(const std::string& str)
-  // {
-  //   nlohmann::json j;
-  //   try {
-  //     j = nlohmann::json::parse(str);
-  //   } catch (nlohmann::json::parse_error& e) {
-  //     std::cerr << "Board: json parse failed data:" << str << "error:" << e.what() << '\n';
-  //     return nlohmann::json();
-  //   }
-  //   return j;
-  // }
-
-  // static std::string json_get_string(const nlohmann::json& j, const std::string& key)
-  // {
-  //   auto it = j.find(key);
-  //   if (it == j.end())
-  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-  //   if (!it->is_string())
-  //     throw std::runtime_error{"invalid string in JSON"};
-  //   return it->get<std::string>();
-  // }
-
-  // static std::uint32_t json_get_unsigned(const nlohmann::json& j, const std::string& key)
-  // {
-  //   auto it = j.find(key);
-  //   if (it == j.end())
-  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-  //   if (!it->is_number_unsigned())
-  //     throw std::runtime_error{"invalid unsigned in JSON"};
-  //   return it->get<std::uint32_t>();
-  // }
-
-  // static float json_get_float(const nlohmann::json& j, const std::string& key)
-  // {
-  //   auto it = j.find(key);
-  //   if (it == j.end())
-  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-  //   if (!it->is_number_float())
-  //     throw std::runtime_error{"invalid float in JSON"};
-  //   return it->get<float>();
-  // }
-
-  // static bool json_get_bool(const nlohmann::json& j, const std::string& key)
-  // {
-  //   auto it = j.find(key);
-  //   if (it == j.end())
-  //     throw std::runtime_error{"no JSON member \"" + key + "\" found"};
-  //   if (!it->is_boolean())
-  //     throw std::runtime_error{"invalid boolean in JSON"};
-  //   return it->get<bool>();
-  // }
 };
 
 // -----------------------------------------------------------------------------
@@ -1482,24 +1224,6 @@ Timeswipe::Timeswipe()
 
 Timeswipe::~Timeswipe() = default;
 
-auto Timeswipe::make_mode(const std::string_view value) -> Mode
-{
-  if (value == "iepe") return Timeswipe::Mode::iepe;
-  else if (value == "normal") return Timeswipe::Mode::normal;
-  else if (value == "digital") return Timeswipe::Mode::digital;
-  else throw std::invalid_argument{"invalid text representation of Timeswipe::Mode"};
-}
-
-std::string_view Timeswipe::make_string_view(const Mode value)
-{
-  switch (value) {
-  case Mode::iepe: return "iepe";
-  case Mode::normal: return "normal";
-  case Mode::digital: return "digital";
-  }
-  throw std::invalid_argument{"invalid value of Timeswipe::Mode"};
-}
-
 void Timeswipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
 {
   return rep_->SetSensorOffsets(offset1, offset2, offset3, offset4);
@@ -1513,16 +1237,6 @@ void Timeswipe::SetSensorGains(float gain1, float gain2, float gain3, float gain
 void Timeswipe::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
 {
   return rep_->SetSensorTransmissions(trans1, trans2, trans3, trans4);
-}
-
-void Timeswipe::set_mode(const Mode mode)
-{
-  return rep_->set_mode(mode);
-}
-
-auto Timeswipe::get_mode() const noexcept -> Mode
-{
-  return rep_->get_mode();
 }
 
 int Timeswipe::get_max_sample_rate() const noexcept
@@ -1603,36 +1317,6 @@ void Timeswipe::set_state(const State& state)
 auto Timeswipe::state() const -> const State&
 {
   return rep_->state();
-}
-
-bool Timeswipe::SetChannelMode(const int channel, const Measurement_mode mode)
-{
-  return rep_->SetChannelMode(channel, mode);
-}
-
-bool Timeswipe::GetChannelMode(const int channel, Measurement_mode& mode)
-{
-  return rep_->GetChannelMode(channel, mode);
-}
-
-bool Timeswipe::SetChannelGain(const int channel, const float gain)
-{
-  return rep_->SetChannelGain(channel, gain);
-}
-
-bool Timeswipe::GetChannelGain(const int channel, float& gain)
-{
-  return rep_->GetChannelGain(channel, gain);
-}
-
-bool Timeswipe::SetChannelIEPE(const int channel, const bool iepe)
-{
-  return rep_->SetChannelIEPE(channel, iepe);
-}
-
-bool Timeswipe::GetChannelIEPE(const int channel, bool& iepe)
-{
-  return rep_->GetChannelIEPE(channel, iepe);
 }
 
 } // namespace panda::timeswipe::driver

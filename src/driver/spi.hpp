@@ -137,7 +137,7 @@ public:
     return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
 
-  static std::string get_channel_command(const int num,
+  static std::string make_channel_command(const int num,
     const char* const pSubDomain)
   {
     return std::string{"CH"}.append(std::to_string(num + 1))

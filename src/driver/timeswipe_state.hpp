@@ -34,14 +34,43 @@ public:
   /// The destructor.
   ~Timeswipe_state();
 
+  /// Copy-constructible.
+  Timeswipe_state(const Timeswipe_state&);
+
+  /// Copy-assignable.
+  Timeswipe_state& operator=(const Timeswipe_state&);
+
+  /// Move-constructible.
+  Timeswipe_state(Timeswipe_state&&);
+
+  /// Move-assignable.
+  Timeswipe_state& operator=(Timeswipe_state&&);
+
   /// The default constructor.
   Timeswipe_state();
 
   /// The constructor.
   explicit Timeswipe_state(std::string_view stringified_json);
 
+  /// Swaps this instance with the `other` one.
+  void swap(Timeswipe_state& other) noexcept;
+
   /// @returns The result of conversion of this instance to a stringified JSON.
   std::string to_stringified_json() const;
+
+  /// @name General control
+  ///
+  /// @brief This API provides a way to control of general board parameters.
+  ///
+  /// @{
+
+  /// Sets the signal mode.
+  Timeswipe_state& set_signal_mode(Signal_mode mode);
+
+  /// @returns The value of signal mode.
+  std::optional<Signal_mode> signal_mode() const;
+
+  /// @}
 
   /// @name Channel control
   ///

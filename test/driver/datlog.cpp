@@ -88,10 +88,11 @@ int main(int argc, char *argv[])
         }
     }
 
-    static std::unordered_map<std::string, drv::Timeswipe::Mode> const modes = {
-      {"PRIMARY", drv::Timeswipe::Mode::iepe},
-      {"NORM", drv::Timeswipe::Mode::normal},
-      {"DIGITAL", drv::Timeswipe::Mode::digital},
+    using panda::timeswipe::Signal_mode;
+    static std::unordered_map<std::string, Signal_mode> const modes = {
+      {"PRIMARY", Signal_mode::iepe},
+      {"NORM", Signal_mode::normal},
+      {"DIGITAL", Signal_mode::digital},
     };
 
     std::ifstream iconfigname;
@@ -124,10 +125,12 @@ int main(int argc, char *argv[])
     auto& tswipe = drv::Timeswipe::instance();
 
     // Board Preparation
+    drv::Timeswipe_state state;
     if (!config_script.empty())
-      tswipe.set_state(drv::Timeswipe_state{config_script.dump()});
+      state = drv::Timeswipe_state{config_script.dump()};
+    state.set_signal_mode(modes.at(configitem["MODE"]));
 
-    tswipe.set_mode(modes.at(configitem["MODE"]));
+    tswipe.set_state(state);
 
     const auto& offs = configitem["SENSOR_OFFSET"];
     tswipe.SetSensorOffsets(offs[0], offs[1], offs[2], offs[3]);

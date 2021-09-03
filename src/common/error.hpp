@@ -41,6 +41,7 @@ enum class Errc {
   /** Board section **/
 
   board_is_busy = 2001,
+  invalid_board_state = 2002,
 
   /** Drift reference section **/
 
@@ -73,6 +74,7 @@ constexpr const char* make_literal(const Errc errc) noexcept
   case Errc::out_of_range: return "out of range";
   case Errc::pid_file_lock_failed: return "PID file lock failed";
   case Errc::board_is_busy: return "board is busy";
+  case Errc::invalid_board_state: return "invalid board state";
   case Errc::invalid_drift_reference: return "invalid drift reference";
   case Errc::no_drift_references: return "no drift references";
   case Errc::insufficient_drift_references: return "insufficient drift references";
