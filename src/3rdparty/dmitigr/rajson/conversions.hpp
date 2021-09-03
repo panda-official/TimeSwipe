@@ -256,23 +256,20 @@ struct Conversions<rapidjson::GenericValue<Encoding, Allocator>> final {
     std::is_arithmetic_v<std::decay_t<T>>,
     Result
     >
-  from(const T value, Allocator& alloc)
+  from(const T value, Allocator&)
   {
-    (void)alloc;
     return Result{value};
   }
 
   static auto from(const char* const value, Allocator& alloc)
   {
     // Don't copy `value` to result.
-    (void)alloc;
     return Result{value, alloc};
   }
 
-  static auto from(const std::string_view value, Allocator& alloc)
+  static auto from(const std::string_view value, Allocator&)
   {
     // Don't copy `value` to result.
-    (void)alloc;
     return Result{value.data(), value.size()};
   }
 
