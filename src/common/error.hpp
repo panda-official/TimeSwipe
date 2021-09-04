@@ -10,17 +10,12 @@
 #ifndef PANDA_TIMESWIPE_ERROR_HPP
 #define PANDA_TIMESWIPE_ERROR_HPP
 
-#include "../3rdparty/dmitigr/assert.hpp"
-
 #include <cstring>
 #include <stdexcept>
 #include <system_error>
 #include <type_traits>
 
 namespace panda::timeswipe {
-
-/// `true` if `NDEBUG` is not set.
-constexpr bool is_debug{dmitigr::is_debug};
 
 // -----------------------------------------------------------------------------
 // Errc
@@ -269,47 +264,11 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// Exception_with_info
-// -----------------------------------------------------------------------------
-
-/// Exception with source info.
-template<class StdError>
-class Exception_with_info :
-    public dmitigr::Exception_with_info<Basic_exception<StdError>> {
-  using Super = dmitigr::Exception_with_info<Basic_exception<StdError>>;
-  using Super::Super;
-};
-
-// -----------------------------------------------------------------------------
 // Runtime_exception
 // -----------------------------------------------------------------------------
 
 using Runtime_exception = Basic_exception<std::runtime_error>;
 
 } // namespace panda::timeswipe
-
-/*
- * CHECK macros are for logic errors debugging and should be used in
- * implementation details only.
- */
-#define PANDA_TIMESWIPE_CHECK_GENERIC(a, Base)                          \
-  DMITIGR_CHECK_GENERIC(a, panda::timeswipe::Exception_with_info<Base>)
-#define PANDA_TIMESWIPE_CHECK(a)                        \
-  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::logic_error)
-#define PANDA_TIMESWIPE_CHECK_ARG(a)                        \
-  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::invalid_argument)
-#define PANDA_TIMESWIPE_CHECK_DOMAIN(a)                 \
-  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::domain_error)
-#define PANDA_TIMESWIPE_CHECK_LENGTH(a)                 \
-  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::length_error)
-#define PANDA_TIMESWIPE_CHECK_RANGE(a)                  \
-  PANDA_TIMESWIPE_CHECK_GENERIC(a, std::out_of_range)
-
-// THROW macro is for runtime errors.
-#define PANDA_TIMESWIPE_THROW(errc)                                     \
-  do {                                                                  \
-    using E = panda::timeswipe::Exception_with_info<std::runtime_error>; \
-    throw E{__FILE__, __LINE__, errc};                                  \
-  } while(true)
 
 #endif  // PANDA_TIMESWIPE_ERROR_HPP

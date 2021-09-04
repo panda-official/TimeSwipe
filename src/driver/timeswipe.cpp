@@ -262,7 +262,9 @@ public:
     if (is_busy()) return {};
 
     const auto max_rate = get_max_sample_rate();
-    PANDA_TIMESWIPE_CHECK(1 <= rate && rate <= max_rate);
+    if (!(1 <= rate && rate <= max_rate))
+      throw Runtime_exception{Errc::out_of_range, "invalid sample rate"};
+
     auto result{std::move(resampler_)};
     if (rate != max_rate) {
       const auto rates_gcd = std::gcd(rate, max_rate);
