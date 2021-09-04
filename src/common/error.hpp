@@ -28,32 +28,54 @@ constexpr bool is_debug{dmitigr::is_debug};
 
 /// Error codes.
 enum class Errc {
+  ok = 0,
+
   /** Generic section **/
 
-  ok = 0,
   generic = 1,
   out_of_range = 2,
 
   /** PID file section **/
 
-  pid_file_lock_failed = 1001,
+  pid_file = 1001,
+  pid_file_lock_failed = 1002,
 
   /** Board section **/
 
-  board_is_busy = 2001,
-  invalid_board_state = 2002,
+  board = 2001,
+  board_is_busy = 2002,
+  invalid_board_state = 2003,
 
   /** Drift reference section **/
 
-  invalid_drift_reference = 3001,
-  no_drift_references = 3002,
-  insufficient_drift_references = 3003,
-  excessive_drift_references = 3004,
+  drift_reference = 3001,
+  invalid_drift_reference = 3002,
+  no_drift_references = 3003,
+  insufficient_drift_references = 3004,
+  excessive_drift_references = 3005,
 
   /** Calibration ATOM section **/
 
-  invalid_calibration_atom_type = 4001,
-  invalid_calibration_atom_entry_index = 4002
+  calibration_atom = 4001,
+  invalid_calibration_atom_type = 4002,
+  invalid_calibration_atom_entry_index = 4003,
+
+  /** SPI section **/
+
+  spi = 5001,
+  spi_send = 5002,
+  spi_receive = 5003,
+
+  /** Communication protocol section **/
+
+  com_proto = 6001,
+  com_proto_invalid_request = 6002,
+  com_proto_bus = 6003,
+  com_proto_timeout = 6004,
+  com_proto_object_not_found = 6005,
+  com_proto_get_unsupported = 6006,
+  com_proto_set_unsupported = 6007,
+  com_proto_access_point_disabled = 6008
 };
 
 /// @returns `true` if `errc` indicates an error.
@@ -70,17 +92,39 @@ constexpr const char* make_literal(const Errc errc) noexcept
 {
   switch (errc) {
   case Errc::ok: return "ok";
-  case Errc::generic: return "generic error";
-  case Errc::out_of_range: return "out of range";
-  case Errc::pid_file_lock_failed: return "PID file lock failed";
-  case Errc::board_is_busy: return "board is busy";
-  case Errc::invalid_board_state: return "invalid board state";
-  case Errc::invalid_drift_reference: return "invalid drift reference";
-  case Errc::no_drift_references: return "no drift references";
-  case Errc::insufficient_drift_references: return "insufficient drift references";
-  case Errc::excessive_drift_references: return "excessive drift references";
-  case Errc::invalid_calibration_atom_type: return "invalid calibration atom type";
-  case Errc::invalid_calibration_atom_entry_index: return "invalid calibration atom entry index";
+
+  case Errc::generic: return "generic";
+  case Errc::out_of_range: return "out_of_range";
+
+  case Errc::pid_file: return "pid_file";
+  case Errc::pid_file_lock_failed: return "pid_file_lock_failed";
+
+  case Errc::board: return "board";
+  case Errc::board_is_busy: return "board_is_busy";
+  case Errc::invalid_board_state: return "invalid_board_state";
+
+  case Errc::drift_reference: return "drift_reference";
+  case Errc::invalid_drift_reference: return "invalid_drift_reference";
+  case Errc::no_drift_references: return "no_drift_references";
+  case Errc::insufficient_drift_references: return "insufficient_drift_references";
+  case Errc::excessive_drift_references: return "excessive_drift_references";
+
+  case Errc::calibration_atom: return "calibration_atom";
+  case Errc::invalid_calibration_atom_type: return "invalid_calibration_atom_type";
+  case Errc::invalid_calibration_atom_entry_index: return "invalid_calibration_atom_entry_index";
+
+  case Errc::spi: return "spi";
+  case Errc::spi_send: return "spi_send";
+  case Errc::spi_receive: return "spi_receive";
+
+  case Errc::com_proto: return "com_proto";
+  case Errc::com_proto_invalid_request: return "com_proto_invalid_request";
+  case Errc::com_proto_bus: return "com_proto_bus";
+  case Errc::com_proto_timeout: return "com_proto_timeout";
+  case Errc::com_proto_object_not_found: return "com_proto_object_not_found";
+  case Errc::com_proto_get_unsupported: return "com_proto_get_unsupported";
+  case Errc::com_proto_set_unsupported: return "com_proto_set_unsupported";
+  case Errc::com_proto_access_point_disabled: return "com_proto_access_point_disabled";
   }
   return nullptr;
 }

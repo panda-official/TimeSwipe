@@ -19,6 +19,7 @@
 #ifndef PANDA_TIMESWIPE_SPI_HPP
 #define PANDA_TIMESWIPE_SPI_HPP
 
+#include "../common/error.hpp"
 #include "../common/SPI.h"
 #include "../common/SyncCom.h"
 #include "../3rdparty/BCMsrc/bcm2835.h"
@@ -87,7 +88,42 @@ public:
   }
 
   // ---------------------------------------------------------------------------
-  // Communication
+  // Requests execution (high-level API)
+  // ---------------------------------------------------------------------------
+
+  std::string execute(const std::string& request)
+  {
+    send_throw(request);
+    return receive_throw();
+  }
+
+  std::string execute_set_one(const std::string& name, const std::string& value)
+  {
+    return execute(name + "<" + value + "\n");
+  }
+
+  std::string execute_get_one(const std::string& name)
+  {
+    return execute(name + ">\n");
+  }
+
+  std::string execute_set_many(const std::string& json_object)
+  {
+    return execute("js<" + json_object + "\n");
+  }
+
+  std::string execute_get_many(const std::string& json_object)
+  {
+    return execute("js>" + json_object + "\n");
+  }
+
+  std::string execute_get_events()
+  {
+    return execute("je>\n");
+  }
+
+  // ---------------------------------------------------------------------------
+  // CSPI overridings
   // ---------------------------------------------------------------------------
 
   bool send(CFIFO& msg) override
@@ -143,85 +179,86 @@ public:
     return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
   }
 
-  bool send(const std::string& command)
+  void send_set_one(const std::string& name, const std::string& value)
   {
-    CFIFO cmd;
-    cmd += command;
-    const auto res = send(cmd);
+    send_throw(name + "<" + value + "\n");
+  }
+
+  void send_get_one(const std::string& name)
+  {
+    send_throw(name + ">\n");
+  }
+
+  void send_set_many(const std::string& json_object)
+  {
+    send_throw("js<" + json_object + "\n");
+  }
+
+  void send_get_many(const std::string& json_array)
+  {
+    send_throw("js>" + json_array + "\n");
+  }
+
+  void send_get_events()
+  {
+    send_throw("je>\n");
+  }
+
+  void send_throw(const std::string& request)
+  {
+    CFIFO fifo;
+    fifo += request;
+    const auto res = send(fifo);
 #ifdef PANDA_TIMESWIPE_TRACE_SPI
-    std::clog << "spi: sent: \"" << command << "\"" << std::endl;
+    std::clog << "spi: sent: \"" << request << "\"" << std::endl;
 #endif
-    return res;
+    if (!res)
+      throw Runtime_exception{Errc::spi_send};
   }
 
-  void send_set_command(const std::string& variable, const std::string& value)
+  std::string receive_throw()
   {
-    send(variable + "<" + value + "\n");
-  }
+    std::string result;
+    CFIFO fifo;
+    if (receive(fifo)) {
+      result = fifo;
+      if (!result.empty() && result[0] == '!') {
+        // Error returned, so throw exception.
+        const auto errc = [&result]
+        {
+          if (result == "!protocol_error!")
+            return Errc::com_proto_invalid_request;
+          else if (result == "!Line_err!")
+            return Errc::com_proto_bus;
+          else if (result == "!Timeout_err!")
+            return Errc::com_proto_timeout;
+          else if (result == "!obj_not_found!")
+            return Errc::com_proto_object_not_found;
+          else if (result == "!>_not_supported!")
+            return Errc::com_proto_get_unsupported;
+          else if (result == "!<_not_supported!")
+            return Errc::com_proto_set_unsupported;
+          else if (result == "!disabled!")
+            return Errc::com_proto_access_point_disabled;
+          else
+            return Errc::com_proto;
+        }();
+        throw Runtime_exception{errc};
+      }
 
-  void send_get_command(const std::string& variable)
-  {
-    send(variable + ">\n");
-  }
+      // Strip result.
+      if (!result.empty() && result.back() == '\n')
+        result.pop_back();
 
-  void send_set_settings_command(const std::string& request)
-  {
-    send("js<" + request + "\n");
-  }
-
-  void send_get_settings_command(const std::string& request)
-  {
-    send("js>" + request + "\n");
-  }
-
-  void send_get_events_command()
-  {
-    send("je>\n");
-  }
-
-  bool receive_answer(std::string& ans)
-  {
-    CFIFO answer;
-    if (receive(answer)) {
-      ans = answer;
 #ifdef PANDA_TIMESWIPE_TRACE_SPI
-      std::clog << "spi: received: \"" << ans << "\"" << std::endl;
+      std::clog << "spi: received: \"" << result << "\"" << std::endl;
 #endif
-      return true;
+      return result;
     }
 #ifdef PANDA_TIMESWIPE_TRACE_SPI
-    std::clog << "spi: receive failed" << std::endl;
+    std::clog << "spi: receive error" << std::endl;
 #endif
-    return false;
-  }
-
-  bool receive_answer(std::string& ans, std::string& error)
-  {
-    const auto ret = receive_answer(ans);
-    if (ret && !ans.empty() && ans[0] == '!') {
-      error = ans;
-      ans.clear();
-      return false;
-    }
-    return ret;
-  }
-
-  bool receive_strip_answer(std::string& ans, std::string& error)
-  {
-    if (!receive_answer(ans, error))
-      return false;
-
-    // Strip.
-    if (!ans.empty() && ans.back() == '\n')
-      ans.pop_back();
-
-    return true;
-  }
-
-  bool receive_strip_answer(std::string& ans)
-  {
-    std::string error;
-    return receive_strip_answer(ans, error);
+    throw Runtime_exception{Errc::spi_receive};
   }
 
 private:

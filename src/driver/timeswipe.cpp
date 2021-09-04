@@ -134,7 +134,7 @@ public:
 
     join_threads();
 
-    // Read the calibration data.
+    // Get the calibration data.
     calibration_map_ = [this]
     {
       namespace rajson = dmitigr::rajson;
@@ -145,12 +145,10 @@ public:
       for (const auto ct :
              {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
               Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4}) {
-        spi_.send_get_settings_command(R"({"cAtom":)" + std::to_string(static_cast<int>(ct)) + R"(})");
-        std::string ans, err;
-        if (!spi_.receive_strip_answer(ans, err))
-          throw Runtime_exception{"SPI receive error: " + err};
-
-        const auto doc = rajson::to_document(ans);
+        const auto state_request = R"({"cAtom":)" +
+          std::to_string(static_cast<int>(ct)) + R"(})";
+        const auto json_obj = spi_.execute_get_many(state_request);
+        const auto doc = rajson::to_document(json_obj);
         const rajson::Value_view doc_view{doc};
         const auto doc_cal_entries = doc_view.mandatory("data");
         if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
@@ -192,7 +190,7 @@ public:
       // Start measurement.
       using std::chrono::milliseconds;
       std::this_thread::sleep_for(milliseconds{1});
-      SpiSetEnableADmes(true);
+      spi_set_enable_ad_mes(true);
       is_measurement_started_ = true;
     }
 
@@ -227,22 +225,14 @@ public:
 
   void set_state(const State& state)
   {
-    spi_.send_set_settings_command(state.to_stringified_json());
-    std::string response, error;
-    if (!spi_.receive_strip_answer(response, error))
-      throw Runtime_exception{"SPI receive error: " + error};
+    spi_.execute_set_many(state.to_stringified_json());
     state_.reset(); // invalidate cache (this could be optimized)
   }
 
   const State& state() const
   {
-    if (!state_) {
-      spi_.send_get_settings_command("");
-      std::string response, error;
-      if (!spi_.receive_strip_answer(response, error))
-        throw Runtime_exception{"SPI receive error: " + error};
-      state_.emplace(response);
-    }
+    if (!state_)
+      state_.emplace(spi_.execute_get_many(""));
     return *state_;
   }
 
@@ -264,7 +254,7 @@ public:
       set_gpio_low(CLOCK);
 
       // Stop Measurement
-      SpiSetEnableADmes(false);
+      spi_set_enable_ad_mes(false);
 
       // Reset state.
       read_skip_count_ = kInitialInvalidDataSetsCount;
@@ -832,25 +822,17 @@ private:
   // SPI stuff
   // ---------------------------------------------------------------------------
 
-  void SpiSetEnableADmes(const bool value)
+  void spi_set_enable_ad_mes(const bool value)
   {
-    spi_.send_set_command("EnableADmes", std::to_string(value));
-    std::string answer;
-    spi_.receive_answer(answer);
+    spi_.execute_set_one("EnableADmes", std::to_string(value));
   }
 
   std::list<Event> SpiGetEvents()
   {
-    const auto get_events = [this](std::string& ev)
-    {
-      spi_.send_get_events_command();
-      return spi_.receive_answer(ev);
-    };
-
     std::list<Event> result;
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    std::string data;
-    if (get_events(data) && !data.empty()) {
+    // FIXME!
+    if (auto data = spi_.execute_get_events(); !data.empty()) {
       if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
 
       if (data.empty()) return result;
