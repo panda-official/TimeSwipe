@@ -25,7 +25,6 @@
 #include "../common/error.hpp"
 #include "../common/gain.hpp"
 #include "../common/hat.hpp"
-#include "../common/json.hpp"
 #include "../common/version.hpp"
 
 #include "../3rdparty/dmitigr/assert.hpp"
@@ -44,13 +43,14 @@
 #include <condition_variable>
 #include <fstream>
 #include <iostream>
-#include <list>
 #include <mutex>
 #include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
+
+namespace rajson = dmitigr::rajson;
 
 namespace panda::timeswipe::driver {
 
@@ -137,8 +137,6 @@ public:
     // Get the calibration data.
     calibration_map_ = [this]
     {
-      namespace rajson = dmitigr::rajson;
-
       using Ct = hat::atom::Calibration::Type;
 
       hat::Calibration_map result;
@@ -492,7 +490,7 @@ private:
   std::size_t burst_size_{};
   Sensors_data burst_buffer_;
   boost::lockfree::spsc_queue<Event, boost::lockfree::capacity<128>> events_;
-  std::list<std::thread> threads_;
+  std::vector<std::thread> threads_;
 
   // ---------------------------------------------------------------------------
   // Callbacks data
@@ -827,61 +825,50 @@ private:
     spi_.execute_set_one("EnableADmes", std::to_string(value));
   }
 
-  std::list<Event> SpiGetEvents()
+  std::vector<Event> spi_get_events() noexcept
   {
-    std::list<Event> result;
+    std::vector<Event> result;
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    // FIXME!
-    if (auto data = spi_.execute_get_events(); !data.empty()) {
-      if (data[data.length()-1] == 0xa ) data = data.substr(0, data.size()-1);
-
-      if (data.empty()) return result;
-
+    if (const auto json = spi_.execute_get_events(); !json.empty()) {
       try {
-        auto j = nlohmann::json::parse(data);
-        auto it_btn = j.find("Button");
-        if (it_btn != j.end() && it_btn->is_boolean()) {
-          auto it_cnt = j.find("ButtonStateCnt");
-          if (it_cnt != j.end() && it_cnt->is_number()) {
-            result.push_back(Event::Button(it_btn->get<bool>(), it_cnt->get<int>()));
-          }
+        result.reserve(7);
+        const auto doc = rajson::to_document(json);
+        const rajson::Value_view view{doc};
+
+        // Get Button event.
+        if (const auto button = view.optional<bool>("Button")) {
+          if (const auto count = view.optional<int>("ButtonStateCnt"))
+            result.emplace_back(Event::Button(*button, *count));
         }
 
-        auto it = j.find("Gain");
-        if (it != j.end() && it->is_number()) {
-          result.push_back(Event::Gain(it->get<int>()));
-        }
+        // Get Gain event.
+        if (const auto value = view.optional<int>("Gain"))
+          result.emplace_back(Event::Gain(*value));
 
-        it = j.find("Set_secondary");
-        if (it != j.end() && it->is_number()) {
-          result.push_back(Event::Set_secondary(it->get<int>()));
-        }
+        // Get SetSecondary event.
+        if (const auto value = view.optional<int>("SetSecondary"))
+          result.emplace_back(Event::Set_secondary(*value));
 
-        it = j.find("Bridge");
-        if (it != j.end() && it->is_number()) {
-          result.push_back(Event::Bridge(it->get<int>()));
-        }
+        // Get Bridge event.
+        if (const auto value = view.optional<int>("Bridge"))
+          result.emplace_back(Event::Bridge(*value));
 
-        it = j.find("Record");
-        if (it != j.end() && it->is_number()) {
-          result.push_back(Event::Record(it->get<int>()));
-        }
+        // Get Record event.
+        if (const auto value = view.optional<int>("Record"))
+          result.emplace_back(Event::Record(*value));
 
-        it = j.find("Offset");
-        if (it != j.end() && it->is_number()) {
-          result.push_back(Event::Offset(it->get<int>()));
-        }
+        // Get Offset event.
+        if (const auto value = view.optional<int>("Offset"))
+          result.emplace_back(Event::Offset(*value));
 
-        it = j.find("Mode");
-        if (it != j.end() && it->is_number()) {
-          result.push_back(Event::Mode(it->get<int>()));
-        }
+        // Get Mode event.
+        if (const auto value = view.optional<int>("Mode"))
+          result.emplace_back(Event::Mode(*value));
+      } catch (const std::exception& e) {
+        std::cerr << "spi_get_events(): " << e.what() << "\n";
+      } catch (...) {
+        std::cerr << "spi_get_events(): unknown error\n";
       }
-      catch (nlohmann::json::parse_error& e)
-        {
-          // output exception information
-          std::cerr << "readBoardEvents: json parse failed data:" << data << "error:" << e.what() << '\n';
-        }
     }
 #endif
     return result;
@@ -1068,8 +1055,8 @@ private:
         events_.push(btn);
       }
 #else
-      for (auto&& event: SpiGetEvents())
-        events_.push(event);
+      for (auto&& event : spi_get_events())
+        events_.push(std::move(event));
 #endif
 
       std::this_thread::sleep_for(std::chrono::milliseconds{20});

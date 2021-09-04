@@ -78,7 +78,7 @@ public:
     int value_{};
   };
 
-  /// Set_secondary value event.
+  /// SetSecondary value event.
   class Set_secondary {
   public:
     /// The default constructor.
@@ -89,7 +89,7 @@ public:
       : value_{value}
     {}
 
-    /// @returns Set_secondary value as number.
+    /// @returns SetSecondary value as number.
     int get_value() const noexcept
     {
       return value_;
