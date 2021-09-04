@@ -78,21 +78,6 @@ public:
   Timeswipe& operator=(Timeswipe&&) = delete;
 
   /**
-   * \brief Setup Sensor offsets
-   *
-   * Default offsets are all 0
-   *
-   * @param offset1
-   * @param offset2
-   * @param offset3
-   * @param offset4
-   *
-   * @warning THIS METHOD WILL BE REMOVED!
-   */
-  [[deprecated]]
-  void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4);
-
-  /**
    * \brief Setup Sensor gains
    *
    * It is mandatory to setup gains before @ref Start

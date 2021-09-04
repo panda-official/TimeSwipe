@@ -132,9 +132,6 @@ int main(int argc, char *argv[])
 
     tswipe.set_state(state);
 
-    const auto& offs = configitem["SENSOR_OFFSET"];
-    tswipe.SetSensorOffsets(offs[0], offs[1], offs[2], offs[3]);
-
     const auto& gains = configitem["SENSOR_GAIN"];
     tswipe.SetSensorGains(gains[0], gains[1], gains[2], gains[3]);
 

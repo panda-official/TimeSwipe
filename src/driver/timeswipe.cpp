@@ -264,14 +264,6 @@ public:
     burst_size_ = size;
   }
 
-  void SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
-  {
-    offsets_[0] = offset1;
-    offsets_[1] = offset2;
-    offsets_[2] = offset3;
-    offsets_[3] = offset4;
-  }
-
   void SetSensorGains(float gain1, float gain2, float gain3, float gain4)
   {
     gains_[0] = 1.0 / gain1;
@@ -471,8 +463,8 @@ private:
 
   // The number of initial invalid data sets.
   static constexpr int kInitialInvalidDataSetsCount{32};
+  static constexpr std::uint16_t k_sensor_offset{32768};
   int read_skip_count_{kInitialInvalidDataSetsCount};
-  std::array<std::uint16_t, 4> offsets_{0, 0, 0, 0};
   std::array<float, 4> gains_{1, 1, 1, 1};
   std::array<float, 4> transmissions_{1, 1, 1, 1};
   std::array<float, 4> mfactors_{};
@@ -752,14 +744,12 @@ private:
 
     static void append_chunk(Sensors_data& data,
       const Chunk& chunk,
-      const std::array<std::uint16_t, 4>& offsets,
       const std::array<float, 4>& mfactors)
     {
       std::array<std::uint16_t, 4> sensors{};
       static_assert(data.get_sensor_count() == 4); // KLUDGE
-      using Offset_value = std::decay_t<decltype(offsets)>::value_type;
       using Sensor_value = std::decay_t<decltype(sensors)>::value_type;
-      static_assert(sizeof(Offset_value) == sizeof(Sensor_value));
+      static_assert(sizeof(k_sensor_offset) == sizeof(Sensor_value));
 
       constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
       {
@@ -784,7 +774,7 @@ private:
       }
 
       for (std::size_t i{}; i < 4; ++i)
-        data[i].push_back(static_cast<float>(sensors[i] - offsets[i]) * mfactors[i]);
+        data[i].push_back(static_cast<float>(sensors[i] - k_sensor_offset) * mfactors[i]);
     }
 
   private:
@@ -915,7 +905,7 @@ private:
     out.reserve(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();
-      Gpio_data::append_chunk(out, chunk, offsets_, mfactors_);
+      Gpio_data::append_chunk(out, chunk, mfactors_);
       if (tco != 0x00004000) break;
     } while (true);
 
@@ -1192,11 +1182,6 @@ Timeswipe::Timeswipe()
 {}
 
 Timeswipe::~Timeswipe() = default;
-
-void Timeswipe::SetSensorOffsets(int offset1, int offset2, int offset3, int offset4)
-{
-  return rep_->SetSensorOffsets(offset1, offset2, offset3, offset4);
-}
 
 void Timeswipe::SetSensorGains(float gain1, float gain2, float gain3, float gain4)
 {
