@@ -77,36 +77,6 @@ public:
   /// Non move-assignable.
   Timeswipe& operator=(Timeswipe&&) = delete;
 
-  /**
-   * \brief Setup Sensor gains
-   *
-   * It is mandatory to setup gains before @ref Start
-   *
-   * @param gain1
-   * @param gain2
-   * @param gain3
-   * @param gain4
-   *
-   * @warning THIS METHOD WILL BE REMOVED!
-   */
-  [[deprecated]]
-  void SetSensorGains(float gain1, float gain2, float gain3, float gain4);
-
-  /**
-   * \brief Setup Sensor transmissions
-   *
-   * It is mandatory to setup transmissions before @ref Start
-   *
-   * @param trans1
-   * @param trans2
-   * @param trans3
-   * @param trans4
-   *
-   * @warning THIS METHOD WILL BE REPLACED!
-   */
-  [[deprecated]]
-  void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4);
-
   /// @returns Max possible sample rate.
   int get_max_sample_rate() const noexcept;
 

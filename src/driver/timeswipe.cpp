@@ -170,15 +170,11 @@ public:
     }();
 
     /*
-     * Sends the command to a Timeswipe firmware to start measurement.
+     * Send the command to a Timeswipe firmware to start measurement.
      * Effects: the reader does receive the data from the board.
      */
     {
       DMITIGR_ASSERT(is_gpio_inited_);
-
-      // Set mfactors.
-      for (std::size_t i{}; i < mfactors_.size(); ++i)
-        mfactors_[i] = gains_[i] * transmissions_[i];
 
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
       emul_point_begin_ = std::chrono::steady_clock::now();
@@ -262,22 +258,6 @@ public:
   void set_burst_size(const std::size_t size)
   {
     burst_size_ = size;
-  }
-
-  void SetSensorGains(float gain1, float gain2, float gain3, float gain4)
-  {
-    gains_[0] = 1.0 / gain1;
-    gains_[1] = 1.0 / gain2;
-    gains_[2] = 1.0 / gain3;
-    gains_[3] = 1.0 / gain4;
-  }
-
-  void SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
-  {
-    transmissions_[0] = 1.0 / trans1;
-    transmissions_[1] = 1.0 / trans2;
-    transmissions_[2] = 1.0 / trans3;
-    transmissions_[3] = 1.0 / trans4;
   }
 
   /// @returns Previous resampler if any.
@@ -465,9 +445,9 @@ private:
   static constexpr int kInitialInvalidDataSetsCount{32};
   static constexpr std::uint16_t k_sensor_offset{32768};
   int read_skip_count_{kInitialInvalidDataSetsCount};
-  std::array<float, 4> gains_{1, 1, 1, 1};
-  std::array<float, 4> transmissions_{1, 1, 1, 1};
-  std::array<float, 4> mfactors_{};
+  std::array<float, 4> sensor_slopes_{1, 1, 1, 1};
+  std::array<float, 4> sensor_translation_offsets_{};
+  std::array<float, 4> sensor_translation_slopes_{1, 1, 1, 1};
   hat::Calibration_map calibration_map_;
   mutable std::optional<State> state_;
 
@@ -657,7 +637,7 @@ private:
   // (2^32)-1 - ALL BCM_PINS
   static constexpr std::uint32_t ALL_32_BITS_ON{0xFFFFFFFF};
 
-  static void pullGPIO(const unsigned pin, const unsigned high)
+  static void pull_gpio(const unsigned pin, const unsigned high)
   {
     PANDA_TIMESWIPE_GPIO_PULL = high << pin;
   }
@@ -671,7 +651,7 @@ private:
   {
     PANDA_TIMESWIPE_INP_GPIO(pin);
     PANDA_TIMESWIPE_OUT_GPIO(pin);
-    pullGPIO(pin, 0);
+    pull_gpio(pin, 0);
   }
 
   static void set_gpio_high(const unsigned pin)
@@ -684,7 +664,7 @@ private:
     PANDA_TIMESWIPE_GPIO_CLR = 1 << pin;
   }
 
-  static void resetAllGPIO()
+  static void reset_all_gpio()
   {
     PANDA_TIMESWIPE_GPIO_CLR = ALL_32_BITS_ON;
   }
@@ -744,12 +724,18 @@ private:
 
     static void append_chunk(Sensors_data& data,
       const Chunk& chunk,
-      const std::array<float, 4>& mfactors)
+      const std::array<float, 4>& slopes,
+      const std::array<float, 4>& translation_offsets,
+      const std::array<float, 4>& translation_slopes)
     {
       std::array<std::uint16_t, 4> sensors{};
-      static_assert(data.get_sensor_count() == 4); // KLUDGE
-      using Sensor_value = std::decay_t<decltype(sensors)>::value_type;
-      static_assert(sizeof(k_sensor_offset) == sizeof(Sensor_value));
+      static_assert(sizeof(k_sensor_offset) == sizeof(sensors[0]));
+      static_assert(slopes.size() == sensors.size());
+      static_assert(translation_offsets.size() == sensors.size());
+      static_assert(translation_slopes.size() == sensors.size());
+
+      const auto data_size = data.size();
+      DMITIGR_ASSERT(data_size <= sensors.size());
 
       constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
       {
@@ -773,8 +759,11 @@ private:
         count++;
       }
 
-      for (std::size_t i{}; i < 4; ++i)
-        data[i].push_back(static_cast<float>(sensors[i] - k_sensor_offset) * mfactors[i]);
+      for (std::size_t i{}; i < data_size; ++i) {
+        const auto mv = (sensors[i] - k_sensor_offset) * slopes[i];
+        const auto unit = (mv - translation_offsets[i]) * translation_slopes[i];
+        data[i].push_back(unit);
+      }
     }
 
   private:
@@ -905,7 +894,8 @@ private:
     out.reserve(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();
-      Gpio_data::append_chunk(out, chunk, mfactors_);
+      Gpio_data::append_chunk(out, chunk, sensor_slopes_,
+        sensor_translation_offsets_, sensor_translation_slopes_);
       if (tco != 0x00004000) break;
     } while (true);
 
@@ -1182,16 +1172,6 @@ Timeswipe::Timeswipe()
 {}
 
 Timeswipe::~Timeswipe() = default;
-
-void Timeswipe::SetSensorGains(float gain1, float gain2, float gain3, float gain4)
-{
-  return rep_->SetSensorGains(gain1, gain2, gain3, gain4);
-}
-
-void Timeswipe::SetSensorTransmissions(float trans1, float trans2, float trans3, float trans4)
-{
-  return rep_->SetSensorTransmissions(trans1, trans2, trans3, trans4);
-}
 
 int Timeswipe::get_max_sample_rate() const noexcept
 {

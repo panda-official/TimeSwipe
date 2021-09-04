@@ -132,13 +132,6 @@ int main(int argc, char *argv[])
 
     tswipe.set_state(state);
 
-    const auto& gains = configitem["SENSOR_GAIN"];
-    tswipe.SetSensorGains(gains[0], gains[1], gains[2], gains[3]);
-
-    const auto& trans = configitem["SENSOR_TRANSMISSION"];
-    tswipe.SetSensorTransmissions(trans[0], trans[1], trans[2], trans[3]);
-
-
     // Board Shutdown on signals
 
     std::signal(SIGINT, signal_handler);
