@@ -7,7 +7,7 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/driver/timeswipe.hpp"
+#include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/assert.hpp"
 #include "../../src/3rdparty/dmitigr/progpar.hpp"
 

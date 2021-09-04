@@ -17,15 +17,17 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "bcmlib.hpp"
+#include "event.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
+#include "sensor_data.hpp"
 #include "spi.hpp"
 #include "timeswipe.hpp"
+#include "timeswipe_state.hpp"
 
 #include "../common/error.hpp"
 #include "../common/gain.hpp"
 #include "../common/hat.hpp"
-#include "../common/version.hpp"
 
 #include "../3rdparty/dmitigr/assert.hpp"
 #include "../3rdparty/dmitigr/filesystem.hpp"
@@ -53,12 +55,6 @@
 namespace rajson = dmitigr::rajson;
 
 namespace panda::timeswipe::driver {
-
-Version version() noexcept
-{
-  namespace ver = version;
-  return {ver::major, ver::minor, ver::patch};
-}
 
 // -----------------------------------------------------------------------------
 // class Timeswipe::Rep
@@ -223,7 +219,7 @@ public:
     state_.reset(); // invalidate cache (this could be optimized)
   }
 
-  const State& state() const
+  const State& get_state() const
   {
     if (!state_)
       state_.emplace(spi_.execute_get_many(""));
@@ -562,7 +558,7 @@ private:
       // Store current input modes.
       const auto channel_mode = [this](const int index)
       {
-        if (const auto mm = rep_.state().channel_measurement_mode(index))
+        if (const auto mm = rep_.get_state().get_channel_measurement_mode(index))
           return *mm;
         else
           throw Runtime_exception{Errc::invalid_board_state};
@@ -1248,9 +1244,9 @@ void Timeswipe::set_state(const State& state)
   return rep_->set_state(state);
 }
 
-auto Timeswipe::state() const -> const State&
+auto Timeswipe::get_state() const -> const State&
 {
-  return rep_->state();
+  return rep_->get_state();
 }
 
 } // namespace panda::timeswipe::driver

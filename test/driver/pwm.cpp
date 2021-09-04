@@ -7,8 +7,8 @@
   Copyright (c) 2021 PANDA GmbH
 */
 
+#include "../../src/driver.hpp"
 #include "../../src/common/json.hpp"
-#include "../../src/driver/timeswipe.hpp"
 
 #include <chrono>
 #include <csignal>
@@ -126,11 +126,11 @@ int main(int argc, char *argv[])
       if (!both && pwm_index != i) continue;
       if (start) {
         std::cout << "start " << i
-                  << " freq: " << *state.pwm_frequency(i)
-                  << " high: " << *state.pwm_high(i)
-                  << " low: " << *state.pwm_low(i)
-                  << " repeats: " << *state.pwm_repeat_count(i)
-                  << " duty: " << *state.pwm_duty_cycle(i)
+                  << " freq: " << *state.get_pwm_frequency(i)
+                  << " high: " << *state.get_pwm_high(i)
+                  << " low: " << *state.get_pwm_low(i)
+                  << " repeats: " << *state.get_pwm_repeat_count(i)
+                  << " duty: " << *state.get_pwm_duty_cycle(i)
                   << std::endl;
         state.set_pwm_start(i, true);
         tswipe.set_state(state);
@@ -142,13 +142,13 @@ int main(int argc, char *argv[])
         std::cout << "stop " << i << " succeded" << std::endl;
       } else if (get) {
         std::cout << "get " << i << std::endl;
-        const auto& state = tswipe.state();
+        const auto& state = tswipe.get_state();
         std::cout << "get " << i
-                  << " freq: " << *state.pwm_frequency(i)
-                  << " high: " << *state.pwm_high(i)
-                  << " low: " << *state.pwm_low(i)
-                  << " repeats: " << *state.pwm_repeat_count(i)
-                  << " duty: " << *state.pwm_duty_cycle(i)
+                  << " freq: " << *state.get_pwm_frequency(i)
+                  << " high: " << *state.get_pwm_high(i)
+                  << " low: " << *state.get_pwm_low(i)
+                  << " repeats: " << *state.get_pwm_repeat_count(i)
+                  << " duty: " << *state.get_pwm_duty_cycle(i)
                   << std::endl;
       }
     }

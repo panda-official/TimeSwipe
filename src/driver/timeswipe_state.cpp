@@ -94,9 +94,9 @@ struct Timeswipe_state::Rep final {
     set_member("Mode", static_cast<int>(mode));
   }
 
-  std::optional<Signal_mode> signal_mode() const
+  std::optional<Signal_mode> get_signal_mode() const
   {
-    return member<Signal_mode>("Mode");
+    return get_member<Signal_mode>("Mode");
   }
 
   // ---------------------------------------------------------------------------
@@ -106,9 +106,9 @@ struct Timeswipe_state::Rep final {
     set_member("CH", index + 1, "mode", static_cast<int>(value));
   }
 
-  std::optional<Measurement_mode> channel_measurement_mode(const int index) const
+  std::optional<Measurement_mode> get_channel_measurement_mode(const int index) const
   {
-    return member<Measurement_mode>("CH", index + 1, "mode");
+    return get_member<Measurement_mode>("CH", index + 1, "mode");
   }
 
   void set_channel_gain(const int index, const float value)
@@ -116,9 +116,9 @@ struct Timeswipe_state::Rep final {
     set_member("CH", index + 1, "gain", value);
   }
 
-  std::optional<float> channel_gain(const int index) const
+  std::optional<float> get_channel_gain(const int index) const
   {
-    return member<float>("CH", index + 1, "gain");
+    return get_member<float>("CH", index + 1, "gain");
   }
 
   void set_channel_iepe(const int index, const bool value)
@@ -126,9 +126,9 @@ struct Timeswipe_state::Rep final {
     set_member("CH", index + 1, "iepe", value);
   }
 
-  std::optional<bool> channel_iepe(const int index) const
+  std::optional<bool> get_channel_iepe(const int index) const
   {
-    return member<bool>("CH", index + 1, "iepe");
+    return get_member<bool>("CH", index + 1, "iepe");
   }
 
   // ---------------------------------------------------------------------------
@@ -138,9 +138,9 @@ struct Timeswipe_state::Rep final {
     set_member("PWM", index + 1, value);
   }
 
-  std::optional<bool> pwm_start(const int index)
+  std::optional<bool> get_pwm_start(const int index)
   {
-    return member<bool>("PWM", index + 1);
+    return get_member<bool>("PWM", index + 1);
   }
 
   void set_pwm_frequency(const int index, const int value)
@@ -148,9 +148,9 @@ struct Timeswipe_state::Rep final {
     set_member("PWM", index + 1, "freq", value);
   }
 
-  std::optional<int> pwm_frequency(const int index) const
+  std::optional<int> get_pwm_frequency(const int index) const
   {
-    return member<int>("PWM", index + 1, "freq");
+    return get_member<int>("PWM", index + 1, "freq");
   }
 
   void set_pwm_low(const int index, const int value)
@@ -158,9 +158,9 @@ struct Timeswipe_state::Rep final {
     set_member("PWM", index + 1, "low", value);
   }
 
-  std::optional<int> pwm_low(int index) const
+  std::optional<int> get_pwm_low(int index) const
   {
-    return member<int>("PWM", index + 1, "low");
+    return get_member<int>("PWM", index + 1, "low");
   }
 
   void set_pwm_high(const int index, const int value)
@@ -168,9 +168,9 @@ struct Timeswipe_state::Rep final {
     set_member("PWM", index + 1, "high", value);
   }
 
-  std::optional<int> pwm_high(const int index) const
+  std::optional<int> get_pwm_high(const int index) const
   {
-    return member<int>("PWM", index + 1, "high");
+    return get_member<int>("PWM", index + 1, "high");
   }
 
   void set_pwm_repeat_count(const int index, const int value)
@@ -178,9 +178,9 @@ struct Timeswipe_state::Rep final {
     set_member("PWM", index + 1, "repeats", value);
   }
 
-  std::optional<int> pwm_repeat_count(const int index) const
+  std::optional<int> get_pwm_repeat_count(const int index) const
   {
-    return member<int>("PWM", index + 1, "repeats");
+    return get_member<int>("PWM", index + 1, "repeats");
   }
 
   void set_pwm_duty_cycle(const int index, const float value)
@@ -188,9 +188,9 @@ struct Timeswipe_state::Rep final {
     set_member("PWM", index + 1, "duty", value);
   }
 
-  std::optional<float> pwm_duty_cycle(const int index) const
+  std::optional<float> get_pwm_duty_cycle(const int index) const
   {
-    return member<float>("PWM", index + 1, "duty");
+    return get_member<float>("PWM", index + 1, "duty");
   }
 
 private:
@@ -211,13 +211,13 @@ private:
   }
 
   /// @returns The full name of access point at the given `index`.
-  std::string member_name(std::string root_name, const int index) const
+  std::string get_member_name(std::string root_name, const int index) const
   {
     return root_name.append(std::to_string(index));
   }
 
   /// @overload
-  std::string member_name(std::string root_name, const int index,
+  std::string get_member_name(std::string root_name, const int index,
     const std::string_view sub_name) const
   {
     return root_name.append(std::to_string(index)).append(".").append(sub_name);
@@ -227,35 +227,35 @@ private:
   template<typename T>
   void set_member(std::string root_name, const int index, T&& value)
   {
-    set_member(member_name(std::move(root_name), index), std::forward<T>(value));
+    set_member(get_member_name(std::move(root_name), index), std::forward<T>(value));
   }
 
   /// @overload
   template<typename T>
   void set_member(std::string root_name, const int index, const std::string_view sub_name, T&& value)
   {
-    set_member(member_name(std::move(root_name), index, sub_name), std::forward<T>(value));
+    set_member(get_member_name(std::move(root_name), index, sub_name), std::forward<T>(value));
   }
 
   /// @returns The value of `root_name` variable.
   template<typename T>
-  std::optional<T> member(const std::string_view root_name) const
+  std::optional<T> get_member(const std::string_view root_name) const
   {
     return rajson::Value_view{doc_}.optional<T>(root_name);
   }
 
   /// @returns The variable at `index`.
   template<typename T>
-  std::optional<T> member(std::string root_name, const int index) const
+  std::optional<T> get_member(std::string root_name, const int index) const
   {
-    return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index));
+    return rajson::Value_view{doc_}.optional<T>(get_member_name(std::move(root_name), index));
   }
 
   /// @overload
   template<typename T>
-  std::optional<T> member(std::string root_name, const int index, const std::string_view sub_name) const
+  std::optional<T> get_member(std::string root_name, const int index, const std::string_view sub_name) const
   {
-    return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index, sub_name));
+    return rajson::Value_view{doc_}.optional<T>(get_member_name(std::move(root_name), index, sub_name));
   }
 };
 
@@ -314,9 +314,9 @@ Timeswipe_state& Timeswipe_state::set_signal_mode(const Signal_mode mode)
   return *this;
 }
 
-std::optional<Signal_mode> Timeswipe_state::signal_mode() const
+std::optional<Signal_mode> Timeswipe_state::get_signal_mode() const
 {
-  return rep_->signal_mode();
+  return rep_->get_signal_mode();
 }
 
 // -----------------------------------------------------------------------------
@@ -328,9 +328,9 @@ Timeswipe_state& Timeswipe_state::set_channel_measurement_mode(const int index,
   return *this;
 }
 
-std::optional<Measurement_mode> Timeswipe_state::channel_measurement_mode(const int index) const
+std::optional<Measurement_mode> Timeswipe_state::get_channel_measurement_mode(const int index) const
 {
-  return rep_->channel_measurement_mode(index);
+  return rep_->get_channel_measurement_mode(index);
 }
 
 Timeswipe_state& Timeswipe_state::set_channel_gain(const int index, const float value)
@@ -339,9 +339,9 @@ Timeswipe_state& Timeswipe_state::set_channel_gain(const int index, const float 
   return *this;
 }
 
-std::optional<float> Timeswipe_state::channel_gain(const int index) const
+std::optional<float> Timeswipe_state::get_channel_gain(const int index) const
 {
-  return rep_->channel_gain(index);
+  return rep_->get_channel_gain(index);
 }
 
 Timeswipe_state& Timeswipe_state::set_channel_iepe(const int index, const bool value)
@@ -350,9 +350,9 @@ Timeswipe_state& Timeswipe_state::set_channel_iepe(const int index, const bool v
   return *this;
 }
 
-std::optional<bool> Timeswipe_state::channel_iepe(const int index) const
+std::optional<bool> Timeswipe_state::get_channel_iepe(const int index) const
 {
-  return rep_->channel_iepe(index);
+  return rep_->get_channel_iepe(index);
 }
 
 // -----------------------------------------------------------------------------
@@ -363,9 +363,9 @@ Timeswipe_state& Timeswipe_state::set_pwm_start(const int index, const bool valu
   return *this;
 }
 
-std::optional<bool> Timeswipe_state::pwm_start(const int index) const
+std::optional<bool> Timeswipe_state::get_pwm_start(const int index) const
 {
-  return rep_->pwm_start(index);
+  return rep_->get_pwm_start(index);
 }
 
 Timeswipe_state& Timeswipe_state::set_pwm_frequency(const int index, const int value)
@@ -374,9 +374,9 @@ Timeswipe_state& Timeswipe_state::set_pwm_frequency(const int index, const int v
   return *this;
 }
 
-std::optional<int> Timeswipe_state::pwm_frequency(const int index) const
+std::optional<int> Timeswipe_state::get_pwm_frequency(const int index) const
 {
-  return rep_->pwm_frequency(index);
+  return rep_->get_pwm_frequency(index);
 }
 
 Timeswipe_state& Timeswipe_state::set_pwm_low(const int index, const int value)
@@ -385,9 +385,9 @@ Timeswipe_state& Timeswipe_state::set_pwm_low(const int index, const int value)
   return *this;
 }
 
-std::optional<int> Timeswipe_state::pwm_low(const int index) const
+std::optional<int> Timeswipe_state::get_pwm_low(const int index) const
 {
-  return rep_->pwm_low(index);
+  return rep_->get_pwm_low(index);
 }
 
 Timeswipe_state& Timeswipe_state::set_pwm_high(const int index, const int value)
@@ -396,9 +396,9 @@ Timeswipe_state& Timeswipe_state::set_pwm_high(const int index, const int value)
   return *this;
 }
 
-std::optional<int> Timeswipe_state::pwm_high(const int index) const
+std::optional<int> Timeswipe_state::get_pwm_high(const int index) const
 {
-  return rep_->pwm_high(index);
+  return rep_->get_pwm_high(index);
 }
 
 Timeswipe_state& Timeswipe_state::set_pwm_repeat_count(const int index, const int value)
@@ -407,9 +407,9 @@ Timeswipe_state& Timeswipe_state::set_pwm_repeat_count(const int index, const in
   return *this;
 }
 
-std::optional<int> Timeswipe_state::pwm_repeat_count(const int index) const
+std::optional<int> Timeswipe_state::get_pwm_repeat_count(const int index) const
 {
-  return rep_->pwm_repeat_count(index);
+  return rep_->get_pwm_repeat_count(index);
 }
 
 Timeswipe_state& Timeswipe_state::set_pwm_duty_cycle(const int index, const float value)
@@ -418,9 +418,9 @@ Timeswipe_state& Timeswipe_state::set_pwm_duty_cycle(const int index, const floa
   return *this;
 }
 
-std::optional<float> Timeswipe_state::pwm_duty_cycle(const int index) const
+std::optional<float> Timeswipe_state::get_pwm_duty_cycle(const int index) const
 {
-  return rep_->pwm_duty_cycle(index);
+  return rep_->get_pwm_duty_cycle(index);
 }
 
 } // namespace panda::timeswipe::driver

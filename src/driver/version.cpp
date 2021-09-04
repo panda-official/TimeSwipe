@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-// PANDA TimeSwipe Project
+// PANDA Timeswipe Project
 // Copyright (C) 2021  PANDA GmbH
 
 // This program is free software: you can redistribute it and/or modify
@@ -16,14 +16,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_HPP
-#define PANDA_TIMESWIPE_DRIVER_HPP
+#include "version.hpp"
 
-#include "driver/types_fwd.hpp"
-#include "driver/event.hpp"
-#include "driver/sensor_data.hpp"
-#include "driver/timeswipe.hpp"
-#include "driver/timeswipe_state.hpp"
-#include "driver/version.hpp"
+#include "../common/version.hpp"
 
-#endif  // PANDA_TIMESWIPE_DRIVER_HPP
+namespace panda::timeswipe::driver {
+
+Version Version::get() noexcept
+{
+  namespace ver = version;
+  return {ver::major, ver::minor, ver::patch};
+}
+
+} // namespace panda::timeswipe::driver

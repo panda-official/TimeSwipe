@@ -68,7 +68,7 @@ public:
   Timeswipe_state& set_signal_mode(Signal_mode mode);
 
   /// @returns The value of signal mode.
-  std::optional<Signal_mode> signal_mode() const;
+  std::optional<Signal_mode> get_signal_mode() const;
 
   /// @}
 
@@ -84,19 +84,19 @@ public:
   Timeswipe_state& set_channel_measurement_mode(int index, Measurement_mode value);
 
   /// @returns The value of channel measurement mode.
-  std::optional<Measurement_mode> channel_measurement_mode(int index) const;
+  std::optional<Measurement_mode> get_channel_measurement_mode(int index) const;
 
   /// Sets the channel gain.
   Timeswipe_state& set_channel_gain(int index, float value);
 
   /// @returns The value of channel gain.
-  std::optional<float> channel_gain(int index) const;
+  std::optional<float> get_channel_gain(int index) const;
 
   /// Sets the channel IEPE.
   Timeswipe_state& set_channel_iepe(int index, bool value);
 
   /// @returns The value of channel IEPE.
-  std::optional<bool> channel_iepe(int index) const;
+  std::optional<bool> get_channel_iepe(int index) const;
 
   /// @}
 
@@ -117,25 +117,25 @@ public:
   Timeswipe_state& set_pwm_start(int index, bool value);
 
   /// @returns The value of PWM start flag.
-  std::optional<bool> pwm_start(int index) const;
+  std::optional<bool> get_pwm_start(int index) const;
 
   /// Sets frequency.
   Timeswipe_state& set_pwm_frequency(int index, int value);
 
   /// @returns The value of PWM frequency parameter.
-  std::optional<int> pwm_frequency(int index) const;
+  std::optional<int> get_pwm_frequency(int index) const;
 
   /// Sets PWM signal low value.
   Timeswipe_state& set_pwm_low(int index, int value);
 
   /// @returns The value of PWM low parameter.
-  std::optional<int> pwm_low(int index) const;
+  std::optional<int> get_pwm_low(int index) const;
 
   /// Sets PWM signal high value.
   Timeswipe_state& set_pwm_high(int index, int value);
 
   /// @returns The value of PWM high parameter.
-  std::optional<int> pwm_high(int index) const;
+  std::optional<int> get_pwm_high(int index) const;
 
   /**
    * Sets the number of repeat periods.
@@ -145,7 +145,7 @@ public:
   Timeswipe_state& set_pwm_repeat_count(int index, int value);
 
   /// @returns The value of PWM repeat count parameter.
-  std::optional<int> pwm_repeat_count(int index) const;
+  std::optional<int> get_pwm_repeat_count(int index) const;
 
   /**
    * Sets the length of the PWM period when signal is in high state.
@@ -155,7 +155,7 @@ public:
   Timeswipe_state& set_pwm_duty_cycle(int index, float value);
 
   /// @returns The value of PWM duty cycle parameter.
-  std::optional<float> pwm_duty_cycle(int index) const;
+  std::optional<float> get_pwm_duty_cycle(int index) const;
 
   /// @}
 

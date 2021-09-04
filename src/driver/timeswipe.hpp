@@ -19,9 +19,7 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 #define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
 
-#include "event.hpp"
-#include "sensor_data.hpp"
-#include "timeswipe_state.hpp"
+#include "types_fwd.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -33,17 +31,7 @@
 
 namespace panda::timeswipe::driver {
 
-/// A driver version.
-struct Version final {
-  int major{};
-  int minor{};
-  int patch{};
-};
-
-/// @returns The driver version.
-Version version() noexcept;
-
-/// The Timeswipe board.
+/// A Timeswipe board.
 class Timeswipe final {
 public:
   /// An alias of the board state.
@@ -308,7 +296,7 @@ public:
    *
    * @returns The actual board state.
    */
-  const State& state() const;
+  const State& get_state() const;
 
 private:
   struct Rep;
