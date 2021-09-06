@@ -65,9 +65,6 @@ public:
   /// Non move-assignable.
   Timeswipe& operator=(Timeswipe&&) = delete;
 
-  /// @returns Max possible sample rate.
-  int get_max_sample_rate() const noexcept;
-
   /**
    * Set sample rate. Default value is max_sample_rate().
    *
@@ -80,8 +77,24 @@ public:
    * `(max_sample_rate() % rate != 0)` for best performance! In other words
    * the lower the value of `std::gcd(max_sample_rate(), rate)`, the worse
    * the performance of the resampling.
+   *
+   * @see get_sample_rate().
    */
   void set_sample_rate(int rate);
+
+  /**
+   * @returns The current sample rate.
+   *
+   * @see set_sample_rate(), get_max_sample_rate().
+   */
+  int get_sample_rate() const noexcept;
+
+  /**
+   * @returns Max possible sample rate.
+   *
+   * @see get_sample_rate().
+   */
+  int get_max_sample_rate() const noexcept;
 
   /**
    * Sets the burst buffer size.
@@ -92,6 +105,9 @@ public:
    * @see start().
    */
   void set_burst_size(std::size_t size);
+
+  /// @returns The burst buffer size.
+  std::size_t get_burst_size() const noexcept;
 
   /// @name Drift Compensation
   ///

@@ -256,6 +256,11 @@ public:
     burst_size_ = size;
   }
 
+  std::size_t get_burst_size() const noexcept
+  {
+    return burst_size_;
+  }
+
   /// @returns Previous resampler if any.
   std::unique_ptr<detail::Resampler> set_sample_rate(const int rate)
   {
@@ -277,6 +282,11 @@ public:
 
     sample_rate_ = rate;
     return result;
+  }
+
+  int get_sample_rate() const noexcept
+  {
+    return sample_rate_;
   }
 
   int get_max_sample_rate() const noexcept
@@ -1171,19 +1181,29 @@ Timeswipe::Timeswipe()
 
 Timeswipe::~Timeswipe() = default;
 
-int Timeswipe::get_max_sample_rate() const noexcept
-{
-  return rep_->get_max_sample_rate();
-}
-
 void Timeswipe::set_sample_rate(const int rate)
 {
   rep_->set_sample_rate(rate);
 }
 
+int Timeswipe::get_sample_rate() const noexcept
+{
+  return rep_->get_sample_rate();
+}
+
+int Timeswipe::get_max_sample_rate() const noexcept
+{
+  return rep_->get_max_sample_rate();
+}
+
 void Timeswipe::set_burst_size(const std::size_t size)
 {
   return rep_->set_burst_size(size);
+}
+
+std::size_t Timeswipe::get_burst_size() const noexcept
+{
+  return rep_->get_burst_size();
 }
 
 std::vector<float> Timeswipe::calculate_drift_references()
