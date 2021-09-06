@@ -56,7 +56,7 @@ void measure(drv::Timeswipe& ts, const std::filesystem::path& logfile)
 
 int main()
 {
-  auto& ts = drv::Timeswipe::instance();
+  auto& ts = drv::Timeswipe::get_instance();
   assert(!ts.IsBusy());
 
   ts.clear_drift_references();

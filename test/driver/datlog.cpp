@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     }
 
 
-    auto& tswipe = drv::Timeswipe::instance();
+    auto& tswipe = drv::Timeswipe::get_instance();
 
     // Board Preparation
     drv::Timeswipe_state state;

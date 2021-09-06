@@ -79,7 +79,7 @@ void measure(drv::Timeswipe& ts, const std::chrono::milliseconds dur)
 
 int main(const int argc, const char* const argv[])
 try {
-  auto& ts = drv::Timeswipe::instance();
+  auto& ts = drv::Timeswipe::get_instance();
   assert(!ts.IsBusy());
 
   // Set the measure duration.

@@ -38,20 +38,36 @@ public:
   using State = Timeswipe_state;
 
   /**
+   * An alias of a function to handle the incoming events.
+   *
+   * @see start().
+   */
+  using Event_handler = std::function<void(Event&&)>;
+
+  /**
+   * An alias of a function to handle sensor data read errors.
+   *
+   * @see start().
+   */
+  using Error_handler = std::function<void(std::uint64_t)>;
+
+  /**
+   * An alias of a function to handle the incoming sensor data.
+   *
+   * @param data Portion of incoming data to consume.
+   * @param error_count The number of errors (data losts).
+   *
+   * @see start().
+   */
+  using Sensor_data_handler = std::function<void(Sensors_data data, int error_count)>;
+
+  /**
    * The destructor.
    *
    * @par Effects
-   * Same as for Stop().
+   * See stop().
    */
   ~Timeswipe();
-
-  /**
-   * @returns The instance of this class.
-   *
-   * @par Effects
-   * Restarts Timeswipe firmware on very first run!
-   */
-  static Timeswipe& instance();
 
   /// Non copy-constructible.
   Timeswipe(const Timeswipe&) = delete;
@@ -64,6 +80,32 @@ public:
 
   /// Non move-assignable.
   Timeswipe& operator=(Timeswipe&&) = delete;
+
+  /**
+   * @returns The instance of this class.
+   *
+   * @par Effects
+   * Restarts Timeswipe firmware on very first call!
+   */
+  static Timeswipe& get_instance();
+
+  /**
+   * Sets the board state.
+   *
+   * @returns The actual board state after applying the given `state`.
+   *
+   * @see get_state().
+   */
+  void set_state(const State& state);
+
+  /**
+   * Gets the board state.
+   *
+   * @returns The actual board state.
+   *
+   * @see set_state().
+   */
+  const State& get_state() const;
 
   /**
    * Set sample rate. Default value is max_sample_rate().
@@ -108,6 +150,57 @@ public:
 
   /// @returns The burst buffer size.
   std::size_t get_burst_size() const noexcept;
+
+  /**
+   * Sets the event handler.
+   *
+   * @par Requires
+   * `!is_busy()`.
+   */
+  void set_event_handler(Event_handler&& handler);
+
+  /**
+   * Sets the error handler.
+   *
+   * @par Requires
+   * `!is_busy()`.
+   */
+  void set_error_handler(Error_handler&& handler);
+
+  /**
+   * Initiates the start of measurement.
+   *
+   * @par Effects
+   * Repeatedly calls `handler`. The call frequency of the handler is depends on
+   * the burst_size() - the greater it's value, the less frequent `handler` is
+   * called. If the `burst_size() == sample_rate()` then the `handler` is called
+   * `1` time per second.
+   *
+   * @warning The `handler` **must** spend no more than `burst_size() / sample_rate()`
+   * seconds on processing the incoming data! Otherwise, the driver will throttle
+   * and some the sensor data will be skipped.
+   *
+   * @warning This method cannot be called from `handler`!
+   *
+   * @par Effects
+   * `is_busy()`.
+   */
+  void start(Sensor_data_handler handler);
+
+  /**
+   * @returns `true` if the board is busy (measurement in progress).
+   *
+   * @see calculate_drift_references(), calculate_drift_deltas(), start().
+   */
+  bool is_busy() const noexcept;
+
+  /**
+   * Stops the measurement.
+   *
+   * @par Effects
+   * `!is_busy()`.
+   */
+  void stop();
 
   /// @name Drift Compensation
   ///
@@ -224,95 +317,6 @@ public:
   std::optional<std::vector<float>> get_drift_deltas() const;
 
   /// @}
-
-  /**
-   * An alias of a function to handle the incoming sensor data.
-   *
-   * @param data Portion of incoming data to consume.
-   * @param error_count The number of errors (data losts).
-   *
-   * @see start().
-   */
-  using Sensor_data_handler = std::function<void(Sensors_data data, int error_count)>;
-
-  /**
-   * Initiates the start of measurement.
-   *
-   * @par Effects
-   * Repeatedly calls `handler`. The call frequency of the handler is depends on
-   * the burst_size() - the greater it's value, the less frequent `handler` is
-   * called. If the `burst_size() == sample_rate()` then the `handler` is called
-   * `1` time per second.
-   *
-   * @warning The `handler` **must** spend no more than `burst_size() / sample_rate()`
-   * seconds on processing the incoming data! Otherwise, the driver will throttle
-   * and some the sensor data will be skipped.
-   *
-   * @warning This method cannot be called from `handler`!
-   *
-   * @par Effects
-   * `is_busy()`.
-   */
-  void start(Sensor_data_handler handler);
-
-  /**
-   * @returns `true` if the board is busy (measurement in progress).
-   *
-   * @see calculate_drift_references(), calculate_drift_deltas(), start().
-   */
-  bool is_busy() const noexcept;
-
-  /**
-   * Stops the measurement.
-   *
-   * @par Effects
-   * `!is_busy()`.
-   */
-  void stop();
-
-  /**
-   * An alias of a function to handle the incoming events.
-   *
-   * @see start().
-   */
-  using Event_handler = std::function<void(Event&&)>;
-
-  /**
-   * Sets the event handler.
-   *
-   * @par Requires
-   * `!is_busy()`.
-   */
-  void set_event_handler(Event_handler&& handler);
-
-  /**
-   * An alias of a function to handle sensor data read errors.
-   *
-   * @see start().
-   */
-  using Error_handler = std::function<void(std::uint64_t)>;
-
-  /**
-   * Sets the error handler.
-   *
-   * @par Requires
-   * `!is_busy()`.
-   */
-  void set_error_handler(Error_handler&& handler);
-
-  /**
-   * Sets the board state.
-   *
-   * @returns The actual board state after applying the given `state`.
-   */
-  void set_state(const State& state);
-
-  /**
-   * Gets the board state.
-   *
-   * @returns The actual board state.
-   */
-  const State& get_state() const;
 
 private:
   struct Rep;

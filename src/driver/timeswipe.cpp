@@ -123,6 +123,78 @@ public:
     is_gpio_inited_ = true;
   }
 
+  void set_state(const State& state)
+  {
+    spi_.execute_set_many(state.to_stringified_json());
+    state_.reset(); // invalidate cache (this could be optimized)
+  }
+
+  const State& get_state() const
+  {
+    if (!state_)
+      state_.emplace(spi_.execute_get_many(""));
+    return *state_;
+  }
+
+  /// @returns Previous resampler if any.
+  std::unique_ptr<detail::Resampler> set_sample_rate(const int rate)
+  {
+    if (is_busy()) return {};
+
+    const auto max_rate = get_max_sample_rate();
+    if (!(1 <= rate && rate <= max_rate))
+      throw Runtime_exception{Errc::out_of_range, "invalid sample rate"};
+
+    auto result{std::move(resampler_)};
+    if (rate != max_rate) {
+      const auto rates_gcd = std::gcd(rate, max_rate);
+      const auto up = rate / rates_gcd;
+      const auto down = max_rate / rates_gcd;
+      resampler_ = std::make_unique<detail::Resampler>
+        (detail::Resampler_options{up, down});
+    } else
+      resampler_.reset();
+
+    sample_rate_ = rate;
+    return result;
+  }
+
+  int get_sample_rate() const noexcept
+  {
+    return sample_rate_;
+  }
+
+  int get_max_sample_rate() const noexcept
+  {
+    return max_sample_rate;
+  }
+
+  void set_burst_size(const std::size_t size)
+  {
+    burst_size_ = size;
+  }
+
+  std::size_t get_burst_size() const noexcept
+  {
+    return burst_size_;
+  }
+
+  void set_event_handler(Event_handler&& handler)
+  {
+    if (is_busy())
+      throw Runtime_exception{Errc::board_is_busy};
+
+    event_handler_ = std::move(handler);
+  }
+
+  void set_error_handler(Error_handler&& handler)
+  {
+    if (is_busy())
+      throw Runtime_exception{Errc::board_is_busy};
+
+    error_handler_ = std::move(handler);
+  }
+
   void start(Sensor_data_handler&& handler)
   {
     if (is_busy())
@@ -197,35 +269,6 @@ public:
     return is_measurement_started_ || in_handler_;
   }
 
-  void set_event_handler(Event_handler&& handler)
-  {
-    if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
-
-    event_handler_ = std::move(handler);
-  }
-
-  void set_error_handler(Error_handler&& handler)
-  {
-    if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
-
-    error_handler_ = std::move(handler);
-  }
-
-  void set_state(const State& state)
-  {
-    spi_.execute_set_many(state.to_stringified_json());
-    state_.reset(); // invalidate cache (this could be optimized)
-  }
-
-  const State& get_state() const
-  {
-    if (!state_)
-      state_.emplace(spi_.execute_get_many(""));
-    return *state_;
-  }
-
   void stop()
   {
     if (!is_measurement_started_) return;
@@ -250,53 +293,6 @@ public:
       read_skip_count_ = initial_invalid_datasets_count;
     }
   }
-
-  void set_burst_size(const std::size_t size)
-  {
-    burst_size_ = size;
-  }
-
-  std::size_t get_burst_size() const noexcept
-  {
-    return burst_size_;
-  }
-
-  /// @returns Previous resampler if any.
-  std::unique_ptr<detail::Resampler> set_sample_rate(const int rate)
-  {
-    if (is_busy()) return {};
-
-    const auto max_rate = get_max_sample_rate();
-    if (!(1 <= rate && rate <= max_rate))
-      throw Runtime_exception{Errc::out_of_range, "invalid sample rate"};
-
-    auto result{std::move(resampler_)};
-    if (rate != max_rate) {
-      const auto rates_gcd = std::gcd(rate, max_rate);
-      const auto up = rate / rates_gcd;
-      const auto down = max_rate / rates_gcd;
-      resampler_ = std::make_unique<detail::Resampler>
-        (detail::Resampler_options{up, down});
-    } else
-      resampler_.reset();
-
-    sample_rate_ = rate;
-    return result;
-  }
-
-  int get_sample_rate() const noexcept
-  {
-    return sample_rate_;
-  }
-
-  int get_max_sample_rate() const noexcept
-  {
-    return max_sample_rate;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Drift Compensation
-  // ---------------------------------------------------------------------------
 
   std::vector<float> calculate_drift_references()
   {
@@ -478,6 +474,7 @@ private:
 
   Event_handler event_handler_;
   Error_handler error_handler_;
+  Sensor_data_handler sensor_data_handler_;
   std::atomic_bool in_handler_{};
 
   // ---------------------------------------------------------------------------
@@ -1169,17 +1166,27 @@ private:
 // class Timeswipe
 // -----------------------------------------------------------------------------
 
-Timeswipe& Timeswipe::instance()
-{
-  if (!instance_) instance_.reset(new Timeswipe);
-  return *instance_;
-}
+Timeswipe::~Timeswipe() = default;
 
 Timeswipe::Timeswipe()
   : rep_{std::make_unique<Rep>()}
 {}
 
-Timeswipe::~Timeswipe() = default;
+Timeswipe& Timeswipe::get_instance()
+{
+  if (!instance_) instance_.reset(new Timeswipe);
+  return *instance_;
+}
+
+void Timeswipe::set_state(const State& state)
+{
+  return rep_->set_state(state);
+}
+
+auto Timeswipe::get_state() const -> const State&
+{
+  return rep_->get_state();
+}
 
 void Timeswipe::set_sample_rate(const int rate)
 {
@@ -1204,6 +1211,31 @@ void Timeswipe::set_burst_size(const std::size_t size)
 std::size_t Timeswipe::get_burst_size() const noexcept
 {
   return rep_->get_burst_size();
+}
+
+void Timeswipe::set_event_handler(Event_handler&& handler)
+{
+  return rep_->set_event_handler(std::move(handler));
+}
+
+void Timeswipe::set_error_handler(Error_handler&& handler)
+{
+  return rep_->set_error_handler(std::move(handler));
+}
+
+void Timeswipe::start(Sensor_data_handler handler)
+{
+  rep_->start(std::move(handler));
+}
+
+bool Timeswipe::is_busy() const noexcept
+{
+  return rep_->is_busy();
+}
+
+void Timeswipe::stop()
+{
+  return rep_->stop();
 }
 
 std::vector<float> Timeswipe::calculate_drift_references()
@@ -1234,41 +1266,6 @@ std::optional<std::vector<float>> Timeswipe::get_drift_references(const bool for
 std::optional<std::vector<float>> Timeswipe::get_drift_deltas() const
 {
   return rep_->get_drift_deltas();
-}
-
-void Timeswipe::start(Sensor_data_handler handler)
-{
-  rep_->start(std::move(handler));
-}
-
-bool Timeswipe::is_busy() const noexcept
-{
-  return rep_->is_busy();
-}
-
-void Timeswipe::stop()
-{
-  return rep_->stop();
-}
-
-void Timeswipe::set_event_handler(Event_handler&& handler)
-{
-  return rep_->set_event_handler(std::move(handler));
-}
-
-void Timeswipe::set_error_handler(Error_handler&& handler)
-{
-  return rep_->set_error_handler(std::move(handler));
-}
-
-void Timeswipe::set_state(const State& state)
-{
-  return rep_->set_state(state);
-}
-
-auto Timeswipe::get_state() const -> const State&
-{
-  return rep_->get_state();
 }
 
 } // namespace panda::timeswipe::driver

@@ -39,7 +39,7 @@ void usage(const char* name)
 int main(int argc, char *argv[])
 {
     namespace drv = panda::timeswipe::driver;
-    auto& tswipe = drv::Timeswipe::instance();
+    auto& tswipe = drv::Timeswipe::get_instance();
 
     bool start = false;
     bool stop = false;
