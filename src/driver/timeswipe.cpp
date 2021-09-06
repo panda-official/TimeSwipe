@@ -95,27 +95,27 @@ public:
     if (!force && is_gpio_inited_) return;
 
     detail::setup_io();
-    init_gpio_input(DATA0);
-    init_gpio_input(DATA1);
-    init_gpio_input(DATA2);
-    init_gpio_input(DATA3);
-    init_gpio_input(DATA4);
-    init_gpio_input(DATA5);
-    init_gpio_input(DATA6);
-    init_gpio_input(DATA7);
+    init_gpio_input(gpio_data0);
+    init_gpio_input(gpio_data1);
+    init_gpio_input(gpio_data2);
+    init_gpio_input(gpio_data3);
+    init_gpio_input(gpio_data4);
+    init_gpio_input(gpio_data5);
+    init_gpio_input(gpio_data6);
+    init_gpio_input(gpio_data7);
 
-    init_gpio_input(TCO);
-    init_gpio_input(PI_OK);
-    init_gpio_input(FAIL);
-    init_gpio_input(BUTTON);
+    init_gpio_input(gpio_tco);
+    init_gpio_input(gpio_pi_ok);
+    init_gpio_input(gpio_fail);
+    init_gpio_input(gpio_button);
 
-    // init_gpio_output(PI_OK);
-    init_gpio_output(CLOCK);
-    init_gpio_output(RESET);
+    // init_gpio_output(gpio_pi_ok);
+    init_gpio_output(gpio_clock);
+    init_gpio_output(gpio_reset);
 
     // Initial Reset
-    set_gpio_low(CLOCK);
-    set_gpio_high(RESET);
+    set_gpio_low(gpio_clock);
+    set_gpio_high(gpio_reset);
 
     using std::chrono::milliseconds;
     std::this_thread::sleep_for(milliseconds{1});
@@ -241,13 +241,13 @@ public:
      */
     {
       // Reset Clock
-      set_gpio_low(CLOCK);
+      set_gpio_low(gpio_clock);
 
       // Stop Measurement
       spi_set_enable_ad_mes(false);
 
       // Reset state.
-      read_skip_count_ = kInitialInvalidDataSetsCount;
+      read_skip_count_ = initial_invalid_datasets_count;
     }
   }
 
@@ -291,11 +291,11 @@ public:
   std::vector<float> calculate_drift_references()
   {
     // Collect the data for calculation.
-    auto data{collect_sensors_data(kDriftSamplesCount_, // 5 ms
+    auto data{collect_sensors_data(drift_samples_count_, // 5 ms
       [this]{return DriftAffectedStateGuard{*this};})};
 
     // Discard the first half.
-    data.erase_front(kDriftSamplesCount_ / 2);
+    data.erase_front(drift_samples_count_ / 2);
 
     // Take averages of measured data (references).
     std::vector<float> result(data.get_sensor_count());
@@ -337,12 +337,12 @@ public:
       throw Runtime_exception{Errc::no_drift_references};
 
     // Collect the data for calculation.
-    auto data{collect_sensors_data(kDriftSamplesCount_,
+    auto data{collect_sensors_data(drift_samples_count_,
       [this]{return DriftAffectedStateGuard{*this};})};
     DMITIGR_ASSERT(refs->size() == data.get_sensor_count());
 
     // Discard the first half.
-    data.erase_front(kDriftSamplesCount_ / 2);
+    data.erase_front(drift_samples_count_ / 2);
 
     // Take averages of measured data (references) and subtract the references.
     std::vector<float> result(data.get_sensor_count());
@@ -415,11 +415,11 @@ private:
   constexpr static int max_sample_rate_{48000};
 
   // "Switching oscillation" completely (according to PSpice) decays after 1.5ms.
-  constexpr static std::chrono::microseconds kSwitchingOscillationPeriod_{1500};
+  constexpr static std::chrono::microseconds switching_oscillation_period_{1500};
 
   // Only 5ms of raw data is needed. (5ms * 48kHz = 240 values.)
-  constexpr static std::size_t kDriftSamplesCount_{5*max_sample_rate_/1000};
-  static_assert(!(kDriftSamplesCount_ % 2));
+  constexpr static std::size_t drift_samples_count_{5*max_sample_rate_/1000};
+  static_assert(!(drift_samples_count_ % 2));
 
   // ---------------------------------------------------------------------------
   // Resampling data
@@ -440,9 +440,9 @@ private:
   // ---------------------------------------------------------------------------
 
   // The number of initial invalid data sets.
-  static constexpr int kInitialInvalidDataSetsCount{32};
-  static constexpr std::uint16_t k_sensor_offset{32768};
-  int read_skip_count_{kInitialInvalidDataSetsCount};
+  static constexpr int initial_invalid_datasets_count{32};
+  static constexpr std::uint16_t sensor_offset{32768};
+  int read_skip_count_{initial_invalid_datasets_count};
   std::array<float, 4> sensor_slopes_{1, 1, 1, 1};
   std::array<float, 4> sensor_translation_offsets_{};
   std::array<float, 4> sensor_translation_slopes_{1, 1, 1, 1};
@@ -581,11 +581,11 @@ private:
         rep_.set_state(state);
       }
 
-      std::this_thread::sleep_for(rep_.kSwitchingOscillationPeriod_);
+      std::this_thread::sleep_for(rep_.switching_oscillation_period_);
 
       // Store the other current state of rep_.
       resampler_ = rep_.set_sample_rate(rep_.get_max_sample_rate());
-      rep_.set_burst_size(rep_.kDriftSamplesCount_);
+      rep_.set_burst_size(rep_.drift_samples_count_);
     }
 
     Rep& rep_;
@@ -600,40 +600,40 @@ private:
   // ---------------------------------------------------------------------------
 
   // PIN NAMES
-  static constexpr std::uint8_t DATA0{24};  // BCM 24 - PIN 18
-  static constexpr std::uint8_t DATA1{25};  // BCM 25 - PIN 22
-  static constexpr std::uint8_t DATA2{7};   // BCM  7 - PIN 26
-  static constexpr std::uint8_t DATA3{5};   // BCM  5 - PIN 29
-  static constexpr std::uint8_t DATA4{6};   // BCM  6 - PIN 31
-  static constexpr std::uint8_t DATA5{12};  // BCM 12 - PIN 32
-  static constexpr std::uint8_t DATA6{13};  // BCM 13 - PIN 33
-  static constexpr std::uint8_t DATA7{16};  // BCM 16 - PIN 36
-  static constexpr std::uint8_t CLOCK{4};   // BCM  4 - PIN  7
-  static constexpr std::uint8_t TCO{14};    // BCM 14 - PIN  8
-  static constexpr std::uint8_t PI_OK{15};  // BCM 15 - PIN 10
-  static constexpr std::uint8_t FAIL{18};   // BCM 18 - PIN 12
-  static constexpr std::uint8_t RESET{17};  // BCM 17 - PIN 11
-  static constexpr std::uint8_t BUTTON{25}; // BCM 25 - PIN 22
+  static constexpr std::uint8_t gpio_data0{24};  // BCM 24 - PIN 18
+  static constexpr std::uint8_t gpio_data1{25};  // BCM 25 - PIN 22
+  static constexpr std::uint8_t gpio_data2{7};   // BCM  7 - PIN 26
+  static constexpr std::uint8_t gpio_data3{5};   // BCM  5 - PIN 29
+  static constexpr std::uint8_t gpio_data4{6};   // BCM  6 - PIN 31
+  static constexpr std::uint8_t gpio_data5{12};  // BCM 12 - PIN 32
+  static constexpr std::uint8_t gpio_data6{13};  // BCM 13 - PIN 33
+  static constexpr std::uint8_t gpio_data7{16};  // BCM 16 - PIN 36
+  static constexpr std::uint8_t gpio_clock{4};   // BCM  4 - PIN  7
+  static constexpr std::uint8_t gpio_tco{14};    // BCM 14 - PIN  8
+  static constexpr std::uint8_t gpio_pi_ok{15};  // BCM 15 - PIN 10
+  static constexpr std::uint8_t gpio_fail{18};   // BCM 18 - PIN 12
+  static constexpr std::uint8_t gpio_reset{17};  // BCM 17 - PIN 11
+  static constexpr std::uint8_t gpio_button{25}; // BCM 25 - PIN 22
 
-  static constexpr std::array<std::uint32_t, 8> DATA_POSITION{
-    std::uint32_t{1} << DATA0,
-    std::uint32_t{1} << DATA1,
-    std::uint32_t{1} << DATA2,
-    std::uint32_t{1} << DATA3,
-    std::uint32_t{1} << DATA4,
-    std::uint32_t{1} << DATA5,
-    std::uint32_t{1} << DATA6,
-    std::uint32_t{1} << DATA7
+  static constexpr std::array<std::uint32_t, 8> gpio_data_position{
+    std::uint32_t{1} << gpio_data0,
+    std::uint32_t{1} << gpio_data1,
+    std::uint32_t{1} << gpio_data2,
+    std::uint32_t{1} << gpio_data3,
+    std::uint32_t{1} << gpio_data4,
+    std::uint32_t{1} << gpio_data5,
+    std::uint32_t{1} << gpio_data6,
+    std::uint32_t{1} << gpio_data7
   };
 
-  static constexpr std::uint32_t CLOCK_POSITION{std::uint32_t{1} << CLOCK};
-  static constexpr std::uint32_t TCO_POSITION{std::uint32_t{1} << TCO};
-  static constexpr std::uint32_t PI_STATUS_POSITION{std::uint32_t{1} << PI_OK};
-  static constexpr std::uint32_t FAIL_POSITION{std::uint32_t{1} << FAIL};
-  static constexpr std::uint32_t BUTTON_POSITION{std::uint32_t{1} << BUTTON};
+  static constexpr std::uint32_t gpio_clock_position{std::uint32_t{1} << gpio_clock};
+  static constexpr std::uint32_t gpio_tco_position{std::uint32_t{1} << gpio_tco};
+  static constexpr std::uint32_t gpio_pi_status_position{std::uint32_t{1} << gpio_pi_ok};
+  static constexpr std::uint32_t gpio_fail_position{std::uint32_t{1} << gpio_fail};
+  static constexpr std::uint32_t gpio_button_position{std::uint32_t{1} << gpio_button};
 
-  // (2^32)-1 - ALL BCM_PINS
-  static constexpr std::uint32_t ALL_32_BITS_ON{0xFFFFFFFF};
+  // (2^32)-1 - ALL BCM pins
+  static constexpr std::uint32_t gpio_all_32_bits_on{0xFFFFFFFF};
 
   static void pull_gpio(const unsigned pin, const unsigned high)
   {
@@ -664,12 +664,12 @@ private:
 
   static void reset_all_gpio()
   {
-    PANDA_TIMESWIPE_GPIO_CLR = ALL_32_BITS_ON;
+    PANDA_TIMESWIPE_GPIO_CLR = gpio_all_32_bits_on;
   }
 
   static unsigned read_all_gpio()
   {
-    return (*(panda::timeswipe::driver::detail::bcm_gpio + 13) & ALL_32_BITS_ON);
+    return (*(panda::timeswipe::driver::detail::bcm_gpio + 13) & gpio_all_32_bits_on);
   }
 
   static void sleep_for_55ns()
@@ -727,7 +727,7 @@ private:
       const std::array<float, 4>& translation_slopes)
     {
       std::array<std::uint16_t, 4> sensors{};
-      static_assert(sizeof(k_sensor_offset) == sizeof(sensors[0]));
+      static_assert(sizeof(sensor_offset) == sizeof(sensors[0]));
       static_assert(slopes.size() == sensors.size());
       static_assert(translation_offsets.size() == sensors.size());
       static_assert(translation_slopes.size() == sensors.size());
@@ -758,7 +758,7 @@ private:
       }
 
       for (std::size_t i{}; i < data_size; ++i) {
-        const auto mv = (sensors[i] - k_sensor_offset) * slopes[i];
+        const auto mv = (sensors[i] - sensor_offset) * slopes[i];
         const auto unit = (mv - translation_offsets[i]) * translation_slopes[i];
         data[i].push_back(unit);
       }
@@ -767,29 +767,29 @@ private:
   private:
     static Gpio_data read() noexcept
     {
-      set_gpio_high(CLOCK);
+      set_gpio_high(gpio_clock);
       sleep_for_55ns();
       sleep_for_55ns();
 
-      set_gpio_low(CLOCK);
+      set_gpio_low(gpio_clock);
       sleep_for_55ns();
       sleep_for_55ns();
 
       const unsigned int all_gpio{read_all_gpio()};
       const std::uint8_t byte =
-        ((all_gpio & DATA_POSITION[0]) >> 17) |  // Bit 7
-        ((all_gpio & DATA_POSITION[1]) >> 19) |  //     6
-        ((all_gpio & DATA_POSITION[2]) >> 2) |   //     5
-        ((all_gpio & DATA_POSITION[3]) >> 1) |   //     4
-        ((all_gpio & DATA_POSITION[4]) >> 3) |   //     3
-        ((all_gpio & DATA_POSITION[5]) >> 10) |  //     2
-        ((all_gpio & DATA_POSITION[6]) >> 12) |  //     1
-        ((all_gpio & DATA_POSITION[7]) >> 16);   //     0
+        ((all_gpio & gpio_data_position[0]) >> 17) |  // Bit 7
+        ((all_gpio & gpio_data_position[1]) >> 19) |  //     6
+        ((all_gpio & gpio_data_position[2]) >> 2) |   //     5
+        ((all_gpio & gpio_data_position[3]) >> 1) |   //     4
+        ((all_gpio & gpio_data_position[4]) >> 3) |   //     3
+        ((all_gpio & gpio_data_position[5]) >> 10) |  //     2
+        ((all_gpio & gpio_data_position[6]) >> 12) |  //     1
+        ((all_gpio & gpio_data_position[7]) >> 16);   //     0
 
       sleep_for_55ns();
       sleep_for_55ns();
 
-      return {byte, (all_gpio & TCO_POSITION), (all_gpio & PI_STATUS_POSITION) != 0};
+      return {byte, (all_gpio & gpio_tco_position), (all_gpio & gpio_pi_status_position) != 0};
     }
   };
 
