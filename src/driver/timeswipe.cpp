@@ -281,7 +281,7 @@ public:
 
   int get_max_sample_rate() const noexcept
   {
-    return max_sample_rate_;
+    return max_sample_rate;
   }
 
   // ---------------------------------------------------------------------------
@@ -291,11 +291,11 @@ public:
   std::vector<float> calculate_drift_references()
   {
     // Collect the data for calculation.
-    auto data{collect_sensors_data(drift_samples_count_, // 5 ms
+    auto data{collect_sensors_data(drift_samples_count, // 5 ms
       [this]{return DriftAffectedStateGuard{*this};})};
 
     // Discard the first half.
-    data.erase_front(drift_samples_count_ / 2);
+    data.erase_front(drift_samples_count / 2);
 
     // Take averages of measured data (references).
     std::vector<float> result(data.get_sensor_count());
@@ -337,12 +337,12 @@ public:
       throw Runtime_exception{Errc::no_drift_references};
 
     // Collect the data for calculation.
-    auto data{collect_sensors_data(drift_samples_count_,
+    auto data{collect_sensors_data(drift_samples_count,
       [this]{return DriftAffectedStateGuard{*this};})};
     DMITIGR_ASSERT(refs->size() == data.get_sensor_count());
 
     // Discard the first half.
-    data.erase_front(drift_samples_count_ / 2);
+    data.erase_front(drift_samples_count / 2);
 
     // Take averages of measured data (references) and subtract the references.
     std::vector<float> result(data.get_sensor_count());
@@ -410,22 +410,22 @@ private:
   // ---------------------------------------------------------------------------
 
   // Min sample rate per second.
-  constexpr static int min_sample_rate_{32};
+  static constexpr int min_sample_rate{32};
   // Max sample rate per second.
-  constexpr static int max_sample_rate_{48000};
+  static constexpr int max_sample_rate{48000};
 
   // "Switching oscillation" completely (according to PSpice) decays after 1.5ms.
-  constexpr static std::chrono::microseconds switching_oscillation_period_{1500};
+  static constexpr std::chrono::microseconds switching_oscillation_period{1500};
 
   // Only 5ms of raw data is needed. (5ms * 48kHz = 240 values.)
-  constexpr static std::size_t drift_samples_count_{5*max_sample_rate_/1000};
-  static_assert(!(drift_samples_count_ % 2));
+  static constexpr std::size_t drift_samples_count{5*max_sample_rate/1000};
+  static_assert(!(drift_samples_count % 2));
 
   // ---------------------------------------------------------------------------
   // Resampling data
   // ---------------------------------------------------------------------------
 
-  int sample_rate_{max_sample_rate_};
+  int sample_rate_{max_sample_rate};
   std::unique_ptr<detail::Resampler> resampler_;
 
   // ---------------------------------------------------------------------------
@@ -454,8 +454,8 @@ private:
   // ---------------------------------------------------------------------------
 
   // Next buffer must be enough to keep records for 1 s
-  constexpr static unsigned queue_size_{max_sample_rate_/min_sample_rate_*2};
-  boost::lockfree::spsc_queue<Sensors_data, boost::lockfree::capacity<queue_size_>> record_queue_;
+  static constexpr unsigned record_queue_size{max_sample_rate/min_sample_rate*2};
+  boost::lockfree::spsc_queue<Sensors_data, boost::lockfree::capacity<record_queue_size>> record_queue_;
   std::atomic_uint64_t record_error_count_{};
   std::size_t burst_size_{};
   Sensors_data burst_buffer_;
@@ -581,11 +581,11 @@ private:
         rep_.set_state(state);
       }
 
-      std::this_thread::sleep_for(rep_.switching_oscillation_period_);
+      std::this_thread::sleep_for(rep_.switching_oscillation_period);
 
       // Store the other current state of rep_.
       resampler_ = rep_.set_sample_rate(rep_.get_max_sample_rate());
-      rep_.set_burst_size(rep_.drift_samples_count_);
+      rep_.set_burst_size(rep_.drift_samples_count);
     }
 
     Rep& rep_;
