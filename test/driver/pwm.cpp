@@ -8,7 +8,7 @@
 */
 
 #include "../../src/driver.hpp"
-#include "../../src/common/json.hpp"
+#include "../../src/firmware/json.hpp"
 
 #include <chrono>
 #include <csignal>

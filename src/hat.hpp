@@ -24,9 +24,9 @@
 #ifndef PANDA_TIMESWIPE_HAT_HPP
 #define PANDA_TIMESWIPE_HAT_HPP
 
-#include "../3rdparty/dmitigr/crc.hpp"
 #include "error.hpp"
 #include "serial.hpp"
+#include "3rdparty/dmitigr/crc.hpp"
 
 #include <array>
 #include <cstdint>

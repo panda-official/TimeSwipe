@@ -17,18 +17,18 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "bcmlib.hpp"
+#include "bcmspi.hpp"
 #include "board_settings.hpp"
 #include "driver_settings.hpp"
 #include "event.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "sensor_data.hpp"
-#include "spi.hpp"
 #include "timeswipe.hpp"
 
-#include "../common/error.hpp"
-#include "../common/gain.hpp"
-#include "../common/hat.hpp"
+#include "../error.hpp"
+#include "../gain.hpp"
+#include "../hat.hpp"
 
 #include "../3rdparty/dmitigr/assert.hpp"
 #include "../3rdparty/dmitigr/filesystem.hpp"

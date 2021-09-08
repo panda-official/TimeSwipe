@@ -7,7 +7,7 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/common/json.hpp"
+#include "../../src/firmware/json.hpp"
 #include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/math.hpp"
 

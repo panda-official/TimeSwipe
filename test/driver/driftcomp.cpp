@@ -8,7 +8,7 @@
 */
 
 #include "../../src/driver.hpp"
-#include "../../src/common/error.hpp"
+#include "../../src/error.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 
 #include <algorithm>

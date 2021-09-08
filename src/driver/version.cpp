@@ -18,7 +18,7 @@
 
 #include "version.hpp"
 
-#include "../common/version.hpp"
+#include "../version.hpp"
 
 namespace panda::timeswipe::driver {
 

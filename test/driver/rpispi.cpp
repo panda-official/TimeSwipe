@@ -12,8 +12,8 @@ Copyright (c) 2019 Panda Team
  * be printed on `stdout`. `Ctrl + c` exits the application.
  */
 
-#include "../../src/common/Serial.h"
-#include "../../src/driver/spi.hpp"
+#include "../../src/serial.hpp"
+#include "../../src/driver/bcmspi.hpp"
 
 #include <cstdlib>
 #include <iostream>

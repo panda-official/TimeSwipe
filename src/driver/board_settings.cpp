@@ -18,8 +18,8 @@
 
 #include "board_settings.hpp"
 
-#include "../common/error.hpp"
-#include "../common/rajson.hpp"
+#include "../error.hpp"
+#include "../rajson.hpp"
 
 #include <algorithm>
 #include <utility>

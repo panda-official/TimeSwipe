@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP
 #define PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP
 
-#include "../common/basics.hpp"
+#include "../basics.hpp"
 
 #include <memory>
 #include <optional>

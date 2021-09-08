@@ -18,7 +18,7 @@
 
 #include "driver_settings.hpp"
 
-#include "../common/rajson.hpp"
+#include "../rajson.hpp"
 
 namespace rajson = dmitigr::rajson;
 

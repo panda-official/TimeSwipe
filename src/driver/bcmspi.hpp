@@ -16,12 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_SPI_HPP
-#define PANDA_TIMESWIPE_SPI_HPP
+#ifndef PANDA_TIMESWIPE_BCMSPI_HPP
+#define PANDA_TIMESWIPE_BCMSPI_HPP
 
-#include "../common/error.hpp"
-#include "../common/SPI.h"
-#include "../common/SyncCom.h"
+#include "../error.hpp"
+#include "../spi.hpp"
+#include "../synccom.hpp"
 #include "../3rdparty/BCMsrc/bcm2835.h"
 
 #include <atomic>
@@ -326,4 +326,4 @@ private:
 
 } // namespace panda::timeswipe::driver::detail
 
-#endif  // PANDA_TIMESWIPE_SPI_HPP
+#endif  // PANDA_TIMESWIPE_BCMSPI_HPP
