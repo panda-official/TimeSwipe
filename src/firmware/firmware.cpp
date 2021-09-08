@@ -7,6 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 //build for ADCs-DACs:
 
+#include "../assert.hpp"
 #include "../hat.hpp"
 #include "../version.hpp"
 #include "cmd.h"
@@ -38,8 +39,8 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamDACcntr.h"
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
-#include "error.hpp"
 
+namespace ts = panda::timeswipe;
 using namespace std::placeholders;
 
 
@@ -79,8 +80,8 @@ try {
         typeBoard ThisBoard=typeBoard::IEPEBoard;
 #endif
 
-        namespace ver = panda::timeswipe::version;
-        auto pVersion=std::make_shared<CSemVer>(ver::major, ver::minor, ver::patch);
+        auto pVersion=std::make_shared<CSemVer>(ts::version_major,
+          ts::version_minor, ts::version_patch);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
@@ -402,6 +403,8 @@ try {
 } catch (const std::system_error& e) {
   // FIXME: store error code and category to EEPROM.
   return e.code().value();
+} catch (const panda::timeswipe::detail::Debug_exception& e) {
+  return e.condition().value();
 } catch (const std::exception& e) {
   return -1;
 } catch (...) {
