@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_PIDFILE_HPP
-#define PANDA_TIMESWIPE_DRIVER_PIDFILE_HPP
+#ifndef PANDA_TIMESWIPE_PIDFILE_HPP
+#define PANDA_TIMESWIPE_PIDFILE_HPP
 
 #include <cstring>
 #include <cerrno>
@@ -29,7 +29,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-namespace panda::timeswipe::driver::detail {
+namespace panda::timeswipe::detail {
 
 class Pid_file final {
 public:
@@ -125,6 +125,6 @@ private:
   }
 };
 
-} // namespace panda::timeswipe::driver::detail
+} // namespace panda::timeswipe::detail
 
-#endif  // PANDA_TIMESWIPE_DRIVER_PIDFILE_HPP
+#endif  // PANDA_TIMESWIPE_PIDFILE_HPP

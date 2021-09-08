@@ -394,9 +394,9 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     NEWLINE_STYLE UNIX)
 
   set(timeswipe_src
-    src/driver/board_settings.cpp
-    src/driver/driver_settings.cpp
-    src/driver/timeswipe.cpp
+    src/board_settings.cpp
+    src/driver_settings.cpp
+    src/timeswipe.cpp
     src/3rdparty/BCMsrc/bcm2835.c
     )
 

@@ -17,12 +17,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "driver_settings.hpp"
-
-#include "../rajson.hpp"
+#include "rajson.hpp"
 
 namespace rajson = dmitigr::rajson;
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
 // class Driver_settings::Rep
@@ -236,4 +235,4 @@ float Driver_settings::get_data_translation_slope(const int index) const
   return rep_->get_data_translation_slope(index);
 }
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe

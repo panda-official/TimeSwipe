@@ -21,7 +21,6 @@
 
 namespace chrono = std::chrono;
 namespace ts = panda::timeswipe;
-namespace drv = ts::driver;
 
 namespace {
 
@@ -32,9 +31,9 @@ void log(const std::vector<float>& data)
   std::clog << std::endl;
 }
 
-void measure(drv::Timeswipe& ts, const std::filesystem::path& logfile)
+void measure(ts::Timeswipe& ts, const std::filesystem::path& logfile)
 {
-  ts.set_settings(std::move(drv::Driver_settings{}.set_sample_rate(48000)
+  ts.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000 / 10)));
   constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
   std::ofstream log{logfile, log_mode};
@@ -56,7 +55,7 @@ void measure(drv::Timeswipe& ts, const std::filesystem::path& logfile)
 
 int main()
 {
-  auto& ts = drv::Timeswipe::get_instance();
+  auto& ts = ts::Timeswipe::get_instance();
   assert(!ts.IsBusy());
 
   ts.clear_drift_references();

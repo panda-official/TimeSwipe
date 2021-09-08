@@ -16,17 +16,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP
-#define PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP
+#ifndef PANDA_TIMESWIPE_BOARD_SETTINGS_HPP
+#define PANDA_TIMESWIPE_BOARD_SETTINGS_HPP
 
-#include "../basics.hpp"
+#include "basics.hpp"
 
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 /// Board-level settings.
 class Board_settings final {
@@ -164,6 +164,6 @@ private:
   std::unique_ptr<Rep> rep_;
 };
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe
 
-#endif  // PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP
+#endif  // PANDA_TIMESWIPE_BOARD_SETTINGS_HPP

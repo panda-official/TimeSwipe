@@ -28,8 +28,8 @@
 // $Id: bcm2835.c,v 1.28 2020/01/11 05:07:13 mikem Exp mikem $
 */
 
-#ifndef PANDA_TIMESWIPE_DRIVER_BCMLIB_HPP
-#define PANDA_TIMESWIPE_DRIVER_BCMLIB_HPP
+#ifndef PANDA_TIMESWIPE_BCMLIB_HPP
+#define PANDA_TIMESWIPE_BCMLIB_HPP
 
 #include <fcntl.h>
 #include <stdint.h>
@@ -76,7 +76,7 @@
     (byte & 0x02 ? '1' : '0'),                  \
     (byte & 0x01 ? '1' : '0')
 
-namespace panda::timeswipe::driver::detail {
+namespace panda::timeswipe::detail {
 
 /// I/O access.
 volatile unsigned int* bcm_gpio;
@@ -146,7 +146,7 @@ inline void setup_io() noexcept
   bcm_gpio = (volatile unsigned int *)gpio_map;
 }
 
-} // namespace panda::timeswipe::driver::detail
+} // namespace panda::timeswipe::detail
 
 /*
  * GPIO setup macros.
@@ -154,16 +154,16 @@ inline void setup_io() noexcept
  * PANDA_TIMESWIPE_OUT_GPIO(x) or PANDA_TIMESWIPE_SET_GPIO_ALT(x,y).
  */
 
-#define PANDA_TIMESWIPE_INP_GPIO(g) *(panda::timeswipe::driver::detail::bcm_gpio+((g)/10)) &= ~(7<<(((g)%10)*3))
-#define PANDA_TIMESWIPE_OUT_GPIO(g) *(panda::timeswipe::driver::detail::bcm_gpio+((g)/10)) |=  (1<<(((g)%10)*3))
-#define PANDA_TIMESWIPE_SET_GPIO_ALT(g,a) *(panda::timeswipe::driver::detail::bcm_gpio+(((g)/10))) |= (((a)<=3?(a)+4:(a)==4?3:2)<<(((g)%10)*3))
+#define PANDA_TIMESWIPE_INP_GPIO(g) *(panda::timeswipe::detail::bcm_gpio+((g)/10)) &= ~(7<<(((g)%10)*3))
+#define PANDA_TIMESWIPE_OUT_GPIO(g) *(panda::timeswipe::detail::bcm_gpio+((g)/10)) |=  (1<<(((g)%10)*3))
+#define PANDA_TIMESWIPE_SET_GPIO_ALT(g,a) *(panda::timeswipe::detail::bcm_gpio+(((g)/10))) |= (((a)<=3?(a)+4:(a)==4?3:2)<<(((g)%10)*3))
 
-#define PANDA_TIMESWIPE_GPIO_SET *(panda::timeswipe::driver::detail::bcm_gpio+7)  // sets bits which are 1, ignores bits which are 0
-#define PANDA_TIMESWIPE_GPIO_CLR *(panda::timeswipe::driver::detail::bcm_gpio+10) // clears bits which are 1, ignores bits which are 0
+#define PANDA_TIMESWIPE_GPIO_SET *(panda::timeswipe::detail::bcm_gpio+7)  // sets bits which are 1, ignores bits which are 0
+#define PANDA_TIMESWIPE_GPIO_CLR *(panda::timeswipe::detail::bcm_gpio+10) // clears bits which are 1, ignores bits which are 0
 
-#define PANDA_TIMESWIPE_GET_GPIO(g) (*(panda::timeswipe::driver::detail::bcm_gpio+13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
+#define PANDA_TIMESWIPE_GET_GPIO(g) (*(panda::timeswipe::detail::bcm_gpio+13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
 
-#define PANDA_TIMESWIPE_GPIO_PULL *(panda::timeswipe::driver::detail::bcm_gpio+37) // Pull up/pull down
-#define PANDA_TIMESWIPE_GPIO_PULLCLK0 *(panda::timeswipe::driver::detail::bcm_gpio+38) // Pull up/pull down clock
+#define PANDA_TIMESWIPE_GPIO_PULL *(panda::timeswipe::detail::bcm_gpio+37) // Pull up/pull down
+#define PANDA_TIMESWIPE_GPIO_PULLCLK0 *(panda::timeswipe::detail::bcm_gpio+38) // Pull up/pull down clock
 
-#endif  // PANDA_TIMESWIPE_DRIVER_BCMLIB_HPP
+#endif  // PANDA_TIMESWIPE_BCMLIB_HPP

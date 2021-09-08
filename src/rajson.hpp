@@ -16,6 +16,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#ifndef PANDA_TIMESWIPE_RAJSON_HPP
+#define PANDA_TIMESWIPE_RAJSON_HPP
+
 #include "basics.hpp"
 
 #include "3rdparty/dmitigr/assert.hpp"
@@ -103,3 +106,5 @@ std::optional<T> get_array(const rapidjson::GenericValue<Encoding, Allocator>& j
 }
 
 } // namespace panda::timeswipe::detail
+
+#endif  // PANDA_TIMESWIPE_RAJSON_HPP

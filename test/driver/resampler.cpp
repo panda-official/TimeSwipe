@@ -7,8 +7,8 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/driver/resampler.hpp"
-#include "../../src/driver/timeswipe.hpp"
+#include "../../src/resampler.hpp"
+#include "../../src/timeswipe.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 #include "../../src/3rdparty/dmitigr/progpar.hpp"
 #include "../../src/3rdparty/dmitigr/str.hpp"
@@ -32,11 +32,11 @@
 #include <utility>
 #include <vector>
 
-namespace drv = panda::timeswipe::driver;
+namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
-using Sensor_value = drv::Sensors_data::value_type::value_type;
-constexpr auto sensor_count = drv::Sensors_data::get_sensor_count();
+using Sensor_value = ts::Sensors_data::value_type::value_type;
+constexpr auto sensor_count = ts::Sensors_data::get_sensor_count();
 
 namespace {
 
@@ -175,7 +175,7 @@ inline Input_file open_input_file(const std::filesystem::path& path)
 
 enum class Output_format { bin, csv };
 
-inline void write_output(std::ostream& out, const Output_format format, const drv::Sensors_data& records)
+inline void write_output(std::ostream& out, const Output_format format, const ts::Sensors_data& records)
 {
   const auto sample_rate = records.get_size();
   const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
@@ -260,7 +260,7 @@ try {
     throw std::runtime_error{"either input file is likely corrupted or incorrect sample rate specified"};
 
   // Create the resampler options instance.
-  drv::detail::Resampler_options r_opts{up_factor, down_factor};
+  ts::detail::Resampler_options r_opts{up_factor, down_factor};
 
   // Parse --sensors option.
   const auto sensors = []
@@ -319,7 +319,7 @@ try {
   // Parse --extrapolation option.
   r_opts.set_extrapolation([]
   {
-    using drv::detail::Signal_extrapolation;
+    using ts::detail::Signal_extrapolation;
     if (const auto o = params["extrapolation"]) {
       if (const auto& v = o.value()) {
         if (*v == "zero")
@@ -446,14 +446,14 @@ try {
 
   // Define the convenient function for resampling and output.
   unsigned entry_count{};
-  const auto process_records = [&](drv::Sensors_data&& records)
+  const auto process_records = [&](ts::Sensors_data&& records)
   {
     static const auto proc_recs = [&]
     {
-      std::function<void(drv::Sensors_data&&, bool)> process_records;
+      std::function<void(ts::Sensors_data&&, bool)> process_records;
       if (is_resampling_mode()) {
-        const auto resampler = std::make_shared<drv::detail::Resampler>(r_opts);
-        process_records = [resampler, &os, output_format](drv::Sensors_data&& records, const bool end)
+        const auto resampler = std::make_shared<ts::detail::Resampler>(r_opts);
+        process_records = [resampler, &os, output_format](ts::Sensors_data&& records, const bool end)
         {
           auto recs = resampler->apply(std::move(records));
           write_output(os, output_format, recs);
@@ -464,7 +464,7 @@ try {
           records.clear();
         };
       } else {
-        process_records = [&os, output_format](drv::Sensors_data&& records, const bool /*end*/)
+        process_records = [&os, output_format](ts::Sensors_data&& records, const bool /*end*/)
         {
           write_output(os, output_format, records);
           records.clear();
@@ -493,7 +493,7 @@ try {
         records[j].push_back(buf[idx - 1]);
     }
   };
-  drv::Sensors_data records;
+  ts::Sensors_data records;
   records.reserve(sample_rate);
   std::array<Sensor_value, sensor_count> buf;
   if (input_file.is_binary) {

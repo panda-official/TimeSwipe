@@ -7,14 +7,14 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/driver/resampler.hpp"
+#include "../../src/resampler.hpp"
 
 #include <thread>
 #include <vector>
 
 int main()
 {
-  using namespace panda::timeswipe::driver::detail;
+  using namespace panda::timeswipe::detail;
   const unsigned thread_count{std::thread::hardware_concurrency()};
   std::vector<std::thread> threads(thread_count);
   constexpr unsigned max_factor{500};

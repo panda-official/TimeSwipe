@@ -7,8 +7,8 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#ifndef PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
-#define PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
+#ifndef PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
+#define PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
 
 #include <algorithm>
 #include <cassert>
@@ -18,7 +18,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace panda::timeswipe::driver::detail {
+namespace panda::timeswipe::detail {
 
 /**
  * @brief Signal extrapolation method.
@@ -556,6 +556,6 @@ auto resample(const unsigned up_rate, const unsigned down_rate,
   return result;
 }
 
-} // namespace panda::timeswipe::driver::detail
+} // namespace panda::timeswipe::detail
 
-#endif  // PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
+#endif  // PANDA_TIMESWIPE_FIR_RESAMPLER_HPP

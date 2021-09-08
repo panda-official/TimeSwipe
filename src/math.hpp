@@ -7,8 +7,8 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#ifndef PANDA_TIMESWIPE_DRIVER_MATH_HPP
-#define PANDA_TIMESWIPE_DRIVER_MATH_HPP
+#ifndef PANDA_TIMESWIPE_MATH_HPP
+#define PANDA_TIMESWIPE_MATH_HPP
 
 #include <algorithm>
 #include <cassert>
@@ -19,7 +19,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace panda::timeswipe::driver::detail {
+namespace panda::timeswipe::detail {
 
 /// @returns A positive value near to zero.
 constexpr double positive_near_zero() noexcept
@@ -230,6 +230,6 @@ inline std::vector<double> kaiser(const int length, const double beta = .5)
   return result;
 }
 
-} // namespace panda::timeswipe::driver::detail
+} // namespace panda::timeswipe::detail
 
-#endif  // PANDA_TIMESWIPE_DRIVER_MATH_HPP
+#endif  // PANDA_TIMESWIPE_MATH_HPP

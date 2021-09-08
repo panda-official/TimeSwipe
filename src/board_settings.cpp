@@ -18,15 +18,15 @@
 
 #include "board_settings.hpp"
 
-#include "../error.hpp"
-#include "../rajson.hpp"
+#include "error.hpp"
+#include "rajson.hpp"
 
 #include <algorithm>
 #include <utility>
 
 namespace rajson = dmitigr::rajson;
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
 // class Board_settings::Rep
@@ -395,4 +395,4 @@ std::optional<float> Board_settings::get_pwm_duty_cycle(const int index) const
   return rep_->get_pwm_duty_cycle(index);
 }
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe

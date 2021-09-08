@@ -38,120 +38,120 @@ void usage(const char* name)
 
 int main(int argc, char *argv[])
 {
-    namespace drv = panda::timeswipe::driver;
-    auto& tswipe = drv::Timeswipe::get_instance();
+  namespace ts = panda::timeswipe;
+  auto& tswipe = ts::Timeswipe::get_instance();
 
-    bool start = false;
-    bool stop = false;
-    bool get = false;
-    int pwm_index{};
-    drv::Board_settings settings;
-    for (int i{}; i < 2; ++i) {
-      settings
-        .set_pwm_frequency(i, 1)
-        .set_pwm_high(i, 4095)
-        .set_pwm_low(i, 0)
-        .set_pwm_repeat_count(i, 0)
-        .set_pwm_duty_cycle(i, .5);
-    }
+  bool start = false;
+  bool stop = false;
+  bool get = false;
+  int pwm_index{};
+  ts::Board_settings settings;
+  for (int i{}; i < 2; ++i) {
+    settings
+      .set_pwm_frequency(i, 1)
+      .set_pwm_high(i, 4095)
+      .set_pwm_low(i, 0)
+      .set_pwm_repeat_count(i, 0)
+      .set_pwm_duty_cycle(i, .5);
+  }
 
-    bool both = true;
+  bool both = true;
 
-    if (argc < 3) {
-        usage(argv[0]);
-        return 1;
-    }
+  if (argc < 3) {
+    usage(argv[0]);
+    return 1;
+  }
 
-    std::string command = argv[1];
-    if (command == "start") start = true;
-    else if (command == "stop") stop = true;
-    else if (command == "get") get = true;
-    else {
-      usage(argv[0]);
-      return 1;
-    }
+  std::string command = argv[1];
+  if (command == "start") start = true;
+  else if (command == "stop") stop = true;
+  else if (command == "get") get = true;
+  else {
+    usage(argv[0]);
+    return 1;
+  }
 
-    pwm_index = std::stoi(argv[2]);
-    if (pwm_index < 0 || pwm_index > 1) {
-      std::cerr << "index must be in range [0, 1]" << std::endl;
-      usage(argv[0]);
-      return 1;
-    }
-    both = false;
+  pwm_index = std::stoi(argv[2]);
+  if (pwm_index < 0 || pwm_index > 1) {
+    std::cerr << "index must be in range [0, 1]" << std::endl;
+    usage(argv[0]);
+    return 1;
+  }
+  both = false;
 
-    for (int i{3}; i < argc; ++i) {
-      if (!strcmp(argv[i],"--freq")) {
-        if (i+1 > argc) {
-          usage(argv[0]);
-          return 1;
-        }
-        settings.set_pwm_frequency(pwm_index, std::stoi(argv[i+1]));
-        ++i;
-      } else if (!strcmp(argv[i],"--high")) {
-        if (i+1 > argc) {
-          usage(argv[0]);
-          return 1;
-        }
-        settings.set_pwm_high(pwm_index, std::stoi(argv[i+1]));
-        ++i;
-      } else if (!strcmp(argv[i],"--low")) {
-        if (i+1 > argc) {
-          usage(argv[0]);
-          return 1;
-        }
-        settings.set_pwm_low(pwm_index, std::stoi(argv[i+1]));
-        ++i;
-      } else if (!strcmp(argv[i],"--repeats")) {
-        if (i+1 > argc) {
-          usage(argv[0]);
-          return 1;
-        }
-        settings.set_pwm_repeat_count(pwm_index, std::stoi(argv[i+1]));
-        ++i;
-      } else if (!strcmp(argv[i],"--duty")) {
-        if (i+1 > argc) {
-          usage(argv[0]);
-          return 1;
-        }
-        settings.set_pwm_duty_cycle(pwm_index, std::stof(argv[i+1]));
-        ++i;
-      } else {
-        std::cerr << "unkown argument \"" << argv[i] << "\"" << std::endl;
+  for (int i{3}; i < argc; ++i) {
+    if (!strcmp(argv[i],"--freq")) {
+      if (i+1 > argc) {
         usage(argv[0]);
         return 1;
       }
-    }
-
-    for (int i{}; i < 2; ++i) {
-      if (!both && pwm_index != i) continue;
-      if (start) {
-        std::cout << "start " << i
-                  << " freq: " << *settings.get_pwm_frequency(i)
-                  << " high: " << *settings.get_pwm_high(i)
-                  << " low: " << *settings.get_pwm_low(i)
-                  << " repeats: " << *settings.get_pwm_repeat_count(i)
-                  << " duty: " << *settings.get_pwm_duty_cycle(i)
-                  << std::endl;
-        settings.set_pwm_start(i, true);
-        tswipe.set_board_settings(settings);
-        std::cout << "start " << i << " succeded" << std::endl;
-      } else if (stop) {
-        std::cout << "stop " << i << std::endl;
-        settings.set_pwm_start(i, false);
-        tswipe.set_board_settings(settings);
-        std::cout << "stop " << i << " succeded" << std::endl;
-      } else if (get) {
-        std::cout << "get " << i << std::endl;
-        const auto& settings = tswipe.get_board_settings();
-        std::cout << "get " << i
-                  << " freq: " << *settings.get_pwm_frequency(i)
-                  << " high: " << *settings.get_pwm_high(i)
-                  << " low: " << *settings.get_pwm_low(i)
-                  << " repeats: " << *settings.get_pwm_repeat_count(i)
-                  << " duty: " << *settings.get_pwm_duty_cycle(i)
-                  << std::endl;
+      settings.set_pwm_frequency(pwm_index, std::stoi(argv[i+1]));
+      ++i;
+    } else if (!strcmp(argv[i],"--high")) {
+      if (i+1 > argc) {
+        usage(argv[0]);
+        return 1;
       }
+      settings.set_pwm_high(pwm_index, std::stoi(argv[i+1]));
+      ++i;
+    } else if (!strcmp(argv[i],"--low")) {
+      if (i+1 > argc) {
+        usage(argv[0]);
+        return 1;
+      }
+      settings.set_pwm_low(pwm_index, std::stoi(argv[i+1]));
+      ++i;
+    } else if (!strcmp(argv[i],"--repeats")) {
+      if (i+1 > argc) {
+        usage(argv[0]);
+        return 1;
+      }
+      settings.set_pwm_repeat_count(pwm_index, std::stoi(argv[i+1]));
+      ++i;
+    } else if (!strcmp(argv[i],"--duty")) {
+      if (i+1 > argc) {
+        usage(argv[0]);
+        return 1;
+      }
+      settings.set_pwm_duty_cycle(pwm_index, std::stof(argv[i+1]));
+      ++i;
+    } else {
+      std::cerr << "unkown argument \"" << argv[i] << "\"" << std::endl;
+      usage(argv[0]);
+      return 1;
     }
+  }
 
-    return 0;
+  for (int i{}; i < 2; ++i) {
+    if (!both && pwm_index != i) continue;
+    if (start) {
+      std::cout << "start " << i
+                << " freq: " << *settings.get_pwm_frequency(i)
+                << " high: " << *settings.get_pwm_high(i)
+                << " low: " << *settings.get_pwm_low(i)
+                << " repeats: " << *settings.get_pwm_repeat_count(i)
+                << " duty: " << *settings.get_pwm_duty_cycle(i)
+                << std::endl;
+      settings.set_pwm_start(i, true);
+      tswipe.set_board_settings(settings);
+      std::cout << "start " << i << " succeded" << std::endl;
+    } else if (stop) {
+      std::cout << "stop " << i << std::endl;
+      settings.set_pwm_start(i, false);
+      tswipe.set_board_settings(settings);
+      std::cout << "stop " << i << " succeded" << std::endl;
+    } else if (get) {
+      std::cout << "get " << i << std::endl;
+      const auto& settings = tswipe.get_board_settings();
+      std::cout << "get " << i
+                << " freq: " << *settings.get_pwm_frequency(i)
+                << " high: " << *settings.get_pwm_high(i)
+                << " low: " << *settings.get_pwm_low(i)
+                << " repeats: " << *settings.get_pwm_repeat_count(i)
+                << " duty: " << *settings.get_pwm_duty_cycle(i)
+                << std::endl;
+    }
+  }
+
+  return 0;
 }

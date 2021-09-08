@@ -12,8 +12,7 @@ Copyright (c) 2019 Panda Team
  * be printed on `stdout`. `Ctrl + c` exits the application.
  */
 
-#include "../../src/serial.hpp"
-#include "../../src/driver/bcmspi.hpp"
+#include "../../src/bcmspi.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -21,7 +20,7 @@ Copyright (c) 2019 Panda Team
 #include <sstream>
 #include <string>
 
-namespace drv = panda::timeswipe::driver;
+namespace ts = panda::timeswipe;
 
 class CNixConsole final : public CSerial {
 public:
@@ -96,7 +95,7 @@ int main ( int argc, char *argv[] )
 
     if ( bMasterMode )
     {
-        using drv::detail::Bcm_spi;
+        using ts::detail::Bcm_spi;
         Bcm_spi spi ( nSPI ? Bcm_spi::Pins::aux : Bcm_spi::Pins::spi0 );
 
         if (!spi.is_initialized())

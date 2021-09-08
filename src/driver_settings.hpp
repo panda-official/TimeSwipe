@@ -24,7 +24,7 @@
 #include <string>
 #include <string_view>
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 /// Driver-level settings.
 class Driver_settings final {
@@ -127,6 +127,6 @@ private:
   std::unique_ptr<Rep> rep_;
 };
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe
 
 #endif  // PANDA_TIMESWIPE_DRIVER_SETTINGS_HPP

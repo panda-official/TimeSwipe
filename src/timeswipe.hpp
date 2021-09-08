@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
-#define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
+#ifndef PANDA_TIMESWIPE_TIMESWIPE_HPP
+#define PANDA_TIMESWIPE_TIMESWIPE_HPP
 
 #include "types_fwd.hpp"
 
@@ -29,7 +29,7 @@
 #include <string_view>
 #include <vector>
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 /**
  * A Timeswipe driver.
@@ -307,6 +307,6 @@ private:
   Timeswipe();
 };
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe
 
-#endif  // PANDA_TIMESWIPE_DRIVER_TIMESWIPE_HPP
+#endif  // PANDA_TIMESWIPE_TIMESWIPE_HPP

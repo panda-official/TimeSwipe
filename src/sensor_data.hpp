@@ -16,16 +16,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
-#define PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
+#ifndef PANDA_TIMESWIPE_SENSOR_DATA_HPP
+#define PANDA_TIMESWIPE_SENSOR_DATA_HPP
 
-#include "../basics.hpp"
+#include "basics.hpp"
 
 #include <array>
 #include <cstdint>
 #include <vector>
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 /// Sensor data.
 class Sensors_data final {
@@ -173,6 +173,6 @@ private:
   int sensor_count_{max_data_channel_count};
 };
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe
 
-#endif  // PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
+#endif  // PANDA_TIMESWIPE_SENSOR_DATA_HPP

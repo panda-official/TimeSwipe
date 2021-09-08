@@ -16,14 +16,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_EVENT_HPP
-#define PANDA_TIMESWIPE_DRIVER_EVENT_HPP
+#ifndef PANDA_TIMESWIPE_EVENT_HPP
+#define PANDA_TIMESWIPE_EVENT_HPP
 
 #include <memory>
 #include <type_traits>
 #include <variant>
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 /// Timeswipe event.
 class Event final {
@@ -215,6 +215,6 @@ private:
   std::variant<Button, Gain, Set_secondary, Bridge, Record, Offset, Mode> event_;
 };
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe
 
-#endif  // PANDA_TIMESWIPE_DRIVER_EVENT_HPP
+#endif  // PANDA_TIMESWIPE_EVENT_HPP

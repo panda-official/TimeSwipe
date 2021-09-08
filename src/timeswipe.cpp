@@ -20,21 +20,20 @@
 #include "bcmspi.hpp"
 #include "board_settings.hpp"
 #include "driver_settings.hpp"
+#include "error.hpp"
 #include "event.hpp"
+#include "gain.hpp"
+#include "hat.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "sensor_data.hpp"
 #include "timeswipe.hpp"
+#include "version.hpp"
 
-#include "../error.hpp"
-#include "../gain.hpp"
-#include "../hat.hpp"
-#include "../version.hpp"
-
-#include "../3rdparty/dmitigr/assert.hpp"
-#include "../3rdparty/dmitigr/filesystem.hpp"
-#include "../3rdparty/dmitigr/math.hpp"
-#include "../3rdparty/dmitigr/rajson.hpp"
+#include "3rdparty/dmitigr/assert.hpp"
+#include "3rdparty/dmitigr/filesystem.hpp"
+#include "3rdparty/dmitigr/math.hpp"
+#include "3rdparty/dmitigr/rajson.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 
@@ -56,7 +55,7 @@
 
 namespace rajson = dmitigr::rajson;
 
-namespace panda::timeswipe::driver {
+namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
 // class Timeswipe::Rep
@@ -651,7 +650,7 @@ private:
 
   static unsigned read_all_gpio()
   {
-    return (*(panda::timeswipe::driver::detail::bcm_gpio + 13) & gpio_all_32_bits_on);
+    return (*(panda::timeswipe::detail::bcm_gpio + 13) & gpio_all_32_bits_on);
   }
 
   static void sleep_for_55ns()
@@ -1254,4 +1253,4 @@ std::optional<std::vector<float>> Timeswipe::get_drift_deltas() const
   return rep_->get_drift_deltas();
 }
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe

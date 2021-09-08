@@ -16,13 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_RESAMPLER_HPP
-#define PANDA_TIMESWIPE_DRIVER_RESAMPLER_HPP
+#ifndef PANDA_TIMESWIPE_RESAMPLER_HPP
+#define PANDA_TIMESWIPE_RESAMPLER_HPP
 
 #include "fir_resampler.hpp"
 #include "math.hpp"
 #include "sensor_data.hpp"
-#include "../3rdparty/dmitigr/assert.hpp"
+#include "3rdparty/dmitigr/assert.hpp"
 
 #include <algorithm>
 #include <array>
@@ -36,7 +36,7 @@
 #include <vector>
 #include <utility>
 
-namespace panda::timeswipe::driver::detail {
+namespace panda::timeswipe::detail {
 
 /// A timeswipe resampler options.
 /// FIXME: merge up_factor() and down_factor() into factors().
@@ -518,6 +518,6 @@ private:
   }
 };
 
-} // namespace panda::timeswipe::driver::detail
+} // namespace panda::timeswipe::detail
 
-#endif  // PANDA_TIMESWIPE_DRIVER_RESAMPLER_HPP
+#endif  // PANDA_TIMESWIPE_RESAMPLER_HPP

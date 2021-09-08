@@ -20,16 +20,16 @@
 #include <thread>
 
 namespace chrono = std::chrono;
-namespace drv = panda::timeswipe::driver;
 namespace math = dmitigr::math;
+namespace ts = panda::timeswipe;
 
 namespace {
 
-void measure(drv::Timeswipe& ts, const std::chrono::milliseconds dur)
+void measure(ts::Timeswipe& ts, const std::chrono::milliseconds dur)
 {
-  ts.set_settings(std::move(drv::Driver_settings{}.set_sample_rate(48000)
+  ts.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000)));
-  constexpr auto channel_count{drv::Sensors_data::get_sensor_count()};
+  constexpr auto channel_count{ts::Sensors_data::get_sensor_count()};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
   ts.start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
@@ -79,7 +79,7 @@ void measure(drv::Timeswipe& ts, const std::chrono::milliseconds dur)
 
 int main(const int argc, const char* const argv[])
 try {
-  auto& ts = drv::Timeswipe::get_instance();
+  auto& ts = ts::Timeswipe::get_instance();
   assert(!ts.IsBusy());
 
   // Set the measure duration.
@@ -95,7 +95,7 @@ try {
     in >> config;
     if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
       if (!cs->empty())
-        ts.set_board_settings(drv::Board_settings{cs->dump()});
+        ts.set_board_settings(ts::Board_settings{cs->dump()});
     }
   }
 

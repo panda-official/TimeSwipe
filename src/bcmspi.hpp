@@ -19,10 +19,10 @@
 #ifndef PANDA_TIMESWIPE_BCMSPI_HPP
 #define PANDA_TIMESWIPE_BCMSPI_HPP
 
-#include "../error.hpp"
-#include "../spi.hpp"
-#include "../synccom.hpp"
-#include "../3rdparty/BCMsrc/bcm2835.h"
+#include "error.hpp"
+#include "spi.hpp"
+#include "synccom.hpp"
+#include "3rdparty/BCMsrc/bcm2835.h"
 
 #include <atomic>
 #include <cstdint>
@@ -31,7 +31,7 @@
 #endif
 #include <thread>
 
-namespace panda::timeswipe::driver::detail {
+namespace panda::timeswipe::detail {
 
 class Bcm_spi final : public CSPI {
 public:
@@ -324,6 +324,6 @@ private:
   }
 };
 
-} // namespace panda::timeswipe::driver::detail
+} // namespace panda::timeswipe::detail
 
 #endif  // PANDA_TIMESWIPE_BCMSPI_HPP

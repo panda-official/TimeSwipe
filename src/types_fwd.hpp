@@ -16,7 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace panda::timeswipe::driver {
+#ifndef PANDA_TIMESWIPE_TYPES_FWD_HPP
+#define PANDA_TIMESWIPE_TYPES_FWD_HPP
+
+namespace panda::timeswipe {
 
 class Board_settings;
 class Driver_settings;
@@ -24,4 +27,6 @@ class Event;
 class Sensors_data;
 class Timeswipe;
 
-} // namespace panda::timeswipe::driver
+} // namespace panda::timeswipe
+
+#endif  // PANDA_TIMESWIPE_TYPES_FWD_HPP

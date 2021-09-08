@@ -22,7 +22,7 @@
 
 #include <unistd.h>
 
-namespace drv = panda::timeswipe::driver;
+namespace ts = panda::timeswipe;
 
 std::function<void(int)> shutdown_handler;
 void signal_handler(int signal) { shutdown_handler(signal); }
@@ -122,12 +122,12 @@ int main(int argc, char *argv[])
     }
 
 
-    auto& tswipe = drv::Timeswipe::get_instance();
+    auto& tswipe = ts::Timeswipe::get_instance();
 
     // Board Preparation
-    drv::Board_settings settings;
+    ts::Board_settings settings;
     if (!config_script.empty())
-      settings = drv::Board_settings{config_script.dump()};
+      settings = ts::Board_settings{config_script.dump()};
     settings.set_signal_mode(modes.at(configitem["MODE"]));
 
     tswipe.set_board_settings(settings);
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 
     // Board start.
     int counter{};
-    tswipe.set_settings(std::move(drv::Driver_settings{}
+    tswipe.set_settings(std::move(ts::Driver_settings{}
         .set_sample_rate(samplerate).set_burst_buffer_size(samplerate)));
     tswipe.start([&](auto&& records, const int error_marker) {
       if (error_marker < 0) {
@@ -171,8 +171,8 @@ int main(int argc, char *argv[])
         }
       }
     },
-    [&](drv::Event&& event) {
-      using drv::Event;
+    [&](ts::Event&& event) {
+      using ts::Event;
       if (auto* button = event.get<Event::Button>())
         std::cout << "Button event: "
                   << (button->is_pressed() ? "pressed":"released")
