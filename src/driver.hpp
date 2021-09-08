@@ -19,7 +19,6 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_HPP
 #define PANDA_TIMESWIPE_DRIVER_HPP
 
-#include "driver/basics.hpp"
 #include "driver/board_settings.hpp"
 #include "driver/driver_settings.hpp"
 #include "driver/event.hpp"

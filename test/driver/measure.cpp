@@ -66,7 +66,7 @@ try {
 
   // Initialize Timeswipe.
   auto& ts = drv::Timeswipe::get_instance();
-  drv::Settings settings;
+  drv::Driver_settings settings;
   settings.set_sample_rate(sample_rate)
     .set_burst_buffer_size(sample_rate / frequency);
   ts.set_settings(std::move(settings));

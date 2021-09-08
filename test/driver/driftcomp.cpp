@@ -34,7 +34,7 @@ void log(const std::vector<float>& data)
 
 void measure(drv::Timeswipe& ts, const std::filesystem::path& logfile)
 {
-  ts.set_settings(std::move(drv::Settings{}.set_sample_rate(48000)
+  ts.set_settings(std::move(drv::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000 / 10)));
   constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
   std::ofstream log{logfile, log_mode};

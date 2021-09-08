@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 
     // Board start.
     int counter{};
-    tswipe.set_settings(std::move(drv::Settings{}
+    tswipe.set_settings(std::move(drv::Driver_settings{}
         .set_sample_rate(samplerate).set_burst_buffer_size(samplerate)));
     tswipe.start([&](auto&& records, const int error_marker) {
       if (error_marker < 0) {

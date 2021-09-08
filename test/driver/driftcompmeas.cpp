@@ -27,7 +27,7 @@ namespace {
 
 void measure(drv::Timeswipe& ts, const std::chrono::milliseconds dur)
 {
-  ts.set_settings(std::move(drv::Settings{}.set_sample_rate(48000)
+  ts.set_settings(std::move(drv::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000)));
   constexpr auto channel_count{drv::Sensors_data::get_sensor_count()};
   std::vector<double> aavg(channel_count);

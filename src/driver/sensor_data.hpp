@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
 #define PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
 
-#include "basics.hpp"
+#include "../common/basics.hpp"
 
 #include <array>
 #include <cstdint>
