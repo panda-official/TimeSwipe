@@ -388,11 +388,15 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # timeswipe target
   # ----------------
 
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp"
+    @ONLY
+    NEWLINE_STYLE UNIX)
+
   set(timeswipe_src
     src/driver/board_settings.cpp
     src/driver/driver_settings.cpp
     src/driver/timeswipe.cpp
-    src/driver/version.cpp
     src/3rdparty/BCMsrc/bcm2835.c
     )
 

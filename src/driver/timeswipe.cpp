@@ -29,6 +29,7 @@
 #include "../error.hpp"
 #include "../gain.hpp"
 #include "../hat.hpp"
+#include "../version.hpp"
 
 #include "../3rdparty/dmitigr/assert.hpp"
 #include "../3rdparty/dmitigr/filesystem.hpp"
@@ -135,6 +136,11 @@ public:
     if (!board_settings_)
       board_settings_.emplace(spi_.execute_get_many(""));
     return *board_settings_;
+  }
+
+  constexpr int get_version() const
+  {
+    return version;
   }
 
   int get_min_sample_rate() const
@@ -1161,6 +1167,11 @@ Timeswipe& Timeswipe::get_instance()
 {
   if (!instance_) instance_.reset(new Timeswipe);
   return *instance_;
+}
+
+int Timeswipe::get_version() const
+{
+  return rep_->get_version();
 }
 
 int Timeswipe::get_min_sample_rate() const

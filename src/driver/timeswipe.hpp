@@ -90,6 +90,9 @@ public:
    */
   static Timeswipe& get_instance();
 
+  /// @returns The driver version.
+  int get_version() const;
+
   /// @returns Min possible sample rate per second.
   int get_min_sample_rate() const;
 

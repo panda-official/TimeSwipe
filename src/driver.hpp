@@ -25,6 +25,5 @@
 #include "driver/sensor_data.hpp"
 #include "driver/timeswipe.hpp"
 #include "driver/types_fwd.hpp"
-#include "driver/version.hpp"
 
 #endif  // PANDA_TIMESWIPE_DRIVER_HPP
