@@ -31,12 +31,13 @@
 
 namespace panda::timeswipe::driver {
 
-/// A Timeswipe board.
+/**
+ * A Timeswipe driver.
+ *
+ * @note This class is designed by following the singleton pattern.
+ */
 class Timeswipe final {
 public:
-  /// An alias of the board state.
-  using State = Timeswipe_state;
-
   /**
    * An alias of a function to handle the incoming events.
    *
@@ -45,27 +46,24 @@ public:
   using Event_handler = std::function<void(Event&&)>;
 
   /**
-   * An alias of a function to handle sensor data read errors.
-   *
-   * @see start().
-   */
-  using Error_handler = std::function<void(std::uint64_t)>;
-
-  /**
    * An alias of a function to handle the incoming sensor data.
    *
-   * @param data Portion of incoming data to consume.
-   * @param error_count The number of errors (data losts).
+   * @param data Portion of the incoming data to process.
+   * @param error_marker The error marker:
+   *   - zero indicates "no error";
+   *   - positive value indicates the number of data losts;
+   *   - negative value indicates the negated error code (some value of
+   *   panda::timeswipe::Errc with the minus sign) in case of fatal error when
+   *   the measurement process is about to stop.
    *
    * @see start().
    */
-  using Sensor_data_handler = std::function<void(Sensors_data data, int error_count)>;
+  using Sensor_data_handler = std::function<void(Sensors_data data, int error_marker)>;
 
   /**
-   * The destructor.
+   * The destructor. Calls stop().
    *
-   * @par Effects
-   * See stop().
+   * @see stop().
    */
   ~Timeswipe();
 
@@ -89,103 +87,76 @@ public:
    */
   static Timeswipe& get_instance();
 
+  /// @returns Min possible sample rate per second.
+  int get_min_sample_rate() const;
+
+  /// @returns Max possible sample rate per second.
+  int get_max_sample_rate() const;
+
+  /// @returns The number of data channels.
+  int get_data_channel_count() const;
+
   /**
-   * Sets the board state.
+   * Sets the board settings.
    *
-   * @returns The actual board state after applying the given `state`.
-   *
-   * @see get_state().
+   * @see get_board_settings().
    */
-  void set_state(const State& state);
+  void set_board_settings(const Board_settings& settings);
 
   /**
-   * Gets the board state.
+   * @returns The actual board settings.
    *
-   * @returns The actual board state.
-   *
-   * @see set_state().
+   * @see set_board_settings().
    */
-  const State& get_state() const;
+  const Board_settings& get_board_settings() const;
 
   /**
-   * Set sample rate. Default value is max_sample_rate().
-   *
-   * @param rate - new sample rate
-   *
-   * @par Requires
-   * `(!is_busy() && (1 <= rate && rate <= max_sample_rate())).
-   *
-   * @warning It's highly recommended not to use the rate for which
-   * `(max_sample_rate() % rate != 0)` for best performance! In other words
-   * the lower the value of `std::gcd(max_sample_rate(), rate)`, the worse
-   * the performance of the resampling.
-   *
-   * @see get_sample_rate().
-   */
-  void set_sample_rate(int rate);
-
-  /**
-   * @returns The current sample rate.
-   *
-   * @see set_sample_rate(), get_max_sample_rate().
-   */
-  int get_sample_rate() const noexcept;
-
-  /**
-   * @returns Max possible sample rate.
-   *
-   * @see get_sample_rate().
-   */
-  int get_max_sample_rate() const noexcept;
-
-  /**
-   * Sets the burst buffer size.
-   *
-   * @param size The number of records that the driver should deliver into the
-   * callback.
-   *
-   * @see start().
-   */
-  void set_burst_size(std::size_t size);
-
-  /// @returns The burst buffer size.
-  std::size_t get_burst_size() const noexcept;
-
-  /**
-   * Sets the event handler.
+   * Sets the driver settings.
    *
    * @par Requires
    * `!is_busy()`.
+   *
+   * @see get_settings();
    */
-  void set_event_handler(Event_handler&& handler);
+  void set_settings(Settings settings);
 
   /**
-   * Sets the error handler.
+   * @returns The driver settings.
    *
-   * @par Requires
-   * `!is_busy()`.
+   * @see set_settings();
    */
-  void set_error_handler(Error_handler&& handler);
+  const Settings& get_settings() const;
+
+  /// @name Measurement control
+  ///
+  /// @brief This API provides a way to control measurement process.
+  ///
+  /// @{
 
   /**
    * Initiates the start of measurement.
    *
    * @par Effects
-   * Repeatedly calls `handler`. The call frequency of the handler is depends on
-   * the burst_size() - the greater it's value, the less frequent `handler` is
-   * called. If the `burst_size() == sample_rate()` then the `handler` is called
-   * `1` time per second.
+   * Repeatedly calls the `sdh` with frequency (Hz) that depends on the burst
+   * size, specified in the measurement options: the greater it's value, the
+   * less frequent the handler is called. When `burst_size == sample_rate` the
+   * frequency is `1`.
    *
-   * @warning The `handler` **must** spend no more than `burst_size() / sample_rate()`
-   * seconds on processing the incoming data! Otherwise, the driver will throttle
-   * and some the sensor data will be skipped.
+   * @warning The `sdh` must not take more than `burst_size / sample_rate`
+   * seconds of runtime! Otherwise, the driver will throttle by skipping the
+   * incoming sensor data and `sdh` will be called with positive error marker.
    *
-   * @warning This method cannot be called from `handler`!
+   * @warning This method cannot be called from neither `sdh` nor `evh`!
+   *
+   * @par Requires
+   * `!is_busy()`.
    *
    * @par Effects
    * `is_busy()`.
+   *
+   * @see set_measurement_options(), set_state(), stop().
    */
-  void start(Sensor_data_handler handler);
+  void start(Sensor_data_handler sdh, Event_handler evh = {});
 
   /**
    * @returns `true` if the board is busy (measurement in progress).
@@ -199,8 +170,12 @@ public:
    *
    * @par Effects
    * `!is_busy()`.
+   *
+   * @see start().
    */
   void stop();
+
+  /// @}
 
   /// @name Drift Compensation
   ///

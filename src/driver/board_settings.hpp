@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_DRIVER_TIMESWIPE_STATE_HPP
-#define PANDA_TIMESWIPE_DRIVER_TIMESWIPE_STATE_HPP
+#ifndef PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP
+#define PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP
 
 #include "../common/basics.hpp"
 
@@ -28,32 +28,32 @@
 
 namespace panda::timeswipe::driver {
 
-/// Timeswipe board state.
-class Timeswipe_state final {
+/// Board-level settings.
+class Board_settings final {
 public:
   /// The destructor.
-  ~Timeswipe_state();
+  ~Board_settings();
 
   /// Copy-constructible.
-  Timeswipe_state(const Timeswipe_state&);
+  Board_settings(const Board_settings&);
 
   /// Copy-assignable.
-  Timeswipe_state& operator=(const Timeswipe_state&);
+  Board_settings& operator=(const Board_settings&);
 
   /// Move-constructible.
-  Timeswipe_state(Timeswipe_state&&);
+  Board_settings(Board_settings&&);
 
   /// Move-assignable.
-  Timeswipe_state& operator=(Timeswipe_state&&);
+  Board_settings& operator=(Board_settings&&);
 
   /// The default constructor.
-  Timeswipe_state();
+  Board_settings();
 
   /// The constructor.
-  explicit Timeswipe_state(std::string_view stringified_json);
+  explicit Board_settings(std::string_view stringified_json);
 
   /// Swaps this instance with the `other` one.
-  void swap(Timeswipe_state& other) noexcept;
+  void swap(Board_settings& other) noexcept;
 
   /// @returns The result of conversion of this instance to a stringified JSON.
   std::string to_stringified_json() const;
@@ -65,7 +65,7 @@ public:
   /// @{
 
   /// Sets the signal mode.
-  Timeswipe_state& set_signal_mode(Signal_mode mode);
+  Board_settings& set_signal_mode(Signal_mode mode);
 
   /// @returns The value of signal mode.
   std::optional<Signal_mode> get_signal_mode() const;
@@ -81,19 +81,19 @@ public:
   /// @{
 
   /// Sets the channel measurement mode.
-  Timeswipe_state& set_channel_measurement_mode(int index, Measurement_mode value);
+  Board_settings& set_channel_measurement_mode(int index, Measurement_mode value);
 
   /// @returns The value of channel measurement mode.
   std::optional<Measurement_mode> get_channel_measurement_mode(int index) const;
 
   /// Sets the channel gain.
-  Timeswipe_state& set_channel_gain(int index, float value);
+  Board_settings& set_channel_gain(int index, float value);
 
   /// @returns The value of channel gain.
   std::optional<float> get_channel_gain(int index) const;
 
   /// Sets the channel IEPE.
-  Timeswipe_state& set_channel_iepe(int index, bool value);
+  Board_settings& set_channel_iepe(int index, bool value);
 
   /// @returns The value of channel IEPE.
   std::optional<bool> get_channel_iepe(int index) const;
@@ -114,25 +114,25 @@ public:
    * PWM generator will run for `(pwm_repeat_count(index) / pwm_frequency(index))`
    * seconds and stop.
    */
-  Timeswipe_state& set_pwm_start(int index, bool value);
+  Board_settings& set_pwm_start(int index, bool value);
 
   /// @returns The value of PWM start flag.
   std::optional<bool> get_pwm_start(int index) const;
 
   /// Sets frequency.
-  Timeswipe_state& set_pwm_frequency(int index, int value);
+  Board_settings& set_pwm_frequency(int index, int value);
 
   /// @returns The value of PWM frequency parameter.
   std::optional<int> get_pwm_frequency(int index) const;
 
   /// Sets PWM signal low value.
-  Timeswipe_state& set_pwm_low(int index, int value);
+  Board_settings& set_pwm_low(int index, int value);
 
   /// @returns The value of PWM low parameter.
   std::optional<int> get_pwm_low(int index) const;
 
   /// Sets PWM signal high value.
-  Timeswipe_state& set_pwm_high(int index, int value);
+  Board_settings& set_pwm_high(int index, int value);
 
   /// @returns The value of PWM high parameter.
   std::optional<int> get_pwm_high(int index) const;
@@ -142,7 +142,7 @@ public:
    *
    * @param value Zero value means infinity.
    */
-  Timeswipe_state& set_pwm_repeat_count(int index, int value);
+  Board_settings& set_pwm_repeat_count(int index, int value);
 
   /// @returns The value of PWM repeat count parameter.
   std::optional<int> get_pwm_repeat_count(int index) const;
@@ -152,7 +152,7 @@ public:
    *
    * @param value Reasonable value must be in range `(0, 1)`.
    */
-  Timeswipe_state& set_pwm_duty_cycle(int index, float value);
+  Board_settings& set_pwm_duty_cycle(int index, float value);
 
   /// @returns The value of PWM duty cycle parameter.
   std::optional<float> get_pwm_duty_cycle(int index) const;
@@ -166,4 +166,4 @@ private:
 
 } // namespace panda::timeswipe::driver
 
-#endif  // PANDA_TIMESWIPE_DRIVER_TIMESWIPE_STATE_HPP
+#endif  // PANDA_TIMESWIPE_DRIVER_BOARD_SETTINGS_HPP

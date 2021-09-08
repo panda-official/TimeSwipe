@@ -19,6 +19,8 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
 #define PANDA_TIMESWIPE_DRIVER_SENSOR_DATA_HPP
 
+#include "basics.hpp"
+
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -31,16 +33,11 @@ public:
   using value_type = std::vector<float>;
   using size_type = value_type::size_type;
 
-  /// @returns Max sensor count.
-  static constexpr std::size_t get_max_sensor_count() noexcept
-  {
-    return max_sensor_count_;
-  }
-
   /// @returns The sensor count.
+  /// FIXME: remove me.
   static constexpr std::size_t get_sensor_count() noexcept
   {
-    return get_max_sensor_count();
+    return max_data_channel_count;
   }
 
   /// @returns The number of values per sensor.
@@ -171,9 +168,9 @@ public:
 
   /// @}
 private:
-  static constexpr std::size_t max_sensor_count_{4};
-  using Array = std::array<std::vector<float>, max_sensor_count_>;
+  using Array = std::array<std::vector<float>, max_data_channel_count>;
   Array data_;
+  int sensor_count_{max_data_channel_count};
 };
 
 } // namespace panda::timeswipe::driver

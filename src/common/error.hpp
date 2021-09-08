@@ -40,6 +40,8 @@ enum class Errc {
   board = 2001,
   board_is_busy = 2002,
   invalid_board_state = 2003,
+  invalid_data_handler = 2004,
+  invalid_event_handler = 2005,
 
   /** Drift reference section **/
 

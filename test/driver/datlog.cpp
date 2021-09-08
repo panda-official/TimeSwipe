@@ -125,12 +125,12 @@ int main(int argc, char *argv[])
     auto& tswipe = drv::Timeswipe::get_instance();
 
     // Board Preparation
-    drv::Timeswipe_state state;
+    drv::Board_settings settings;
     if (!config_script.empty())
-      state = drv::Timeswipe_state{config_script.dump()};
-    state.set_signal_mode(modes.at(configitem["MODE"]));
+      settings = drv::Board_settings{config_script.dump()};
+    settings.set_signal_mode(modes.at(configitem["MODE"]));
 
-    tswipe.set_state(state);
+    tswipe.set_board_settings(settings);
 
     // Board Shutdown on signals
 
@@ -141,9 +141,38 @@ int main(int argc, char *argv[])
         exit(1);
     };
 
-
-    using drv::Event;
-    tswipe.set_event_handler([&](Event&& event) {
+    // Board start.
+    int counter{};
+    tswipe.set_settings(std::move(drv::Settings{}
+        .set_sample_rate(samplerate).set_burst_buffer_size(samplerate)));
+    tswipe.start([&](auto&& records, const int error_marker) {
+      if (error_marker < 0) {
+        std::clog << "Got fatal error " << -error_marker << "\n";
+        return;
+      } else if (error_marker > 0) {
+        std::cout << "Got errors count " << error_marker << "\n";
+        return;
+      }
+      counter += records.get_size();
+      for (size_t i = 0; i < records.get_size(); i++) {
+        if (i == 0) {
+          for (size_t j = 0; j < records.get_sensor_count(); j++) {
+            if (j != 0) std::cout << "\t";
+            std::cout << records[j][i];
+          }
+          std::cout << '\n';
+        }
+        if (dump) {
+          for (size_t j = 0; j < records.get_sensor_count(); j++) {
+            if (j != 0) data_log << "\t";
+            data_log << records[j][i];
+          }
+          data_log << '\n';
+        }
+      }
+    },
+    [&](drv::Event&& event) {
+      using drv::Event;
       if (auto* button = event.get<Event::Button>())
         std::cout << "Button event: "
                   << (button->is_pressed() ? "pressed":"released")
@@ -162,44 +191,10 @@ int main(int argc, char *argv[])
         std::cout << "Mode event: " <<  val->get_value() << std::endl;
     });
 
-    tswipe.set_error_handler([&](const std::uint64_t errors)
-    {
-      std::cout << "Got errors: " << errors << std::endl;
-    });
-    tswipe.set_sample_rate(samplerate);
-    tswipe.set_burst_size(samplerate);
-
-    // Board Start
-    int counter = 0;
-    tswipe.start([&](auto&& records, uint64_t /*errors*/) {
-      counter += records.get_size();
-      for (size_t i = 0; i < records.get_size(); i++) {
-        if (i == 0) {
-          for (size_t j = 0; j < records.get_sensor_count(); j++) {
-            if (j != 0) std::cout << "\t";
-            std::cout << records[j][i];
-          }
-          std::cout << '\n';
-        }
-        if (dump) {
-          for (size_t j = 0; j < records.get_sensor_count(); j++) {
-            if (j != 0) data_log << "\t";
-            data_log << records[j][i];
-          }
-          data_log << '\n';
-        }
-      }
-    });
-
-    auto start = std::chrono::system_clock::now();
-    std::this_thread::sleep_for(std::chrono::seconds(runtime));
-
-    // Board Stop
+    const auto start = std::chrono::system_clock::now();
+    std::this_thread::sleep_for(std::chrono::seconds{runtime});
     tswipe.stop();
-
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<float> diff = end - start;
+    const auto end = std::chrono::system_clock::now();
+    const std::chrono::duration<float> diff = end - start;
     std::cout << "time: " << diff.count() << "s records: " << counter << " rec/sec: " << counter / diff.count() << "\n";
-
-    return 0;
 }

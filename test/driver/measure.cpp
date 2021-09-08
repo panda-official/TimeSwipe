@@ -66,20 +66,10 @@ try {
 
   // Initialize Timeswipe.
   auto& ts = drv::Timeswipe::get_instance();
-  ts.set_sample_rate(sample_rate);
-  ts.set_burst_size(sample_rate / frequency);
-  ts.set_event_handler([](drv::Event&& event)
-  {
-    try {
-      if (auto* gain = event.get<drv::Event::Gain>()) {
-        std::cout << "Gain event: " << gain->get_value() << std::endl;
-      }
-    } catch (const std::exception& e) {
-      std::clog << "OnEvent: " << e.what() << '\n';
-    } catch (...) {
-      std::clog << "OnEvent: unknown error\n";
-    }
-  });
+  drv::Settings settings;
+  settings.set_sample_rate(sample_rate)
+    .set_burst_buffer_size(sample_rate / frequency);
+  ts.set_settings(std::move(settings));
 
   // Start Timeswipe. (Measure.)
   {
@@ -139,7 +129,20 @@ try {
         } else
           logs_ready = false;
       }
+    },
+    [](drv::Event&& event)
+    {
+      try {
+        if (auto* gain = event.get<drv::Event::Gain>()) {
+          std::cout << "Gain event: " << gain->get_value() << std::endl;
+        }
+      } catch (const std::exception& e) {
+        std::clog << "OnEvent: " << e.what() << '\n';
+      } catch (...) {
+        std::clog << "OnEvent: unknown error\n";
+      }
     });
+
     std::unique_lock lk{finished_mutex};
     finish.wait(lk, [&finished]{ return finished; });
     ts.stop();

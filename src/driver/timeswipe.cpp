@@ -17,13 +17,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "bcmlib.hpp"
+#include "board_settings.hpp"
 #include "event.hpp"
+#include "settings.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "sensor_data.hpp"
 #include "spi.hpp"
 #include "timeswipe.hpp"
-#include "timeswipe_state.hpp"
 
 #include "../common/error.hpp"
 #include "../common/gain.hpp"
@@ -123,80 +124,56 @@ public:
     is_gpio_inited_ = true;
   }
 
-  void set_state(const State& state)
+  void set_board_settings(const Board_settings& settings)
   {
-    spi_.execute_set_many(state.to_stringified_json());
-    state_.reset(); // invalidate cache (this could be optimized)
+    spi_.execute_set_many(settings.to_stringified_json());
+    board_settings_.reset(); // invalidate cache (this could be optimized)
   }
 
-  const State& get_state() const
+  const Board_settings& get_board_settings() const
   {
-    if (!state_)
-      state_.emplace(spi_.execute_get_many(""));
-    return *state_;
+    if (!board_settings_)
+      board_settings_.emplace(spi_.execute_get_many(""));
+    return *board_settings_;
   }
 
-  /// @returns Previous resampler if any.
-  std::unique_ptr<detail::Resampler> set_sample_rate(const int rate)
+  int get_min_sample_rate() const
   {
-    if (is_busy()) return {};
-
-    const auto max_rate = get_max_sample_rate();
-    if (!(1 <= rate && rate <= max_rate))
-      throw Runtime_exception{Errc::out_of_range, "invalid sample rate"};
-
-    auto result{std::move(resampler_)};
-    if (rate != max_rate) {
-      const auto rates_gcd = std::gcd(rate, max_rate);
-      const auto up = rate / rates_gcd;
-      const auto down = max_rate / rates_gcd;
-      resampler_ = std::make_unique<detail::Resampler>
-        (detail::Resampler_options{up, down});
-    } else
-      resampler_.reset();
-
-    sample_rate_ = rate;
-    return result;
+    return 32;
   }
 
-  int get_sample_rate() const noexcept
+  int get_max_sample_rate() const
   {
-    return sample_rate_;
+    return 48000;
   }
 
-  int get_max_sample_rate() const noexcept
+  int get_data_channel_count() const
   {
-    return max_sample_rate;
+    return 4;
   }
 
-  void set_burst_size(const std::size_t size)
+  void set_settings(Settings settings,
+    std::unique_ptr<detail::Resampler> resampler = {})
   {
-    burst_size_ = size;
+    set_resampler(settings.get_sample_rate(), std::move(resampler));
+    burst_buffer_size_ = settings.get_burst_buffer_size();
+    for (std::size_t i{}; i < sensor_translation_offsets_.size(); ++i)
+      sensor_translation_offsets_[i] = settings.get_data_translation_offset(i);
+    for (std::size_t i{}; i < sensor_translation_slopes_.size(); ++i)
+      sensor_translation_slopes_[i] = settings.get_data_translation_slope(i);
+    settings_ = std::move(settings);
   }
 
-  std::size_t get_burst_size() const noexcept
+  const Settings& get_settings() const
   {
-    return burst_size_;
+    return settings_;
   }
 
-  void set_event_handler(Event_handler&& handler)
+  void start(Sensor_data_handler&& sdh, Event_handler&& evh)
   {
-    if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
+    if (!sdh)
+      throw Runtime_exception{Errc::invalid_data_handler};
 
-    event_handler_ = std::move(handler);
-  }
-
-  void set_error_handler(Error_handler&& handler)
-  {
-    if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
-
-    error_handler_ = std::move(handler);
-  }
-
-  void start(Sensor_data_handler&& handler)
-  {
     if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
 
@@ -211,9 +188,9 @@ public:
       for (const auto ct :
              {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
               Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4}) {
-        const auto state_request = R"({"cAtom":)" +
+        const auto settings_request = R"({"cAtom":)" +
           std::to_string(static_cast<int>(ct)) + R"(})";
-        const auto json_obj = spi_.execute_get_many(state_request);
+        const auto json_obj = spi_.execute_get_many(settings_request);
         const auto doc = rajson::to_document(json_obj);
         const rajson::Value_view doc_view{doc};
         const auto doc_cal_entries = doc_view.mandatory("data");
@@ -257,8 +234,9 @@ public:
     }
 
     threads_.emplace_back(&Rep::fetcher_loop, this);
-    threads_.emplace_back(&Rep::poller_loop, this, std::move(handler));
-    threads_.emplace_back(&Rep::events_loop, this);
+    threads_.emplace_back(&Rep::poller_loop, this, std::move(sdh));
+    if (evh)
+      threads_.emplace_back(&Rep::events_loop, this, std::move(evh));
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     threads_.emplace_back(&Rep::emul_loop, this);
 #endif
@@ -297,8 +275,8 @@ public:
   std::vector<float> calculate_drift_references()
   {
     // Collect the data for calculation.
-    auto data{collect_sensors_data(drift_samples_count, // 5 ms
-      [this]{return DriftAffectedStateGuard{*this};})};
+    auto data = collect_sensors_data(drift_samples_count, // 5 ms
+      [this]{return Drift_affected_state_guard{*this};});
 
     // Discard the first half.
     data.erase_front(drift_samples_count / 2);
@@ -344,7 +322,7 @@ public:
 
     // Collect the data for calculation.
     auto data{collect_sensors_data(drift_samples_count,
-      [this]{return DriftAffectedStateGuard{*this};})};
+      [this]{return Drift_affected_state_guard{*this};})};
     DMITIGR_ASSERT(refs->size() == data.get_sensor_count());
 
     // Discard the first half.
@@ -415,34 +393,24 @@ private:
   // Constants
   // ---------------------------------------------------------------------------
 
-  // Min sample rate per second.
-  static constexpr int min_sample_rate{32};
-  // Max sample rate per second.
-  static constexpr int max_sample_rate{48000};
-
   // "Switching oscillation" completely (according to PSpice) decays after 1.5ms.
   static constexpr std::chrono::microseconds switching_oscillation_period{1500};
 
   // Only 5ms of raw data is needed. (5ms * 48kHz = 240 values.)
-  static constexpr std::size_t drift_samples_count{5*max_sample_rate/1000};
+  static constexpr std::size_t drift_samples_count{5*48000/1000};
   static_assert(!(drift_samples_count % 2));
 
   // ---------------------------------------------------------------------------
-  // Resampling data
+  // Basic data
   // ---------------------------------------------------------------------------
 
-  int sample_rate_{max_sample_rate};
-  std::unique_ptr<detail::Resampler> resampler_;
+  detail::Pid_file pid_file_;
+  mutable detail::Bcm_spi spi_;
+  std::atomic_bool is_gpio_inited_{};
+  std::atomic_bool is_measurement_started_{};
 
   // ---------------------------------------------------------------------------
-  // Drift compensation data
-  // ---------------------------------------------------------------------------
-
-  mutable std::optional<std::vector<float>> drift_references_;
-  std::optional<std::vector<float>> drift_deltas_;
-
-  // ---------------------------------------------------------------------------
-  // Read data
+  // Measurement data
   // ---------------------------------------------------------------------------
 
   // The number of initial invalid data sets.
@@ -450,32 +418,27 @@ private:
   static constexpr std::uint16_t sensor_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
   std::array<float, 4> sensor_slopes_{1, 1, 1, 1};
-  std::array<float, 4> sensor_translation_offsets_{};
+  std::array<int, 4> sensor_translation_offsets_{};
   std::array<float, 4> sensor_translation_slopes_{1, 1, 1, 1};
   hat::Calibration_map calibration_map_;
-  mutable std::optional<State> state_;
+  mutable std::optional<Board_settings> board_settings_;
+  Settings settings_;
+  std::unique_ptr<detail::Resampler> resampler_;
 
-  // ---------------------------------------------------------------------------
-  // Queues data
-  // ---------------------------------------------------------------------------
-
-  // Next buffer must be enough to keep records for 1 s
-  static constexpr unsigned record_queue_size{max_sample_rate/min_sample_rate*2};
-  boost::lockfree::spsc_queue<Sensors_data, boost::lockfree::capacity<record_queue_size>> record_queue_;
-  std::atomic_uint64_t record_error_count_{};
-  std::size_t burst_size_{};
+  // Record queue capacity must be enough to store records for 1s.
+  boost::lockfree::spsc_queue<Sensors_data, boost::lockfree::capacity<48000/32*2>> record_queue_;
+  std::atomic_int record_error_count_{};
+  std::size_t burst_buffer_size_{};
   Sensors_data burst_buffer_;
-  boost::lockfree::spsc_queue<Event, boost::lockfree::capacity<128>> events_;
   std::vector<std::thread> threads_;
-
-  // ---------------------------------------------------------------------------
-  // Callbacks data
-  // ---------------------------------------------------------------------------
-
-  Event_handler event_handler_;
-  Error_handler error_handler_;
-  Sensor_data_handler sensor_data_handler_;
   std::atomic_bool in_handler_{};
+
+  // ---------------------------------------------------------------------------
+  // Drift compensation data
+  // ---------------------------------------------------------------------------
+
+  mutable std::optional<std::vector<float>> drift_references_;
+  std::optional<std::vector<float>> drift_deltas_;
 
   // ---------------------------------------------------------------------------
   // Firmware emulation data
@@ -488,15 +451,6 @@ private:
   std::uint64_t emul_sent_{};
   static constexpr std::size_t emul_rate_{48000};
 #endif
-
-  // ---------------------------------------------------------------------------
-  // Other data
-  // ---------------------------------------------------------------------------
-
-  detail::Pid_file pid_file_;
-  mutable detail::Bcm_spi spi_;
-  std::atomic_bool is_gpio_inited_{};
-  std::atomic_bool is_measurement_started_{};
 
   // ---------------------------------------------------------------------------
   // RAII protectors
@@ -536,70 +490,85 @@ private:
    * An automatic restorer of state affected by drift calculation stuff. Stashed
    * state will be restored upon destruction of the instance of this class.
    */
-  class DriftAffectedStateGuard final {
+  class Drift_affected_state_guard final {
     friend Rep;
 
-    DriftAffectedStateGuard(const DriftAffectedStateGuard&) = delete;
-    DriftAffectedStateGuard& operator=(const DriftAffectedStateGuard&) = delete;
-    DriftAffectedStateGuard(DriftAffectedStateGuard&&) = delete;
-    DriftAffectedStateGuard& operator=(DriftAffectedStateGuard&&) = delete;
+    Drift_affected_state_guard(const Drift_affected_state_guard&) = delete;
+    Drift_affected_state_guard& operator=(const Drift_affected_state_guard&) = delete;
+    Drift_affected_state_guard(Drift_affected_state_guard&&) = delete;
+    Drift_affected_state_guard& operator=(Drift_affected_state_guard&&) = delete;
 
     // Restores the state of Timeswipe instance.
-    ~DriftAffectedStateGuard()
+    void restore() noexcept
     {
-      rep_.burst_size_ = burst_size_;
-      rep_.sample_rate_ = sample_rate_;
-      rep_.resampler_ = std::move(resampler_);
+      try {
+        // Restore driver settings.
+        rep_.set_settings(std::move(settings_),
+          std::move(resampler_));
 
-      // Restore input modes.
-      State state;
-      for (int i{}; i < chmm_.size(); ++i)
-        state.set_channel_measurement_mode(i, chmm_[i]);
-      rep_.set_state(state);
+        // Restore board settings (input modes).
+        Board_settings settings;
+        for (std::size_t i{}; i < chmm_.size(); ++i)
+          settings.set_channel_measurement_mode(i, chmm_[i]);
+        rep_.set_board_settings(settings);
+      } catch (...) {}
     }
 
-    // Stores the state and prepares Timeswipe instance for measurement.
-    DriftAffectedStateGuard(Rep& impl)
-      : rep_{impl}
-      , sample_rate_{rep_.sample_rate_}
-      , burst_size_{rep_.burst_size_}
+    ~Drift_affected_state_guard()
     {
-      // Store current input modes.
-      const auto channel_mode = [this](const int index)
-      {
-        if (const auto mm = rep_.get_state().get_channel_measurement_mode(index))
-          return *mm;
-        else
-          throw Runtime_exception{Errc::invalid_board_state};
-      };
-      for (int i{}; i < chmm_.size(); ++i)
-        chmm_[i] = channel_mode(i);
+      restore();
+    }
 
-      /*
-       * Change input modes to `current`.
-       * This will cause a "switching oscillation" appears at the output of
-       * the measured value, which completely (according to PSpice) decays
-       * after 1.5 ms.
-       */
-      {
-        State state;
+    /**
+     * Stores the rep state and driver settings, and prepares the board
+     * for measurement.
+     */
+    Drift_affected_state_guard(Rep& rep)
+      : rep_{rep}
+      , resampler_{std::move(rep_.resampler_)} // store
+      , settings_{std::move(rep_.settings_)} // settings
+    {
+      try {
+        // Store board settings (input modes).
+        const auto channel_mode = [this](const int index)
+        {
+          if (const auto mm = rep_.get_board_settings().get_channel_measurement_mode(index))
+            return *mm;
+          else
+            throw Runtime_exception{Errc::invalid_board_state};
+        };
         for (int i{}; i < chmm_.size(); ++i)
-          state.set_channel_measurement_mode(i, Measurement_mode::Current);
-        rep_.set_state(state);
+          chmm_[i] = channel_mode(i);
+
+        /*
+         * Change input modes to `current`.
+         * This will cause a "switching oscillation" appears at the output of
+         * the measured value, which completely (according to PSpice) decays
+         * after 1.5 ms.
+         */
+        {
+          Board_settings settings;
+          for (int i{}; i < chmm_.size(); ++i)
+            settings.set_channel_measurement_mode(i, Measurement_mode::Current);
+          rep_.set_board_settings(settings);
+        }
+
+        std::this_thread::sleep_for(rep_.switching_oscillation_period);
+
+        // Set specific driver settings.
+        Settings settings;
+        settings.set_sample_rate(48000)
+          .set_burst_buffer_size(rep_.drift_samples_count);
+        rep_.set_settings(std::move(settings));
+      } catch (...) {
+        restore();
       }
-
-      std::this_thread::sleep_for(rep_.switching_oscillation_period);
-
-      // Store the other current state of rep_.
-      resampler_ = rep_.set_sample_rate(rep_.get_max_sample_rate());
-      rep_.set_burst_size(rep_.drift_samples_count);
     }
 
     Rep& rep_;
-    const decltype(rep_.sample_rate_) sample_rate_;
-    const decltype(rep_.burst_size_) burst_size_;
-    std::array<Measurement_mode, 4> chmm_;
     decltype(rep_.resampler_) resampler_;
+    decltype(rep_.settings_) settings_;
+    std::array<Measurement_mode, 4> chmm_;
   };
 
   // ---------------------------------------------------------------------------
@@ -730,7 +699,7 @@ private:
     static void append_chunk(Sensors_data& data,
       const Chunk& chunk,
       const std::array<float, 4>& slopes,
-      const std::array<float, 4>& translation_offsets,
+      const std::array<int, 4>& translation_offsets,
       const std::array<float, 4>& translation_slopes)
     {
       std::array<std::uint16_t, 4> sensors{};
@@ -934,29 +903,24 @@ private:
 #endif
   }
 
+  // ---------------------------------------------------------------------------
+  // Thread loops
+  // ---------------------------------------------------------------------------
+
   void fetcher_loop()
   {
     while (is_measurement_started_) {
       if (const auto data = read_sensors_data(); !record_queue_.push(data))
         ++record_error_count_;
-
-      Event event;
-      while (events_.pop(event)) {
-        if (event_handler_)
-          Callbacker{*this}(event_handler_, std::move(event));
-      }
     }
   }
 
-  void poller_loop(Sensor_data_handler handler)
+  void poller_loop(Sensor_data_handler&& handler)
   {
     while (is_measurement_started_) {
       Sensors_data records[10];
       const auto num = record_queue_.pop(records);
-      const std::uint64_t errors = record_error_count_.fetch_and(0UL);
-
-      if (errors && error_handler_)
-        Callbacker{*this}(error_handler_, errors);
+      const auto errors = record_error_count_.fetch_and(0);
 
       if (!num) {
         std::this_thread::sleep_for(std::chrono::milliseconds{1});
@@ -966,12 +930,12 @@ private:
       // If there are drift deltas substract them.
       if (drift_deltas_) {
         const auto& deltas = *drift_deltas_;
-        for (auto i = 0*num; i < num; ++i) {
+        for (std::size_t i{}; i < num; ++i) {
           const auto sc = records[i].get_sensor_count();
           DMITIGR_ASSERT(deltas.size() == sc);
           for (std::size_t j{}; j < sc; ++j) {
-            auto& values{records[i][j]};
-            const auto delta{deltas[j]};
+            auto& values = records[i][j];
+            const auto delta = deltas[j];
             transform(cbegin(values), cend(values), begin(values),
               [delta](const auto& value) { return value - delta; });
           }
@@ -981,32 +945,28 @@ private:
       Sensors_data* records_ptr{};
       Sensors_data samples;
       if (resampler_) {
-        for (std::size_t i = 0; i < num; i++) {
+        for (std::size_t i{}; i < num; i++) {
           auto s = resampler_->apply(std::move(records[i]));
           samples.append(std::move(s));
         }
         records_ptr = &samples;
       } else {
-        for (std::size_t i = 1; i < num; i++) {
+        for (std::size_t i{1}; i < num; i++) {
           records[0].append(std::move(records[i]));
         }
         records_ptr = records;
       }
 
-      if (burst_buffer_.empty() && burst_size_ <= records_ptr->get_size()) {
+      if (burst_buffer_.empty() && burst_buffer_size_ <= records_ptr->get_size()) {
         // optimization if burst buffer not used or smaller than first buffer
-        {
-          Callbacker{*this}(handler, std::move(*records_ptr), errors);
-        }
+        Callbacker{*this}(handler, std::move(*records_ptr), errors);
         records_ptr->clear();
       } else {
         // burst buffer mode
         burst_buffer_.append(std::move(*records_ptr));
         records_ptr->clear();
-        if (burst_buffer_.get_size() >= burst_size_) {
-          {
-            Callbacker{*this}(handler, std::move(burst_buffer_), errors);
-          }
+        if (burst_buffer_.get_size() >= burst_buffer_size_) {
+          Callbacker{*this}(handler, std::move(burst_buffer_), errors);
           burst_buffer_.clear();
         }
       }
@@ -1018,18 +978,12 @@ private:
 
     // Flush the remaining values from the burst buffer.
     if (!in_handler_ && burst_buffer_.get_size()) {
-      {
-        Callbacker{*this}(handler, std::move(burst_buffer_), 0);
-      }
+      Callbacker{*this}(handler, std::move(burst_buffer_), 0);
       burst_buffer_.clear();
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Events processing
-  // ---------------------------------------------------------------------------
-
-  void events_loop()
+  void events_loop(Event_handler&& handler)
   {
     while (is_measurement_started_) {
       // Receive events
@@ -1040,10 +994,11 @@ private:
         events_.push(btn);
       }
 #else
-      for (auto&& event : spi_get_events())
-        events_.push(std::move(event));
+      for (auto&& event : spi_get_events()) {
+        if (handler)
+          Callbacker{*this}(handler, std::move(event));
+      }
 #endif
-
       std::this_thread::sleep_for(std::chrono::milliseconds{20});
     }
   }
@@ -1086,6 +1041,36 @@ private:
   // Helpers
   // ---------------------------------------------------------------------------
 
+  /// @returns Previous resampler if any.
+  std::unique_ptr<detail::Resampler> set_resampler(const int rate,
+    std::unique_ptr<detail::Resampler> resampler = {})
+  {
+    if (is_busy()) return {};
+
+    const auto max_rate = get_max_sample_rate();
+    if (!(1 <= rate && rate <= max_rate))
+      throw Runtime_exception{Errc::out_of_range, "invalid sample rate"};
+
+    auto result = std::move(resampler_);
+    if (rate != max_rate) {
+      const auto rates_gcd = std::gcd(rate, max_rate);
+      const auto up = rate / rates_gcd;
+      const auto down = max_rate / rates_gcd;
+      if (resampler) {
+        DMITIGR_ASSERT(up == resampler->get_options().get_up_factor());
+        DMITIGR_ASSERT(down == resampler->get_options().get_down_factor());
+        resampler_ = std::move(resampler);
+      } else
+        resampler_ = std::make_unique<detail::Resampler>
+          (detail::Resampler_options{up, down});
+    } else {
+      DMITIGR_ASSERT(!resampler);
+      resampler_.reset();
+    }
+
+    return result;
+  }
+
   static std::filesystem::path tmp_dir()
   {
     const auto cwd = std::filesystem::current_path();
@@ -1127,7 +1112,7 @@ private:
     Sensors_data data;
     std::condition_variable update;
     start([this, samples_count, &errc, &done, &data, &update]
-      (const Sensors_data sd, const std::uint64_t errors)
+      (const Sensors_data sd, const int)
     {
       if (is_error(errc) || done)
         return;
@@ -1178,54 +1163,44 @@ Timeswipe& Timeswipe::get_instance()
   return *instance_;
 }
 
-void Timeswipe::set_state(const State& state)
+int Timeswipe::get_min_sample_rate() const
 {
-  return rep_->set_state(state);
+  return rep_->get_min_sample_rate();
 }
 
-auto Timeswipe::get_state() const -> const State&
-{
-  return rep_->get_state();
-}
-
-void Timeswipe::set_sample_rate(const int rate)
-{
-  rep_->set_sample_rate(rate);
-}
-
-int Timeswipe::get_sample_rate() const noexcept
-{
-  return rep_->get_sample_rate();
-}
-
-int Timeswipe::get_max_sample_rate() const noexcept
+int Timeswipe::get_max_sample_rate() const
 {
   return rep_->get_max_sample_rate();
 }
 
-void Timeswipe::set_burst_size(const std::size_t size)
+int Timeswipe::get_data_channel_count() const
 {
-  return rep_->set_burst_size(size);
+  return rep_->get_data_channel_count();
 }
 
-std::size_t Timeswipe::get_burst_size() const noexcept
+void Timeswipe::set_board_settings(const Board_settings& settings)
 {
-  return rep_->get_burst_size();
+  return rep_->set_board_settings(settings);
 }
 
-void Timeswipe::set_event_handler(Event_handler&& handler)
+const Board_settings& Timeswipe::get_board_settings() const
 {
-  return rep_->set_event_handler(std::move(handler));
+  return rep_->get_board_settings();
 }
 
-void Timeswipe::set_error_handler(Error_handler&& handler)
+void Timeswipe::set_settings(Settings settings)
 {
-  return rep_->set_error_handler(std::move(handler));
+  return rep_->set_settings(std::move(settings));
 }
 
-void Timeswipe::start(Sensor_data_handler handler)
+const Settings& Timeswipe::get_settings() const
 {
-  rep_->start(std::move(handler));
+  return rep_->get_settings();
+}
+
+void Timeswipe::start(Sensor_data_handler sdh, Event_handler evh)
+{
+  rep_->start(std::move(sdh), std::move(evh));
 }
 
 bool Timeswipe::is_busy() const noexcept

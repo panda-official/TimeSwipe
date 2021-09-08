@@ -27,8 +27,8 @@ namespace {
 
 void measure(drv::Timeswipe& ts, const std::chrono::milliseconds dur)
 {
-  ts.set_sample_rate(48000);
-  ts.set_burst_size(48000);
+  ts.set_settings(std::move(drv::Settings{}.set_sample_rate(48000)
+      .set_burst_buffer_size(48000)));
   constexpr auto channel_count{drv::Sensors_data::get_sensor_count()};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
@@ -95,7 +95,7 @@ try {
     in >> config;
     if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
       if (!cs->empty())
-        ts.set_state(drv::Timeswipe_state{cs->dump()});
+        ts.set_board_settings(drv::Board_settings{cs->dump()});
     }
   }
 

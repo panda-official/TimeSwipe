@@ -16,44 +16,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "timeswipe_state.hpp"
+#include "board_settings.hpp"
 
 #include "../common/error.hpp"
-#include "../3rdparty/dmitigr/assert.hpp"
-#include "../3rdparty/dmitigr/rajson.hpp"
+#include "../common/rajson.hpp"
 
 #include <algorithm>
 #include <utility>
 
 namespace rajson = dmitigr::rajson;
 
-namespace dmitigr::rajson {
-template<>
-struct Conversions<panda::timeswipe::Measurement_mode> final {
-  template<class Encoding, class Allocator>
-  static auto from(const rapidjson::GenericValue<Encoding, Allocator>& value)
-  {
-    return static_cast<panda::timeswipe::Measurement_mode>(to<int>(value));
-  }
-};
-
-template<>
-struct Conversions<panda::timeswipe::Signal_mode> final {
-  template<class Encoding, class Allocator>
-  static auto from(const rapidjson::GenericValue<Encoding, Allocator>& value)
-  {
-    return static_cast<panda::timeswipe::Signal_mode>(to<int>(value));
-  }
-};
-} // namespace dmitigr::rajson
-
 namespace panda::timeswipe::driver {
 
 // -----------------------------------------------------------------------------
-// class Timeswipe_state::Rep
+// class Board_settings::Rep
 // -----------------------------------------------------------------------------
 
-struct Timeswipe_state::Rep final {
+struct Board_settings::Rep final {
   Rep()
   {}
 
@@ -200,14 +179,7 @@ private:
   template<typename T>
   void set_member(const std::string_view name, T&& value)
   {
-    auto& alloc = doc_.GetAllocator();
-    auto val = rajson::to<rapidjson::Value>(std::forward<T>(value), alloc);
-    const auto name_ref = rajson::to<rapidjson::Value::StringRefType>(name);
-    if (const auto i = doc_.FindMember(name_ref); i != doc_.MemberEnd())
-      i->value = std::move(val);
-    else
-      doc_.AddMember(rapidjson::Value{name.data(), name.size(), alloc},
-        std::move(val), alloc);
+    detail::set_member(doc_, doc_.GetAllocator(), name, std::forward<T>(value));
   }
 
   /// @returns The full name of access point at the given `index`.
@@ -260,165 +232,165 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// class Timeswipe_state
+// class Board_settings
 // -----------------------------------------------------------------------------
 
-Timeswipe_state::~Timeswipe_state() = default;
+Board_settings::~Board_settings() = default;
 
-Timeswipe_state::Timeswipe_state(const Timeswipe_state& rhs)
+Board_settings::Board_settings(const Board_settings& rhs)
   : rep_{std::make_unique<Rep>(*rhs.rep_)}
 {}
 
-Timeswipe_state& Timeswipe_state::operator=(const Timeswipe_state& rhs)
+Board_settings& Board_settings::operator=(const Board_settings& rhs)
 {
-  Timeswipe_state tmp{rhs};
+  Board_settings tmp{rhs};
   swap(tmp);
   return *this;
 }
 
-Timeswipe_state::Timeswipe_state(Timeswipe_state&& rhs)
+Board_settings::Board_settings(Board_settings&& rhs)
   : rep_{std::move(rhs.rep_)}
 {}
 
-Timeswipe_state& Timeswipe_state::operator=(Timeswipe_state&& rhs)
+Board_settings& Board_settings::operator=(Board_settings&& rhs)
 {
-  Timeswipe_state tmp{std::move(rhs)};
+  Board_settings tmp{std::move(rhs)};
   swap(tmp);
   return *this;
 }
 
-Timeswipe_state::Timeswipe_state()
+Board_settings::Board_settings()
   : rep_{std::make_unique<Rep>()}
 {}
 
-Timeswipe_state::Timeswipe_state(const std::string_view stringified_json)
+Board_settings::Board_settings(const std::string_view stringified_json)
   : rep_{std::make_unique<Rep>(stringified_json)}
 {}
 
-void Timeswipe_state::swap(Timeswipe_state& other) noexcept
+void Board_settings::swap(Board_settings& other) noexcept
 {
   using std::swap;
   swap(rep_, other.rep_);
 }
 
-std::string Timeswipe_state::to_stringified_json() const
+std::string Board_settings::to_stringified_json() const
 {
   return rep_->to_stringified_json();
 }
 
 // -----------------------------------------------------------------------------
 
-Timeswipe_state& Timeswipe_state::set_signal_mode(const Signal_mode mode)
+Board_settings& Board_settings::set_signal_mode(const Signal_mode mode)
 {
   rep_->set_signal_mode(mode);
   return *this;
 }
 
-std::optional<Signal_mode> Timeswipe_state::get_signal_mode() const
+std::optional<Signal_mode> Board_settings::get_signal_mode() const
 {
   return rep_->get_signal_mode();
 }
 
 // -----------------------------------------------------------------------------
 
-Timeswipe_state& Timeswipe_state::set_channel_measurement_mode(const int index,
+Board_settings& Board_settings::set_channel_measurement_mode(const int index,
   const Measurement_mode value)
 {
   rep_->set_channel_measurement_mode(index, value);
   return *this;
 }
 
-std::optional<Measurement_mode> Timeswipe_state::get_channel_measurement_mode(const int index) const
+std::optional<Measurement_mode> Board_settings::get_channel_measurement_mode(const int index) const
 {
   return rep_->get_channel_measurement_mode(index);
 }
 
-Timeswipe_state& Timeswipe_state::set_channel_gain(const int index, const float value)
+Board_settings& Board_settings::set_channel_gain(const int index, const float value)
 {
   rep_->set_channel_gain(index, value);
   return *this;
 }
 
-std::optional<float> Timeswipe_state::get_channel_gain(const int index) const
+std::optional<float> Board_settings::get_channel_gain(const int index) const
 {
   return rep_->get_channel_gain(index);
 }
 
-Timeswipe_state& Timeswipe_state::set_channel_iepe(const int index, const bool value)
+Board_settings& Board_settings::set_channel_iepe(const int index, const bool value)
 {
   rep_->set_channel_iepe(index, value);
   return *this;
 }
 
-std::optional<bool> Timeswipe_state::get_channel_iepe(const int index) const
+std::optional<bool> Board_settings::get_channel_iepe(const int index) const
 {
   return rep_->get_channel_iepe(index);
 }
 
 // -----------------------------------------------------------------------------
 
-Timeswipe_state& Timeswipe_state::set_pwm_start(const int index, const bool value)
+Board_settings& Board_settings::set_pwm_start(const int index, const bool value)
 {
   rep_->set_pwm_start(index, value);
   return *this;
 }
 
-std::optional<bool> Timeswipe_state::get_pwm_start(const int index) const
+std::optional<bool> Board_settings::get_pwm_start(const int index) const
 {
   return rep_->get_pwm_start(index);
 }
 
-Timeswipe_state& Timeswipe_state::set_pwm_frequency(const int index, const int value)
+Board_settings& Board_settings::set_pwm_frequency(const int index, const int value)
 {
   rep_->set_pwm_frequency(index, value);
   return *this;
 }
 
-std::optional<int> Timeswipe_state::get_pwm_frequency(const int index) const
+std::optional<int> Board_settings::get_pwm_frequency(const int index) const
 {
   return rep_->get_pwm_frequency(index);
 }
 
-Timeswipe_state& Timeswipe_state::set_pwm_low(const int index, const int value)
+Board_settings& Board_settings::set_pwm_low(const int index, const int value)
 {
   rep_->set_pwm_low(index, value);
   return *this;
 }
 
-std::optional<int> Timeswipe_state::get_pwm_low(const int index) const
+std::optional<int> Board_settings::get_pwm_low(const int index) const
 {
   return rep_->get_pwm_low(index);
 }
 
-Timeswipe_state& Timeswipe_state::set_pwm_high(const int index, const int value)
+Board_settings& Board_settings::set_pwm_high(const int index, const int value)
 {
   rep_->set_pwm_high(index, value);
   return *this;
 }
 
-std::optional<int> Timeswipe_state::get_pwm_high(const int index) const
+std::optional<int> Board_settings::get_pwm_high(const int index) const
 {
   return rep_->get_pwm_high(index);
 }
 
-Timeswipe_state& Timeswipe_state::set_pwm_repeat_count(const int index, const int value)
+Board_settings& Board_settings::set_pwm_repeat_count(const int index, const int value)
 {
   rep_->set_pwm_repeat_count(index, value);
   return *this;
 }
 
-std::optional<int> Timeswipe_state::get_pwm_repeat_count(const int index) const
+std::optional<int> Board_settings::get_pwm_repeat_count(const int index) const
 {
   return rep_->get_pwm_repeat_count(index);
 }
 
-Timeswipe_state& Timeswipe_state::set_pwm_duty_cycle(const int index, const float value)
+Board_settings& Board_settings::set_pwm_duty_cycle(const int index, const float value)
 {
   rep_->set_pwm_duty_cycle(index, value);
   return *this;
 }
 
-std::optional<float> Timeswipe_state::get_pwm_duty_cycle(const int index) const
+std::optional<float> Board_settings::get_pwm_duty_cycle(const int index) const
 {
   return rep_->get_pwm_duty_cycle(index);
 }

@@ -18,8 +18,10 @@
 
 namespace panda::timeswipe::driver {
 
+class Board_settings;
 class Event;
 class Sensors_data;
-class Timeswipe_state;
+class Settings;
+class Timeswipe;
 
 } // namespace panda::timeswipe::driver
