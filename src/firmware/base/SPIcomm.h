@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 #ifndef SPICOMM_H
 #define SPICOMM_H
 
-#include "../SyncCom.h"
+#include "../../synccom.hpp"
 #include "sam/SamSPIbase.h"
 
 /*!
