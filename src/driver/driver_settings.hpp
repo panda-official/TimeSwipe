@@ -27,31 +27,31 @@
 namespace panda::timeswipe::driver {
 
 /// Driver-level settings.
-class Settings final {
+class Driver_settings final {
 public:
   /// The destructor.
-  ~Settings();
+  ~Driver_settings();
 
   /// Copy-constructible.
-  Settings(const Settings&);
+  Driver_settings(const Driver_settings&);
 
   /// Copy-assignable.
-  Settings& operator=(const Settings&);
+  Driver_settings& operator=(const Driver_settings&);
 
   /// Move-constructible.
-  Settings(Settings&&);
+  Driver_settings(Driver_settings&&);
 
   /// Move-assignable.
-  Settings& operator=(Settings&&);
+  Driver_settings& operator=(Driver_settings&&);
 
   /// The default constructor.
-  Settings();
+  Driver_settings();
 
   /// The constructor.
-  explicit Settings(std::string_view stringified_json);
+  explicit Driver_settings(std::string_view stringified_json);
 
   /// Swaps this instance with the `other` one.
-  void swap(Settings& other) noexcept;
+  void swap(Driver_settings& other) noexcept;
 
   /// @returns The result of conversion of this instance to a stringified JSON.
   std::string to_stringified_json() const;
@@ -76,7 +76,7 @@ public:
    * @see get_sample_rate(), Timeswipe::get_min_sample_rate(),
    * Timeswipe::get_max_sample_rate().
    */
-  Settings& set_sample_rate(int rate);
+  Driver_settings& set_sample_rate(int rate);
 
   /**
    * @returns The current sample rate.
@@ -91,7 +91,7 @@ public:
    * @param size The number of records that the driver should deliver upon
    * of Timeswipe::Data_handler call.
    */
-  Settings& set_burst_buffer_size(std::size_t size);
+  Driver_settings& set_burst_buffer_size(std::size_t size);
 
   /// @returns The burst buffer size.
   std::size_t get_burst_buffer_size() const;
@@ -104,7 +104,7 @@ public:
    *
    * @returns The reference to this instance.
    */
-  Settings& set_data_translation_offset(int index, int value);
+  Driver_settings& set_data_translation_offset(int index, int value);
 
   /// @returns The value of data translation offset.
   int get_data_translation_offset(int index) const;
@@ -117,7 +117,7 @@ public:
    *
    * @returns The reference to this instance.
    */
-  Settings& set_data_translation_slope(int index, float value);
+  Driver_settings& set_data_translation_slope(int index, float value);
 
   /// @returns The value of data translation slope.
   float get_data_translation_slope(int index) const;

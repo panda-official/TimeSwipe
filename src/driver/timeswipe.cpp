@@ -18,8 +18,8 @@
 
 #include "bcmlib.hpp"
 #include "board_settings.hpp"
+#include "driver_settings.hpp"
 #include "event.hpp"
-#include "settings.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "sensor_data.hpp"
@@ -169,7 +169,7 @@ public:
     return settings_;
   }
 
-  void start(Sensor_data_handler&& sdh, Event_handler&& evh)
+  void start(Sensor_data_handler&& sdh, Event_handler&& evh = {})
   {
     if (!sdh)
       throw Runtime_exception{Errc::invalid_data_handler};
@@ -1193,7 +1193,7 @@ void Timeswipe::set_settings(Settings settings)
   return rep_->set_settings(std::move(settings));
 }
 
-const Settings& Timeswipe::get_settings() const
+auto Timeswipe::get_settings() const -> const Settings&
 {
   return rep_->get_settings();
 }

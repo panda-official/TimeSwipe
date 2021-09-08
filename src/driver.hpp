@@ -21,9 +21,9 @@
 
 #include "driver/basics.hpp"
 #include "driver/board_settings.hpp"
+#include "driver/driver_settings.hpp"
 #include "driver/event.hpp"
 #include "driver/sensor_data.hpp"
-#include "driver/settings.hpp"
 #include "driver/timeswipe.hpp"
 #include "driver/types_fwd.hpp"
 #include "driver/version.hpp"

@@ -19,9 +19,9 @@
 namespace panda::timeswipe::driver {
 
 class Board_settings;
+class Driver_settings;
 class Event;
 class Sensors_data;
-class Settings;
 class Timeswipe;
 
 } // namespace panda::timeswipe::driver

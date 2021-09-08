@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "settings.hpp"
+#include "driver_settings.hpp"
 
 #include "../common/rajson.hpp"
 
@@ -25,10 +25,10 @@ namespace rajson = dmitigr::rajson;
 namespace panda::timeswipe::driver {
 
 // -----------------------------------------------------------------------------
-// class Settings::Rep
+// class Driver_settings::Rep
 // -----------------------------------------------------------------------------
 
-struct Settings::Rep final {
+struct Driver_settings::Rep final {
   Rep()
   {}
 
@@ -146,92 +146,92 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// class Settings
+// class Driver_settings
 // -----------------------------------------------------------------------------
 
-Settings::~Settings() = default;
+Driver_settings::~Driver_settings() = default;
 
-Settings::Settings(const Settings& rhs)
+Driver_settings::Driver_settings(const Driver_settings& rhs)
   : rep_{std::make_unique<Rep>(*rhs.rep_)}
 {}
 
-Settings& Settings::operator=(const Settings& rhs)
+Driver_settings& Driver_settings::operator=(const Driver_settings& rhs)
 {
-  Settings tmp{rhs};
+  Driver_settings tmp{rhs};
   swap(tmp);
   return *this;
 }
 
-Settings::Settings(Settings&& rhs)
+Driver_settings::Driver_settings(Driver_settings&& rhs)
   : rep_{std::move(rhs.rep_)}
 {}
 
-Settings& Settings::operator=(Settings&& rhs)
+Driver_settings& Driver_settings::operator=(Driver_settings&& rhs)
 {
-  Settings tmp{std::move(rhs)};
+  Driver_settings tmp{std::move(rhs)};
   swap(tmp);
   return *this;
 }
 
-Settings::Settings()
+Driver_settings::Driver_settings()
   : rep_{std::make_unique<Rep>()}
 {}
 
-Settings::Settings(const std::string_view stringified_json)
+Driver_settings::Driver_settings(const std::string_view stringified_json)
   : rep_{std::make_unique<Rep>(stringified_json)}
 {}
 
-void Settings::swap(Settings& other) noexcept
+void Driver_settings::swap(Driver_settings& other) noexcept
 {
   using std::swap;
   swap(rep_, other.rep_);
 }
 
-std::string Settings::to_stringified_json() const
+std::string Driver_settings::to_stringified_json() const
 {
   return rep_->to_stringified_json();
 }
 
-Settings& Settings::set_sample_rate(const int rate)
+Driver_settings& Driver_settings::set_sample_rate(const int rate)
 {
   rep_->set_sample_rate(rate);
   return *this;
 }
 
-int Settings::get_sample_rate() const
+int Driver_settings::get_sample_rate() const
 {
   return rep_->get_sample_rate();
 }
 
-Settings& Settings::set_burst_buffer_size(const std::size_t size)
+Driver_settings& Driver_settings::set_burst_buffer_size(const std::size_t size)
 {
   rep_->set_burst_buffer_size(size);
   return *this;
 }
 
-std::size_t Settings::get_burst_buffer_size() const
+std::size_t Driver_settings::get_burst_buffer_size() const
 {
   return rep_->get_burst_buffer_size();
 }
 
-Settings& Settings::set_data_translation_offset(const int index, const int value)
+Driver_settings& Driver_settings::set_data_translation_offset(const int index, const int value)
 {
   rep_->set_data_translation_offset(index, value);
   return *this;
 }
 
-int Settings::get_data_translation_offset(const int index) const
+int Driver_settings::get_data_translation_offset(const int index) const
 {
   return rep_->get_data_translation_offset(index);
 }
 
-Settings& Settings::set_data_translation_slope(const int index, const float value)
+Driver_settings& Driver_settings::set_data_translation_slope(const int index, const float value)
 {
   rep_->set_data_translation_slope(index, value);
   return *this;
 }
 
-float Settings::get_data_translation_slope(const int index) const
+float Driver_settings::get_data_translation_slope(const int index) const
 {
   return rep_->get_data_translation_slope(index);
 }

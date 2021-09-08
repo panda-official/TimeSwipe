@@ -38,6 +38,9 @@ namespace panda::timeswipe::driver {
  */
 class Timeswipe final {
 public:
+  /// An alias of driver settings.
+  using Settings = Driver_settings;
+
   /**
    * An alias of a function to handle the incoming events.
    *
