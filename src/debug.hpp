@@ -7,8 +7,8 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#ifndef PANDA_TIMESWIPE_ASSERT_HPP
-#define PANDA_TIMESWIPE_ASSERT_HPP
+#ifndef PANDA_TIMESWIPE_DEBUG_HPP
+#define PANDA_TIMESWIPE_DEBUG_HPP
 
 #include "error.hpp"
 
@@ -42,4 +42,4 @@ class Debug_exception final :
     throw E{__FILE__, __LINE__, errc};                                  \
   } while(true)
 
-#endif  // PANDA_TIMESWIPE_ASSERT_HPP
+#endif  // PANDA_TIMESWIPE_DEBUG_HPP
