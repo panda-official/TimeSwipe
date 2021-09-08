@@ -21,8 +21,8 @@
  * Basic button event interfaces.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_BUTTON_HPP
-#define PANDA_TIMESWIPE_COMMON_BUTTON_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
 
 /*!
  * \brief The enumeration of possible button states
@@ -72,4 +72,4 @@ protected:
     virtual ~CButtonEvent()=default;
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_BUTTON_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP

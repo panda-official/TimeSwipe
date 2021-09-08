@@ -18,8 +18,8 @@
 
 #include "basics.hpp"
 
-#include "../3rdparty/dmitigr/assert.hpp"
-#include "../3rdparty/dmitigr/rajson.hpp"
+#include "3rdparty/dmitigr/assert.hpp"
+#include "3rdparty/dmitigr/rajson.hpp"
 
 #include <optional>
 #include <string_view>

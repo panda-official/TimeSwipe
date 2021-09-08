@@ -21,8 +21,8 @@
  * Basic storage class and object serialization interface
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_STORAGE_HPP
-#define PANDA_TIMESWIPE_COMMON_STORAGE_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_STORAGE_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_STORAGE_HPP
 
 #include <typeinfo>
 
@@ -148,4 +148,4 @@ protected:
 
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_STORAGE_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_STORAGE_HPP

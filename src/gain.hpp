@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_COMMON_GAIN_HPP
-#define PANDA_TIMESWIPE_COMMON_GAIN_HPP
+#ifndef PANDA_TIMESWIPE_GAIN_HPP
+#define PANDA_TIMESWIPE_GAIN_HPP
 
 #include <algorithm>
 #include <array>
@@ -72,4 +72,4 @@ std::size_t get_ogain_table_index(const float value) noexcept
 /// FIXME: remove after placing the entire code base in the namespace
 using namespace panda::timeswipe;
 
-#endif  // PANDA_TIMESWIPE_COMMON_GAIN_HPP
+#endif  // PANDA_TIMESWIPE_GAIN_HPP

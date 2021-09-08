@@ -21,8 +21,8 @@
  * CPin stuff.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_PIN_HPP
-#define PANDA_TIMESWIPE_COMMON_PIN_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_PIN_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_PIN_HPP
 
 #include "os.h"
 
@@ -149,4 +149,4 @@ protected:
 };
 typedef CPin IPin;
 
-#endif  // PANDA_TIMESWIPE_COMMON_PIN_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_PIN_HPP

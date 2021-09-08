@@ -21,8 +21,8 @@
  * An operating system interface.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_OS_HPP
-#define PANDA_TIMESWIPE_COMMON_OS_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_OS_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_OS_HPP
 
 /*!
  *  \brief an operating system interface namespace
@@ -62,4 +62,4 @@ void clear_err();
 
 }
 
-#endif  // PANDA_TIMESWIPE_COMMON_OS_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_OS_HPP

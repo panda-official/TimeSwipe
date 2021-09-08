@@ -17,7 +17,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "rgbacol.h"
 #include "../base/SAMbutton.h"
 #include "../led/nodeLED.h"
-#include "../../common/os.h"
+#include "../os.h"
 
 #include <vector>
 

@@ -21,12 +21,12 @@
  * HAT data stuff.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_HAT_HPP
-#define PANDA_TIMESWIPE_COMMON_HAT_HPP
+#ifndef PANDA_TIMESWIPE_HAT_HPP
+#define PANDA_TIMESWIPE_HAT_HPP
 
 #include "../3rdparty/dmitigr/crc.hpp"
 #include "error.hpp"
-#include "Serial.h"
+#include "serial.hpp"
 
 #include <array>
 #include <cstdint>
@@ -1005,4 +1005,4 @@ private:
 /// FIXME: remove after placing the entire code base in the namespace
 using namespace panda::timeswipe;
 
-#endif  // PANDA_TIMESWIPE_COMMON_HAT_HPP
+#endif  // PANDA_TIMESWIPE_HAT_HPP

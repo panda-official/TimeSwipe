@@ -26,8 +26,8 @@ enum class typeDac5715chan : int
     DACD    //!<channel D, #3
 };
 
-#include "../../common/SPI.h"
-#include "../../common/Pin.h"
+#include "../../spi.hpp"
+#include "../Pin.h"
 #include "adcdac.hpp"
 
 /*!

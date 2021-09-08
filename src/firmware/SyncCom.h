@@ -21,10 +21,10 @@
  * A software implementation of flow-control for SPI bus
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_SYNCCOM_HPP
-#define PANDA_TIMESWIPE_COMMON_SYNCCOM_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_SYNCCOM_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_SYNCCOM_HPP
 
-#include "Serial.h"
+#include "../serial.hpp"
 
 /**
  * @brief A software implementation of flow-control for SPI bus.
@@ -223,4 +223,4 @@ public:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_SYNCCOM_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_SYNCCOM_HPP

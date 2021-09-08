@@ -17,7 +17,7 @@ Copyright (c) 2019 Panda Team
 #include "adcdac.hpp"
 #include "SamCLK.h"
 
-#include "../../common/os.h"
+#include "../os.h"
 
 #include <memory>
 #include <list>

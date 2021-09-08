@@ -22,12 +22,12 @@
  * CommunicationProtocol.md.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_STD_PORT_HPP
-#define PANDA_TIMESWIPE_COMMON_STD_PORT_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_STD_PORT_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_STD_PORT_HPP
 
 #include "cmd.h"
 #include "frm_stream.h"
-#include "Serial.h"
+#include "../serial.hpp"
 
 /**
  * @brief An implementation of simple text protocol described in
@@ -195,4 +195,4 @@ public:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_STD_PORT_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_STD_PORT_HPP

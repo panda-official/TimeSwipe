@@ -21,10 +21,10 @@
  * Formatted stream stuff.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_FRM_STREAM_HPP
-#define PANDA_TIMESWIPE_COMMON_FRM_STREAM_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_FRM_STREAM_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_FRM_STREAM_HPP
 
-#include "Serial.h"
+#include "../serial.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -261,4 +261,4 @@ public:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_FRM_STREAM_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_FRM_STREAM_HPP

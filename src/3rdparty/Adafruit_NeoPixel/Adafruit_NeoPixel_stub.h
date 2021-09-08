@@ -14,7 +14,7 @@ Copyright (c) 2019 Panda Team
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "../../common/os.h"
+#include "../../firmware/os.h"
 typedef bool boolean;
 #define micros() (os::get_tick_mS()*1000)
 

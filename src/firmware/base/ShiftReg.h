@@ -14,7 +14,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "../../common/Pin.h"
+#include "../Pin.h"
 
 #include <bitset>
 #include <cstdint>

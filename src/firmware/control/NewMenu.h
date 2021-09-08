@@ -13,7 +13,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "../../common/button.h"
+#include "../button.h"
 
 /*!
  * \brief The Menu v2.0 controller

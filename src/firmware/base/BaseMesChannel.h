@@ -14,7 +14,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "../adcdac.hpp"
 #include "../control/DataVis.h"
-#include "../../common/Pin.h"
+#include "../Pin.h"
 
 #include <memory>
 

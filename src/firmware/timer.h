@@ -21,8 +21,8 @@
  * Basic timer event interfaces
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_TIMER_HPP
-#define PANDA_TIMESWIPE_COMMON_TIMER_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_TIMER_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_TIMER_HPP
 
 /*!
  * \brief A callback interface used to notify the derived class that a timer event happened
@@ -59,4 +59,4 @@ protected:
      virtual ~CTimerEvent()=default;
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_TIMER_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_TIMER_HPP

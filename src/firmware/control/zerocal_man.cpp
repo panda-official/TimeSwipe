@@ -6,7 +6,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "zerocal_man.h"
-#include "../../common/os.h"
+#include "../os.h"
 
 void CCalMan::Serialize(CStorage &st)
 {

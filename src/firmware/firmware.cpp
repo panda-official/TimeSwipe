@@ -7,11 +7,11 @@ Copyright (c) 2019-2020 Panda Team
 
 //build for ADCs-DACs:
 
-#include "../common/cmd.h"
-#include "../common/hat.hpp"
-#include "../common/os.h"
-#include "../common/std_port.h"
-#include "../common/version.hpp"
+#include "../hat.hpp"
+#include "../version.hpp"
+#include "cmd.h"
+#include "os.h"
+#include "std_port.h"
 #include "base/SPIcomm.h"
 #include "base/SAMbutton.h"
 #include "base/DMSchannel.h"

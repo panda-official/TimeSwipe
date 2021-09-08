@@ -21,8 +21,8 @@
  * Command proccessor stuff.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_CMD_HPP
-#define PANDA_TIMESWIPE_COMMON_CMD_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
 
 #include "frm_stream.h"
 
@@ -285,4 +285,4 @@ public:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_CMD_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_CMD_HPP

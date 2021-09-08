@@ -9,8 +9,8 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "adcdac.hpp"
 //#include "ADmux.h"
-#include "../../common/Pin.h"
-#include "../../common/PWM.h"
+#include "../Pin.h"
+#include "../PWM.h"
 
 #include <memory>
 

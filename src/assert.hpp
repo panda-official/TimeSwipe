@@ -12,7 +12,7 @@
 
 #include "error.hpp"
 
-#include "../3rdparty/dmitigr/assert.hpp"
+#include "3rdparty/dmitigr/assert.hpp"
 
 namespace panda::timeswipe::detail {
 

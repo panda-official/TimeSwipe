@@ -21,10 +21,10 @@
  * Common stuff of all Serial Peripheral Interface (SPI) devices.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_SPI_HPP
-#define PANDA_TIMESWIPE_COMMON_SPI_HPP
+#ifndef PANDA_TIMESWIPE_SPI_HPP
+#define PANDA_TIMESWIPE_SPI_HPP
 
-#include "Serial.h"
+#include "serial.hpp"
 
 /*!
  * \brief   A basic class for SPI devices
@@ -87,4 +87,4 @@ public:
     virtual ~CSPI() = default;
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_SPI_HPP
+#endif  // PANDA_TIMESWIPE_SPI_HPP

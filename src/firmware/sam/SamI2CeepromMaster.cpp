@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 
 #include "SamI2CeepromMaster.h"
-#include "../../common/os.h"
+#include "../os.h"
 
 #include "sam.h"
 

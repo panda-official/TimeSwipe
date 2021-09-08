@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "SamSercom.h"
 
-#include "../../common/Pin.h"
+#include "../Pin.h"
 
 #include <memory>
 

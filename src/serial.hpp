@@ -21,8 +21,8 @@
  * Basic serial data types and interfaces.
  */
 
-#ifndef PANDA_TIMESWIPE_COMMON_SERIAL_HPP
-#define PANDA_TIMESWIPE_COMMON_SERIAL_HPP
+#ifndef PANDA_TIMESWIPE_SERIAL_HPP
+#define PANDA_TIMESWIPE_SERIAL_HPP
 
 #include <memory>
 #include <string>
@@ -310,4 +310,4 @@ protected:
         virtual ~CSerial()=default;
 };
 
-#endif  // PANDA_TIMESWIPE_COMMON_SERIAL_HPP
+#endif  // PANDA_TIMESWIPE_SERIAL_HPP
