@@ -47,21 +47,15 @@ public:
   }
 
   /// @returns The number of channels whose data this vector contains.
-  size_type get_channel_count() const noexcept
+  size_type channel_count() const noexcept
   {
     return channel_count_;
   }
 
   /// @returns The number of values per sensor.
-  size_type get_size() const noexcept
-  {
-    return !data_.empty() ? data_[0].size() : 0;
-  }
-
-  /// For STL compatibility.
   size_type size() const noexcept
   {
-    return get_size();
+    return !data_.empty() ? data_[0].size() : 0;
   }
 
   /// @returns The reference to the value at the given `index`.
@@ -79,7 +73,7 @@ public:
   /// Reserves the memory for given `size`.
   void reserve(const size_type size)
   {
-    const auto cc = get_channel_count();
+    const auto cc = channel_count();
     for (size_type i{}; i < cc; ++i)
       data_[i].reserve(size);
   }
@@ -87,7 +81,7 @@ public:
   /// Resizes this vector to the given `size`.
   void resize(const size_type size)
   {
-    const auto cc = get_channel_count();
+    const auto cc = channel_count();
     for (size_type i{}; i < cc; ++i)
       data_[i].resize(size);
   }
@@ -95,7 +89,7 @@ public:
   /// Clears the vector.
   void clear() noexcept
   {
-    const auto cc = get_channel_count();
+    const auto cc = channel_count();
     for (size_type i{}; i < cc; ++i)
       data_[i].clear();
   }
@@ -103,7 +97,7 @@ public:
   /// @returns `true` if the vector is empty.
   bool is_empty() const noexcept
   {
-    return !get_size();
+    return !size();
   }
 
   /// For STL compatibility.
@@ -115,13 +109,13 @@ public:
   /// Appends `other` to the end of this vector.
   void append(const Data_vector& other)
   {
-    append(other, other.get_size());
+    append(other, other.size());
   }
 
   /// Appends no more than `count` elements of `other` to the end of this vector.
   void append(const Data_vector& other, const size_type count)
   {
-    const auto cc = get_channel_count();
+    const auto cc = channel_count();
     for (size_type i{}; i < cc; ++i) {
       const auto in_size = std::min(other.data_[i].size(), count);
       const auto out_offset = data_[i].size();
@@ -134,7 +128,7 @@ public:
   /// Removes the given `count` of elements from the begin of this vector.
   void erase_front(const size_type count) noexcept
   {
-    const auto cc = get_channel_count();
+    const auto cc = channel_count();
     for (size_type i{}; i < cc; i++)
       data_[i].erase(data_[i].begin(), data_[i].begin() + count);
   }
@@ -142,7 +136,7 @@ public:
   /// Removes the given `count` of elements from the end of this vector.
   void erase_back(const size_type count) noexcept
   {
-    const auto cc = get_channel_count();
+    const auto cc = channel_count();
     for (size_type i{}; i < cc; i++)
       data_[i].resize(data_[i].size() - count);
   }

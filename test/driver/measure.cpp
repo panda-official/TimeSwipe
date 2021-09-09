@@ -105,9 +105,10 @@ try {
 
       // Write data.
       const auto begin = chrono::system_clock::now();
-      const auto row_count{data.get_size()};
+      const auto row_count = data.size();
+      const auto col_count = data.channel_count();
       for (std::size_t row{}; row < row_count; ++row) {
-        for (std::size_t col{}; col < data.get_channel_count(); ++col)
+        for (std::size_t col{}; col < col_count; ++col)
           log_file << data[col][row] << " ";
         log_file << "\n";
       }

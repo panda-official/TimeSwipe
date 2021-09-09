@@ -153,17 +153,17 @@ int main(int argc, char *argv[])
         std::cout << "Got errors count " << error_marker << "\n";
         return;
       }
-      counter += records.get_size();
-      for (size_t i = 0; i < records.get_size(); i++) {
+      counter += records.size();
+      for (size_t i = 0; i < records.size(); i++) {
         if (i == 0) {
-          for (size_t j = 0; j < records.get_channel_count(); j++) {
+          for (size_t j = 0; j < records.channel_count(); j++) {
             if (j != 0) std::cout << "\t";
             std::cout << records[j][i];
           }
           std::cout << '\n';
         }
         if (dump) {
-          for (size_t j = 0; j < records.get_channel_count(); j++) {
+          for (size_t j = 0; j < records.channel_count(); j++) {
             if (j != 0) data_log << "\t";
             data_log << records[j][i];
           }

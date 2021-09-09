@@ -177,7 +177,7 @@ enum class Output_format { bin, csv };
 
 inline void write_output(std::ostream& out, const Output_format format, const ts::Data_vector& records)
 {
-  const auto sample_rate = records.get_size();
+  const auto sample_rate = records.size();
   const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
   if (!columns_count)
     return;

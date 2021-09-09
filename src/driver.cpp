@@ -272,7 +272,7 @@ public:
     data.erase_front(drift_samples_count / 2);
 
     // Take averages of measured data (references).
-    std::vector<float> result(data.get_channel_count());
+    std::vector<float> result(data.channel_count());
     transform(data.cbegin(), data.cend(), result.begin(), [](const auto& dat)
     {
       return static_cast<float>(dmitigr::math::avg(dat));
@@ -313,13 +313,13 @@ public:
     // Collect the data for calculation.
     auto data{collect_sensors_data(drift_samples_count,
       [this]{return Drift_affected_state_guard{*this};})};
-    DMITIGR_ASSERT(refs->size() == data.get_channel_count());
+    DMITIGR_ASSERT(refs->size() == data.channel_count());
 
     // Discard the first half.
     data.erase_front(drift_samples_count / 2);
 
     // Take averages of measured data (references) and subtract the references.
-    std::vector<float> result(data.get_channel_count());
+    std::vector<float> result(data.channel_count());
     transform(data.cbegin(), data.cend(), refs->cbegin(), result.begin(),
       [](const auto& dat, const auto ref)
       {
@@ -686,7 +686,7 @@ private:
       static_assert(translation_offsets.size() == sensors.size());
       static_assert(translation_slopes.size() == sensors.size());
 
-      const auto channel_count = data.get_channel_count();
+      const auto channel_count = data.channel_count();
       DMITIGR_ASSERT(channel_count <= sensors.size());
 
       constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
@@ -882,7 +882,7 @@ private:
       if (drift_deltas_) {
         const auto& deltas = *drift_deltas_;
         for (std::size_t i{}; i < num; ++i) {
-          const auto channel_count = records[i].get_channel_count();
+          const auto channel_count = records[i].channel_count();
           DMITIGR_ASSERT(deltas.size() == channel_count);
           for (std::size_t j{}; j < channel_count; ++j) {
             auto& values = records[i][j];
@@ -908,7 +908,7 @@ private:
         records_ptr = records;
       }
 
-      if (burst_buffer_.empty() && burst_buffer_size_ <= records_ptr->get_size()) {
+      if (burst_buffer_.empty() && burst_buffer_size_ <= records_ptr->size()) {
         // optimization if burst buffer not used or smaller than first buffer
         Callbacker{*this}(handler, std::move(*records_ptr), errors);
         records_ptr->clear();
@@ -916,7 +916,7 @@ private:
         // burst buffer mode
         burst_buffer_.append(std::move(*records_ptr));
         records_ptr->clear();
-        if (burst_buffer_.get_size() >= burst_buffer_size_) {
+        if (burst_buffer_.size() >= burst_buffer_size_) {
           Callbacker{*this}(handler, std::move(burst_buffer_), errors);
           burst_buffer_.clear();
         }
@@ -928,7 +928,7 @@ private:
       burst_buffer_.append(resampler_->flush());
 
     // Flush the remaining values from the burst buffer.
-    if (!in_handler_ && burst_buffer_.get_size()) {
+    if (!in_handler_ && burst_buffer_.size()) {
       Callbacker{*this}(handler, std::move(burst_buffer_), 0);
       burst_buffer_.clear();
     }
@@ -1027,13 +1027,13 @@ private:
         return;
 
       try {
-        if (data.get_size() < samples_count)
-          data.append(sd, samples_count - data.get_size());
+        if (data.size() < samples_count)
+          data.append(sd, samples_count - data.size());
       } catch (...) {
         errc = Errc::generic;
       }
 
-      if (is_error(errc) || (!done && data.get_size() == samples_count)) {
+      if (is_error(errc) || (!done && data.size() == samples_count)) {
         done = true;
         update.notify_one();
       }
