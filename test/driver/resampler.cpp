@@ -8,7 +8,7 @@
 */
 
 #include "../../src/resampler.hpp"
-#include "../../src/timeswipe.hpp"
+#include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 #include "../../src/3rdparty/dmitigr/progpar.hpp"
 #include "../../src/3rdparty/dmitigr/str.hpp"

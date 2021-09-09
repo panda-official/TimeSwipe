@@ -288,7 +288,7 @@ private:
 };
 
 /**
- * @brief A Timeswipe resampler.
+ * @brief A resampler.
  *
  * This class is the wrapper of the class Fir_resampler and provides the
  * stream-style API in order to resample the chunks of variable length. After

@@ -25,14 +25,14 @@ namespace ts = panda::timeswipe;
 
 namespace {
 
-void measure(ts::Timeswipe& ts, const std::chrono::milliseconds dur)
+void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 {
-  ts.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
+  drv.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000)));
   constexpr auto channel_count{ts::Sensors_data::get_sensor_count()};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
-  ts.start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
+  drv.start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
   {
     for (auto i{0*channel_count}; i < channel_count; ++i) {
       const auto& channel{data[i]};
@@ -49,7 +49,7 @@ void measure(ts::Timeswipe& ts, const std::chrono::milliseconds dur)
     call_count++;
   });
   std::this_thread::sleep_for(dur);
-  ts.stop();
+  drv.stop();
 
   // Print the results
   const auto prec{std::cout.precision()};
@@ -79,8 +79,8 @@ void measure(ts::Timeswipe& ts, const std::chrono::milliseconds dur)
 
 int main(const int argc, const char* const argv[])
 try {
-  auto& ts = ts::Timeswipe::get_instance();
-  assert(!ts.IsBusy());
+  auto& driver = ts::Driver::get_instance();
+  assert(!driver.IsBusy());
 
   // Set the measure duration.
   using ms = chrono::milliseconds;
@@ -95,27 +95,27 @@ try {
     in >> config;
     if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
       if (!cs->empty())
-        ts.set_board_settings(ts::Board_settings{cs->dump()});
+        driver.set_board_settings(ts::Board_settings{cs->dump()});
     }
   }
 
-  if (!ts.get_drift_references()) {
+  if (!driver.get_drift_references()) {
     // Normally, it means the first program run.
-    const auto refs{ts.calculate_drift_references()};
+    const auto refs{driver.calculate_drift_references()};
     (void)refs;
     assert(refs.size() == Sensors_data::get_sensor_count());
   }
-  assert(ts.drift_references());
+  assert(driver.drift_references());
 
   // Calculate deltas.
-  assert(!ts.DriftDeltas());
-  auto deltas{ts.calculate_drift_deltas()};
+  assert(!driver.DriftDeltas());
+  auto deltas{driver.calculate_drift_deltas()};
   (void)deltas;
   assert(deltas.size() == Sensors_data::sensor_count());
-  assert(ts.DriftDeltas());
+  assert(driver.DriftDeltas());
 
   // Measure.
-  measure(ts, dur);
+  measure(driver, dur);
 } catch (const std::exception& e) {
   std::clog << "error: " << e.what() << std::endl;
   return 1;

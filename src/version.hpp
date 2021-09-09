@@ -12,19 +12,19 @@
 
 namespace panda::timeswipe {
 
-/// Current Timeswipe major version.
+/// Current major version.
 constexpr int version_major{0};
 static_assert(0 <= version_major && version_major <= 99);
 
-/// Current Timeswipe minor version.
+/// Current minor version.
 constexpr int version_minor{1};
 static_assert(0 <= version_minor && version_minor <= 99);
 
-/// Current Timeswipe patch version.
+/// Current patch version.
 constexpr int version_patch{1};
 static_assert(0 <= version_patch && version_patch <= 99);
 
-/// Current Timeswipe version.
+/// Current version.
 constexpr int version{version_major*10000 + version_minor*100 + version_patch};
 
 } // namespace panda::timeswipe

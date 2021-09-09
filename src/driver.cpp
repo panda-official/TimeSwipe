@@ -19,6 +19,7 @@
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
 #include "board_settings.hpp"
+#include "driver.hpp"
 #include "driver_settings.hpp"
 #include "error.hpp"
 #include "event.hpp"
@@ -27,7 +28,6 @@
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "sensor_data.hpp"
-#include "timeswipe.hpp"
 #include "version.hpp"
 
 #include "3rdparty/dmitigr/assert.hpp"
@@ -58,10 +58,10 @@ namespace rajson = dmitigr::rajson;
 namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
-// class Timeswipe::Rep
+// class Driver::Rep
 // -----------------------------------------------------------------------------
 
-class Timeswipe::Rep final {
+class Driver::Rep final {
 public:
   ~Rep()
   {
@@ -86,10 +86,10 @@ public:
   /**
    * Initializes GPIO pins.
    *
-   * @param force Forces initialization even if IsInited() returns `true`.
+   * @param force Forces initialization even if `is_gpio_inited_ == true`.
    *
    * @par Effects
-   * Restarts Timeswipe firmware on very first run!
+   * Restarts firmware on very first run!
    */
   void init_gpio(const bool force = false)
   {
@@ -220,7 +220,7 @@ public:
     }();
 
     /*
-     * Send the command to a Timeswipe firmware to start measurement.
+     * Send the command to the firmware to start the measurement.
      * Effects: the reader does receive the data from the board.
      */
     {
@@ -262,7 +262,7 @@ public:
     while (record_queue_.pop());
 
     /*
-     * Sends the command to a Timeswipe firmware to stop measurement.
+     * Sends the command to the firmware to stop the measurement.
      * Effects: the reader doesn't receive the data from the board.
      */
     {
@@ -503,7 +503,7 @@ private:
     Drift_affected_state_guard(Drift_affected_state_guard&&) = delete;
     Drift_affected_state_guard& operator=(Drift_affected_state_guard&&) = delete;
 
-    // Restores the state of Timeswipe instance.
+    // Restores the driver state.
     void restore() noexcept
     {
       try {
@@ -1153,102 +1153,102 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// class Timeswipe
+// class Driver
 // -----------------------------------------------------------------------------
 
-Timeswipe::~Timeswipe() = default;
+Driver::~Driver() = default;
 
-Timeswipe::Timeswipe()
+Driver::Driver()
   : rep_{std::make_unique<Rep>()}
 {}
 
-Timeswipe& Timeswipe::get_instance()
+Driver& Driver::get_instance()
 {
-  if (!instance_) instance_.reset(new Timeswipe);
+  if (!instance_) instance_.reset(new Driver);
   return *instance_;
 }
 
-int Timeswipe::get_version() const
+int Driver::get_version() const
 {
   return rep_->get_version();
 }
 
-int Timeswipe::get_min_sample_rate() const
+int Driver::get_min_sample_rate() const
 {
   return rep_->get_min_sample_rate();
 }
 
-int Timeswipe::get_max_sample_rate() const
+int Driver::get_max_sample_rate() const
 {
   return rep_->get_max_sample_rate();
 }
 
-int Timeswipe::get_data_channel_count() const
+int Driver::get_data_channel_count() const
 {
   return rep_->get_data_channel_count();
 }
 
-void Timeswipe::set_board_settings(const Board_settings& settings)
+void Driver::set_board_settings(const Board_settings& settings)
 {
   return rep_->set_board_settings(settings);
 }
 
-const Board_settings& Timeswipe::get_board_settings() const
+const Board_settings& Driver::get_board_settings() const
 {
   return rep_->get_board_settings();
 }
 
-void Timeswipe::set_settings(Settings settings)
+void Driver::set_settings(Settings settings)
 {
   return rep_->set_settings(std::move(settings));
 }
 
-auto Timeswipe::get_settings() const -> const Settings&
+auto Driver::get_settings() const -> const Settings&
 {
   return rep_->get_settings();
 }
 
-void Timeswipe::start(Sensor_data_handler sdh, Event_handler evh)
+void Driver::start(Sensor_data_handler sdh, Event_handler evh)
 {
   rep_->start(std::move(sdh), std::move(evh));
 }
 
-bool Timeswipe::is_busy() const noexcept
+bool Driver::is_busy() const noexcept
 {
   return rep_->is_busy();
 }
 
-void Timeswipe::stop()
+void Driver::stop()
 {
   return rep_->stop();
 }
 
-std::vector<float> Timeswipe::calculate_drift_references()
+std::vector<float> Driver::calculate_drift_references()
 {
   return rep_->calculate_drift_references();
 }
 
-void Timeswipe::clear_drift_references()
+void Driver::clear_drift_references()
 {
   rep_->clear_drift_references();
 }
 
-std::vector<float> Timeswipe::calculate_drift_deltas()
+std::vector<float> Driver::calculate_drift_deltas()
 {
   return rep_->calculate_drift_deltas();
 }
 
-void Timeswipe::clear_drift_deltas()
+void Driver::clear_drift_deltas()
 {
   rep_->clear_drift_deltas();
 }
 
-std::optional<std::vector<float>> Timeswipe::get_drift_references(const bool force) const
+std::optional<std::vector<float>> Driver::get_drift_references(const bool force) const
 {
   return rep_->get_drift_references(force);
 }
 
-std::optional<std::vector<float>> Timeswipe::get_drift_deltas() const
+std::optional<std::vector<float>> Driver::get_drift_deltas() const
 {
   return rep_->get_drift_deltas();
 }

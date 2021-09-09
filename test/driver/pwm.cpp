@@ -39,7 +39,7 @@ void usage(const char* name)
 int main(int argc, char *argv[])
 {
   namespace ts = panda::timeswipe;
-  auto& tswipe = ts::Timeswipe::get_instance();
+  auto& driver = ts::Driver::get_instance();
 
   bool start = false;
   bool stop = false;
@@ -133,16 +133,16 @@ int main(int argc, char *argv[])
                 << " duty: " << *settings.get_pwm_duty_cycle(i)
                 << std::endl;
       settings.set_pwm_start(i, true);
-      tswipe.set_board_settings(settings);
+      driver.set_board_settings(settings);
       std::cout << "start " << i << " succeded" << std::endl;
     } else if (stop) {
       std::cout << "stop " << i << std::endl;
       settings.set_pwm_start(i, false);
-      tswipe.set_board_settings(settings);
+      driver.set_board_settings(settings);
       std::cout << "stop " << i << " succeded" << std::endl;
     } else if (get) {
       std::cout << "get " << i << std::endl;
-      const auto& settings = tswipe.get_board_settings();
+      const auto& settings = driver.get_board_settings();
       std::cout << "get " << i
                 << " freq: " << *settings.get_pwm_frequency(i)
                 << " high: " << *settings.get_pwm_high(i)

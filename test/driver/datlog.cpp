@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     }
 
 
-    auto& tswipe = ts::Timeswipe::get_instance();
+    auto& driver = ts::Driver::get_instance();
 
     // Board Preparation
     ts::Board_settings settings;
@@ -130,22 +130,22 @@ int main(int argc, char *argv[])
       settings = ts::Board_settings{config_script.dump()};
     settings.set_signal_mode(modes.at(configitem["MODE"]));
 
-    tswipe.set_board_settings(settings);
+    driver.set_board_settings(settings);
 
     // Board Shutdown on signals
 
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
     shutdown_handler = [&](int /*signal*/) {
-        tswipe.stop();
+        driver.stop();
         exit(1);
     };
 
     // Board start.
     int counter{};
-    tswipe.set_settings(std::move(ts::Driver_settings{}
+    driver.set_settings(std::move(ts::Driver_settings{}
         .set_sample_rate(samplerate).set_burst_buffer_size(samplerate)));
-    tswipe.start([&](auto&& records, const int error_marker) {
+    driver.start([&](auto&& records, const int error_marker) {
       if (error_marker < 0) {
         std::clog << "Got fatal error " << -error_marker << "\n";
         return;
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
     const auto start = std::chrono::system_clock::now();
     std::this_thread::sleep_for(std::chrono::seconds{runtime});
-    tswipe.stop();
+    driver.stop();
     const auto end = std::chrono::system_clock::now();
     const std::chrono::duration<float> diff = end - start;
     std::cout << "time: " << diff.count() << "s records: " << counter << " rec/sec: " << counter / diff.count() << "\n";

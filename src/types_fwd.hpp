@@ -22,10 +22,10 @@
 namespace panda::timeswipe {
 
 class Board_settings;
+class Driver;
 class Driver_settings;
 class Event;
 class Sensors_data;
-class Timeswipe;
 
 } // namespace panda::timeswipe
 

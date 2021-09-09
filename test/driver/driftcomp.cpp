@@ -8,7 +8,7 @@
 */
 
 #include "../../src/driver.hpp"
-#include "../../src/error.hpp"
+#include "../../src/debug.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 
 #include <algorithm>
@@ -31,7 +31,7 @@ void log(const std::vector<float>& data)
   std::clog << std::endl;
 }
 
-void measure(ts::Timeswipe& ts, const std::filesystem::path& logfile)
+void measure(ts::Driver& ts, const std::filesystem::path& logfile)
 {
   ts.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000 / 10)));
@@ -55,16 +55,16 @@ void measure(ts::Timeswipe& ts, const std::filesystem::path& logfile)
 
 int main()
 {
-  auto& ts = ts::Timeswipe::get_instance();
-  assert(!ts.IsBusy());
+  auto& driver = ts::Driver::get_instance();
+  assert(!driver.is_busy());
 
-  ts.clear_drift_references();
-  assert(!ts.drift_references(false));
-  assert(!ts.drift_references(true));
+  driver.clear_drift_references();
+  assert(!driver.drift_references(false));
+  assert(!driver.drift_references(true));
 
   try {
-    assert(!ts.drift_deltas());
-    ts.calculate_drift_deltas();
+    assert(!driver.drift_deltas());
+    driver.calculate_drift_deltas();
   } catch (const ts::Runtime_exception& e) {
     assert(e.condition() == ts::Errc::no_drift_references);
   }
@@ -73,15 +73,15 @@ int main()
   // Calculate references
   // ---------------------------------------------------------------------------
 
-  const auto refs{ts.calculate_drift_references()};
+  const auto refs{driver.calculate_drift_references()};
   assert(refs.size() == SensorsData::SensorsSize());
   std::clog << "Calculated references: ";
   log(refs);
 
-  assert(!ts.IsBusy());
+  assert(!driver.is_busy());
   {
-    const auto refs1{ts.get_drift_references(false)};
-    const auto refs2{ts.get_drift_references(true)};
+    const auto refs1{driver.get_drift_references(false)};
+    const auto refs2{driver.get_drift_references(true)};
     assert(refs1);
     assert(refs2);
     std::vector<int> refsi(refs.size());
@@ -101,15 +101,15 @@ int main()
   // Calculate deltas
   // ---------------------------------------------------------------------------
 
-  assert(!ts.drift_deltas());
-  auto deltas{ts.calculate_drift_deltas()};
+  assert(!driver.drift_deltas());
+  auto deltas{driver.calculate_drift_deltas()};
   assert(deltas.size() == refs.size());
   std::clog << "Calculated deltas: ";
   log(deltas);
 
-  assert(!ts.IsBusy());
+  assert(!driver.is_busy());
   {
-    const auto deltas1{ts.get_drift_deltas()};
+    const auto deltas1{driver.get_drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }
@@ -119,31 +119,31 @@ int main()
   // ---------------------------------------------------------------------------
 
   std::clog << "Measuring compensated..." << std::endl;
-  measure(ts, "drift_compensation-compensated.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-compensated.log");
+  assert(!driver.is_busy());
   std::clog << "done" << std::endl;
 
-  ts.clear_drift_deltas();
-  assert(!ts.drift_deltas());
+  driver.clear_drift_deltas();
+  assert(!driver.drift_deltas());
 
   std::clog << "Measuring uncompensated..." << std::endl;
-  measure(ts, "drift_compensation-uncompensated.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-uncompensated.log");
+  assert(!driver.is_busy());
   std::clog << "done" << std::endl;
 
   // ---------------------------------------------------------------------------
   // Calculate deltas 2
   // ---------------------------------------------------------------------------
 
-  assert(!ts.drift_deltas());
-  deltas = ts.calculate_drift_deltas();
+  assert(!driver.drift_deltas());
+  deltas = driver.calculate_drift_deltas();
   assert(deltas.size() == refs.size());
   std::clog << "Calculated deltas 2: ";
   log(deltas);
 
-  assert(!ts.IsBusy());
+  assert(!driver.is_busy());
   {
-    const auto deltas1{ts.get_drift_deltas()};
+    const auto deltas1{driver.get_drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }
@@ -153,23 +153,23 @@ int main()
   // ---------------------------------------------------------------------------
 
   std::clog << "Measuring compensated 2..." << std::endl;
-  measure(ts, "drift_compensation-compensated2.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-compensated2.log");
+  assert(!driver.is_busy());
   std::clog << "done" << std::endl;
 
-  ts.clear_drift_deltas();
-  assert(!ts.drift_deltas());
+  driver.clear_drift_deltas();
+  assert(!driver.drift_deltas());
 
   std::clog << "Measuring uncompensated 2..." << std::endl;
-  measure(ts, "drift_compensation-uncompensated2.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-uncompensated2.log");
+  assert(!driver.is_busy());
   std::clog << "done" << std::endl;
 
   // ---------------------------------------------------------------------------
   // Clear references
   // ---------------------------------------------------------------------------
 
-  ts.clear_drift_references();
-  assert(!ts.drift_references(false));
-  assert(!ts.drift_references(true));
+  driver.clear_drift_references();
+  assert(!driver.drift_references(false));
+  assert(!driver.drift_references(true));
 }

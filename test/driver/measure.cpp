@@ -64,12 +64,12 @@ try {
   if (frequency > sample_rate)
     throw std::runtime_error{"frequency cannot be greater than sample-rate"};
 
-  // Initialize Timeswipe.
-  auto& ts = ts::Timeswipe::get_instance();
+  // Initialize the driver.
+  auto& driver = ts::Driver::get_instance();
   ts::Driver_settings settings;
   settings.set_sample_rate(sample_rate)
     .set_burst_buffer_size(sample_rate / frequency);
-  ts.set_settings(std::move(settings));
+  driver.set_settings(std::move(settings));
 
   // Start Timeswipe. (Measure.)
   {
@@ -82,7 +82,7 @@ try {
     std::ofstream log_file;
     std::ofstream elog_file;
 
-    ts.start([
+    driver.start([
         logs_ready = false, &log_file, &elog_file,
         i = 0u, count,
         d = Dur{}, delta = duration_cast<Dur>(seconds{1}) / frequency, duration = duration_cast<Dur>(duration),
@@ -145,7 +145,7 @@ try {
 
     std::unique_lock lk{finished_mutex};
     finish.wait(lk, [&finished]{ return finished; });
-    ts.stop();
+    driver.stop();
   }
 
   // Cleanup.

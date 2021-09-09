@@ -25,7 +25,7 @@
 
 namespace panda::timeswipe {
 
-/// Timeswipe event.
+/// An event.
 class Event final {
 public:
   /// Button pressed event.

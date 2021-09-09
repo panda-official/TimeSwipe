@@ -395,8 +395,8 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   set(timeswipe_src
     src/board_settings.cpp
+    src/driver.cpp
     src/driver_settings.cpp
-    src/timeswipe.cpp
     src/3rdparty/BCMsrc/bcm2835.c
     )
 

@@ -59,7 +59,7 @@ public:
   /**
    * Set sample rate.
    *
-   * The default value is equals to Timeswipe::get_instance().get_max_sample_rate().
+   * The default value is equals to Driver::get_instance().get_max_sample_rate().
    *
    * @param rate - new sample rate
    *
@@ -73,8 +73,8 @@ public:
    * lower the value of `std::gcd(max_sample_rate, rate)`, the worse the
    * performance of the resampling.
    *
-   * @see get_sample_rate(), Timeswipe::get_min_sample_rate(),
-   * Timeswipe::get_max_sample_rate().
+   * @see get_sample_rate(), Driver::get_min_sample_rate(),
+   * Driver::get_max_sample_rate().
    */
   Driver_settings& set_sample_rate(int rate);
 
@@ -89,7 +89,7 @@ public:
    * Sets the burst buffer size.
    *
    * @param size The number of records that the driver should deliver upon
-   * of Timeswipe::Data_handler call.
+   * of Driver::Data_handler call.
    */
   Driver_settings& set_burst_buffer_size(std::size_t size);
 
