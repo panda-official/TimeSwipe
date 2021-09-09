@@ -20,9 +20,9 @@
 #define PANDA_TIMESWIPE_DRIVER_HPP
 
 #include "board_settings.hpp"
+#include "data_vector.hpp"
 #include "driver_settings.hpp"
 #include "event.hpp"
-#include "sensor_data.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -64,7 +64,7 @@ public:
    *
    * @see start().
    */
-  using Sensor_data_handler = std::function<void(Sensors_data data, int error_marker)>;
+  using Data_handler = std::function<void(Data_vector data, int error_marker)>;
 
   /**
    * The destructor. Calls stop().
@@ -96,14 +96,14 @@ public:
   /// @returns The driver version.
   int get_version() const;
 
-  /// @returns Min possible sample rate per second.
+  /// @returns Min possible sample rate per second the driver can handle.
   int get_min_sample_rate() const;
 
-  /// @returns Max possible sample rate per second.
+  /// @returns Max possible sample rate per second the driver can handle.
   int get_max_sample_rate() const;
 
-  /// @returns The number of data channels.
-  int get_data_channel_count() const;
+  /// @returns Max possible number of data channels the board provides.
+  int get_max_data_channel_count() const;
 
   /**
    * Sets the board settings.
@@ -146,16 +146,18 @@ public:
    * Initiates the start of measurement.
    *
    * @par Effects
-   * Repeatedly calls the `sdh` with frequency (Hz) that depends on the burst
-   * size, specified in the measurement options: the greater it's value, the
-   * less frequent the handler is called. When `burst_size == sample_rate` the
-   * frequency is `1`.
+   * Repeatedly calls the `data_handler` with frequency (Hz) that depends on the
+   * burst size, specified in the measurement options: the greater it's value,
+   * the less frequent the handler is called. When `burst_size == sample_rate`
+   * the frequency is `1`.
    *
-   * @warning The `sdh` must not take more than `burst_size / sample_rate`
+   * @warning The `data_handler` must not take more than `burst_size / sample_rate`
    * seconds of runtime! Otherwise, the driver will throttle by skipping the
-   * incoming sensor data and `sdh` will be called with positive error marker.
+   * incoming sensor data and `data_handler` will be called with positive error
+   * marker.
    *
-   * @warning This method cannot be called from neither `sdh` nor `evh`!
+   * @warning This method cannot be called from neither `data_handler` nor
+   * `event_handler`!
    *
    * @par Requires
    * `!is_busy()`.
@@ -165,7 +167,7 @@ public:
    *
    * @see set_measurement_options(), set_state(), stop().
    */
-  void start(Sensor_data_handler sdh, Event_handler evh = {});
+  void start(Data_handler data_handler, Event_handler event_handler = {});
 
   /**
    * @returns `true` if the board is busy (measurement in progress).

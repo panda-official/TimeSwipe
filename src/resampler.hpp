@@ -19,9 +19,10 @@
 #ifndef PANDA_TIMESWIPE_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_RESAMPLER_HPP
 
+#include "data_vector.hpp"
 #include "fir_resampler.hpp"
 #include "math.hpp"
-#include "sensor_data.hpp"
+
 #include "3rdparty/dmitigr/assert.hpp"
 
 #include <algorithm>
@@ -402,7 +403,7 @@ public:
    *
    * @returns The resampled records.
    */
-  Sensors_data apply(Sensors_data&& records)
+  Data_vector apply(Data_vector&& records)
   {
     return resample([this, &records](const std::size_t column_index)
     {
@@ -411,7 +412,7 @@ public:
       auto& input = records[column_index];
       const auto input_size = input.size();
       if (!input_size)
-        return Sensors_data::value_type{}; // short-circuit
+        return Data_vector::value_type{}; // short-circuit
 
       // Apply the filter.
       auto result = make_zero_result(resampler, input_size);
@@ -438,14 +439,14 @@ public:
    * @remarks Normally, this method should be called after the resampling of
    * the last chunk of data.
    */
-  Sensors_data flush()
+  Data_vector flush()
   {
     return resample([this](const std::size_t column_index)
     {
       auto& rstate = rstates_[column_index];
       auto& resampler = rstate.resampler;
       if (!resampler.is_applied())
-        return Sensors_data::value_type{}; // short-circuit
+        return Data_vector::value_type{}; // short-circuit
 
       // Flush the end samples.
       auto result = make_zero_result(resampler, resampler.get_coefs_per_phase() - 1);
@@ -477,22 +478,22 @@ private:
     R resampler;
     std::size_t unskipped_leading_count{};
   };
-  std::array<State, Sensors_data::get_sensor_count()> rstates_;
+  std::array<State, max_data_channel_count> rstates_;
 
   template<typename F>
-  Sensors_data resample(F&& run)
+  Data_vector resample(F&& run)
   {
-    Sensors_data result;
-    constexpr auto sc = Sensors_data::get_sensor_count();
-    for (auto i = 0*sc; i < sc; ++i)
+    Data_vector result(max_data_channel_count);
+    constexpr auto cc = max_data_channel_count;
+    for (std::size_t i {}; i < cc; ++i)
       result[i] = run(i);
     return result;
   }
 
-  static Sensors_data::value_type make_zero_result(const R& resampler, const std::size_t input_size)
+  static Data_vector::value_type make_zero_result(const R& resampler, const std::size_t input_size)
   {
     const auto result_size = resampler.get_output_sequence_size(input_size);
-    return Sensors_data::value_type(result_size);
+    return Data_vector::value_type(result_size);
   }
 
   static std::size_t get_leading_skip_count(const R& resampler) noexcept
@@ -509,8 +510,8 @@ private:
   static void print_firc(const std::vector<double>& firc)
   {
     const auto odd = firc.size() % 2;
-    for (auto i = 0*firc.size(); i < firc.size(); ++i) {
-      for (auto j = 0*i; j < std::min(i, firc.size() - odd - i); ++j)
+    for (std::size_t i{}; i < firc.size(); ++i) {
+      for (std::size_t j{}; j < std::min(i, firc.size() - odd - i); ++j)
         std::cout << " ";
       std::cout << firc[i] << "\n";
     }

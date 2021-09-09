@@ -35,8 +35,8 @@
 namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
-using Sensor_value = ts::Sensors_data::value_type::value_type;
-constexpr auto sensor_count = ts::Sensors_data::get_sensor_count();
+using Sensor_value = ts::Data_vector::value_type::value_type;
+constexpr auto sensor_count = ts::max_data_channel_count;
 
 namespace {
 
@@ -175,7 +175,7 @@ inline Input_file open_input_file(const std::filesystem::path& path)
 
 enum class Output_format { bin, csv };
 
-inline void write_output(std::ostream& out, const Output_format format, const ts::Sensors_data& records)
+inline void write_output(std::ostream& out, const Output_format format, const ts::Data_vector& records)
 {
   const auto sample_rate = records.get_size();
   const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
@@ -446,14 +446,14 @@ try {
 
   // Define the convenient function for resampling and output.
   unsigned entry_count{};
-  const auto process_records = [&](ts::Sensors_data&& records)
+  const auto process_records = [&](ts::Data_vector&& records)
   {
     static const auto proc_recs = [&]
     {
-      std::function<void(ts::Sensors_data&&, bool)> process_records;
+      std::function<void(ts::Data_vector&&, bool)> process_records;
       if (is_resampling_mode()) {
         const auto resampler = std::make_shared<ts::detail::Resampler>(r_opts);
-        process_records = [resampler, &os, output_format](ts::Sensors_data&& records, const bool end)
+        process_records = [resampler, &os, output_format](ts::Data_vector&& records, const bool end)
         {
           auto recs = resampler->apply(std::move(records));
           write_output(os, output_format, recs);
@@ -464,7 +464,7 @@ try {
           records.clear();
         };
       } else {
-        process_records = [&os, output_format](ts::Sensors_data&& records, const bool /*end*/)
+        process_records = [&os, output_format](ts::Data_vector&& records, const bool /*end*/)
         {
           write_output(os, output_format, records);
           records.clear();
@@ -493,7 +493,7 @@ try {
         records[j].push_back(buf[idx - 1]);
     }
   };
-  ts::Sensors_data records;
+  ts::Data_vector records;
   records.reserve(sample_rate);
   std::array<Sensor_value, sensor_count> buf;
   if (input_file.is_binary) {

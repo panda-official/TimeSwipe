@@ -16,28 +16,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_SENSOR_DATA_HPP
-#define PANDA_TIMESWIPE_SENSOR_DATA_HPP
+#ifndef PANDA_TIMESWIPE_DATA_VECTOR_HPP
+#define PANDA_TIMESWIPE_DATA_VECTOR_HPP
 
 #include "basics.hpp"
+#include "error.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <vector>
 
 namespace panda::timeswipe {
 
-/// Sensor data.
-class Sensors_data final {
+/// Data vector.
+class Data_vector final {
 public:
+  /// Alias of the value type.
   using value_type = std::vector<float>;
+
+  /// Alias the size type.
   using size_type = value_type::size_type;
 
-  /// @returns The sensor count.
-  /// FIXME: remove me.
-  static constexpr std::size_t get_sensor_count() noexcept
+  /// The constructor.
+  explicit Data_vector(const size_type channel_count = max_data_channel_count)
+    : channel_count_{channel_count}
   {
-    return max_data_channel_count;
+    if (channel_count > max_data_channel_count)
+      throw Runtime_exception{Errc::out_of_range};
+  }
+
+  /// @returns The number of channels whose data this vector contains.
+  size_type get_channel_count() const noexcept
+  {
+    return channel_count_;
   }
 
   /// @returns The number of values per sensor.
@@ -61,30 +73,34 @@ public:
   /// @overload
   value_type& operator[](const size_type index) noexcept
   {
-    return const_cast<value_type&>(static_cast<const Sensors_data*>(this)->operator[](index));
+    return const_cast<value_type&>(static_cast<const Data_vector*>(this)->operator[](index));
   }
 
+  /// Reserves the memory for given `size`.
   void reserve(const size_type size)
   {
-    const auto sc = get_sensor_count();
-    for (std::size_t i{}; i < sc; ++i)
+    const auto cc = get_channel_count();
+    for (size_type i{}; i < cc; ++i)
       data_[i].reserve(size);
   }
 
+  /// Resizes this vector to the given `size`.
   void resize(const size_type size)
   {
-    const auto sc = get_sensor_count();
-    for (std::size_t i{}; i < sc; ++i)
+    const auto cc = get_channel_count();
+    for (size_type i{}; i < cc; ++i)
       data_[i].resize(size);
   }
 
+  /// Clears the vector.
   void clear() noexcept
   {
-    const auto sc = get_sensor_count();
-    for (std::size_t i{}; i < sc; ++i)
+    const auto cc = get_channel_count();
+    for (size_type i{}; i < cc; ++i)
       data_[i].clear();
   }
 
+  /// @returns `true` if the vector is empty.
   bool is_empty() const noexcept
   {
     return !get_size();
@@ -96,16 +112,18 @@ public:
     return is_empty();
   }
 
-  void append(const Sensors_data& other)
+  /// Appends `other` to the end of this vector.
+  void append(const Data_vector& other)
   {
     append(other, other.get_size());
   }
 
-  void append(const Sensors_data& other, const size_type count)
+  /// Appends no more than `count` elements of `other` to the end of this vector.
+  void append(const Data_vector& other, const size_type count)
   {
-    const auto sc = get_sensor_count();
-    for (std::size_t i{}; i < sc; ++i) {
-      const auto in_size = std::min<std::size_t>(other.data_[i].size(), count);
+    const auto cc = get_channel_count();
+    for (size_type i{}; i < cc; ++i) {
+      const auto in_size = std::min(other.data_[i].size(), count);
       const auto out_offset = data_[i].size();
       data_[i].resize(data_[i].size() + in_size);
       const auto b = other.data_[i].begin();
@@ -113,17 +131,19 @@ public:
     }
   }
 
+  /// Removes the given `count` of elements from the begin of this vector.
   void erase_front(const size_type count) noexcept
   {
-    const auto sc = get_sensor_count();
-    for (std::size_t i{}; i < sc; i++)
+    const auto cc = get_channel_count();
+    for (size_type i{}; i < cc; i++)
       data_[i].erase(data_[i].begin(), data_[i].begin() + count);
   }
 
+  /// Removes the given `count` of elements from the end of this vector.
   void erase_back(const size_type count) noexcept
   {
-    const auto sc = get_sensor_count();
-    for (std::size_t i{}; i < sc; i++)
+    const auto cc = get_channel_count();
+    for (size_type i{}; i < cc; i++)
       data_[i].resize(data_[i].size() - count);
   }
 
@@ -170,9 +190,9 @@ public:
 private:
   using Array = std::array<std::vector<float>, max_data_channel_count>;
   Array data_;
-  int sensor_count_{max_data_channel_count};
+  size_type channel_count_{};
 };
 
 } // namespace panda::timeswipe
 
-#endif  // PANDA_TIMESWIPE_SENSOR_DATA_HPP
+#endif  // PANDA_TIMESWIPE_DATA_VECTOR_HPP

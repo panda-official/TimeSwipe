@@ -18,16 +18,12 @@
 
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
-#include "board_settings.hpp"
 #include "driver.hpp"
-#include "driver_settings.hpp"
 #include "error.hpp"
-#include "event.hpp"
 #include "gain.hpp"
 #include "hat.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
-#include "sensor_data.hpp"
 #include "version.hpp"
 
 #include "3rdparty/dmitigr/assert.hpp"
@@ -152,9 +148,9 @@ public:
     return 48000;
   }
 
-  int get_data_channel_count() const
+  int get_max_data_channel_count() const
   {
-    return 4;
+    return max_data_channel_count;
   }
 
   void set_settings(Settings settings,
@@ -174,9 +170,9 @@ public:
     return settings_;
   }
 
-  void start(Sensor_data_handler&& sdh, Event_handler&& evh = {})
+  void start(Data_handler&& data_handler, Event_handler&& event_handler = {})
   {
-    if (!sdh)
+    if (!data_handler)
       throw Runtime_exception{Errc::invalid_data_handler};
 
     if (is_busy())
@@ -239,9 +235,9 @@ public:
     }
 
     threads_.emplace_back(&Rep::fetcher_loop, this);
-    threads_.emplace_back(&Rep::poller_loop, this, std::move(sdh));
-    if (evh)
-      threads_.emplace_back(&Rep::events_loop, this, std::move(evh));
+    threads_.emplace_back(&Rep::poller_loop, this, std::move(data_handler));
+    if (event_handler)
+      threads_.emplace_back(&Rep::events_loop, this, std::move(event_handler));
 #ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
     threads_.emplace_back(&Rep::emul_loop, this);
 #endif
@@ -287,7 +283,7 @@ public:
     data.erase_front(drift_samples_count / 2);
 
     // Take averages of measured data (references).
-    std::vector<float> result(data.get_sensor_count());
+    std::vector<float> result(data.get_channel_count());
     transform(data.cbegin(), data.cend(), result.begin(), [](const auto& dat)
     {
       return static_cast<float>(dmitigr::math::avg(dat));
@@ -328,13 +324,13 @@ public:
     // Collect the data for calculation.
     auto data{collect_sensors_data(drift_samples_count,
       [this]{return Drift_affected_state_guard{*this};})};
-    DMITIGR_ASSERT(refs->size() == data.get_sensor_count());
+    DMITIGR_ASSERT(refs->size() == data.get_channel_count());
 
     // Discard the first half.
     data.erase_front(drift_samples_count / 2);
 
     // Take averages of measured data (references) and subtract the references.
-    std::vector<float> result(data.get_sensor_count());
+    std::vector<float> result(data.get_channel_count());
     transform(data.cbegin(), data.cend(), refs->cbegin(), result.begin(),
       [](const auto& dat, const auto ref)
       {
@@ -369,7 +365,7 @@ public:
       throw Runtime_exception{Errc::invalid_drift_reference};
 
     std::vector<float> refs;
-    while (in && refs.size() < Sensors_data::get_sensor_count()) {
+    while (in && refs.size() < get_max_data_channel_count()) {
       float val;
       if (in >> val)
         refs.push_back(val);
@@ -379,10 +375,10 @@ public:
       if (in >> val)
         throw Runtime_exception{Errc::excessive_drift_references};
     }
-    if (refs.size() < Sensors_data::get_sensor_count())
+    if (refs.empty())
       throw Runtime_exception{Errc::insufficient_drift_references};
 
-    DMITIGR_ASSERT(refs.size() == Sensors_data::get_sensor_count());
+    DMITIGR_ASSERT(refs.size() <= get_max_data_channel_count());
 
     // Cache and return references.
     return drift_references_ = refs;
@@ -422,19 +418,19 @@ private:
   static constexpr int initial_invalid_datasets_count{32};
   static constexpr std::uint16_t sensor_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
-  std::array<float, 4> sensor_slopes_{1, 1, 1, 1};
-  std::array<int, 4> sensor_translation_offsets_{};
-  std::array<float, 4> sensor_translation_slopes_{1, 1, 1, 1};
+  std::array<float, max_data_channel_count> sensor_slopes_{1, 1, 1, 1};
+  std::array<int, max_data_channel_count> sensor_translation_offsets_{};
+  std::array<float, max_data_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
   hat::Calibration_map calibration_map_;
   mutable std::optional<Board_settings> board_settings_;
   Settings settings_;
   std::unique_ptr<detail::Resampler> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
-  boost::lockfree::spsc_queue<Sensors_data, boost::lockfree::capacity<48000/32*2>> record_queue_;
+  boost::lockfree::spsc_queue<Data_vector, boost::lockfree::capacity<48000/32*2>> record_queue_;
   std::atomic_int record_error_count_{};
   std::size_t burst_buffer_size_{};
-  Sensors_data burst_buffer_;
+  Data_vector burst_buffer_;
   std::vector<std::thread> threads_;
   std::atomic_bool in_handler_{};
 
@@ -573,7 +569,7 @@ private:
     Rep& rep_;
     decltype(rep_.resampler_) resampler_;
     decltype(rep_.settings_) settings_;
-    std::array<Measurement_mode, 4> chmm_;
+    std::array<Measurement_mode, max_data_channel_count> chmm_;
   };
 
   // ---------------------------------------------------------------------------
@@ -701,20 +697,20 @@ private:
       return result;
     }
 
-    static void append_chunk(Sensors_data& data,
+    static void append_chunk(Data_vector& data,
       const Chunk& chunk,
-      const std::array<float, 4>& slopes,
-      const std::array<int, 4>& translation_offsets,
-      const std::array<float, 4>& translation_slopes)
+      const std::array<float, max_data_channel_count>& slopes,
+      const std::array<int, max_data_channel_count>& translation_offsets,
+      const std::array<float, max_data_channel_count>& translation_slopes)
     {
-      std::array<std::uint16_t, 4> sensors{};
+      std::array<std::uint16_t, max_data_channel_count> sensors{};
       static_assert(sizeof(sensor_offset) == sizeof(sensors[0]));
       static_assert(slopes.size() == sensors.size());
       static_assert(translation_offsets.size() == sensors.size());
       static_assert(translation_slopes.size() == sensors.size());
 
-      const auto data_size = data.size();
-      DMITIGR_ASSERT(data_size <= sensors.size());
+      const auto channel_count = data.get_channel_count();
+      DMITIGR_ASSERT(channel_count <= sensors.size());
 
       constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
       {
@@ -738,7 +734,7 @@ private:
         count++;
       }
 
-      for (std::size_t i{}; i < data_size; ++i) {
+      for (std::size_t i{}; i < channel_count; ++i) {
         const auto mv = (sensors[i] - sensor_offset) * slopes[i];
         const auto unit = (mv - translation_offsets[i]) * translation_slopes[i];
         data[i].push_back(unit);
@@ -837,7 +833,7 @@ private:
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
-  Sensors_data read_sensors_data()
+  Data_vector read_sensors_data()
   {
     static const auto wait_for_pi_ok = []
     {
@@ -869,11 +865,11 @@ private:
      * becomes high it indicates that the RAM is full (failure - data loss).
      * So, check this case.
      */
-    Sensors_data out;
-    out.reserve(8192);
+    Data_vector result(get_max_data_channel_count());
+    result.reserve(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();
-      Gpio_data::append_chunk(out, chunk, sensor_slopes_,
+      Gpio_data::append_chunk(result, chunk, sensor_slopes_,
         sensor_translation_offsets_, sensor_translation_slopes_);
       if (tco != 0x00004000) break;
     } while (true);
@@ -881,11 +877,11 @@ private:
     sleep_for_55ns();
     sleep_for_55ns();
 
-    return out;
+    return result;
 #else
     namespace chrono = std::chrono;
-    Sensors_data out;
-    auto& data{out.data()};
+    Data_vector result;
+    auto& data{result.data()};
     while (true) {
       emul_point_end_ = chrono::steady_clock::now();
       const std::uint64_t diff_us{chrono::duration_cast<chrono::microseconds>
@@ -904,7 +900,7 @@ private:
       }
       std::this_thread::sleep_for(std::chrono::milliseconds{2});
     }
-    return out;
+    return result;
 #endif
   }
 
@@ -920,10 +916,10 @@ private:
     }
   }
 
-  void poller_loop(Sensor_data_handler&& handler)
+  void poller_loop(Data_handler&& handler)
   {
     while (is_measurement_started_) {
-      Sensors_data records[10];
+      Data_vector records[10];
       const auto num = record_queue_.pop(records);
       const auto errors = record_error_count_.fetch_and(0);
 
@@ -936,9 +932,9 @@ private:
       if (drift_deltas_) {
         const auto& deltas = *drift_deltas_;
         for (std::size_t i{}; i < num; ++i) {
-          const auto sc = records[i].get_sensor_count();
-          DMITIGR_ASSERT(deltas.size() == sc);
-          for (std::size_t j{}; j < sc; ++j) {
+          const auto channel_count = records[i].get_channel_count();
+          DMITIGR_ASSERT(deltas.size() == channel_count);
+          for (std::size_t j{}; j < channel_count; ++j) {
             auto& values = records[i][j];
             const auto delta = deltas[j];
             transform(cbegin(values), cend(values), begin(values),
@@ -947,8 +943,8 @@ private:
         }
       }
 
-      Sensors_data* records_ptr{};
-      Sensors_data samples;
+      Data_vector* records_ptr{};
+      Data_vector samples;
       if (resampler_) {
         for (std::size_t i{}; i < num; i++) {
           auto s = resampler_->apply(std::move(records[i]));
@@ -1105,7 +1101,7 @@ private:
    * for automatic resourse cleanup (e.g. RAII state keeper and restorer).
    */
   template<typename F>
-  Sensors_data collect_sensors_data(const std::size_t samples_count, F&& state_guard)
+  Data_vector collect_sensors_data(const std::size_t samples_count, F&& state_guard)
   {
     if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
@@ -1114,10 +1110,10 @@ private:
 
     Errc errc{};
     std::atomic_bool done{};
-    Sensors_data data;
+    Data_vector data;
     std::condition_variable update;
     start([this, samples_count, &errc, &done, &data, &update]
-      (const Sensors_data sd, const int)
+      (const Data_vector sd, const int)
     {
       if (is_error(errc) || done)
         return;
@@ -1183,9 +1179,9 @@ int Driver::get_max_sample_rate() const
   return rep_->get_max_sample_rate();
 }
 
-int Driver::get_data_channel_count() const
+int Driver::get_max_data_channel_count() const
 {
-  return rep_->get_data_channel_count();
+  return rep_->get_max_data_channel_count();
 }
 
 void Driver::set_board_settings(const Board_settings& settings)
@@ -1208,9 +1204,9 @@ auto Driver::get_settings() const -> const Settings&
   return rep_->get_settings();
 }
 
-void Driver::start(Sensor_data_handler sdh, Event_handler evh)
+void Driver::start(Data_handler data_handler, Event_handler event_handler)
 {
-  rep_->start(std::move(sdh), std::move(evh));
+  rep_->start(std::move(data_handler), std::move(event_handler));
 }
 
 bool Driver::is_busy() const noexcept

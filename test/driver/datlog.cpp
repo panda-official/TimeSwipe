@@ -156,14 +156,14 @@ int main(int argc, char *argv[])
       counter += records.get_size();
       for (size_t i = 0; i < records.get_size(); i++) {
         if (i == 0) {
-          for (size_t j = 0; j < records.get_sensor_count(); j++) {
+          for (size_t j = 0; j < records.get_channel_count(); j++) {
             if (j != 0) std::cout << "\t";
             std::cout << records[j][i];
           }
           std::cout << '\n';
         }
         if (dump) {
-          for (size_t j = 0; j < records.get_sensor_count(); j++) {
+          for (size_t j = 0; j < records.get_channel_count(); j++) {
             if (j != 0) data_log << "\t";
             data_log << records[j][i];
           }

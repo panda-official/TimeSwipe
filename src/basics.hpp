@@ -14,7 +14,7 @@
 
 namespace panda::timeswipe {
 
-/// The maximum possible number of data channels.
+/// The absolute maximum possible number of data channels.
 constexpr int max_data_channel_count{4};
 
 /// Measurement mode.

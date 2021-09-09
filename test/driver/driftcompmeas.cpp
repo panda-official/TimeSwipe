@@ -29,7 +29,7 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 {
   drv.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000)));
-  constexpr auto channel_count{ts::Sensors_data::get_sensor_count()};
+  constexpr auto channel_count{ts::max_data_channel_count};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
   drv.start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
