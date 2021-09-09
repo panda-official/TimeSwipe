@@ -55,7 +55,7 @@ constexpr std::array<float, 22> ogain_table{
 static_assert(!(ogain_table.size() % 2));
 
 /// @returns An index of `ogain_table` by `value`.
-std::size_t get_ogain_table_index(const float value) noexcept
+std::size_t ogain_table_index(const float value) noexcept
 {
   const auto beg = cbegin(ogain_table);
   const auto end = cend(ogain_table);

@@ -66,7 +66,7 @@ void set_member(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& a
 
 /// Adds or modifies the element of array named by `name` at the given `index`.
 template<typename T, typename Encoding, typename Allocator>
-void set_array(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& alloc,
+void set_array_element(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& alloc,
   const std::string_view name, const std::size_t index, T&& value,
   T&& default_value = T{})
 {
@@ -93,7 +93,7 @@ void set_array(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& al
 }
 
 template<typename T, typename Encoding, typename Allocator>
-std::optional<T> get_array(const rapidjson::GenericValue<Encoding, Allocator>& json,
+std::optional<T> array_element(const rapidjson::GenericValue<Encoding, Allocator>& json,
   const std::string_view name, const std::size_t index)
 {
   namespace rajson = dmitigr::rajson;

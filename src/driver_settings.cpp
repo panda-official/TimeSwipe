@@ -94,23 +94,23 @@ struct Driver_settings::Rep final {
 
   void set_data_translation_offset(const int index, const int value)
   {
-    set_array("TranslationOffsets", index, value, default_data_translation_offset);
+    set_array_element("TranslationOffsets", index, value, default_data_translation_offset);
   }
 
   int data_translation_offset(const int index) const
   {
-    const auto result = array<int>("TranslationOffsets", index);
+    const auto result = array_element<int>("TranslationOffsets", index);
     return result ? *result : default_data_translation_offset;
   }
 
   void set_data_translation_slope(const int index, const float value)
   {
-    set_array("TranslationSlopes", index, value, default_data_translation_slope);
+    set_array_element("TranslationSlopes", index, value, default_data_translation_slope);
   }
 
   float data_translation_slope(const int index) const
   {
-    const auto result = array<float>("TranslationSlopes", index);
+    const auto result = array_element<float>("TranslationSlopes", index);
     return result ? *result : default_data_translation_slope;
   }
 
@@ -130,17 +130,17 @@ private:
   }
 
   template<typename T>
-  void set_array(const std::string_view name, const std::size_t index, T&& value,
+  void set_array_element(const std::string_view name, const std::size_t index, T&& value,
     T&& default_value = T{})
   {
-    detail::set_array(doc_, doc_.GetAllocator(), name, index,
+    detail::set_array_element(doc_, doc_.GetAllocator(), name, index,
       std::forward<T>(value), std::forward<T>(default_value));
   }
 
   template<typename T>
-  std::optional<T> array(const std::string_view name, const std::size_t index) const
+  std::optional<T> array_element(const std::string_view name, const std::size_t index) const
   {
-    return detail::get_array<T>(doc_, name, index);
+    return detail::array_element<T>(doc_, name, index);
   }
 };
 

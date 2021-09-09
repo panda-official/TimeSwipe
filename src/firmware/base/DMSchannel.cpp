@@ -12,7 +12,7 @@ Copyright (c) 2019-2020 Panda Team
 
 void CDMSchannel::SetAmpGain(const float GainValue)
 {
-    const auto index = get_ogain_table_index(GainValue);
+    const auto index = ogain_table_index(GainValue);
     const auto igain = static_cast<CPGA280::igain>(index / 2);
     const auto ogain = static_cast<CPGA280::ogain>(index % 2);
     if (m_pPGA->SetGains(igain, ogain)) {
