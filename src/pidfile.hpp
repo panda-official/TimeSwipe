@@ -47,11 +47,7 @@ public:
   Pid_file(const std::string& name)
     : fname_{name}
   {
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    fname_ = std::string("./") + name + std::string(".pid");
-#else
     fname_ = std::string("/var/run/") + name + std::string(".pid");
-#endif
   }
 
   /**

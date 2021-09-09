@@ -50,9 +50,6 @@ set(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE Off CACHE BOOL
 set(PANDA_TIMESWIPE_FIRMWARE_DMS On CACHE BOOL
   "Build firmware for the DMS board?")
 
-set(PANDA_TIMESWIPE_FIRMWARE_EMU Off CACHE BOOL
-  "Build firmware emulator?")
-
 set(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE Off CACHE BOOL
   "Build firmware as RAM image?")
 
@@ -140,10 +137,6 @@ endif()
 # ------------------------------------------------------------------------------
 # Targets
 # ------------------------------------------------------------------------------
-
-if(PANDA_TIMESWIPE_FIRMWARE_EMU)
-  add_compile_definitions(PANDA_TIMESWIPE_FIRMWARE_EMU)
-endif()
 
 if(PANDA_TIMESWIPE_FIRMWARE)
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
@@ -245,13 +238,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     View.h
     board_type.h
     nodeControl.h
+    nodeControl.cpp
     rgbacol.h
     )
-  if(NOT PANDA_TIMESWIPE_FIRMWARE_EMU)
-    list(APPEND control_src nodeControl.cpp)
-  else()
-    list(APPEND control_src nodeControl_emu.cpp)
-  endif()
 
   set(json_src
     jsondisp.cpp

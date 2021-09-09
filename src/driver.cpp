@@ -36,9 +36,6 @@
 #include <array>
 #include <atomic>
 #include <chrono>
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-#include <cmath>
-#endif
 #include <condition_variable>
 #include <fstream>
 #include <iostream>
@@ -222,11 +219,6 @@ public:
     {
       DMITIGR_ASSERT(is_gpio_inited_);
 
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-      emul_point_begin_ = std::chrono::steady_clock::now();
-      emul_sent_ = 0;
-#endif
-
       // Start measurement.
       using std::chrono::milliseconds;
       std::this_thread::sleep_for(milliseconds{1});
@@ -238,9 +230,6 @@ public:
     threads_.emplace_back(&Rep::poller_loop, this, std::move(data_handler));
     if (event_handler)
       threads_.emplace_back(&Rep::events_loop, this, std::move(event_handler));
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-    threads_.emplace_back(&Rep::emul_loop, this);
-#endif
   }
 
   bool is_busy() const noexcept
@@ -440,18 +429,6 @@ private:
 
   mutable std::optional<std::vector<float>> drift_references_;
   std::optional<std::vector<float>> drift_deltas_;
-
-  // ---------------------------------------------------------------------------
-  // Firmware emulation data
-  // ---------------------------------------------------------------------------
-
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-  double angle_{};
-  std::chrono::steady_clock::time_point emul_point_begin_;
-  std::chrono::steady_clock::time_point emul_point_end_;
-  std::uint64_t emul_sent_{};
-  static constexpr std::size_t emul_rate_{48000};
-#endif
 
   // ---------------------------------------------------------------------------
   // RAII protectors
@@ -782,7 +759,6 @@ private:
   std::vector<Event> spi_get_events() noexcept
   {
     std::vector<Event> result;
-#ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     if (const auto json = spi_.execute_get_events(); !json.empty()) {
       try {
         result.reserve(7);
@@ -824,7 +800,6 @@ private:
         std::cerr << "spi_get_events(): unknown error\n";
       }
     }
-#endif
     return result;
   }
 
@@ -841,7 +816,6 @@ private:
       std::this_thread::sleep_for(std::chrono::microseconds{700});
     };
 
-#ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
     // Skip data sets if needed. (First 32 data sets are always invalid.)
     while (read_skip_count_ > 0) {
       wait_for_pi_ok();
@@ -878,30 +852,6 @@ private:
     sleep_for_55ns();
 
     return result;
-#else
-    namespace chrono = std::chrono;
-    Data_vector result;
-    auto& data{result.data()};
-    while (true) {
-      emul_point_end_ = chrono::steady_clock::now();
-      const std::uint64_t diff_us{chrono::duration_cast<chrono::microseconds>
-        (emul_point_end_ - emul_point_begin_).count()};
-      const std::uint64_t would_sent{diff_us * emul_rate_ / 1000 / 1000};
-      if (would_sent > emul_sent_) {
-        while (emul_sent_++ < would_sent) {
-          const auto val{int(3276 * std::sin(angle_) + 32767)};
-          angle_ += (2.0 * M_PI) / emul_rate_;
-          data[0].push_back(val);
-          data[1].push_back(val);
-          data[2].push_back(val);
-          data[3].push_back(val);
-        }
-        break;
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds{2});
-    }
-    return result;
-#endif
   }
 
   // ---------------------------------------------------------------------------
@@ -987,56 +937,14 @@ private:
   void events_loop(Event_handler&& handler)
   {
     while (is_measurement_started_) {
-      // Receive events
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-      if (emul_button_sent_ < emul_button_pressed_) {
-        Event::Button btn{true, emul_button_pressed_};
-        emul_button_sent_ = emul_button_pressed_;
-        events_.push(btn);
-      }
-#else
+      // Receive events.
       for (auto&& event : spi_get_events()) {
         if (handler)
           Callbacker{*this}(handler, std::move(event));
       }
-#endif
       std::this_thread::sleep_for(std::chrono::milliseconds{20});
     }
   }
-
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-  int emul_button_pressed_{};
-  int emul_button_sent_{};
-
-  void emul_loop()
-  {
-    emul_button_pressed_ = 0;
-    emul_button_sent_ = 0;
-    while (is_measurement_started_) {
-      timeval tv;
-      tv.tv_sec = 1;
-      tv.tv_usec = 0;
-      fd_set read_fds;
-      FD_ZERO(&read_fds);
-      FD_SET(0, &read_fds);
-
-      auto result = select(1, &read_fds, NULL, NULL, &tv);
-      if (result == -1 && errno != EINTR) {
-        std::cerr << "emul_loop: error select" << std::endl;
-        return;
-      } else if (result == -1 && errno == EINTR) {
-        std::cerr << "emul_loop: EINTR select" << std::endl;
-        return;
-      } else {
-        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-          emul_button_pressed_ += 2; // press and release
-          std::string buf;
-          std::getline(std::cin, buf);
-        }
-      }
-    }
-  }
-#endif  // PANDA_TIMESWIPE_FIRMWARE_EMU
 
   // ---------------------------------------------------------------------------
   // Helpers
