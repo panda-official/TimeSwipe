@@ -8,6 +8,7 @@
 */
 
 #include "../../src/resampler.hpp"
+#include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 #include "../../src/3rdparty/dmitigr/progpar.hpp"
@@ -472,7 +473,7 @@ try {
       }
       return process_records;
     }();
-    assert(proc_recs);
+    PANDA_TIMESWIPE_ASSERT(proc_recs);
 
     const auto last_progress = entry_count % sample_rate;
     if (last_progress)
@@ -511,7 +512,7 @@ try {
     }
   } else { // CSV
     const std::string separators{" \t,"};
-    assert(!separators.empty());
+    PANDA_TIMESWIPE_ASSERT(!separators.empty());
     std::string line(512, '\0');
     auto& in = input_file.stream;
     while (in) {
@@ -527,9 +528,9 @@ try {
             if (j >= sensor_count)
               throw std::runtime_error{"too many fields at line " + std::to_string(entry_count)};
             const auto pos = line.find_first_of(separators, offset);
-            assert(offset < pos);
+            PANDA_TIMESWIPE_ASSERT(offset < pos);
             const auto field_length = std::min(pos, gcount) - offset;
-            assert(field_length);
+            PANDA_TIMESWIPE_ASSERT(field_length);
             const auto field = line.substr(offset, field_length);
             const Sensor_value value = stof(field); // stof() discards leading whitespaces
             buf[j] = value;

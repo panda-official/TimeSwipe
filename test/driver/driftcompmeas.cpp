@@ -8,10 +8,10 @@
 */
 
 #include "../../src/firmware/json.hpp"
+#include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/math.hpp"
 
-#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -80,7 +80,7 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 int main(const int argc, const char* const argv[])
 try {
   auto& driver = ts::Driver::instance();
-  assert(!driver.IsBusy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
 
   // Set the measure duration.
   using ms = chrono::milliseconds;
@@ -103,16 +103,16 @@ try {
     // Normally, it means the first program run.
     const auto refs{driver.calculate_drift_references()};
     (void)refs;
-    assert(refs.size() == Sensors_data::sensor_count());
+    PANDA_TIMESWIPE_ASSERT(refs.size() == ts::max_data_channel_count);
   }
-  assert(driver.drift_references());
+  PANDA_TIMESWIPE_ASSERT(driver.drift_references());
 
   // Calculate deltas.
-  assert(!driver.DriftDeltas());
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
   auto deltas{driver.calculate_drift_deltas()};
   (void)deltas;
-  assert(deltas.size() == Sensors_data::sensor_count());
-  assert(driver.DriftDeltas());
+  PANDA_TIMESWIPE_ASSERT(deltas.size() == ts::max_data_channel_count);
+  PANDA_TIMESWIPE_ASSERT(driver.drift_deltas());
 
   // Measure.
   measure(driver, dur);
