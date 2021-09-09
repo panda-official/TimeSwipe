@@ -122,7 +122,7 @@ int main ( int argc, char *argv[] )
                     }
                     else
                     {
-                      switch ( spi.get_fsm_state() )
+                      switch ( spi.fsm_state() )
                         {
                         case CSyncSerComFSM::errLine:
                           std::cout << "!Line_err!";

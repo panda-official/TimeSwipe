@@ -75,9 +75,9 @@ struct Driver_settings::Rep final {
     set_member("SampleRate", rate);
   }
 
-  int get_sample_rate() const
+  int sample_rate() const
   {
-    const auto result = get_member<int>("SampleRate");
+    const auto result = member<int>("SampleRate");
     return result ? *result : default_sample_rate;
   }
 
@@ -86,9 +86,9 @@ struct Driver_settings::Rep final {
     set_member("BurstBufferSize", size);
   }
 
-  std::size_t get_burst_buffer_size() const
+  std::size_t burst_buffer_size() const
   {
-    const auto result = get_member<std::size_t>("BurstBufferSize");
+    const auto result = member<std::size_t>("BurstBufferSize");
     return result ? *result : default_burst_buffer_size;
   }
 
@@ -97,9 +97,9 @@ struct Driver_settings::Rep final {
     set_array("TranslationOffsets", index, value, default_data_translation_offset);
   }
 
-  int get_data_translation_offset(const int index) const
+  int data_translation_offset(const int index) const
   {
-    const auto result = get_array<int>("TranslationOffsets", index);
+    const auto result = array<int>("TranslationOffsets", index);
     return result ? *result : default_data_translation_offset;
   }
 
@@ -108,9 +108,9 @@ struct Driver_settings::Rep final {
     set_array("TranslationSlopes", index, value, default_data_translation_slope);
   }
 
-  float get_data_translation_slope(const int index) const
+  float data_translation_slope(const int index) const
   {
-    const auto result = get_array<float>("TranslationSlopes", index);
+    const auto result = array<float>("TranslationSlopes", index);
     return result ? *result : default_data_translation_slope;
   }
 
@@ -124,7 +124,7 @@ private:
   }
 
   template<typename T>
-  std::optional<T> get_member(const std::string_view root_name) const
+  std::optional<T> member(const std::string_view root_name) const
   {
     return rajson::Value_view{doc_}.optional<T>(root_name);
   }
@@ -138,7 +138,7 @@ private:
   }
 
   template<typename T>
-  std::optional<T> get_array(const std::string_view name, const std::size_t index) const
+  std::optional<T> array(const std::string_view name, const std::size_t index) const
   {
     return detail::get_array<T>(doc_, name, index);
   }
@@ -197,9 +197,9 @@ Driver_settings& Driver_settings::set_sample_rate(const int rate)
   return *this;
 }
 
-int Driver_settings::get_sample_rate() const
+int Driver_settings::sample_rate() const
 {
-  return rep_->get_sample_rate();
+  return rep_->sample_rate();
 }
 
 Driver_settings& Driver_settings::set_burst_buffer_size(const std::size_t size)
@@ -208,9 +208,9 @@ Driver_settings& Driver_settings::set_burst_buffer_size(const std::size_t size)
   return *this;
 }
 
-std::size_t Driver_settings::get_burst_buffer_size() const
+std::size_t Driver_settings::burst_buffer_size() const
 {
-  return rep_->get_burst_buffer_size();
+  return rep_->burst_buffer_size();
 }
 
 Driver_settings& Driver_settings::set_data_translation_offset(const int index, const int value)
@@ -219,9 +219,9 @@ Driver_settings& Driver_settings::set_data_translation_offset(const int index, c
   return *this;
 }
 
-int Driver_settings::get_data_translation_offset(const int index) const
+int Driver_settings::data_translation_offset(const int index) const
 {
-  return rep_->get_data_translation_offset(index);
+  return rep_->data_translation_offset(index);
 }
 
 Driver_settings& Driver_settings::set_data_translation_slope(const int index, const float value)
@@ -230,9 +230,9 @@ Driver_settings& Driver_settings::set_data_translation_slope(const int index, co
   return *this;
 }
 
-float Driver_settings::get_data_translation_slope(const int index) const
+float Driver_settings::data_translation_slope(const int index) const
 {
-  return rep_->get_data_translation_slope(index);
+  return rep_->data_translation_slope(index);
 }
 
 } // namespace panda::timeswipe

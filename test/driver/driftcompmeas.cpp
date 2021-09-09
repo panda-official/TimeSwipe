@@ -79,7 +79,7 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 
 int main(const int argc, const char* const argv[])
 try {
-  auto& driver = ts::Driver::get_instance();
+  auto& driver = ts::Driver::instance();
   assert(!driver.IsBusy());
 
   // Set the measure duration.
@@ -99,11 +99,11 @@ try {
     }
   }
 
-  if (!driver.get_drift_references()) {
+  if (!driver.drift_references()) {
     // Normally, it means the first program run.
     const auto refs{driver.calculate_drift_references()};
     (void)refs;
-    assert(refs.size() == Sensors_data::get_sensor_count());
+    assert(refs.size() == Sensors_data::sensor_count());
   }
   assert(driver.drift_references());
 

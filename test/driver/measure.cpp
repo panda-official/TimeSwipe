@@ -65,7 +65,7 @@ try {
     throw std::runtime_error{"frequency cannot be greater than sample-rate"};
 
   // Initialize the driver.
-  auto& driver = ts::Driver::get_instance();
+  auto& driver = ts::Driver::instance();
   ts::Driver_settings settings;
   settings.set_sample_rate(sample_rate)
     .set_burst_buffer_size(sample_rate / frequency);
@@ -135,7 +135,7 @@ try {
     {
       try {
         if (auto* gain = event.get<ts::Event::Gain>()) {
-          std::cout << "Gain event: " << gain->get_value() << std::endl;
+          std::cout << "Gain event: " << gain->value() << std::endl;
         }
       } catch (const std::exception& e) {
         std::clog << "OnEvent: " << e.what() << '\n';

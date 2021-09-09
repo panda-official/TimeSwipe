@@ -82,9 +82,9 @@ public:
     return is_spi_initialized_[pins_];
   }
 
-  CSyncSerComFSM::FSM get_fsm_state() const noexcept
+  CSyncSerComFSM::FSM fsm_state() const noexcept
   {
-    return com_cntr_.get_state();
+    return com_cntr_.state();
   }
 
   // ---------------------------------------------------------------------------
@@ -176,7 +176,7 @@ public:
       return false;
 
     msg = rec_fifo_;
-    return com_cntr_.get_state() == CSyncSerComFSM::FSM::recOK;
+    return com_cntr_.state() == CSyncSerComFSM::FSM::recOK;
   }
 
   void send_set_one(const std::string& name, const std::string& value)

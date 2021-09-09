@@ -55,7 +55,7 @@ void measure(ts::Driver& ts, const std::filesystem::path& logfile)
 
 int main()
 {
-  auto& driver = ts::Driver::get_instance();
+  auto& driver = ts::Driver::instance();
   assert(!driver.is_busy());
 
   driver.clear_drift_references();
@@ -80,8 +80,8 @@ int main()
 
   assert(!driver.is_busy());
   {
-    const auto refs1{driver.get_drift_references(false)};
-    const auto refs2{driver.get_drift_references(true)};
+    const auto refs1{driver.drift_references(false)};
+    const auto refs2{driver.drift_references(true)};
     assert(refs1);
     assert(refs2);
     std::vector<int> refsi(refs.size());
@@ -109,7 +109,7 @@ int main()
 
   assert(!driver.is_busy());
   {
-    const auto deltas1{driver.get_drift_deltas()};
+    const auto deltas1{driver.drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }
@@ -143,7 +143,7 @@ int main()
 
   assert(!driver.is_busy());
   {
-    const auto deltas1{driver.get_drift_deltas()};
+    const auto deltas1{driver.drift_deltas()};
     assert(deltas1);
     assert(deltas == deltas1);
   }

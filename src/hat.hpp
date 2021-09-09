@@ -119,31 +119,31 @@ public:
   {}
 
   /// @returns UUID.
-  const Uuid& get_uuid() const noexcept
+  const Uuid& uuid() const noexcept
   {
     return uuid_;
   }
 
   /// @returns Pid.
-  std::uint16_t get_pid() const noexcept
+  std::uint16_t pid() const noexcept
   {
     return pid_;
   }
 
   /// @returns Pver.
-  std::uint16_t get_pver() const noexcept
+  std::uint16_t pver() const noexcept
   {
     return pver_;
   }
 
   /// @returns Vstr.
-  const std::string& get_vstr() const noexcept
+  const std::string& vstr() const noexcept
   {
     return vstr_;
   }
 
   /// @returns Pstr.
-  const std::string& get_pstr() const noexcept
+  const std::string& pstr() const noexcept
   {
     return pstr_;
   }
@@ -344,7 +344,7 @@ public:
     {}
 
     /// @returns `slope`.
-    float get_slope() const noexcept
+    float slope() const noexcept
     {
       return slope_;
     }
@@ -356,7 +356,7 @@ public:
     }
 
     /// @returns `offset`.
-    std::int16_t get_offset() const noexcept
+    std::int16_t offset() const noexcept
     {
       return offset_;
     }
@@ -463,19 +463,19 @@ public:
   {}
 
   /// @returns The size in bytes.
-  constexpr std::size_t get_size_in_bytes() const noexcept
+  constexpr std::size_t size_in_bytes() const noexcept
   {
     return header_.dlen + sizeof(Header);
   }
 
   /// @returns The count of entries.
-  std::size_t get_entry_count() const noexcept
+  std::size_t entry_count() const noexcept
   {
     return entries_.size();
   }
 
   /// @returns The data of the specified `index`.
-  const Entry& get_entry(const std::size_t index, std::string& err) const
+  const Entry& entry(const std::size_t index, std::string& err) const
   {
     if (!(index < entries_.size()))
       err = timeswipe::make_literal(Errc::invalid_calibration_atom_entry_index);
@@ -574,19 +574,19 @@ public:
     header_.numcatoms = static_cast<std::uint16_t>(atoms_.size());
     header_.callen = sizeof(Header);
     for (auto& atom : atoms_)
-      header_.callen += atom.get_size_in_bytes();
+      header_.callen += atom.size_in_bytes();
   }
 
   /// @returns Caliration atom of the given `type`.
-  const atom::Calibration& get_atom(const atom::Calibration::Type type) const noexcept
+  const atom::Calibration& atom(const atom::Calibration::Type type) const noexcept
   {
     return atoms_[static_cast<std::uint16_t>(type) - 1];
   }
 
   /// @overload
-  atom::Calibration& get_atom(const atom::Calibration::Type type) noexcept
+  atom::Calibration& atom(const atom::Calibration::Type type) noexcept
   {
-    return const_cast<atom::Calibration&>(static_cast<const Calibration_map*>(this)->get_atom(type));
+    return const_cast<atom::Calibration&>(static_cast<const Calibration_map*>(this)->atom(type));
   }
 
 private:
@@ -740,10 +740,10 @@ public:
     if (storage_state_ != Op_result::ok)
       return storage_state_;
 
-    const auto atom_count = get_atom_count();
-    if (pos > atom_count)
+    const auto acount = atom_count();
+    if (pos > acount)
       return Op_result::atom_not_found;
-    const bool is_adding{pos == atom_count};
+    const bool is_adding{pos == acount};
 
     Atom_header* atom{};
     if (const auto r = get_atom_header(pos, &atom);
@@ -757,14 +757,14 @@ public:
     const int mem_adjust_size = is_adding ?
       input_size + sizeof(Atom_header) + 2 : input_size - atom->dlen + 2;
     if (is_adding)
-      adjust_mem_buf(reinterpret_cast<const char*>(atom), mem_adjust_size);
+      adjust_memory_buffer(reinterpret_cast<const char*>(atom), mem_adjust_size);
     else
-      adjust_mem_buf(reinterpret_cast<const char*>(atom) + sizeof(Atom_header), mem_adjust_size); // keep header
+      adjust_memory_buffer(reinterpret_cast<const char*>(atom) + sizeof(Atom_header), mem_adjust_size); // keep header
 
-    // adjust_mem_buf() reallocates memory and invalidates `atom`! Update it.
+    // adjust_memory_buffer() reallocates memory and invalidates `atom`! Update it.
     get_atom_header(pos, &atom);
 
-    // Emplace the atom to the reserved by adjust_mem_buf() space.
+    // Emplace the atom to the reserved by adjust_memory_buffer() space.
     atom->type = static_cast<std::uint16_t>(type);
     atom->count = pos;
     atom->dlen = input_size + 2;
@@ -779,9 +779,9 @@ public:
 
     // Update the EEPROM header if needed.
     if (is_adding) {
-      auto* const header = reinterpret_cast<Eeprom_header*>(get_mem_buf());
+      auto* const header = reinterpret_cast<Eeprom_header*>(memory_buffer());
       header->eeplen += mem_adjust_size;
-      header->numatoms = atom_count + 1;
+      header->numatoms = acount + 1;
     }
 
     return Op_result::ok;
@@ -809,15 +809,15 @@ public:
   }
 
   /// @returns EEPROM image buffer.
-  const std::shared_ptr<CFIFO>& get_buf() const noexcept
+  const std::shared_ptr<CFIFO>& buf() const noexcept
   {
     return fifo_buf_;
   }
 
   /// @returns Total atom count.
-  std::uint16_t get_atom_count() const noexcept
+  std::uint16_t atom_count() const noexcept
   {
-    return reinterpret_cast<const Eeprom_header*>(get_mem_buf())->numatoms;
+    return reinterpret_cast<const Eeprom_header*>(memory_buffer())->numatoms;
   }
 
   /**
@@ -862,19 +862,19 @@ private:
   /// @{
 
   /// @returns Raw pointer to the EEPROM image buffer.
-  char* get_mem_buf() const noexcept
+  char* memory_buffer() const noexcept
   {
     return fifo_buf_->data();
   }
 
   /// @returns The size of the EEPROM image buffer.
-  std::size_t get_mem_buf_size() const noexcept
+  std::size_t memory_buffer_size() const noexcept
   {
     return fifo_buf_->size();
   }
 
   /// Reallocates EEPROM image buffer according to the given `adjustment`.
-  void adjust_mem_buf(const char* const offset, const int adjustment)
+  void adjust_memory_buffer(const char* const offset, const int adjustment)
   {
     const auto position = offset - fifo_buf_->data();
     if (adjustment > 0)
@@ -899,8 +899,8 @@ private:
   Op_result get_atom_header(unsigned pos, Atom_header** const header) const
   {
     Op_result result{Op_result::ok};
-    auto* const mem_buf = get_mem_buf();
-    auto* const mem_buf_end = mem_buf + get_mem_buf_size();
+    auto* const mem_buf = memory_buffer();
+    auto* const mem_buf_end = mem_buf + memory_buffer_size();
     const auto* const eeprom_header = reinterpret_cast<const Eeprom_header*>(mem_buf);
 
     // Check `pos` and correct if needed.
@@ -954,8 +954,8 @@ private:
    */
   Op_result verify_storage() const
   {
-    const auto* const mem_buf = get_mem_buf();
-    const auto mem_buf_size = get_mem_buf_size();
+    const auto* const mem_buf = memory_buffer();
+    const auto mem_buf_size = memory_buffer_size();
     if (mem_buf_size < sizeof(Eeprom_header))
       return Op_result::storage_corrupted;
 
@@ -982,8 +982,8 @@ private:
   /// Invalidates the EEPROM buffer.
   Op_result reset_storage()
   {
-    char* const mem_buf = get_mem_buf();
-    const std::size_t mem_buf_size = get_mem_buf_size();
+    char* const mem_buf = memory_buffer();
+    const std::size_t mem_buf_size = memory_buffer_size();
 
     if (mem_buf_size < sizeof(Eeprom_header))
       return Op_result::storage_corrupted;

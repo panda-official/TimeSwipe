@@ -59,7 +59,7 @@ public:
   /**
    * Set sample rate.
    *
-   * The default value is equals to Driver::get_instance().get_max_sample_rate().
+   * The default value is equals to Driver::instance().max_sample_rate().
    *
    * @param rate - new sample rate
    *
@@ -73,8 +73,7 @@ public:
    * lower the value of `std::gcd(max_sample_rate, rate)`, the worse the
    * performance of the resampling.
    *
-   * @see get_sample_rate(), Driver::get_min_sample_rate(),
-   * Driver::get_max_sample_rate().
+   * @see sample_rate(), Driver::min_sample_rate(), Driver::max_sample_rate().
    */
   Driver_settings& set_sample_rate(int rate);
 
@@ -83,7 +82,7 @@ public:
    *
    * @see set_sample_rate().
    */
-  int get_sample_rate() const;
+  int sample_rate() const;
 
   /**
    * Sets the burst buffer size.
@@ -94,7 +93,7 @@ public:
   Driver_settings& set_burst_buffer_size(std::size_t size);
 
   /// @returns The burst buffer size.
-  std::size_t get_burst_buffer_size() const;
+  std::size_t burst_buffer_size() const;
 
   /**
    * Sets the data translation offset.
@@ -107,7 +106,7 @@ public:
   Driver_settings& set_data_translation_offset(int index, int value);
 
   /// @returns The value of data translation offset.
-  int get_data_translation_offset(int index) const;
+  int data_translation_offset(int index) const;
 
   /**
    * Sets the data translation slope.
@@ -120,7 +119,7 @@ public:
   Driver_settings& set_data_translation_slope(int index, float value);
 
   /// @returns The value of data translation slope.
-  float get_data_translation_slope(int index) const;
+  float data_translation_slope(int index) const;
 
 private:
   struct Rep;

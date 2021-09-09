@@ -34,7 +34,7 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     }
 
     //fill blank atoms with the stubs:
-    for (int i = m_EEPROMstorage.get_atom_count(); i < 3; ++i) {
+    for (int i = m_EEPROMstorage.atom_count(); i < 3; ++i) {
       hat::atom::Stub stub{i};
       m_EEPROMstorage.set(stub);
     }
@@ -50,8 +50,8 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
 
   if (m_pVoltageDAC) {
     std::string strError;
-    const auto& entry = map.get_atom(hat::atom::Calibration::Type::v_supply).get_entry(0, strError);
-    m_pVoltageDAC->SetLinearFactors(entry.get_slope(), entry.get_offset());
+    const auto& entry = map.atom(hat::atom::Calibration::Type::v_supply).entry(0, strError);
+    m_pVoltageDAC->SetLinearFactors(entry.slope(), entry.offset());
     m_pVoltageDAC->SetVal();
   }
 
@@ -65,7 +65,7 @@ bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& str
   ApplyCalibrationData(map);
 
   if (m_CalStatus == hat::Manager::Op_result::ok) {
-    if (m_pEEPROMbus->send(*m_EEPROMstorage.get_buf()))
+    if (m_pEEPROMbus->send(*m_EEPROMstorage.buf()))
       return true;
 
     strError="failed to write EEPROM";
@@ -96,7 +96,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     const auto type = hat::atom::Calibration::make_type(jObj["cAtom"], strError);
     if (!strError.empty()) return false;
 
-    const auto cal_entry_count = map.get_atom(type).get_entry_count();
+    const auto cal_entry_count = map.atom(type).entry_count();
 
     //if call type=set
     if(CCmdCallDescr::ctype::ctSet==ct)
@@ -115,7 +115,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
         size_t pair_ind=0;
         for(auto &el : data) {
           //init the pair:
-          auto entry = map.get_atom(type).get_entry(pair_ind, strError);
+          auto entry = map.atom(type).entry(pair_ind, strError);
           if (!strError.empty()) return false;
 
           if (const auto it_m = el.find("m"); it_m != el.end())
@@ -123,7 +123,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
           if (const auto it_b = el.find("b"); it_b != el.end())
             entry.set_offset(*it_b);
 
-          map.get_atom(type).set_entry(pair_ind, std::move(entry), strError);
+          map.atom(type).set_entry(pair_ind, std::move(entry), strError);
           if (!strError.empty()) return false;
 
           pair_ind++;
@@ -142,13 +142,13 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 
     auto resp_data = nlohmann::json::array();
     for (std::size_t i{}; i < cal_entry_count; ++i) {
-      const auto& entry = map.get_atom(type).get_entry(i, strError);
+      const auto& entry = map.atom(type).entry(i, strError);
       if (!strError.empty()) return false;
 
       //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
       nlohmann::json jpair;
-      jpair["m"]=entry.get_slope();
-      jpair["b"]=entry.get_offset();
+      jpair["m"]=entry.slope();
+      jpair["b"]=entry.offset();
       resp_data.emplace_back(jpair);
     }
     jResp["cAtom"]=type;

@@ -79,8 +79,7 @@ void CSPIcomm::Update()
     //check: thread-safe
     bool bProc=false;
     __disable_irq();
-        if(m_ComCntr.get_state()==CSyncSerComFSM::FSM::recOK)
-        {
+        if (m_ComCntr.state() == CSyncSerComFSM::FSM::recOK) {
             m_recFIFO.dumpres(m_recFIFOhold);
             m_ComCntr.start(CSyncSerComFSM::FSM::halted);
             bProc=true;

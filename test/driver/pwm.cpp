@@ -39,7 +39,7 @@ void usage(const char* name)
 int main(int argc, char *argv[])
 {
   namespace ts = panda::timeswipe;
-  auto& driver = ts::Driver::get_instance();
+  auto& driver = ts::Driver::instance();
 
   bool start = false;
   bool stop = false;
@@ -126,11 +126,11 @@ int main(int argc, char *argv[])
     if (!both && pwm_index != i) continue;
     if (start) {
       std::cout << "start " << i
-                << " freq: " << *settings.get_pwm_frequency(i)
-                << " high: " << *settings.get_pwm_high(i)
-                << " low: " << *settings.get_pwm_low(i)
-                << " repeats: " << *settings.get_pwm_repeat_count(i)
-                << " duty: " << *settings.get_pwm_duty_cycle(i)
+                << " freq: " << *settings.pwm_frequency(i)
+                << " high: " << *settings.pwm_high(i)
+                << " low: " << *settings.pwm_low(i)
+                << " repeats: " << *settings.pwm_repeat_count(i)
+                << " duty: " << *settings.pwm_duty_cycle(i)
                 << std::endl;
       settings.set_pwm_start(i, true);
       driver.set_board_settings(settings);
@@ -142,13 +142,13 @@ int main(int argc, char *argv[])
       std::cout << "stop " << i << " succeded" << std::endl;
     } else if (get) {
       std::cout << "get " << i << std::endl;
-      const auto& settings = driver.get_board_settings();
+      const auto& settings = driver.board_settings();
       std::cout << "get " << i
-                << " freq: " << *settings.get_pwm_frequency(i)
-                << " high: " << *settings.get_pwm_high(i)
-                << " low: " << *settings.get_pwm_low(i)
-                << " repeats: " << *settings.get_pwm_repeat_count(i)
-                << " duty: " << *settings.get_pwm_duty_cycle(i)
+                << " freq: " << *settings.pwm_frequency(i)
+                << " high: " << *settings.pwm_high(i)
+                << " low: " << *settings.pwm_low(i)
+                << " repeats: " << *settings.pwm_repeat_count(i)
+                << " duty: " << *settings.pwm_duty_cycle(i)
                 << std::endl;
     }
   }

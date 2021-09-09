@@ -123,46 +123,46 @@ public:
     board_settings_.reset(); // invalidate cache (this could be optimized)
   }
 
-  const Board_settings& get_board_settings() const
+  const Board_settings& board_settings() const
   {
     if (!board_settings_)
       board_settings_.emplace(spi_.execute_get_many(""));
     return *board_settings_;
   }
 
-  constexpr int get_version() const
+  constexpr int version() const
   {
-    return version;
+    return timeswipe::version;
   }
 
-  int get_min_sample_rate() const
+  int min_sample_rate() const
   {
     return 32;
   }
 
-  int get_max_sample_rate() const
+  int max_sample_rate() const
   {
     return 48000;
   }
 
-  int get_max_data_channel_count() const
+  int max_data_channel_count() const
   {
-    return max_data_channel_count;
+    return timeswipe::max_data_channel_count;
   }
 
   void set_settings(Settings settings,
     std::unique_ptr<detail::Resampler> resampler = {})
   {
-    set_resampler(settings.get_sample_rate(), std::move(resampler));
-    burst_buffer_size_ = settings.get_burst_buffer_size();
+    set_resampler(settings.sample_rate(), std::move(resampler));
+    burst_buffer_size_ = settings.burst_buffer_size();
     for (std::size_t i{}; i < sensor_translation_offsets_.size(); ++i)
-      sensor_translation_offsets_[i] = settings.get_data_translation_offset(i);
+      sensor_translation_offsets_[i] = settings.data_translation_offset(i);
     for (std::size_t i{}; i < sensor_translation_slopes_.size(); ++i)
-      sensor_translation_slopes_[i] = settings.get_data_translation_slope(i);
+      sensor_translation_slopes_[i] = settings.data_translation_slope(i);
     settings_ = std::move(settings);
   }
 
-  const Settings& get_settings() const
+  const Settings& settings() const
   {
     return settings_;
   }
@@ -193,7 +193,7 @@ public:
         const rajson::Value_view doc_view{doc};
         const auto doc_cal_entries = doc_view.mandatory("data");
         if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
-          auto& atom = result.get_atom(ct);
+          auto& atom = result.atom(ct);
           const auto cal_entries = v.GetArray();
           const auto cal_entries_size = cal_entries.Size();
           for (std::size_t i{}; i < cal_entries_size; ++i) {
@@ -306,7 +306,7 @@ public:
   std::vector<float> calculate_drift_deltas()
   {
     // Throw away if there are no references.
-    const auto refs{get_drift_references()};
+    const auto refs= drift_references();
     if (!refs)
       throw Runtime_exception{Errc::no_drift_references};
 
@@ -340,7 +340,7 @@ public:
     drift_deltas_.reset();
   }
 
-  std::optional<std::vector<float>> get_drift_references(const bool force = {}) const
+  std::optional<std::vector<float>> drift_references(const bool force = {}) const
   {
     if (!force && drift_references_)
       return drift_references_;
@@ -354,7 +354,7 @@ public:
       throw Runtime_exception{Errc::invalid_drift_reference};
 
     std::vector<float> refs;
-    while (in && refs.size() < get_max_data_channel_count()) {
+    while (in && refs.size() < max_data_channel_count()) {
       float val;
       if (in >> val)
         refs.push_back(val);
@@ -367,13 +367,13 @@ public:
     if (refs.empty())
       throw Runtime_exception{Errc::insufficient_drift_references};
 
-    DMITIGR_ASSERT(refs.size() <= get_max_data_channel_count());
+    DMITIGR_ASSERT(refs.size() <= max_data_channel_count());
 
     // Cache and return references.
     return drift_references_ = refs;
   }
 
-  std::optional<std::vector<float>> get_drift_deltas() const
+  std::optional<std::vector<float>> drift_deltas() const
   {
     return drift_deltas_;
   }
@@ -407,9 +407,9 @@ private:
   static constexpr int initial_invalid_datasets_count{32};
   static constexpr std::uint16_t sensor_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
-  std::array<float, max_data_channel_count> sensor_slopes_{1, 1, 1, 1};
-  std::array<int, max_data_channel_count> sensor_translation_offsets_{};
-  std::array<float, max_data_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
+  std::array<float, timeswipe::max_data_channel_count> sensor_slopes_{1, 1, 1, 1};
+  std::array<int, timeswipe::max_data_channel_count> sensor_translation_offsets_{};
+  std::array<float, timeswipe::max_data_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
   hat::Calibration_map calibration_map_;
   mutable std::optional<Board_settings> board_settings_;
   Settings settings_;
@@ -510,7 +510,7 @@ private:
         // Store board settings (input modes).
         const auto channel_mode = [this](const int index)
         {
-          if (const auto mm = rep_.get_board_settings().get_channel_measurement_mode(index))
+          if (const auto mm = rep_.board_settings().channel_measurement_mode(index))
             return *mm;
           else
             throw Runtime_exception{Errc::invalid_board_state};
@@ -546,7 +546,7 @@ private:
     Rep& rep_;
     decltype(rep_.resampler_) resampler_;
     decltype(rep_.settings_) settings_;
-    std::array<Measurement_mode, max_data_channel_count> chmm_;
+    std::array<Measurement_mode, timeswipe::max_data_channel_count> chmm_;
   };
 
   // ---------------------------------------------------------------------------
@@ -676,11 +676,11 @@ private:
 
     static void append_chunk(Data_vector& data,
       const Chunk& chunk,
-      const std::array<float, max_data_channel_count>& slopes,
-      const std::array<int, max_data_channel_count>& translation_offsets,
-      const std::array<float, max_data_channel_count>& translation_slopes)
+      const std::array<float, timeswipe::max_data_channel_count>& slopes,
+      const std::array<int, timeswipe::max_data_channel_count>& translation_offsets,
+      const std::array<float, timeswipe::max_data_channel_count>& translation_slopes)
     {
-      std::array<std::uint16_t, max_data_channel_count> sensors{};
+      std::array<std::uint16_t, timeswipe::max_data_channel_count> sensors{};
       static_assert(sizeof(sensor_offset) == sizeof(sensors[0]));
       static_assert(slopes.size() == sensors.size());
       static_assert(translation_offsets.size() == sensors.size());
@@ -693,21 +693,21 @@ private:
       {
         word = (word & ~(1UL << N)) | (bit << N);
       };
-      constexpr auto get_bit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
+      constexpr auto bit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
       {
         return (byte & (1UL << N));
       };
       for (std::size_t i{}, count{}; i < chunk.size(); ++i) {
-        set_bit(sensors[0], 15 - count, get_bit(chunk[i], 3));
-        set_bit(sensors[1], 15 - count, get_bit(chunk[i], 2));
-        set_bit(sensors[2], 15 - count, get_bit(chunk[i], 1));
-        set_bit(sensors[3], 15 - count, get_bit(chunk[i], 0));
+        set_bit(sensors[0], 15 - count, bit(chunk[i], 3));
+        set_bit(sensors[1], 15 - count, bit(chunk[i], 2));
+        set_bit(sensors[2], 15 - count, bit(chunk[i], 1));
+        set_bit(sensors[3], 15 - count, bit(chunk[i], 0));
         count++;
 
-        set_bit(sensors[0], 15 - count, get_bit(chunk[i], 7));
-        set_bit(sensors[1], 15 - count, get_bit(chunk[i], 6));
-        set_bit(sensors[2], 15 - count, get_bit(chunk[i], 5));
-        set_bit(sensors[3], 15 - count, get_bit(chunk[i], 4));
+        set_bit(sensors[0], 15 - count, bit(chunk[i], 7));
+        set_bit(sensors[1], 15 - count, bit(chunk[i], 6));
+        set_bit(sensors[2], 15 - count, bit(chunk[i], 5));
+        set_bit(sensors[3], 15 - count, bit(chunk[i], 4));
         count++;
       }
 
@@ -839,7 +839,7 @@ private:
      * becomes high it indicates that the RAM is full (failure - data loss).
      * So, check this case.
      */
-    Data_vector result(get_max_data_channel_count());
+    Data_vector result(max_data_channel_count());
     result.reserve(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();
@@ -956,7 +956,7 @@ private:
   {
     if (is_busy()) return {};
 
-    const auto max_rate = get_max_sample_rate();
+    const auto max_rate = max_sample_rate();
     if (!(1 <= rate && rate <= max_rate))
       throw Runtime_exception{Errc::out_of_range, "invalid sample rate"};
 
@@ -966,8 +966,8 @@ private:
       const auto up = rate / rates_gcd;
       const auto down = max_rate / rates_gcd;
       if (resampler) {
-        DMITIGR_ASSERT(up == resampler->get_options().get_up_factor());
-        DMITIGR_ASSERT(down == resampler->get_options().get_down_factor());
+        DMITIGR_ASSERT(up == resampler->options().up_factor());
+        DMITIGR_ASSERT(down == resampler->options().down_factor());
         resampler_ = std::move(resampler);
       } else
         resampler_ = std::make_unique<detail::Resampler>
@@ -1066,30 +1066,30 @@ Driver::Driver()
   : rep_{std::make_unique<Rep>()}
 {}
 
-Driver& Driver::get_instance()
+Driver& Driver::instance()
 {
   if (!instance_) instance_.reset(new Driver);
   return *instance_;
 }
 
-int Driver::get_version() const
+int Driver::version() const
 {
-  return rep_->get_version();
+  return rep_->version();
 }
 
-int Driver::get_min_sample_rate() const
+int Driver::min_sample_rate() const
 {
-  return rep_->get_min_sample_rate();
+  return rep_->min_sample_rate();
 }
 
-int Driver::get_max_sample_rate() const
+int Driver::max_sample_rate() const
 {
-  return rep_->get_max_sample_rate();
+  return rep_->max_sample_rate();
 }
 
-int Driver::get_max_data_channel_count() const
+int Driver::max_data_channel_count() const
 {
-  return rep_->get_max_data_channel_count();
+  return rep_->max_data_channel_count();
 }
 
 void Driver::set_board_settings(const Board_settings& settings)
@@ -1097,9 +1097,9 @@ void Driver::set_board_settings(const Board_settings& settings)
   return rep_->set_board_settings(settings);
 }
 
-const Board_settings& Driver::get_board_settings() const
+const Board_settings& Driver::board_settings() const
 {
-  return rep_->get_board_settings();
+  return rep_->board_settings();
 }
 
 void Driver::set_settings(Settings settings)
@@ -1107,9 +1107,9 @@ void Driver::set_settings(Settings settings)
   return rep_->set_settings(std::move(settings));
 }
 
-auto Driver::get_settings() const -> const Settings&
+auto Driver::settings() const -> const Settings&
 {
-  return rep_->get_settings();
+  return rep_->settings();
 }
 
 void Driver::start(Data_handler data_handler, Event_handler event_handler)
@@ -1147,14 +1147,14 @@ void Driver::clear_drift_deltas()
   rep_->clear_drift_deltas();
 }
 
-std::optional<std::vector<float>> Driver::get_drift_references(const bool force) const
+std::optional<std::vector<float>> Driver::drift_references(const bool force) const
 {
-  return rep_->get_drift_references(force);
+  return rep_->drift_references(force);
 }
 
-std::optional<std::vector<float>> Driver::get_drift_deltas() const
+std::optional<std::vector<float>> Driver::drift_deltas() const
 {
-  return rep_->get_drift_deltas();
+  return rep_->drift_deltas();
 }
 
 } // namespace panda::timeswipe
