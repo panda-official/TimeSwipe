@@ -299,7 +299,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     )
 
   # Our stuff
-  set(firmware_src adcdac.hpp error.hpp)
+  set(firmware_src PWM.h Pin.h Storage.h adcdac.hpp button.h cmd.h frm_stream.h
+    json.hpp os.h std_port.h timer.h)
   list(TRANSFORM firmware_src PREPEND src/firmware/)
   foreach(dep base control json led misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
