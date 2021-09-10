@@ -26,6 +26,9 @@ class Data_vector;
 class Driver;
 class Driver_settings;
 
+namespace detail {
+class iDriver;
+} // namespace detail
 } // namespace panda::timeswipe
 
 #endif  // PANDA_TIMESWIPE_TYPES_FWD_HPP

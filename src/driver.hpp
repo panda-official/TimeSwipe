@@ -22,6 +22,7 @@
 #include "board_settings.hpp"
 #include "data_vector.hpp"
 #include "driver_settings.hpp"
+#include "types_fwd.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -38,7 +39,7 @@ namespace panda::timeswipe {
  *
  * @note This class is designed by following the singleton pattern.
  */
-class Driver final {
+class Driver {
 public:
   /// An alias of driver settings.
   using Settings = Driver_settings;
@@ -63,7 +64,7 @@ public:
    *
    * @see stop().
    */
-  ~Driver();
+  virtual ~Driver() = default;
 
   /// Non copy-constructible.
   Driver(const Driver&) = delete;
@@ -86,30 +87,30 @@ public:
   static Driver& instance();
 
   /// @returns The driver version.
-  int version() const;
+  virtual int version() const = 0;
 
   /// @returns Min possible sample rate per second the driver can handle.
-  int min_sample_rate() const;
+  virtual int min_sample_rate() const = 0;
 
   /// @returns Max possible sample rate per second the driver can handle.
-  int max_sample_rate() const;
+  virtual int max_sample_rate() const = 0;
 
   /// @returns Max possible number of data channels the board provides.
-  int max_data_channel_count() const;
+  virtual int max_data_channel_count() const = 0;
 
   /**
    * Sets the board settings.
    *
    * @see board_settings().
    */
-  void set_board_settings(const Board_settings& settings);
+  virtual void set_board_settings(const Board_settings& settings) = 0;
 
   /**
    * @returns The actual board settings.
    *
    * @see set_board_settings().
    */
-  const Board_settings& board_settings() const;
+  virtual const Board_settings& board_settings() const = 0;
 
   /**
    * Sets the driver settings.
@@ -119,14 +120,14 @@ public:
    *
    * @see settings();
    */
-  void set_settings(Settings settings);
+  virtual void set_settings(Settings settings) = 0;
 
   /**
    * @returns The driver settings.
    *
    * @see set_settings();
    */
-  const Settings& settings() const;
+  virtual const Settings& settings() const = 0;
 
   /// @name Measurement control
   ///
@@ -158,14 +159,14 @@ public:
    *
    * @see set_measurement_options(), set_state(), stop().
    */
-  void start(Data_handler data_handler);
+  virtual void start(Data_handler data_handler) = 0;
 
   /**
    * @returns `true` if the board is busy (measurement in progress).
    *
    * @see calculate_drift_references(), calculate_drift_deltas(), start().
    */
-  bool is_busy() const noexcept;
+  virtual bool is_busy() const noexcept = 0;
 
   /**
    * Stops the measurement.
@@ -175,7 +176,7 @@ public:
    *
    * @see start().
    */
-  void stop();
+  virtual void stop() = 0;
 
   /// @}
 
@@ -220,7 +221,7 @@ public:
    *
    * @see drift_references(), clear_drift_references(), calculate_drift_deltas().
    */
-  std::vector<float> calculate_drift_references();
+  virtual std::vector<float> calculate_drift_references() = 0;
 
   /**
    * Clears drift references if any.
@@ -237,7 +238,7 @@ public:
    *
    * @see calculate_drift_references(), clear_drift_deltas().
    */
-  void clear_drift_references();
+  virtual void clear_drift_references() = 0;
 
   /**
    * @brief Calculates drift deltas based on calculated drift references.
@@ -254,7 +255,7 @@ public:
    *
    * @see drift_deltas(), calculate_drift_references(), start().
    */
-  std::vector<float> calculate_drift_deltas();
+  virtual std::vector<float> calculate_drift_deltas() = 0;
 
   /**
    * @brief Clears drift deltas if any.
@@ -270,7 +271,7 @@ public:
    *
    * @see calculate_drift_deltas(), clear_drift_references().
    */
-  void clear_drift_deltas();
+  virtual void clear_drift_deltas() = 0;
 
   /**
    * @returns The calculated drift references.
@@ -283,23 +284,23 @@ public:
    *
    * @see calculate_drift_references(), clear_drift_references(), drift_deltas().
    */
-  std::optional<std::vector<float>> drift_references(bool force = {}) const;
+  virtual std::optional<std::vector<float>> drift_references(bool force = {}) const = 0;
 
   /**
    * @returns The calculated drift deltas.
    *
    * @see calculate_drift_deltas().
    */
-  std::optional<std::vector<float>> drift_deltas() const;
+  virtual std::optional<std::vector<float>> drift_deltas() const = 0;
 
   /// @}
 
 private:
-  struct Rep;
-  std::unique_ptr<Rep> rep_;
+  friend detail::iDriver;
+
   inline static std::unique_ptr<Driver> instance_;
 
-  Driver();
+  Driver() = default;
 };
 
 } // namespace panda::timeswipe

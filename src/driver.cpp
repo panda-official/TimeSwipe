@@ -49,20 +49,16 @@
 namespace rajson = dmitigr::rajson;
 
 namespace panda::timeswipe {
-
-// -----------------------------------------------------------------------------
-// class Driver::Rep
-// -----------------------------------------------------------------------------
-
-class Driver::Rep final {
+namespace detail {
+class iDriver final : public Driver {
 public:
-  ~Rep()
+  ~iDriver()
   {
     stop();
     join_threads();
   }
 
-  Rep()
+  iDriver()
     : pid_file_{"timeswipe"}
     , spi_{detail::Bcm_spi::Pins::spi0}
   {
@@ -117,41 +113,47 @@ public:
     is_gpio_inited_ = true;
   }
 
-  void set_board_settings(const Board_settings& settings)
+  int version() const override
+  {
+    return timeswipe::version;
+  }
+
+  int min_sample_rate() const override
+  {
+    return 32;
+  }
+
+  int max_sample_rate() const override
+  {
+    return 48000;
+  }
+
+  int max_data_channel_count() const override
+  {
+    return timeswipe::max_data_channel_count;
+  }
+
+  void set_board_settings(const Board_settings& settings) override
   {
     spi_.execute_set_many(settings.to_stringified_json());
     board_settings_.reset(); // invalidate cache (this could be optimized)
   }
 
-  const Board_settings& board_settings() const
+  const Board_settings& board_settings() const override
   {
     if (!board_settings_)
       board_settings_.emplace(spi_.execute_get_many(""));
     return *board_settings_;
   }
 
-  constexpr int version() const
+  void set_settings(Settings settings) override
   {
-    return timeswipe::version;
+    set_settings(std::move(settings), {});
   }
 
-  int min_sample_rate() const
-  {
-    return 32;
-  }
-
-  int max_sample_rate() const
-  {
-    return 48000;
-  }
-
-  int max_data_channel_count() const
-  {
-    return timeswipe::max_data_channel_count;
-  }
-
+  /// @overload
   void set_settings(Settings settings,
-    std::unique_ptr<detail::Resampler> resampler = {})
+    std::unique_ptr<detail::Resampler> resampler)
   {
     set_resampler(settings.sample_rate(), std::move(resampler));
     burst_buffer_size_ = settings.burst_buffer_size();
@@ -162,12 +164,12 @@ public:
     settings_ = std::move(settings);
   }
 
-  const Settings& settings() const
+  const Settings& settings() const override
   {
     return settings_;
   }
 
-  void start(Data_handler&& data_handler)
+  void start(Data_handler data_handler) override
   {
     if (!data_handler)
       throw Runtime_exception{Errc::invalid_data_handler};
@@ -226,16 +228,16 @@ public:
       is_measurement_started_ = true;
     }
 
-    threads_.emplace_back(&Rep::fetcher_loop, this);
-    threads_.emplace_back(&Rep::poller_loop, this, std::move(data_handler));
+    threads_.emplace_back(&iDriver::fetcher_loop, this);
+    threads_.emplace_back(&iDriver::poller_loop, this, std::move(data_handler));
   }
 
-  bool is_busy() const noexcept
+  bool is_busy() const noexcept override
   {
     return is_measurement_started_ || in_handler_;
   }
 
-  void stop()
+  void stop() override
   {
     if (!is_measurement_started_) return;
 
@@ -260,7 +262,7 @@ public:
     }
   }
 
-  std::vector<float> calculate_drift_references()
+  std::vector<float> calculate_drift_references() override
   {
     // Collect the data for calculation.
     auto data = collect_sensors_data(drift_samples_count, // 5 ms
@@ -291,7 +293,7 @@ public:
     return result;
   }
 
-  void clear_drift_references()
+  void clear_drift_references() override
   {
     if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
@@ -301,7 +303,7 @@ public:
     drift_deltas_.reset();
   }
 
-  std::vector<float> calculate_drift_deltas()
+  std::vector<float> calculate_drift_deltas() override
   {
     // Throw away if there are no references.
     const auto refs= drift_references();
@@ -330,7 +332,7 @@ public:
     return result;
   }
 
-  void clear_drift_deltas()
+  void clear_drift_deltas() override
   {
     if (is_busy())
       throw Runtime_exception{Errc::board_is_busy};
@@ -338,7 +340,7 @@ public:
     drift_deltas_.reset();
   }
 
-  std::optional<std::vector<float>> drift_references(const bool force = {}) const
+  std::optional<std::vector<float>> drift_references(const bool force = {}) const override
   {
     if (!force && drift_references_)
       return drift_references_;
@@ -371,7 +373,7 @@ public:
     return drift_references_ = refs;
   }
 
-  std::optional<std::vector<float>> drift_deltas() const
+  std::optional<std::vector<float>> drift_deltas() const override
   {
     return drift_deltas_;
   }
@@ -444,22 +446,22 @@ private:
 
     ~Callbacker()
     {
-      self_.in_handler_ = false;
+      driver_.in_handler_ = false;
     }
 
-    Callbacker(Rep& self) noexcept
-      : self_{self}
+    Callbacker(iDriver& driver) noexcept
+      : driver_{driver}
     {}
 
     template<typename F, typename ... Types>
     auto operator()(const F& handler, Types&& ... args)
     {
-      self_.in_handler_ = true;
+      driver_.in_handler_ = true;
       return handler(std::forward<Types>(args)...);
     }
 
   private:
-    Rep& self_;
+    iDriver& driver_;
   };
 
   /*
@@ -467,7 +469,7 @@ private:
    * state will be restored upon destruction of the instance of this class.
    */
   class Drift_affected_state_guard final {
-    friend Rep;
+    friend iDriver;
 
     Drift_affected_state_guard(const Drift_affected_state_guard&) = delete;
     Drift_affected_state_guard& operator=(const Drift_affected_state_guard&) = delete;
@@ -479,14 +481,14 @@ private:
     {
       try {
         // Restore driver settings.
-        rep_.set_settings(std::move(settings_),
+        driver_.set_settings(std::move(settings_),
           std::move(resampler_));
 
         // Restore board settings (input modes).
         Board_settings settings;
         for (std::size_t i{}; i < chmm_.size(); ++i)
           settings.set_channel_measurement_mode(i, chmm_[i]);
-        rep_.set_board_settings(settings);
+        driver_.set_board_settings(settings);
       } catch (...) {}
     }
 
@@ -499,16 +501,16 @@ private:
      * Stores the rep state and driver settings, and prepares the board
      * for measurement.
      */
-    Drift_affected_state_guard(Rep& rep)
-      : rep_{rep}
-      , resampler_{std::move(rep_.resampler_)} // store
-      , settings_{std::move(rep_.settings_)} // settings
+    Drift_affected_state_guard(iDriver& driver)
+      : driver_{driver}
+      , resampler_{std::move(driver_.resampler_)} // store
+      , settings_{std::move(driver_.settings_)} // settings
     {
       try {
         // Store board settings (input modes).
         const auto channel_mode = [this](const int index)
         {
-          if (const auto mm = rep_.board_settings().channel_measurement_mode(index))
+          if (const auto mm = driver_.board_settings().channel_measurement_mode(index))
             return *mm;
           else
             throw Runtime_exception{Errc::invalid_board_state};
@@ -526,24 +528,24 @@ private:
           Board_settings settings;
           for (int i{}; i < chmm_.size(); ++i)
             settings.set_channel_measurement_mode(i, Measurement_mode::Current);
-          rep_.set_board_settings(settings);
+          driver_.set_board_settings(settings);
         }
 
-        std::this_thread::sleep_for(rep_.switching_oscillation_period);
+        std::this_thread::sleep_for(driver_.switching_oscillation_period);
 
         // Set specific driver settings.
         Settings settings;
         settings.set_sample_rate(48000)
-          .set_burst_buffer_size(rep_.drift_samples_count);
-        rep_.set_settings(std::move(settings));
+          .set_burst_buffer_size(driver_.drift_samples_count);
+        driver_.set_settings(std::move(settings));
       } catch (...) {
         restore();
       }
     }
 
-    Rep& rep_;
-    decltype(rep_.resampler_) resampler_;
-    decltype(rep_.settings_) settings_;
+    iDriver& driver_;
+    decltype(driver_.resampler_) resampler_;
+    decltype(driver_.settings_) settings_;
     std::array<Measurement_mode, timeswipe::max_data_channel_count> chmm_;
   };
 
@@ -994,106 +996,13 @@ private:
     return data;
   }
 };
-
-// -----------------------------------------------------------------------------
-// class Driver
-// -----------------------------------------------------------------------------
-
-Driver::~Driver() = default;
-
-Driver::Driver()
-  : rep_{std::make_unique<Rep>()}
-{}
+} // namespace detail
 
 Driver& Driver::instance()
 {
-  if (!instance_) instance_.reset(new Driver);
+  if (!instance_)
+    instance_ = std::make_unique<detail::iDriver>();
   return *instance_;
-}
-
-int Driver::version() const
-{
-  return rep_->version();
-}
-
-int Driver::min_sample_rate() const
-{
-  return rep_->min_sample_rate();
-}
-
-int Driver::max_sample_rate() const
-{
-  return rep_->max_sample_rate();
-}
-
-int Driver::max_data_channel_count() const
-{
-  return rep_->max_data_channel_count();
-}
-
-void Driver::set_board_settings(const Board_settings& settings)
-{
-  return rep_->set_board_settings(settings);
-}
-
-const Board_settings& Driver::board_settings() const
-{
-  return rep_->board_settings();
-}
-
-void Driver::set_settings(Settings settings)
-{
-  return rep_->set_settings(std::move(settings));
-}
-
-auto Driver::settings() const -> const Settings&
-{
-  return rep_->settings();
-}
-
-void Driver::start(Data_handler data_handler)
-{
-  rep_->start(std::move(data_handler));
-}
-
-bool Driver::is_busy() const noexcept
-{
-  return rep_->is_busy();
-}
-
-void Driver::stop()
-{
-  return rep_->stop();
-}
-
-std::vector<float> Driver::calculate_drift_references()
-{
-  return rep_->calculate_drift_references();
-}
-
-void Driver::clear_drift_references()
-{
-  rep_->clear_drift_references();
-}
-
-std::vector<float> Driver::calculate_drift_deltas()
-{
-  return rep_->calculate_drift_deltas();
-}
-
-void Driver::clear_drift_deltas()
-{
-  rep_->clear_drift_deltas();
-}
-
-std::optional<std::vector<float>> Driver::drift_references(const bool force) const
-{
-  return rep_->drift_references(force);
-}
-
-std::optional<std::vector<float>> Driver::drift_deltas() const
-{
-  return rep_->drift_deltas();
 }
 
 } // namespace panda::timeswipe
