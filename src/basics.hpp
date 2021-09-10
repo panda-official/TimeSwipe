@@ -11,6 +11,7 @@
 #define PANDA_TIMESWIPE_BASICS_HPP
 
 #include <optional>
+#include <string_view>
 
 namespace panda::timeswipe {
 

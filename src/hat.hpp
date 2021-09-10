@@ -458,7 +458,7 @@ public:
 
   /// The constructor.
   Calibration(const Type type, const std::uint16_t count)
-    : header_{type, count, count * sizeof(Entry)}
+    : header_{type, count, count * static_cast<std::uint32_t>(sizeof(Entry))}
     , entries_{count}
   {}
 

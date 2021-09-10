@@ -447,13 +447,15 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     FILE panda_timeswipe-config.cmake)
 
   install(FILES
+    src/basics.hpp
+    src/board_settings.hpp
+    src/data_vector.hpp
     src/driver.hpp
+    src/driver_settings.hpp
+    src/error.hpp
+    src/types_fwd.hpp
+    src/version.hpp
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/panda/timeswipe)
-
-  install(FILES
-    src/driver/error.hpp
-    src/driver/timeswipe.hpp
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/panda/timeswipe/driver)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/panda_timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)

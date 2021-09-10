@@ -64,7 +64,7 @@ std::size_t ogain_table_index(const float value) noexcept
   {
     return val < threshold;
   });
-  return std::max(0, itr - beg - 1);
+  return std::max<decltype(itr - beg)>(0, itr - beg - 1);
 }
 
 } // namespace panda::timeswipe

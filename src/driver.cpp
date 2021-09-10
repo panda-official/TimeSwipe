@@ -19,12 +19,10 @@
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
 #include "driver.hpp"
-#include "error.hpp"
 #include "gain.hpp"
 #include "hat.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
-#include "version.hpp"
 
 #include "3rdparty/dmitigr/assert.hpp"
 #include "3rdparty/dmitigr/filesystem.hpp"
@@ -674,17 +672,15 @@ private:
       return result;
     }
 
+    template<std::size_t Size>
     static void append_chunk(Data_vector& data,
       const Chunk& chunk,
-      const std::array<float, timeswipe::max_data_channel_count>& slopes,
-      const std::array<int, timeswipe::max_data_channel_count>& translation_offsets,
-      const std::array<float, timeswipe::max_data_channel_count>& translation_slopes)
+      const std::array<float, Size>& slopes,
+      const std::array<int, Size>& translation_offsets,
+      const std::array<float, Size>& translation_slopes)
     {
-      std::array<std::uint16_t, timeswipe::max_data_channel_count> sensors{};
+      std::array<std::uint16_t, Size> sensors{};
       static_assert(sizeof(sensor_offset) == sizeof(sensors[0]));
-      static_assert(slopes.size() == sensors.size());
-      static_assert(translation_offsets.size() == sensors.size());
-      static_assert(translation_slopes.size() == sensors.size());
 
       const auto channel_count = data.channel_count();
       DMITIGR_ASSERT(channel_count <= sensors.size());
