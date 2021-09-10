@@ -35,6 +35,6 @@ void CDMSchannel::UpdateOffsets()
     const auto atom = mes_mode::Voltage == m_MesMode ? Type::v_in1 : Type::c_in1;
     const hat::atom::Calibration::Type type{static_cast<std::uint16_t>(atom) +
       static_cast<std::uint16_t>(m_nChanInd)};
-    const auto& entry = cmap.atom(type).entry(m_nGainIndex, strError);
+    const auto& entry = cmap.atom(type).entry(m_nGainIndex);
     m_pDAC->SetRawOutput(entry.offset());
 }

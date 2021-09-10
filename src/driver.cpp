@@ -45,6 +45,7 @@
 #include <type_traits>
 
 namespace rajson = dmitigr::rajson;
+namespace ts = panda::timeswipe;
 
 namespace panda::timeswipe {
 namespace detail {
@@ -68,6 +69,39 @@ public:
 
     // Initialize GPIO.
     init_gpio();
+
+    // Get the calibration data.
+    calibration_map_ = [this]
+    {
+      using Ct = hat::atom::Calibration::Type;
+      hat::Calibration_map result;
+      for (const auto ct :
+             {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
+              Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4}) {
+        const auto settings_request = R"({"cAtom":)" +
+          std::to_string(static_cast<int>(ct)) + R"(})";
+        const auto json_obj = spi_.execute_get_many(settings_request);
+        const auto doc = rajson::to_document(json_obj);
+        const rajson::Value_view doc_view{doc};
+        const auto doc_cal_entries = doc_view.mandatory("data");
+        if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
+          auto& atom = result.atom(ct);
+          const auto cal_entries = v.GetArray();
+          const auto cal_entries_size = cal_entries.Size();
+          for (std::size_t i{}; i < cal_entries_size; ++i) {
+            const rajson::Value_view cal_entry{cal_entries[i]};
+            if (!cal_entry.value().IsObject())
+              throw Exception{Errc::calib_data_invalid};
+            const auto slope = cal_entry.mandatory<float>("m");
+            const auto offset = cal_entry.mandatory<std::int16_t>("b");
+            const hat::atom::Calibration::Entry entry{slope, offset};
+            atom.set_entry(i, entry);
+          }
+        } else
+          throw Exception{Errc::calib_data_invalid};
+      }
+      return result;
+    }();
   }
 
   /**
@@ -113,7 +147,7 @@ public:
 
   int version() const override
   {
-    return timeswipe::version;
+    return ts::version;
   }
 
   int min_sample_rate() const override
@@ -128,11 +162,24 @@ public:
 
   int max_data_channel_count() const override
   {
-    return timeswipe::max_data_channel_count;
+    return ts::max_data_channel_count;
   }
 
   void set_board_settings(const Board_settings& settings) override
   {
+    // Some settings cannot be applied if the board is currently busy.
+    if (is_busy()) {
+      // Check if signal mode setting presents.
+      if (settings.signal_mode())
+        throw Exception{Errc::board_is_busy};
+
+      // Check if channel measurement mode settings are present.
+      for (int i{}; i < ts::max_data_channel_count; ++i) {
+        if (settings.channel_measurement_mode(i))
+          throw Exception{Errc::board_is_busy};
+      }
+    }
+
     spi_.execute_set_many(settings.to_stringified_json());
     board_settings_.reset(); // invalidate cache (this could be optimized)
   }
@@ -177,40 +224,24 @@ public:
 
     join_threads();
 
-    // Get the calibration data.
-    calibration_map_ = [this]
-    {
+    // Pick up the calibration slopes depending on both the gain and measurement mode.
+    const auto max_channel_count = max_data_channel_count();
+    for (int i{}; i < max_channel_count; ++i) {
+      const auto& brd_sets = board_settings();
+      const auto gain = brd_sets.channel_gain(i);
+      PANDA_TIMESWIPE_ASSERT(gain);
+      const auto mm = brd_sets.channel_measurement_mode(i);
+      PANDA_TIMESWIPE_ASSERT(mm);
       using Ct = hat::atom::Calibration::Type;
-
-      hat::Calibration_map result;
-      for (const auto ct :
-             {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
-              Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4}) {
-        const auto settings_request = R"({"cAtom":)" +
-          std::to_string(static_cast<int>(ct)) + R"(})";
-        const auto json_obj = spi_.execute_get_many(settings_request);
-        const auto doc = rajson::to_document(json_obj);
-        const rajson::Value_view doc_view{doc};
-        const auto doc_cal_entries = doc_view.mandatory("data");
-        if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
-          auto& atom = result.atom(ct);
-          const auto cal_entries = v.GetArray();
-          const auto cal_entries_size = cal_entries.Size();
-          for (std::size_t i{}; i < cal_entries_size; ++i) {
-            const rajson::Value_view cal_entry{cal_entries[i]};
-            if (!cal_entry.value().IsObject())
-              throw Exception{"calibration entry not an object"};
-            const auto slope = cal_entry.mandatory<float>("m");
-            const auto offset = cal_entry.mandatory<std::int16_t>("b");
-            const hat::atom::Calibration::Entry entry{slope, offset};
-            std::string err;
-            atom.set_entry(i, entry, err);
-          }
-        } else
-          throw Exception{"invalid calibration data"};
-      }
-      return result;
-    }();
+      using Array = std::array<Ct, ts::max_data_channel_count>;
+      static const Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
+      static const Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
+      const auto& types = mm == Measurement_mode::Voltage ? v_types : c_types;
+      const auto& atom = calibration_map_.atom(types[i]);
+      const auto ogain_index = ogain_table_index(*gain);
+      PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
+      sensor_slopes_[i] = atom.entry(ogain_index).slope();
+    }
 
     /*
      * Send the command to the firmware to start the measurement.
@@ -405,9 +436,9 @@ private:
   static constexpr int initial_invalid_datasets_count{32};
   static constexpr std::uint16_t sensor_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
-  std::array<float, timeswipe::max_data_channel_count> sensor_slopes_{1, 1, 1, 1};
-  std::array<int, timeswipe::max_data_channel_count> sensor_translation_offsets_{};
-  std::array<float, timeswipe::max_data_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
+  std::array<float, ts::max_data_channel_count> sensor_slopes_{1, 1, 1, 1};
+  std::array<int, ts::max_data_channel_count> sensor_translation_offsets_{};
+  std::array<float, ts::max_data_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
   hat::Calibration_map calibration_map_;
   mutable std::optional<Board_settings> board_settings_;
   Settings settings_;
@@ -544,7 +575,7 @@ private:
     iDriver& driver_;
     decltype(driver_.resampler_) resampler_;
     decltype(driver_.settings_) settings_;
-    std::array<Measurement_mode, timeswipe::max_data_channel_count> chmm_;
+    std::array<Measurement_mode, ts::max_data_channel_count> chmm_;
   };
 
   // ---------------------------------------------------------------------------
@@ -621,7 +652,7 @@ private:
 
   static unsigned read_all_gpio()
   {
-    return (*(panda::timeswipe::detail::bcm_gpio + 13) & gpio_all_32_bits_on);
+    return (*(ts::detail::bcm_gpio + 13) & gpio_all_32_bits_on);
   }
 
   static void sleep_for_55ns()

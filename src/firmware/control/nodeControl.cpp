@@ -49,8 +49,10 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
   if (!m_bCalEnabled) return;
 
   if (m_pVoltageDAC) {
-    std::string strError;
-    const auto& entry = map.atom(hat::atom::Calibration::Type::v_supply).entry(0, strError);
+    const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
+    if (!atom.entry_count())
+      return;
+    const auto& entry = atom.entry(0);
     m_pVoltageDAC->SetLinearFactors(entry.slope(), entry.offset());
     m_pVoltageDAC->SetVal();
   }
@@ -115,7 +117,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
         size_t pair_ind=0;
         for(auto &el : data) {
           //init the pair:
-          auto entry = map.atom(type).entry(pair_ind, strError);
+          auto entry = map.atom(type).entry(pair_ind);
           if (!strError.empty()) return false;
 
           if (const auto it_m = el.find("m"); it_m != el.end())
@@ -123,7 +125,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
           if (const auto it_b = el.find("b"); it_b != el.end())
             entry.set_offset(*it_b);
 
-          map.atom(type).set_entry(pair_ind, std::move(entry), strError);
+          map.atom(type).set_entry(pair_ind, std::move(entry));
           if (!strError.empty()) return false;
 
           pair_ind++;
@@ -142,9 +144,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 
     auto resp_data = nlohmann::json::array();
     for (std::size_t i{}; i < cal_entry_count; ++i) {
-      const auto& entry = map.atom(type).entry(i, strError);
-      if (!strError.empty()) return false;
-
+      const auto& entry = map.atom(type).entry(i);
       //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
       nlohmann::json jpair;
       jpair["m"]=entry.slope();

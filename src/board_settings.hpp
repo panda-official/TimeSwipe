@@ -64,7 +64,11 @@ public:
   ///
   /// @{
 
-  /// Sets the signal mode.
+  /**
+   * Sets the signal mode.
+   *
+   * @note This setting can be applied only if `Driver::instance().is_busy() == false`.
+   */
   Board_settings& set_signal_mode(Signal_mode mode);
 
   /// @returns The value of signal mode.
@@ -76,11 +80,15 @@ public:
   ///
   /// @brief This API provides a way to control of PWM.
   ///
-  /// Channel indexes must be in range `[0, 3]`.
+  /// Channel indexes must be in range `[0, max_data_channel_count]`.
   ///
   /// @{
 
-  /// Sets the channel measurement mode.
+  /**
+   * Sets the channel measurement mode.
+   *
+   * @note This setting can be applied only if `Driver::instance().is_busy() == false`.
+   */
   Board_settings& set_channel_measurement_mode(int index, Measurement_mode value);
 
   /// @returns The value of channel measurement mode.

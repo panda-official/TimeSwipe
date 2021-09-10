@@ -452,7 +452,7 @@ public:
   {
     const Type result{value};
     if (!make_literal(result))
-      err = timeswipe::make_literal(Errc::invalid_calibration_atom_type);
+      err = timeswipe::make_literal(Errc::calib_data_invalid_atom_type);
     return result;
   }
 
@@ -475,19 +475,15 @@ public:
   }
 
   /// @returns The data of the specified `index`.
-  const Entry& entry(const std::size_t index, std::string& err) const
+  const Entry& entry(const std::size_t index) const
   {
-    if (!(index < entries_.size()))
-      err = timeswipe::make_literal(Errc::invalid_calibration_atom_entry_index);
-    return entries_[index];
+    return entries_.at(index);
   }
 
   /// Sets the entry `value` at the specified `index`.
-  Calibration& set_entry(const std::size_t index, const Entry& value, std::string& err)
+  Calibration& set_entry(const std::size_t index, const Entry& value)
   {
-    if (!(index < entries_.size()))
-      err = timeswipe::make_literal(Errc::invalid_calibration_atom_entry_index);
-    entries_[index] = value;
+    entries_.at(index) = value;
     return *this;
   }
 

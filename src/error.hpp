@@ -51,7 +51,7 @@ enum class Errc {
   invalid_board_state = 2003,
   invalid_data_handler = 2004,
 
-  /** Drift reference section **/
+  /** Drift compensation reference section **/
 
   drift_reference = 3001,
   invalid_drift_reference = 3002,
@@ -59,11 +59,11 @@ enum class Errc {
   insufficient_drift_references = 3004,
   excessive_drift_references = 3005,
 
-  /** Calibration ATOM section **/
+  /** Calibration data section **/
 
-  calibration_atom = 4001,
-  invalid_calibration_atom_type = 4002,
-  invalid_calibration_atom_entry_index = 4003,
+  calib_data = 4001,
+  calib_data_invalid = 4002,
+  calib_data_invalid_atom_type = 4003,
 
   /** SPI section **/
 
@@ -115,9 +115,9 @@ constexpr const char* make_literal(const Errc errc) noexcept
   case Errc::insufficient_drift_references: return "insufficient_drift_references";
   case Errc::excessive_drift_references: return "excessive_drift_references";
 
-  case Errc::calibration_atom: return "calibration_atom";
-  case Errc::invalid_calibration_atom_type: return "invalid_calibration_atom_type";
-  case Errc::invalid_calibration_atom_entry_index: return "invalid_calibration_atom_entry_index";
+  case Errc::calib_data: return "calib_data";
+  case Errc::calib_data_invalid: return "calib_data_invalid";
+  case Errc::calib_data_invalid_atom_type: return "calib_data_invalid_atom_type";
 
   case Errc::spi: return "spi";
   case Errc::spi_send: return "spi_send";
