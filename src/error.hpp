@@ -41,7 +41,6 @@ enum class Errc {
   board_is_busy = 2002,
   invalid_board_state = 2003,
   invalid_data_handler = 2004,
-  invalid_event_handler = 2005,
 
   /** Drift reference section **/
 
@@ -100,7 +99,6 @@ constexpr const char* make_literal(const Errc errc) noexcept
   case Errc::board_is_busy: return "board_is_busy";
   case Errc::invalid_board_state: return "invalid_board_state";
   case Errc::invalid_data_handler: return "invalid_data_handler";
-  case Errc::invalid_event_handler: return "invalid_event_handler";
 
   case Errc::drift_reference: return "drift_reference";
   case Errc::invalid_drift_reference: return "invalid_drift_reference";

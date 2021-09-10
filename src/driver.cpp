@@ -167,7 +167,7 @@ public:
     return settings_;
   }
 
-  void start(Data_handler&& data_handler, Event_handler&& event_handler = {})
+  void start(Data_handler&& data_handler)
   {
     if (!data_handler)
       throw Runtime_exception{Errc::invalid_data_handler};
@@ -228,8 +228,6 @@ public:
 
     threads_.emplace_back(&Rep::fetcher_loop, this);
     threads_.emplace_back(&Rep::poller_loop, this, std::move(data_handler));
-    if (event_handler)
-      threads_.emplace_back(&Rep::events_loop, this, std::move(event_handler));
   }
 
   bool is_busy() const noexcept
@@ -756,53 +754,6 @@ private:
     spi_.execute_set_one("EnableADmes", std::to_string(value));
   }
 
-  std::vector<Event> spi_get_events() noexcept
-  {
-    std::vector<Event> result;
-    if (const auto json = spi_.execute_get_events(); !json.empty()) {
-      try {
-        result.reserve(7);
-        const auto doc = rajson::to_document(json);
-        const rajson::Value_view view{doc};
-
-        // Get Button event.
-        if (const auto button = view.optional<bool>("Button")) {
-          if (const auto count = view.optional<int>("ButtonStateCnt"))
-            result.emplace_back(Event::Button(*button, *count));
-        }
-
-        // Get Gain event.
-        if (const auto value = view.optional<int>("Gain"))
-          result.emplace_back(Event::Gain(*value));
-
-        // Get SetSecondary event.
-        if (const auto value = view.optional<int>("SetSecondary"))
-          result.emplace_back(Event::Set_secondary(*value));
-
-        // Get Bridge event.
-        if (const auto value = view.optional<int>("Bridge"))
-          result.emplace_back(Event::Bridge(*value));
-
-        // Get Record event.
-        if (const auto value = view.optional<int>("Record"))
-          result.emplace_back(Event::Record(*value));
-
-        // Get Offset event.
-        if (const auto value = view.optional<int>("Offset"))
-          result.emplace_back(Event::Offset(*value));
-
-        // Get Mode event.
-        if (const auto value = view.optional<int>("Mode"))
-          result.emplace_back(Event::Mode(*value));
-      } catch (const std::exception& e) {
-        std::cerr << "spi_get_events(): " << e.what() << "\n";
-      } catch (...) {
-        std::cerr << "spi_get_events(): unknown error\n";
-      }
-    }
-    return result;
-  }
-
   // -----------------------------------------------------------------------------
   // Sensor data reading, queueing and pushing stuff
   // -----------------------------------------------------------------------------
@@ -931,18 +882,6 @@ private:
     if (!in_handler_ && burst_buffer_.size()) {
       Callbacker{*this}(handler, std::move(burst_buffer_), 0);
       burst_buffer_.clear();
-    }
-  }
-
-  void events_loop(Event_handler&& handler)
-  {
-    while (is_measurement_started_) {
-      // Receive events.
-      for (auto&& event : spi_get_events()) {
-        if (handler)
-          Callbacker{*this}(handler, std::move(event));
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds{20});
     }
   }
 
@@ -1112,9 +1051,9 @@ auto Driver::settings() const -> const Settings&
   return rep_->settings();
 }
 
-void Driver::start(Data_handler data_handler, Event_handler event_handler)
+void Driver::start(Data_handler data_handler)
 {
-  rep_->start(std::move(data_handler), std::move(event_handler));
+  rep_->start(std::move(data_handler));
 }
 
 bool Driver::is_busy() const noexcept

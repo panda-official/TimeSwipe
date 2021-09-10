@@ -130,18 +130,6 @@ try {
         } else
           logs_ready = false;
       }
-    },
-    [](ts::Event&& event)
-    {
-      try {
-        if (auto* gain = event.get<ts::Event::Gain>()) {
-          std::cout << "Gain event: " << gain->value() << std::endl;
-        }
-      } catch (const std::exception& e) {
-        std::clog << "OnEvent: " << e.what() << '\n';
-      } catch (...) {
-        std::clog << "OnEvent: unknown error\n";
-      }
     });
 
     std::unique_lock lk{finished_mutex};

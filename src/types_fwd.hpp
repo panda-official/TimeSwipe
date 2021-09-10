@@ -25,7 +25,6 @@ class Board_settings;
 class Data_vector;
 class Driver;
 class Driver_settings;
-class Event;
 
 } // namespace panda::timeswipe
 

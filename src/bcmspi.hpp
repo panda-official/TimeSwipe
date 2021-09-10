@@ -117,11 +117,6 @@ public:
     return execute("js>" + json_object + "\n");
   }
 
-  std::string execute_get_events()
-  {
-    return execute("je>\n");
-  }
-
   // ---------------------------------------------------------------------------
   // CSPI overridings
   // ---------------------------------------------------------------------------
@@ -197,11 +192,6 @@ public:
   void send_get_many(const std::string& json_array)
   {
     send_throw("js>" + json_array + "\n");
-  }
-
-  void send_get_events()
-  {
-    send_throw("je>\n");
   }
 
   void send_throw(const std::string& request)

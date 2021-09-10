@@ -170,25 +170,6 @@ int main(int argc, char *argv[])
           data_log << '\n';
         }
       }
-    },
-    [&](ts::Event&& event) {
-      using ts::Event;
-      if (auto* button = event.get<Event::Button>())
-        std::cout << "Button event: "
-                  << (button->is_pressed() ? "pressed":"released")
-                  << " counter: " << button->count() << std::endl;
-      else if(auto* gain = event.get<Event::Gain>())
-        std::cout << "Gain event: " << gain->value() << std::endl;
-      else if(auto* val = event.get<Event::Set_secondary>())
-        std::cout << "Set_secondary event: " << val->value() << std::endl;
-      else if(auto* val = event.get<Event::Bridge>())
-        std::cout << "Bridge event: " <<  val->value() << std::endl;
-      else if(auto* val = event.get<Event::Record>())
-        std::cout << "Record event: " <<  val->value() << std::endl;
-      else if(auto* val = event.get<Event::Offset>())
-        std::cout << "Offset event: " <<  val->value() << std::endl;
-      else if(auto* val = event.get<Event::Mode>())
-        std::cout << "Mode event: " <<  val->value() << std::endl;
     });
 
     const auto start = std::chrono::system_clock::now();

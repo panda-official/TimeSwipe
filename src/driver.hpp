@@ -22,7 +22,6 @@
 #include "board_settings.hpp"
 #include "data_vector.hpp"
 #include "driver_settings.hpp"
-#include "event.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -43,13 +42,6 @@ class Driver final {
 public:
   /// An alias of driver settings.
   using Settings = Driver_settings;
-
-  /**
-   * An alias of a function to handle the incoming events.
-   *
-   * @see start().
-   */
-  using Event_handler = std::function<void(Event&&)>;
 
   /**
    * An alias of a function to handle the incoming sensor data.
@@ -156,8 +148,7 @@ public:
    * incoming sensor data and `data_handler` will be called with positive error
    * marker.
    *
-   * @warning This method cannot be called from neither `data_handler` nor
-   * `event_handler`!
+   * @warning This method cannot be called from `data_handler`.
    *
    * @par Requires
    * `!is_busy()`.
@@ -167,7 +158,7 @@ public:
    *
    * @see set_measurement_options(), set_state(), stop().
    */
-  void start(Data_handler data_handler, Event_handler event_handler = {});
+  void start(Data_handler data_handler);
 
   /**
    * @returns `true` if the board is busy (measurement in progress).
