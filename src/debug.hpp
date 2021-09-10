@@ -33,9 +33,9 @@ constexpr bool is_debug{dmitigr::is_debug};
 // -----------------------------------------------------------------------------
 
 /// Exception with source info.
-class Debug_exception final :
-    public dmitigr::Exception_with_info<Basic_exception<std::runtime_error>> {
-  using Super = dmitigr::Exception_with_info<Basic_exception<std::runtime_error>>;
+class Debug_exception final : public dmitigr::Exception_with_info<Exception> {
+public:
+  using Super = dmitigr::Exception_with_info<Exception>;
   using Super::Super;
 };
 

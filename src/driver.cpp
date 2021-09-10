@@ -64,7 +64,7 @@ public:
     std::string msg;
     if (!pid_file_.lock(msg))
       // Lock here. Second lock from the same process is allowed.
-      throw Runtime_exception{Errc::pid_file_lock_failed};
+      throw Exception{Errc::pid_file_lock_failed};
 
     // Initialize GPIO.
     init_gpio();
@@ -170,10 +170,10 @@ public:
   void start(Data_handler data_handler) override
   {
     if (!data_handler)
-      throw Runtime_exception{Errc::invalid_data_handler};
+      throw Exception{Errc::invalid_data_handler};
 
     if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
+      throw Exception{Errc::board_is_busy};
 
     join_threads();
 
@@ -199,7 +199,7 @@ public:
           for (std::size_t i{}; i < cal_entries_size; ++i) {
             const rajson::Value_view cal_entry{cal_entries[i]};
             if (!cal_entry.value().IsObject())
-              throw Runtime_exception{"calibration entry not an object"};
+              throw Exception{"calibration entry not an object"};
             const auto slope = cal_entry.mandatory<float>("m");
             const auto offset = cal_entry.mandatory<std::int16_t>("b");
             const hat::atom::Calibration::Entry entry{slope, offset};
@@ -207,7 +207,7 @@ public:
             atom.set_entry(i, entry, err);
           }
         } else
-          throw Runtime_exception{"invalid calibration data"};
+          throw Exception{"invalid calibration data"};
       }
       return result;
     }();
@@ -294,7 +294,7 @@ public:
   void clear_drift_references() override
   {
     if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
+      throw Exception{Errc::board_is_busy};
 
     std::filesystem::remove(tmp_dir()/"drift_references");
     drift_references_.reset();
@@ -306,7 +306,7 @@ public:
     // Throw away if there are no references.
     const auto refs= drift_references();
     if (!refs)
-      throw Runtime_exception{Errc::no_drift_references};
+      throw Exception{Errc::no_drift_references};
 
     // Collect the data for calculation.
     auto data{collect_sensors_data(drift_samples_count,
@@ -333,7 +333,7 @@ public:
   void clear_drift_deltas() override
   {
     if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
+      throw Exception{Errc::board_is_busy};
 
     drift_deltas_.reset();
   }
@@ -349,7 +349,7 @@ public:
 
     std::ifstream in{drift_references};
     if (!in)
-      throw Runtime_exception{Errc::invalid_drift_reference};
+      throw Exception{Errc::invalid_drift_reference};
 
     std::vector<float> refs;
     while (in && refs.size() < max_data_channel_count()) {
@@ -360,10 +360,10 @@ public:
     if (!in.eof()) {
       float val;
       if (in >> val)
-        throw Runtime_exception{Errc::excessive_drift_references};
+        throw Exception{Errc::excessive_drift_references};
     }
     if (refs.empty())
-      throw Runtime_exception{Errc::insufficient_drift_references};
+      throw Exception{Errc::insufficient_drift_references};
 
     PANDA_TIMESWIPE_ASSERT(refs.size() <= max_data_channel_count());
 
@@ -511,7 +511,7 @@ private:
           if (const auto mm = driver_.board_settings().channel_measurement_mode(index))
             return *mm;
           else
-            throw Runtime_exception{Errc::invalid_board_state};
+            throw Exception{Errc::invalid_board_state};
         };
         for (int i{}; i < chmm_.size(); ++i)
           chmm_[i] = channel_mode(i);
@@ -895,7 +895,7 @@ private:
 
     const auto max_rate = max_sample_rate();
     if (!(1 <= rate && rate <= max_rate))
-      throw Runtime_exception{Errc::out_of_range, "invalid sample rate"};
+      throw Exception{Errc::out_of_range, "invalid sample rate"};
 
     auto result = std::move(resampler_);
     if (rate != max_rate) {
@@ -949,7 +949,7 @@ private:
   Data_vector collect_sensors_data(const std::size_t samples_count, F&& state_guard)
   {
     if (is_busy())
-      throw Runtime_exception{Errc::board_is_busy};
+      throw Exception{Errc::board_is_busy};
 
     const auto guard{state_guard()};
 
@@ -987,7 +987,7 @@ private:
 
     // Throw away if the data collection failed.
     if (is_error(errc))
-      throw Runtime_exception{errc};
+      throw Exception{errc};
 
     return data;
   }

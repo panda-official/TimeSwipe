@@ -64,7 +64,7 @@ int main()
   try {
     PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
     driver.calculate_drift_deltas();
-  } catch (const ts::Runtime_exception& e) {
+  } catch (const ts::Exception& e) {
     PANDA_TIMESWIPE_ASSERT(e.condition() == ts::Errc::no_drift_references);
   }
 

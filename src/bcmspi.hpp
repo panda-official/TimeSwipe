@@ -260,7 +260,7 @@ public:
     std::clog << "spi: sent: \"" << request << "\"" << std::endl;
 #endif
     if (!res)
-      throw Runtime_exception{Errc::spi_send};
+      throw Exception{Errc::spi_send};
   }
 
   /**
@@ -295,7 +295,7 @@ public:
           else
             return Errc::com_proto;
         }();
-        throw Runtime_exception{errc};
+        throw Exception{errc};
       }
 
       // Strip result.
@@ -310,7 +310,7 @@ public:
 #ifdef PANDA_TIMESWIPE_TRACE_SPI
     std::clog << "spi: receive error" << std::endl;
 #endif
-    throw Runtime_exception{Errc::spi_receive};
+    throw Exception{Errc::spi_receive};
   }
 
 private:

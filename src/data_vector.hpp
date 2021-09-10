@@ -43,7 +43,7 @@ public:
     : channel_count_{channel_count}
   {
     if (channel_count > max_data_channel_count)
-      throw Runtime_exception{Errc::out_of_range};
+      throw Exception{Errc::out_of_range};
   }
 
   /// @returns The number of channels whose data this vector contains.

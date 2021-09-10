@@ -147,7 +147,7 @@ constexpr const char* make_literal_anyway(const Errc errc) noexcept
 }
 
 // -----------------------------------------------------------------------------
-// ErrorCategory
+// Error_category
 // -----------------------------------------------------------------------------
 
 /**
@@ -227,20 +227,15 @@ template<> struct is_error_condition_enum<panda::timeswipe::Errc> final : true_t
 namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
-// Basic_exception
+// Exception
 // -----------------------------------------------------------------------------
 
 /**
  * @ingroup errors
  *
- * @brief An exception base class.
- *
- * @tparam StdError Must be either `std::logic_error` or `std::runtime_error`.
+ * An exception class.
  */
-template<class StdError>
-class Basic_exception : public StdError {
-  static_assert(std::is_same_v<std::logic_error, StdError> ||
-    std::is_same_v<std::runtime_error, StdError>);
+class Exception : public std::exception {
 public:
   /**
    * The constructor of instance which represents the generic error.
@@ -248,8 +243,8 @@ public:
    * @param what The custom what-string. If ommitted, the value returned by
    * `make_literal(errc)` will be used as a what-string.
    */
-  Basic_exception(std::string what = {})
-    : Basic_exception{Errc::generic, std::move(what)}
+  Exception(std::string what = {})
+    : Exception{Errc::generic, std::move(what)}
   {}
 
   /**
@@ -259,10 +254,16 @@ public:
    * @param what The custom what-string. If ommitted, the value returned by
    * `make_literal(errc)` will be used as a what-string.
    */
-  explicit Basic_exception(const Errc errc, std::string what = {})
-    : StdError{what.empty() ? make_literal_anyway(errc) : what}
+  explicit Exception(const Errc errc, std::string what = {})
+    : what_holder_{what.empty() ? make_literal_anyway(errc) : what}
     , condition_{errc}
   {}
+
+  /// @see std::exception::what().
+  const char* what() const noexcept override
+  {
+    return what_holder_.what();
+  }
 
   /// @returns Error condition.
   std::error_condition condition() const noexcept
@@ -271,14 +272,9 @@ public:
   }
 
 private:
+  std::runtime_error what_holder_;
   std::error_condition condition_;
 };
-
-// -----------------------------------------------------------------------------
-// Runtime_exception
-// -----------------------------------------------------------------------------
-
-using Runtime_exception = Basic_exception<std::runtime_error>;
 
 } // namespace panda::timeswipe
 
