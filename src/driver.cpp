@@ -217,7 +217,7 @@ public:
   void start(Data_handler data_handler) override
   {
     if (!data_handler)
-      throw Exception{Errc::invalid_data_handler};
+      throw Exception{Errc::invalid_argument};
 
     if (is_busy())
       throw Exception{Errc::board_is_busy};
@@ -337,7 +337,7 @@ public:
     // Throw away if there are no references.
     const auto refs= drift_references();
     if (!refs)
-      throw Exception{Errc::no_drift_references};
+      throw Exception{Errc::drift_comp_no_references};
 
     // Collect the data for calculation.
     auto data{collect_sensors_data(drift_samples_count,
@@ -380,7 +380,7 @@ public:
 
     std::ifstream in{drift_references};
     if (!in)
-      throw Exception{Errc::invalid_drift_reference};
+      throw Exception{Errc::drift_comp_invalid_reference};
 
     std::vector<float> refs;
     while (in && refs.size() < max_data_channel_count()) {
@@ -391,10 +391,10 @@ public:
     if (!in.eof()) {
       float val;
       if (in >> val)
-        throw Exception{Errc::excessive_drift_references};
+        throw Exception{Errc::drift_comp_excessive_references};
     }
     if (refs.empty())
-      throw Exception{Errc::insufficient_drift_references};
+      throw Exception{Errc::drift_comp_insufficient_references};
 
     PANDA_TIMESWIPE_ASSERT(refs.size() <= max_data_channel_count());
 
@@ -542,7 +542,7 @@ private:
           if (const auto mm = driver_.board_settings().channel_measurement_mode(index))
             return *mm;
           else
-            throw Exception{Errc::invalid_board_state};
+            throw Exception{Errc::board_invalid_state};
         };
         for (int i{}; i < chmm_.size(); ++i)
           chmm_[i] = channel_mode(i);

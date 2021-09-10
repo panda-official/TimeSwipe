@@ -38,6 +38,7 @@ enum class Errc {
 
   generic = 1,
   out_of_range = 2,
+  invalid_argument = 3,
 
   /** PID file section **/
 
@@ -48,16 +49,15 @@ enum class Errc {
 
   board = 2001,
   board_is_busy = 2002,
-  invalid_board_state = 2003,
-  invalid_data_handler = 2004,
+  board_invalid_state = 2003,
 
-  /** Drift compensation reference section **/
+  /** Drift compensation section **/
 
-  drift_reference = 3001,
-  invalid_drift_reference = 3002,
-  no_drift_references = 3003,
-  insufficient_drift_references = 3004,
-  excessive_drift_references = 3005,
+  drift_comp = 3001,
+  drift_comp_invalid_reference = 3002,
+  drift_comp_no_references = 3003,
+  drift_comp_insufficient_references = 3004,
+  drift_comp_excessive_references = 3005,
 
   /** Calibration data section **/
 
@@ -100,20 +100,20 @@ constexpr const char* make_literal(const Errc errc) noexcept
 
   case Errc::generic: return "generic";
   case Errc::out_of_range: return "out_of_range";
+  case Errc::invalid_argument: return "invalid_argument";
 
   case Errc::pid_file: return "pid_file";
   case Errc::pid_file_lock_failed: return "pid_file_lock_failed";
 
   case Errc::board: return "board";
   case Errc::board_is_busy: return "board_is_busy";
-  case Errc::invalid_board_state: return "invalid_board_state";
-  case Errc::invalid_data_handler: return "invalid_data_handler";
+  case Errc::board_invalid_state: return "board_invalid_state";
 
-  case Errc::drift_reference: return "drift_reference";
-  case Errc::invalid_drift_reference: return "invalid_drift_reference";
-  case Errc::no_drift_references: return "no_drift_references";
-  case Errc::insufficient_drift_references: return "insufficient_drift_references";
-  case Errc::excessive_drift_references: return "excessive_drift_references";
+  case Errc::drift_comp: return "drift_comp";
+  case Errc::drift_comp_invalid_reference: return "drift_comp_invalid_reference";
+  case Errc::drift_comp_no_references: return "drift_comp_no_references";
+  case Errc::drift_comp_insufficient_references: return "drift_comp_insufficient_references";
+  case Errc::drift_comp_excessive_references: return "drift_comp_excessive_references";
 
   case Errc::calib_data: return "calib_data";
   case Errc::calib_data_invalid: return "calib_data_invalid";
