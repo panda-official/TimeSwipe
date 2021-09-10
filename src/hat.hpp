@@ -1,7 +1,7 @@
 // -*- C++ -*-
 
-// PANDA TimeSwipe Project
-// Copyright (C) 2021  PANDA GmbH
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH / Dmitry Igrishin
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
