@@ -1002,7 +1002,4 @@ private:
 
 } // namespace panda::timeswipe::hat
 
-/// FIXME: remove after placing the entire code base in the namespace
-using namespace panda::timeswipe;
-
 #endif  // PANDA_TIMESWIPE_HAT_HPP

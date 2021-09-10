@@ -21,6 +21,9 @@ Copyright (c) 2019 Panda Team
 
 #include <memory>
 
+/// FIXME: remove after placing the entire code base in the namespace
+using namespace panda::timeswipe;
+
 /*!
  * \brief Provides the basic functionality of the board
  * \details The class can be considered as somewhat usually called "controller"
