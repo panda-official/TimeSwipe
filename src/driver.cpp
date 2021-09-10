@@ -18,13 +18,13 @@
 
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
+#include "debug.hpp"
 #include "driver.hpp"
 #include "gain.hpp"
 #include "hat.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 
-#include "3rdparty/dmitigr/assert.hpp"
 #include "3rdparty/dmitigr/filesystem.hpp"
 #include "3rdparty/dmitigr/math.hpp"
 #include "3rdparty/dmitigr/rajson.hpp"
@@ -217,7 +217,7 @@ public:
      * Effects: the reader does receive the data from the board.
      */
     {
-      DMITIGR_ASSERT(is_gpio_inited_);
+      PANDA_TIMESWIPE_ASSERT(is_gpio_inited_);
 
       // Start measurement.
       using std::chrono::milliseconds;
@@ -311,7 +311,7 @@ public:
     // Collect the data for calculation.
     auto data{collect_sensors_data(drift_samples_count,
       [this]{return Drift_affected_state_guard{*this};})};
-    DMITIGR_ASSERT(refs->size() == data.channel_count());
+    PANDA_TIMESWIPE_ASSERT(refs->size() == data.channel_count());
 
     // Discard the first half.
     data.erase_front(drift_samples_count / 2);
@@ -365,7 +365,7 @@ public:
     if (refs.empty())
       throw Runtime_exception{Errc::insufficient_drift_references};
 
-    DMITIGR_ASSERT(refs.size() <= max_data_channel_count());
+    PANDA_TIMESWIPE_ASSERT(refs.size() <= max_data_channel_count());
 
     // Cache and return references.
     return drift_references_ = refs;
@@ -683,7 +683,7 @@ private:
       static_assert(sizeof(sensor_offset) == sizeof(sensors[0]));
 
       const auto channel_count = data.channel_count();
-      DMITIGR_ASSERT(channel_count <= sensors.size());
+      PANDA_TIMESWIPE_ASSERT(channel_count <= sensors.size());
 
       constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
       {
@@ -832,7 +832,7 @@ private:
         const auto& deltas = *drift_deltas_;
         for (std::size_t i{}; i < num; ++i) {
           const auto channel_count = records[i].channel_count();
-          DMITIGR_ASSERT(deltas.size() == channel_count);
+          PANDA_TIMESWIPE_ASSERT(deltas.size() == channel_count);
           for (std::size_t j{}; j < channel_count; ++j) {
             auto& values = records[i][j];
             const auto delta = deltas[j];
@@ -903,14 +903,14 @@ private:
       const auto up = rate / rates_gcd;
       const auto down = max_rate / rates_gcd;
       if (resampler) {
-        DMITIGR_ASSERT(up == resampler->options().up_factor());
-        DMITIGR_ASSERT(down == resampler->options().down_factor());
+        PANDA_TIMESWIPE_ASSERT(up == resampler->options().up_factor());
+        PANDA_TIMESWIPE_ASSERT(down == resampler->options().down_factor());
         resampler_ = std::move(resampler);
       } else
         resampler_ = std::make_unique<detail::Resampler>
           (detail::Resampler_options{up, down});
     } else {
-      DMITIGR_ASSERT(!resampler);
+      PANDA_TIMESWIPE_ASSERT(!resampler);
       resampler_.reset();
     }
 
@@ -982,7 +982,7 @@ private:
       std::unique_lock lock{mutex};
       update.wait(lock, [&done]{ return done.load(); });
     }
-    DMITIGR_ASSERT(done);
+    PANDA_TIMESWIPE_ASSERT(done);
     stop();
 
     // Throw away if the data collection failed.

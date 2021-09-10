@@ -20,8 +20,8 @@
 #define PANDA_TIMESWIPE_RAJSON_HPP
 
 #include "basics.hpp"
+#include "debug.hpp"
 
-#include "3rdparty/dmitigr/assert.hpp"
 #include "3rdparty/dmitigr/rajson.hpp"
 
 #include <optional>
@@ -80,8 +80,8 @@ void set_array_element(rapidjson::GenericValue<Encoding, Allocator>& json, Alloc
   } else if (!i->value.IsArray())
     i->value.SetArray();
 
-  DMITIGR_ASSERT(i != json.MemberEnd());
-  DMITIGR_ASSERT(i->value.IsArray());
+  PANDA_TIMESWIPE_ASSERT(i != json.MemberEnd());
+  PANDA_TIMESWIPE_ASSERT(i->value.IsArray());
 
   auto& array = i->value;
   if (index <= array.Size()) {

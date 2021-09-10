@@ -20,10 +20,9 @@
 #define PANDA_TIMESWIPE_RESAMPLER_HPP
 
 #include "data_vector.hpp"
+#include "debug.hpp"
 #include "fir_resampler.hpp"
 #include "math.hpp"
-
-#include "3rdparty/dmitigr/assert.hpp"
 
 #include <algorithm>
 #include <array>
@@ -61,7 +60,7 @@ public:
     down_factor__(down_factor);
     filter_length__(flength);
     freq_ampl__(std::move(freq), std::move(ampl));
-    DMITIGR_ASSERT(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
   }
 
   /**
@@ -72,7 +71,7 @@ public:
   Resampler_options& set_up_factor(const unsigned value) noexcept
   {
     up_factor__(value);
-    DMITIGR_ASSERT(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
@@ -96,7 +95,7 @@ public:
   Resampler_options& set_down_factor(const unsigned value) noexcept
   {
     down_factor__(value);
-    DMITIGR_ASSERT(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
@@ -120,7 +119,7 @@ public:
   Resampler_options& set_extrapolation(const Signal_extrapolation value) noexcept
   {
     extrapolation_ = value;
-    DMITIGR_ASSERT(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
@@ -148,7 +147,7 @@ public:
   Resampler_options& set_crop_extra(const bool value) noexcept
   {
     crop_extra_ = value;
-    DMITIGR_ASSERT(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
@@ -172,7 +171,7 @@ public:
   Resampler_options& set_filter_length(const unsigned value) noexcept
   {
     filter_length__(value);
-    DMITIGR_ASSERT(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
@@ -200,9 +199,9 @@ public:
    */
   Resampler_options& set_freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
   {
-    DMITIGR_ASSERT(freq.size() == ampl.size());
+    PANDA_TIMESWIPE_ASSERT(freq.size() == ampl.size());
     freq_ampl__(std::move(freq), std::move(ampl));
-    DMITIGR_ASSERT(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
@@ -318,7 +317,7 @@ public:
       std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
       if (firc.size() > std::numeric_limits<int>::max())
         throw std::runtime_error{"too many FIR coefficients required"};
-      DMITIGR_ASSERT(options_.filter_length() == firc.size());
+      PANDA_TIMESWIPE_ASSERT(options_.filter_length() == firc.size());
       std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
 
@@ -336,7 +335,7 @@ public:
       const auto apply_kaiser_and_sum = [&firc, &result, u = options_.up_factor()](const double beta)
       {
         const auto window = kaiser(firc.size(), beta);
-        DMITIGR_ASSERT(firc.size() == window.size());
+        PANDA_TIMESWIPE_ASSERT(firc.size() == window.size());
         transform(cbegin(window), cend(window), cbegin(firc), begin(result),
           [u](const auto w, const auto c)
           {
@@ -418,9 +417,9 @@ public:
       auto result = make_zero_result(resampler, input_size);
       const auto out = resampler.apply(cbegin(input), cend(input), begin(result));
       using Sz = decltype(result.size());
-      DMITIGR_ASSERT(result.size() == static_cast<Sz>(std::distance(begin(result), out)));
+      PANDA_TIMESWIPE_ASSERT(result.size() == static_cast<Sz>(std::distance(begin(result), out)));
       if (rstate.unskipped_leading_count) {
-        DMITIGR_ASSERT(options_.crop_extra());
+        PANDA_TIMESWIPE_ASSERT(options_.crop_extra());
         const auto b = cbegin(result);
         const auto skip_count = std::min<std::size_t>(rstate.unskipped_leading_count, result.size());
         result.erase(b, b + skip_count);
@@ -452,7 +451,7 @@ public:
       auto result = make_zero_result(resampler, resampler.coefs_per_phase() - 1);
       if (options_.crop_extra()) {
         const auto skip_count = trailing_skip_count(resampler);
-        DMITIGR_ASSERT(skip_count < result.size());
+        PANDA_TIMESWIPE_ASSERT(skip_count < result.size());
         resampler.flush(begin(result));
         result.resize(result.size() - skip_count);
       } else
