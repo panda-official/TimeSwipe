@@ -33,8 +33,10 @@
 
 namespace panda::timeswipe::detail {
 
+/// Implementation of SPI for BCM.
 class Bcm_spi final : public CSPI {
 public:
+  /// BCM pins.
   enum Pins {
     spi0,
     aux
@@ -77,11 +79,13 @@ public:
     set_speed(50000);
   }
 
+  /// @returns `true` if SPI initialized for the specific pins.
   bool is_initialized() const noexcept
   {
     return is_spi_initialized_[pins_];
   }
 
+  /// @returns The state of FSM.
   CSyncSerComFSM::FSM fsm_state() const noexcept
   {
     return com_cntr_.state();
@@ -91,27 +95,53 @@ public:
   // Requests execution (high-level API)
   // ---------------------------------------------------------------------------
 
+  /**
+   * Executes the SPI `request`.
+   *
+   * @throws An instance of Exception with either `Errc::spi_send` or
+   * `Errc::spi_receive`.
+   */
   std::string execute(const std::string& request)
   {
     send_throw(request);
     return receive_throw();
   }
 
+  /**
+   * Executes the SPI set request.
+   *
+   * @throws See execute().
+   */
   std::string execute_set_one(const std::string& name, const std::string& value)
   {
     return execute(name + "<" + value + "\n");
   }
 
+  /**
+   * Executes the SPI get request.
+   *
+   * @throws See execute().
+   */
   std::string execute_get_one(const std::string& name)
   {
     return execute(name + ">\n");
   }
 
+  /**
+   * Executes the SPI "set many" request.
+   *
+   * @throws See execute().
+   */
   std::string execute_set_many(const std::string& json_object)
   {
     return execute("js<" + json_object + "\n");
   }
 
+  /**
+   * Executes the SPI "set many" request.
+   *
+   * @throws See execute().
+   */
   std::string execute_get_many(const std::string& json_object)
   {
     return execute("js>" + json_object + "\n");
@@ -121,6 +151,7 @@ public:
   // CSPI overridings
   // ---------------------------------------------------------------------------
 
+  /// See CSPI::send().
   bool send(CFIFO& msg) override
   {
     if (!is_initialized())
@@ -165,6 +196,7 @@ public:
     return true;
   }
 
+  /// See CSPI::receive().
   bool receive(CFIFO& msg) override
   {
     if (!is_initialized())
@@ -174,26 +206,51 @@ public:
     return com_cntr_.state() == CSyncSerComFSM::FSM::recOK;
   }
 
+  /**
+   * Sends the SPI "set one" request.
+   *
+   * @throws See send_throw().
+   */
   void send_set_one(const std::string& name, const std::string& value)
   {
     send_throw(name + "<" + value + "\n");
   }
 
+  /**
+   * Sends the SPI "get one" request.
+   *
+   * @throws See send_throw().
+   */
   void send_get_one(const std::string& name)
   {
     send_throw(name + ">\n");
   }
 
+  /**
+   * Sends the SPI "set many" request.
+   *
+   * @throws See send_throw().
+   */
   void send_set_many(const std::string& json_object)
   {
     send_throw("js<" + json_object + "\n");
   }
 
+  /**
+   * Sends the SPI "get many" request.
+   *
+   * @throws See send_throw().
+   */
   void send_get_many(const std::string& json_array)
   {
     send_throw("js>" + json_array + "\n");
   }
 
+  /**
+   * Sends the SPI `request`.
+   *
+   * @throws An instance of Exception with either `Errc::spi_send`.
+   */
   void send_throw(const std::string& request)
   {
     CFIFO fifo;
@@ -206,6 +263,11 @@ public:
       throw Runtime_exception{Errc::spi_send};
   }
 
+  /**
+   * Receives the SPI response.
+   *
+   * @throws An instance of Exception with either `Errc::spi_receive`.
+   */
   std::string receive_throw()
   {
     std::string result;
@@ -302,7 +364,7 @@ private:
 
   void wait_done()
   {
-    if (pins_ == Pins::spi0) while (!_bsm_spi_is_done()){}
+    if (pins_ == Pins::spi0) while (!_bsm_spi_is_done());
   }
 
   void set_speed(const std::uint32_t speed_hz)
