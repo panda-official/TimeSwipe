@@ -160,9 +160,9 @@ public:
     return 48000;
   }
 
-  int max_data_channel_count() const override
+  int max_channel_count() const override
   {
-    return ts::max_data_channel_count;
+    return ts::max_channel_count;
   }
 
   void set_board_settings(const Board_settings& settings) override
@@ -174,7 +174,7 @@ public:
         throw Exception{Errc::board_is_busy};
 
       // Check if channel measurement mode settings are present.
-      for (int i{}; i < ts::max_data_channel_count; ++i) {
+      for (int i{}; i < ts::max_channel_count; ++i) {
         if (settings.channel_measurement_mode(i))
           throw Exception{Errc::board_is_busy};
       }
@@ -225,15 +225,15 @@ public:
     join_threads();
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
-    const auto max_channel_count = max_data_channel_count();
-    for (int i{}; i < max_channel_count; ++i) {
+    const auto cc = max_channel_count();
+    for (int i{}; i < cc; ++i) {
       const auto& brd_sets = board_settings();
       const auto gain = brd_sets.channel_gain(i);
       PANDA_TIMESWIPE_ASSERT(gain);
       const auto mm = brd_sets.channel_measurement_mode(i);
       PANDA_TIMESWIPE_ASSERT(mm);
       using Ct = hat::atom::Calibration::Type;
-      using Array = std::array<Ct, ts::max_data_channel_count>;
+      using Array = std::array<Ct, ts::max_channel_count>;
       static const Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
       static const Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
       const auto& types = mm == Measurement_mode::Voltage ? v_types : c_types;
@@ -383,7 +383,7 @@ public:
       throw Exception{Errc::drift_comp_invalid_reference};
 
     std::vector<float> refs;
-    while (in && refs.size() < max_data_channel_count()) {
+    while (in && refs.size() < max_channel_count()) {
       float val;
       if (in >> val)
         refs.push_back(val);
@@ -396,7 +396,7 @@ public:
     if (refs.empty())
       throw Exception{Errc::drift_comp_insufficient_references};
 
-    PANDA_TIMESWIPE_ASSERT(refs.size() <= max_data_channel_count());
+    PANDA_TIMESWIPE_ASSERT(refs.size() <= max_channel_count());
 
     // Cache and return references.
     return drift_references_ = refs;
@@ -436,9 +436,9 @@ private:
   static constexpr int initial_invalid_datasets_count{32};
   static constexpr std::uint16_t sensor_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
-  std::array<float, ts::max_data_channel_count> sensor_slopes_{1, 1, 1, 1};
-  std::array<int, ts::max_data_channel_count> sensor_translation_offsets_{};
-  std::array<float, ts::max_data_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
+  std::array<float, ts::max_channel_count> sensor_slopes_{1, 1, 1, 1};
+  std::array<int, ts::max_channel_count> sensor_translation_offsets_{};
+  std::array<float, ts::max_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
   hat::Calibration_map calibration_map_;
   mutable std::optional<Board_settings> board_settings_;
   Settings settings_;
@@ -575,7 +575,7 @@ private:
     iDriver& driver_;
     decltype(driver_.resampler_) resampler_;
     decltype(driver_.settings_) settings_;
-    std::array<Measurement_mode, ts::max_data_channel_count> chmm_;
+    std::array<Measurement_mode, ts::max_channel_count> chmm_;
   };
 
   // ---------------------------------------------------------------------------
@@ -819,7 +819,7 @@ private:
      * becomes high it indicates that the RAM is full (failure - data loss).
      * So, check this case.
      */
-    Data_vector result(max_data_channel_count());
+    Data_vector result(max_channel_count());
     result.reserve(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();

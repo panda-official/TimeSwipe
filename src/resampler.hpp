@@ -477,13 +477,13 @@ private:
     R resampler;
     std::size_t unskipped_leading_count{};
   };
-  std::array<State, max_data_channel_count> rstates_;
+  std::array<State, max_channel_count> rstates_;
 
   template<typename F>
   Data_vector resample(F&& run)
   {
-    Data_vector result(max_data_channel_count);
-    constexpr auto cc = max_data_channel_count;
+    Data_vector result(max_channel_count);
+    constexpr auto cc = max_channel_count;
     for (std::size_t i {}; i < cc; ++i)
       result[i] = run(i);
     return result;

@@ -39,10 +39,10 @@ public:
   using size_type = value_type::size_type;
 
   /// The constructor.
-  explicit Data_vector(const size_type channel_count = max_data_channel_count)
+  explicit Data_vector(const size_type channel_count = max_channel_count)
     : channel_count_{channel_count}
   {
-    if (channel_count > max_data_channel_count)
+    if (channel_count > max_channel_count)
       throw Exception{Errc::out_of_range};
   }
 
@@ -182,7 +182,7 @@ public:
 
   /// @}
 private:
-  using Array = std::array<std::vector<float>, max_data_channel_count>;
+  using Array = std::array<std::vector<float>, max_channel_count>;
   Array data_;
   size_type channel_count_{};
 };

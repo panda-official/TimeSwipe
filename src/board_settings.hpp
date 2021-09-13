@@ -80,7 +80,7 @@ public:
   ///
   /// @brief This API provides a way to control of PWM.
   ///
-  /// Channel indexes must be in range `[0, max_data_channel_count]`.
+  /// Channel indexes must be in range `[0, max_channel_count]`.
   ///
   /// @{
 

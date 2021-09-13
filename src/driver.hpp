@@ -99,7 +99,7 @@ public:
   virtual int max_sample_rate() const = 0;
 
   /// @returns Max possible number of data channels the board provides.
-  virtual int max_data_channel_count() const = 0;
+  virtual int max_channel_count() const = 0;
 
   /**
    * Sets the board settings.

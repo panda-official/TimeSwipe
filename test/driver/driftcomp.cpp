@@ -73,7 +73,7 @@ int main()
   // ---------------------------------------------------------------------------
 
   const auto refs{driver.calculate_drift_references()};
-  PANDA_TIMESWIPE_ASSERT(refs.size() == ts::max_data_channel_count);
+  PANDA_TIMESWIPE_ASSERT(refs.size() == ts::max_channel_count);
   std::clog << "Calculated references: ";
   log(refs);
 
