@@ -24,7 +24,7 @@
 #define DMITIGR_STR_LINE_HPP
 
 #include "version.hpp"
-#include "../assert.hpp"
+#include "../error.hpp"
 
 #include <algorithm>
 #include <cstddef>

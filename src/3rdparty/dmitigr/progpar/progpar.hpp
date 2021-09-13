@@ -25,7 +25,7 @@
 
 #include "exception.hpp"
 #include "version.hpp"
-#include "../assert.hpp"
+#include "../error.hpp"
 #include "../filesystem.hpp"
 
 #include <algorithm>

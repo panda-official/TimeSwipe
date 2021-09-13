@@ -24,7 +24,7 @@
 #define DMITIGR_STR_SIMPLE_PHRASE_HPP
 
 #include "version.hpp"
-#include "../assert.hpp"
+#include "../error.hpp"
 
 #include <istream>
 #include <locale>

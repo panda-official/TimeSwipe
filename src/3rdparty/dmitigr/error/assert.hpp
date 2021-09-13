@@ -20,13 +20,29 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_ERROR_ASSERT_HPP
+#define DMITIGR_ERROR_ASSERT_HPP
 
-#ifndef DMITIGR_ASSERT_HPP
-#define DMITIGR_ASSERT_HPP
+#include <exception> // std::terminate
+#include <iostream>
 
-#include "assert/assert.hpp"
+namespace dmitigr {
 
-#endif  // DMITIGR_ASSERT_HPP
+/// The debug mode indicator.
+#ifndef NDEBUG
+constexpr bool is_debug{true};
+#else
+constexpr bool is_debug{false};
+#endif
+
+} // namespace dmitigr
+
+/// Checks `a` always, regardless of `is_debug` (or `NDEBUG`).
+#define DMITIGR_ASSERT(a) do {                                          \
+    if (!(a)) {                                                         \
+      std::cerr<<"assertion ("<<#a<<") failed at "<<__FILE__<<":"<<__LINE__<<"\n"; \
+      std::terminate();                                                 \
+    }                                                                   \
+  } while (false)
+
+#endif  // DMITIGR_ERROR_ASSERT_HPP

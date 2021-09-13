@@ -24,7 +24,7 @@
 #define DMITIGR_STR_SUBSTR_HPP
 
 #include "version.hpp"
-#include "../assert.hpp"
+#include "../error.hpp"
 
 #include <algorithm>
 #include <functional>

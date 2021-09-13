@@ -24,7 +24,7 @@
 #define DMITIGR_MATH_MATH_HPP
 
 #include "version.hpp"
-#include "../assert.hpp"
+#include "../error.hpp"
 
 #include <utility>
 

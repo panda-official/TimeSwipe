@@ -8,7 +8,6 @@
 */
 
 #include "../../src/driver.hpp"
-#include "../../src/3rdparty/dmitigr/assert.hpp"
 #include "../../src/3rdparty/dmitigr/progpar.hpp"
 
 #include <chrono>

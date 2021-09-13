@@ -21,7 +21,7 @@
 
 #include "error.hpp"
 
-#include "3rdparty/dmitigr/assert.hpp"
+#include "3rdparty/dmitigr/error.hpp"
 
 namespace panda::timeswipe::detail {
 
@@ -33,9 +33,9 @@ constexpr bool is_debug{dmitigr::is_debug};
 // -----------------------------------------------------------------------------
 
 /// Exception with source info.
-class Debug_exception final : public dmitigr::Exception_with_info<Exception> {
+class Debug_exception final : public dmitigr::Exception_with_debug_info<Exception> {
 public:
-  using Super = dmitigr::Exception_with_info<Exception>;
+  using Super = dmitigr::Exception_with_debug_info<Exception>;
   using Super::Super;
 };
 
