@@ -78,7 +78,7 @@ public:
 
   /// @name Channel control
   ///
-  /// @brief This API provides a way to control of PWM.
+  /// @brief This API provides a way to control of data channels.
   ///
   /// Channel indexes must be in range `[0, max_channel_count]`.
   ///

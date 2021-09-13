@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "driver.hpp"
 #include "driver_settings.hpp"
 #include "rajson.hpp"
 
@@ -72,6 +73,10 @@ struct Driver_settings::Rep final {
 
   void set_sample_rate(const int rate)
   {
+    if (!(Driver::instance().min_sample_rate() <= rate &&
+        rate <= Driver::instance().max_sample_rate()))
+      throw Exception{Errc::out_of_range};
+
     set_member("SampleRate", rate);
   }
 
@@ -83,6 +88,11 @@ struct Driver_settings::Rep final {
 
   void set_burst_buffer_size(const std::size_t size)
   {
+    const int sz = static_cast<int>(size);
+    if (!(Driver::instance().min_sample_rate() <= sz &&
+        sz <= Driver::instance().max_sample_rate()))
+      throw Exception{Errc::out_of_range};
+
     set_member("BurstBufferSize", size);
   }
 
@@ -90,6 +100,34 @@ struct Driver_settings::Rep final {
   {
     const auto result = member<std::size_t>("BurstBufferSize");
     return result ? *result : default_burst_buffer_size;
+  }
+
+  void set_frequency(const int frequency)
+  {
+    const auto srate = sample_rate();
+    if (!(1 <= frequency && frequency <= srate))
+      throw Exception{Errc::invalid_argument};
+
+    set_burst_buffer_size(srate / frequency);
+  }
+
+  int frequency() const
+  {
+    return get_frequency<int>();
+  }
+
+  float frequency_precise() const
+  {
+    return get_frequency<float>();
+  }
+
+  template<typename T>
+  T get_frequency() const
+  {
+    if (const T bbs = burst_buffer_size())
+      return static_cast<T>(sample_rate()) / bbs;
+    else
+      return 1;
   }
 
   void set_data_translation_offset(const int index, const int value)
@@ -211,6 +249,17 @@ Driver_settings& Driver_settings::set_burst_buffer_size(const std::size_t size)
 std::size_t Driver_settings::burst_buffer_size() const
 {
   return rep_->burst_buffer_size();
+}
+
+Driver_settings& Driver_settings::set_frequency(const int frequency)
+{
+  rep_->set_frequency(frequency);
+  return *this;
+}
+
+int Driver_settings::frequency() const
+{
+  return rep_->frequency();
 }
 
 Driver_settings& Driver_settings::set_data_translation_offset(const int index, const int value)

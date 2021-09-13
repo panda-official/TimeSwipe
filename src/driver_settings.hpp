@@ -66,11 +66,13 @@ public:
    * @returns The reference to this instance.
    *
    * @par Requires
-   * `(min_sample_rate <= rate && rate <= max_sample_rate)`.
+   * `(Driver::instace().min_sample_rate() <= rate &&
+   *  rate <= Driver::instance().max_sample_rate())`.
    *
    * @warning It's highly recommended not to use the rate for which
-   * `(max_sample_rate % rate != 0)` for best performance! In other words, the
-   * lower the value of `std::gcd(max_sample_rate, rate)`, the worse the
+   * `(Driver::instance().max_sample_rate() % rate != 0)` for best performance!
+   * In other words, the lower the value of
+   * `std::gcd(Driver::instance().max_sample_rate(), rate)`, the worse the
    * performance of the resampling.
    *
    * @see sample_rate(), Driver::min_sample_rate(), Driver::max_sample_rate().
@@ -87,13 +89,52 @@ public:
   /**
    * Sets the burst buffer size.
    *
+   * @par Requires
+   * `(Driver::instance().min_sample_rate() <= size &&
+   *  size <= Driver::instance().max_sample_rate())`.
+   *
+   *  @par Effects
+   *  Affects the value returned by frequency().
+   *
    * @param size The number of records that the driver should deliver upon
    * of Driver::Data_handler call.
+   *
+   * @see frequency().
    */
   Driver_settings& set_burst_buffer_size(std::size_t size);
 
   /// @returns The burst buffer size.
   std::size_t burst_buffer_size() const;
+
+  /**
+   * Indirect way to set the burst buffer size.
+   *
+   * @par Requires
+   * `(1 <= frequency && frequency <= sample_rate())`.
+   *
+   *  @par Effects
+   *  Affects the burst buffer size setting.
+   *
+   * @param size The number of records that the driver should deliver upon
+   * of Driver::Data_handler call.
+   *
+   * @see set_burst_buffer_size().
+   */
+  Driver_settings& set_frequency(int frequency);
+
+  /**
+   * @returns The frequency value: `sample_rate() / burst_size()`.
+   *
+   * @see burst_size(), sample_rate().
+   */
+  int frequency() const;
+
+  /**
+   * @returns The precise frequency value.
+   *
+   * @see frequency().
+   */
+  float frequency_precise() const;
 
   /**
    * Sets the data translation offset.
