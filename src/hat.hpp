@@ -427,7 +427,7 @@ public:
    * @returns A literal that represents the `value`, or `nullptr` if `value`
    * doesn't matches to any member of type Type.
    */
-  static constexpr const char* make_literal(const Type value)
+  static constexpr const char* to_literal(const Type value)
   {
     switch (value) {
     case Type::v_in1: return "v_in1";
@@ -448,11 +448,11 @@ public:
    * @returns A value of type Type converted from `value`. The returned value
    * is invalid if `err` is not empty after return.
    */
-  static Type make_type(const std::uint16_t value, std::string& err)
+  static Type to_type(const std::uint16_t value, std::string& err)
   {
     const Type result{value};
-    if (!make_literal(result))
-      err = timeswipe::make_literal(Errc::calib_data_invalid_atom_type);
+    if (!to_literal(result))
+      err = timeswipe::to_literal(Errc::calib_data_invalid_atom_type);
     return result;
   }
 

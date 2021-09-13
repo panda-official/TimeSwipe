@@ -95,7 +95,7 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     if (!nc.GetCalibrationData(map, strError))
       return false;
 
-    const auto type = hat::atom::Calibration::make_type(jObj["cAtom"], strError);
+    const auto type = hat::atom::Calibration::to_type(jObj["cAtom"], strError);
     if (!strError.empty()) return false;
 
     const auto cal_entry_count = map.atom(type).entry_count();
