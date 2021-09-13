@@ -21,8 +21,10 @@
 
 #include <cstring>
 #include <stdexcept>
+#include <string>
 #include <system_error>
 #include <type_traits>
+#include <utility>
 
 namespace panda::timeswipe {
 
@@ -193,10 +195,6 @@ inline const Error_category& error_category() noexcept
   return instance;
 }
 
-// -----------------------------------------------------------------------------
-// std::error_condition maker
-// -----------------------------------------------------------------------------
-
 /**
  * @ingroup errors
  *
@@ -255,8 +253,8 @@ public:
    * `to_literal(errc)` will be used as a what-string.
    */
   explicit Exception(const Errc errc, std::string what = {})
-    : what_holder_{what.empty() ? to_literal_anyway(errc) : what}
-    , condition_{errc}
+    : condition_{errc}
+    , what_holder_{what.empty() ? to_literal_anyway(errc) : what}
   {}
 
   /// @see std::exception::what().
@@ -272,8 +270,8 @@ public:
   }
 
 private:
-  std::runtime_error what_holder_;
   std::error_condition condition_;
+  std::runtime_error what_holder_;
 };
 
 } // namespace panda::timeswipe

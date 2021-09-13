@@ -49,6 +49,6 @@ public:
   do {                                                                  \
     using E = panda::timeswipe::detail::Debug_exception;                \
     throw E{__FILE__, __LINE__, errc};                                  \
-  } while(true)
+  } while (false)
 
 #endif  // PANDA_TIMESWIPE_DEBUG_HPP
