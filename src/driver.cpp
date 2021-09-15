@@ -263,7 +263,7 @@ public:
 
   bool is_busy() const noexcept override
   {
-    return is_measurement_started_ || in_handler_;
+    return is_measurement_started_;
   }
 
   void stop() override
@@ -450,7 +450,6 @@ private:
   std::size_t burst_buffer_size_{};
   Data_vector burst_buffer_;
   std::vector<std::thread> threads_;
-  std::atomic_bool in_handler_{};
 
   // ---------------------------------------------------------------------------
   // Drift compensation data
@@ -462,36 +461,6 @@ private:
   // ---------------------------------------------------------------------------
   // RAII protectors
   // ---------------------------------------------------------------------------
-
-  /*
-   * An automatic resetter of value of in_handler_. `false` will
-   * be assigned upon destruction of the instance of this class.
-   */
-  struct Callbacker final {
-    Callbacker(const Callbacker&) = delete;
-    Callbacker& operator=(const Callbacker&) = delete;
-    Callbacker(Callbacker&&) = delete;
-    Callbacker& operator=(Callbacker&&) = delete;
-
-    ~Callbacker()
-    {
-      driver_.in_handler_ = false;
-    }
-
-    Callbacker(iDriver& driver) noexcept
-      : driver_{driver}
-    {}
-
-    template<typename F, typename ... Types>
-    auto operator()(const F& handler, Types&& ... args)
-    {
-      driver_.in_handler_ = true;
-      return handler(std::forward<Types>(args)...);
-    }
-
-  private:
-    iDriver& driver_;
-  };
 
   /*
    * An automatic restorer of state affected by drift calculation stuff. Stashed
@@ -848,6 +817,7 @@ private:
 
   void poller_loop(Data_handler&& handler)
   {
+    PANDA_TIMESWIPE_ASSERT(handler);
     while (is_measurement_started_) {
       Data_vector records[10];
       const auto num = record_queue_.pop(records);
@@ -889,15 +859,15 @@ private:
       }
 
       if (burst_buffer_.empty() && burst_buffer_size_ <= records_ptr->size()) {
-        // optimization if burst buffer not used or smaller than first buffer
-        Callbacker{*this}(handler, std::move(*records_ptr), errors);
+        // Optimization: if burst buffer not used or smaller than first buffer.
+        handler(std::move(*records_ptr), errors);
         records_ptr->clear();
       } else {
-        // burst buffer mode
+        // Utilize burst buffer.
         burst_buffer_.append(std::move(*records_ptr));
         records_ptr->clear();
         if (burst_buffer_.size() >= burst_buffer_size_) {
-          Callbacker{*this}(handler, std::move(burst_buffer_), errors);
+          handler(std::move(burst_buffer_), errors);
           burst_buffer_.clear();
         }
       }
@@ -908,8 +878,8 @@ private:
       burst_buffer_.append(resampler_->flush());
 
     // Flush the remaining values from the burst buffer.
-    if (!in_handler_ && burst_buffer_.size()) {
-      Callbacker{*this}(handler, std::move(burst_buffer_), 0);
+    if (!burst_buffer_.empty()) {
+      handler(std::move(burst_buffer_), 0);
       burst_buffer_.clear();
     }
   }
