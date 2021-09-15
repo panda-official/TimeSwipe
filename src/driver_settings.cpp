@@ -77,12 +77,12 @@ struct Driver_settings::Rep final {
         rate <= Driver::instance().max_sample_rate()))
       throw Exception{Errc::out_of_range};
 
-    set_member("SampleRate", rate);
+    set_member("sampleRate", rate);
   }
 
   int sample_rate() const
   {
-    const auto result = member<int>("SampleRate");
+    const auto result = member<int>("sampleRate");
     return result ? *result : default_sample_rate;
   }
 
@@ -93,12 +93,12 @@ struct Driver_settings::Rep final {
         sz <= Driver::instance().max_sample_rate()))
       throw Exception{Errc::out_of_range};
 
-    set_member("BurstBufferSize", size);
+    set_member("burstBufferSize", size);
   }
 
   std::size_t burst_buffer_size() const
   {
-    const auto result = member<std::size_t>("BurstBufferSize");
+    const auto result = member<std::size_t>("burstBufferSize");
     return result ? *result : default_burst_buffer_size;
   }
 
@@ -132,23 +132,23 @@ struct Driver_settings::Rep final {
 
   void set_data_translation_offset(const int index, const int value)
   {
-    set_array_element("TranslationOffsets", index, value, default_data_translation_offset);
+    set_array_element("dataTranslationOffsets", index, value, default_data_translation_offset);
   }
 
   int data_translation_offset(const int index) const
   {
-    const auto result = array_element<int>("TranslationOffsets", index);
+    const auto result = array_element<int>("dataTranslationOffsets", index);
     return result ? *result : default_data_translation_offset;
   }
 
   void set_data_translation_slope(const int index, const float value)
   {
-    set_array_element("TranslationSlopes", index, value, default_data_translation_slope);
+    set_array_element("dataTranslationSlopes", index, value, default_data_translation_slope);
   }
 
   float data_translation_slope(const int index) const
   {
-    const auto result = array_element<float>("TranslationSlopes", index);
+    const auto result = array_element<float>("dataTranslationSlopes", index);
     return result ? *result : default_data_translation_slope;
   }
 
