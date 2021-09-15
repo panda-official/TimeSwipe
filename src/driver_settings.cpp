@@ -34,7 +34,14 @@ struct Driver_settings::Rep final {
 
   explicit Rep(const std::string_view stringified_json)
     : doc_{rajson::to_document(stringified_json)}
-  {}
+  {
+    const auto srate = sample_rate();
+    check_sample_rate(srate);
+    check_burst_buffer_size(burst_buffer_size());
+    check_frequency(frequency(), srate);
+
+    // Translation offsets and translation slopes doesn't need to be checked.
+  }
 
   Rep(const Rep& rhs)
   {
@@ -66,17 +73,14 @@ struct Driver_settings::Rep final {
 
   static constexpr int default_sample_rate{48000};
   static constexpr std::size_t default_burst_buffer_size{};
-  static constexpr int default_data_translation_offset{};
-  static constexpr float default_data_translation_slope{1};
+  static constexpr int default_translation_offset{};
+  static constexpr float default_translation_slope{1};
 
   // ---------------------------------------------------------------------------
 
   void set_sample_rate(const int rate)
   {
-    if (!(Driver::instance().min_sample_rate() <= rate &&
-        rate <= Driver::instance().max_sample_rate()))
-      throw Exception{Errc::out_of_range};
-
+    check_sample_rate(rate);
     set_member("sampleRate", rate);
   }
 
@@ -88,11 +92,7 @@ struct Driver_settings::Rep final {
 
   void set_burst_buffer_size(const std::size_t size)
   {
-    const int sz = static_cast<int>(size);
-    if (!(Driver::instance().min_sample_rate() <= sz &&
-        sz <= Driver::instance().max_sample_rate()))
-      throw Exception{Errc::out_of_range};
-
+    check_burst_buffer_size(static_cast<int>(size));
     set_member("burstBufferSize", size);
   }
 
@@ -105,9 +105,7 @@ struct Driver_settings::Rep final {
   void set_frequency(const int frequency)
   {
     const auto srate = sample_rate();
-    if (!(1 <= frequency && frequency <= srate))
-      throw Exception{Errc::invalid_argument};
-
+    check_frequency(frequency, srate);
     set_burst_buffer_size(srate / frequency);
   }
 
@@ -130,30 +128,60 @@ struct Driver_settings::Rep final {
       return 1;
   }
 
-  void set_data_translation_offset(const int index, const int value)
+  void set_translation_offset(const int index, const int value)
   {
-    set_array_element("dataTranslationOffsets", index, value, default_data_translation_offset);
+    if (!(0 <= index && index < max_channel_count))
+      throw Exception{Errc::out_of_range};
+
+    set_array_element("translationOffsets", index, value, default_translation_offset);
   }
 
-  int data_translation_offset(const int index) const
+  int translation_offset(const int index) const
   {
-    const auto result = array_element<int>("dataTranslationOffsets", index);
-    return result ? *result : default_data_translation_offset;
+    const auto result = array_element<int>("translationOffsets", index);
+    return result ? *result : default_translation_offset;
   }
 
-  void set_data_translation_slope(const int index, const float value)
+  void set_translation_slope(const int index, const float value)
   {
-    set_array_element("dataTranslationSlopes", index, value, default_data_translation_slope);
+    if (!(0 <= index && index < max_channel_count))
+      throw Exception{Errc::out_of_range};
+
+    set_array_element("translationSlopes", index, value, default_translation_slope);
   }
 
-  float data_translation_slope(const int index) const
+  float translation_slope(const int index) const
   {
-    const auto result = array_element<float>("dataTranslationSlopes", index);
-    return result ? *result : default_data_translation_slope;
+    const auto result = array_element<float>("translationSlopes", index);
+    return result ? *result : default_translation_slope;
   }
 
 private:
   rapidjson::Document doc_{rapidjson::Type::kObjectType};
+
+  // ---------------------------------------------------------------------------
+
+  static void check_sample_rate(const int rate)
+  {
+    if (!(Driver::instance().min_sample_rate() <= rate &&
+        rate <= Driver::instance().max_sample_rate()))
+      throw Exception{Errc::driver_invalid_setting};
+  }
+
+  static void check_burst_buffer_size(const int size)
+  {
+    if (!(Driver::instance().min_sample_rate() <= size &&
+        size <= Driver::instance().max_sample_rate()))
+      throw Exception{Errc::driver_invalid_setting};
+  }
+
+  static void check_frequency(const int frequency, const int srate)
+  {
+    if (!(1 <= frequency && frequency <= srate))
+      throw Exception{Errc::driver_invalid_setting};
+  }
+
+  // ---------------------------------------------------------------------------
 
   template<typename T>
   void set_member(const std::string_view name, T&& value)
@@ -262,26 +290,26 @@ int Driver_settings::frequency() const
   return rep_->frequency();
 }
 
-Driver_settings& Driver_settings::set_data_translation_offset(const int index, const int value)
+Driver_settings& Driver_settings::set_translation_offset(const int index, const int value)
 {
-  rep_->set_data_translation_offset(index, value);
+  rep_->set_translation_offset(index, value);
   return *this;
 }
 
-int Driver_settings::data_translation_offset(const int index) const
+int Driver_settings::translation_offset(const int index) const
 {
-  return rep_->data_translation_offset(index);
+  return rep_->translation_offset(index);
 }
 
-Driver_settings& Driver_settings::set_data_translation_slope(const int index, const float value)
+Driver_settings& Driver_settings::set_translation_slope(const int index, const float value)
 {
-  rep_->set_data_translation_slope(index, value);
+  rep_->set_translation_slope(index, value);
   return *this;
 }
 
-float Driver_settings::data_translation_slope(const int index) const
+float Driver_settings::translation_slope(const int index) const
 {
-  return rep_->data_translation_slope(index);
+  return rep_->translation_slope(index);
 }
 
 } // namespace panda::timeswipe

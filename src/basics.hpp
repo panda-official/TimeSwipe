@@ -27,6 +27,9 @@ namespace panda::timeswipe {
 /// The absolute maximum possible number of data channels.
 constexpr int max_channel_count{4};
 
+/// The absolute maximum possible number of PWM.
+constexpr int max_pwm_count{2};
+
 /// Measurement mode.
 enum class Measurement_mode {
   Voltage,

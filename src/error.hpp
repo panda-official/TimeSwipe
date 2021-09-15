@@ -50,39 +50,45 @@ enum class Errc {
   /** Board section **/
 
   board = 2001,
-  board_measurement_started = 2002,
+  board_invalid_setting = 2002,
   board_invalid_state = 2003,
+  board_measurement_started = 2004,
+
+  /** Driver section **/
+
+  driver = 3001,
+  driver_invalid_setting = 3002,
 
   /** Drift compensation section **/
 
-  drift_comp = 3001,
-  drift_comp_invalid_reference = 3002,
-  drift_comp_no_references = 3003,
-  drift_comp_insufficient_references = 3004,
-  drift_comp_excessive_references = 3005,
+  drift_comp = 4001,
+  drift_comp_invalid_reference = 4002,
+  drift_comp_no_references = 4003,
+  drift_comp_insufficient_references = 4004,
+  drift_comp_excessive_references = 4005,
 
   /** Calibration data section **/
 
-  calib_data = 4001,
-  calib_data_invalid = 4002,
-  calib_data_invalid_atom_type = 4003,
+  calib_data = 5001,
+  calib_data_invalid = 5002,
+  calib_data_invalid_atom_type = 5003,
 
   /** SPI section **/
 
-  spi = 5001,
-  spi_send = 5002,
-  spi_receive = 5003,
+  spi = 6001,
+  spi_send = 6002,
+  spi_receive = 6003,
 
   /** Communication protocol section **/
 
-  com_proto = 6001,
-  com_proto_invalid_request = 6002,
-  com_proto_bus = 6003,
-  com_proto_timeout = 6004,
-  com_proto_object_not_found = 6005,
-  com_proto_get_unsupported = 6006,
-  com_proto_set_unsupported = 6007,
-  com_proto_access_point_disabled = 6008
+  com_proto = 7001,
+  com_proto_invalid_request = 7002,
+  com_proto_bus = 7003,
+  com_proto_timeout = 7004,
+  com_proto_object_not_found = 7005,
+  com_proto_get_unsupported = 7006,
+  com_proto_set_unsupported = 7007,
+  com_proto_access_point_disabled = 7008
 };
 
 /// @returns `true` if `errc` indicates an error.
@@ -108,8 +114,12 @@ constexpr const char* to_literal(const Errc errc) noexcept
   case Errc::pid_file_lock_failed: return "pid_file_lock_failed";
 
   case Errc::board: return "board";
-  case Errc::board_measurement_started: return "board_measurement_started";
+  case Errc::board_invalid_setting: return "board_invalid_setting";
   case Errc::board_invalid_state: return "board_invalid_state";
+  case Errc::board_measurement_started: return "board_measurement_started";
+
+  case Errc::driver: return "driver";
+  case Errc::driver_invalid_setting: return "driver_invalid_setting";
 
   case Errc::drift_comp: return "drift_comp";
   case Errc::drift_comp_invalid_reference: return "drift_comp_invalid_reference";

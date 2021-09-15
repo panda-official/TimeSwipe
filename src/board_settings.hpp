@@ -133,13 +133,23 @@ public:
   /// @returns The value of PWM frequency parameter.
   std::optional<int> pwm_frequency(int index) const;
 
-  /// Sets PWM signal low value.
+  /**
+   * Sets PWM signal low value.
+   *
+   * @par Requires
+   * `(0 <= value && value <= 4095 && value <= *pwm_high())`.
+   */
   Board_settings& set_pwm_low(int index, int value);
 
   /// @returns The value of PWM low parameter.
   std::optional<int> pwm_low(int index) const;
 
-  /// Sets PWM signal high value.
+  /**
+   * Sets PWM signal high value.
+   *
+   * @par Requires
+   * `(0 <= value && value <= 4095 && value >= *pwm_low())`.
+   */
   Board_settings& set_pwm_high(int index, int value);
 
   /// @returns The value of PWM high parameter.
@@ -149,6 +159,9 @@ public:
    * Sets the number of repeat periods.
    *
    * @param value Zero value means infinity.
+   *
+   * @par Requires
+   * `(value >= 0)`.
    */
   Board_settings& set_pwm_repeat_count(int index, int value);
 
@@ -158,7 +171,8 @@ public:
   /**
    * Sets the length of the PWM period when signal is in high state.
    *
-   * @param value Reasonable value must be in range `(0, 1)`.
+   * @par Requires
+   * `(0 < value && value < 1)`.
    */
   Board_settings& set_pwm_duty_cycle(int index, float value);
 

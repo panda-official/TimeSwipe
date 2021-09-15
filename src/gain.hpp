@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <array>
 
-namespace panda::timeswipe {
+namespace panda::timeswipe::detail {
 
 /// Output gain table factor for even entries.
 constexpr float ogain_table_factor{1.375};
@@ -54,8 +54,14 @@ constexpr std::array<float, 22> ogain_table{
 };
 static_assert(!(ogain_table.size() % 2));
 
+/// The minimum possible channel gain value.
+constexpr float ogain_min{ogain_table.front()};
+
+/// The maximum possible channel gain value.
+constexpr float ogain_max{ogain_table.back()};
+
 /// @returns An index of `ogain_table` by `value`.
-std::size_t ogain_table_index(const float value) noexcept
+inline std::size_t ogain_table_index(const float value) noexcept
 {
   const auto beg = cbegin(ogain_table);
   const auto end = cend(ogain_table);
@@ -67,6 +73,6 @@ std::size_t ogain_table_index(const float value) noexcept
   return std::max<decltype(itr - beg)>(0, itr - beg - 1);
 }
 
-} // namespace panda::timeswipe
+} // namespace panda::timeswipe::detail
 
 #endif  // PANDA_TIMESWIPE_GAIN_HPP

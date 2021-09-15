@@ -206,9 +206,9 @@ public:
     set_resampler(settings.sample_rate(), std::move(resampler));
     burst_buffer_size_ = settings.burst_buffer_size();
     for (std::size_t i{}; i < sensor_translation_offsets_.size(); ++i)
-      sensor_translation_offsets_[i] = settings.data_translation_offset(i);
+      sensor_translation_offsets_[i] = settings.translation_offset(i);
     for (std::size_t i{}; i < sensor_translation_slopes_.size(); ++i)
-      sensor_translation_slopes_[i] = settings.data_translation_slope(i);
+      sensor_translation_slopes_[i] = settings.translation_slope(i);
     settings_ = std::move(settings);
   }
 

@@ -137,30 +137,36 @@ public:
   float frequency_precise() const;
 
   /**
-   * Sets the data translation offset.
+   * Sets the translation offset.
    *
-   * @param index The data channel index.
+   * @param index The channel index.
    * @param value The value of the translation offset to set.
    *
+   * @par Requires
+   * `(0 <= index && index < max_channel_count)`.
+   *
    * @returns The reference to this instance.
    */
-  Driver_settings& set_data_translation_offset(int index, int value);
+  Driver_settings& set_translation_offset(int index, int value);
 
-  /// @returns The value of data translation offset.
-  int data_translation_offset(int index) const;
+  /// @returns The value of translation offset.
+  int translation_offset(int index) const;
 
   /**
-   * Sets the data translation slope.
+   * Sets the translation slope.
    *
-   * @param index The data channel index.
+   * @param index The channel index.
    * @param value The value of the translation slope to set.
+   *
+   * @par Requires
+   * `(0 <= index && index < max_channel_count)`.
    *
    * @returns The reference to this instance.
    */
-  Driver_settings& set_data_translation_slope(int index, float value);
+  Driver_settings& set_translation_slope(int index, float value);
 
   /// @returns The value of data translation slope.
-  float data_translation_slope(int index) const;
+  float translation_slope(int index) const;
 
 private:
   struct Rep;

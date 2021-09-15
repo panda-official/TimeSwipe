@@ -19,6 +19,7 @@
 #include "board_settings.hpp"
 
 #include "error.hpp"
+#include "gain.hpp"
 #include "rajson.hpp"
 
 #include <algorithm>
@@ -38,7 +39,20 @@ struct Board_settings::Rep final {
 
   explicit Rep(const std::string_view stringified_json)
     : doc_{rajson::to_document(stringified_json)}
-  {}
+  {
+    // Check channel-related settings.
+    for (int i{}; i < max_channel_count; ++i) {
+      check_channel_gain(channel_gain(i));
+    }
+
+    // Check PWM-related settings.
+    for (int i{}; i < max_pwm_count; ++i) {
+      check_pwm_frequency(pwm_frequency(i));
+      check_pwm_signal_level(pwm_low(i), pwm_high(i));
+      check_pwm_repeat_count(pwm_repeat_count(i));
+      check_pwm_duty_cycle(pwm_duty_cycle(i));
+    }
+  }
 
   Rep(const Rep& rhs)
   {
@@ -92,6 +106,7 @@ struct Board_settings::Rep final {
 
   void set_channel_gain(const int index, const float value)
   {
+    check_channel_gain(value);
     set_member("CH", index + 1, "gain", value);
   }
 
@@ -124,6 +139,7 @@ struct Board_settings::Rep final {
 
   void set_pwm_frequency(const int index, const int value)
   {
+    check_pwm_frequency(value);
     set_member("PWM", index + 1, "freq", value);
   }
 
@@ -134,6 +150,7 @@ struct Board_settings::Rep final {
 
   void set_pwm_low(const int index, const int value)
   {
+    check_pwm_signal_level(value, pwm_high(index));
     set_member("PWM", index + 1, "low", value);
   }
 
@@ -144,6 +161,7 @@ struct Board_settings::Rep final {
 
   void set_pwm_high(const int index, const int value)
   {
+    check_pwm_signal_level(pwm_low(index), value);
     set_member("PWM", index + 1, "high", value);
   }
 
@@ -154,6 +172,7 @@ struct Board_settings::Rep final {
 
   void set_pwm_repeat_count(const int index, const int value)
   {
+    check_pwm_repeat_count(value);
     set_member("PWM", index + 1, "repeats", value);
   }
 
@@ -164,6 +183,7 @@ struct Board_settings::Rep final {
 
   void set_pwm_duty_cycle(const int index, const float value)
   {
+    check_pwm_duty_cycle(value);
     set_member("PWM", index + 1, "duty", value);
   }
 
@@ -174,6 +194,50 @@ struct Board_settings::Rep final {
 
 private:
   rapidjson::Document doc_{rapidjson::Type::kObjectType};
+
+  // ---------------------------------------------------------------------------
+
+  static void check_channel_gain(const std::optional<float> value)
+  {
+    if (value && !(detail::ogain_min <= value && value <= detail::ogain_max))
+      throw Exception{Errc::board_invalid_setting};
+  }
+
+  static void check_pwm_frequency(const std::optional<int> value)
+  {
+    if (value && !(1 <= value && value <= 1000))
+      throw Exception{Errc::board_invalid_setting};
+  }
+
+  static void check_pwm_signal_level(const std::optional<int> low,
+    const std::optional<int> high)
+  {
+    static const auto check_value = [](const int value)
+    {
+      if (!(0 <= value && value <= 4095))
+        throw Exception{Errc::board_invalid_setting};
+    };
+    if (low)
+      check_value(*low);
+    if (high)
+      check_value(*high);
+    if (low && high && !(*low <= *high))
+      throw Exception{Errc::board_invalid_setting};
+  }
+
+  static void check_pwm_repeat_count(const std::optional<int> value)
+  {
+    if (value && !(value >= 0))
+      throw Exception{Errc::board_invalid_setting};
+  }
+
+  static void check_pwm_duty_cycle(const std::optional<float> value)
+  {
+    if (value && !(0 < value && value < 1))
+      throw Exception{Errc::board_invalid_setting};
+  }
+
+  // ---------------------------------------------------------------------------
 
   /// Adds or modifies the member named by `name` by using the given `value`.
   template<typename T>
