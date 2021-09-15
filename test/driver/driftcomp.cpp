@@ -37,7 +37,7 @@ void measure(ts::Driver& ts, const std::filesystem::path& logfile)
   constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
   std::ofstream log{logfile, log_mode};
   log.precision(5 + 4);
-  ts.start([&log](const auto data, const auto)
+  ts.start_measurement([&log](const auto data, const auto)
   {
     const auto row_count = data.size();
     for (std::size_t row{}; row < row_count; ++row) {
@@ -47,7 +47,7 @@ void measure(ts::Driver& ts, const std::filesystem::path& logfile)
     }
   });
   std::this_thread::sleep_for(chrono::seconds{1});
-  ts.stop();
+  ts.stop_measurement();
 }
 
 } // namespace
@@ -55,7 +55,7 @@ void measure(ts::Driver& ts, const std::filesystem::path& logfile)
 int main()
 {
   auto& driver = ts::Driver::instance();
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
 
   driver.clear_drift_references();
   PANDA_TIMESWIPE_ASSERT(!driver.drift_references(false));
@@ -77,7 +77,7 @@ int main()
   std::clog << "Calculated references: ";
   log(refs);
 
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   {
     const auto refs1{driver.drift_references(false)};
     const auto refs2{driver.drift_references(true)};
@@ -106,7 +106,7 @@ int main()
   std::clog << "Calculated deltas: ";
   log(deltas);
 
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   {
     const auto deltas1{driver.drift_deltas()};
     PANDA_TIMESWIPE_ASSERT(deltas1);
@@ -119,7 +119,7 @@ int main()
 
   std::clog << "Measuring compensated..." << std::endl;
   measure(driver, "drift_compensation-compensated.log");
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
   driver.clear_drift_deltas();
@@ -127,7 +127,7 @@ int main()
 
   std::clog << "Measuring uncompensated..." << std::endl;
   measure(driver, "drift_compensation-uncompensated.log");
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
   // ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ int main()
   std::clog << "Calculated deltas 2: ";
   log(deltas);
 
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   {
     const auto deltas1{driver.drift_deltas()};
     PANDA_TIMESWIPE_ASSERT(deltas1);
@@ -153,7 +153,7 @@ int main()
 
   std::clog << "Measuring compensated 2..." << std::endl;
   measure(driver, "drift_compensation-compensated2.log");
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
   driver.clear_drift_deltas();
@@ -161,7 +161,7 @@ int main()
 
   std::clog << "Measuring uncompensated 2..." << std::endl;
   measure(driver, "drift_compensation-uncompensated2.log");
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
   // ---------------------------------------------------------------------------

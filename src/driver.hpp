@@ -58,14 +58,14 @@ public:
    *   panda::timeswipe::Errc with the minus sign) in case of fatal error when
    *   the measurement process is about to stop.
    *
-   * @see start().
+   * @see start_measurement().
    */
   using Data_handler = std::function<void(Data_vector data, int error_marker)>;
 
   /**
-   * The destructor. Calls stop().
+   * The destructor. Calls stop_measurement().
    *
-   * @see stop().
+   * @see stop_measurement().
    */
   virtual ~Driver() = default;
 
@@ -85,7 +85,10 @@ public:
    * @returns The instance of this class.
    *
    * @par Effects
-   * Restarts firmware on very first call!
+   * Restarts the firmware on very first call!
+   *
+   * @warning Firmware developers must remember, that restarting the firmware
+   * causes reset of all the settings the firmware keeps in the on-board RAM!
    */
   static Driver& instance();
 
@@ -119,7 +122,7 @@ public:
    * Sets the driver settings.
    *
    * @par Requires
-   * `!is_busy()`.
+   * `!is_measurement_started()`.
    *
    * @see settings();
    */
@@ -155,31 +158,32 @@ public:
    * @warning This method cannot be called from `data_handler`.
    *
    * @par Requires
-   * `!is_busy()`.
+   * `!is_measurement_started()`.
    *
    * @par Effects
-   * `is_busy()`.
+   * `is_measurement_started()`.
    *
-   * @see set_measurement_options(), set_state(), stop().
+   * @see set_measurement_options(), set_state(), stop_measurement().
    */
-  virtual void start(Data_handler data_handler) = 0;
+  virtual void start_measurement(Data_handler data_handler) = 0;
 
   /**
-   * @returns `true` if the board is busy (measurement in progress).
+   * @returns `true` if the measurement in progress.
    *
-   * @see calculate_drift_references(), calculate_drift_deltas(), start().
+   * @see calculate_drift_references(), calculate_drift_deltas(),
+   * start_measurement().
    */
-  virtual bool is_busy() const noexcept = 0;
+  virtual bool is_measurement_started() const noexcept = 0;
 
   /**
    * Stops the measurement.
    *
    * @par Effects
-   * `!is_busy()`.
+   * `!is_measurement_started()`.
    *
-   * @see start().
+   * @see start_measurement().
    */
-  virtual void stop() = 0;
+  virtual void stop_measurement() = 0;
 
   /// @}
 
@@ -200,7 +204,7 @@ public:
   /// of times. It's also possible to clear either the references or the deltas
   /// in order to stop correcting the input values and pass them to the user
   /// read callback unmodified. Please note, that in order to calculate or clear
-  /// either the references or deltas the board must not be busy (started).
+  /// either the references or deltas the measurement must not be in progress.
   ///
   /// @{
 
@@ -212,10 +216,10 @@ public:
    * either it deleted directly or by calling clear_drift_references().
    *
    * @par Requires
-   * `!is_busy()`.
+   * `!is_measurement_started()`.
    *
    * @par Effects
-   * `!is_busy() && drift_references()`.
+   * `!is_measurement_started() && drift_references()`.
    *
    * @par Exception safety guarantee
    * Basic.
@@ -230,7 +234,7 @@ public:
    * Clears drift references if any.
    *
    * @par Requires
-   * `!is_busy()`.
+   * `!is_measurement_started()`.
    *
    * @par Effects
    * `!drift_references() && !drift_deltas()`. Removes the file
@@ -247,16 +251,16 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Requires
-   * `drift_references() && !is_busy()`.
+   * `drift_references() && !is_measurement_started()`.
    *
    * @par Effects
-   * `!is_busy() && drift_deltas()`.
-   * After calling the `start()`, calculated deltas will be substracted from
-   * each input value of the corresponding channel.
+   * `!is_measurement_started() && drift_deltas()`.
+   * After calling the `start_measurement()`, calculated deltas will be
+   * substracted from each input value of the corresponding data channel.
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see drift_deltas(), calculate_drift_references(), start().
+   * @see drift_deltas(), calculate_drift_references(), start_measurement().
    */
   virtual std::vector<float> calculate_drift_deltas() = 0;
 
@@ -264,7 +268,7 @@ public:
    * @brief Clears drift deltas if any.
    *
    * @par Requires
-   * `!is_busy()`.
+   * `!is_measurement_started()`.
    *
    * @par Effects
    * Input values of the corresponding channel will not be affected by deltas.

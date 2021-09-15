@@ -53,7 +53,7 @@ class iDriver final : public Driver {
 public:
   ~iDriver()
   {
-    stop();
+    stop_measurement();
     join_threads();
   }
 
@@ -111,6 +111,9 @@ public:
    *
    * @par Effects
    * Restarts firmware on very first run!
+   *
+   * @warning Firmware developers must remember, that restarting the firmware
+   * causes reset of all the settings the firmware keeps in the on-board RAM!
    */
   void init_gpio(const bool force = false)
   {
@@ -168,15 +171,15 @@ public:
   void set_board_settings(const Board_settings& settings) override
   {
     // Some settings cannot be applied if the board is currently busy.
-    if (is_busy()) {
+    if (is_measurement_started()) {
       // Check if signal mode setting presents.
       if (settings.signal_mode())
-        throw Exception{Errc::board_is_busy};
+        throw Exception{Errc::board_measurement_started};
 
       // Check if channel measurement mode settings are present.
       for (int i{}; i < ts::max_channel_count; ++i) {
         if (settings.channel_measurement_mode(i))
-          throw Exception{Errc::board_is_busy};
+          throw Exception{Errc::board_measurement_started};
       }
     }
 
@@ -214,13 +217,13 @@ public:
     return settings_;
   }
 
-  void start(Data_handler data_handler) override
+  void start_measurement(Data_handler data_handler) override
   {
     if (!data_handler)
       throw Exception{Errc::invalid_argument};
 
-    if (is_busy())
-      throw Exception{Errc::board_is_busy};
+    if (is_measurement_started())
+      throw Exception{Errc::board_measurement_started};
 
     join_threads();
 
@@ -261,12 +264,12 @@ public:
     threads_.emplace_back(&iDriver::poller_loop, this, std::move(data_handler));
   }
 
-  bool is_busy() const noexcept override
+  bool is_measurement_started() const noexcept override
   {
     return is_measurement_started_;
   }
 
-  void stop() override
+  void stop_measurement() override
   {
     if (!is_measurement_started_) return;
 
@@ -324,8 +327,8 @@ public:
 
   void clear_drift_references() override
   {
-    if (is_busy())
-      throw Exception{Errc::board_is_busy};
+    if (is_measurement_started())
+      throw Exception{Errc::board_measurement_started};
 
     std::filesystem::remove(tmp_dir()/"drift_references");
     drift_references_.reset();
@@ -363,8 +366,8 @@ public:
 
   void clear_drift_deltas() override
   {
-    if (is_busy())
-      throw Exception{Errc::board_is_busy};
+    if (is_measurement_started())
+      throw Exception{Errc::board_measurement_started};
 
     drift_deltas_.reset();
   }
@@ -892,7 +895,7 @@ private:
   std::unique_ptr<detail::Resampler> set_resampler(const int rate,
     std::unique_ptr<detail::Resampler> resampler = {})
   {
-    if (is_busy()) return {};
+    if (is_measurement_started()) return {};
 
     const auto max_rate = max_sample_rate();
     if (!(1 <= rate && rate <= max_rate))
@@ -949,8 +952,8 @@ private:
   template<typename F>
   Data_vector collect_sensors_data(const std::size_t samples_count, F&& state_guard)
   {
-    if (is_busy())
-      throw Exception{Errc::board_is_busy};
+    if (is_measurement_started())
+      throw Exception{Errc::board_measurement_started};
 
     const auto guard{state_guard()};
 
@@ -958,7 +961,7 @@ private:
     std::atomic_bool done{};
     Data_vector data;
     std::condition_variable update;
-    start([this, samples_count, &errc, &done, &data, &update]
+    start_measurement([this, samples_count, &errc, &done, &data, &update]
       (const Data_vector sd, const int)
     {
       if (is_error(errc) || done)
@@ -984,7 +987,7 @@ private:
       update.wait(lock, [&done]{ return done.load(); });
     }
     PANDA_TIMESWIPE_ASSERT(done);
-    stop();
+    stop_measurement();
 
     // Throw away if the data collection failed.
     if (is_error(errc))

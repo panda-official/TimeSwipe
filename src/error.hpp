@@ -50,7 +50,7 @@ enum class Errc {
   /** Board section **/
 
   board = 2001,
-  board_is_busy = 2002,
+  board_measurement_started = 2002,
   board_invalid_state = 2003,
 
   /** Drift compensation section **/
@@ -108,7 +108,7 @@ constexpr const char* to_literal(const Errc errc) noexcept
   case Errc::pid_file_lock_failed: return "pid_file_lock_failed";
 
   case Errc::board: return "board";
-  case Errc::board_is_busy: return "board_is_busy";
+  case Errc::board_measurement_started: return "board_measurement_started";
   case Errc::board_invalid_state: return "board_invalid_state";
 
   case Errc::drift_comp: return "drift_comp";

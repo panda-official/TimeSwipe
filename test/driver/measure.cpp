@@ -70,7 +70,7 @@ try {
     .set_burst_buffer_size(sample_rate / frequency);
   driver.set_settings(std::move(settings));
 
-  // Start Timeswipe. (Measure.)
+  // Start measurement.
   {
     using chrono::duration_cast;
     using Dur = chrono::nanoseconds;
@@ -81,7 +81,7 @@ try {
     std::ofstream log_file;
     std::ofstream elog_file;
 
-    driver.start([
+    driver.start_measurement([
         logs_ready = false, &log_file, &elog_file,
         i = 0u, count,
         d = Dur{}, delta = duration_cast<Dur>(seconds{1}) / frequency, duration = duration_cast<Dur>(duration),
@@ -133,7 +133,7 @@ try {
 
     std::unique_lock lk{finished_mutex};
     finish.wait(lk, [&finished]{ return finished; });
-    driver.stop();
+    driver.stop_measurement();
   }
 
   // Cleanup.

@@ -137,15 +137,15 @@ int main(int argc, char *argv[])
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
     shutdown_handler = [&](int /*signal*/) {
-        driver.stop();
+        driver.stop_measurement();
         exit(1);
     };
 
-    // Board start.
+    // Start measurement.
     int counter{};
     driver.set_settings(std::move(ts::Driver_settings{}
         .set_sample_rate(samplerate).set_burst_buffer_size(samplerate)));
-    driver.start([&](auto&& records, const int error_marker) {
+    driver.start_measurement([&](auto&& records, const int error_marker) {
       if (error_marker < 0) {
         std::clog << "Got fatal error " << -error_marker << "\n";
         return;
@@ -172,10 +172,11 @@ int main(int argc, char *argv[])
       }
     });
 
-    const auto start = std::chrono::system_clock::now();
+    const auto start_moment = std::chrono::system_clock::now();
     std::this_thread::sleep_for(std::chrono::seconds{runtime});
-    driver.stop();
-    const auto end = std::chrono::system_clock::now();
-    const std::chrono::duration<float> diff = end - start;
-    std::cout << "time: " << diff.count() << "s records: " << counter << " rec/sec: " << counter / diff.count() << "\n";
+    driver.stop_measurement();
+    const auto end_moment = std::chrono::system_clock::now();
+    const std::chrono::duration<float> duration = end_moment - start_moment;
+    std::cout << "time: " << duration.count() << "s records: " << counter
+              << " rec/sec: " << counter / duration.count() << std::endl;
 }

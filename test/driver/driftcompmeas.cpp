@@ -32,7 +32,8 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
   constexpr auto channel_count{ts::max_channel_count};
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
-  drv.start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
+  drv.start_measurement([&aavg,
+      &astddev, call_count=0](auto data, const auto) mutable
   {
     for (auto i{0*channel_count}; i < channel_count; ++i) {
       const auto& channel{data[i]};
@@ -49,7 +50,7 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
     call_count++;
   });
   std::this_thread::sleep_for(dur);
-  drv.stop();
+  drv.stop_measurement();
 
   // Print the results
   const auto prec{std::cout.precision()};
@@ -80,7 +81,7 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 int main(const int argc, const char* const argv[])
 try {
   auto& driver = ts::Driver::instance();
-  PANDA_TIMESWIPE_ASSERT(!driver.is_busy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
 
   // Set the measure duration.
   using ms = chrono::milliseconds;
