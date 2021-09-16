@@ -48,7 +48,7 @@ public:
   using Settings = Driver_settings;
 
   /**
-   * An alias of a function to handle the incoming sensor data.
+   * An alias of a function to handle the incoming channel data.
    *
    * @param data Portion of the incoming data to process.
    * @param error_marker The error marker:
@@ -152,7 +152,7 @@ public:
    *
    * @warning The `data_handler` must not take more than `burst_size / sample_rate`
    * seconds of runtime! Otherwise, the driver will throttle by skipping the
-   * incoming sensor data and `data_handler` will be called with positive error
+   * incoming channel data and `data_handler` will be called with positive error
    * marker.
    *
    * @warning This method cannot be called from `data_handler`.

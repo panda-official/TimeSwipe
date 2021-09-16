@@ -205,10 +205,10 @@ public:
   {
     set_resampler(settings.sample_rate(), std::move(resampler));
     burst_buffer_size_ = settings.burst_buffer_size();
-    for (std::size_t i{}; i < sensor_translation_offsets_.size(); ++i)
-      sensor_translation_offsets_[i] = settings.translation_offset(i);
-    for (std::size_t i{}; i < sensor_translation_slopes_.size(); ++i)
-      sensor_translation_slopes_[i] = settings.translation_slope(i);
+    for (std::size_t i{}; i < translation_offsets_.size(); ++i)
+      translation_offsets_[i] = settings.translation_offset(i);
+    for (std::size_t i{}; i < translation_slopes_.size(); ++i)
+      translation_slopes_[i] = settings.translation_slope(i);
     settings_ = std::move(settings);
   }
 
@@ -248,7 +248,7 @@ public:
       const auto& atom = calibration_map_.atom(types[i]);
       const auto ogain_index = ogain_table_index(*gain);
       PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
-      sensor_slopes_[i] = atom.entry(ogain_index).slope();
+      calibration_slopes_[i] = atom.entry(ogain_index).slope();
     }
 
     /*
@@ -302,7 +302,7 @@ public:
   std::vector<float> calculate_drift_references() override
   {
     // Collect the data for calculation.
-    auto data = collect_sensors_data(drift_samples_count, // 5 ms
+    auto data = collect_channels_data(drift_samples_count, // 5 ms
       [this]{return Drift_affected_state_guard{*this};});
 
     // Discard the first half.
@@ -348,7 +348,7 @@ public:
       throw Exception{Errc::drift_comp_no_references};
 
     // Collect the data for calculation.
-    auto data{collect_sensors_data(drift_samples_count,
+    auto data{collect_channels_data(drift_samples_count,
       [this]{return Drift_affected_state_guard{*this};})};
     PANDA_TIMESWIPE_ASSERT(refs->size() == data.channel_count());
 
@@ -442,11 +442,11 @@ private:
 
   // The number of initial invalid data sets.
   static constexpr int initial_invalid_datasets_count{32};
-  static constexpr std::uint16_t sensor_offset{32768};
+  static constexpr std::uint16_t channel_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
-  std::array<float, ts::max_channel_count> sensor_slopes_{1, 1, 1, 1};
-  std::array<int, ts::max_channel_count> sensor_translation_offsets_{};
-  std::array<float, ts::max_channel_count> sensor_translation_slopes_{1, 1, 1, 1};
+  std::array<float, ts::max_channel_count> calibration_slopes_{1, 1, 1, 1};
+  std::array<int, ts::max_channel_count> translation_offsets_{};
+  std::array<float, ts::max_channel_count> translation_slopes_{1, 1, 1, 1};
   hat::Calibration_map calibration_map_;
   mutable std::optional<Board_settings> board_settings_;
   Settings settings_;
@@ -687,11 +687,11 @@ private:
       const std::array<int, Size>& translation_offsets,
       const std::array<float, Size>& translation_slopes)
     {
-      std::array<std::uint16_t, Size> sensors{};
-      static_assert(sizeof(sensor_offset) == sizeof(sensors[0]));
+      std::array<std::uint16_t, Size> digits{};
+      static_assert(sizeof(channel_offset) == sizeof(digits[0]));
 
       const auto channel_count = data.channel_count();
-      PANDA_TIMESWIPE_ASSERT(channel_count <= sensors.size());
+      PANDA_TIMESWIPE_ASSERT(channel_count <= digits.size());
 
       constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
       {
@@ -702,21 +702,21 @@ private:
         return (byte & (1UL << N));
       };
       for (std::size_t i{}, count{}; i < chunk.size(); ++i) {
-        set_bit(sensors[0], 15 - count, bit(chunk[i], 3));
-        set_bit(sensors[1], 15 - count, bit(chunk[i], 2));
-        set_bit(sensors[2], 15 - count, bit(chunk[i], 1));
-        set_bit(sensors[3], 15 - count, bit(chunk[i], 0));
+        set_bit(digits[0], 15 - count, bit(chunk[i], 3));
+        set_bit(digits[1], 15 - count, bit(chunk[i], 2));
+        set_bit(digits[2], 15 - count, bit(chunk[i], 1));
+        set_bit(digits[3], 15 - count, bit(chunk[i], 0));
         count++;
 
-        set_bit(sensors[0], 15 - count, bit(chunk[i], 7));
-        set_bit(sensors[1], 15 - count, bit(chunk[i], 6));
-        set_bit(sensors[2], 15 - count, bit(chunk[i], 5));
-        set_bit(sensors[3], 15 - count, bit(chunk[i], 4));
+        set_bit(digits[0], 15 - count, bit(chunk[i], 7));
+        set_bit(digits[1], 15 - count, bit(chunk[i], 6));
+        set_bit(digits[2], 15 - count, bit(chunk[i], 5));
+        set_bit(digits[3], 15 - count, bit(chunk[i], 4));
         count++;
       }
 
       for (std::size_t i{}; i < channel_count; ++i) {
-        const auto mv = (sensors[i] - sensor_offset) * slopes[i];
+        const auto mv = (digits[i] - channel_offset) * slopes[i];
         const auto unit = (mv - translation_offsets[i]) * translation_slopes[i];
         data[i].push_back(unit);
       }
@@ -761,11 +761,11 @@ private:
   }
 
   // -----------------------------------------------------------------------------
-  // Sensor data reading, queueing and pushing stuff
+  // Channels data reading, queueing and pushing stuff
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
-  Data_vector read_sensors_data()
+  Data_vector read_channels_data()
   {
     static const auto wait_for_pi_ok = []
     {
@@ -800,8 +800,8 @@ private:
     result.reserve(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();
-      Gpio_data::append_chunk(result, chunk, sensor_slopes_,
-        sensor_translation_offsets_, sensor_translation_slopes_);
+      Gpio_data::append_chunk(result, chunk, calibration_slopes_,
+        translation_offsets_, translation_slopes_);
       if (tco != 0x00004000) break;
     } while (true);
 
@@ -818,7 +818,7 @@ private:
   void fetcher_loop()
   {
     while (is_measurement_started_) {
-      if (const auto data = read_sensors_data(); !record_queue_.push(data))
+      if (const auto data = read_channels_data(); !record_queue_.push(data))
         ++record_error_count_;
     }
   }
@@ -948,14 +948,14 @@ private:
   /**
    * @brief Collects the specified samples count.
    *
-   * @returns The collected sensor data.
+   * @returns The collected channel data.
    *
    * @param samples_count A number of samples to collect.
    * @param state_guard A function without arguments which returns an object
    * for automatic resourse cleanup (e.g. RAII state keeper and restorer).
    */
   template<typename F>
-  Data_vector collect_sensors_data(const std::size_t samples_count, F&& state_guard)
+  Data_vector collect_channels_data(const std::size_t samples_count, F&& state_guard)
   {
     if (is_measurement_started())
       throw Exception{Errc::board_measurement_started};
