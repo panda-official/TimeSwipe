@@ -59,6 +59,8 @@ enum class Errc {
 
   driver = 3001,
   driver_invalid_setting = 3002,
+  driver_insufficient_settings = 3003,
+  driver_mutually_exclusive_settings = 3004,
 
   /** Drift compensation section **/
 
@@ -122,6 +124,8 @@ constexpr const char* to_literal(const Errc errc) noexcept
 
   case Errc::driver: return "driver";
   case Errc::driver_invalid_setting: return "driver_invalid_setting";
+  case Errc::driver_insufficient_settings: return "driver_insufficient_settings";
+  case Errc::driver_mutually_exclusive_settings: return "driver_mutually_exclusive_settings";
 
   case Errc::drift_comp: return "drift_comp";
   case Errc::drift_comp_invalid_reference: return "drift_comp_invalid_reference";

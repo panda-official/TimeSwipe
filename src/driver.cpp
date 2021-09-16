@@ -203,12 +203,20 @@ public:
   void set_settings(Settings settings,
     std::unique_ptr<detail::Resampler> resampler)
   {
-    set_resampler(settings.sample_rate(), std::move(resampler));
-    burst_buffer_size_ = settings.burst_buffer_size();
+    const auto srate = settings.sample_rate().value_or(max_sample_rate());
+    set_resampler(srate, std::move(resampler));
+
+    if (const auto bbs = settings.burst_buffer_size())
+      burst_buffer_size_ = *bbs;
+    else if (const auto freq = settings.frequency())
+      burst_buffer_size_ = srate / *freq;
+
     for (std::size_t i{}; i < translation_offsets_.size(); ++i)
-      translation_offsets_[i] = settings.translation_offset(i);
+      if (const auto offset = settings.translation_offset(i))
+        translation_offsets_[i] = *offset;
     for (std::size_t i{}; i < translation_slopes_.size(); ++i)
-      translation_slopes_[i] = settings.translation_slope(i);
+      if (const auto slope = settings.translation_slope(i))
+        translation_slopes_[i] = *slope;
     settings_ = std::move(settings);
   }
 

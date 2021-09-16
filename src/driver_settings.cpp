@@ -37,8 +37,12 @@ struct Driver_settings::Rep final {
   {
     const auto srate = sample_rate();
     check_sample_rate(srate);
-    check_burst_buffer_size(burst_buffer_size());
-    check_frequency(frequency(), srate);
+    const auto bbs = burst_buffer_size();
+    const auto freq = frequency();
+    if (bbs && freq)
+      throw Exception{Errc::driver_mutually_exclusive_settings};
+    check_burst_buffer_size(bbs);
+    check_frequency(freq, srate);
 
     // Translation offsets and translation slopes doesn't need to be checked.
   }
@@ -71,89 +75,67 @@ struct Driver_settings::Rep final {
 
   // ---------------------------------------------------------------------------
 
-  static constexpr int default_sample_rate{48000};
-  static constexpr std::size_t default_burst_buffer_size{};
-  static constexpr int default_translation_offset{};
-  static constexpr float default_translation_slope{1};
-
-  // ---------------------------------------------------------------------------
-
   void set_sample_rate(const int rate)
   {
     check_sample_rate(rate);
     set_member("sampleRate", rate);
   }
 
-  int sample_rate() const
+  std::optional<int> sample_rate() const
   {
-    const auto result = member<int>("sampleRate");
-    return result ? *result : default_sample_rate;
+    return member<int>("sampleRate");
   }
 
   void set_burst_buffer_size(const std::size_t size)
   {
     check_burst_buffer_size(static_cast<int>(size));
     set_member("burstBufferSize", size);
+    doc_.EraseMember("frequency");
   }
 
-  std::size_t burst_buffer_size() const
+  std::optional<std::size_t> burst_buffer_size() const
   {
-    const auto result = member<std::size_t>("burstBufferSize");
-    return result ? *result : default_burst_buffer_size;
+    return member<std::size_t>("burstBufferSize");
   }
 
   void set_frequency(const int frequency)
   {
-    const auto srate = sample_rate();
-    check_frequency(frequency, srate);
-    set_burst_buffer_size(srate / frequency);
+    check_frequency(frequency, sample_rate());
+    set_member("frequency", frequency);
+    doc_.EraseMember("burstBufferSize");
   }
 
-  int frequency() const
+  std::optional<int> frequency() const
   {
-    return get_frequency<int>();
-  }
-
-  float frequency_precise() const
-  {
-    return get_frequency<float>();
-  }
-
-  template<typename T>
-  T get_frequency() const
-  {
-    if (const T bbs = burst_buffer_size())
-      return static_cast<T>(sample_rate()) / bbs;
-    else
-      return 1;
+    return member<int>("frequency");
   }
 
   void set_translation_offset(const int index, const int value)
   {
     if (!(0 <= index && index < max_channel_count))
-      throw Exception{Errc::out_of_range};
+      throw Exception{Errc::driver_invalid_setting};
 
-    set_array_element("translationOffsets", index, value, default_translation_offset);
+    constexpr int default_value{};
+    set_array_element("translationOffsets", index, value, default_value);
   }
 
-  int translation_offset(const int index) const
+  std::optional<int> translation_offset(const int index) const
   {
-    const auto result = array_element<int>("translationOffsets", index);
-    return result ? *result : default_translation_offset;
+    return array_element<int>("translationOffsets", index);
   }
 
   void set_translation_slope(const int index, const float value)
   {
     if (!(0 <= index && index < max_channel_count))
-      throw Exception{Errc::out_of_range};
+      throw Exception{Errc::driver_invalid_setting};
 
-    set_array_element("translationSlopes", index, value, default_translation_slope);
+    constexpr float default_value{1};
+    set_array_element("translationSlopes", index, value, default_value);
   }
 
-  float translation_slope(const int index) const
+  std::optional<float> translation_slope(const int index) const
   {
-    const auto result = array_element<float>("translationSlopes", index);
-    return result ? *result : default_translation_slope;
+    return array_element<float>("translationSlopes", index);
   }
 
 private:
@@ -161,24 +143,35 @@ private:
 
   // ---------------------------------------------------------------------------
 
-  static void check_sample_rate(const int rate)
+  static void check_sample_rate(const std::optional<int> rate)
   {
-    if (!(Driver::instance().min_sample_rate() <= rate &&
-        rate <= Driver::instance().max_sample_rate()))
-      throw Exception{Errc::driver_invalid_setting};
+    if (rate) {
+      if (!(Driver::instance().min_sample_rate() <= *rate &&
+          *rate <= Driver::instance().max_sample_rate()))
+        throw Exception{Errc::driver_invalid_setting};
+    }
   }
 
-  static void check_burst_buffer_size(const int size)
+  static void check_burst_buffer_size(const std::optional<std::size_t> size)
   {
-    if (!(Driver::instance().min_sample_rate() <= size &&
-        size <= Driver::instance().max_sample_rate()))
-      throw Exception{Errc::driver_invalid_setting};
+    if (size) {
+      const auto sz = static_cast<int>(*size);
+      if (!(Driver::instance().min_sample_rate() <= sz &&
+          sz <= Driver::instance().max_sample_rate()))
+        throw Exception{Errc::driver_invalid_setting};
+    }
   }
 
-  static void check_frequency(const int frequency, const int srate)
+  static void check_frequency(const std::optional<int> frequency,
+    const std::optional<int> srate)
   {
-    if (!(1 <= frequency && frequency <= srate))
-      throw Exception{Errc::driver_invalid_setting};
+    if (frequency) {
+      if (!srate)
+        throw Exception{Errc::driver_insufficient_settings};
+
+      if (!(1 <= *frequency && *frequency <= *srate))
+        throw Exception{Errc::driver_invalid_setting};
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -263,7 +256,7 @@ Driver_settings& Driver_settings::set_sample_rate(const int rate)
   return *this;
 }
 
-int Driver_settings::sample_rate() const
+std::optional<int> Driver_settings::sample_rate() const
 {
   return rep_->sample_rate();
 }
@@ -274,7 +267,7 @@ Driver_settings& Driver_settings::set_burst_buffer_size(const std::size_t size)
   return *this;
 }
 
-std::size_t Driver_settings::burst_buffer_size() const
+std::optional<std::size_t> Driver_settings::burst_buffer_size() const
 {
   return rep_->burst_buffer_size();
 }
@@ -285,7 +278,7 @@ Driver_settings& Driver_settings::set_frequency(const int frequency)
   return *this;
 }
 
-int Driver_settings::frequency() const
+std::optional<int> Driver_settings::frequency() const
 {
   return rep_->frequency();
 }
@@ -296,7 +289,7 @@ Driver_settings& Driver_settings::set_translation_offset(const int index, const 
   return *this;
 }
 
-int Driver_settings::translation_offset(const int index) const
+std::optional<int> Driver_settings::translation_offset(const int index) const
 {
   return rep_->translation_offset(index);
 }
@@ -307,7 +300,7 @@ Driver_settings& Driver_settings::set_translation_slope(const int index, const f
   return *this;
 }
 
-float Driver_settings::translation_slope(const int index) const
+std::optional<float> Driver_settings::translation_slope(const int index) const
 {
   return rep_->translation_slope(index);
 }

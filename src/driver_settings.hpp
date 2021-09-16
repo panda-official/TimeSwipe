@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -47,7 +48,19 @@ public:
   /// The default constructor.
   Driver_settings();
 
-  /// The constructor.
+  /**
+   * The constructor.
+   *
+   * Parses the JSON input. Possible JSON members are:
+   *   - `sampleRate` - an integer;
+   *   - `burstBufferSize` - an integer;
+   *   - `frequency` - an integer;
+   *   - `translationOffsets` - an array of integers;
+   *   - `translationSlopes` - an array of floats.
+   * The exception with code `Errc::driver_mutually_exclusive_settings` will be
+   * thrown if both `burstBufferSize` and `frequency` are presents in the same
+   * JSON input.
+   */
   explicit Driver_settings(std::string_view stringified_json);
 
   /// Swaps this instance with the `other` one.
@@ -59,9 +72,9 @@ public:
   /**
    * Set sample rate.
    *
-   * The default value is equals to Driver::instance().max_sample_rate().
+   * If this setting isn't set, the driver will use Driver::instance().max_sample_rate().
    *
-   * @param rate - new sample rate
+   * @param rate The value of sample rate.
    *
    * @returns The reference to this instance.
    *
@@ -69,7 +82,7 @@ public:
    * `(Driver::instace().min_sample_rate() <= rate &&
    *  rate <= Driver::instance().max_sample_rate())`.
    *
-   * @warning It's highly recommended not to use the rate for which
+   * @warning It's highly recommended to not use the rate for which
    * `(Driver::instance().max_sample_rate() % rate != 0)` for best performance!
    * In other words, the lower the value of
    * `std::gcd(Driver::instance().max_sample_rate(), rate)`, the worse the
@@ -84,7 +97,7 @@ public:
    *
    * @see set_sample_rate().
    */
-  int sample_rate() const;
+  std::optional<int> sample_rate() const;
 
   /**
    * Sets the burst buffer size.
@@ -94,17 +107,22 @@ public:
    *  size <= Driver::instance().max_sample_rate())`.
    *
    *  @par Effects
-   *  Affects the value returned by frequency().
+   *  Affects the values returned by frequency() and to_stringified_json().
+   *  (The later will be without the `frequency` member.)
    *
-   * @param size The number of records that the driver should deliver upon
-   * of Driver::Data_handler call.
+   * @param size The number of records that the driver should deliver to
+   * Driver::Data_handler.
    *
-   * @see frequency().
+   * @see burst_buffer_size().
    */
   Driver_settings& set_burst_buffer_size(std::size_t size);
 
-  /// @returns The burst buffer size.
-  std::size_t burst_buffer_size() const;
+  /**
+   * @returns The burst buffer size.
+   *
+   * @see set_burst_buffer_size(), frequency().
+   */
+  std::optional<std::size_t> burst_buffer_size() const;
 
   /**
    * Indirect way to set the burst buffer size.
@@ -113,28 +131,22 @@ public:
    * `(1 <= frequency && frequency <= sample_rate())`.
    *
    *  @par Effects
-   *  Affects the burst buffer size setting.
+   *  Affects the value returned by burst_buffer_size() and to_stringified_json().
+   *  (The later will be without the `burstBufferSize` member.)
    *
-   * @param size The number of records that the driver should deliver upon
-   * of Driver::Data_handler call.
+   * @param size The number of records that the driver should deliver to
+   * Driver::Data_handler.
    *
-   * @see set_burst_buffer_size().
+   * @see frequency().
    */
   Driver_settings& set_frequency(int frequency);
 
   /**
-   * @returns The frequency value: `sample_rate() / burst_size()`.
+   * @returns The frequency value: `sample_rate() / burst_buffer_size()`.
    *
-   * @see burst_size(), sample_rate().
+   * @see set_frequency(), burst_buffer_size(), sample_rate().
    */
-  int frequency() const;
-
-  /**
-   * @returns The precise frequency value.
-   *
-   * @see frequency().
-   */
-  float frequency_precise() const;
+  std::optional<int> frequency() const;
 
   /**
    * Sets the translation offset.
@@ -150,7 +162,7 @@ public:
   Driver_settings& set_translation_offset(int index, int value);
 
   /// @returns The value of translation offset.
-  int translation_offset(int index) const;
+  std::optional<int> translation_offset(int index) const;
 
   /**
    * Sets the translation slope.
@@ -166,7 +178,7 @@ public:
   Driver_settings& set_translation_slope(int index, float value);
 
   /// @returns The value of data translation slope.
-  float translation_slope(int index) const;
+  std::optional<float> translation_slope(int index) const;
 
 private:
   struct Rep;
