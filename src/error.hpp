@@ -53,6 +53,7 @@ enum class Errc {
   board_invalid_setting = 2002,
   board_invalid_state = 2003,
   board_measurement_started = 2004,
+  board_insufficient_settings = 2005,
 
   /** Driver section **/
 
@@ -117,6 +118,7 @@ constexpr const char* to_literal(const Errc errc) noexcept
   case Errc::board_invalid_setting: return "board_invalid_setting";
   case Errc::board_invalid_state: return "board_invalid_state";
   case Errc::board_measurement_started: return "board_measurement_started";
+  case Errc::board_insufficient_settings: return "board_insufficient_settings";
 
   case Errc::driver: return "driver";
   case Errc::driver_invalid_setting: return "driver_invalid_setting";

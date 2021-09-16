@@ -158,7 +158,10 @@ public:
    * @warning This method cannot be called from `data_handler`.
    *
    * @par Requires
-   * `!is_measurement_started()`.
+   * `(data_handler && !is_measurement_started() &&
+   *   board_settings().channel_measurement_mode(i) &&
+   *   board_settings().channel_gain(i))`, where `i` - a channel index in the
+   *   range `[0, max_channel_count())`.
    *
    * @par Effects
    * `is_measurement_started()`.

@@ -219,6 +219,11 @@ public:
 
   void start_measurement(Data_handler data_handler) override
   {
+    /*
+     * Some of the requirements (such as mandatory board settings)
+     * should be checked by the firmware rather than the driver.
+     */
+
     if (!data_handler)
       throw Exception{Errc::invalid_argument};
 
@@ -228,8 +233,8 @@ public:
     join_threads();
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
-    const auto cc = max_channel_count();
-    for (int i{}; i < cc; ++i) {
+    const int mcc = max_channel_count();
+    for (int i{}; i < mcc; ++i) {
       const auto& brd_sets = board_settings();
       const auto gain = brd_sets.channel_gain(i);
       PANDA_TIMESWIPE_ASSERT(gain);
