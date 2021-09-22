@@ -254,7 +254,7 @@ public:
       static const Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
       const auto& types = mm == Measurement_mode::Voltage ? v_types : c_types;
       const auto& atom = calibration_map_.atom(types[i]);
-      const auto ogain_index = ogain_table_index(*gain);
+      const auto ogain_index = gain::ogain_table_index(*gain);
       PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
       calibration_slopes_[i] = atom.entry(ogain_index).slope();
     }

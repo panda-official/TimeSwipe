@@ -199,7 +199,7 @@ private:
 
   static void check_channel_gain(const std::optional<float> value)
   {
-    if (value && !(detail::ogain_min <= value && value <= detail::ogain_max))
+    if (value && !(gain::ogain_min <= value && value <= gain::ogain_max))
       throw Exception{Errc::board_invalid_setting};
   }
 

@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <array>
 
-namespace panda::timeswipe::detail {
+namespace panda::timeswipe::gain {
 
 /// Output gain table factor for even entries.
 constexpr float ogain_table_factor{1.375};
@@ -73,6 +73,6 @@ inline std::size_t ogain_table_index(const float value) noexcept
   return std::max<decltype(itr - beg)>(0, itr - beg - 1);
 }
 
-} // namespace panda::timeswipe::detail
+} // namespace panda::timeswipe::gain
 
 #endif  // PANDA_TIMESWIPE_GAIN_HPP
