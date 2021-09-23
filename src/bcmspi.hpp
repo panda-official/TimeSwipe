@@ -86,7 +86,7 @@ public:
   }
 
   /// @returns The state of FSM.
-  CSyncSerComFSM::FSM fsm_state() const noexcept
+  CSyncSerComFSM::State fsm_state() const noexcept
   {
     return com_cntr_.state();
   }
@@ -167,7 +167,7 @@ public:
     // Flow control.
     {
       Character ch{};
-      com_cntr_.start(CSyncSerComFSM::FSM::sendLengthMSB);
+      com_cntr_.start(CSyncSerComFSM::State::sendLengthMSB);
       while (com_cntr_.proc(ch, msg))
         transfer(ch);
       if (com_cntr_.bad())
@@ -182,7 +182,7 @@ public:
 
     {
       Character ch{};
-      com_cntr_.start(CSyncSerComFSM::FSM::recSilenceFrame);
+      com_cntr_.start(CSyncSerComFSM::State::recSilenceFrame);
       do
         ch = transfer(0); // provide a clock
       while (com_cntr_.proc(ch, rec_fifo_));
@@ -203,7 +203,7 @@ public:
       return false;
 
     msg = rec_fifo_;
-    return com_cntr_.state() == CSyncSerComFSM::FSM::recOK;
+    return com_cntr_.state() == CSyncSerComFSM::State::recOK;
   }
 
   /**

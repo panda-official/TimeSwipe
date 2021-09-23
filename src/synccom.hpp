@@ -42,11 +42,10 @@
  * knows how many clocks should be provided to fetch the whole message from the
  * slave.
  */
-//template <typename typeFIFO>
 class CSyncSerComFSM {
 public:
-  /// A Finite State Machine (FSM) used to control the communication flow
-  enum FSM{
+  /// A state to control the communication flow.
+  enum class State {
     /// Inactive state, no operation performed.
     halted,
 
@@ -106,7 +105,7 @@ public:
 
 protected:
   /// Holding the current FSM state.
-  FSM m_PState=FSM::halted;
+  State m_PState=State::halted;
 
   /// Current bytes count in a silence frame.
   int m_FrameCnt=0;
@@ -121,7 +120,7 @@ public:
    *
    * @param nState A state to set
    */
-  void start(FSM nState)
+  void start(State nState)
   {
     m_FrameCnt=0;
     m_PState=nState;
@@ -130,11 +129,11 @@ public:
   /// @returns true if an error happened during transaction.
   bool bad()
   {
-    return m_PState>=errLine;
+    return m_PState >= State::errLine;
   }
 
   /// @returns Actual FSM state.
-  FSM state() const noexcept
+  State state() const noexcept
   {
     return m_PState;
   }
@@ -142,84 +141,90 @@ public:
   /**
    * @brief Force execution of SPI flow-control.
    *
-   * @param ch In case of sending message operation: a character to send to
-   * SPI bus generated on flow-control logic and message to send (msg). In
+   * @param[inout] ch In case of sending message operation: a character to send
+   * to SPI bus generated on flow-control logic and message to send (msg). In
    * case of receiving message operation: a received character from SPI bus
    * that is processed according flow-control logic and received message will
-   * be saved in msg parameter.
-   * @param msg A buffer for message to be send or for receiving message.
+   * be saved to `msg`.
+   * @param[out] msg A buffer for send/receive message.
    *
    * @returns FIXME.
    */
-  template <typename typeFIFO>
-  bool proc(Character &ch, typeFIFO &msg)
+  template <typename FIFO>
+  bool proc(Character& ch, FIFO& msg)
   {
     switch(m_PState) {
       //sending:
-    case FSM::sendSilenceFrame:
+    case State::sendSilenceFrame:
       ch=0;
       if(m_FrameCnt++>3) {
         m_FrameCnt=0;
-        m_PState=FSM::sendLengthMSB;
+        m_PState=State::sendLengthMSB;
       }
       return true;
-    case FSM::sendLengthMSB:
+    case State::sendLengthMSB:
       ch=(msg.in_avail()>>8)|0x80;
-      m_PState=FSM::sendLengthLSB;
+      m_PState=State::sendLengthLSB;
       return true;
-    case FSM::sendLengthLSB:
+    case State::sendLengthLSB:
       ch=(msg.in_avail())&0xff;
-      m_PState=FSM::sendBody;
+      m_PState=State::sendBody;
       return true;
-    case FSM::sendBody:
+    case State::sendBody:
       if(0==msg.in_avail())
         {
-          m_PState=FSM::sendOK;
+          m_PState=State::sendOK;
           return false;
         }
       msg>>ch;
       return true;
 
       //receiving:
-    case FSM::recSilenceFrame:
+    case State::recSilenceFrame:
       //collision check:
       if(0!=ch) {
         //line error:
-        m_PState=FSM::errLine;
+        m_PState=State::errLine;
         return false;
       }
       if(m_FrameCnt++>3) {
         m_FrameCnt=0;
-        m_PState=FSM::recLengthMSB;
+        m_PState=State::recLengthMSB;
       }
       return true;
-    case FSM::recLengthMSB:
+    case State::recLengthMSB:
       if(0!=ch)
         {
           m_TargetLength=((int)(ch&0x7f))<<8;
-          m_PState=recLengthLSB;
+          m_PState = State::recLengthLSB;
           return true;
         }
-      if(m_FrameCnt++>10000)
+      if(m_FrameCnt++>100000)
         {
-          m_PState=FSM::errTimeout;
+          m_PState=State::errTimeout;
           return false;
         }
       return true;
-    case FSM::recLengthLSB:
+    case State::recLengthLSB:
       m_TargetLength|=ch;
-      m_PState=FSM::recBody;
+      m_PState=State::recBody;
       return true;
-    case FSM::recBody:
+    case State::recBody:
       msg<<ch;
       if(msg.in_avail()>=m_TargetLength) {
-        m_PState=FSM::recOK;
+        m_PState=State::recOK;
         return false;
       }
       return true;
 
-    default: return false;
+    case State::halted:
+    case State::sendOK:
+    case State::recOK:
+    case State::errLine:
+    case State::errTimeout:
+      break;
     }
+    return false;
   }
 };
 

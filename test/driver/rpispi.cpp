@@ -124,10 +124,10 @@ int main ( int argc, char *argv[] )
                     {
                       switch ( spi.fsm_state() )
                         {
-                        case CSyncSerComFSM::errLine:
+                        case CSyncSerComFSM::State::errLine:
                           std::cout << "!Line_err!";
                           break;
-                        case CSyncSerComFSM::errTimeout:
+                        case CSyncSerComFSM::State::errTimeout:
                           std::cout << "!Timeout_err!";
                           break;
                         default: break;

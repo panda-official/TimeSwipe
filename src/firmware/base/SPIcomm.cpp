@@ -24,7 +24,7 @@ void CSPIcomm::IRQhandler()
     {
      //  m_bCSactive=true;
        m_recFIFO.reset();
-       m_ComCntr.start(CSyncSerComFSM::FSM::recLengthMSB);
+       m_ComCntr.start(CSyncSerComFSM::State::recLengthMSB);
        pSPI->INTFLAG.bit.SSL=1;
        return;
     }
@@ -60,7 +60,7 @@ bool CSPIcomm::send(CFIFO &msg)
     //blocking mode:
     Character ch;
     CSyncSerComFSM cntr;
-    cntr.start(CSyncSerComFSM::FSM::sendSilenceFrame);
+    cntr.start(CSyncSerComFSM::State::sendSilenceFrame);
     while(cntr.proc(ch, msg))
     {
        if(!send_char(ch))
@@ -79,9 +79,9 @@ void CSPIcomm::Update()
     //check: thread-safe
     bool bProc=false;
     __disable_irq();
-        if (m_ComCntr.state() == CSyncSerComFSM::FSM::recOK) {
+        if (m_ComCntr.state() == CSyncSerComFSM::State::recOK) {
             m_recFIFO.dumpres(m_recFIFOhold);
-            m_ComCntr.start(CSyncSerComFSM::FSM::halted);
+            m_ComCntr.start(CSyncSerComFSM::State::halted);
             bProc=true;
         }
     __enable_irq();
