@@ -158,7 +158,7 @@ public:
       return false;
 
     purge();
-    set_cs(true);
+    set_transfer_active(true);
     rec_fifo_.reset();
 
     // A delay CS to fall required.
@@ -188,7 +188,7 @@ public:
       while (com_cntr_.proc(ch, rec_fifo_));
     }
 
-    set_cs(false);
+    set_transfer_active(false);
 
     // A delay for CS to rise required.
     bcm2835_delay(20); // corresponds to 50KHz
@@ -352,7 +352,7 @@ private:
       _bcm_spi_purge();
   }
 
-  void set_cs(const bool how)
+  void set_transfer_active(const bool how)
   {
     if (pins_ != Pins::spi0) {
       char t{};
