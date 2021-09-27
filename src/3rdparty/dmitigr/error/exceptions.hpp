@@ -43,18 +43,18 @@ namespace dmitigr {
  */
 template<class Base = Exception>
 class Basic_generic_exception : public Base {
+  static_assert(std::is_base_of_v<std::exception, Base>);
 public:
   /**
    * The constructor.
    *
    * @param errc The error condition.
-   * @param what The what-string. `to_literal_anyway(errc)` will be used as a
-   * what-string if `what.empty()`.
+   * @param what The what-string.
    */
-  template<class E, class = std::enable_if_t<std::is_error_condition_enum_v<E>>>
-  explicit Basic_generic_exception(const E& errc, const std::string& what)
+  explicit Basic_generic_exception(const std::error_condition& errc,
+    const std::string& what)
     : condition_{errc}
-    , what_holder_{what.empty() ? to_literal_anyway(errc) : what}
+    , what_holder_{what}
   {}
 
   /// @overload
@@ -88,12 +88,11 @@ private:
  *
  * The basic debug exception class template.
  *
- * The purpose of this template is provide the diagnostic information such as
+ * The purpose of this template is to provide the diagnostic information such as
  * the source file name and line from where the exception was thrown.
  */
 template<class Base = Exception>
 class Basic_debug_exception : public Basic_generic_exception<Base> {
-  static_assert(std::is_base_of_v<std::exception, Base>);
 public:
   /**
    * The constructor.
@@ -101,10 +100,10 @@ public:
    * @param file The name of file from where the exception thrown.
    * @param line The line of file from where the exception thrown.
    * @param errc The error condition.
+   * @param what The what-string.
    */
-  template<class E, class = std::enable_if_t<std::is_error_condition_enum_v<E>>>
   Basic_debug_exception(const char* const file, const int line,
-    const E& errc, const std::string& what)
+    const std::error_condition& errc, const std::string& what)
     : Basic_generic_exception<Base>{errc, what}
     , file_{file}
     , line_{line}
@@ -139,19 +138,19 @@ private:
 // Macros
 // -----------------------------------------------------------------------------
 
-/// Throws exception with code `errc` and the debug information.
+/// Throws exception with what-string `what`.
 #define DMITIGR_THROW(what)                     \
   do {                                          \
     throw Generic_exception{what};              \
   } while (false)
 
-/// Throws exception with code `errc`, what-string `what` and the debug information.
+/// Throws exception with code `errc`, what-string `what`.
 #define DMITIGR_THROW2(errc, what)              \
   do {                                          \
     throw Generic_exception{errc, what};        \
   } while (false)
 
-/// Throws exception with code `errc` and the debug information.
+/// Throws exception with what-string `what` and the debug information.
 #define DMITIGR_THROW_DEBUG(what)                       \
   do {                                                  \
     throw Debug_exception{__FILE__, __LINE__, what};    \
