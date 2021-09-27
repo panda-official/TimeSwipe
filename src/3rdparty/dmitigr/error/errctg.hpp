@@ -20,12 +20,12 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_STD_SYSTEM_ERROR_HPP
-#define DMITIGR_STD_SYSTEM_ERROR_HPP
+#ifndef DMITIGR_ERROR_ERRCTG_HPP
+#define DMITIGR_ERROR_ERRCTG_HPP
 
 #include "errc.hpp"
 
-#include <cstring>
+#include <cstring> // std::strlen
 #include <system_error>
 
 namespace dmitigr {
@@ -33,30 +33,30 @@ namespace dmitigr {
 /**
  * @ingroup errors
  *
- * @brief A category of errors.
+ * @brief A Generic category of errors.
  *
  * @see Exception.
  */
-class Error_category final : public std::error_category {
+class Generic_error_category final : public std::error_category {
 public:
-  /// @returns The literal `dmitigr_error`.
+  /// @returns The literal `dmitigr_generic_error`.
   const char* name() const noexcept override
   {
-    return "dmitigr_error";
+    return "dmitigr_generic_error";
   }
 
   /**
    * @returns The string that describes the error condition denoted by `ev`.
    *
    * @par Requires
-   * `ev` must corresponds to the value of Errc.
+   * `ev` must corresponds to the value of Generic_errc.
    *
    * @remarks The caller should not rely on the return value as it is a
    * subject to change.
    */
   std::string message(const int ev) const override
   {
-    const char* const desc{to_literal_anyway(static_cast<Errc>(ev))};
+    const char* const desc{to_literal_anyway(static_cast<Generic_errc>(ev))};
     constexpr const char* const sep{": "};
     std::string result;
     result.reserve(std::strlen(name()) + std::strlen(sep) + std::strlen(desc));
@@ -67,35 +67,24 @@ public:
 /**
  * @ingroup errors
  *
- * @returns The reference to the instance of type Error_category.
+ * @returns The reference to the instance of type Generic_error_category.
  */
-inline const Error_category& error_category() noexcept
+inline const Generic_error_category& generic_error_category() noexcept
 {
-  static const Error_category result;
+  static const Generic_error_category result;
   return result;
 }
 
 /**
  * @ingroup errors
  *
- * @returns `std::error_condition(int(errc), error_category())`
+ * @returns `std::error_condition(int(errc), generic_error_category())`.
  */
-inline std::error_condition make_error_condition(const Errc errc) noexcept
+inline std::error_condition make_error_condition(const Generic_errc errc) noexcept
 {
-  return std::error_condition{static_cast<int>(errc), error_category()};
+  return {static_cast<int>(errc), generic_error_category()};
 }
 
 } // namespace dmitigr
 
-namespace std {
-
-/**
- * @ingroup errors
- *
- * @brief The full specialization for integration with `<system_error>`.
- */
-template<> struct is_error_condition_enum<dmitigr::Errc> final : true_type {};
-
-} // namespace std
-
-#endif  // DMITIGR_STD_SYSTEM_ERROR_HPP
+#endif  // DMITIGR_ERROR_ERRCTG_HPP

@@ -1,14 +1,32 @@
 // -*- C++ -*-
-// Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or rajson.hpp
+// Copyright (C) 2021 Dmitry Igrishin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+//
+// Dmitry Igrishin
+// dmitigr@gmail.com
 
 #ifndef DMITIGR_RAJSON_VALUE_VIEW_HPP
 #define DMITIGR_RAJSON_VALUE_VIEW_HPP
 
 #include "conversions.hpp"
+#include "exceptions.hpp"
 
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -57,7 +75,8 @@ public:
   /**
    * @returns The iterator that points to the member named by `name`.
    *
-   * @throws `std::runtime_error` if no such a member presents.
+   * @par Requires
+   * `optional_iterator(name) != value().MemberEnd()`.
    */
   auto mandatory_iterator(const std::string_view name) const
   {
@@ -105,7 +124,8 @@ public:
   /**
    * @returns The instance of Value_view bound to member named by `name`.
    *
-   * @throws `std::runtime_error` if no such a member presents.
+   * @par Requires
+   * `optional(name)`.
    */
   auto mandatory(const std::string_view name) const
   {
@@ -122,7 +142,8 @@ public:
    * @returns The value of member named by `name` converted to type `R` by
    * using rajson::Conversions.
    *
-   * @throws `std::runtime_error` if no such a member presents.
+   * @par Requires
+   * `optional(name)`.
    */
   template<typename R>
   R mandatory(const std::string_view name) const
@@ -138,7 +159,7 @@ private:
   {
     if (const auto e = value.MemberEnd(); name.empty())
       return e;
-    else if (const auto m = value.FindMember(rapidjson::StringRef(name.data(), name.size())); m != e)
+    else if (const auto m = value.FindMember(rajson::to_string_ref(name)); m != e)
       return m;
     else
       return e;
@@ -150,8 +171,8 @@ private:
     if (auto result = view.optional_iterator(name); result != view.value_.MemberEnd())
       return result;
     else
-      throw std::runtime_error{std::string{"dmitigr::rajson::Value_view: member \""}
-        .append(name).append("\"").append(" doesn't present")};
+      throw Generic_exception{std::string{"JSON member \""}.append(name).append("\"")
+        .append(" not found")};
   }
 
   template<typename R, class ValueView>

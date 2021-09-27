@@ -23,9 +23,9 @@
 #ifndef DMITIGR_PROGPAR_PROGPAR_HPP
 #define DMITIGR_PROGPAR_PROGPAR_HPP
 
-#include "exception.hpp"
+#include "exceptions.hpp"
 #include "version.hpp"
-#include "../error.hpp"
+#include "../error/assert.hpp"
 #include "../filesystem.hpp"
 
 #include <algorithm>
@@ -75,6 +75,36 @@ public:
       return is_valid_;
     }
 
+    /**
+     * @returns `is_valid()`.
+     *
+     * @par Requires
+     * `!value()`.
+     */
+    bool is_valid_throw_if_value() const
+    {
+      const auto valid = is_valid();
+      if (valid && value())
+        throw_requirement("requires no value");
+
+      return valid;
+    }
+
+    /**
+     * @returns `is_valid()`.
+     *
+     * @par Requires
+     * `value()`.
+     */
+    bool is_valid_throw_if_no_value() const
+    {
+      const auto valid = is_valid();
+      if (valid && !value())
+        throw_requirement("requires a value");
+
+      return valid;
+    }
+
     /// @returns `is_valid()`.
     explicit operator bool() const noexcept
     {
@@ -94,76 +124,53 @@ public:
     }
 
     /**
-     * @returns The value of this option if `is_valid()`.
+     * @returns The value of this option.
      *
-     * @throws Exception if `!is_valid()`.
+     * @par Requires
+     * `is_valid()`.
      */
     const std::optional<std::string>& value() const
     {
-      if (is_valid())
-        return value_;
-      else
-        throw_error(Errc::option_not_specified);
+      if (!is_valid())
+        throw_requirement("must present");
+
+      return value_;
     }
 
     /**
-     * @returns `*value()` if `is_valid() && value()`.
+     * @returns `*value()`.
      *
-     * @throws Exception if `!is_valid() || !value()`.
+     * @par Requires
+     * `value()`.
      */
     const std::string& not_null_value() const
     {
-      if (const auto& val = value())
-        return *val;
-      else
-        throw_error(Errc::option_without_value);
+      const auto& val = value();
+      if (!val)
+        throw_requirement("requires a value");
+
+      return *val;
     }
 
     /**
-     * @returns `*value()` if `is_valid() && value() && !value().empty()`.
+     * @returns `*value()`.
      *
-     * @throws Exception if `!is_valid() || !value() || value().empty()`.
+     * @par Requires
+     * `!value().empty()`.
      */
     const std::string& not_empty_value() const
     {
-      if (const auto& val = not_null_value(); !val.empty())
-        return val;
-      else
-        throw_error(Errc::option_with_empty_value);
+      const auto& val = not_null_value();
+      if (val.empty())
+        throw_requirement("requires a non empty value");
+
+      return val;
     }
 
-    /**
-     * @returns `value().value_or(std::move(val))`.
-     *
-     * @throws Exception if `!is_valid()`.
-     */
+    /// @returns `value().value_or(std::move(val))`.
     std::string value_or(std::string val) const
     {
       return value().value_or(std::move(val));
-    }
-
-    /**
-     * @returns `is_valid()` if the given option presents.
-     *
-     * @throws Exception if the given option presents with a value.
-     */
-    bool check_no_value() const
-    {
-      if (is_valid() && value())
-        throw_error(Errc::option_with_value);
-      return is_valid();
-    }
-
-    /**
-     * @returns `is_valid()` if the given option presents.
-     *
-     * @throws Exception if the given option presents without a value.
-     */
-    bool check_value() const
-    {
-      if (is_valid() && !value())
-        throw_error(Errc::option_without_value);
-      return is_valid();
     }
 
   private:
@@ -193,12 +200,11 @@ public:
       DMITIGR_ASSERT(is_valid());
     }
 
-    /// @throws `Exception`.
-    [[noreturn]] void throw_error(const Errc errc) const
+    /// @throws `Generic_exception`.
+    [[noreturn]] void throw_requirement(const std::string_view requirement) const
     {
-      std::string what{"option --"};
-      what.append(name_).append(": ").append(str(errc));
-      throw Exception{errc, std::move(what), name_};
+      throw Generic_exception{std::string{"option --"}
+        .append(name_).append(" ").append(requirement)};
     }
   };
 
@@ -213,11 +219,14 @@ public:
    */
   Program_parameters(const int argc, const char* const* argv)
   {
-    DMITIGR_CHECK_ARG(argc > 0);
-    DMITIGR_CHECK_ARG(argv);
-    DMITIGR_CHECK_ARG(argv[0]);
+    if (!(argc > 0))
+      throw Generic_exception{"invalid count of program parameters (argc)"};
+    else if (!argv)
+      throw Generic_exception{"invalid vector of program parameters (argv)"};
+
     path_ = argv[0];
-    DMITIGR_CHECK_ARG(!path_.empty());
+    if (path_.empty())
+      throw Generic_exception{"invalid program name (argv[0])"};
 
     static const auto opt = [](const std::string_view arg)
       -> std::optional<std::pair<std::string, std::optional<std::string>>>
@@ -279,7 +288,8 @@ public:
     , options_{std::move(options)}
     , arguments_{std::move(arguments)}
   {
-    DMITIGR_CHECK_ARG(!path_.empty());
+    if (path_.empty())
+      throw Generic_exception{"invalid program name (argv[0])"};
     DMITIGR_ASSERT(is_valid());
   }
 
@@ -328,10 +338,16 @@ public:
     return option(option_name);
   }
 
-  /// @returns `arguments()[argument_index]`.
+  /**
+   * @returns `arguments()[argument_index]`.
+   *
+   * @par Requires
+   * `(argument_index < arguments().size())`.
+   */
   const std::string& operator[](const std::size_t argument_index) const
   {
-    DMITIGR_CHECK_RANGE(argument_index < arguments_.size());
+    if (!(argument_index < arguments_.size()))
+      throw Generic_exception{"invalid program argument index"};
     return arguments_[argument_index];
   }
 

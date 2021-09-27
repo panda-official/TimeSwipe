@@ -20,28 +20,24 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit version.hpp.in instead!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_RAJSON_ERRC_HPP
+#define DMITIGR_RAJSON_ERRC_HPP
 
-#ifndef DMITIGR_CRC_VERSION_HPP
-#define DMITIGR_CRC_VERSION_HPP
+#include "../3rdparty/rapidjson/error/en.h"
+#include "../3rdparty/rapidjson/error/error.h"
 
-#include <cstdint>
+#include <system_error>
 
-namespace dmitigr::crc {
+namespace std {
 
-/// @returns The library version.
-constexpr std::int_fast32_t version() noexcept
-{
-  // Actual values are set in CMakeLists.txt.
-  constexpr std::int_least32_t major = 0;
-  constexpr std::int_least32_t minor = 1;
+/**
+ * @ingroup errors
+ *
+ * @brief The full specialization for integration with `<system_error>`.
+ */
+template<>
+struct is_error_condition_enum<rapidjson::ParseErrorCode> final : true_type {};
 
-  // 11.234 -> 11 * 1000 + 234 = 11234
-  return major*1000 + minor;
-}
+} // namespace std
 
-} // namespace dmitigr::crc
-
-#endif  // DMITIGR_CRC_VERSION_HPP
+#endif  // DMITIGR_RAJSON_ERRC_HPP

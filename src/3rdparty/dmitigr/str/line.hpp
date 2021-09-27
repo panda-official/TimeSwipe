@@ -23,8 +23,8 @@
 #ifndef DMITIGR_STR_LINE_HPP
 #define DMITIGR_STR_LINE_HPP
 
+#include "exceptions.hpp"
 #include "version.hpp"
-#include "../error.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -47,7 +47,9 @@ namespace dmitigr::str {
 inline auto
 line_number_by_position(const std::string& str, const std::string::size_type pos)
 {
-  DMITIGR_CHECK_RANGE(pos < str.size());
+  if (!(pos < str.size()))
+    throw Generic_exception{"cannot get line number by invalid position"};
+
   using Diff = decltype(cbegin(str))::difference_type;
   return std::count(cbegin(str), cbegin(str) + static_cast<Diff>(pos), '\n');
 }
@@ -62,7 +64,9 @@ line_number_by_position(const std::string& str, const std::string::size_type pos
 inline std::pair<std::size_t, std::size_t>
 line_column_numbers_by_position(const std::string& str, const std::string::size_type pos)
 {
-  DMITIGR_CHECK_RANGE(pos < str.size());
+  if (!(pos < str.size()))
+    throw Generic_exception{"cannot get line and column numbers by invalid position"};
+
   std::size_t line{};
   std::size_t column{};
   for (std::size_t i = 0; i < pos; ++i) {

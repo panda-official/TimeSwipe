@@ -20,28 +20,37 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit version.hpp.in instead!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_PROGPAR_EXCEPTIONS_HPP
+#define DMITIGR_PROGPAR_EXCEPTIONS_HPP
 
-#ifndef DMITIGR_CRC_VERSION_HPP
-#define DMITIGR_CRC_VERSION_HPP
+#include "../error/exceptions.hpp"
 
-#include <cstdint>
+namespace dmitigr::progpar {
 
-namespace dmitigr::crc {
+// -----------------------------------------------------------------------------
+// Exception
+// -----------------------------------------------------------------------------
 
-/// @returns The library version.
-constexpr std::int_fast32_t version() noexcept
-{
-  // Actual values are set in CMakeLists.txt.
-  constexpr std::int_least32_t major = 0;
-  constexpr std::int_least32_t minor = 1;
+/**
+ * @ingroup errors
+ *
+ * The base exception class.
+ */
+class Exception : public dmitigr::Exception {};
 
-  // 11.234 -> 11 * 1000 + 234 = 11234
-  return major*1000 + minor;
-}
+// -----------------------------------------------------------------------------
+// Generic_exception
+// -----------------------------------------------------------------------------
 
-} // namespace dmitigr::crc
+/**
+ * @ingroup errors
+ *
+ * The generic exception class.
+ */
+class Generic_exception final : public Basic_generic_exception<Exception> {
+  using Basic_generic_exception::Basic_generic_exception;
+};
 
-#endif  // DMITIGR_CRC_VERSION_HPP
+} // namespace dmitigr::progpar
+
+#endif  // DMITIGR_PROGPAR_EXCEPTIONS_HPP

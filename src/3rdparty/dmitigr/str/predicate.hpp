@@ -26,7 +26,6 @@
 #include "version.hpp"
 
 #include <algorithm>
-#include <functional>
 #include <locale>
 #include <string>
 #include <string_view>
@@ -64,7 +63,7 @@ inline bool is_non_simple_identifier_character(const char c, const std::locale& 
 /// @returns `true` if `str` has at least one space character.
 inline bool has_space(const std::string& str, const std::locale& loc = {}) noexcept
 {
-  return std::any_of(cbegin(str), cend(str), std::bind(is_space_character, std::placeholders::_1, loc));
+  return std::any_of(cbegin(str), cend(str), [&loc](const auto ch){return is_space_character(ch, loc);});
 }
 
 /// @returns `true` if `input` is starting with `pattern`.

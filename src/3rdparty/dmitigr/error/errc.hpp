@@ -23,48 +23,41 @@
 #ifndef DMITIGR_ERROR_ERRC_HPP
 #define DMITIGR_ERROR_ERRC_HPP
 
+#include <system_error>
+
 namespace dmitigr {
 
-/// Error codes.
-enum class Errc {
-  ok = 0,
-
-  /** Generic section **/
-
+/**
+ * @ingroup errors
+ *
+ * Generic error codes (or conditions).
+ */
+enum class Generic_errc {
+  /// Generic error.
   generic = 1,
-  invalid_argument = 2,
-  out_of_range = 3,
-  length_error = 4
 };
 
-/// @returns `true` if `errc` indicates an error.
-constexpr bool is_error(const Errc errc) noexcept
-{
-  return errc != Errc::ok;
-}
-
 /**
+ * @ingroup errors
+ *
  * @returns The literal representation of the `errc`, or `nullptr`
- * if `errc` does not corresponds to any value defined by Errc.
+ * if `errc` does not corresponds to any value defined by Generic_errc.
  */
-constexpr const char* to_literal(const Errc errc) noexcept
+constexpr const char* to_literal(const Generic_errc errc) noexcept
 {
   switch (errc) {
-  case Errc::ok: return "ok";
-
-  case Errc::generic: return "generic";
-  case Errc::invalid_argument: return "invalid_argument";
-  case Errc::out_of_range: return "out_of_range";
-  case Errc::length_error: return "length_error";
+  case Generic_errc::generic: return "generic";
   }
   return nullptr;
 }
 
 /**
+ * @ingroup errors
+ *
  * @returns The literal returned by `to_literal(errc)`, or literal
- * `unknown error` if `to_literal(errc)` returned `nullptr`.
+ * "unknown error" if `to_literal(errc)` returned `nullptr`.
  */
-constexpr const char* to_literal_anyway(const Errc errc) noexcept
+constexpr const char* to_literal_anyway(const Generic_errc errc) noexcept
 {
   constexpr const char* unknown{"unknown error"};
   const char* const literal{to_literal(errc)};
@@ -72,5 +65,17 @@ constexpr const char* to_literal_anyway(const Errc errc) noexcept
 }
 
 } // namespace dmitigr
+
+namespace std {
+
+/**
+ * @ingroup errors
+ *
+ * @brief The full specialization for integration with `<system_error>`.
+ */
+template<>
+struct is_error_condition_enum<dmitigr::Generic_errc> final : true_type {};
+
+} // namespace std
 
 #endif  // DMITIGR_ERROR_ERRC_HPP

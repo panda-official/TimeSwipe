@@ -24,7 +24,7 @@ Copyright (C) [Dmitry Igrishin][dmitigr_mail]
 
 [dmitigr_mail]: mailto:dmitigr@gmail.com
 [dmitigr_cefeika]: https://github.com/dmitigr/cefeika.git
-[dmitigr_rajson_doc]: http://dmitigr.ru/en/projects/cefeika/jrpc/doc/
+[dmitigr_rajson_doc]: http://dmitigr.ru/en/cefeika/rajson/doc/
 
 [Doxygen]: http://doxygen.org/
 [RapidJSON]: http://rapidjson.org/

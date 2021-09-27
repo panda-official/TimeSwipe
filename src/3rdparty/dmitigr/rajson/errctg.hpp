@@ -1,33 +1,42 @@
 // -*- C++ -*-
-// Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or rajson.hpp
+// Copyright (C) 2021 Dmitry Igrishin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+//
+// Dmitry Igrishin
+// dmitigr@gmail.com
 
-#ifndef DMITIGR_RAJSON_ERROR_HPP
-#define DMITIGR_RAJSON_ERROR_HPP
+#ifndef DMITIGR_RAJSON_ERRCTG_HPP
+#define DMITIGR_RAJSON_ERRCTG_HPP
 
-#include "../3rdparty/rapidjson/error/en.h"
-#include "../3rdparty/rapidjson/error/error.h"
+#include "errc.hpp"
 
-#include <system_error>
-
-namespace std {
-
-/**
- * @ingroup errors
- *
- * @brief The full specialization for integration with `<system_error>`.
- */
-template<>
-struct is_error_condition_enum<rapidjson::ParseErrorCode> final : true_type {};
-
-} // namespace std
+#include <string>
 
 namespace dmitigr::rajson {
 
+// -----------------------------------------------------------------------------
+// Parse error category
+// -----------------------------------------------------------------------------
+
 /**
  * @ingroup errors
  *
- * @brief A category of runtime client errors.
+ * The parse error category.
  *
  * @see Parse_exception.
  */
@@ -76,7 +85,7 @@ inline const Parse_error_category& parse_error_category() noexcept
 /**
  * @ingroup errors
  *
- * @returns `std::error_condition(int(errc), parse_error_category())`
+ * @returns `std::error_condition(int(errc), parse_error_category())`.
  */
 inline std::error_condition
 make_error_condition(const rapidjson::ParseErrorCode errc) noexcept
@@ -84,35 +93,6 @@ make_error_condition(const rapidjson::ParseErrorCode errc) noexcept
   return std::error_condition{static_cast<int>(errc), parse_error_category()};
 }
 
-/**
- * @ingroup errors
- *
- * @brief The exception thrown on parse errors.
- */
-class Parse_exception : public std::runtime_error {
-public:
-  /// The constructor.
-  explicit Parse_exception(const rapidjson::ParseResult pr)
-    : runtime_error{rapidjson::GetParseError_En(pr.Code())}
-    , pr_{pr}
-  {}
-
-  /// @returns The error condition.
-  std::error_condition condition() const noexcept
-  {
-    return make_error_condition(pr_.Code());
-  }
-
-  /// @returns A parse result
-  const rapidjson::ParseResult& parse_result() const noexcept
-  {
-    return pr_;
-  }
-
-private:
-  rapidjson::ParseResult pr_;
-};
-
 } // namespace dmitigr::rajson
 
-#endif  // DMITIGR_RAJSON_ERROR_HPP
+#endif  // DMITIGR_RAJSON_ERRCTG_HPP

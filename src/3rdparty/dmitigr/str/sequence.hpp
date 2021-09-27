@@ -34,11 +34,10 @@ namespace dmitigr::str {
 // Sequence conversions
 // -----------------------------------------------------------------------------
 
-/**
- * @returns The string with stringified elements of the sequence in range `[b, e)`.
- */
+/// @returns The string with stringified elements of the sequence in range `[b, e)`.
 template<class InputIterator, typename Function>
-std::string to_string(const InputIterator b, const InputIterator e, const std::string& sep, Function&& to_str)
+std::string to_string(const InputIterator b, const InputIterator e,
+  const std::string& sep, const Function& to_str)
 {
   std::string result;
   if (b != e) {
@@ -56,9 +55,9 @@ std::string to_string(const InputIterator b, const InputIterator e, const std::s
 
 /// @returns The string with stringified elements of the `Container`.
 template<class Container, typename Function>
-std::string to_string(const Container& cont, const std::string& sep, Function&& to_str)
+std::string to_string(const Container& cont, const std::string& sep, const Function& to_str)
 {
-  return to_string(cbegin(cont), cend(cont), sep, std::forward<Function>(to_str));
+  return to_string(cbegin(cont), cend(cont), sep, to_str);
 }
 
 /// @returns The string with stringified elements of the `Container`.

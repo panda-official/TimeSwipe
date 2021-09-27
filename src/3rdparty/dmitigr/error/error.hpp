@@ -25,9 +25,8 @@
 
 #include "assert.hpp"
 #include "errc.hpp"
+#include "errctg.hpp"
 #include "exception.hpp"
-#include "exception_base.hpp"
-#include "exception_with_debug_info.hpp"
-#include "std_system_error.hpp"
+#include "exceptions.hpp"
 
 #endif  // DMITIGR_ERROR_ERROR_HPP

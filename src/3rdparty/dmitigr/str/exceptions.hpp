@@ -20,20 +20,37 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_ERROR_EXCEPTION_BASE_HPP
-#define DMITIGR_ERROR_EXCEPTION_BASE_HPP
+#ifndef DMITIGR_STR_EXCEPTIONS_HPP
+#define DMITIGR_STR_EXCEPTIONS_HPP
 
-#include <exception>
+#include "../error/exceptions.hpp"
 
-namespace dmitigr {
+namespace dmitigr::str {
+
+// -----------------------------------------------------------------------------
+// Exception
+// -----------------------------------------------------------------------------
 
 /**
  * @ingroup errors
  *
- * A base exception class.
+ * The base exception class.
  */
-class Exception_base : public std::exception {};
+class Exception : public dmitigr::Exception {};
 
-} // namespace dmitigr
+// -----------------------------------------------------------------------------
+// Generic_exception
+// -----------------------------------------------------------------------------
 
-#endif  // DMITIGR_ERROR_EXCEPTION_BASE_HPP
+/**
+ * @ingroup errors
+ *
+ * The generic exception class.
+ */
+class Generic_exception final : public Basic_generic_exception<Exception> {
+  using Basic_generic_exception::Basic_generic_exception;
+};
+
+} // namespace dmitigr::str
+
+#endif  // DMITIGR_STR_EXCEPTIONS_HPP
