@@ -7,6 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 //build for ADCs-DACs:
 
+#include "../basics.hpp"
 #include "../debug.hpp"
 #include "../hat.hpp"
 #include "../version.hpp"
@@ -40,6 +41,12 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
 
+// -----------------------------------------------------------------------------
+// volatile bool stopflag{};
+// // stopflag = false;
+// // while (stopflag) os::wait(10);
+// -----------------------------------------------------------------------------
+
 namespace ts = panda::timeswipe;
 using namespace std::placeholders;
 
@@ -65,8 +72,8 @@ int sys_clock_init(void);
 
 int main()
 try {
-        const int nChannels=4;
-        const size_t EEPROMsize=2048;
+        constexpr int nChannels{ts::max_channel_count};
+        constexpr std::size_t EEPROMsize{2*1024}; // 2kb for EEPROM data
 
 #ifdef CALIBRATION_STATION
         bool bVisEnabled=false;
@@ -91,7 +98,7 @@ try {
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
         auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
-        pEEPROM_MemBuf->reserve(EEPROMsize); //reserve 2kb for an EEPROM data
+        pEEPROM_MemBuf->reserve(EEPROMsize); // reserve for EEPROM data
 
         //creating an I2C EEPROM master to operate with an external chip:
         auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();

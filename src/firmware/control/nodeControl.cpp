@@ -50,7 +50,7 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
 
   if (m_pVoltageDAC) {
     const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
-    if (!atom.entry_count())
+    if (atom.entry_count() != 1) // exactly 1 entry per specification
       return;
     const auto& entry = atom.entry(0);
     m_pVoltageDAC->SetLinearFactors(entry.slope(), entry.offset());

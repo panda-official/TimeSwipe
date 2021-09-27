@@ -61,7 +61,11 @@ enum class Type : std::uint16_t {
   invalid2 = 0xFFFF
 };
 
-/// Atom stub.
+/**
+ * Atom stub.
+ *
+ * Used as a stub for unimplemented EEPROM atoms.
+ */
 class Stub final {
 public:
   /// The constructor.
@@ -152,7 +156,7 @@ private:
   friend hat::Manager;
 
   static constexpr Type type_{Type::vendor_info};
-  static constexpr int index_{};
+  static constexpr int index_{}; // Per EEPROM specification.
   Uuid uuid_{};
   std::uint16_t pid_{};
   std::uint16_t pver_{};
@@ -290,7 +294,7 @@ private:
   } gpio_[28]{};
 
   static constexpr Type type_{Type::gpio_map};
-  static constexpr int index_{1};
+  static constexpr int index_{1}; // Per EEPROM specification.
 
   /**
    * Resets data fields from an ATOM binary image.
@@ -598,7 +602,7 @@ private:
 
   std::vector<atom::Calibration> atoms_;
   atom::Type type_{atom::Type::custom};
-  static constexpr int index_{3};  // FIXME ? (should be 2?)
+  static constexpr int index_{3}; // Per EEPROM specification.
 
   /**
    * Resets data fields from an ATOM binary image.
@@ -742,9 +746,9 @@ public:
     const bool is_adding{pos == acount};
 
     Atom_header* atom{};
-    if (const auto r = get_atom_header(pos, &atom);
-      is_adding && r != Op_result::atom_not_found || r != Op_result::ok)
-      return r;
+    if (const auto r = get_atom_header(pos, &atom); is_adding) {
+      if (r != Op_result::atom_not_found) return r;
+    } else if (r != Op_result::ok) return r;
 
     // FIXME: check the whole storage for corruption before continuing here.
     // assert: storage is not corrupted.
