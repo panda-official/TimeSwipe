@@ -69,7 +69,7 @@ public:
    *
    * @note This setting can be applied only if `Driver::instance().is_busy() == false`.
    */
-  Board_settings& set_signal_mode(Signal_mode mode);
+  Board_settings& set_signal_mode(Signal_mode value);
 
   /// @returns The value of signal mode.
   std::optional<Signal_mode> signal_mode() const;

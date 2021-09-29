@@ -83,9 +83,9 @@ struct Board_settings::Rep final {
 
   // ---------------------------------------------------------------------------
 
-  void set_signal_mode(const Signal_mode mode)
+  void set_signal_mode(const Signal_mode value)
   {
-    set_member("Mode", static_cast<int>(mode));
+    set_member("Mode", value);
   }
 
   std::optional<Signal_mode> signal_mode() const
@@ -97,7 +97,7 @@ struct Board_settings::Rep final {
 
   void set_channel_measurement_mode(const int index, const Measurement_mode value)
   {
-    set_member("CH", index + 1, "mode", static_cast<int>(value));
+    set_member("CH", index + 1, "mode", value);
   }
 
   std::optional<Measurement_mode> channel_measurement_mode(const int index) const
@@ -351,9 +351,9 @@ std::string Board_settings::to_json_text() const
 
 // -----------------------------------------------------------------------------
 
-Board_settings& Board_settings::set_signal_mode(const Signal_mode mode)
+Board_settings& Board_settings::set_signal_mode(const Signal_mode value)
 {
-  rep_->set_signal_mode(mode);
+  rep_->set_signal_mode(value);
   return *this;
 }
 
