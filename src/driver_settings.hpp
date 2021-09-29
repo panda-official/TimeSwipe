@@ -61,13 +61,13 @@ public:
    * thrown if both `burstBufferSize` and `frequency` are presents in the same
    * JSON input.
    */
-  explicit Driver_settings(std::string_view stringified_json);
+  explicit Driver_settings(std::string_view json_text);
 
   /// Swaps this instance with the `other` one.
   void swap(Driver_settings& other) noexcept;
 
-  /// @returns The result of conversion of this instance to a stringified JSON.
-  std::string to_stringified_json() const;
+  /// @returns The result of conversion of this instance to a JSON text.
+  std::string to_json_text() const;
 
   /**
    * Set sample rate.
@@ -107,7 +107,7 @@ public:
    *  size <= Driver::instance().max_sample_rate())`.
    *
    *  @par Effects
-   *  Affects the values returned by frequency() and to_stringified_json().
+   *  Affects the values returned by frequency() and to_json_text().
    *  (The later will be without the `frequency` member.)
    *
    * @param size The number of records that the driver should deliver to
@@ -131,7 +131,7 @@ public:
    * `(1 <= frequency && frequency <= sample_rate())`.
    *
    *  @par Effects
-   *  Affects the value returned by burst_buffer_size() and to_stringified_json().
+   *  Affects the value returned by burst_buffer_size() and to_json_text().
    *  (The later will be without the `burstBufferSize` member.)
    *
    * @param size The number of records that the driver should deliver to

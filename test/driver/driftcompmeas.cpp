@@ -8,8 +8,8 @@
 */
 
 #include "../../src/firmware/json.hpp"
-#include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
+#include "../../src/error_detail.hpp"
 #include "../../src/3rdparty/dmitigr/math.hpp"
 
 #include <chrono>
@@ -38,7 +38,7 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
     for (auto i{0*channel_count}; i < channel_count; ++i) {
       const auto& channel{data[i]};
       const auto avg{math::avg(channel)};
-      const auto var{math::dispersion(channel, avg, false)};
+      const auto var{math::variance(channel, avg, false)};
       const auto stddev{std::sqrt(var)};
       aavg[i] += avg;
       astddev[i] += stddev;

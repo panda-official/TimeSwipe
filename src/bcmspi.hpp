@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_BCMSPI_HPP
 #define PANDA_TIMESWIPE_BCMSPI_HPP
 
-#include "error.hpp"
+#include "error_detail.hpp"
 #include "spi.hpp"
 #include "synccom.hpp"
 #include "3rdparty/BCMsrc/bcm2835.h"
@@ -260,7 +260,8 @@ public:
     std::clog << "spi: sent: \"" << request << "\"" << std::endl;
 #endif
     if (!res)
-      throw Exception{Errc::spi_send};
+      throw Generic_exception{Errc::spi_send,
+        std::string{"cannot send SPI request "}.append(request)};
   }
 
   /**
@@ -279,7 +280,7 @@ public:
         const auto errc = [&result]
         {
           if (result == "!protocol_error!")
-            return Errc::com_proto_invalid_request;
+            return Errc::com_proto_request_invalid;
           else if (result == "!Line_err!")
             return Errc::com_proto_bus;
           else if (result == "!Timeout_err!")
@@ -295,7 +296,7 @@ public:
           else
             return Errc::com_proto;
         }();
-        throw Exception{errc};
+        throw Generic_exception{errc, "communication protocol error"};
       }
 
       // Strip result.
@@ -310,7 +311,7 @@ public:
 #ifdef PANDA_TIMESWIPE_TRACE_SPI
     std::clog << "spi: receive error" << std::endl;
 #endif
-    throw Exception{Errc::spi_receive};
+    throw Generic_exception{Errc::spi_receive, "cannot receive SPI response"};
   }
 
 private:

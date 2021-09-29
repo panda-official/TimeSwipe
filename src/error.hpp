@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_ERROR_HPP
 #define PANDA_TIMESWIPE_ERROR_HPP
 
-#include <cstring>
+#include <cstring> // std::strlen
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -32,73 +32,74 @@ namespace panda::timeswipe {
 // Errc
 // -----------------------------------------------------------------------------
 
-/// Error codes.
+/**
+ * @ingroup errors
+ *
+ * Error conditions.
+ */
 enum class Errc {
-  ok = 0,
-
   /** Generic section **/
 
   generic = 1,
-  out_of_range = 2,
-  invalid_argument = 3,
-
-  /** PID file section **/
-
-  pid_file = 1001,
-  pid_file_lock_failed = 1002,
 
   /** Board section **/
 
-  board = 2001,
-  board_invalid_setting = 2002,
-  board_invalid_state = 2003,
-  board_measurement_started = 2004,
-  board_insufficient_settings = 2005,
+  board = 10001,
+  board_setting_channel_gain_invalid = 10011,
+  board_setting_pwm_frequency_invalid = 10021,
+  board_setting_pwm_signal_level_invalid = 10031,
+  board_setting_pwm_repeat_count_invalid = 10041,
+  board_setting_pwm_duty_cycle_invalid = 10051,
+  board_settings_insufficient = 10101,
+  board_state_invalid = 10201,
+  board_measurement_started = 10301,
 
   /** Driver section **/
 
-  driver = 3001,
-  driver_invalid_setting = 3002,
-  driver_insufficient_settings = 3003,
-  driver_mutually_exclusive_settings = 3004,
+  driver = 20001,
+  driver_setting_invalid = 20011,
+  driver_setting_translation_offsets_invalid = 20021,
+  driver_setting_translation_slopes_invalid = 20031,
+  driver_setting_sample_rate_invalid = 20041,
+  driver_setting_burst_buffer_size_invalid = 20051,
+  driver_setting_frequency_invalid = 20061,
+  driver_settings_insufficient = 20101,
+  driver_settings_mutually_exclusive = 20201,
+  driver_pid_file_lock_failed = 20301,
 
-  /** Drift compensation section **/
+  /** Drift compensation feature errors **/
 
-  drift_comp = 4001,
-  drift_comp_invalid_reference = 4002,
-  drift_comp_no_references = 4003,
-  drift_comp_insufficient_references = 4004,
-  drift_comp_excessive_references = 4005,
+  drift_comp = 30001,
+  drift_comp_reference_invalid = 30011,
+  drift_comp_references_insufficient = 30101,
+  drift_comp_references_excessive = 30111,
+  drift_comp_references_not_found = 30121,
+  drift_comp_references_not_available = 30131,
 
   /** Calibration data section **/
 
-  calib_data = 5001,
-  calib_data_invalid = 5002,
-  calib_data_invalid_atom_type = 5003,
+  calib_data = 40001,
+  calib_data_invalid = 40011,
+  calib_data_atom_type_invalid = 40101,
+  calib_data_atom_entry_invalid = 40111,
 
   /** SPI section **/
 
-  spi = 6001,
-  spi_send = 6002,
-  spi_receive = 6003,
+  spi = 50001,
+  spi_send = 50011,
+  spi_receive = 50101,
 
   /** Communication protocol section **/
 
-  com_proto = 7001,
-  com_proto_invalid_request = 7002,
-  com_proto_bus = 7003,
-  com_proto_timeout = 7004,
-  com_proto_object_not_found = 7005,
-  com_proto_get_unsupported = 7006,
-  com_proto_set_unsupported = 7007,
-  com_proto_access_point_disabled = 7008
+  com_proto = 60001,
+  com_proto_request_invalid = 60011,
+  com_proto_bus = 60101,
+  com_proto_timeout = 60201,
+  com_proto_object_not_found = 60301,
+  com_proto_get_unsupported = 60401,
+  com_proto_set_unsupported = 60501,
+  com_proto_access_point_disabled = 60601
 };
-
-/// @returns `true` if `errc` indicates an error.
-constexpr bool is_error(const Errc errc) noexcept
-{
-  return errc != Errc::ok;
-}
 
 /**
  * @returns The literal representation of the `errc`, or `nullptr`
@@ -107,48 +108,94 @@ constexpr bool is_error(const Errc errc) noexcept
 constexpr const char* to_literal(const Errc errc) noexcept
 {
   switch (errc) {
-  case Errc::ok: return "ok";
+  case Errc::generic:
+    return "generic";
 
-  case Errc::generic: return "generic";
-  case Errc::out_of_range: return "out_of_range";
-  case Errc::invalid_argument: return "invalid_argument";
+  case Errc::board:
+    return "board";
+  case Errc::board_setting_channel_gain_invalid:
+    return "board_setting_channel_gain_invalid";
+  case Errc::board_setting_pwm_frequency_invalid:
+    return "board_setting_pwm_frequency_invalid";
+  case Errc::board_setting_pwm_signal_level_invalid:
+    return "board_setting_pwm_signal_level_invalid";
+  case Errc::board_setting_pwm_repeat_count_invalid:
+    return "board_setting_pwm_repeat_count_invalid";
+  case Errc::board_setting_pwm_duty_cycle_invalid:
+    return "board_setting_pwm_duty_cycle_invalid";
+  case Errc::board_settings_insufficient:
+    return "board_settings_insufficient";
+  case Errc::board_state_invalid:
+    return "board_state_invalid";
+  case Errc::board_measurement_started:
+    return "board_measurement_started";
 
-  case Errc::pid_file: return "pid_file";
-  case Errc::pid_file_lock_failed: return "pid_file_lock_failed";
+  case Errc::driver:
+    return "driver";
+  case Errc::driver_setting_invalid:
+    return "driver_setting_invalid";
+  case Errc::driver_setting_translation_offsets_invalid:
+    return "driver_setting_translation_offsets_invalid";
+  case Errc::driver_setting_translation_slopes_invalid:
+    return "driver_setting_translation_slopes_invalid";
+  case Errc::driver_setting_sample_rate_invalid:
+    return "driver_setting_sample_rate_invalid";
+  case Errc::driver_setting_burst_buffer_size_invalid:
+    return "driver_setting_burst_buffer_size_invalid";
+  case Errc::driver_setting_frequency_invalid:
+    return "driver_setting_frequency_invalid";
+  case Errc::driver_settings_insufficient:
+    return "driver_settings_insufficient";
+  case Errc::driver_settings_mutually_exclusive:
+    return "driver_settings_mutually_exclusive";
+  case Errc::driver_pid_file_lock_failed:
+    return "driver_pid_file_lock_failed";
 
-  case Errc::board: return "board";
-  case Errc::board_invalid_setting: return "board_invalid_setting";
-  case Errc::board_invalid_state: return "board_invalid_state";
-  case Errc::board_measurement_started: return "board_measurement_started";
-  case Errc::board_insufficient_settings: return "board_insufficient_settings";
+  case Errc::drift_comp:
+    return "drift_comp";
+  case Errc::drift_comp_reference_invalid:
+    return "drift_comp_reference_invalid";
+  case Errc::drift_comp_references_insufficient:
+    return "drift_comp_references_insufficient";
+  case Errc::drift_comp_references_excessive:
+    return "drift_comp_references_excessive";
+  case Errc::drift_comp_references_not_found:
+    return "drift_comp_references_not_found";
+  case Errc::drift_comp_references_not_available:
+    return "drift_comp_references_not_available";
 
-  case Errc::driver: return "driver";
-  case Errc::driver_invalid_setting: return "driver_invalid_setting";
-  case Errc::driver_insufficient_settings: return "driver_insufficient_settings";
-  case Errc::driver_mutually_exclusive_settings: return "driver_mutually_exclusive_settings";
+  case Errc::calib_data:
+    return "calib_data";
+  case Errc::calib_data_invalid:
+    return "calib_data_invalid";
+  case Errc::calib_data_atom_type_invalid:
+    return "calib_data_atom_type_invalid";
+  case Errc::calib_data_atom_entry_invalid:
+    return "calib_data_atom_entry_invalid";
 
-  case Errc::drift_comp: return "drift_comp";
-  case Errc::drift_comp_invalid_reference: return "drift_comp_invalid_reference";
-  case Errc::drift_comp_no_references: return "drift_comp_no_references";
-  case Errc::drift_comp_insufficient_references: return "drift_comp_insufficient_references";
-  case Errc::drift_comp_excessive_references: return "drift_comp_excessive_references";
+  case Errc::spi:
+    return "spi";
+  case Errc::spi_send:
+    return "spi_send";
+  case Errc::spi_receive:
+    return "spi_receive";
 
-  case Errc::calib_data: return "calib_data";
-  case Errc::calib_data_invalid: return "calib_data_invalid";
-  case Errc::calib_data_invalid_atom_type: return "calib_data_invalid_atom_type";
-
-  case Errc::spi: return "spi";
-  case Errc::spi_send: return "spi_send";
-  case Errc::spi_receive: return "spi_receive";
-
-  case Errc::com_proto: return "com_proto";
-  case Errc::com_proto_invalid_request: return "com_proto_invalid_request";
-  case Errc::com_proto_bus: return "com_proto_bus";
-  case Errc::com_proto_timeout: return "com_proto_timeout";
-  case Errc::com_proto_object_not_found: return "com_proto_object_not_found";
-  case Errc::com_proto_get_unsupported: return "com_proto_get_unsupported";
-  case Errc::com_proto_set_unsupported: return "com_proto_set_unsupported";
-  case Errc::com_proto_access_point_disabled: return "com_proto_access_point_disabled";
+  case Errc::com_proto:
+    return "com_proto";
+  case Errc::com_proto_request_invalid:
+    return "com_proto_request_invalid";
+  case Errc::com_proto_bus:
+    return "com_proto_bus";
+  case Errc::com_proto_timeout:
+    return "com_proto_timeout";
+  case Errc::com_proto_object_not_found:
+    return "com_proto_object_not_found";
+  case Errc::com_proto_get_unsupported:
+    return "com_proto_get_unsupported";
+  case Errc::com_proto_set_unsupported:
+    return "com_proto_set_unsupported";
+  case Errc::com_proto_access_point_disabled:
+    return "com_proto_access_point_disabled";
   }
   return nullptr;
 }
@@ -164,6 +211,25 @@ constexpr const char* to_literal_anyway(const Errc errc) noexcept
   return literal ? literal : unknown;
 }
 
+} // namespace panda::timeswipe
+
+// -----------------------------------------------------------------------------
+// Integration with std::system_error
+// -----------------------------------------------------------------------------
+
+namespace std {
+
+/**
+ * @ingroup errors
+ *
+ * @brief Full specialization for integration with `<system_error>`.
+ */
+template<> struct is_error_condition_enum<panda::timeswipe::Errc> final : true_type {};
+
+} // namespace std
+
+namespace panda::timeswipe {
+
 // -----------------------------------------------------------------------------
 // Error_category
 // -----------------------------------------------------------------------------
@@ -171,14 +237,14 @@ constexpr const char* to_literal_anyway(const Errc errc) noexcept
 /**
  * @ingroup errors
  *
- * @brief A category of driver errors.
+ * @brief A generic category of errors.
  */
-class Error_category final : public std::error_category {
+class Generic_error_category final : public std::error_category {
 public:
-  /// @returns The literal `panda_timeswipe_error`.
+  /// @returns The literal `panda_timeswipe_generic_error`.
   const char* name() const noexcept override
   {
-    return "panda_timeswipe_error";
+    return "panda_timeswipe_generic_error";
   }
 
   /**
@@ -203,42 +269,23 @@ public:
 /**
  * @ingroup errors
  *
- * @returns The reference to the instance of type Error_category.
+ * @returns The reference to the instance of type Generic_error_category.
  */
-inline const Error_category& error_category() noexcept
+inline const Generic_error_category& generic_error_category() noexcept
 {
-  static const Error_category instance;
+  static const Generic_error_category instance;
   return instance;
 }
 
 /**
  * @ingroup errors
  *
- * @returns `std::error_condition(int(errc), error_category())`.
+ * @returns `std::error_condition(int(errc), generic_error_category())`.
  */
 inline std::error_condition make_error_condition(const Errc errc) noexcept
 {
-  return std::error_condition{static_cast<int>(errc), error_category()};
+  return {static_cast<int>(errc), generic_error_category()};
 }
-
-} // namespace panda::timeswipe
-
-// -----------------------------------------------------------------------------
-// Integration with std::system_error
-// -----------------------------------------------------------------------------
-
-namespace std {
-
-/**
- * @ingroup errors
- *
- * @brief The full specialization for integration with `<system_error>`.
- */
-template<> struct is_error_condition_enum<panda::timeswipe::Errc> final : true_type {};
-
-} // namespace std
-
-namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
 // Exception
@@ -247,47 +294,15 @@ namespace panda::timeswipe {
 /**
  * @ingroup errors
  *
- * An exception class.
+ * The base exception class.
  */
 class Exception : public std::exception {
 public:
-  /**
-   * The constructor of instance which represents the generic error.
-   *
-   * @param what The custom what-string. If ommitted, the value returned by
-   * `to_literal(errc)` will be used as a what-string.
-   */
-  Exception(std::string what = {})
-    : Exception{Errc::generic, std::move(what)}
-  {}
+  /// @returns The what-string.
+  virtual const char* what() const noexcept override = 0;
 
-  /**
-   * The constructor.
-   *
-   * @param errc The error condition.
-   * @param what The custom what-string. If ommitted, the value returned by
-   * `to_literal(errc)` will be used as a what-string.
-   */
-  explicit Exception(const Errc errc, std::string what = {})
-    : condition_{errc}
-    , what_holder_{what.empty() ? to_literal_anyway(errc) : what}
-  {}
-
-  /// @see std::exception::what().
-  const char* what() const noexcept override
-  {
-    return what_holder_.what();
-  }
-
-  /// @returns Error condition.
-  std::error_condition condition() const noexcept
-  {
-    return condition_;
-  }
-
-private:
-  std::error_condition condition_;
-  std::runtime_error what_holder_;
+  /// @returns The error condition.
+  virtual std::error_condition condition() const noexcept = 0;
 };
 
 } // namespace panda::timeswipe

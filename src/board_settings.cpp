@@ -18,7 +18,7 @@
 
 #include "board_settings.hpp"
 
-#include "error.hpp"
+#include "error_detail.hpp"
 #include "gain.hpp"
 #include "rajson.hpp"
 
@@ -28,6 +28,7 @@
 namespace rajson = dmitigr::rajson;
 
 namespace panda::timeswipe {
+using namespace detail;
 
 // -----------------------------------------------------------------------------
 // class Board_settings::Rep
@@ -37,8 +38,8 @@ struct Board_settings::Rep final {
   Rep()
   {}
 
-  explicit Rep(const std::string_view stringified_json)
-    : doc_{rajson::to_document(stringified_json)}
+  explicit Rep(const std::string_view json_text)
+    : doc_{rajson::to_document(json_text)}
   {
     // Check channel-related settings.
     for (int i{}; i < max_channel_count; ++i) {
@@ -75,9 +76,9 @@ struct Board_settings::Rep final {
     doc_.Swap(rhs.doc_);
   }
 
-  std::string to_stringified_json() const
+  std::string to_json_text() const
   {
-    return rajson::to_stringified(doc_);
+    return rajson::to_text(doc_);
   }
 
   // ---------------------------------------------------------------------------
@@ -200,13 +201,15 @@ private:
   static void check_channel_gain(const std::optional<float> value)
   {
     if (value && !(gain::ogain_min <= value && value <= gain::ogain_max))
-      throw Exception{Errc::board_invalid_setting};
+      throw Generic_exception{Errc::board_setting_channel_gain_invalid,
+        "cannot set invalid channel gain"};
   }
 
   static void check_pwm_frequency(const std::optional<int> value)
   {
     if (value && !(1 <= value && value <= 1000))
-      throw Exception{Errc::board_invalid_setting};
+      throw Generic_exception{Errc::board_setting_pwm_frequency_invalid,
+        "cannot set invalid PWM frequency"};
   }
 
   static void check_pwm_signal_level(const std::optional<int> low,
@@ -215,26 +218,30 @@ private:
     static const auto check_value = [](const int value)
     {
       if (!(0 <= value && value <= 4095))
-        throw Exception{Errc::board_invalid_setting};
+        throw Generic_exception{Errc::board_setting_pwm_signal_level_invalid,
+          "cannot set invalid PWM signal level"};
     };
     if (low)
       check_value(*low);
     if (high)
       check_value(*high);
     if (low && high && !(*low <= *high))
-      throw Exception{Errc::board_invalid_setting};
+      throw Generic_exception{Errc::board_setting_pwm_signal_level_invalid,
+        "cannot set invalid PWM signal level (low cannot be greater than high)"};
   }
 
   static void check_pwm_repeat_count(const std::optional<int> value)
   {
     if (value && !(value >= 0))
-      throw Exception{Errc::board_invalid_setting};
+      throw Generic_exception{Errc::board_setting_pwm_repeat_count_invalid,
+        "cannot set invalid PWM repeat count"};
   }
 
   static void check_pwm_duty_cycle(const std::optional<float> value)
   {
     if (value && !(0 < value && value < 1))
-      throw Exception{Errc::board_invalid_setting};
+      throw Generic_exception{Errc::board_setting_pwm_duty_cycle_invalid,
+        "cannot set invalid PWM duty cycle"};
   }
 
   // ---------------------------------------------------------------------------
@@ -337,9 +344,9 @@ void Board_settings::swap(Board_settings& other) noexcept
   swap(rep_, other.rep_);
 }
 
-std::string Board_settings::to_stringified_json() const
+std::string Board_settings::to_json_text() const
 {
-  return rep_->to_stringified_json();
+  return rep_->to_json_text();
 }
 
 // -----------------------------------------------------------------------------

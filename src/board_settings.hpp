@@ -50,13 +50,13 @@ public:
   Board_settings();
 
   /// The constructor.
-  explicit Board_settings(std::string_view stringified_json);
+  explicit Board_settings(std::string_view json_text);
 
   /// Swaps this instance with the `other` one.
   void swap(Board_settings& other) noexcept;
 
-  /// @returns The result of conversion of this instance to a stringified JSON.
-  std::string to_stringified_json() const;
+  /// @returns The result of conversion of this instance to a JSON text.
+  std::string to_json_text() const;
 
   /// @name General control
   ///

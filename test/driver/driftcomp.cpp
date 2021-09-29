@@ -8,7 +8,7 @@
 */
 
 #include "../../src/driver.hpp"
-#include "../../src/debug.hpp"
+#include "../../src/error_detail.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 
 #include <algorithm>
@@ -65,7 +65,7 @@ int main()
     PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
     driver.calculate_drift_deltas();
   } catch (const ts::Exception& e) {
-    PANDA_TIMESWIPE_ASSERT(e.condition() == ts::Errc::drift_comp_no_references);
+    PANDA_TIMESWIPE_ASSERT(e.condition() == ts::Errc::drift_comp_references_not_found);
   }
 
   // ---------------------------------------------------------------------------

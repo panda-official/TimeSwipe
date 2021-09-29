@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_RAJSON_HPP
 
 #include "basics.hpp"
-#include "debug.hpp"
+#include "error_detail.hpp"
 
 #include "3rdparty/dmitigr/rajson.hpp"
 
@@ -31,7 +31,7 @@ namespace dmitigr::rajson {
 template<>
 struct Conversions<panda::timeswipe::Measurement_mode> final {
   template<class Encoding, class Allocator>
-  static auto from(const rapidjson::GenericValue<Encoding, Allocator>& value)
+  static auto to_type(const rapidjson::GenericValue<Encoding, Allocator>& value)
   {
     return static_cast<panda::timeswipe::Measurement_mode>(to<int>(value));
   }
@@ -40,7 +40,7 @@ struct Conversions<panda::timeswipe::Measurement_mode> final {
 template<>
 struct Conversions<panda::timeswipe::Signal_mode> final {
   template<class Encoding, class Allocator>
-  static auto from(const rapidjson::GenericValue<Encoding, Allocator>& value)
+  static auto to_type(const rapidjson::GenericValue<Encoding, Allocator>& value)
   {
     return static_cast<panda::timeswipe::Signal_mode>(to<int>(value));
   }
@@ -55,8 +55,8 @@ void set_member(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& a
   const std::string_view name, T&& value)
 {
   namespace rajson = dmitigr::rajson;
-  auto val = rajson::to<rapidjson::Value>(std::forward<T>(value), alloc);
-  const auto name_ref = rajson::to<rapidjson::Value::StringRefType>(name);
+  auto val = rajson::to_value(std::forward<T>(value), alloc);
+  const auto name_ref = rajson::to_string_ref(name);
   if (const auto i = json.FindMember(name_ref); i != json.MemberEnd())
     i->value = std::move(val);
   else
@@ -71,7 +71,7 @@ void set_array_element(rapidjson::GenericValue<Encoding, Allocator>& json, Alloc
   T&& default_value = T{})
 {
   namespace rajson = dmitigr::rajson;
-  const auto name_ref = rajson::to<rapidjson::Value::StringRefType>(name);
+  const auto name_ref = rajson::to_string_ref(name);
   auto i = json.FindMember(name_ref);
   if (i == json.MemberEnd()) {
     json.AddMember(rapidjson::Value{name.data(), name.size(), alloc},
@@ -89,7 +89,7 @@ void set_array_element(rapidjson::GenericValue<Encoding, Allocator>& json, Alloc
     for (std::size_t i{}; i < extra_size; ++i)
       array.PushBack(std::forward<T>(default_value), alloc);
   }
-  array[index] = rajson::to<rapidjson::Value>(std::forward<T>(value), alloc);
+  array[index] = rajson::to_value(std::forward<T>(value), alloc);
 }
 
 template<typename T, typename Encoding, typename Allocator>
@@ -97,7 +97,7 @@ std::optional<T> array_element(const rapidjson::GenericValue<Encoding, Allocator
   const std::string_view name, const std::size_t index)
 {
   namespace rajson = dmitigr::rajson;
-  const auto name_ref = rajson::to<rapidjson::Value::StringRefType>(name);
+  const auto name_ref = rajson::to_string_ref(name);
   if (const auto i = json.FindMember(name_ref); i != json.MemberEnd()) {
     if (i->value.IsArray() && index < i->value.Size())
       return rajson::to<T>(i->value[index]);

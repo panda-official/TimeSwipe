@@ -20,7 +20,6 @@
 #define PANDA_TIMESWIPE_DATA_VECTOR_HPP
 
 #include "basics.hpp"
-#include "error.hpp"
 
 #include <algorithm>
 #include <array>
@@ -39,12 +38,7 @@ public:
   using size_type = value_type::size_type;
 
   /// The constructor.
-  explicit Data_vector(const size_type channel_count = max_channel_count)
-    : channel_count_{channel_count}
-  {
-    if (channel_count > max_channel_count)
-      throw Exception{Errc::out_of_range};
-  }
+  explicit Data_vector(size_type channel_count = max_channel_count);
 
   /// @returns The number of channels whose data this vector contains.
   size_type channel_count() const noexcept

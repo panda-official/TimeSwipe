@@ -7,9 +7,9 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/resampler.hpp"
-#include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
+#include "../../src/error_detail.hpp"
+#include "../../src/resampler.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 #include "../../src/3rdparty/dmitigr/progpar.hpp"
 #include "../../src/3rdparty/dmitigr/str.hpp"

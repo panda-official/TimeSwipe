@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_RESAMPLER_HPP
 
 #include "data_vector.hpp"
-#include "debug.hpp"
+#include "error_detail.hpp"
 #include "fir_resampler.hpp"
 #include "math.hpp"
 

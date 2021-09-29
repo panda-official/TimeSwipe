@@ -45,10 +45,8 @@ public:
    * @param name Unique application name.
    */
   Pid_file(const std::string& name)
-    : fname_{name}
-  {
-    fname_ = std::string("/var/run/") + name + std::string(".pid");
-  }
+    : fname_{std::string{"/var/run/"}.append(name).append(".pid")}
+  {}
 
   /**
    * Lock.
@@ -101,6 +99,12 @@ public:
   bool is_locked() const noexcept
   {
     return locked_;
+  }
+
+  /// @returns The name of lock file.
+  const std::string& name() const noexcept
+  {
+    return fname_;
   }
 
 private:

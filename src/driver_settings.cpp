@@ -18,11 +18,13 @@
 
 #include "driver.hpp"
 #include "driver_settings.hpp"
+#include "error_detail.hpp"
 #include "rajson.hpp"
 
 namespace rajson = dmitigr::rajson;
 
 namespace panda::timeswipe {
+using namespace detail;
 
 // -----------------------------------------------------------------------------
 // class Driver_settings::Rep
@@ -32,15 +34,16 @@ struct Driver_settings::Rep final {
   Rep()
   {}
 
-  explicit Rep(const std::string_view stringified_json)
-    : doc_{rajson::to_document(stringified_json)}
+  explicit Rep(const std::string_view json_text)
+    : doc_{rajson::to_document(json_text)}
   {
     const auto srate = sample_rate();
     check_sample_rate(srate);
     const auto bbs = burst_buffer_size();
     const auto freq = frequency();
     if (bbs && freq)
-      throw Exception{Errc::driver_mutually_exclusive_settings};
+      throw Generic_exception{Errc::driver_settings_mutually_exclusive,
+        "cannot set mutually exclusive settings: burstBufferSize, frequency"};
     check_burst_buffer_size(bbs);
     check_frequency(freq, srate);
 
@@ -68,9 +71,9 @@ struct Driver_settings::Rep final {
     doc_.Swap(rhs.doc_);
   }
 
-  std::string to_stringified_json() const
+  std::string to_json_text() const
   {
-    return rajson::to_stringified(doc_);
+    return rajson::to_text(doc_);
   }
 
   // ---------------------------------------------------------------------------
@@ -113,7 +116,8 @@ struct Driver_settings::Rep final {
   void set_translation_offset(const int index, const int value)
   {
     if (!(0 <= index && index < max_channel_count))
-      throw Exception{Errc::driver_invalid_setting};
+      throw Generic_exception{Errc::driver_setting_translation_offsets_invalid,
+        "cannot set invalid translation offsets"};
 
     constexpr int default_value{};
     set_array_element("translationOffsets", index, value, default_value);
@@ -127,7 +131,8 @@ struct Driver_settings::Rep final {
   void set_translation_slope(const int index, const float value)
   {
     if (!(0 <= index && index < max_channel_count))
-      throw Exception{Errc::driver_invalid_setting};
+      throw Generic_exception{Errc::driver_setting_translation_slopes_invalid,
+        "cannot set invalid translation slopes"};
 
     constexpr float default_value{1};
     set_array_element("translationSlopes", index, value, default_value);
@@ -148,7 +153,8 @@ private:
     if (rate) {
       if (!(Driver::instance().min_sample_rate() <= *rate &&
           *rate <= Driver::instance().max_sample_rate()))
-        throw Exception{Errc::driver_invalid_setting};
+        throw Generic_exception{Errc::driver_setting_sample_rate_invalid,
+          "cannot set invalid sample rate"};
     }
   }
 
@@ -158,7 +164,8 @@ private:
       const auto sz = static_cast<int>(*size);
       if (!(Driver::instance().min_sample_rate() <= sz &&
           sz <= Driver::instance().max_sample_rate()))
-        throw Exception{Errc::driver_invalid_setting};
+        throw Generic_exception{Errc::driver_setting_burst_buffer_size_invalid,
+          "cannot set invalid burst buffer size"};
     }
   }
 
@@ -167,10 +174,12 @@ private:
   {
     if (frequency) {
       if (!srate)
-        throw Exception{Errc::driver_insufficient_settings};
+        throw Generic_exception{Errc::driver_settings_insufficient,
+          "cannot set frequency without sample rate"};
 
       if (!(1 <= *frequency && *frequency <= *srate))
-        throw Exception{Errc::driver_invalid_setting};
+        throw Generic_exception{Errc::driver_setting_frequency_invalid,
+          "cannot set invalid frequency"};
     }
   }
 
@@ -235,8 +244,8 @@ Driver_settings::Driver_settings()
   : rep_{std::make_unique<Rep>()}
 {}
 
-Driver_settings::Driver_settings(const std::string_view stringified_json)
-  : rep_{std::make_unique<Rep>(stringified_json)}
+Driver_settings::Driver_settings(const std::string_view json_text)
+  : rep_{std::make_unique<Rep>(json_text)}
 {}
 
 void Driver_settings::swap(Driver_settings& other) noexcept
@@ -245,9 +254,9 @@ void Driver_settings::swap(Driver_settings& other) noexcept
   swap(rep_, other.rep_);
 }
 
-std::string Driver_settings::to_stringified_json() const
+std::string Driver_settings::to_json_text() const
 {
-  return rep_->to_stringified_json();
+  return rep_->to_json_text();
 }
 
 Driver_settings& Driver_settings::set_sample_rate(const int rate)

@@ -18,8 +18,8 @@
 
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
-#include "debug.hpp"
 #include "driver.hpp"
+#include "error_detail.hpp"
 #include "gain.hpp"
 #include "hat.hpp"
 #include "pidfile.hpp"
@@ -65,7 +65,8 @@ public:
     std::string msg;
     if (!pid_file_.lock(msg))
       // Lock here. Second lock from the same process is allowed.
-      throw Exception{Errc::pid_file_lock_failed};
+      throw Generic_exception{Errc::driver_pid_file_lock_failed,
+        std::string{"cannot lock by using file "}.append(pid_file_.name())};
 
     // Initialize GPIO.
     init_gpio();
@@ -91,14 +92,16 @@ public:
           for (std::size_t i{}; i < cal_entries_size; ++i) {
             const rajson::Value_view cal_entry{cal_entries[i]};
             if (!cal_entry.value().IsObject())
-              throw Exception{Errc::calib_data_invalid};
+              throw Generic_exception{Errc::calib_data_atom_entry_invalid,
+                "cannot initialize Timeswipe driver by using invalid calibration atom entry"};
             const auto slope = cal_entry.mandatory<float>("m");
             const auto offset = cal_entry.mandatory<std::int16_t>("b");
             const hat::atom::Calibration::Entry entry{slope, offset};
             atom.set_entry(i, entry);
           }
         } else
-          throw Exception{Errc::calib_data_invalid};
+          throw Generic_exception{Errc::calib_data_invalid,
+            "cannot initialize Timeswipe driver by using invalid calibration data"};
       }
       return result;
     }();
@@ -173,17 +176,20 @@ public:
     // Some settings cannot be applied if the board is currently busy.
     if (is_measurement_started()) {
       // Check if signal mode setting presents.
-      if (settings.signal_mode())
-        throw Exception{Errc::board_measurement_started};
+      if (!settings.signal_mode())
+        throw Generic_exception{Errc::board_settings_insufficient,
+          "cannot set board settings without signal mode setting"};
 
       // Check if channel measurement mode settings are present.
       for (int i{}; i < ts::max_channel_count; ++i) {
-        if (settings.channel_measurement_mode(i))
-          throw Exception{Errc::board_measurement_started};
+        if (!settings.channel_measurement_mode(i))
+          throw Generic_exception{Errc::board_settings_insufficient,
+            std::string{"cannot set board settings without measurement mode on"
+              " channel "}.append(std::to_string(i))};
       }
     }
 
-    spi_.execute_set_many(settings.to_stringified_json());
+    spi_.execute_set_many(settings.to_json_text());
     board_settings_.reset(); // invalidate cache (this could be optimized)
   }
 
@@ -233,10 +239,11 @@ public:
      */
 
     if (!data_handler)
-      throw Exception{Errc::invalid_argument};
+      throw Generic_exception{"cannot start measurement by using invalid data handler"};
 
     if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started};
+      throw Generic_exception{Errc::board_measurement_started,
+        "cannot start measurement because it's already started"};
 
     join_threads();
 
@@ -341,7 +348,8 @@ public:
   void clear_drift_references() override
   {
     if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started};
+      throw Generic_exception{Errc::board_measurement_started,
+        "cannot clear drift compensation references when measurement is started"};
 
     std::filesystem::remove(tmp_dir()/"drift_references");
     drift_references_.reset();
@@ -351,13 +359,15 @@ public:
   std::vector<float> calculate_drift_deltas() override
   {
     // Throw away if there are no references.
-    const auto refs= drift_references();
+    const auto refs = drift_references();
     if (!refs)
-      throw Exception{Errc::drift_comp_no_references};
+      throw Generic_exception{Errc::drift_comp_references_not_found,
+        "cannot calculate drift compensation deltas because no references found"};
 
     // Collect the data for calculation.
-    auto data{collect_channels_data(drift_samples_count,
-      [this]{return Drift_affected_state_guard{*this};})};
+    auto data = collect_channels_data(drift_samples_count, [this] {
+      return Drift_affected_state_guard{*this};
+    });
     PANDA_TIMESWIPE_ASSERT(refs->size() == data.channel_count());
 
     // Discard the first half.
@@ -380,7 +390,8 @@ public:
   void clear_drift_deltas() override
   {
     if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started};
+      throw Generic_exception{Errc::board_measurement_started,
+        "cannot clear drift compensation deltas when measurement is started"};
 
     drift_deltas_.reset();
   }
@@ -390,13 +401,15 @@ public:
     if (!force && drift_references_)
       return drift_references_;
 
-    const auto drift_references{tmp_dir()/"drift_references"};
+    const auto drift_references = tmp_dir() / "drift_references";
     if (!std::filesystem::exists(drift_references))
       return std::nullopt;
 
     std::ifstream in{drift_references};
     if (!in)
-      throw Exception{Errc::drift_comp_invalid_reference};
+      throw Generic_exception{Errc::drift_comp_references_not_available,
+        std::string{"drift compensation references are not available from "}
+          .append(drift_references.string())};
 
     std::vector<float> refs;
     while (in && refs.size() < max_channel_count()) {
@@ -407,12 +420,16 @@ public:
     if (!in.eof()) {
       float val;
       if (in >> val)
-        throw Exception{Errc::drift_comp_excessive_references};
+        throw Generic_exception{Errc::drift_comp_references_excessive,
+          std::string{"too many floating point numbers found in "}
+            .append(drift_references.string())};
     }
-    if (refs.empty())
-      throw Exception{Errc::drift_comp_insufficient_references};
+    if (refs.size() < max_channel_count())
+      throw Generic_exception{Errc::drift_comp_references_insufficient,
+        std::string{"too few floating point numbers found in "}
+          .append(drift_references.string())};
 
-    PANDA_TIMESWIPE_ASSERT(refs.size() <= max_channel_count());
+    PANDA_TIMESWIPE_ASSERT(refs.size() == max_channel_count());
 
     // Cache and return references.
     return drift_references_ = refs;
@@ -527,7 +544,8 @@ private:
           if (const auto mm = driver_.board_settings().channel_measurement_mode(index))
             return *mm;
           else
-            throw Exception{Errc::board_invalid_state};
+            throw Generic_exception{Errc::board_state_invalid,
+              "channel measurement mode is not available"};
         };
         for (int i{}; i < chmm_.size(); ++i)
           chmm_[i] = channel_mode(i);
@@ -912,7 +930,7 @@ private:
 
     const auto max_rate = max_sample_rate();
     if (!(1 <= rate && rate <= max_rate))
-      throw Exception{Errc::out_of_range, "invalid sample rate"};
+      throw Generic_exception{"cannot use invalid sample rate"};
 
     auto result = std::move(resampler_);
     if (rate != max_rate) {
@@ -966,18 +984,19 @@ private:
   Data_vector collect_channels_data(const std::size_t samples_count, F&& state_guard)
   {
     if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started};
+      throw Generic_exception{Errc::board_measurement_started,
+        "cannot collect channels data because measurment is started"};
 
     const auto guard{state_guard()};
 
-    Errc errc{};
+    std::error_condition errc;
     std::atomic_bool done{};
     Data_vector data;
     std::condition_variable update;
     start_measurement([this, samples_count, &errc, &done, &data, &update]
       (const Data_vector sd, const int)
     {
-      if (is_error(errc) || done)
+      if (errc || done)
         return;
 
       try {
@@ -987,7 +1006,7 @@ private:
         errc = Errc::generic;
       }
 
-      if (is_error(errc) || (!done && data.size() == samples_count)) {
+      if (errc || (!done && data.size() == samples_count)) {
         done = true;
         update.notify_one();
       }
@@ -1003,8 +1022,8 @@ private:
     stop_measurement();
 
     // Throw away if the data collection failed.
-    if (is_error(errc))
-      throw Exception{errc};
+    if (errc)
+      throw Generic_exception{errc, "cannot collect channels data"};
 
     return data;
   }

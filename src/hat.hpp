@@ -456,7 +456,7 @@ public:
   {
     const Type result{value};
     if (!to_literal(result))
-      err = timeswipe::to_literal(Errc::calib_data_invalid_atom_type);
+      err = timeswipe::to_literal(Errc::calib_data_atom_type_invalid);
     return result;
   }
 
