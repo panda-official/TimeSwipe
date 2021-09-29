@@ -8,7 +8,7 @@ Copyright (c) 2019-2020 Panda Team
 //build for ADCs-DACs:
 
 #include "../basics.hpp"
-#include "../debug.hpp"
+#include "../error_detail.hpp"
 #include "../hat.hpp"
 #include "../version.hpp"
 #include "cmd.h"

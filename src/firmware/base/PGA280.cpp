@@ -6,7 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "PGA280.h"
-#include "../../debug.hpp"
+#include "../../error_detail.hpp"
 #include "../os.h"
 
 bool CPGA280cmdBuf::transfer(CSPI &spi_bus, IPin &CS)
