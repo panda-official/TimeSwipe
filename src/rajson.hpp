@@ -27,38 +27,6 @@
 #include <optional>
 #include <string_view>
 
-namespace dmitigr::rajson {
-template<>
-struct Conversions<panda::timeswipe::Measurement_mode> final {
-  template<class Encoding, class Allocator>
-  static auto to_type(const rapidjson::GenericValue<Encoding, Allocator>& value)
-  {
-    return static_cast<panda::timeswipe::Measurement_mode>(to<int>(value));
-  }
-
-  template<class Encoding, class Allocator>
-  static auto to_value(const panda::timeswipe::Measurement_mode value, Allocator&)
-  {
-    return rapidjson::GenericValue<Encoding, Allocator>(static_cast<int>(value));
-  }
-};
-
-template<>
-struct Conversions<panda::timeswipe::Signal_mode> final {
-  template<class Encoding, class Allocator>
-  static auto to_type(const rapidjson::GenericValue<Encoding, Allocator>& value)
-  {
-    return static_cast<panda::timeswipe::Signal_mode>(to<int>(value));
-  }
-
-  template<class Encoding, class Allocator>
-  static auto to_value(const panda::timeswipe::Signal_mode value, Allocator&)
-  {
-    return rapidjson::GenericValue<Encoding, Allocator>(static_cast<int>(value));
-  }
-};
-} // namespace dmitigr::rajson
-
 namespace panda::timeswipe::detail {
 
 /// Adds or modifies the member named by `name` by using the given `value`.
