@@ -36,13 +36,14 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace dmitigr::rajson {
 
 /// The centralized "namespace" for conversion algorithms implementations.
-template<typename> struct Conversions;
+template<typename, typename = void> struct Conversions;
 
 /**
  * @returns The result of conversion of `value` to a JSON text. (Aka serialization.)
@@ -112,6 +113,7 @@ rapidjson::Value to_value(Source&& value, Types&& ... args)
 // Conversions specializations
 // -----------------------------------------------------------------------------
 
+/// Generic implementation of conversion routines for arithmetic types.
 struct Arithmetic_generic_conversions {
   template<class Encoding, class Allocator, typename T>
   static auto to_value(const T value, Allocator&)
@@ -327,6 +329,22 @@ struct Conversions<const char*> final {
   {
     // Don't copy `value` to result.
     return rapidjson::GenericValue<Encoding, Allocator>{value, alloc};
+  }
+};
+
+/// Partial specialization for enumeration types.
+template<typename T>
+struct Conversions<T, std::enable_if_t<std::is_enum_v<T>>> {
+  template<class Encoding, class Allocator>
+  static auto to_type(const rapidjson::GenericValue<Encoding, Allocator>& value)
+  {
+    return static_cast<T>(to<std::underlying_type_t<T>>(value));
+  }
+
+  template<class Encoding, class Allocator>
+  static auto to_value(const T value, Allocator&)
+  {
+    return rapidjson::GenericValue<Encoding, Allocator>(static_cast<std::underlying_type_t<T>>(value));
   }
 };
 
