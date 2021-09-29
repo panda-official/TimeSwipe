@@ -201,14 +201,14 @@ private:
   static void check_channel_gain(const std::optional<float> value)
   {
     if (value && !(gain::ogain_min <= value && value <= gain::ogain_max))
-      throw Generic_exception{Errc::board_setting_channel_gain_invalid,
+      throw Generic_exception{Generic_errc::board_settings_invalid,
         "cannot set invalid channel gain"};
   }
 
   static void check_pwm_frequency(const std::optional<int> value)
   {
     if (value && !(1 <= value && value <= 1000))
-      throw Generic_exception{Errc::board_setting_pwm_frequency_invalid,
+      throw Generic_exception{Generic_errc::board_settings_invalid,
         "cannot set invalid PWM frequency"};
   }
 
@@ -218,7 +218,7 @@ private:
     static const auto check_value = [](const int value)
     {
       if (!(0 <= value && value <= 4095))
-        throw Generic_exception{Errc::board_setting_pwm_signal_level_invalid,
+        throw Generic_exception{Generic_errc::board_settings_invalid,
           "cannot set invalid PWM signal level"};
     };
     if (low)
@@ -226,21 +226,21 @@ private:
     if (high)
       check_value(*high);
     if (low && high && !(*low <= *high))
-      throw Generic_exception{Errc::board_setting_pwm_signal_level_invalid,
-        "cannot set invalid PWM signal level (low cannot be greater than high)"};
+      throw Generic_exception{Generic_errc::board_settings_invalid,
+        R"(cannot set invalid PWM signal level ("low" cannot be greater than "high"))"};
   }
 
   static void check_pwm_repeat_count(const std::optional<int> value)
   {
     if (value && !(value >= 0))
-      throw Generic_exception{Errc::board_setting_pwm_repeat_count_invalid,
+      throw Generic_exception{Generic_errc::board_settings_invalid,
         "cannot set invalid PWM repeat count"};
   }
 
   static void check_pwm_duty_cycle(const std::optional<float> value)
   {
     if (value && !(0 < value && value < 1))
-      throw Generic_exception{Errc::board_setting_pwm_duty_cycle_invalid,
+      throw Generic_exception{Generic_errc::board_settings_invalid,
         "cannot set invalid PWM duty cycle"};
   }
 

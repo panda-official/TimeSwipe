@@ -42,7 +42,7 @@ struct Driver_settings::Rep final {
     const auto bbs = burst_buffer_size();
     const auto freq = frequency();
     if (bbs && freq)
-      throw Generic_exception{Errc::driver_settings_mutually_exclusive,
+      throw Generic_exception{Generic_errc::driver_settings_invalid,
         "cannot set mutually exclusive settings: burstBufferSize, frequency"};
     check_burst_buffer_size(bbs);
     check_frequency(freq, srate);
@@ -116,7 +116,7 @@ struct Driver_settings::Rep final {
   void set_translation_offset(const int index, const int value)
   {
     if (!(0 <= index && index < max_channel_count))
-      throw Generic_exception{Errc::driver_setting_translation_offsets_invalid,
+      throw Generic_exception{Generic_errc::driver_settings_invalid,
         "cannot set invalid translation offsets"};
 
     constexpr int default_value{};
@@ -131,7 +131,7 @@ struct Driver_settings::Rep final {
   void set_translation_slope(const int index, const float value)
   {
     if (!(0 <= index && index < max_channel_count))
-      throw Generic_exception{Errc::driver_setting_translation_slopes_invalid,
+      throw Generic_exception{Generic_errc::driver_settings_invalid,
         "cannot set invalid translation slopes"};
 
     constexpr float default_value{1};
@@ -153,7 +153,7 @@ private:
     if (rate) {
       if (!(Driver::instance().min_sample_rate() <= *rate &&
           *rate <= Driver::instance().max_sample_rate()))
-        throw Generic_exception{Errc::driver_setting_sample_rate_invalid,
+        throw Generic_exception{Generic_errc::driver_settings_invalid,
           "cannot set invalid sample rate"};
     }
   }
@@ -164,7 +164,7 @@ private:
       const auto sz = static_cast<int>(*size);
       if (!(Driver::instance().min_sample_rate() <= sz &&
           sz <= Driver::instance().max_sample_rate()))
-        throw Generic_exception{Errc::driver_setting_burst_buffer_size_invalid,
+        throw Generic_exception{Generic_errc::driver_settings_invalid,
           "cannot set invalid burst buffer size"};
     }
   }
@@ -174,11 +174,11 @@ private:
   {
     if (frequency) {
       if (!srate)
-        throw Generic_exception{Errc::driver_settings_insufficient,
+        throw Generic_exception{Generic_errc::driver_settings_invalid,
           "cannot set frequency without sample rate"};
 
       if (!(1 <= *frequency && *frequency <= *srate))
-        throw Generic_exception{Errc::driver_setting_frequency_invalid,
+        throw Generic_exception{Generic_errc::driver_settings_invalid,
           "cannot set invalid frequency"};
     }
   }

@@ -38,7 +38,17 @@ constexpr bool is_debug{dmitigr::is_debug};
  * The generic exception class.
  */
 class Generic_exception final : public dmitigr::Basic_generic_exception<Exception> {
-  using Basic_generic_exception::Basic_generic_exception;
+public:
+  /// The constructor.
+  explicit Generic_exception(const std::error_condition& errc,
+    const std::string& what)
+    : Basic_generic_exception{errc, what}
+  {}
+
+  /// @overload
+  explicit Generic_exception(const std::string& what)
+    : Generic_exception{Generic_errc::generic, what}
+  {}
 };
 
 // -----------------------------------------------------------------------------
@@ -54,7 +64,18 @@ class Generic_exception final : public dmitigr::Basic_generic_exception<Exceptio
  * the source file name and line from where the exception was thrown.
  */
 class Debug_exception final : public dmitigr::Basic_debug_exception<Exception> {
-  using Basic_debug_exception::Basic_debug_exception;
+public:
+  /// The constructor.
+  Debug_exception(const char* const file, const int line,
+    const std::error_condition& errc, const std::string& what)
+    : Basic_debug_exception<Exception>{file, line, errc, what}
+  {}
+
+  /// @overload
+  Debug_exception(const char* const file, const int line,
+    const std::string& what)
+    : Debug_exception{file, line, Generic_errc::generic, what}
+  {}
 };
 
 } // namespace panda::timeswipe::detail

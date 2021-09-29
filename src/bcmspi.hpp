@@ -249,7 +249,7 @@ public:
   /**
    * Sends the SPI `request`.
    *
-   * @throws An instance of Exception with either `Errc::spi_send`.
+   * @throws An Exception with Generic_errc::spi_send_failed.
    */
   void send_throw(const std::string& request)
   {
@@ -260,14 +260,15 @@ public:
     std::clog << "spi: sent: \"" << request << "\"" << std::endl;
 #endif
     if (!res)
-      throw Generic_exception{Errc::spi_send,
+      throw Generic_exception{Generic_errc::spi_send_failed,
         std::string{"cannot send SPI request "}.append(request)};
   }
 
   /**
    * Receives the SPI response.
    *
-   * @throws An instance of Exception with either `Errc::spi_receive`.
+   * @throws An Exception with either Generic_errc::spi_receive_failed or
+   * Generic_errc::spi_command_failed.
    */
   std::string receive_throw()
   {
@@ -275,29 +276,10 @@ public:
     CFIFO fifo;
     if (receive(fifo)) {
       result = fifo;
-      if (!result.empty() && result[0] == '!') {
-        // Error returned, so throw exception.
-        const auto errc = [&result]
-        {
-          if (result == "!protocol_error!")
-            return Errc::com_proto_request_invalid;
-          else if (result == "!Line_err!")
-            return Errc::com_proto_bus;
-          else if (result == "!Timeout_err!")
-            return Errc::com_proto_timeout;
-          else if (result == "!obj_not_found!")
-            return Errc::com_proto_object_not_found;
-          else if (result == "!>_not_supported!")
-            return Errc::com_proto_get_unsupported;
-          else if (result == "!<_not_supported!")
-            return Errc::com_proto_set_unsupported;
-          else if (result == "!disabled!")
-            return Errc::com_proto_access_point_disabled;
-          else
-            return Errc::com_proto;
-        }();
-        throw Generic_exception{errc, "communication protocol error"};
-      }
+      // If error returned throw exception.
+      if (!result.empty() && result[0] == '!')
+        throw Generic_exception{Generic_errc::spi_command_failed,
+          std::string{"SPI command failed ("}.append(result).append(")")};
 
       // Strip result.
       if (!result.empty() && result.back() == '\n')
@@ -311,7 +293,8 @@ public:
 #ifdef PANDA_TIMESWIPE_TRACE_SPI
     std::clog << "spi: receive error" << std::endl;
 #endif
-    throw Generic_exception{Errc::spi_receive, "cannot receive SPI response"};
+    throw Generic_exception{Generic_errc::spi_receive_failed,
+      "cannot receive SPI response"};
   }
 
 private:

@@ -65,7 +65,7 @@ int main()
     PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
     driver.calculate_drift_deltas();
   } catch (const ts::Exception& e) {
-    PANDA_TIMESWIPE_ASSERT(e.condition() == ts::Errc::drift_comp_references_not_found);
+    PANDA_TIMESWIPE_ASSERT(e.condition() == ts::Generic_errc::drift_comp_refs_not_found);
   }
 
   // ---------------------------------------------------------------------------
