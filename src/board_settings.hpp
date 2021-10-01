@@ -25,10 +25,15 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace panda::timeswipe {
 
-/// Board-level settings.
+/**
+ * Board-level settings.
+ *
+ * @see Driver::set_board_settings().
+ */
 class Board_settings final {
 public:
   /// The destructor.
@@ -67,7 +72,8 @@ public:
   /**
    * Sets the signal mode.
    *
-   * @note This setting can be applied only if `Driver::instance().is_busy() == false`.
+   * @warning This setting can be applied with Driver::set_board_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
    */
   Board_settings& set_signal_mode(Signal_mode value);
 
@@ -80,31 +86,54 @@ public:
   ///
   /// @brief This API provides a way to control of data channels.
   ///
-  /// Channel indexes must be in range `[0, max_channel_count]`.
+  /// Channel indexes must be in range `[0, Driver::instance().max_channel_count())`.
   ///
   /// @{
 
   /**
-   * Sets the channel measurement mode.
+   * Sets measurement modes for all channels.
    *
-   * @note This setting can be applied only if `Driver::instance().is_busy() == false`.
+   * @par Requires
+   * `(values.size() >= Driver::instance().max_channel_count())`.
+   *
+   * @warning This setting can be applied with Driver::set_board_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
    */
-  Board_settings& set_channel_measurement_mode(int index, Measurement_mode value);
+  Board_settings& set_channel_measurement_modes(const std::vector<Measurement_mode>& values);
 
-  /// @returns The value of channel measurement mode.
-  std::optional<Measurement_mode> channel_measurement_mode(int index) const;
+  /**
+   * @returns Measurement mode of all channels, or `std::nullopt` if it's
+   * not available for at least one channel.
+   */
+  std::optional<std::vector<Measurement_mode>> channel_measurement_modes() const;
 
-  /// Sets the channel gain.
-  Board_settings& set_channel_gain(int index, float value);
+  /**
+   * Sets gains for all channels.
+   *
+   * @par Requires
+   * `(values.size() >= Driver::instance().max_channel_count())`.
+   */
+  Board_settings& set_channel_gains(const std::vector<float>& values);
 
-  /// @returns The value of channel gain.
-  std::optional<float> channel_gain(int index) const;
+  /**
+   * @returns Gains of all channels, or `std::nullopt` if it's
+   * not available for at least one channel.
+   */
+  std::optional<std::vector<float>> channel_gains() const;
 
-  /// Sets the channel IEPE.
-  Board_settings& set_channel_iepe(int index, bool value);
+  /**
+   * Sets IEPE flags for all channels.
+   *
+   * @par Requires
+   * `(values.size() >= Driver::instance().max_channel_count())`.
+   */
+  Board_settings& set_channel_iepes(const std::vector<bool>& values);
 
-  /// @returns The value of channel IEPE.
-  std::optional<bool> channel_iepe(int index) const;
+  /**
+   * @returns IEPE flags of all channels, or `std::nullopt` if it's
+   * not available for at least one channel.
+   */
+  std::optional<std::vector<bool>> channel_iepes() const;
 
   /// @}
 
@@ -112,72 +141,89 @@ public:
   ///
   /// @brief This API provides a way to control of PWM.
   ///
-  /// PWM indexes must be in range `[0, 1]`.
+  /// PWM indexes must be in range `[0, 2)`.
   ///
   /// @{
 
   /**
-   * Sets the flag to start the PWM generator.
+   * Sets start-flags for all PWM generators.
    *
-   * PWM generator will run for `(pwm_repeat_count(index) / pwm_frequency(index))`
-   * seconds and stop.
-   */
-  Board_settings& set_pwm_start(int index, bool value);
-
-  /// @returns The value of PWM start flag.
-  std::optional<bool> pwm_start(int index) const;
-
-  /// Sets frequency.
-  Board_settings& set_pwm_frequency(int index, int value);
-
-  /// @returns The value of PWM frequency parameter.
-  std::optional<int> pwm_frequency(int index) const;
-
-  /**
-   * Sets PWM signal low value.
+   * PWM generator `i` will run for `(pwm_repeat_counts()[i] / pwm_frequencies()[i])`
+   * seconds and then stop.
    *
    * @par Requires
-   * `(0 <= value && value <= 4095 && value <= *pwm_high())`.
+   * `(values.size() >= Driver::instance().max_pwm_count())`.
    */
-  Board_settings& set_pwm_low(int index, int value);
-
-  /// @returns The value of PWM low parameter.
-  std::optional<int> pwm_low(int index) const;
+  Board_settings& set_pwms(const std::vector<bool>& values);
 
   /**
-   * Sets PWM signal high value.
-   *
-   * @par Requires
-   * `(0 <= value && value <= 4095 && value >= *pwm_low())`.
+   * @returns Start-flag of all PWMs, or `std::nullopt` if it's
+   * not available for at least one PWM.
    */
-  Board_settings& set_pwm_high(int index, int value);
-
-  /// @returns The value of PWM high parameter.
-  std::optional<int> pwm_high(int index) const;
+  std::optional<std::vector<bool>> pwms() const;
 
   /**
-   * Sets the number of repeat periods.
-   *
-   * @param value Zero value means infinity.
+   * Sets frequencies for all PWMs.
    *
    * @par Requires
-   * `(value >= 0)`.
+   * `(values.size() >= Driver::instance().max_pwm_count())`.
    */
-  Board_settings& set_pwm_repeat_count(int index, int value);
-
-  /// @returns The value of PWM repeat count parameter.
-  std::optional<int> pwm_repeat_count(int index) const;
+  Board_settings& set_pwm_frequencies(const std::vector<int>& values);
 
   /**
-   * Sets the length of the PWM period when signal is in high state.
+   * @returns Frequency of all PWMs, or `std::nullopt` if it's
+   * not available for at least one PWM.
+   */
+  std::optional<std::vector<int>> pwm_frequencies() const;
+
+  /**
+   * Sets signal levels for all PWMs.
    *
    * @par Requires
-   * `(0 < value && value < 1)`.
+   * `(values.size() >= Driver::instance().max_pwm_count()) &&
+   *  (0 <= values[i].first && values[i].first <= 4095) &&
+   *  (0 <= values[i].second && values[i].second <= 4095) &&
+   *  (values[i].first <= values[i].second)` for PWM `i`.
    */
-  Board_settings& set_pwm_duty_cycle(int index, float value);
+  Board_settings& set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values);
 
-  /// @returns The value of PWM duty cycle parameter.
-  std::optional<float> pwm_duty_cycle(int index) const;
+  /**
+   * @returns Signal levels of all PWMs, or `std::nullopt` if it's
+   * not available for at least one PWM.
+   */
+  std::optional<std::vector<std::pair<int, int>>> pwm_signal_levels() const;
+
+  /**
+   * Sets the number of repeat periods for all PWMs.
+   *
+   * @par Requires
+   * `(values.size() >= Driver::instance().max_pwm_count()) &&
+   *  (values[i] >= 0)` for PWM `i`.
+   *
+   * @remarks Zero value means "infinity".
+   */
+  Board_settings& set_pwm_repeat_counts(const std::vector<int>& values);
+
+  /**
+   * @returns Repeat counts of all PWMs, or `std::nullopt` if it's
+   * not available for at least one PWM.
+   */
+  std::optional<std::vector<int>> pwm_repeat_counts() const;
+
+  /**
+   * Sets the length of the period when signal is in high state for all PWMs.
+   *
+   * @par Requires
+   * `(values.size() >= Driver::instance().max_pwm_count()) &&
+   *  (0 < values[i] && values[i] < 1)` for PWM `i`.
+   */
+  Board_settings& set_pwm_duty_cycles(const std::vector<float>& values);
+
+  /**
+   * @returns Length of the period when signal is in high state of all PWMs, or
+   * `std::nullopt` if it's not available for at least one PWM.
+   */
+  std::optional<std::vector<float>> pwm_duty_cycles() const;
 
   /// @}
 

@@ -171,22 +171,24 @@ public:
     return ts::max_channel_count;
   }
 
+  int max_pwm_count() const override
+  {
+    return 2;
+  }
+
   void set_board_settings(const Board_settings& settings) override
   {
     // Some settings cannot be applied if the board is currently busy.
     if (is_measurement_started()) {
       // Check if signal mode setting presents.
-      if (!settings.signal_mode())
+      if (settings.signal_mode())
         throw Generic_exception{Generic_errc::board_settings_invalid,
-          "cannot set board settings without signal mode setting"};
+          "cannot set board signal mode when measurement started"};
 
-      // Check if channel measurement mode settings are present.
-      for (int i{}; i < ts::max_channel_count; ++i) {
-        if (!settings.channel_measurement_mode(i))
-          throw Generic_exception{Generic_errc::board_settings_invalid,
-            std::string{"cannot set board settings without measurement mode on"
-              " channel "}.append(std::to_string(i))};
-      }
+      // Check if channel measurement modes setting presents.
+      if (settings.channel_measurement_modes())
+        throw Generic_exception{Generic_errc::board_settings_invalid,
+          "cannot set board measurement modes when measurement started"};
     }
 
     spi_.execute_set_many(settings.to_json_text());
@@ -249,19 +251,20 @@ public:
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
     const int mcc = max_channel_count();
+    const auto gains = board_settings().channel_gains();
+    const auto modes = board_settings().channel_measurement_modes();
+    PANDA_TIMESWIPE_ASSERT(gains && modes &&
+      (gains->size() == modes->size()) && (gains->size() >= mcc));
     for (int i{}; i < mcc; ++i) {
-      const auto& brd_sets = board_settings();
-      const auto gain = brd_sets.channel_gain(i);
-      PANDA_TIMESWIPE_ASSERT(gain);
-      const auto mm = brd_sets.channel_measurement_mode(i);
-      PANDA_TIMESWIPE_ASSERT(mm);
+      const auto gain = gains->at(i);
+      const auto mode = modes->at(i);
       using Ct = hat::atom::Calibration::Type;
       using Array = std::array<Ct, ts::max_channel_count>;
-      static const Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
-      static const Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
-      const auto& types = mm == Measurement_mode::Voltage ? v_types : c_types;
+      constexpr Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
+      constexpr Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
+      const auto& types = (mode == Measurement_mode::Voltage) ? v_types : c_types;
       const auto& atom = calibration_map_.atom(types[i]);
-      const auto ogain_index = gain::ogain_table_index(*gain);
+      const auto ogain_index = gain::ogain_table_index(gain);
       PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
       calibration_slopes_[i] = atom.entry(ogain_index).slope();
     }
@@ -516,10 +519,8 @@ private:
           std::move(resampler_));
 
         // Restore board settings (input modes).
-        Board_settings settings;
-        for (std::size_t i{}; i < chmm_.size(); ++i)
-          settings.set_channel_measurement_mode(i, chmm_[i]);
-        driver_.set_board_settings(settings);
+        driver_.set_board_settings(Board_settings{}
+          .set_channel_measurement_modes(chmm_));
       } catch (...) {}
     }
 
@@ -532,53 +533,45 @@ private:
      * Stores the rep state and driver settings, and prepares the board
      * for measurement.
      */
-    Drift_affected_state_guard(iDriver& driver)
+    Drift_affected_state_guard(iDriver& driver) try
       : driver_{driver}
       , resampler_{std::move(driver_.resampler_)} // store
       , settings_{std::move(driver_.settings_)} // settings
+      , chmm_(driver.max_channel_count())
     {
-      try {
-        // Store board settings (input modes).
-        const auto channel_mode = [this](const int index)
-        {
-          if (const auto mm = driver_.board_settings().channel_measurement_mode(index))
-            return *mm;
-          else
-            throw Generic_exception{Generic_errc::board_settings_invalid,
-              "channel measurement mode is not available"};
-        };
-        for (int i{}; i < chmm_.size(); ++i)
-          chmm_[i] = channel_mode(i);
+      // Store board settings (input modes).
+      if (const auto modes = driver_.board_settings().channel_measurement_modes())
+        chmm_ = std::move(*modes);
+      else
+        throw Generic_exception{Generic_errc::board_settings_invalid,
+          "channel measurement modes are not available"};
 
-        /*
-         * Change input modes to `current`.
-         * This will cause a "switching oscillation" appears at the output of
-         * the measured value, which completely (according to PSpice) decays
-         * after 1.5 ms.
-         */
-        {
-          Board_settings settings;
-          for (int i{}; i < chmm_.size(); ++i)
-            settings.set_channel_measurement_mode(i, Measurement_mode::Current);
-          driver_.set_board_settings(settings);
-        }
-
-        std::this_thread::sleep_for(driver_.switching_oscillation_period);
-
-        // Set specific driver settings.
-        Settings settings;
-        settings.set_sample_rate(48000)
-          .set_burst_buffer_size(driver_.drift_samples_count);
-        driver_.set_settings(std::move(settings));
-      } catch (...) {
-        restore();
+      /*
+       * Change input modes to `current`.
+       * This will cause a "switching oscillation" appears at the output of
+       * the measured value, which completely (according to PSpice) decays
+       * after 1.5 ms.
+       */
+      {
+        auto chmm = chmm_;
+        for (auto& mm : chmm) mm = Measurement_mode::Current;
+        driver_.set_board_settings(Board_settings{}
+          .set_channel_measurement_modes(chmm));
       }
+
+      std::this_thread::sleep_for(driver_.switching_oscillation_period);
+
+      // Set specific driver settings.
+      driver_.set_settings(Settings{}.set_sample_rate(48000)
+        .set_burst_buffer_size(driver_.drift_samples_count));
+    } catch (...) {
+      restore();
     }
 
     iDriver& driver_;
     decltype(driver_.resampler_) resampler_;
     decltype(driver_.settings_) settings_;
-    std::array<Measurement_mode, ts::max_channel_count> chmm_;
+    std::vector<Measurement_mode> chmm_;
   };
 
   // ---------------------------------------------------------------------------

@@ -27,7 +27,11 @@
 
 namespace panda::timeswipe {
 
-/// Driver-level settings.
+/**
+ * Driver-level settings.
+ *
+ * @see Driver::set_settings().
+ */
 class Driver_settings final {
 public:
   /// The destructor.

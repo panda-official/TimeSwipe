@@ -104,6 +104,9 @@ public:
   /// @returns Max possible number of data channels the board provides.
   virtual int max_channel_count() const = 0;
 
+  /// @returns Max possible number of PWM the board provides.
+  virtual int max_pwm_count() const = 0;
+
   /**
    * Sets the board settings.
    *
