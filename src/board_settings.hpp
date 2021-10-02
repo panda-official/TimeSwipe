@@ -97,7 +97,7 @@ public:
    * Sets measurement modes for all channels.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_channel_count())`.
+   * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @warning This setting can be applied with Driver::set_board_settings()
    * only if `!Driver::instance().is_measurement_started()`.
@@ -114,7 +114,7 @@ public:
    * Sets gains for all channels.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_channel_count())`.
+   * `(values.size() == Driver::instance().max_channel_count())`.
    */
   Board_settings& set_channel_gains(const std::vector<float>& values);
 
@@ -128,7 +128,7 @@ public:
    * Sets IEPE flags for all channels.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_channel_count())`.
+   * `(values.size() == Driver::instance().max_channel_count())`.
    */
   Board_settings& set_channel_iepes(const std::vector<bool>& values);
 
@@ -155,7 +155,7 @@ public:
    * seconds and then stop.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_pwm_count())`.
+   * `(values.size() == Driver::instance().max_pwm_count())`.
    */
   Board_settings& set_pwms(const std::vector<bool>& values);
 
@@ -169,7 +169,7 @@ public:
    * Sets frequencies for all PWMs.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_pwm_count())`.
+   * `(values.size() == Driver::instance().max_pwm_count())`.
    */
   Board_settings& set_pwm_frequencies(const std::vector<int>& values);
 
@@ -183,7 +183,7 @@ public:
    * Sets signal levels for all PWMs.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_pwm_count()) &&
+   * `(values.size() == Driver::instance().max_pwm_count()) &&
    *  (0 <= values[i].first && values[i].first <= 4095) &&
    *  (0 <= values[i].second && values[i].second <= 4095) &&
    *  (values[i].first <= values[i].second)` for PWM `i`.
@@ -200,7 +200,7 @@ public:
    * Sets the number of repeat periods for all PWMs.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_pwm_count()) &&
+   * `(values.size() == Driver::instance().max_pwm_count()) &&
    *  (values[i] >= 0)` for PWM `i`.
    *
    * @remarks Zero value means "infinity".
@@ -217,7 +217,7 @@ public:
    * Sets the length of the period when signal is in high state for all PWMs.
    *
    * @par Requires
-   * `(values.size() >= Driver::instance().max_pwm_count()) &&
+   * `(values.size() == Driver::instance().max_pwm_count()) &&
    *  (0 < values[i] && values[i] < 1)` for PWM `i`.
    */
   Board_settings& set_pwm_duty_cycles(const std::vector<float>& values);

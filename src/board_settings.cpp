@@ -176,8 +176,9 @@ struct Board_settings::Rep final {
 
   void set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values)
   {
-    if (!(values.size() >= mpc_))
-      throw Generic_exception{"cannot set PWM signal levels (not enough values)"};
+    if (!(values.size() == mpc_))
+      throw Generic_exception{"cannot set PWM signal levels (invalid number"
+        " of values)"};
 
     // Ensure all the values are ok before applying them.
     for (int i{}; i < mpc_; ++i)
@@ -288,9 +289,9 @@ private:
     const std::string_view plural,
     const F& check_value)
   {
-    if (!(values.size() >= values_req_size))
+    if (!(values.size() == values_req_size))
       throw Generic_exception{std::string{"cannot set "}.append(plural)
-        .append(" (not enough values)")};
+        .append(" (invalid number of values)")};
 
     for (int i{}; i < values_req_size; ++i)
       check_value(values[i]);
