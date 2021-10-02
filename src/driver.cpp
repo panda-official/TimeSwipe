@@ -342,16 +342,16 @@ public:
   {
     // Collect the data for calculation.
     auto data = collect_channels_data(drift_samples_count, // 5 ms
-      [this]{return Drift_affected_state_guard{*this};});
+      [this]{return Drift_affected_state_guard{*this};}); // strong guarantee
 
     // Discard the first half.
     data.erase_front(drift_samples_count / 2);
 
     // Take averages of measured data (references).
     std::vector<float> result(data.channel_count());
-    transform(data.cbegin(), data.cend(), result.begin(), [](const auto& dat)
+    transform(data.cbegin(), data.cend(), result.begin(), [](const auto& vec)
     {
-      return static_cast<float>(dmitigr::math::avg(dat));
+      return static_cast<float>(dmitigr::math::avg(vec));
     });
 
     // Put references to the tmp_dir/drift_references.
@@ -359,7 +359,7 @@ public:
     std::filesystem::create_directories(tmp);
     constexpr auto open_flags{std::ios_base::out | std::ios_base::trunc};
     std::ofstream refs_file{tmp/"drift_references", open_flags};
-    for (auto i = 0*result.size(); i < result.size() - 1; ++i)
+    for (std::size_t i{}; i < result.size() - 1; ++i)
       refs_file << result[i] << " ";
     refs_file << result.back() << "\n";
 
@@ -391,7 +391,7 @@ public:
     // Collect the data for calculation.
     auto data = collect_channels_data(drift_samples_count, [this] {
       return Drift_affected_state_guard{*this};
-    });
+    }); // strong guarantee
     PANDA_TIMESWIPE_ASSERT(refs->size() == data.channel_count());
 
     // Discard the first half.
@@ -400,9 +400,9 @@ public:
     // Take averages of measured data (references) and subtract the references.
     std::vector<float> result(data.channel_count());
     transform(data.cbegin(), data.cend(), refs->cbegin(), result.begin(),
-      [](const auto& dat, const auto ref)
+      [](const auto& vec, const auto ref)
       {
-        return static_cast<float>(dmitigr::math::avg(dat) - ref);
+        return static_cast<float>(dmitigr::math::avg(vec) - ref);
       });
 
     // Cache deltas.
@@ -993,7 +993,7 @@ private:
   }
 
   /**
-   * @brief Collects the specified samples count.
+   * Collects the specified samples count.
    *
    * @returns The collected channel data.
    *

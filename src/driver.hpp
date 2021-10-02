@@ -55,8 +55,8 @@ public:
    *   - zero indicates "no error";
    *   - positive value indicates the number of data losts;
    *   - negative value indicates the negated error code (some value of
-   *   panda::timeswipe::Errc with the minus sign) in case of fatal error when
-   *   the measurement process is about to stop.
+   *   panda::timeswipe::Generic_errc with the minus sign) in case of fatal
+   *   error when the measurement process is about to stop.
    *
    * @see start_measurement().
    */
@@ -250,7 +250,7 @@ public:
    * `!is_measurement_started() && drift_references()`.
    *
    * @par Exception safety guarantee
-   * Basic.
+   * Strong.
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
@@ -286,6 +286,9 @@ public:
    * After calling the `start_measurement()`, calculated deltas will be
    * substracted from each input value of the corresponding data channel.
    *
+   * @par Exception safety guarantee
+   * Strong.
+   *
    * @remarks Blocks the current thread for a while (~5ms).
    *
    * @see drift_deltas(), calculate_drift_references(), start_measurement().
@@ -314,7 +317,7 @@ public:
    * @param force Forces the reading of references from a filesystem if `true`.
    * Otherwise, the last cached value will be returned.
    *
-   * @throws An Exception with the code `Errc::invalid_drift_reference` if
+   * @throws An Exception with code `Generic_errc::drift_comp_refs_invalid` if
    * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
    * @see calculate_drift_references(), clear_drift_references(), drift_deltas().
