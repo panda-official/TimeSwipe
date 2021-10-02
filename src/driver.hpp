@@ -185,6 +185,9 @@ public:
    * @par Effects
    * `is_measurement_started()`.
    *
+   * @par Exception safety guarantee
+   * Strong.
+   *
    * @see set_measurement_options(), set_state(), stop_measurement().
    */
   virtual void start_measurement(Data_handler data_handler) = 0;
@@ -202,6 +205,9 @@ public:
    *
    * @par Effects
    * `!is_measurement_started()`.
+   *
+   * @par Exception safety guarantee
+   * Strong.
    *
    * @see start_measurement().
    */

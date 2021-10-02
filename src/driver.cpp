@@ -270,13 +270,14 @@ public:
       throw Generic_exception{Generic_errc::driver_settings_insufficient,
         "cannot start measurement with unspecified sample rate"};
 
-    join_threads();
+    join_threads(); // may throw
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
     const int mcc = max_channel_count();
     PANDA_TIMESWIPE_ASSERT(gains && modes &&
       (gains->size() == modes->size()) &&
       (gains->size() >= mcc));
+    decltype(calibration_slopes_) new_calibration_slopes{calibration_slopes_}; // may throw
     for (int i{}; i < mcc; ++i) {
       const auto gain = gains->at(i);
       const auto mode = modes->at(i);
@@ -288,8 +289,9 @@ public:
       const auto& atom = calibration_map_.atom(types[i]);
       const auto ogain_index = gain::ogain_table_index(gain);
       PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
-      calibration_slopes_[i] = atom.entry(ogain_index).slope();
+      new_calibration_slopes[i] = atom.entry(ogain_index).slope();
     }
+    calibration_slopes_.swap(new_calibration_slopes); // noexcept
 
     /*
      * Send the command to the firmware to start the measurement.
@@ -297,16 +299,18 @@ public:
      */
     {
       PANDA_TIMESWIPE_ASSERT(is_gpio_inited_);
-
-      // Start measurement.
-      using std::chrono::milliseconds;
-      std::this_thread::sleep_for(milliseconds{1});
+      std::this_thread::sleep_for(std::chrono::milliseconds{1});
       spi_set_enable_ad_mes(true);
-      is_measurement_started_ = true;
     }
 
-    threads_.emplace_back(&iDriver::fetcher_loop, this);
-    threads_.emplace_back(&iDriver::poller_loop, this, std::move(data_handler));
+    try {
+      is_measurement_started_ = true;
+      threads_.emplace_back(&iDriver::fetcher_loop, this);
+      threads_.emplace_back(&iDriver::poller_loop, this, std::move(data_handler));
+    } catch (...) {
+      calibration_slopes_.swap(new_calibration_slopes); // noexcept
+      throw;
+    }
   }
 
   bool is_measurement_started() const noexcept override
@@ -318,24 +322,19 @@ public:
   {
     if (!is_measurement_started_) return;
 
+    // Stop threads and reset state they using.
     is_measurement_started_ = false;
     join_threads();
-
     while (record_queue_.pop());
+    read_skip_count_ = initial_invalid_datasets_count;
 
-    /*
-     * Sends the command to the firmware to stop the measurement.
-     * Effects: the reader doesn't receive the data from the board.
-     */
+    // Sends the command to the firmware to stop the measurement.
     {
       // Reset Clock
       set_gpio_low(gpio_clock);
 
       // Stop Measurement
-      spi_set_enable_ad_mes(false);
-
-      // Reset state.
-      read_skip_count_ = initial_invalid_datasets_count;
+      spi_set_enable_ad_mes(false); // may throw
     }
   }
 
@@ -636,49 +635,49 @@ private:
   // (2^32)-1 - ALL BCM pins
   static constexpr std::uint32_t gpio_all_32_bits_on{0xFFFFFFFF};
 
-  static void pull_gpio(const unsigned pin, const unsigned high)
+  static void pull_gpio(const unsigned pin, const unsigned high) noexcept
   {
     PANDA_TIMESWIPE_GPIO_PULL = high << pin;
   }
 
-  static void init_gpio_input(const unsigned pin)
+  static void init_gpio_input(const unsigned pin) noexcept
   {
     PANDA_TIMESWIPE_INP_GPIO(pin);
   }
 
-  static void init_gpio_output(const unsigned pin)
+  static void init_gpio_output(const unsigned pin) noexcept
   {
     PANDA_TIMESWIPE_INP_GPIO(pin);
     PANDA_TIMESWIPE_OUT_GPIO(pin);
     pull_gpio(pin, 0);
   }
 
-  static void set_gpio_high(const unsigned pin)
+  static void set_gpio_high(const unsigned pin) noexcept
   {
     PANDA_TIMESWIPE_GPIO_SET = 1 << pin;
   }
 
-  static void set_gpio_low(const unsigned pin)
+  static void set_gpio_low(const unsigned pin) noexcept
   {
     PANDA_TIMESWIPE_GPIO_CLR = 1 << pin;
   }
 
-  static void reset_all_gpio()
+  static void reset_all_gpio() noexcept
   {
     PANDA_TIMESWIPE_GPIO_CLR = gpio_all_32_bits_on;
   }
 
-  static unsigned read_all_gpio()
+  static unsigned read_all_gpio() noexcept
   {
     return (*(ts::detail::bcm_gpio + 13) & gpio_all_32_bits_on);
   }
 
-  static void sleep_for_55ns()
+  static void sleep_for_55ns() noexcept
   {
     read_all_gpio();
   }
 
-  static void sleep_for_8ns()
+  static void sleep_for_8ns() noexcept
   {
     set_gpio_high(10); // ANY UNUSED PIN!!!
   }
