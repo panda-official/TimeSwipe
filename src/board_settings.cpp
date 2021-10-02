@@ -91,6 +91,23 @@ struct Board_settings::Rep final {
     return rajson::to_text(doc_);
   }
 
+  void set(const Rep& other)
+  {
+    const auto apply = [this](const auto& setter, const auto& data)
+    {
+      if (data) (this->*setter)(*data);
+    };
+    apply(&Rep::set_signal_mode, other.signal_mode());
+    apply(&Rep::set_channel_measurement_modes, other.channel_measurement_modes());
+    apply(&Rep::set_channel_gains, other.channel_gains());
+    apply(&Rep::set_channel_iepes, other.channel_iepes());
+    apply(&Rep::set_pwms, other.pwms());
+    apply(&Rep::set_pwm_frequencies, other.pwm_frequencies());
+    apply(&Rep::set_pwm_signal_levels, other.pwm_signal_levels());
+    apply(&Rep::set_pwm_repeat_counts, other.pwm_repeat_counts());
+    apply(&Rep::set_pwm_duty_cycles, other.pwm_duty_cycles());
+  }
+
   // ---------------------------------------------------------------------------
 
   void set_signal_mode(const Signal_mode value)
@@ -142,7 +159,7 @@ struct Board_settings::Rep final {
     set_pwm_values(values, "", "start flags", [](auto){return true;});
   }
 
-  std::optional<std::vector<bool>> pwms()
+  std::optional<std::vector<bool>> pwms() const
   {
     return pwm_values<bool>("");
   }
@@ -438,6 +455,11 @@ void Board_settings::swap(Board_settings& other) noexcept
 std::string Board_settings::to_json_text() const
 {
   return rep_->to_json_text();
+}
+
+void Board_settings::set(const Board_settings& other)
+{
+  rep_->set(*other.rep_);
 }
 
 // -----------------------------------------------------------------------------

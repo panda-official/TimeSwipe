@@ -200,15 +200,21 @@ public:
           "cannot set board measurement modes when measurement started"};
     }
 
-    spi_.execute_set_many(settings.to_json_text());
-    board_settings_.reset(); // invalidate cache (this could be optimized)
+    Board_settings new_settings{board_settings_}; // may throw
+    new_settings.set(settings); // may throw
+    spi_.execute_set_many(settings.to_json_text()); // may throw
+    board_settings_.swap(new_settings); // noexcept
   }
 
   const Board_settings& board_settings() const override
   {
-    if (!board_settings_)
-      board_settings_.emplace(spi_.execute_get_many(""));
-    return *board_settings_;
+    return board_settings_;
+  }
+
+  /// Method is hidden for now.
+  Board_settings raw_board_settings() const
+  {
+    return Board_settings{spi_.execute_get_many("")};
   }
 
   void set_settings(const Settings& settings) override
@@ -492,7 +498,7 @@ private:
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
   hat::Calibration_map calibration_map_;
-  mutable std::optional<Board_settings> board_settings_;
+  Board_settings board_settings_;
   Settings settings_;
   std::unique_ptr<detail::Resampler> resampler_;
 

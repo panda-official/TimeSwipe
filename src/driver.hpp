@@ -114,12 +114,15 @@ public:
    * `!is_measurement_started()` as explained in the documentation of
    * Board_settings class.
    *
+   * @par Exception safety-guarantee
+   * Strong.
+   *
    * @see board_settings(), Board_settings.
    */
   virtual void set_board_settings(const Board_settings& settings) = 0;
 
   /**
-   * @returns The actual board-level settings.
+   * @returns The board-level settings.
    *
    * @see set_board_settings().
    */

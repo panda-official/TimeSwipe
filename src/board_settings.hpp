@@ -63,6 +63,9 @@ public:
   /// @returns The result of conversion of this instance to a JSON text.
   std::string to_json_text() const;
 
+  /// Sets settings from `other` instance.
+  void set(const Board_settings& other);
+
   /// @name General control
   ///
   /// @brief This API provides a way to control of general board parameters.
