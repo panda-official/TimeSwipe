@@ -31,6 +31,7 @@
 
 #include <boost/lockfree/spsc_queue.hpp>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -60,7 +61,15 @@ public:
   iDriver()
     : pid_file_{"timeswipe"}
     , spi_{detail::Bcm_spi::Pins::spi0}
+    , calibration_slopes_(max_channel_count())
+    , translation_offsets_(max_channel_count())
+    , translation_slopes_(max_channel_count())
   {
+    // Initialize slopes and offsets.
+    fill(begin(calibration_slopes_), end(calibration_slopes_), 1);
+    fill(begin(translation_offsets_), end(translation_offsets_), 0);
+    fill(begin(translation_slopes_), end(translation_slopes_), 1);
+
     // Lock PID file.
     std::string msg;
     if (!pid_file_.lock(msg))
@@ -202,30 +211,33 @@ public:
     return *board_settings_;
   }
 
-  void set_settings(Settings settings) override
+  void set_settings(const Settings& settings) override
   {
-    set_settings(std::move(settings), {});
+    set_settings(settings, {});
   }
 
   /// @overload
-  void set_settings(Settings settings,
+  void set_settings(const Settings& settings,
     std::unique_ptr<detail::Resampler> resampler)
   {
-    const auto srate = settings.sample_rate().value_or(max_sample_rate());
-    set_resampler(srate, std::move(resampler));
+    const auto srate = settings.sample_rate();
+    if (srate)
+      set_resampler(*srate, std::move(resampler));
 
-    if (const auto bbs = settings.burst_buffer_size())
+    const auto bbs = settings.burst_buffer_size();
+    const auto freq = settings.frequency();
+    PANDA_TIMESWIPE_ASSERT(!(bbs && freq));
+    if (bbs)
       burst_buffer_size_ = *bbs;
-    else if (const auto freq = settings.frequency())
-      burst_buffer_size_ = srate / *freq;
+    if (srate && freq)
+      burst_buffer_size_ = *srate / *freq;
 
-    for (std::size_t i{}; i < translation_offsets_.size(); ++i)
-      if (const auto offset = settings.translation_offset(i))
-        translation_offsets_[i] = *offset;
-    for (std::size_t i{}; i < translation_slopes_.size(); ++i)
-      if (const auto slope = settings.translation_slope(i))
-        translation_slopes_[i] = *slope;
-    settings_ = std::move(settings);
+    if (const auto values = settings.translation_offsets())
+      translation_offsets_ = *values;
+    if (const auto values = settings.translation_slopes())
+      translation_slopes_ = *values;
+
+    settings_.set(settings);
   }
 
   const Settings& settings() const override
@@ -472,9 +484,9 @@ private:
   static constexpr int initial_invalid_datasets_count{32};
   static constexpr std::uint16_t channel_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
-  std::array<float, ts::max_channel_count> calibration_slopes_{1, 1, 1, 1};
-  std::array<int, ts::max_channel_count> translation_offsets_{};
-  std::array<float, ts::max_channel_count> translation_slopes_{1, 1, 1, 1};
+  std::vector<float> calibration_slopes_;
+  std::vector<int> translation_offsets_;
+  std::vector<float> translation_slopes_;
   hat::Calibration_map calibration_map_;
   mutable std::optional<Board_settings> board_settings_;
   Settings settings_;
@@ -699,14 +711,16 @@ private:
       return result;
     }
 
-    template<std::size_t Size>
     static void append_chunk(Data_vector& data,
       const Chunk& chunk,
-      const std::array<float, Size>& slopes,
-      const std::array<int, Size>& translation_offsets,
-      const std::array<float, Size>& translation_slopes)
+      const std::vector<float>& slopes,
+      const std::vector<int>& translation_offsets,
+      const std::vector<float>& translation_slopes)
     {
-      std::array<std::uint16_t, Size> digits{};
+      PANDA_TIMESWIPE_ASSERT((slopes.size() == translation_offsets.size())
+        && (slopes.size() == translation_slopes.size()));
+
+      std::array<std::uint16_t, ts::max_channel_count> digits{};
       static_assert(sizeof(channel_offset) == sizeof(digits[0]));
 
       const auto channel_count = data.channel_count();

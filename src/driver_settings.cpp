@@ -39,11 +39,13 @@ struct Driver_settings::Rep final {
   {
     const auto srate = sample_rate();
     check_sample_rate(srate);
+
     const auto bbs = burst_buffer_size();
     const auto freq = frequency();
     if (bbs && freq)
       throw Generic_exception{Generic_errc::driver_settings_invalid,
         "cannot set mutually exclusive settings: burstBufferSize, frequency"};
+
     check_burst_buffer_size(bbs);
     check_frequency(freq, srate);
 
@@ -74,6 +76,20 @@ struct Driver_settings::Rep final {
   std::string to_json_text() const
   {
     return rajson::to_text(doc_);
+  }
+
+  void set(const Rep& other)
+  {
+    if (const auto value = other.sample_rate())
+      set_sample_rate(*value);
+    if (const auto value = other.burst_buffer_size())
+      set_burst_buffer_size(*value);
+    if (const auto value = other.frequency())
+      set_frequency(*value);
+    if (const auto value = other.translation_offsets())
+      set_translation_offsets(*value);
+    if (const auto value = other.translation_slopes())
+      set_translation_slopes(*value);
   }
 
   // ---------------------------------------------------------------------------
@@ -113,39 +129,39 @@ struct Driver_settings::Rep final {
     return member<int>("frequency");
   }
 
-  void set_translation_offset(const int index, const int value)
+  void set_translation_offsets(const std::vector<int>& values)
   {
-    if (!(0 <= index && index < max_channel_count))
+    if (!(values.size() == Driver::instance().max_channel_count()))
       throw Generic_exception{Generic_errc::driver_settings_invalid,
         "cannot set invalid translation offsets"};
 
-    constexpr int default_value{};
-    set_array_element("translationOffsets", index, value, default_value);
+    set_member("translationOffsets", values);
   }
 
-  std::optional<int> translation_offset(const int index) const
+  std::optional<std::vector<int>> translation_offsets() const
   {
-    return array_element<int>("translationOffsets", index);
+    return member<std::vector<int>>("translationOffsets");
   }
 
-  void set_translation_slope(const int index, const float value)
+  void set_translation_slopes(const std::vector<float>& values)
   {
-    if (!(0 <= index && index < max_channel_count))
+    if (!(values.size() == Driver::instance().max_channel_count()))
       throw Generic_exception{Generic_errc::driver_settings_invalid,
         "cannot set invalid translation slopes"};
 
-    constexpr float default_value{1};
-    set_array_element("translationSlopes", index, value, default_value);
+    set_member("translationSlopes", values);
   }
 
-  std::optional<float> translation_slope(const int index) const
+  std::optional<std::vector<float>> translation_slopes() const
   {
-    return array_element<float>("translationSlopes", index);
+    return member<std::vector<float>>("translationSlopes");
   }
 
 private:
   rapidjson::Document doc_{rapidjson::Type::kObjectType};
 
+  // ---------------------------------------------------------------------------
+  // Checkers
   // ---------------------------------------------------------------------------
 
   static void check_sample_rate(const std::optional<int> rate)
@@ -184,6 +200,8 @@ private:
   }
 
   // ---------------------------------------------------------------------------
+  // Low-level setters and getters
+  // ---------------------------------------------------------------------------
 
   template<typename T>
   void set_member(const std::string_view name, T&& value)
@@ -195,20 +213,6 @@ private:
   std::optional<T> member(const std::string_view root_name) const
   {
     return rajson::Value_view{doc_}.optional<T>(root_name);
-  }
-
-  template<typename T>
-  void set_array_element(const std::string_view name, const std::size_t index, T&& value,
-    T&& default_value = T{})
-  {
-    detail::set_array_element(doc_, doc_.GetAllocator(), name, index,
-      std::forward<T>(value), std::forward<T>(default_value));
-  }
-
-  template<typename T>
-  std::optional<T> array_element(const std::string_view name, const std::size_t index) const
-  {
-    return detail::array_element<T>(doc_, name, index);
   }
 };
 
@@ -259,6 +263,11 @@ std::string Driver_settings::to_json_text() const
   return rep_->to_json_text();
 }
 
+void Driver_settings::set(const Driver_settings& other)
+{
+  rep_->set(*other.rep_);
+}
+
 Driver_settings& Driver_settings::set_sample_rate(const int rate)
 {
   rep_->set_sample_rate(rate);
@@ -292,26 +301,26 @@ std::optional<int> Driver_settings::frequency() const
   return rep_->frequency();
 }
 
-Driver_settings& Driver_settings::set_translation_offset(const int index, const int value)
+Driver_settings& Driver_settings::set_translation_offsets(const std::vector<int>& values)
 {
-  rep_->set_translation_offset(index, value);
+  rep_->set_translation_offsets(values);
   return *this;
 }
 
-std::optional<int> Driver_settings::translation_offset(const int index) const
+std::optional<std::vector<int>> Driver_settings::translation_offsets() const
 {
-  return rep_->translation_offset(index);
+  return rep_->translation_offsets();
 }
 
-Driver_settings& Driver_settings::set_translation_slope(const int index, const float value)
+Driver_settings& Driver_settings::set_translation_slopes(const std::vector<float>& values)
 {
-  rep_->set_translation_slope(index, value);
+  rep_->set_translation_slopes(values);
   return *this;
 }
 
-std::optional<float> Driver_settings::translation_slope(const int index) const
+std::optional<std::vector<float>> Driver_settings::translation_slopes() const
 {
-  return rep_->translation_slope(index);
+  return rep_->translation_slopes();
 }
 
 } // namespace panda::timeswipe

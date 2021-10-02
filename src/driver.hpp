@@ -124,17 +124,21 @@ public:
   /**
    * Sets the driver settings.
    *
+   * Each call of this method affects only a subset of current settings(). I.e.,
+   * it's not necessary to pass all possible settings per call - the settings()
+   * can be constructed piecewise.
+   *
    * @par Requires
    * `!is_measurement_started()`.
    *
-   * @see settings();
+   * @see settings().
    */
-  virtual void set_settings(Settings settings) = 0;
+  virtual void set_settings(const Settings& settings) = 0;
 
   /**
    * @returns The driver settings.
    *
-   * @see set_settings();
+   * @see set_settings().
    */
   virtual const Settings& settings() const = 0;
 

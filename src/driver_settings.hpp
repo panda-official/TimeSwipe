@@ -73,6 +73,9 @@ public:
   /// @returns The result of conversion of this instance to a JSON text.
   std::string to_json_text() const;
 
+  /// Sets settings from `other` instance.
+  void set(const Driver_settings& other);
+
   /**
    * Set sample rate.
    *
@@ -86,8 +89,8 @@ public:
    * `(Driver::instace().min_sample_rate() <= rate &&
    *  rate <= Driver::instance().max_sample_rate())`.
    *
-   * @warning It's highly recommended to not use the rate for which
-   * `(Driver::instance().max_sample_rate() % rate != 0)` for best performance!
+   * @warning It's highly recommended to use `rate` for which
+   * `(Driver::instance().max_sample_rate() % rate == 0)` for best performance!
    * In other words, the lower the value of
    * `std::gcd(Driver::instance().max_sample_rate(), rate)`, the worse the
    * performance of the resampling.
@@ -110,9 +113,9 @@ public:
    * `(Driver::instance().min_sample_rate() <= size &&
    *  size <= Driver::instance().max_sample_rate())`.
    *
-   *  @par Effects
-   *  Affects the values returned by frequency() and to_json_text().
-   *  (The later will be without the `frequency` member.)
+   * @par Effects
+   * Affects the values returned by frequency() and to_json_text().
+   * (The later will be without the `frequency` member.)
    *
    * @param size The number of records that the driver should deliver to
    * Driver::Data_handler.
@@ -153,36 +156,30 @@ public:
   std::optional<int> frequency() const;
 
   /**
-   * Sets the translation offset.
-   *
-   * @param index The channel index.
-   * @param value The value of the translation offset to set.
+   * Sets translation offsets for all channels.
    *
    * @par Requires
-   * `(0 <= index && index < max_channel_count)`.
+   * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @returns The reference to this instance.
    */
-  Driver_settings& set_translation_offset(int index, int value);
+  Driver_settings& set_translation_offsets(const std::vector<int>& values);
 
-  /// @returns The value of translation offset.
-  std::optional<int> translation_offset(int index) const;
+  /// @returns The translation offsets for all channels.
+  std::optional<std::vector<int>> translation_offsets() const;
 
   /**
-   * Sets the translation slope.
-   *
-   * @param index The channel index.
-   * @param value The value of the translation slope to set.
+   * Sets translation slopes for all channels.
    *
    * @par Requires
-   * `(0 <= index && index < max_channel_count)`.
+   * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @returns The reference to this instance.
    */
-  Driver_settings& set_translation_slope(int index, float value);
+  Driver_settings& set_translation_slopes(const std::vector<float>& values);
 
-  /// @returns The value of data translation slope.
-  std::optional<float> translation_slope(int index) const;
+  /// @returns The translation slope for all channels.
+  std::optional<std::vector<float>> translation_slopes() const;
 
 private:
   struct Rep;
