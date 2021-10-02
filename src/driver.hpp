@@ -141,7 +141,7 @@ public:
   virtual void set_settings(const Settings& settings) = 0;
 
   /**
-   * @returns The driver settings.
+   * @returns The driver-level settings.
    *
    * @see set_settings().
    */
@@ -170,10 +170,11 @@ public:
    * @warning This method cannot be called from `data_handler`.
    *
    * @par Requires
-   * `(data_handler && !is_measurement_started() &&
-   *   board_settings().channel_measurement_mode(i) &&
-   *   board_settings().channel_gain(i))`, where `i` - a channel index in the
-   *   range `[0, max_channel_count())`.
+   * `(data_handler &&
+   *   !is_measurement_started() &&
+   *   board_settings().channel_measurement_modes() &&
+   *   board_settings().channel_gains() &&
+   *   driver_settings().sample_rate())`.
    *
    * @par Effects
    * `is_measurement_started()`.

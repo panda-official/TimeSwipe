@@ -187,7 +187,7 @@ public:
 
   void set_board_settings(const Board_settings& settings) override
   {
-    // Some settings cannot be applied if the board is currently busy.
+    // Some settings cannot be applied if the measurement started.
     if (is_measurement_started()) {
       // Check if signal mode setting presents.
       if (settings.signal_mode())
@@ -247,26 +247,30 @@ public:
 
   void start_measurement(Data_handler data_handler) override
   {
-    /*
-     * Some of the requirements (such as mandatory board settings)
-     * should be checked by the firmware rather than the driver.
-     */
-
+    const auto gains = board_settings().channel_gains();
+    const auto modes = board_settings().channel_measurement_modes();
     if (!data_handler)
       throw Generic_exception{"cannot start measurement by using invalid data handler"};
-
-    if (is_measurement_started())
+    else if (is_measurement_started())
       throw Generic_exception{Generic_errc::board_measurement_started,
         "cannot start measurement because it's already started"};
+    else if (!gains)
+      throw Generic_exception{Generic_errc::board_settings_insufficient,
+        "cannot start measurement with unspecified channel gains"};
+    else if (!modes)
+      throw Generic_exception{Generic_errc::board_settings_insufficient,
+        "cannot start measurement with unspecified channel measurement modes"};
+    else if (!settings().sample_rate())
+      throw Generic_exception{Generic_errc::driver_settings_insufficient,
+        "cannot start measurement with unspecified sample rate"};
 
     join_threads();
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
     const int mcc = max_channel_count();
-    const auto gains = board_settings().channel_gains();
-    const auto modes = board_settings().channel_measurement_modes();
     PANDA_TIMESWIPE_ASSERT(gains && modes &&
-      (gains->size() == modes->size()) && (gains->size() >= mcc));
+      (gains->size() == modes->size()) &&
+      (gains->size() >= mcc));
     for (int i{}; i < mcc; ++i) {
       const auto gain = gains->at(i);
       const auto mode = modes->at(i);
@@ -933,7 +937,7 @@ private:
   std::unique_ptr<detail::Resampler> set_resampler(const int rate,
     std::unique_ptr<detail::Resampler> resampler = {})
   {
-    if (is_measurement_started()) return {};
+    PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
 
     const auto max_rate = max_sample_rate();
     if (!(1 <= rate && rate <= max_rate))

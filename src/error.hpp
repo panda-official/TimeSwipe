@@ -43,11 +43,15 @@ enum class Generic_errc {
 
   /// At least one of the board settings invalid.
   board_settings_invalid = 10011,
+  /// At least one of the board settings insufficient.
+  board_settings_insufficient = 10021,
   /// Board measurement is in progress.
   board_measurement_started = 10111,
 
   /// At least one of the driver settings invalid.
   driver_settings_invalid = 20011,
+  /// At least one of the driver settings insufficient.
+  driver_settings_insufficient = 20021,
   /// Attempt to use PID file as a lock indicator failed.
   driver_pid_file_lock_failed = 20211,
 
@@ -82,11 +86,15 @@ constexpr const char* to_literal(const Generic_errc errc) noexcept
 
   case Errc::board_settings_invalid:
     return "board_settings_invalid";
+  case Errc::board_settings_insufficient:
+    return "board_settings_insufficient";
   case Errc::board_measurement_started:
     return "board_measurement_started";
 
   case Errc::driver_settings_invalid:
     return "driver_settings_invalid";
+  case Errc::driver_settings_insufficient:
+    return "driver_settings_insufficient";
   case Errc::driver_pid_file_lock_failed:
     return "driver_pid_file_lock_failed";
 
