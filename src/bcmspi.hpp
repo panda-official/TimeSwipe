@@ -98,8 +98,8 @@ public:
   /**
    * Executes the SPI `request`.
    *
-   * @throws An instance of Exception with either `Errc::spi_send` or
-   * `Errc::spi_receive`.
+   * @throws An instance of Exception with either `Generic_errc::spi_send_failed`
+   * or `Generic_errc::spi_receive_failed`.
    */
   std::string execute(const std::string& request)
   {

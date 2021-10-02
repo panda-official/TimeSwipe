@@ -61,7 +61,7 @@ public:
    *   - `frequency` - an integer;
    *   - `translationOffsets` - an array of integers;
    *   - `translationSlopes` - an array of floats.
-   * The exception with code `Errc::driver_mutually_exclusive_settings` will be
+   * The exception with code `Generic_errc::driver_settings_invalid` will be
    * thrown if both `burstBufferSize` and `frequency` are presents in the same
    * JSON input.
    */
