@@ -114,7 +114,7 @@ public:
    * `!is_measurement_started()` as explained in the documentation of
    * Board_settings class.
    *
-   * @par Exception safety-guarantee
+   * @par Exception safety guarantee
    * Strong.
    *
    * @see board_settings(), Board_settings.
@@ -138,6 +138,9 @@ public:
    * @warning Some of the driver-level settings can be applied only when
    * `!is_measurement_started()` as explained in the documentation of
    * Driver_settings class.
+   *
+   * @par Exception safety guarantee
+   * Strong.
    *
    * @see settings(), Driver_settings.
    */

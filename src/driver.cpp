@@ -228,7 +228,7 @@ public:
   {
     const auto srate = settings.sample_rate();
     if (srate)
-      set_resampler(*srate, std::move(resampler));
+      set_resampler(*srate, std::move(resampler)); // strong guarantee
 
     const auto bbs = settings.burst_buffer_size();
     const auto freq = settings.frequency();
@@ -239,11 +239,11 @@ public:
       burst_buffer_size_ = *srate / *freq;
 
     if (const auto values = settings.translation_offsets())
-      translation_offsets_ = *values;
+      translation_offsets_ = std::move(*values);
     if (const auto values = settings.translation_slopes())
-      translation_slopes_ = *values;
+      translation_slopes_ = std::move(*values);
 
-    settings_.set(settings);
+    settings_.set(settings); // may throw
   }
 
   const Settings& settings() const override
@@ -939,7 +939,12 @@ private:
   // Helpers
   // ---------------------------------------------------------------------------
 
-  /// @returns Previous resampler if any.
+  /**
+   * @returns Previous resampler if any.
+   *
+   * @par Exception safety guarantee
+   * Strong.
+   */
   std::unique_ptr<detail::Resampler> set_resampler(const int rate,
     std::unique_ptr<detail::Resampler> resampler = {})
   {
