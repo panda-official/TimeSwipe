@@ -80,16 +80,15 @@ struct Driver_settings::Rep final {
 
   void set(const Rep& other)
   {
-    if (const auto value = other.sample_rate())
-      set_sample_rate(*value);
-    if (const auto value = other.burst_buffer_size())
-      set_burst_buffer_size(*value);
-    if (const auto value = other.frequency())
-      set_frequency(*value);
-    if (const auto value = other.translation_offsets())
-      set_translation_offsets(*value);
-    if (const auto value = other.translation_slopes())
-      set_translation_slopes(*value);
+    const auto apply = [this](const auto& setter, const auto& data)
+    {
+      if (data) (this->*setter)(*data);
+    };
+    apply(&Rep::set_sample_rate, other.sample_rate());
+    apply(&Rep::set_burst_buffer_size, other.burst_buffer_size());
+    apply(&Rep::set_frequency, other.frequency());
+    apply(&Rep::set_translation_offsets, other.translation_offsets());
+    apply(&Rep::set_translation_slopes, other.translation_slopes());
   }
 
   // ---------------------------------------------------------------------------
