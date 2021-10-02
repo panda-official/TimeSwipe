@@ -95,6 +95,9 @@ public:
    * `std::gcd(Driver::instance().max_sample_rate(), rate)`, the worse the
    * performance of the resampling.
    *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
+   *
    * @see sample_rate(), Driver::min_sample_rate(), Driver::max_sample_rate().
    */
   Driver_settings& set_sample_rate(int rate);
@@ -120,6 +123,9 @@ public:
    * @param size The number of records that the driver should deliver to
    * Driver::Data_handler.
    *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
+   *
    * @see burst_buffer_size().
    */
   Driver_settings& set_burst_buffer_size(std::size_t size);
@@ -144,6 +150,9 @@ public:
    * @param size The number of records that the driver should deliver to
    * Driver::Data_handler.
    *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
+   *
    * @see frequency().
    */
   Driver_settings& set_frequency(int frequency);
@@ -162,6 +171,9 @@ public:
    * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @returns The reference to this instance.
+   *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
    */
   Driver_settings& set_translation_offsets(const std::vector<int>& values);
 
@@ -175,6 +187,9 @@ public:
    * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @returns The reference to this instance.
+   *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
    */
   Driver_settings& set_translation_slopes(const std::vector<float>& values);
 

@@ -108,30 +108,35 @@ public:
   virtual int max_pwm_count() const = 0;
 
   /**
-   * Sets the board settings.
+   * Sets the board-level settings.
    *
-   * @see board_settings().
+   * @warning Some of the board-level settings can be applied only when
+   * `!is_measurement_started()` as explained in the documentation of
+   * Board_settings class.
+   *
+   * @see board_settings(), Board_settings.
    */
   virtual void set_board_settings(const Board_settings& settings) = 0;
 
   /**
-   * @returns The actual board settings.
+   * @returns The actual board-level settings.
    *
    * @see set_board_settings().
    */
   virtual const Board_settings& board_settings() const = 0;
 
   /**
-   * Sets the driver settings.
+   * Sets the driver-level settings.
    *
    * Each call of this method affects only a subset of current settings(). I.e.,
    * it's not necessary to pass all possible settings per call - the settings()
    * can be constructed piecewise.
    *
-   * @par Requires
-   * `!is_measurement_started()`.
+   * @warning Some of the driver-level settings can be applied only when
+   * `!is_measurement_started()` as explained in the documentation of
+   * Driver_settings class.
    *
-   * @see settings().
+   * @see settings(), Driver_settings.
    */
   virtual void set_settings(const Settings& settings) = 0;
 
