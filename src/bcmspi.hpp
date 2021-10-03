@@ -45,6 +45,9 @@ public:
   /// The destructor.
   ~Bcm_spi()
   {
+    if (refs_ != 1)
+      return;
+
     if (is_spi_initialized_[Pins::aux])
       bcm2835_aux_spi_end();
 
@@ -53,36 +56,39 @@ public:
 
     if (is_initialized_)
       bcm2835_close();
+
+    refs_--;
+    PANDA_TIMESWIPE_ASSERT(!refs_);
   }
 
-  /// The constructor.
-  explicit Bcm_spi(const Pins pins = Pins::spi0)
-    : pins_{pins}
+  /// The default constructor. Doesn't initialize anything.
+  Bcm_spi()
   {
-    // FIXME: throw exceptions on errors instead of just return.
+    refs_++;
+  }
+
+  /// Initializes BCM and SPI.
+  void initialize(const Pins pins)
+  {
+    pins_ = pins;
 
     /// Initialize BCM.
-    if (is_initialized_)
-      return;
-    else if (!bcm2835_init())
-      return;
-    is_initialized_ = true;
+    if (!is_initialized_ && !(is_initialized_ = bcm2835_init()))
+      throw Generic_exception{"cannot initialize BCM"};
 
     /// Initialize SPI.
-    if (is_spi_initialized_[pins_])
-      return;
-    else if ( !(is_spi_initialized_[pins_] =
+    if (!is_spi_initialized_[pins_] && !(is_spi_initialized_[pins_] =
         (pins_ == Pins::spi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
-      return;
-
-    // Set default rate
-    set_speed(50000);
+      throw Generic_exception{"cannot initialize SPI"};
+    else
+      // Set default rate.
+      set_spi_speed(50000);
   }
 
   /// @returns `true` if SPI initialized for the specific pins.
   bool is_initialized() const noexcept
   {
-    return is_spi_initialized_[pins_];
+    return is_initialized_ && is_spi_initialized_[pins_];
   }
 
   /// @returns The state of FSM.
@@ -298,8 +304,9 @@ public:
   }
 
 private:
-  inline static bool is_initialized_;
-  inline static bool is_spi_initialized_[2];
+  inline static std::atomic_int refs_{};
+  inline static std::atomic_bool is_initialized_;
+  inline static std::atomic_bool is_spi_initialized_[2];
 
   CSyncSerComFSM com_cntr_;
   Pins pins_;
@@ -351,7 +358,7 @@ private:
     if (pins_ == Pins::spi0) while (!_bsm_spi_is_done());
   }
 
-  void set_speed(const std::uint32_t speed_hz)
+  void set_spi_speed(const std::uint32_t speed_hz)
   {
     if (pins_ == Pins::spi0)
       bcm2835_spi_set_speed_hz(speed_hz);

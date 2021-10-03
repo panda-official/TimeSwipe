@@ -96,8 +96,8 @@ int main ( int argc, char *argv[] )
     if ( bMasterMode )
     {
         using ts::detail::Bcm_spi;
-        Bcm_spi spi ( nSPI ? Bcm_spi::Pins::aux : Bcm_spi::Pins::spi0 );
-
+        Bcm_spi spi;
+        spi.initialize(nSPI ? Bcm_spi::Pins::aux : Bcm_spi::Pins::spi0);
         if (!spi.is_initialized())
         {
             std::cout << "Failed to initialize BCM SPI-" << nSPI << "Master. Try using sudo!" << std::endl;
