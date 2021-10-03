@@ -114,7 +114,8 @@ public:
    * Sets gains for all channels.
    *
    * @par Requires
-   * `(values.size() == Driver::instance().max_channel_count())`.
+   * `(values.size() == Driver::instance().max_channel_count()`.
+   * `values` must be in range `[1, 1408]`.
    */
   Board_settings& set_channel_gains(const std::vector<float>& values);
 
@@ -170,6 +171,7 @@ public:
    *
    * @par Requires
    * `(values.size() == Driver::instance().max_pwm_count())`.
+   * `values` must be in range `[1, 1000]`.
    */
   Board_settings& set_pwm_frequencies(const std::vector<int>& values);
 
@@ -183,10 +185,9 @@ public:
    * Sets signal levels for all PWMs.
    *
    * @par Requires
-   * `(values.size() == Driver::instance().max_pwm_count()) &&
-   *  (0 <= values[i].first && values[i].first <= 4095) &&
-   *  (0 <= values[i].second && values[i].second <= 4095) &&
-   *  (values[i].first <= values[i].second)` for PWM `i`.
+   * `(values.size() == Driver::instance().max_pwm_count())`.
+   * `values` must be in range `[0, 4095]`.
+   * Truth of `(values[i].first <= values[i].second)` for PWM `i`.
    */
   Board_settings& set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values);
 
@@ -200,8 +201,8 @@ public:
    * Sets the number of repeat periods for all PWMs.
    *
    * @par Requires
-   * `(values.size() == Driver::instance().max_pwm_count()) &&
-   *  (values[i] >= 0)` for PWM `i`.
+   * `(values.size() == Driver::instance().max_pwm_count())`.
+   * Truth of `(values[i] >= 0)` for PWM `i`.
    *
    * @remarks Zero value means "infinity".
    */
@@ -217,8 +218,8 @@ public:
    * Sets the length of the period when signal is in high state for all PWMs.
    *
    * @par Requires
-   * `(values.size() == Driver::instance().max_pwm_count()) &&
-   *  (0 < values[i] && values[i] < 1)` for PWM `i`.
+   * `(values.size() == Driver::instance().max_pwm_count())`.
+   * `values` must be in range `(0, 1)`.
    */
   Board_settings& set_pwm_duty_cycles(const std::vector<float>& values);
 

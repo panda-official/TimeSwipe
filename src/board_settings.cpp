@@ -43,7 +43,7 @@ struct Board_settings::Rep final {
   {
     // Check channel-related settings.
     if (const auto gains = channel_gains()) {
-      for (int i{}; i < mpc_; ++i)
+      for (int i{}; i < mcc_; ++i)
         check_channel_gain((*gains)[i]);
     }
 
@@ -227,7 +227,8 @@ struct Board_settings::Rep final {
   }
 
 private:
-  inline static const int mpc_{Driver::instance().max_channel_count()};
+  inline static const int mcc_{Driver::instance().max_channel_count()};
+  inline static const int mpc_{Driver::instance().max_pwm_count()};
   rapidjson::Document doc_{rapidjson::Type::kObjectType};
 
   // ---------------------------------------------------------------------------
@@ -307,7 +308,7 @@ private:
     std::vector<T> result;
     result.reserve(result_size);
     for (int i{}; i < result_size; ++i) {
-      if (const auto mm = member<T>(std::move(root_name), i + 1, sub_name))
+      if (const auto mm = member<T>(root_name, i + 1, sub_name))
         result.push_back(*mm);
       else
         return std::nullopt;
@@ -320,14 +321,14 @@ private:
     const std::string_view sub_name, const std::string_view plural,
     const F& check_value)
   {
-    set_values(values, mpc_, "CH", sub_name,
+    set_values(values, mcc_, "CH", sub_name,
       std::string{"channel "}.append(plural), check_value);
   }
 
   template<typename T>
   std::optional<std::vector<T>> channel_values(const std::string_view sub_name) const
   {
-    return values<T>("CH", sub_name, mpc_);
+    return values<T>("CH", sub_name, mcc_);
   }
 
   template<typename T, typename F>
@@ -366,7 +367,8 @@ private:
   std::string member_name(std::string root_name, const int index,
     const std::string_view sub_name) const
   {
-    return root_name.append(std::to_string(index)).append(".").append(sub_name);
+    return sub_name.empty() ? member_name(root_name, index) :
+      root_name.append(std::to_string(index)).append(".").append(sub_name);
   }
 
   /// Sets `root_name` variable with index `index` to `value`.
@@ -380,10 +382,7 @@ private:
   template<typename T>
   void set_member(std::string root_name, const int index, const std::string_view sub_name, T&& value)
   {
-    if (sub_name.empty())
-      set_member(member_name(std::move(root_name), index), std::forward<T>(value));
-    else
-      set_member(member_name(std::move(root_name), index, sub_name), std::forward<T>(value));
+    set_member(member_name(std::move(root_name), index, sub_name), std::forward<T>(value));
   }
 
   /// @returns The value of `root_name` variable.
@@ -404,10 +403,7 @@ private:
   template<typename T>
   std::optional<T> member(std::string root_name, const int index, const std::string_view sub_name) const
   {
-    if (sub_name.empty())
-      return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index));
-    else
-      return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index, sub_name));
+    return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index, sub_name));
   }
 };
 
