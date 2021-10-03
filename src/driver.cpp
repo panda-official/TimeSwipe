@@ -60,11 +60,15 @@ public:
 
   iDriver()
     : pid_file_{"timeswipe"}
-    , spi_{detail::Bcm_spi::Pins::spi0}
     , calibration_slopes_(max_channel_count())
     , translation_offsets_(max_channel_count())
     , translation_slopes_(max_channel_count())
+  {}
+
+  void initialize() override
   {
+    if (is_initialized_) return;
+
     // Initialize slopes and offsets.
     fill(begin(calibration_slopes_), end(calibration_slopes_), 1);
     fill(begin(translation_offsets_), end(translation_offsets_), 0);
@@ -77,8 +81,47 @@ public:
       throw Generic_exception{Generic_errc::driver_pid_file_lock_failed,
         std::string{"cannot lock by using file "}.append(pid_file_.name())};
 
-    // Initialize GPIO.
-    init_gpio();
+    // Initialize BCM and SPI.
+    spi_.initialize(detail::Bcm_spi::Pins::spi0);
+
+    /**
+     * Initialize GPIO pins.
+     *
+     * @par Effects
+     * Restarts firmware on very first run!
+     *
+     * @warning Firmware developers must remember, that restarting the firmware
+     * causes reset of all the settings the firmware keeps in the on-board RAM!
+     */
+    if (!is_gpio_inited_) {
+      detail::setup_io();
+      init_gpio_input(gpio_data0);
+      init_gpio_input(gpio_data1);
+      init_gpio_input(gpio_data2);
+      init_gpio_input(gpio_data3);
+      init_gpio_input(gpio_data4);
+      init_gpio_input(gpio_data5);
+      init_gpio_input(gpio_data6);
+      init_gpio_input(gpio_data7);
+
+      init_gpio_input(gpio_tco);
+      init_gpio_input(gpio_pi_ok);
+      init_gpio_input(gpio_fail);
+      init_gpio_input(gpio_button);
+
+      // init_gpio_output(gpio_pi_ok);
+      init_gpio_output(gpio_clock);
+      init_gpio_output(gpio_reset);
+
+      // Initial Reset
+      set_gpio_low(gpio_clock);
+      set_gpio_high(gpio_reset);
+
+      using std::chrono::milliseconds;
+      std::this_thread::sleep_for(milliseconds{1});
+
+      is_gpio_inited_ = true;
+    }
 
     // Get the calibration data.
     calibration_map_ = [this]
@@ -114,50 +157,13 @@ public:
       }
       return result;
     }();
+
+    is_initialized_ = true;
   }
 
-  /**
-   * Initializes GPIO pins.
-   *
-   * @param force Forces initialization even if `is_gpio_inited_ == true`.
-   *
-   * @par Effects
-   * Restarts firmware on very first run!
-   *
-   * @warning Firmware developers must remember, that restarting the firmware
-   * causes reset of all the settings the firmware keeps in the on-board RAM!
-   */
-  void init_gpio(const bool force = false)
+  bool is_initialized() const override
   {
-    if (!force && is_gpio_inited_) return;
-
-    detail::setup_io();
-    init_gpio_input(gpio_data0);
-    init_gpio_input(gpio_data1);
-    init_gpio_input(gpio_data2);
-    init_gpio_input(gpio_data3);
-    init_gpio_input(gpio_data4);
-    init_gpio_input(gpio_data5);
-    init_gpio_input(gpio_data6);
-    init_gpio_input(gpio_data7);
-
-    init_gpio_input(gpio_tco);
-    init_gpio_input(gpio_pi_ok);
-    init_gpio_input(gpio_fail);
-    init_gpio_input(gpio_button);
-
-    // init_gpio_output(gpio_pi_ok);
-    init_gpio_output(gpio_clock);
-    init_gpio_output(gpio_reset);
-
-    // Initial Reset
-    set_gpio_low(gpio_clock);
-    set_gpio_high(gpio_reset);
-
-    using std::chrono::milliseconds;
-    std::this_thread::sleep_for(milliseconds{1});
-
-    is_gpio_inited_ = true;
+    return is_initialized_;
   }
 
   int version() const override
@@ -187,6 +193,10 @@ public:
 
   void set_board_settings(const Board_settings& settings) override
   {
+    if (!is_initialized())
+      throw Generic_exception{Generic_errc::driver_not_initialized,
+        "cannot set board settings while driver is not initialized"};
+
     // Some settings cannot be applied if the measurement started.
     if (is_measurement_started()) {
       // Check if signal mode setting presents.
@@ -253,6 +263,10 @@ public:
 
   void start_measurement(Data_handler data_handler) override
   {
+    if (!is_initialized())
+      throw Generic_exception{Generic_errc::driver_not_initialized,
+        "cannot start measurement while driver is not initialized"};
+
     const auto gains = board_settings().channel_gains();
     const auto modes = board_settings().channel_measurement_modes();
     if (!data_handler)
@@ -482,6 +496,7 @@ private:
 
   detail::Pid_file pid_file_;
   mutable detail::Bcm_spi spi_;
+  std::atomic_bool is_initialized_{};
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_measurement_started_{};
 
