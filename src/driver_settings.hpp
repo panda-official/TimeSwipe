@@ -57,14 +57,16 @@ public:
    * The constructor.
    *
    * Parses the JSON input. Possible JSON members are:
-   *   - `sampleRate` - an integer;
-   *   - `burstBufferSize` - an integer;
-   *   - `frequency` - an integer;
-   *   - `translationOffsets` - an array of integers;
-   *   - `translationSlopes` - an array of floats.
+   *   - `sampleRate` - an integer (see sample_rate());
+   *   - `burstBufferSize` - an integer (see burst_buffer_size());
+   *   - `frequency` - an integer (see frequency());
+   *   - `translationOffsets` - an array of integers (see translation_offsets());
+   *   - `translationSlopes` - an array of floats (see translation_slopes()).
    * The exception with code `Generic_errc::driver_settings_invalid` will be
    * thrown if both `burstBufferSize` and `frequency` are presents in the same
    * JSON input.
+   *
+   * @see to_json_text().
    */
   explicit Driver_settings(std::string_view json_text);
 
@@ -175,10 +177,16 @@ public:
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
    * only if `!Driver::instance().is_measurement_started()`.
+   *
+   * @see translation_offsets().
    */
   Driver_settings& set_translation_offsets(const std::vector<int>& values);
 
-  /// @returns The translation offsets for all channels.
+  /**
+   * @returns The translation offsets for all channels.
+   *
+   * @see set_translation_offsets().
+   */
   std::optional<std::vector<int>> translation_offsets() const;
 
   /**
@@ -191,10 +199,16 @@ public:
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
    * only if `!Driver::instance().is_measurement_started()`.
+   *
+   * @see translation_slopes().
    */
   Driver_settings& set_translation_slopes(const std::vector<float>& values);
 
-  /// @returns The translation slope for all channels.
+  /**
+   * @returns The translation slope for all channels.
+   *
+   * @see set_translation_slopes().
+   */
   std::optional<std::vector<float>> translation_slopes() const;
 
 private:

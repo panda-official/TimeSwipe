@@ -54,7 +54,26 @@ public:
   /// The default constructor.
   Board_settings();
 
-  /// The constructor.
+  /**
+   * The constructor.
+   *
+   * Parses the JSON input. Possible JSON members are:
+   *   - `Mode` - an integer (see signal_mode());
+   *   - `CHi.mode` - an integer (see channel_measurement_modes());
+   *   - `CHi.gain` - a float (see channel_gains());
+   *   - `CHi.iepe` - a boolean (see channel_iepes());
+   *   - `PWMj` - a boolean (see pwms()));
+   *   - `PWMj.freq` - an integer (see pwm_frequencies());
+   *   - `PWMj.low`, `PWMi.high` - integers (see pwm_signal_levels());
+   *   - `PWMj.repeats` - an integer (see pwm_repeat_counts());
+   *   - `PWMj.duty` - a float (see pwm_duty_cycles()).
+   * Suffix `i` of the members listed above is an integer in range
+   * `[1, Driver::instance().max_channel_count()]`.
+   * Suffix `j` of the members listed above is an integer in range
+   * `[1, Driver::instance().max_pwm_count()]`.
+   *
+   * @see to_json_text().
+   */
   explicit Board_settings(std::string_view json_text);
 
   /// Swaps this instance with the `other` one.
@@ -77,10 +96,16 @@ public:
    *
    * @warning This setting can be applied with Driver::set_board_settings()
    * only if `!Driver::instance().is_measurement_started()`.
+   *
+   * @see signal_mode().
    */
   Board_settings& set_signal_mode(Signal_mode value);
 
-  /// @returns The value of signal mode.
+  /**
+   * @returns The value of signal mode.
+   *
+   * @see set_signal_mode().
+   */
   std::optional<Signal_mode> signal_mode() const;
 
   /// @}
@@ -101,12 +126,16 @@ public:
    *
    * @warning This setting can be applied with Driver::set_board_settings()
    * only if `!Driver::instance().is_measurement_started()`.
+   *
+   * @see channel_measurement_modes().
    */
   Board_settings& set_channel_measurement_modes(const std::vector<Measurement_mode>& values);
 
   /**
    * @returns Measurement mode of all channels, or `std::nullopt` if it's
    * not available for at least one channel.
+   *
+   * @see set_channel_measurement_modes().
    */
   std::optional<std::vector<Measurement_mode>> channel_measurement_modes() const;
 
@@ -116,12 +145,16 @@ public:
    * @par Requires
    * `(values.size() == Driver::instance().max_channel_count()`.
    * `values` must be in range `[1, 1408]`.
+   *
+   * @see channel_gains().
    */
   Board_settings& set_channel_gains(const std::vector<float>& values);
 
   /**
    * @returns Gains of all channels, or `std::nullopt` if it's
    * not available for at least one channel.
+   *
+   * @see set_channel_gains().
    */
   std::optional<std::vector<float>> channel_gains() const;
 
@@ -130,12 +163,16 @@ public:
    *
    * @par Requires
    * `(values.size() == Driver::instance().max_channel_count())`.
+   *
+   * @see channel_iepes().
    */
   Board_settings& set_channel_iepes(const std::vector<bool>& values);
 
   /**
    * @returns IEPE flags of all channels, or `std::nullopt` if it's
    * not available for at least one channel.
+   *
+   * @see set_channel_iepes().
    */
   std::optional<std::vector<bool>> channel_iepes() const;
 
@@ -157,12 +194,16 @@ public:
    *
    * @par Requires
    * `(values.size() == Driver::instance().max_pwm_count())`.
+   *
+   * @see pwms().
    */
   Board_settings& set_pwms(const std::vector<bool>& values);
 
   /**
    * @returns Start-flag of all PWMs, or `std::nullopt` if it's
    * not available for at least one PWM.
+   *
+   * @see set_pwms().
    */
   std::optional<std::vector<bool>> pwms() const;
 
@@ -172,12 +213,16 @@ public:
    * @par Requires
    * `(values.size() == Driver::instance().max_pwm_count())`.
    * `values` must be in range `[1, 1000]`.
+   *
+   * @see pwm_frequencies().
    */
   Board_settings& set_pwm_frequencies(const std::vector<int>& values);
 
   /**
    * @returns Frequency of all PWMs, or `std::nullopt` if it's
    * not available for at least one PWM.
+   *
+   * @see set_pwm_frequencies().
    */
   std::optional<std::vector<int>> pwm_frequencies() const;
 
@@ -188,12 +233,16 @@ public:
    * `(values.size() == Driver::instance().max_pwm_count())`.
    * `values` must be in range `[0, 4095]`.
    * Truth of `(values[i].first <= values[i].second)` for PWM `i`.
+   *
+   * @see pwm_signal_levels().
    */
   Board_settings& set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values);
 
   /**
    * @returns Signal levels of all PWMs, or `std::nullopt` if it's
    * not available for at least one PWM.
+   *
+   * @see set_pwm_signal_levels().
    */
   std::optional<std::vector<std::pair<int, int>>> pwm_signal_levels() const;
 
@@ -205,12 +254,16 @@ public:
    * Truth of `(values[i] >= 0)` for PWM `i`.
    *
    * @remarks Zero value means "infinity".
+   *
+   * @see pwm_repeat_counts().
    */
   Board_settings& set_pwm_repeat_counts(const std::vector<int>& values);
 
   /**
    * @returns Repeat counts of all PWMs, or `std::nullopt` if it's
    * not available for at least one PWM.
+   *
+   * @see set_pwm_repeat_counts().
    */
   std::optional<std::vector<int>> pwm_repeat_counts() const;
 
@@ -220,12 +273,16 @@ public:
    * @par Requires
    * `(values.size() == Driver::instance().max_pwm_count())`.
    * `values` must be in range `(0, 1)`.
+   *
+   * @see pwm_duty_cycles().
    */
   Board_settings& set_pwm_duty_cycles(const std::vector<float>& values);
 
   /**
    * @returns Length of the period when signal is in high state of all PWMs, or
    * `std::nullopt` if it's not available for at least one PWM.
+   *
+   * @see set_pwm_duty_cycles().
    */
   std::optional<std::vector<float>> pwm_duty_cycles() const;
 
