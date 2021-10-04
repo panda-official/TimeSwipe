@@ -38,7 +38,7 @@ struct Board_settings::Rep final {
   Rep()
   {}
 
-  explicit Rep(const std::string_view json_text)
+  explicit Rep(const std::string_view json_text) try
     : doc_{rajson::to_document(json_text)}
   {
     // Check channel-related settings.
@@ -63,6 +63,14 @@ struct Board_settings::Rep final {
       apply(check_pwm_repeat_count, pwm_repeat_counts());
       apply(check_pwm_duty_cycle, pwm_duty_cycles());
     }
+  } catch (const rajson::Parse_exception& e) {
+    throw Generic_exception{Generic_errc::board_settings_invalid,
+      std::string{"cannot create board settings from JSON text (error near"}
+        .append(" position ").append(std::to_string(e.parse_result().Offset()))
+        .append("): ").append(e.what())};
+  } catch (const std::exception& e) {
+    throw Generic_exception{Generic_errc::board_settings_invalid,
+      std::string{"cannot create board settings from JSON text: "}.append(e.what())};
   }
 
   Rep(const Rep& rhs)
