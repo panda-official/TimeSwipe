@@ -25,7 +25,6 @@
 #include "driver_settings.hpp"
 #include "error.hpp"
 #include "types_fwd.hpp"
-#include "version.hpp"
 
 #include <cstdint>
 #include <functional>
@@ -104,7 +103,7 @@ public:
   /// @returns `true` if the driver initialized.
   virtual bool is_initialized() const = 0;
 
-  /// @returns The driver version.
+  /// @returns The driver version value as `major*10000 + minor*100 + patch`.
   virtual int version() const = 0;
 
   /// @returns Min possible sample rate per second the driver can handle.

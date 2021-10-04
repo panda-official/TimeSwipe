@@ -87,8 +87,8 @@ try {
         typeBoard ThisBoard=typeBoard::IEPEBoard;
 #endif
 
-        auto pVersion=std::make_shared<CSemVer>(ts::version_major,
-          ts::version_minor, ts::version_patch);
+        auto pVersion=std::make_shared<CSemVer>(detail::version_major,
+          detail::version_minor, detail::version_patch);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 

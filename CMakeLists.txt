@@ -453,7 +453,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver_settings.hpp
     src/error.hpp
     src/types_fwd.hpp
-    src/version.hpp
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/panda/timeswipe)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/panda_timeswipe.pc

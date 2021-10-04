@@ -25,6 +25,7 @@
 #include "hat.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
+#include "version.hpp"
 
 #include "3rdparty/dmitigr/filesystem.hpp"
 #include "3rdparty/dmitigr/math.hpp"
@@ -170,7 +171,7 @@ public:
 
   int version() const override
   {
-    return ts::version;
+    return detail::version;
   }
 
   int min_sample_rate() const override

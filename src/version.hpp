@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_VERSION_HPP
 #define PANDA_TIMESWIPE_VERSION_HPP
 
-namespace panda::timeswipe {
+namespace panda::timeswipe::detail {
 
 /// Current major version.
 constexpr int version_major{0};
@@ -36,6 +36,6 @@ static_assert(0 <= version_patch && version_patch <= 99);
 /// Current version.
 constexpr int version{version_major*10000 + version_minor*100 + version_patch};
 
-} // namespace panda::timeswipe
+} // namespace panda::timeswipe::detail
 
 #endif  // PANDA_TIMESWIPE_VERSION_HPP
