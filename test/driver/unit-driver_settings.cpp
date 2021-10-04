@@ -62,5 +62,5 @@ try {
   return 1;
  } catch (...) {
   std::cerr << "unknown error\n";
-  return 1;
+  return 2;
  }
