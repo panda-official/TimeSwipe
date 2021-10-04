@@ -144,7 +144,7 @@ public:
    *
    * @par Requires
    * `(values.size() == Driver::instance().max_channel_count()`.
-   * `values` must be in range `[1, 1408]`.
+   * `values` must be in range `[Driver::instance().min_channel_gain(), Driver::instance().max_channel_gain()]`.
    *
    * @see channel_gains().
    */

@@ -191,6 +191,16 @@ public:
     return 2;
   }
 
+  float min_channel_gain() const override
+  {
+    return gain::ogain_min;
+  }
+
+  float max_channel_gain() const override
+  {
+    return gain::ogain_max;
+  }
+
   void set_board_settings(const Board_settings& settings) override
   {
     if (!is_initialized())

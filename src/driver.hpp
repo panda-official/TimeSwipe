@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_DRIVER_HPP
 
 // All the public API headers.
+#include "basics.hpp"
 #include "board_settings.hpp"
 #include "data_vector.hpp"
 #include "driver_settings.hpp"
@@ -118,6 +119,12 @@ public:
 
   /// @returns Max possible number of PWM the board provides.
   virtual int max_pwm_count() const = 0;
+
+  /// @returns Min possible channel gain value.
+  virtual float min_channel_gain() const = 0;
+
+  /// @returns Max possible channel gain value.
+  virtual float max_channel_gain() const = 0;
 
   /**
    * Sets the board-level settings.

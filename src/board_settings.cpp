@@ -251,7 +251,8 @@ private:
 
   static void check_channel_gain(const float value)
   {
-    if (!(gain::ogain_min <= value && value <= gain::ogain_max))
+    if (!(Driver::instance().min_channel_gain() <= value &&
+        value <= Driver::instance().max_channel_gain()))
       throw Generic_exception{Generic_errc::board_settings_invalid,
         "cannot set invalid channel gain"};
   }
