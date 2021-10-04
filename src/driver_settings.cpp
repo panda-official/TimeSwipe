@@ -34,7 +34,7 @@ struct Driver_settings::Rep final {
   Rep()
   {}
 
-  explicit Rep(const std::string_view json_text)
+  explicit Rep(const std::string_view json_text) try
     : doc_{rajson::to_document(json_text)}
   {
     const auto srate = sample_rate();
@@ -50,6 +50,14 @@ struct Driver_settings::Rep final {
     check_frequency(freq, srate);
 
     // Translation offsets and translation slopes doesn't need to be checked.
+  } catch (const rajson::Parse_exception& e) {
+    throw Generic_exception{Generic_errc::driver_settings_invalid,
+      std::string{"cannot create driver settings from JSON text (error near"}
+        .append(" position ").append(std::to_string(e.parse_result().Offset()))
+        .append("): ").append(e.what())};
+  } catch (const std::exception& e) {
+    throw Generic_exception{Generic_errc::driver_settings_invalid,
+      std::string{"cannot create driver settings from JSON text: "}.append(e.what())};
   }
 
   Rep(const Rep& rhs)
