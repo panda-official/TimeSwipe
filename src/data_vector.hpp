@@ -19,10 +19,7 @@
 #ifndef PANDA_TIMESWIPE_DATA_VECTOR_HPP
 #define PANDA_TIMESWIPE_DATA_VECTOR_HPP
 
-#include "basics.hpp"
-
 #include <algorithm>
-#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -37,13 +34,18 @@ public:
   /// Alias the size type.
   using size_type = value_type::size_type;
 
+  /// The default constructor.
+  Data_vector() = default;
+
   /// The constructor.
-  explicit Data_vector(size_type channel_count = max_channel_count);
+  explicit Data_vector(const size_type channel_count)
+    : data_(channel_count)
+  {}
 
   /// @returns The number of channels whose data this vector contains.
   size_type channel_count() const noexcept
   {
-    return channel_count_;
+    return data_.size();
   }
 
   /// @returns The number of values per sensor.
@@ -176,9 +178,7 @@ public:
 
   /// @}
 private:
-  using Array = std::array<std::vector<float>, max_channel_count>;
-  Array data_;
-  size_type channel_count_{};
+  std::vector<std::vector<float>> data_;
 };
 
 } // namespace panda::timeswipe

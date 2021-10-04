@@ -26,7 +26,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <iterator>
@@ -43,24 +42,41 @@ namespace panda::timeswipe::detail {
 class Resampler_options final {
 public:
   /**
-   * @brief The constructor.
+   * The constructor.
    *
    * @par Requires
-   * `freq.size() == ampl.size()`.
+   * `(channel_count_value > 0)`.
    */
-  Resampler_options(const unsigned up_factor = 1, const unsigned down_factor = 1,
-    const Signal_extrapolation extrapolation = Signal_extrapolation::zero,
-    const unsigned flength = 0,
-    std::vector<double> freq = {}, std::vector<double> ampl = {})
-    : up_factor_{up_factor}
-    , down_factor_{down_factor}
-    , extrapolation_{extrapolation}
+  explicit Resampler_options(const int channel_count_value)
+    : extrapolation_{default_extrapolation()}
   {
-    up_factor__(up_factor);
-    down_factor__(down_factor);
-    filter_length__(flength);
-    freq_ampl__(std::move(freq), std::move(ampl));
+    set_channel_count(channel_count_value);
+    up_factor__(0);
+    down_factor__(0);
+    filter_length__(0);
+    freq_ampl__({}, {});
+
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
+  }
+
+  /**
+   * Sets the channel count.
+   *
+   * @returns *this.
+   */
+  Resampler_options& set_channel_count(const int value)
+  {
+    if (!(value > 0))
+      throw Generic_exception{"cannot use invalid channel count as resampler"
+        " option"};
+    channel_count_ = value;
+    return *this;
+  }
+
+  /// @returns Channel count.
+  int channel_count() const noexcept
+  {
+    return channel_count_;
   }
 
   /**
@@ -244,6 +260,7 @@ public:
   }
 
 private:
+  int channel_count_{};
   unsigned up_factor_{};
   unsigned down_factor_{};
   Signal_extrapolation extrapolation_{Signal_extrapolation::zero};
@@ -254,10 +271,11 @@ private:
 
   bool is_invariant_ok() const noexcept
   {
+    const bool channel_count_ok = channel_count_ > 0;
     const bool factors_ok = up_factor_ > 0 && down_factor_ > 0;
     const bool length_ok = filter_length_ > 0;
     const bool vecs_ok = !freq_.empty() && !ampl_.empty() && (freq_.size() == ampl_.size());
-    return factors_ok && length_ok && vecs_ok;
+    return channel_count_ok && factors_ok && length_ok && vecs_ok;
   }
 
   void up_factor__(const unsigned value) noexcept
@@ -309,6 +327,7 @@ public:
   /// The constructor.
   Resampler(Options options)
     : options_{std::move(options)}
+    , rstates_(options_.channel_count())
   {
     // Calculate FIR coefficients.
     const auto firc = [this]
@@ -389,6 +408,8 @@ public:
     // Initializing the underlying resamplers and the associated states.
     for (auto& rs : rstates_)
       rs = State{options_, firc};
+
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
   }
 
   /// @returns The options instance.
@@ -398,12 +419,20 @@ public:
   }
 
   /**
-   * @brief Resamples the given records.
+   * Resamples the given records.
    *
    * @returns The resampled records.
    */
   Data_vector apply(Data_vector&& records)
   {
+    if (static_cast<unsigned>(records.channel_count()) != rstates_.size())
+      throw Generic_exception{std::string{"cannot resample records with"}
+        .append(" illegal channel count (")
+        .append(std::to_string(records.channel_count()))
+        .append(" instead of ")
+        .append(std::to_string(rstates_.size()))
+        .append(")")};
+
     return resample([this, &records](const std::size_t column_index)
     {
       auto& rstate = rstates_[column_index];
@@ -477,14 +506,20 @@ private:
     R resampler;
     std::size_t unskipped_leading_count{};
   };
-  std::array<State, max_channel_count> rstates_;
+  std::vector<State> rstates_;
+
+  bool is_invariant_ok() const
+  {
+    return static_cast<unsigned>(options_.channel_count()) == rstates_.size()
+      && !rstates_.empty();
+  }
 
   template<typename F>
   Data_vector resample(F&& run)
   {
-    Data_vector result(max_channel_count);
-    constexpr auto cc = max_channel_count;
-    for (std::size_t i {}; i < cc; ++i)
+    const auto cc = rstates_.size();
+    Data_vector result(cc);
+    for (std::size_t i{}; i < cc; ++i)
       result[i] = run(i);
     return result;
   }

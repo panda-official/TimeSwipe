@@ -29,17 +29,17 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 {
   drv.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000)));
-  constexpr auto channel_count{ts::max_channel_count};
+  const int channel_count = drv.max_channel_count();
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
   drv.start_measurement([&aavg,
-      &astddev, call_count=0](auto data, const auto) mutable
+      &astddev, call_count=0, channel_count](auto data, const auto) mutable
   {
-    for (auto i{0*channel_count}; i < channel_count; ++i) {
-      const auto& channel{data[i]};
-      const auto avg{math::avg(channel)};
-      const auto var{math::variance(channel, avg, false)};
-      const auto stddev{std::sqrt(var)};
+    for (int i{}; i < channel_count; ++i) {
+      const auto& channel= data[i];
+      const auto avg = math::avg(channel);
+      const auto var = math::variance(channel, avg, false);
+      const auto stddev = std::sqrt(var);
       aavg[i] += avg;
       astddev[i] += stddev;
       if (call_count) {
@@ -53,17 +53,17 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
   drv.stop_measurement();
 
   // Print the results
-  const auto prec{std::cout.precision()};
+  const auto prec = std::cout.precision();
   try {
     std::cout.precision(5 + 4);
     std::cout << "avg: ";
-    for (std::size_t i{}; i < channel_count; ++i) {
+    for (int i{}; i < channel_count; ++i) {
       std::cout << aavg[i];
       if (i < channel_count - 1)
         std::cout << ' ';
     }
     std::cout << "\nstddev: ";
-    for (std::size_t i{}; i < channel_count; ++i) {
+    for (int i{}; i < channel_count; ++i) {
       std::cout << astddev[i];
       if (i < channel_count - 1)
         std::cout << ' ';
@@ -102,9 +102,9 @@ try {
 
   if (!driver.drift_references()) {
     // Normally, it means the first program run.
-    const auto refs{driver.calculate_drift_references()};
+    const auto refs = driver.calculate_drift_references();
     (void)refs;
-    PANDA_TIMESWIPE_ASSERT(refs.size() == ts::max_channel_count);
+    PANDA_TIMESWIPE_ASSERT(refs.size() == static_cast<unsigned>(driver.max_channel_count()));
   }
   PANDA_TIMESWIPE_ASSERT(driver.drift_references());
 
@@ -112,7 +112,7 @@ try {
   PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
   auto deltas{driver.calculate_drift_deltas()};
   (void)deltas;
-  PANDA_TIMESWIPE_ASSERT(deltas.size() == ts::max_channel_count);
+  PANDA_TIMESWIPE_ASSERT(deltas.size() == static_cast<unsigned>(driver.max_channel_count()));
   PANDA_TIMESWIPE_ASSERT(driver.drift_deltas());
 
   // Measure.

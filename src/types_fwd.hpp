@@ -21,6 +21,9 @@
 
 namespace panda::timeswipe {
 
+enum class Measurement_mode;
+enum class Signal_mode;
+
 class Board_settings;
 class Data_vector;
 class Driver;

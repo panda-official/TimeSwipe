@@ -16,17 +16,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "data_vector.hpp"
-#include "error_detail.hpp"
+#ifndef PANDA_TIMESWIPE_BOARD_DETAIL_HPP
+#define PANDA_TIMESWIPE_BOARD_DETAIL_HPP
 
-namespace panda::timeswipe {
-using namespace detail;
+namespace panda::timeswipe::detail {
 
-Data_vector::Data_vector(const size_type channel_count)
-  : channel_count_{channel_count}
-{
-  if (channel_count > max_channel_count)
-    throw Generic_exception{"cannot create data vector by using excessive channel count"};
-}
+/// The absolute maximum possible number of data channels.
+constexpr int max_channel_count{4};
 
-} // namespace panda::timeswipe
+/// The absolute maximum possible number of PWMs.
+constexpr int max_pwm_count{2};
+
+} // namespace panda::timeswipe::detail
+
+#endif  // PANDA_TIMESWIPE_BOARD_DETAIL_HPP

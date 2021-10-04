@@ -18,6 +18,7 @@
 
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
+#include "board_detail.hpp"
 #include "driver.hpp"
 #include "error_detail.hpp"
 #include "gain.hpp"
@@ -63,6 +64,7 @@ public:
     , calibration_slopes_(max_channel_count())
     , translation_offsets_(max_channel_count())
     , translation_slopes_(max_channel_count())
+    , burst_buffer_(max_channel_count())
   {}
 
   void initialize() override
@@ -183,7 +185,7 @@ public:
 
   int max_channel_count() const override
   {
-    return ts::max_channel_count;
+    return detail::max_channel_count;
   }
 
   int max_pwm_count() const override
@@ -306,7 +308,7 @@ public:
       const auto gain = gains->at(i);
       const auto mode = modes->at(i);
       using Ct = hat::atom::Calibration::Type;
-      using Array = std::array<Ct, ts::max_channel_count>;
+      using Array = std::array<Ct, detail::max_channel_count>;
       constexpr Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
       constexpr Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
       const auto& types = (mode == Measurement_mode::voltage) ? v_types : c_types;
@@ -754,7 +756,7 @@ private:
       PANDA_TIMESWIPE_ASSERT((slopes.size() == translation_offsets.size())
         && (slopes.size() == translation_slopes.size()));
 
-      std::array<std::uint16_t, ts::max_channel_count> digits{};
+      std::array<std::uint16_t, detail::max_channel_count> digits{};
       static_assert(sizeof(channel_offset) == sizeof(digits[0]));
 
       const auto channel_count = data.channel_count();
@@ -989,7 +991,8 @@ private:
         resampler_ = std::move(resampler);
       } else
         resampler_ = std::make_unique<detail::Resampler>
-          (detail::Resampler_options{up, down});
+          (detail::Resampler_options{max_channel_count()}
+            .set_up_factor(up).set_down_factor(down));
     } else {
       PANDA_TIMESWIPE_ASSERT(!resampler);
       resampler_.reset();

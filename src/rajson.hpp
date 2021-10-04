@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_RAJSON_HPP
 #define PANDA_TIMESWIPE_RAJSON_HPP
 
-#include "basics.hpp"
+#include "board_settings.hpp"
 #include "error_detail.hpp"
 
 #include "3rdparty/dmitigr/rajson.hpp"

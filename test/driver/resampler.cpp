@@ -37,7 +37,7 @@ namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
 using Sensor_value = ts::Data_vector::value_type::value_type;
-constexpr auto sensor_count = ts::max_channel_count;
+const int sensor_count = ts::Driver::instance().max_channel_count();
 
 namespace {
 
@@ -261,7 +261,8 @@ try {
     throw std::runtime_error{"either input file is likely corrupted or incorrect sample rate specified"};
 
   // Create the resampler options instance.
-  ts::detail::Resampler_options r_opts{up_factor, down_factor};
+  ts::detail::Resampler_options r_opts{sensor_count};
+  r_opts.set_up_factor(up_factor).set_down_factor(down_factor);
 
   // Parse --sensors option.
   const auto sensors = []
@@ -284,12 +285,12 @@ try {
         result = parse(*v);
 
         // Check the size.
-        if (result.empty() || result.size() > sensor_count)
+        if (result.empty() || result.size() > static_cast<unsigned>(sensor_count))
           throw std::runtime_error{"invalid number of sensors specified"};
 
         // Check the content.
         if (const auto [mi, ma] = minmax_element(cbegin(result), cend(result));
-          *mi < 0 || *ma > static_cast<int>(sensor_count))
+          (*mi < 0 || *ma > sensor_count))
           throw std::runtime_error{"invalid sensor number"};
       } else
         exit_usage();
@@ -496,10 +497,10 @@ try {
   };
   ts::Data_vector records;
   records.reserve(sample_rate);
-  std::array<Sensor_value, sensor_count> buf;
+  std::vector<Sensor_value> buf(sensor_count);
   if (input_file.is_binary) {
     while (input_file.stream) {
-      for (auto i = 0*sample_rate; i < sample_rate; ++i) {
+      for (int i{}; i < sample_rate; ++i) {
         input_file.stream.read(reinterpret_cast<char*>(buf.data()), buf.size() * sizeof(decltype(buf)::value_type));
         const auto gcount = input_file.stream.gcount();
         if (input_file.stream) {
@@ -516,13 +517,13 @@ try {
     std::string line(512, '\0');
     auto& in = input_file.stream;
     while (in) {
-      for (auto i = 0*sample_rate; in && i < sample_rate; ++i) {
+      for (int i{}; in && i < sample_rate; ++i) {
         // Parse next line (even if CSV file has no newline after the last line).
         in.getline(line.data(), line.size());
         using Size = std::string::size_type;
         if (const Size gcount = in.gcount(); in || (gcount && (gcount < line.size()))) {
           ++entry_count;
-          std::size_t j{};
+          int j{};
           Size offset{};
           while (offset < gcount) {
             if (j >= sensor_count)
@@ -537,7 +538,7 @@ try {
             offset += field_length + 1;
             ++j;
           }
-          if (j < sensors.size())
+          if (static_cast<unsigned>(j) < sensors.size())
             throw std::runtime_error{"too few fields at line " + std::to_string(entry_count)};
           fill_by_sensors(records, buf);
         }

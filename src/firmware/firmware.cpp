@@ -7,7 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 //build for ADCs-DACs:
 
-#include "../basics.hpp"
+#include "../board_detail.hpp"
 #include "../error_detail.hpp"
 #include "../hat.hpp"
 #include "../version.hpp"
@@ -72,7 +72,7 @@ int sys_clock_init(void);
 
 int main()
 try {
-        constexpr int nChannels{ts::max_channel_count};
+        constexpr int nChannels{detail::max_channel_count};
         constexpr std::size_t EEPROMsize{2*1024}; // 2kb for EEPROM data
 
 #ifdef CALIBRATION_STATION
