@@ -41,6 +41,12 @@ struct Board_settings::Rep final {
   explicit Rep(const std::string_view json_text) try
     : doc_{rajson::to_document(json_text)}
   {
+    // Check signal mode.
+    signal_mode();
+
+    // Check measurement modes.
+    channel_measurement_modes();
+
     // Check channel-related settings.
     if (const auto gains = channel_gains()) {
       for (int i{}; i < mcc_; ++i)

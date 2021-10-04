@@ -29,6 +29,61 @@
 
 namespace panda::timeswipe::detail {
 
+template<class> struct Enum_traits;
+
+template<> struct Enum_traits<Measurement_mode> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "measurement mode";
+  }
+};
+template<> struct Enum_traits<Signal_mode> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "signal mode";
+  }
+};
+
+template<class E>
+struct Enum_conversions {
+  template<class Encoding, class Allocator>
+  static auto to_type(const rapidjson::GenericValue<Encoding, Allocator>& value)
+  {
+    const auto result = static_cast<E>(dmitigr::rajson::to<std::underlying_type_t<E>>(value));
+    if (!to_literal(result))
+      throw Generic_exception{std::string{"cannot use JSON value that doesn't match any "}
+        .append(Enum_traits<E>::singular_name())};
+    return result;
+  }
+
+  template<class Encoding, class Allocator>
+  static auto to_value(const E value, Allocator&)
+  {
+    if (!to_literal(value))
+      throw Generic_exception{std::string{"cannot convert invalid "}
+        .append(Enum_traits<E>::singular_name()).append(" to JSON value")};
+    return rapidjson::GenericValue<Encoding, Allocator>(static_cast<int>(value));
+  }
+};
+
+} // namespace panda::timeswipe::detail
+
+namespace dmitigr::rajson {
+
+/// Full specialization for `panda::timeswipe::Measurement_mode`.
+template<>
+struct Conversions<panda::timeswipe::Measurement_mode> final :
+  panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Measurement_mode>{};
+
+/// Full specialization for `panda::timeswipe::Signal_mode`.
+template<>
+struct Conversions<panda::timeswipe::Signal_mode> final :
+  panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Signal_mode>{};
+
+} // dmitigr::rajson
+
+namespace panda::timeswipe::detail {
+
 /// Adds or modifies the member named by `name` by using the given `value`.
 template<typename Encoding, typename Allocator, typename T>
 void set_member(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& alloc,
