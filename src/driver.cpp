@@ -299,7 +299,7 @@ public:
       using Array = std::array<Ct, ts::max_channel_count>;
       constexpr Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
       constexpr Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
-      const auto& types = (mode == Measurement_mode::Voltage) ? v_types : c_types;
+      const auto& types = (mode == Measurement_mode::voltage) ? v_types : c_types;
       const auto& atom = calibration_map_.atom(types[i]);
       const auto ogain_index = gain::ogain_table_index(gain);
       PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
@@ -590,7 +590,7 @@ private:
        */
       {
         auto chmm = chmm_;
-        for (auto& mm : chmm) mm = Measurement_mode::Current;
+        for (auto& mm : chmm) mm = Measurement_mode::current;
         driver_.set_board_settings(Board_settings{}
           .set_channel_measurement_modes(chmm));
       }

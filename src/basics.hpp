@@ -30,11 +30,44 @@ constexpr int max_channel_count{4};
 /// The absolute maximum possible number of PWMs.
 constexpr int max_pwm_count{2};
 
+// -----------------------------------------------------------------------------
+// Measurement_mode
+// -----------------------------------------------------------------------------
+
 /// Measurement mode.
 enum class Measurement_mode {
-  Voltage,
-  Current
+  voltage,
+  current
 };
+
+/**
+ * @returns The value of type `Measurement_mode` converted from `value`, or
+ * `std::nullopt` if `value` doesn't corresponds to any member of Measurement_mode.
+ */
+constexpr std::optional<Measurement_mode> to_measurement_mode(const
+  std::string_view value) noexcept
+{
+  if (value == "voltage") return Measurement_mode::voltage;
+  else if (value == "current") return Measurement_mode::current;
+  else return {};
+}
+
+/**
+ * @returns The character literal converted from `value`, or `nullptr`
+ * if `value` doesn't corresponds to any member of Measurement_mode.
+ */
+constexpr const char* to_literal(const Measurement_mode value) noexcept
+{
+  switch (value) {
+  case Measurement_mode::voltage: return "voltage";
+  case Measurement_mode::current: return "current";
+  }
+  return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+// Signal_mode
+// -----------------------------------------------------------------------------
 
 /// Signal mode.
 enum class Signal_mode {
@@ -59,8 +92,8 @@ constexpr std::optional<Signal_mode> to_signal_mode(const std::string_view value
 }
 
 /**
- * @returns The character literal converted from `value`, or
- * `nullptr` if `value` doesn't corresponds to any member of Signal_mode.
+ * @returns The character literal converted from `value`, or `nullptr`
+ * if `value` doesn't corresponds to any member of Signal_mode.
  */
 constexpr const char* to_literal(const Signal_mode value) noexcept
 {

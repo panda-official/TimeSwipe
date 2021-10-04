@@ -38,8 +38,8 @@ try {
 
   // Measurement mode.
   {
-    constexpr auto c = ts::Measurement_mode::Current;
-    constexpr auto v = ts::Measurement_mode::Voltage;
+    constexpr auto c = ts::Measurement_mode::current;
+    constexpr auto v = ts::Measurement_mode::voltage;
     const std::vector<ts::Measurement_mode> expected{v,v,c,c};
     ASSERT(bs.channel_measurement_modes() == expected);
   }
