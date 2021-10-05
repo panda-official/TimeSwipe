@@ -262,7 +262,7 @@ try {
 
   // Create the resampler options instance.
   ts::detail::Resampler_options r_opts{sensor_count};
-  r_opts.set_up_factor(up_factor).set_down_factor(down_factor);
+  r_opts.set_up_down(up_factor, down_factor);
 
   // Parse --sensors option.
   const auto sensors = []

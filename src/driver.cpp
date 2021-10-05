@@ -991,8 +991,7 @@ private:
         resampler_ = std::move(resampler);
       } else
         resampler_ = std::make_unique<detail::Resampler>
-          (detail::Resampler_options{max_channel_count()}
-            .set_up_factor(up).set_down_factor(down));
+          (detail::Resampler_options{max_channel_count()}.set_up_down(up, down));
     } else {
       PANDA_TIMESWIPE_ASSERT(!resampler);
       resampler_.reset();

@@ -38,7 +38,6 @@
 namespace panda::timeswipe::detail {
 
 /// A timeswipe resampler options.
-/// FIXME: merge up_factor() and down_factor() into factors().
 class Resampler_options final {
 public:
   /**
@@ -48,14 +47,14 @@ public:
    * `(channel_count_value > 0)`.
    */
   explicit Resampler_options(const int channel_count_value)
-    : extrapolation_{default_extrapolation()}
   {
+    // Warning: the order in which the following functions are called is matter!
     set_channel_count(channel_count_value);
-    up_factor__(0);
-    down_factor__(0);
-    filter_length__(0);
-    freq_ampl__({}, {});
-
+    set_up_down(1, 1);
+    set_extrapolation(Signal_extrapolation::zero);
+    set_crop_extra(true);
+    set_filter_length(default_filter_length(up_factor_, down_factor_));
+    set_freq_ampl(default_freq(up_factor_), default_ampl());
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
   }
 
@@ -67,9 +66,10 @@ public:
   Resampler_options& set_channel_count(const int value)
   {
     if (!(value > 0))
-      throw Generic_exception{"cannot use invalid channel count as resampler"
-        " option"};
+      throw Generic_exception{"cannot use invalid channel count as resampler option"};
+
     channel_count_ = value;
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
@@ -80,51 +80,40 @@ public:
   }
 
   /**
-   * Sets the up-factor.
+   * Sets the up and down factors.
+   *
+   * @param up Up factor.
+   * @param down Down factor.
+   *
+   * @par Requires
+   * `(up > 0 && down > 0)`.
    *
    * @returns *this.
    */
-  Resampler_options& set_up_factor(const unsigned value) noexcept
+  Resampler_options& set_up_down(const int up, const int down)
   {
-    up_factor__(value);
+    if (!(up > 0))
+      throw Generic_exception{"cannot use invalid up factor as resampler option"};
+    else if (!(down > 0))
+      throw Generic_exception{"cannot use invalid down factor as resampler option"};
+
+    up_factor_ = up;
+    down_factor_ = down;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
+
     return *this;
   }
 
-  /// @returns The up-factor.
-  unsigned up_factor() const noexcept
+  /// @returns The up factor.
+  int up_factor() const noexcept
   {
     return up_factor_;
   }
 
-  /// @returns The default up-factor.
-  static unsigned default_up_factor() noexcept
-  {
-    return 1;
-  }
-
-  /**
-   * Sets the down-factor.
-   *
-   * @returns *this.
-   */
-  Resampler_options& set_down_factor(const unsigned value) noexcept
-  {
-    down_factor__(value);
-    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
-    return *this;
-  }
-
-  /// @returns The down-factor.
-  unsigned down_factor() const noexcept
+  /// @returns The down factor.
+  int down_factor() const noexcept
   {
     return down_factor_;
-  }
-
-  /// @returns The default down-factor.
-  static unsigned default_down_factor() noexcept
-  {
-    return 1;
   }
 
   /**
@@ -132,7 +121,7 @@ public:
    *
    * @returns *this.
    */
-  Resampler_options& set_extrapolation(const Signal_extrapolation value) noexcept
+  Resampler_options& set_extrapolation(const Signal_extrapolation value)
   {
     extrapolation_ = value;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
@@ -145,12 +134,6 @@ public:
     return extrapolation_;
   }
 
-  /// @returns The default extrapolation mode.
-  static Signal_extrapolation default_extrapolation() noexcept
-  {
-    return Signal_extrapolation::zero;
-  }
-
   /**
    * @brief Sets the crop extra samples mode.
    *
@@ -160,7 +143,7 @@ public:
    *
    * @returns *this.
    */
-  Resampler_options& set_crop_extra(const bool value) noexcept
+  Resampler_options& set_crop_extra(const bool value)
   {
     crop_extra_ = value;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
@@ -173,34 +156,28 @@ public:
     return crop_extra_;
   }
 
-  /// @returns The default crop extra samples mode.
-  static bool default_crop_extra() noexcept
-  {
-    return true;
-  }
-
   /**
    * Sets the filter length.
    *
+   * @par Requires
+   * `(value > 0)`.
+   *
    * @returns *this.
    */
-  Resampler_options& set_filter_length(const unsigned value) noexcept
+  Resampler_options& set_filter_length(const int value)
   {
-    filter_length__(value);
+    if (!(value > 0))
+      throw Generic_exception{"cannot use invalid filter length as resampler option"};
+
+    filter_length_ = value;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
 
   /// @returns The filter length.
-  unsigned filter_length() const noexcept
+  int filter_length() const noexcept
   {
     return filter_length_;
-  }
-
-  /// @returns The default filter length.
-  unsigned default_filter_length() const noexcept
-  {
-    return 2 * 10 * std::max(up_factor_, down_factor_) + 1;
   }
 
   /**
@@ -211,12 +188,22 @@ public:
    *
    * @returns *this.
    *
+   * @par Requires
+   * `!freq.empty() && (freq.size() == ampl.size())`.
+   *
    * @see firls().
    */
-  Resampler_options& set_freq_ampl(std::vector<double> freq, std::vector<double> ampl) noexcept
+  Resampler_options& set_freq_ampl(std::vector<double> freq, std::vector<double> ampl)
   {
-    PANDA_TIMESWIPE_ASSERT(freq.size() == ampl.size());
-    freq_ampl__(std::move(freq), std::move(ampl));
+    if (freq.empty())
+      throw Generic_exception{"cannot use empty freq as resampler option"};
+    else if (ampl.empty())
+      throw Generic_exception{"cannot use empty ampl as resampler option"};
+    else if (freq.size() != ampl.size())
+      throw Generic_exception{"cannot use freq and ampl of different sizes as resampler options"};
+
+    freq_ = std::move(freq);
+    ampl_ = std::move(ampl);
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return *this;
   }
@@ -231,18 +218,6 @@ public:
     return freq_;
   }
 
-  /// @returns The default pairs of frequency band edges.
-  std::vector<double> default_freq() const
-  {
-    /*
-     * Note: when the band_numerator is 1 some of the default
-     * firc values can be NaN, so band_numerator is .(9).
-     */
-    constexpr double band_numerator{1 - positive_near_zero()};
-    const double band = band_numerator / up_factor_;
-    return {0, band, band, 1};
-  }
-
   /**
    * @returns Amplitude values of the function at each frequency point.
    *
@@ -253,19 +228,13 @@ public:
     return ampl_;
   }
 
-  /// @returns The default amplitude values of the function at each frequency point.
-  static std::vector<double> default_ampl()
-  {
-    return {1, 1, 0, 0};
-  }
-
 private:
   int channel_count_{};
-  unsigned up_factor_{};
-  unsigned down_factor_{};
+  int up_factor_{1};
+  int down_factor_{1};
   Signal_extrapolation extrapolation_{Signal_extrapolation::zero};
   bool crop_extra_{true};
-  unsigned filter_length_{};
+  int filter_length_{};
   std::vector<double> freq_;
   std::vector<double> ampl_;
 
@@ -278,30 +247,35 @@ private:
     return channel_count_ok && factors_ok && length_ok && vecs_ok;
   }
 
-  void up_factor__(const unsigned value) noexcept
+  /// @returns The default up and factors.
+  static std::pair<int, int> default_up_down() noexcept
   {
-    up_factor_ = value ? value : default_up_factor();
+    return {1, 1};
   }
 
-  void down_factor__(const unsigned value) noexcept
+  /// @returns The default filter length.
+  static int default_filter_length(const int up_factor, const int down_factor) noexcept
   {
-    down_factor_ = value ? value : default_down_factor();
+    PANDA_TIMESWIPE_ASSERT(up_factor > 0 && down_factor > 0);
+    return 2 * 10 * std::max(up_factor, down_factor) + 1;
   }
 
-  void filter_length__(const unsigned value) noexcept
+  /// @returns The default pairs of frequency band edges.
+  static std::vector<double> default_freq(const int up_factor)
   {
-    filter_length_ = value ? value : default_filter_length();
+    /*
+     * Note: when the band_numerator is 1 some of the default
+     * firc values can be NaN, so band_numerator is .(9).
+     */
+    constexpr double band_numerator{1 - positive_near_zero()};
+    const double band = band_numerator / up_factor;
+    return {0, band, band, 1};
   }
 
-  void freq_ampl__(std::vector<double>&& freq, std::vector<double>&& ampl) noexcept
+  /// @returns The default amplitude values of the function at each frequency point.
+  static std::vector<double> default_ampl()
   {
-    if (freq.empty()) {
-      freq_ = default_freq();
-      ampl_ = default_ampl();
-    } else {
-      freq_ = std::move(freq);
-      ampl_ = std::move(ampl);
-    }
+    return {1, 1, 0, 0};
   }
 };
 
@@ -336,7 +310,7 @@ public:
       std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
       if (firc.size() > std::numeric_limits<int>::max())
         throw std::runtime_error{"too many FIR coefficients required"};
-      PANDA_TIMESWIPE_ASSERT(options_.filter_length() == firc.size());
+      PANDA_TIMESWIPE_ASSERT(static_cast<unsigned>(options_.filter_length()) == firc.size());
       std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
 
