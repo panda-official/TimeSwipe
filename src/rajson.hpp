@@ -99,47 +99,6 @@ void set_member(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& a
       std::move(val), alloc);
 }
 
-/// Adds or modifies the element of array named by `name` at the given `index`.
-template<typename T, typename Encoding, typename Allocator>
-void set_array_element(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& alloc,
-  const std::string_view name, const std::size_t index, T&& value,
-  T&& default_value = T{})
-{
-  namespace rajson = dmitigr::rajson;
-  const auto name_ref = rajson::to_string_ref(name);
-  auto i = json.FindMember(name_ref);
-  if (i == json.MemberEnd()) {
-    json.AddMember(rapidjson::Value{name.data(), name.size(), alloc},
-      rapidjson::Value{rapidjson::kArrayType}, alloc);
-    i = json.FindMember(name_ref);
-  } else if (!i->value.IsArray())
-    i->value.SetArray();
-
-  PANDA_TIMESWIPE_ASSERT(i != json.MemberEnd());
-  PANDA_TIMESWIPE_ASSERT(i->value.IsArray());
-
-  auto& array = i->value;
-  if (index <= array.Size()) {
-    const std::size_t extra_size = array.Size() - index + 1;
-    for (std::size_t i{}; i < extra_size; ++i)
-      array.PushBack(std::forward<T>(default_value), alloc);
-  }
-  array[index] = rajson::to_value(std::forward<T>(value), alloc);
-}
-
-template<typename T, typename Encoding, typename Allocator>
-std::optional<T> array_element(const rapidjson::GenericValue<Encoding, Allocator>& json,
-  const std::string_view name, const std::size_t index)
-{
-  namespace rajson = dmitigr::rajson;
-  const auto name_ref = rajson::to_string_ref(name);
-  if (const auto i = json.FindMember(name_ref); i != json.MemberEnd()) {
-    if (i->value.IsArray() && index < i->value.Size())
-      return rajson::to<T>(i->value[index]);
-  }
-  return {};
-}
-
 } // namespace panda::timeswipe::detail
 
 #endif  // PANDA_TIMESWIPE_RAJSON_HPP
