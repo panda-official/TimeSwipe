@@ -32,7 +32,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace panda::timeswipe::hat {
+namespace panda::timeswipe::detail::hat {
 
 /// Forward declaration of the manager.
 class Manager;
@@ -1000,6 +1000,6 @@ private:
   /// @}
 };
 
-} // namespace panda::timeswipe::hat
+} // namespace panda::timeswipe::detail::hat
 
 #endif  // PANDA_TIMESWIPE_HAT_HPP

@@ -22,7 +22,7 @@ Copyright (c) 2019 Panda Team
 #include <memory>
 
 /// FIXME: remove after placing the entire code base in the namespace
-using namespace panda::timeswipe;
+using namespace panda::timeswipe::detail;
 
 /*!
  * \brief Provides the basic functionality of the board

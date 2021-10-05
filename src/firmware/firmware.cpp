@@ -70,8 +70,9 @@ int sys_clock_init(void);
 *
 */
 
-int main()
-try {
+int main() try
+{
+        namespace detail = panda::timeswipe::detail;
         constexpr int nChannels{detail::max_channel_count};
         constexpr std::size_t EEPROMsize{2*1024}; // 2kb for EEPROM data
 
