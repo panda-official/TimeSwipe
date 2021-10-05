@@ -29,14 +29,18 @@
 
 namespace panda::timeswipe::detail {
 
+/// Traits structure for enumerations.
 template<class> struct Enum_traits;
 
+/// Full specialization for Measurement_mode.
 template<> struct Enum_traits<Measurement_mode> final {
   static constexpr const char* singular_name() noexcept
   {
     return "measurement mode";
   }
 };
+
+/// Full specialization for Signal_mode.
 template<> struct Enum_traits<Signal_mode> final {
   static constexpr const char* singular_name() noexcept
   {
@@ -44,6 +48,7 @@ template<> struct Enum_traits<Signal_mode> final {
   }
 };
 
+/// Generic enum/JSON conversions.
 template<class E>
 struct Enum_conversions {
   template<class Encoding, class Allocator>

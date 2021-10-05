@@ -31,6 +31,7 @@
 
 namespace panda::timeswipe::detail {
 
+/// RAII-guarded PID file handle.
 class Pid_file final {
 public:
   /// The destructor.
