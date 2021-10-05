@@ -10,8 +10,9 @@
 #ifndef PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
 
+#include "error_detail.hpp"
+
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <iterator>
 #include <stdexcept>
@@ -148,7 +149,7 @@ public:
    *       0, h[8], h[5], h[2],   // flipped phase 2 coefs (zero-padded)
    */
   template<typename InputIt>
-  Fir_resampler(const unsigned up_rate, const unsigned down_rate,
+  Fir_resampler(const int up_rate, const int down_rate,
     const InputIt coefs_first, const InputIt coefs_last,
     const Signal_extrapolation signal_extrapolation = Signal_extrapolation::zero)
     : up_rate_{up_rate}
@@ -160,11 +161,11 @@ public:
 
     const auto coefs_size = std::distance(coefs_first, coefs_last);
     if (up_rate <= 0)
-      throw std::invalid_argument{"up_rate"};
+      throw Generic_exception{"cannot use invalid up rate as FIR resampler option"};
     else if (down_rate <= 0)
-      throw std::invalid_argument{"down_rate"};
+      throw Generic_exception{"cannot use invalid down rate as FIR resampler option"};
     else if (!coefs_size)
-      throw std::invalid_argument{"coefs_first or coefs_last"};
+      throw Generic_exception{"cannot use invalid coefficient interators as FIR resampler options"};
 
     // Initial coefficients with padding.
     transposed_coefs_.resize(coefs_size + (up_rate - coefs_size % up_rate));
@@ -174,14 +175,14 @@ public:
     state_.resize(coefs_per_phase_ - 1);
 
     // Transposing and "flipping" each phase.
-    for (auto i = 0*up_rate_; i < up_rate_; ++i) {
-      for (auto j = 0*coefs_per_phase_; j < coefs_per_phase_; ++j) {
+    for (int i{}; i < up_rate_; ++i) {
+      for (int j{}; j < coefs_per_phase_; ++j) {
         if (j*up_rate_ + i < coefs_size)
           transposed_coefs_[(coefs_per_phase_ - 1 - j) + i*coefs_per_phase_] = coefs_first[j*up_rate_ + i];
       }
     }
 
-    assert(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
   }
 
   /// Non copy-constructible.
@@ -254,7 +255,7 @@ public:
     if (!in_size)
       return out;
 
-    assert(in_size);
+    PANDA_TIMESWIPE_ASSERT(in_size);
 
     if (!is_applied_) {
       // Handle simple extrapolation methods.
@@ -281,7 +282,7 @@ public:
         const auto count = std::min(state_.size(), in_size);
         const auto e = end(state_);
         const auto b = e - count;
-        assert(first + count <= last);
+        PANDA_TIMESWIPE_ASSERT(first + count <= last);
         copy(first, first + count, b);
       }
 
@@ -292,7 +293,7 @@ public:
       case Signal_extrapolation::smooth:
         [[fallthrough]];
       case Signal_extrapolation::constant:;
-        assert(false);
+        PANDA_TIMESWIPE_ASSERT(false);
         std::terminate();
       case Signal_extrapolation::symmetric:
         reverse(begin(state_), end(state_));
@@ -311,7 +312,7 @@ public:
         reflect_left(reflected);
         if (const auto sz = state_.size(); sz >= 2) {
           const auto x1 = state_[0];
-          for (auto i = 0*sz; i < sz; ++i)
+          for (std::decay_t<decltype(sz)> i{}; i < sz; ++i)
             state_[i] = 2*x1 - reflected[i];
         }
         break;
@@ -326,7 +327,8 @@ public:
       auto in_ptr = in - state_.size();
       if (const auto diff = first - in_ptr; diff > 0) {
         // Use values from the state_ buffer.
-        assert(diff <= state_.size());
+        PANDA_TIMESWIPE_ASSERT(static_cast<typename
+          decltype(state_)::size_type>(diff) <= state_.size());
         const auto e = cend(state_);
         for (auto state_ptr = e - diff; state_ptr < e; ++state_ptr, ++h)
           value += *state_ptr * *h;
@@ -359,13 +361,14 @@ public:
       // Copy the entire (short) input to end of buffer.
       o = copy(first, last, o);
 
-      assert(o - cbegin(state_) == state_.size());
+      PANDA_TIMESWIPE_ASSERT(static_cast<typename
+        decltype(state_)::size_type>(o - cbegin(state_)) == state_.size());
     } else
       // Just copy last input samples into state buffer.
       copy(last - state_.size(), last, begin(state_));
 
     is_applied_ = true;
-    assert(is_invariant_ok());
+    PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
     return out;
   }
 
@@ -400,7 +403,7 @@ public:
       const auto [xn, xn_1] = extra.size() > 1 ?
         std::make_pair(extra[sz - 1], extra[sz - 2]) :
         std::make_pair(Value{}, extra[sz - 1]);
-      for (auto k = 0*sz + 1; k <= sz; ++k)
+      for (std::decay_t<decltype(sz)> k{1}; k <= sz; ++k)
         extra[k - 1] = xn + k*(xn - xn_1);
       break;
     }
@@ -424,7 +427,7 @@ public:
       reflect_right(reflected);
       if (const auto sz = extra.size(); sz >= 2) {
         const auto xn = extra.back();
-        for (auto i = 0*sz; i < sz; ++i)
+        for (std::decay_t<decltype(sz)> i{}; i < sz; ++i)
           extra[i] = 2*xn - reflected[i];
       }
       break;
@@ -466,9 +469,9 @@ public:
    */
   std::size_t output_sequence_size(const std::size_t in_size) const noexcept
   {
-    const auto np = in_size * up_rate_;
+    const std::size_t np = in_size * up_rate_;
     std::size_t result = np / down_rate_;
-    if ((coefs_phase_ + up_rate_ * apply_offset_) < (np % down_rate_))
+    if (static_cast<unsigned>(coefs_phase_ + up_rate_ * apply_offset_) < (np % down_rate_))
       result++;
     return result;
   }
@@ -482,12 +485,12 @@ public:
 private:
   bool is_applied_{};
   bool is_flushed_{};
-  unsigned up_rate_{};
-  unsigned down_rate_{};
+  int up_rate_{};
+  int down_rate_{};
   Signal_extrapolation signal_extrapolation_{Signal_extrapolation::zero};
-  unsigned coefs_phase_{}; // next phase of the filter to use (mod up_rate_)
-  unsigned apply_offset_{}; // the amount of samples to skip upon apply()
-  typename std::vector<Coeff>::size_type coefs_per_phase_{}; // transposed_coefs_.size() / up_rate_
+  int coefs_phase_{}; // next phase of the filter to use (mod up_rate_)
+  int apply_offset_{}; // the amount of samples to skip upon apply()
+  int coefs_per_phase_{}; // transposed_coefs_.size() / up_rate_
   std::vector<Coeff> transposed_coefs_;
   std::vector<Input> state_; // state buffer of size (coefs_per_phase_ - 1)
 
@@ -495,12 +498,13 @@ private:
   {
     const bool rates_ok = up_rate_ > 0 && down_rate_ > 0;
     const bool time_ok = coefs_phase_ < up_rate_;
+    const bool coefs_per_phase_ok = coefs_per_phase_ > 0;
     const bool vecs_ok =
       !state_.empty() &&
-      (state_.size() == (coefs_per_phase_ - 1)) &&
-      (transposed_coefs_.size() == coefs_per_phase_ * up_rate_) &&
+      (state_.size() == static_cast<unsigned>(coefs_per_phase_ - 1)) &&
+      (transposed_coefs_.size() == static_cast<unsigned>(coefs_per_phase_ * up_rate_)) &&
       !(transposed_coefs_.size() % up_rate_);
-    return rates_ok && time_ok && vecs_ok;
+    return rates_ok && time_ok && coefs_per_phase_ok && vecs_ok;
   }
 
   // ---------------------------------------------------------------------------
@@ -551,7 +555,7 @@ auto resample(const unsigned up_rate, const unsigned down_rate,
   const auto res_sz = resampler.output_sequence_size(std::distance(first, last)) + end_sz;
   std::vector<Out> result(res_sz);
   auto out = resampler(first, last, begin(result));
-  assert(cend(result) - out == end_sz);
+  PANDA_TIMESWIPE_ASSERT(cend(result) - out == end_sz);
   resampler(out);
   return result;
 }
