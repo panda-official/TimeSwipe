@@ -16,10 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "basics.hpp"
 #include "board_settings.hpp"
 #include "driver.hpp"
 #include "error_detail.hpp"
-#include "gain.hpp"
 #include "rajson.hpp"
 
 #include <algorithm>

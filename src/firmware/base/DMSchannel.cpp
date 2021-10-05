@@ -5,19 +5,19 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "../../gain.hpp"
+#include "../../basics.hpp"
 #include "../../hat.hpp"
 #include "../control/nodeControl.h"
 #include "DMSchannel.h"
 
 void CDMSchannel::SetAmpGain(const float GainValue)
 {
-    const auto index = gain::ogain_table_index(GainValue);
+    const auto index = detail::gain::ogain_table_index(GainValue);
     const auto igain = static_cast<CPGA280::igain>(index / 2);
     const auto ogain = static_cast<CPGA280::ogain>(index % 2);
     if (m_pPGA->SetGains(igain, ogain)) {
         m_nGainIndex = index;
-        m_ActualAmpGain = gain::ogain_table[index];
+        m_ActualAmpGain = detail::gain::ogain_table[index];
         UpdateOffsets();
     }
 }

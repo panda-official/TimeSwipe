@@ -16,13 +16,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_GAIN_HPP
-#define PANDA_TIMESWIPE_GAIN_HPP
+#ifndef PANDA_TIMESWIPE_BASICS_HPP
+#define PANDA_TIMESWIPE_BASICS_HPP
 
 #include <algorithm>
 #include <array>
 
-namespace panda::timeswipe::gain {
+namespace panda::timeswipe::detail {
+
+/// The absolute maximum possible number of data channels.
+constexpr int max_channel_count{4};
+
+/// The absolute maximum possible number of PWMs.
+constexpr int max_pwm_count{2};
+
+namespace gain {
 
 /// Output gain table factor for even entries.
 constexpr float ogain_table_factor{1.375};
@@ -72,7 +80,7 @@ inline std::size_t ogain_table_index(const float value) noexcept
   });
   return std::max<decltype(itr - beg)>(0, itr - beg - 1);
 }
+} // namespace gain
+} // namespace panda::timeswipe::detail
 
-} // namespace panda::timeswipe::gain
-
-#endif  // PANDA_TIMESWIPE_GAIN_HPP
+#endif  // PANDA_TIMESWIPE_BASICS_HPP
