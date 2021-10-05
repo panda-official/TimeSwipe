@@ -77,11 +77,7 @@ public:
     fill(begin(translation_slopes_), end(translation_slopes_), 1);
 
     // Lock PID file.
-    std::string msg;
-    if (!pid_file_.lock(msg))
-      // Lock here. Second lock from the same process is allowed.
-      throw Generic_exception{Generic_errc::driver_pid_file_lock_failed,
-        std::string{"cannot lock by using file "}.append(pid_file_.name())};
+    pid_file_.lock();
 
     // Initialize BCM and SPI.
     spi_.initialize(detail::Bcm_spi::Pins::spi0);

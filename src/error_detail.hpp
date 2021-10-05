@@ -78,6 +78,35 @@ public:
   {}
 };
 
+// -----------------------------------------------------------------------------
+// Sys_exception
+// -----------------------------------------------------------------------------
+
+/**
+ * @ingroup errors
+ *
+ * An exception thrown on system error.
+ */
+class Sys_exception final : public Exception, public std::system_error {
+public:
+  /// The constructor.
+  Sys_exception(const int ev, const std::string& what)
+    : system_error{ev, std::system_category(), what}
+  {}
+
+  /// @see std::system_error::what().
+  const char* what() const noexcept override
+  {
+    return system_error::what();
+  }
+
+  /// @see Exception::condition().
+  std::error_condition condition() const noexcept override
+  {
+    return system_error::code().default_error_condition();
+  }
+};
+
 } // namespace panda::timeswipe::detail
 
 // -----------------------------------------------------------------------------

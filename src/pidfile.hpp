@@ -19,7 +19,8 @@
 #ifndef PANDA_TIMESWIPE_PIDFILE_HPP
 #define PANDA_TIMESWIPE_PIDFILE_HPP
 
-#include <cstring>
+#include "error_detail.hpp"
+
 #include <cerrno>
 #include <string>
 
@@ -37,91 +38,158 @@ public:
   /// The destructor.
   ~Pid_file()
   {
-    unlock();
+    cleanup();
   }
 
   /**
-   * Create PID file.
+   * The constructor.
    *
-   * @param name Unique application name.
+   * Doesn't creates PID file implicitly. The creation is deferred until call
+   * of lock().
+   *
+   * @param stem Filename with stripped extension.
+   *
+   * @see lock().
    */
-  Pid_file(const std::string& name)
-    : fname_{std::string{"/var/run/"}.append(name).append(".pid")}
+  explicit Pid_file(const std::string& stem)
+    : name_{std::string{"/var/run/"}.append(stem).append(".pid")}
   {}
 
-  /**
-   * Lock.
-   *
-   * If first call was successful then subsequence calls will be successful too.
-   *
-   * @param[out] error Error description when lock is failed.
-   *
-   * @returns `false` if pidloc failed, and `error` has detailed error description.
-   */
-  bool lock(std::string& error)
+  /// Attempts to create PID file and obtain lock on it.
+  void lock()
   {
-    if (locked_) return true;
-    fd_ = open(fname_.c_str(), O_CREAT | O_RDWR, 0600);
-    if (fd_ < 0) {
+    if (is_locked_) return;
+
+    // Exception protector.
+    struct Guard {
+      ~Guard() { if (!done) self.cleanup(); }
+      Guard(Pid_file& self) : self{self} {}
+      bool done{};
+      Pid_file& self;
+    } guard{*this};
+
+    // Open file.
+    if ( (fd_ = ::open(name_.c_str(), O_CREAT | O_RDWR, 0600)) < 0) {
       const auto code = errno;
-      error = std::string("lock open failed: ") + std::string(strerror(code));
-      return false;
+      throw Sys_exception{code, std::string{"cannot open file "}.append(name())};
     }
-    int rc = flock(fd_, LOCK_EX | LOCK_NB);
-    if (rc) {
+
+    // Lock file.
+    if (::flock(fd_, LOCK_EX | LOCK_NB)) {
       const auto code = errno;
-      if (EWOULDBLOCK == code) {
-        error = "another instance running";
-      } else {
-        error = std::string("flock failed: ") + std::string(strerror(code));
-      }
-      unlock();
-      return false;
+      throw Sys_exception{code,
+        std::string{"cannot obtain exclusive lock on file "}.append(name())};
     }
-    std::string buf(32, '\0');
-    int rd = read(fd_, buf.data(), buf.size());
-    buf.resize(rd);
+    is_locked_ = true;
 
-    std::string proc_name{"/proc/"+buf+"/exe"};
-    if (access(proc_name.c_str(), F_OK) != -1) {
-      error = "process exists with pid " + buf;
-      unlock();
-      return false;
+    // Check if process with PID from file exists.
+    const auto proc_name = std::string{"/proc/"}.append(read_pid()).append("/exe");
+    if (!::access(proc_name.c_str(), F_OK)) {
+      /*
+       * Process with PID from file exists, but the corresponding PID file is
+       * successfully locked by the current process. Thus, it's okay to truncate
+       * it out.
+       */
+      truncate_pid();
     }
+    write_pid();
 
-    buf = std::to_string(getpid());
-    rd = write(fd_, buf.data(), buf.size());
-    locked_ = true;
+    guard.done = true;
+  }
 
-    return true;
+  /// Attempts to create PID file and obtain lock on it.
+  void unlock()
+  {
+    if (!is_locked_) return;
+
+    close_pid_file();
+    unlink_pid_file();
+    is_locked_ = false;
   }
 
   /// @returns `true` if locked.
   bool is_locked() const noexcept
   {
-    return locked_;
+    return is_locked_;
   }
 
   /// @returns The name of lock file.
   const std::string& name() const noexcept
   {
-    return fname_;
+    return name_;
   }
 
 private:
-  std::string fname_;
+  std::string name_;
+  bool is_locked_{};
   int fd_{-1};
-  bool locked_{};
 
-  void unlock()
+  std::string read_pid()
   {
-    if (fd_ != -1) {
-      close(fd_);
+    std::string result{15, '\0'};
+    const auto sz = ::read(fd_, result.data(), result.size());
+    if (sz < 0) {
+      const auto code = errno;
+      throw Sys_exception{code,
+        std::string{"cannot read PID from file "}.append(name_)};
+    }
+    result.resize(sz);
+    return result;
+  }
+
+  void write_pid()
+  {
+    PANDA_TIMESWIPE_ASSERT(fd_ != -1);
+    const auto pid = std::to_string(::getpid());
+    if (::write(fd_, pid.data(), pid.size()) < 0) {
+      const auto code = errno;
+      throw Sys_exception{code,
+        std::string{"cannot write PID to file "}.append(name_)};
+    }
+  }
+
+  void truncate_pid()
+  {
+    PANDA_TIMESWIPE_ASSERT(fd_ != -1);
+    if (::ftruncate(fd_, 0)) {
+      const auto code = errno;
+      throw Sys_exception{code,
+        std::string{"cannot truncate file "}.append(name_)};
+    }
+  }
+
+  void close_pid_file()
+  {
+    if (fd_ < 0) return;
+
+    if (::close(fd_)) {
+      const auto code = errno;
+      throw Sys_exception{code,
+        std::string{"cannot close file "}.append(name_)};
+    }
+    fd_ = -1;
+  }
+
+  void unlink_pid_file()
+  {
+    PANDA_TIMESWIPE_ASSERT(fd_ == -1);
+    if (::unlink(name_.c_str())) {
+      const auto code = errno;
+      throw Sys_exception{code,
+        std::string{"cannot unlink file "}.append(name_)};
+    }
+  }
+
+  void cleanup() noexcept
+  {
+    if (fd_ >= 0) {
+      ::close(fd_);
       fd_ = -1;
     }
-    if (locked_) {
-      unlink(fname_.c_str());
-      locked_ = false;
+
+    if (is_locked_) {
+      ::unlink(name_.c_str());
+      is_locked_ = false;
     }
   }
 };
