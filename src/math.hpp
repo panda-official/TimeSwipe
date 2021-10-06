@@ -10,13 +10,14 @@
 #ifndef PANDA_TIMESWIPE_MATH_HPP
 #define PANDA_TIMESWIPE_MATH_HPP
 
+#include "error_detail.hpp"
+
 #include <algorithm>
-#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <limits>
 #include <numeric>
-#include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 namespace panda::timeswipe::detail {
@@ -83,19 +84,19 @@ inline double sinc(const double x) noexcept
  * then the vector or size `(order + 2)` will be returned since `firls()` is always
  * uses an even filter order, and thus, initial value of `order` is `(order + 1)`.
  *
- * @throws `std::runtime_error` if `freq` doesn't represents fullband.
+ * @throws `Generic_exception` if `freq` doesn't represents fullband.
  */
-inline std::vector<double> firls(const std::size_t order, std::vector<double> freq, const std::vector<double>& ampl)
+inline std::vector<double> firls(const int order, std::vector<double> freq, const std::vector<double>& ampl)
 {
   // Initial preconditions.
-  assert(order > 0);
-  assert(!freq.empty());
-  assert(!ampl.empty());
-  assert(*min_element(cbegin(freq), cend(freq)) >= 0);
-  assert(*max_element(cbegin(freq), cend(freq)) <= 1);
+  PANDA_TIMESWIPE_ASSERT(order > 0);
+  PANDA_TIMESWIPE_ASSERT(!freq.empty());
+  PANDA_TIMESWIPE_ASSERT(!ampl.empty());
+  PANDA_TIMESWIPE_ASSERT(*min_element(cbegin(freq), cend(freq)) >= 0);
+  PANDA_TIMESWIPE_ASSERT(*max_element(cbegin(freq), cend(freq)) <= 1);
   const auto freq_size = freq.size();
-  assert(freq_size == ampl.size());
-  assert(!(freq_size % 2));
+  PANDA_TIMESWIPE_ASSERT(freq_size == ampl.size());
+  PANDA_TIMESWIPE_ASSERT(!(freq_size % 2));
 
   /*
    * Weights to weigh the fit for each frequency band, specified as a vector
@@ -107,14 +108,15 @@ inline std::vector<double> firls(const std::size_t order, std::vector<double> fr
    */
   const std::vector<double> weights(freq_size / 2, 1);
   // for_each(begin(weights), end(weights), [](auto& e){e=std::sqrt(e);});
-  assert(*min_element(cbegin(weights), cend(weights)) >= 0);
+  PANDA_TIMESWIPE_ASSERT(*min_element(cbegin(weights), cend(weights)) >= 0);
 
   // Increase the order if necessary.
-  const auto order_increment = (
+  const int order_increment = (
     (.999999 < freq.back() && freq.back() <= 1) &&        // == 1
     !(-.000001 < ampl.back() && ampl.back() < .000001) && // != 0
     (order % 2)) ? 1 : 0;
-  const auto filter_length = order + 1 + order_increment;
+  const int filter_length = order + 1 + order_increment;
+  PANDA_TIMESWIPE_ASSERT(filter_length > 0);
 
   // Modify the frequences.
   for_each(begin(freq), end(freq), [](auto& e){e/=2;});
@@ -125,7 +127,7 @@ inline std::vector<double> firls(const std::size_t order, std::vector<double> fr
     const auto b = begin(freq);
     const auto e = end(freq);
     adjacent_difference(b, e, b);
-    assert(none_of(b + 1, e, [](const auto e){return e < 0;}));
+    PANDA_TIMESWIPE_ASSERT(none_of(b + 1, e, [](const auto e){return e < 0;}));
 
     const bool result = freq_size > 2;
     for (auto i = b + 2; i != e; i += 2) {
@@ -148,15 +150,17 @@ inline std::vector<double> firls(const std::size_t order, std::vector<double> fr
 
   // Final preconditions.
   if (!is_fullband)
-    throw std::runtime_error{"frequences must represents fullband"};
+    throw Generic_exception{"cannot calculate FIR filter"
+      " because frequences doesn't represents fullband"};
   else if (!is_constant_weights)
-    throw std::runtime_error{"weights must be constant"};
+    throw Generic_exception{"cannot calculate FIR filter"
+      " because weights not a constant"};
 
   // Find the order.
-  const auto k_size = (filter_length - 1)/2 + 1;
+  const int k_size = (filter_length - 1)/2 + 1;
 
   // Is filter length odd?
-  const auto odd = filter_length % 2;
+  const int odd = filter_length % 2;
 
   // Basis vectors are cos(2*pi*m*f).
   std::vector<double> k(k_size);
@@ -167,7 +171,7 @@ inline std::vector<double> firls(const std::size_t order, std::vector<double> fr
 
   // B-vector.
   std::vector<double> b(k_size);
-  for (auto i = 0*freq_size; i < freq_size; i += 2) {
+  for (std::decay_t<decltype(freq_size)> i{}; i < freq_size; i += 2) {
     const auto aa = ampl[i+1], a = ampl[i];
     const auto ff = freq[i+1], f = freq[i];
     const auto slope = (aa - a) / (ff - f);
@@ -198,7 +202,7 @@ inline std::vector<double> firls(const std::size_t order, std::vector<double> fr
   transform(cbegin(a) + odd, cend(a), m, div2);
 
   // Postconditions.
-  assert(r.size() == filter_length);
+  PANDA_TIMESWIPE_ASSERT(r.size() == static_cast<unsigned>(filter_length));
   return r;
 }
 
@@ -217,8 +221,8 @@ inline std::vector<double> firls(const std::size_t order, std::vector<double> fr
  */
 inline std::vector<double> kaiser(const int length, const double beta = .5)
 {
-  assert(length > 1);
-  assert(beta >= 0);
+  PANDA_TIMESWIPE_ASSERT(length > 1);
+  PANDA_TIMESWIPE_ASSERT(beta >= 0);
   std::vector<double> result(length);
   generate(begin(result), end(result), [i = 0]() mutable { return i++; });
   transform(cbegin(result), cend(result), begin(result),
