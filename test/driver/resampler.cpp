@@ -37,7 +37,7 @@ namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
 using Sensor_value = ts::Data_vector::value_type::value_type;
-const int sensor_count = ts::Driver::instance().max_channel_count();
+const auto sensor_count = ts::Driver::instance().max_channel_count();
 
 namespace {
 
@@ -271,7 +271,7 @@ try {
     {
       try {
         const auto vals = str::split(v, ",");
-        std::vector<int> result(vals.size());
+        std::vector<unsigned> result(vals.size());
         transform(cbegin(vals), cend(vals), begin(result), [](const auto s){return std::stoi(s);});
         return result;
       } catch (...) {
@@ -279,18 +279,17 @@ try {
       }
     };
 
-    std::vector<int> result;
+    std::vector<unsigned> result;
     if (const auto o = params["sensors"]) {
       if (const auto& v = o.value()) {
         result = parse(*v);
 
         // Check the size.
-        if (result.empty() || result.size() > static_cast<unsigned>(sensor_count))
+        if (result.empty() || result.size() > sensor_count)
           throw std::runtime_error{"invalid number of sensors specified"};
 
         // Check the content.
-        if (const auto [mi, ma] = minmax_element(cbegin(result), cend(result));
-          (*mi < 0 || *ma > sensor_count))
+        if (const auto [mi, ma] = minmax_element(cbegin(result), cend(result)); *ma > sensor_count)
           throw std::runtime_error{"invalid sensor number"};
       } else
         exit_usage();
@@ -523,7 +522,7 @@ try {
         using Size = std::string::size_type;
         if (const Size gcount = in.gcount(); in || (gcount && (gcount < line.size()))) {
           ++entry_count;
-          int j{};
+          unsigned j{};
           Size offset{};
           while (offset < gcount) {
             if (j >= sensor_count)
@@ -538,7 +537,7 @@ try {
             offset += field_length + 1;
             ++j;
           }
-          if (static_cast<unsigned>(j) < sensors.size())
+          if (j < sensors.size())
             throw std::runtime_error{"too few fields at line " + std::to_string(entry_count)};
           fill_by_sensors(records, buf);
         }

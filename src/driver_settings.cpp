@@ -114,7 +114,7 @@ struct Driver_settings::Rep final {
 
   void set_burst_buffer_size(const std::size_t size)
   {
-    check_burst_buffer_size(static_cast<int>(size));
+    check_burst_buffer_size(size);
     set_member("burstBufferSize", size);
     doc_.EraseMember("frequency");
   }
@@ -184,9 +184,10 @@ private:
   static void check_burst_buffer_size(const std::optional<std::size_t> size)
   {
     if (size) {
-      const auto sz = static_cast<int>(*size);
-      if (!(Driver::instance().min_sample_rate() <= sz &&
-          sz <= Driver::instance().max_sample_rate()))
+      const auto sz = *size;
+      const auto misr = static_cast<unsigned>(Driver::instance().min_sample_rate());
+      const auto masr = static_cast<unsigned>(Driver::instance().max_sample_rate());
+      if (!(misr <= sz && sz <= masr))
         throw Generic_exception{Generic_errc::driver_settings_invalid,
           "cannot set invalid burst buffer size"};
     }

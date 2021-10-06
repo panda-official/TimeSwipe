@@ -25,13 +25,12 @@
 #include "math.hpp"
 
 #include <algorithm>
-#include <array>
-#include <cstdint>
+#include <cstddef>
 #include <iostream>
 #include <iterator>
 #include <limits>
 #include <numeric>
-#include <stdexcept>
+#include <type_traits>
 #include <vector>
 #include <utility>
 
@@ -46,7 +45,7 @@ public:
    * @par Requires
    * `(channel_count_value > 0)`.
    */
-  explicit Resampler_options(const int channel_count_value)
+  explicit Resampler_options(const unsigned channel_count_value)
   {
     // Warning: the order in which the following functions are called is matter!
     set_channel_count(channel_count_value);
@@ -61,9 +60,12 @@ public:
   /**
    * Sets the channel count.
    *
+   * @par Requires
+   * `(value > 0)`.
+   *
    * @returns *this.
    */
-  Resampler_options& set_channel_count(const int value)
+  Resampler_options& set_channel_count(const unsigned value)
   {
     if (!(value > 0))
       throw Generic_exception{"cannot use invalid channel count as resampler option"};
@@ -74,7 +76,7 @@ public:
   }
 
   /// @returns Channel count.
-  int channel_count() const noexcept
+  unsigned channel_count() const noexcept
   {
     return channel_count_;
   }
@@ -229,7 +231,7 @@ public:
   }
 
 private:
-  int channel_count_{};
+  unsigned channel_count_{};
   int up_factor_{1};
   int down_factor_{1};
   Signal_extrapolation extrapolation_{Signal_extrapolation::zero};
@@ -309,7 +311,7 @@ public:
       std::clog << "Calculating FIR coefficients...";
       std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
       if (firc.size() > std::numeric_limits<int>::max())
-        throw std::runtime_error{"too many FIR coefficients required"};
+        throw Generic_exception{"cannot calculate so many FIR coefficients required"};
       PANDA_TIMESWIPE_ASSERT(static_cast<unsigned>(options_.filter_length()) == firc.size());
       std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
@@ -333,7 +335,7 @@ public:
           [u](const auto w, const auto c)
           {
             if (const auto val = u * w * c; std::isnan(val))
-              throw std::runtime_error{"one of FIR coefficients would be NaN"};
+              throw Generic_exception{"one of FIR coefficients would be NaN"};
             else
               return val;
           });
@@ -366,7 +368,7 @@ public:
           std::clog << prev_beta << "\n";
           break;
         } else if (!(inf < beta && beta < sup))
-          throw std::runtime_error{"unable to guess shape factor for Kaiser window"
+          throw Generic_exception{"unable to guess shape factor for Kaiser window"
               " (probably, either up-factor "+std::to_string(options_.up_factor())+
               " or down-factor "+std::to_string(options_.down_factor())+
               " are exorbitant to handle)"};
@@ -493,7 +495,7 @@ private:
   {
     const auto cc = rstates_.size();
     Data_vector result(cc);
-    for (std::size_t i{}; i < cc; ++i)
+    for (std::decay_t<decltype(cc)> i{}; i < cc; ++i)
       result[i] = run(i);
     return result;
   }
@@ -517,9 +519,10 @@ private:
 
   static void print_firc(const std::vector<double>& firc)
   {
+    using Size = std::decay_t<decltype(firc.size())>;
     const auto odd = firc.size() % 2;
-    for (std::size_t i{}; i < firc.size(); ++i) {
-      for (std::size_t j{}; j < std::min(i, firc.size() - odd - i); ++j)
+    for (Size i{}; i < firc.size(); ++i) {
+      for (Size j{}; j < std::min(i, firc.size() - odd - i); ++j)
         std::cout << " ";
       std::cout << firc[i] << "\n";
     }

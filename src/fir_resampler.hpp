@@ -14,8 +14,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <iterator>
-#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
@@ -26,7 +26,7 @@ namespace panda::timeswipe::detail {
  *
  * @see https://pywavelets.readthedocs.io/en/latest/ref/signal-extension-modes.html
  */
-enum class Signal_extrapolation : unsigned char {
+enum class Signal_extrapolation {
   /**
    * @brief Signal is extended by adding zero samples.
    *
@@ -471,13 +471,13 @@ public:
   {
     const std::size_t np = in_size * up_rate_;
     std::size_t result = np / down_rate_;
-    if (static_cast<unsigned>(coefs_phase_ + up_rate_ * apply_offset_) < (np % down_rate_))
+    if (static_cast<std::size_t>(coefs_phase_ + up_rate_ * apply_offset_) < (np % down_rate_))
       result++;
     return result;
   }
 
   /// @returns The number of coefficients per phase.
-  unsigned coefs_per_phase() const noexcept
+  int coefs_per_phase() const noexcept
   {
     return coefs_per_phase_;
   }
@@ -489,7 +489,7 @@ private:
   int down_rate_{};
   Signal_extrapolation signal_extrapolation_{Signal_extrapolation::zero};
   int coefs_phase_{}; // next phase of the filter to use (mod up_rate_)
-  int apply_offset_{}; // the amount of samples to skip upon apply()
+  std::ptrdiff_t apply_offset_{}; // the amount of samples to skip upon apply()
   int coefs_per_phase_{}; // transposed_coefs_.size() / up_rate_
   std::vector<Coeff> transposed_coefs_;
   std::vector<Input> state_; // state buffer of size (coefs_per_phase_ - 1)
@@ -498,13 +498,14 @@ private:
   {
     const bool rates_ok = up_rate_ > 0 && down_rate_ > 0;
     const bool time_ok = coefs_phase_ < up_rate_;
+    const bool offset_ok = apply_offset_ >= 0;
     const bool coefs_per_phase_ok = coefs_per_phase_ > 0;
     const bool vecs_ok =
       !state_.empty() &&
-      (state_.size() == static_cast<unsigned>(coefs_per_phase_ - 1)) &&
-      (transposed_coefs_.size() == static_cast<unsigned>(coefs_per_phase_ * up_rate_)) &&
+      (state_.size() == static_cast<std::size_t>(coefs_per_phase_ - 1)) &&
+      (transposed_coefs_.size() == static_cast<std::size_t>(coefs_per_phase_ * up_rate_)) &&
       !(transposed_coefs_.size() % up_rate_);
-    return rates_ok && time_ok && coefs_per_phase_ok && vecs_ok;
+    return rates_ok && time_ok && offset_ok && coefs_per_phase_ok && vecs_ok;
   }
 
   // ---------------------------------------------------------------------------
@@ -536,7 +537,7 @@ private:
  * @returns The result vector.
  */
 template<typename InputIt, typename CoefInputIt>
-auto resample(const unsigned up_rate, const unsigned down_rate,
+auto resample(const int up_rate, const int down_rate,
   const CoefInputIt coefs_first, const CoefInputIt coefs_last,
   const InputIt first, const InputIt last,
   const Signal_extrapolation extrapolation = Signal_extrapolation::zero)

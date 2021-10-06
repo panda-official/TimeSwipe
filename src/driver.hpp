@@ -26,12 +26,9 @@
 #include "error.hpp"
 #include "types_fwd.hpp"
 
-#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
-#include <string>
-#include <string_view>
 #include <vector>
 
 namespace panda::timeswipe {
@@ -113,10 +110,10 @@ public:
   virtual int max_sample_rate() const = 0;
 
   /// @returns Max possible number of data channels the board provides.
-  virtual int max_channel_count() const = 0;
+  virtual unsigned max_channel_count() const = 0;
 
   /// @returns Max possible number of PWM the board provides.
-  virtual int max_pwm_count() const = 0;
+  virtual unsigned max_pwm_count() const = 0;
 
   /// @returns Min possible channel gain value.
   virtual float min_channel_gain() const = 0;

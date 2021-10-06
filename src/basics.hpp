@@ -25,10 +25,10 @@
 namespace panda::timeswipe::detail {
 
 /// The absolute maximum possible number of data channels.
-constexpr int max_channel_count{4};
+constexpr unsigned max_channel_count{4};
 
 /// The absolute maximum possible number of PWMs.
-constexpr int max_pwm_count{2};
+constexpr unsigned max_pwm_count{2};
 
 namespace gain {
 

@@ -164,7 +164,7 @@ inline std::vector<double> firls(const int order, std::vector<double> freq, cons
 
   // Basis vectors are cos(2*pi*m*f).
   std::vector<double> k(k_size);
-  generate(begin(k), end(k), [i = 0*k_size, odd]() mutable
+  generate(begin(k), end(k), [i = std::decay_t<decltype(k_size)>{}, odd]() mutable
   {
     return i++ + .5 * !odd; // (i + 0) - for type 1, (i + .5) - for type 2
   });
@@ -181,7 +181,7 @@ inline std::vector<double> firls(const int order, std::vector<double> freq, cons
     // If `odd` b[0] must be calculated separately, since `(k[0] == 0)`.
     if (odd)
       b[0] += (b1*(ff - f) + slope/2 * (square(ff) - square(f))) * asw;
-    for (auto j = 0*k_size + odd; j < k_size; ++j) {
+    for (std::decay_t<decltype(k_size)> j = odd; j < k_size; ++j) {
       const auto kj2 = k[j] * 2;
       const auto kj2pi = kj2 * M_PI;
       using std::cos;

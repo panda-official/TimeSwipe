@@ -139,7 +139,7 @@ public:
           auto& atom = result.atom(ct);
           const auto cal_entries = v.GetArray();
           const auto cal_entries_size = cal_entries.Size();
-          for (std::size_t i{}; i < cal_entries_size; ++i) {
+          for (std::decay_t<decltype(cal_entries_size)> i{}; i < cal_entries_size; ++i) {
             const rajson::Value_view cal_entry{cal_entries[i]};
             if (!cal_entry.value().IsObject())
               throw Generic_exception{Generic_errc::calib_data_invalid,
@@ -179,12 +179,12 @@ public:
     return 48000;
   }
 
-  int max_channel_count() const override
+  unsigned max_channel_count() const override
   {
     return detail::max_channel_count;
   }
 
-  int max_pwm_count() const override
+  unsigned max_pwm_count() const override
   {
     return 2;
   }
@@ -295,12 +295,12 @@ public:
     join_threads(); // may throw
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
-    const int mcc = max_channel_count();
+    const auto mcc = max_channel_count();
     PANDA_TIMESWIPE_ASSERT(gains && modes &&
       (gains->size() == modes->size()) &&
       (gains->size() >= mcc));
     decltype(calibration_slopes_) new_calibration_slopes{calibration_slopes_}; // may throw
-    for (int i{}; i < mcc; ++i) {
+    for (std::decay_t<decltype(mcc)> i{}; i < mcc; ++i) {
       const auto gain = gains->at(i);
       const auto mode = modes->at(i);
       using Ct = hat::atom::Calibration::Type;
@@ -381,7 +381,7 @@ public:
     std::filesystem::create_directories(tmp);
     constexpr auto open_flags{std::ios_base::out | std::ios_base::trunc};
     std::ofstream refs_file{tmp/"drift_references", open_flags};
-    for (std::size_t i{}; i < result.size() - 1; ++i)
+    for (decltype(result)::size_type i{}; i < result.size() - 1; ++i)
       refs_file << result[i] << " ";
     refs_file << result.back() << "\n";
 
@@ -707,7 +707,7 @@ private:
 
   struct Gpio_data final {
     std::uint8_t byte{};
-    unsigned int tco{};
+    unsigned tco{};
     bool pi_ok{};
 
     // chunk-Layout:
@@ -738,7 +738,7 @@ private:
         result.chunk[1] = d.byte;
         result.tco = d.tco;
       }
-      for (unsigned i{2u}; i < result.chunk.size(); ++i)
+      for (unsigned i{2}; i < result.chunk.size(); ++i)
         result.chunk[i] = read().byte;
       return result;
     }
@@ -780,7 +780,7 @@ private:
         count++;
       }
 
-      for (std::size_t i{}; i < channel_count; ++i) {
+      for (std::decay_t<decltype(channel_count)> i{}; i < channel_count; ++i) {
         const auto mv = (digits[i] - channel_offset) * slopes[i];
         const auto unit = (mv - translation_offsets[i]) * translation_slopes[i];
         data[i].push_back(unit);
@@ -798,7 +798,7 @@ private:
       sleep_for_55ns();
       sleep_for_55ns();
 
-      const unsigned int all_gpio{read_all_gpio()};
+      const unsigned all_gpio{read_all_gpio()};
       const std::uint8_t byte =
         ((all_gpio & gpio_data_position[0]) >> 17) |  // Bit 7
         ((all_gpio & gpio_data_position[1]) >> 19) |  //     6
@@ -904,10 +904,10 @@ private:
       // If there are drift deltas substract them.
       if (drift_deltas_) {
         const auto& deltas = *drift_deltas_;
-        for (std::size_t i{}; i < num; ++i) {
+        for (std::decay_t<decltype(num)> i{}; i < num; ++i) {
           const auto channel_count = records[i].channel_count();
           PANDA_TIMESWIPE_ASSERT(deltas.size() == channel_count);
-          for (std::size_t j{}; j < channel_count; ++j) {
+          for (std::decay_t<decltype(channel_count)> j{}; j < channel_count; ++j) {
             auto& values = records[i][j];
             const auto delta = deltas[j];
             transform(cbegin(values), cend(values), begin(values),
@@ -919,13 +919,13 @@ private:
       Data_vector* records_ptr{};
       Data_vector samples;
       if (resampler_) {
-        for (std::size_t i{}; i < num; i++) {
+        for (std::decay_t<decltype(num)> i{}; i < num; ++i) {
           auto s = resampler_->apply(std::move(records[i]));
           samples.append(std::move(s));
         }
         records_ptr = &samples;
       } else {
-        for (std::size_t i{1}; i < num; i++) {
+        for (std::decay_t<decltype(num)> i{1}; i < num; ++i) {
           records[0].append(std::move(records[i]));
         }
         records_ptr = records;

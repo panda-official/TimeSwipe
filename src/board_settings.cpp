@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <type_traits>
 
 namespace rajson = dmitigr::rajson;
 
@@ -49,7 +50,7 @@ struct Board_settings::Rep final {
 
     // Check channel-related settings.
     if (const auto gains = channel_gains()) {
-      for (int i{}; i < mcc_; ++i)
+      for (std::decay_t<decltype(mcc_)> i{}; i < mcc_; ++i)
         check_channel_gain((*gains)[i]);
     }
 
@@ -60,7 +61,7 @@ struct Board_settings::Rep final {
         if (values) {
           const auto values_size = values->size();
           PANDA_TIMESWIPE_ASSERT(values_size == mpc_);
-          for (int i{}; i < values_size; ++i)
+          for (std::decay_t<decltype(values_size)> i{}; i < values_size; ++i)
             checker(values->at(i));
         }
       };
@@ -195,11 +196,11 @@ struct Board_settings::Rep final {
         " of values)"};
 
     // Ensure all the values are ok before applying them.
-    for (int i{}; i < mpc_; ++i)
+    for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i)
       check_pwm_signal_level(values[i]);
 
     // Apply the values.
-    for (int i{}; i < mpc_; ++i) {
+    for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i) {
       set_member("PWM", i + 1, "low", values[i].first);
       set_member("PWM", i + 1, "high", values[i].second);
     }
@@ -209,7 +210,7 @@ struct Board_settings::Rep final {
   {
     std::vector<std::pair<int, int>> result;
     result.reserve(mpc_);
-    for (int i{}; i < mpc_; ++i) {
+    for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i) {
       const auto low = member<int>("PWM", i + 1, "low");
       if (!low) return std::nullopt;
       const auto high = member<int>("PWM", i + 1, "high");
@@ -241,8 +242,8 @@ struct Board_settings::Rep final {
   }
 
 private:
-  inline static const int mcc_{Driver::instance().max_channel_count()};
-  inline static const int mpc_{Driver::instance().max_pwm_count()};
+  inline static const unsigned mcc_{Driver::instance().max_channel_count()};
+  inline static const unsigned mpc_{Driver::instance().max_pwm_count()};
   rapidjson::Document doc_{rapidjson::Type::kObjectType};
 
   // ---------------------------------------------------------------------------
@@ -309,10 +310,10 @@ private:
       throw Generic_exception{std::string{"cannot set "}.append(plural)
         .append(" (invalid number of values)")};
 
-    for (int i{}; i < values_req_size; ++i)
+    for (std::size_t i{}; i < values_req_size; ++i)
       check_value(values[i]);
 
-    for (int i{}; i < values_req_size; ++i)
+    for (std::size_t i{}; i < values_req_size; ++i)
       set_member(root_name, i + 1, sub_name, values[i]);
   }
 
@@ -322,7 +323,7 @@ private:
   {
     std::vector<T> result;
     result.reserve(result_size);
-    for (int i{}; i < result_size; ++i) {
+    for (std::size_t i{}; i < result_size; ++i) {
       if (const auto mm = member<T>(root_name, i + 1, sub_name))
         result.push_back(*mm);
       else
@@ -373,13 +374,13 @@ private:
   }
 
   /// @returns The full name of access point at the given `index`.
-  std::string member_name(std::string root_name, const int index) const
+  std::string member_name(std::string root_name, const std::size_t index) const
   {
     return root_name.append(std::to_string(index));
   }
 
   /// @overload
-  std::string member_name(std::string root_name, const int index,
+  std::string member_name(std::string root_name, const std::size_t index,
     const std::string_view sub_name) const
   {
     return sub_name.empty() ? member_name(root_name, index) :
@@ -388,16 +389,18 @@ private:
 
   /// Sets `root_name` variable with index `index` to `value`.
   template<typename T>
-  void set_member(std::string root_name, const int index, T&& value)
+  void set_member(std::string root_name, const std::size_t index, T&& value)
   {
     set_member(member_name(std::move(root_name), index), std::forward<T>(value));
   }
 
   /// @overload
   template<typename T>
-  void set_member(std::string root_name, const int index, const std::string_view sub_name, T&& value)
+  void set_member(std::string root_name, const std::size_t index,
+    const std::string_view sub_name, T&& value)
   {
-    set_member(member_name(std::move(root_name), index, sub_name), std::forward<T>(value));
+    set_member(member_name(std::move(root_name), index, sub_name),
+      std::forward<T>(value));
   }
 
   /// @returns The value of `root_name` variable.
@@ -409,16 +412,18 @@ private:
 
   /// @returns The variable at `index`.
   template<typename T>
-  std::optional<T> member(std::string root_name, const int index) const
+  std::optional<T> member(std::string root_name, const std::size_t index) const
   {
     return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index));
   }
 
   /// @overload
   template<typename T>
-  std::optional<T> member(std::string root_name, const int index, const std::string_view sub_name) const
+  std::optional<T> member(std::string root_name, const std::size_t index,
+    const std::string_view sub_name) const
   {
-    return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index, sub_name));
+    return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name),
+        index, sub_name));
   }
 };
 
