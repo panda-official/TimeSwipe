@@ -19,8 +19,6 @@
 #ifndef PANDA_TIMESWIPE_DATA_VECTOR_HPP
 #define PANDA_TIMESWIPE_DATA_VECTOR_HPP
 
-#include <algorithm>
-#include <cstdint>
 #include <vector>
 
 namespace panda::timeswipe {
@@ -34,73 +32,68 @@ public:
   /// Alias the size type.
   using size_type = value_type::size_type;
 
-  /// The default constructor.
+  /// The default constructor. Constructs instance with zero channel count.
   Data_vector() = default;
 
   /// The constructor.
-  explicit Data_vector(const size_type channel_count)
-    : data_(channel_count)
-  {}
+  explicit Data_vector(size_type channel_count);
 
   /// @returns The number of channels whose data this vector contains.
   size_type channel_count() const noexcept
   {
-    return data_.size();
+    return channels_.size();
   }
 
-  /// @returns The number of values per sensor.
-  size_type size() const noexcept
+  /**
+   * @returns channel_count().
+   *
+   * @remarks This method for STL compatibility.
+   */
+  auto size() const noexcept
   {
-    return !data_.empty() ? data_[0].size() : 0;
-  }
-
-  /// @returns The reference to the value at the given `index`.
-  const value_type& operator[](const size_type index) const noexcept
-  {
-    return data_[index];
-  }
-
-  /// @overload
-  value_type& operator[](const size_type index) noexcept
-  {
-    return const_cast<value_type&>(static_cast<const Data_vector*>(this)->operator[](index));
-  }
-
-  /// Reserves the memory for given `size`.
-  void reserve(const size_type size)
-  {
-    const auto cc = channel_count();
-    for (size_type i{}; i < cc; ++i)
-      data_[i].reserve(size);
-  }
-
-  /// Resizes this vector to the given `size`.
-  void resize(const size_type size)
-  {
-    const auto cc = channel_count();
-    for (size_type i{}; i < cc; ++i)
-      data_[i].resize(size);
-  }
-
-  /// Clears the vector.
-  void clear() noexcept
-  {
-    const auto cc = channel_count();
-    for (size_type i{}; i < cc; ++i)
-      data_[i].clear();
+    return channel_count();
   }
 
   /// @returns `true` if the vector is empty.
   bool is_empty() const noexcept
   {
-    return !size();
+    return !channel_count();
   }
 
-  /// For STL compatibility.
-  bool empty() const noexcept
+  /**
+   * @returns is_empty().
+   *
+   * @remarks This method for STL compatibility.
+   */
+  auto empty() const noexcept
   {
     return is_empty();
   }
+
+  /**
+   * @returns The reference to the channel at the given `index`.
+   *
+   * @par Requires
+   * `index` in range `[0, channel_count())`.
+   */
+  const value_type& operator[](size_type index) const;
+
+  /// @overload
+  value_type& operator[](const size_type index)
+  {
+    return const_cast<value_type&>(static_cast<const Data_vector*>(this)->operator[](index));
+  }
+
+  /**
+   * Appends no more than `count` elements of `other` to the end of this vector.
+   *
+   * @par Requires
+   * `(!channel_count() || (channel_count() == other.channel_count()))`.
+   *
+   * @par Effects
+   * `(channel_count() == other.channel_count())`.
+   */
+  void append(const Data_vector& other, size_type count);
 
   /// Appends `other` to the end of this vector.
   void append(const Data_vector& other)
@@ -108,34 +101,26 @@ public:
     append(other, other.size());
   }
 
-  /// Appends no more than `count` elements of `other` to the end of this vector.
-  void append(const Data_vector& other, const size_type count)
-  {
-    const auto cc = channel_count();
-    for (size_type i{}; i < cc; ++i) {
-      const auto in_size = std::min(other.data_[i].size(), count);
-      const auto out_offset = data_[i].size();
-      data_[i].resize(data_[i].size() + in_size);
-      const auto b = other.data_[i].begin();
-      std::copy(b, b + in_size, data_[i].begin() + out_offset);
-    }
-  }
+  /**
+   * Removes `std::min(count, (*this)[i].size())` elements from the begin
+   * of each channel.
+   */
+  void erase_front(const size_type count) noexcept;
 
-  /// Removes the given `count` of elements from the begin of this vector.
-  void erase_front(const size_type count) noexcept
-  {
-    const auto cc = channel_count();
-    for (size_type i{}; i < cc; i++)
-      data_[i].erase(data_[i].begin(), data_[i].begin() + count);
-  }
+  /**
+   * Removes `std::min(count, (*this)[i].size())` elements from the end
+   * of each channel.
+   */
+  void erase_back(const size_type count) noexcept;
 
-  /// Removes the given `count` of elements from the end of this vector.
-  void erase_back(const size_type count) noexcept
-  {
-    const auto cc = channel_count();
-    for (size_type i{}; i < cc; i++)
-      data_[i].resize(data_[i].size() - count);
-  }
+  /// Reserves the memory for all the channels by the given `size`.
+  void reserve(size_type size);
+
+  /// Resizes all the channels by the given `size`.
+  void resize(size_type size);
+
+  /// Clears all the channels.
+  void clear() noexcept;
 
   /// @name Iterators
   /// @{
@@ -143,42 +128,43 @@ public:
   /// @returns Iterator that points to a first channel.
   auto begin() noexcept
   {
-    return data_.begin();
+    return channels_.begin();
   }
 
   /// @returns Constant iterator that points to a first channel.
   auto begin() const noexcept
   {
-    return data_.begin();
+    return channels_.begin();
   }
 
   /// @returns Constant iterator that points to a first channel.
   auto cbegin() const noexcept
   {
-    return data_.cbegin();
+    return channels_.cbegin();
   }
 
   /// @returns Iterator that points to an one-past-the-last channel.
   auto end() noexcept
   {
-    return data_.end();
+    return channels_.end();
   }
 
   /// @returns Constant iterator that points to an one-past-the-last channel.
   auto end() const noexcept
   {
-    return data_.end();
+    return channels_.end();
   }
 
   /// @returns Constant iterator that points to an one-past-the-last channel.
   auto cend() const noexcept
   {
-    return data_.cend();
+    return channels_.cend();
   }
 
   /// @}
+
 private:
-  std::vector<std::vector<float>> data_;
+  std::vector<std::vector<float>> channels_;
 };
 
 } // namespace panda::timeswipe
