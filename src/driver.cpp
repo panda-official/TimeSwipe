@@ -67,9 +67,9 @@ public:
     , burst_buffer_(max_channel_count())
   {}
 
-  void initialize() override
+  iDriver& initialize() override
   {
-    if (is_initialized_) return;
+    if (is_initialized_) return *this;
 
     // Initialize slopes and offsets.
     fill(begin(calibration_slopes_), end(calibration_slopes_), 1);
@@ -157,6 +157,7 @@ public:
     }();
 
     is_initialized_ = true;
+    return *this;
   }
 
   bool is_initialized() const override
@@ -199,7 +200,7 @@ public:
     return gain::ogain_max;
   }
 
-  void set_board_settings(const Board_settings& settings) override
+  iDriver& set_board_settings(const Board_settings& settings) override
   {
     if (!is_initialized())
       throw Generic_exception{Generic_errc::driver_not_initialized,
@@ -222,6 +223,7 @@ public:
     new_settings.set(settings); // may throw
     spi_.execute_set_many(settings.to_json_text()); // may throw
     board_settings_.swap(new_settings); // noexcept
+    return *this;
   }
 
   const Board_settings& board_settings() const override
@@ -235,9 +237,10 @@ public:
     return Board_settings{spi_.execute_get_many("")};
   }
 
-  void set_driver_settings(const Driver_settings& settings) override
+  iDriver& set_driver_settings(const Driver_settings& settings) override
   {
     set_driver_settings(settings, {});
+    return *this;
   }
 
   /// @overload

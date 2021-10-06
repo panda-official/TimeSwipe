@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     }
 
 
-    auto& driver = ts::Driver::instance();
+    auto& driver = ts::Driver::instance().initialize();
 
     // Board Preparation
     ts::Board_settings settings;

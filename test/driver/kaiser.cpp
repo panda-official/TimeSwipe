@@ -15,18 +15,18 @@
 int main()
 {
   using namespace panda::timeswipe::detail;
-  const int thread_count = std::thread::hardware_concurrency();
+  const unsigned thread_count = std::thread::hardware_concurrency();
   std::vector<std::thread> threads(thread_count);
   constexpr int max_factor{500};
   const auto rest = max_factor % thread_count;
   const auto step = max_factor / thread_count;
-  for (int i{}; i < thread_count; ++i) {
+  for (unsigned i{}; i < thread_count; ++i) {
     const auto r{(i == thread_count - 1) ? rest : 0};
     threads[i] = std::thread{[up_from = step*i + 1, up_to = step * (i + 1) + r]
     {
-      for (int up{up_from}; up <= up_to; ++up) {
+      for (unsigned up{up_from}; up <= up_to; ++up) {
         Resampler_options options{4};
-        for (int down{1}; down <= max_factor; ++down)
+        for (unsigned down{1}; down <= max_factor; ++down)
           Resampler resampler{options.set_up_down(up, down)};
       }
     }};

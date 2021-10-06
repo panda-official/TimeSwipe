@@ -86,13 +86,15 @@ public:
   /**
    * Explicitly initializes the driver.
    *
+   * @returns `*this`.
+   *
    * @par Effects
    * Restarts the firmware on very first call!
    *
    * @warning Firmware developers must remember, that restarting the firmware
    * causes reset of all the settings the firmware keeps in the on-board RAM!
    */
-  virtual void initialize() = 0;
+  virtual Driver& initialize() = 0;
 
   /// @returns `true` if the driver initialized.
   virtual bool is_initialized() const = 0;
@@ -121,6 +123,8 @@ public:
   /**
    * Sets the board-level settings.
    *
+   * @returns `*this`.
+   *
    * @warning Some of the board-level settings can be applied only when
    * `!is_measurement_started()` as explained in the documentation of
    * Board_settings class.
@@ -133,12 +137,12 @@ public:
    *
    * @see board_settings(), Board_settings.
    */
-  virtual void set_board_settings(const Board_settings& settings) = 0;
+  virtual Driver& set_board_settings(const Board_settings& settings) = 0;
 
   /// Shortcut of set_board_settings().
-  void set_settings(const Board_settings& settings)
+  Driver& set_settings(const Board_settings& settings)
   {
-    set_board_settings(settings);
+    return set_board_settings(settings);
   }
 
   /**
@@ -150,6 +154,8 @@ public:
 
   /**
    * Sets the driver-level settings.
+   *
+   * @returns `*this`.
    *
    * Each call of this method affects only a subset of current settings(). I.e.,
    * it's not necessary to pass all possible settings per call - the settings()
@@ -164,12 +170,12 @@ public:
    *
    * @see driver_settings(), Driver_settings.
    */
-  virtual void set_driver_settings(const Driver_settings& settings) = 0;
+  virtual Driver& set_driver_settings(const Driver_settings& settings) = 0;
 
   /// Shortcut of set_driver_settings().
-  void set_settings(const Driver_settings& settings)
+  Driver& set_settings(const Driver_settings& settings)
   {
-    set_driver_settings(settings);
+    return set_driver_settings(settings);
   }
 
   /**

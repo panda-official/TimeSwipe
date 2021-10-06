@@ -54,7 +54,7 @@ void measure(ts::Driver& ts, const std::filesystem::path& logfile)
 
 int main()
 {
-  auto& driver = ts::Driver::instance();
+  auto& driver = ts::Driver::instance().initialize();
   PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
 
   driver.clear_drift_references();

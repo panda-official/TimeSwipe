@@ -80,7 +80,7 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 
 int main(const int argc, const char* const argv[])
 try {
-  auto& driver = ts::Driver::instance();
+  auto& driver = ts::Driver::instance().initialize();
   PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
 
   // Set the measure duration.

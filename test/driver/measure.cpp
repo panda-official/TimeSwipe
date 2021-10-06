@@ -64,16 +64,16 @@ try {
     throw std::runtime_error{"frequency cannot be greater than sample-rate"};
 
   // Initialize the driver.
-  auto& driver = ts::Driver::instance();
-  driver.initialize();
+  auto& driver = ts::Driver::instance().initialize();
   std::this_thread::sleep_for(chrono::milliseconds{100});
   constexpr auto volt = ts::Measurement_mode::voltage;
-  driver.set_settings(ts::Board_settings{}
-    .set_channel_gains({1.0,1.0,1.0,1.0})
-    .set_channel_measurement_modes({volt,volt,volt,volt}));
-  driver.set_settings(ts::Driver_settings{}
-    .set_sample_rate(sample_rate)
-    .set_burst_buffer_size(sample_rate / frequency));
+  driver
+    .set_settings(ts::Board_settings{}
+      .set_channel_gains({1.0,1.0,1.0,1.0})
+      .set_channel_measurement_modes({volt,volt,volt,volt}))
+    .set_settings(ts::Driver_settings{}
+      .set_sample_rate(sample_rate)
+      .set_burst_buffer_size(sample_rate / frequency));
 
   // Start measurement.
   {
