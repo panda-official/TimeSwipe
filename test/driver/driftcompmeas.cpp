@@ -96,7 +96,7 @@ try {
     in >> config;
     if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
       if (!cs->empty())
-        driver.set_board_settings(ts::Board_settings{cs->dump()});
+        driver.set_settings(ts::Board_settings{cs->dump()});
     }
   }
 

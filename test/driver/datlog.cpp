@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
       settings = ts::Board_settings{config_script.dump()};
     settings.set_signal_mode(modes.at(configitem["MODE"]));
 
-    driver.set_board_settings(settings);
+    driver.set_settings(settings);
 
     // Board Shutdown on signals
 

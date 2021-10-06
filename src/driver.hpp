@@ -40,9 +40,6 @@ namespace panda::timeswipe {
  */
 class Driver {
 public:
-  /// An alias of driver settings.
-  using Settings = Driver_settings;
-
   /**
    * An alias of a function to handle the incoming channel data.
    *
@@ -138,6 +135,12 @@ public:
    */
   virtual void set_board_settings(const Board_settings& settings) = 0;
 
+  /// Shortcut of set_board_settings().
+  void set_settings(const Board_settings& settings)
+  {
+    set_board_settings(settings);
+  }
+
   /**
    * @returns The board-level settings.
    *
@@ -159,16 +162,22 @@ public:
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see settings(), Driver_settings.
+   * @see driver_settings(), Driver_settings.
    */
-  virtual void set_settings(const Settings& settings) = 0;
+  virtual void set_driver_settings(const Driver_settings& settings) = 0;
+
+  /// Shortcut of set_driver_settings().
+  void set_settings(const Driver_settings& settings)
+  {
+    set_driver_settings(settings);
+  }
 
   /**
    * @returns The driver-level settings.
    *
-   * @see set_settings().
+   * @see set_driver_settings().
    */
-  virtual const Settings& settings() const = 0;
+  virtual const Driver_settings& driver_settings() const = 0;
 
   /// @name Measurement control
   ///

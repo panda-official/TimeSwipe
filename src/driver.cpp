@@ -235,13 +235,13 @@ public:
     return Board_settings{spi_.execute_get_many("")};
   }
 
-  void set_settings(const Settings& settings) override
+  void set_driver_settings(const Driver_settings& settings) override
   {
-    set_settings(settings, {});
+    set_driver_settings(settings, {});
   }
 
   /// @overload
-  void set_settings(const Settings& settings,
+  void set_driver_settings(const Driver_settings& settings,
     std::unique_ptr<detail::Resampler> resampler)
   {
     const auto srate = settings.sample_rate();
@@ -261,12 +261,12 @@ public:
     if (const auto values = settings.translation_slopes())
       translation_slopes_ = std::move(*values);
 
-    settings_.set(settings); // may throw
+    driver_settings_.set(settings); // may throw
   }
 
-  const Settings& settings() const override
+  const Driver_settings& driver_settings() const override
   {
-    return settings_;
+    return driver_settings_;
   }
 
   void start_measurement(Data_handler data_handler) override
@@ -288,7 +288,7 @@ public:
     else if (!modes)
       throw Generic_exception{Generic_errc::board_settings_insufficient,
         "cannot start measurement with unspecified channel measurement modes"};
-    else if (!settings().sample_rate())
+    else if (!driver_settings().sample_rate())
       throw Generic_exception{Generic_errc::driver_settings_insufficient,
         "cannot start measurement with unspecified sample rate"};
 
@@ -521,7 +521,7 @@ private:
   std::vector<float> translation_slopes_;
   hat::Calibration_map calibration_map_;
   Board_settings board_settings_;
-  Settings settings_;
+  Driver_settings driver_settings_;
   std::unique_ptr<detail::Resampler> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
@@ -559,12 +559,10 @@ private:
     {
       try {
         // Restore driver settings.
-        driver_.set_settings(std::move(settings_),
-          std::move(resampler_));
+        driver_.set_driver_settings(std::move(driver_settings_), std::move(resampler_));
 
         // Restore board settings (input modes).
-        driver_.set_board_settings(Board_settings{}
-          .set_channel_measurement_modes(chmm_));
+        driver_.set_settings(Board_settings{}.set_channel_measurement_modes(chmm_));
       } catch (...) {}
     }
 
@@ -580,7 +578,7 @@ private:
     Drift_affected_state_guard(iDriver& driver) try
       : driver_{driver}
       , resampler_{std::move(driver_.resampler_)} // store
-      , settings_{std::move(driver_.settings_)} // settings
+      , driver_settings_{std::move(driver_.driver_settings_)} // settings
       , chmm_(driver.max_channel_count())
     {
       // Store board settings (input modes).
@@ -606,7 +604,7 @@ private:
       std::this_thread::sleep_for(driver_.switching_oscillation_period);
 
       // Set specific driver settings.
-      driver_.set_settings(Settings{}.set_sample_rate(48000)
+      driver_.set_settings(Driver_settings{}.set_sample_rate(48000)
         .set_burst_buffer_size(driver_.drift_samples_count));
     } catch (...) {
       restore();
@@ -614,7 +612,7 @@ private:
 
     iDriver& driver_;
     decltype(driver_.resampler_) resampler_;
-    decltype(driver_.settings_) settings_;
+    decltype(driver_.driver_settings_) driver_settings_;
     std::vector<Measurement_mode> chmm_;
   };
 
