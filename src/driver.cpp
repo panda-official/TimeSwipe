@@ -60,7 +60,7 @@ public:
   }
 
   iDriver()
-    : pid_file_{"timeswipe"}
+    : pid_file_{"panda_timeswipe"}
     , calibration_slopes_(max_channel_count())
     , translation_offsets_(max_channel_count())
     , translation_slopes_(max_channel_count())
