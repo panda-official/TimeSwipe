@@ -941,7 +941,7 @@ private:
         records_ptr->clear();
         if (burst_buffer_.size() >= burst_buffer_size_) {
           handler(std::move(burst_buffer_), errors);
-          burst_buffer_.clear();
+          burst_buffer_ = Data_vector(max_channel_count());
         }
       }
     }
@@ -953,7 +953,7 @@ private:
     // Flush the remaining values from the burst buffer.
     if (!burst_buffer_.empty()) {
       handler(std::move(burst_buffer_), 0);
-      burst_buffer_.clear();
+      burst_buffer_ = Data_vector(max_channel_count());
     }
   }
 

@@ -85,6 +85,15 @@ try {
     const std::vector<float> expected{.11,.22};
     ASSERT(bs.pwm_duty_cycles() == expected);
   }
+
+  {
+    ts::Board_settings bs;
+    bs.set_channel_gains({1.0,1.0,1.0,1.0});
+    ASSERT(bs.channel_gains());
+    constexpr auto volt = ts::Measurement_mode::voltage;
+    bs.set_channel_measurement_modes({volt,volt,volt,volt});
+    ASSERT(bs.channel_measurement_modes());
+  }
  } catch (const std::exception& e) {
   std::cerr << "error: " << e.what() << std::endl;
   return 1;

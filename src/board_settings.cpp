@@ -313,7 +313,7 @@ private:
       check_value(values[i]);
 
     for (int i{}; i < values_req_size; ++i)
-      set_member(std::move(root_name), i + 1, sub_name, values[i]);
+      set_member(root_name, i + 1, sub_name, values[i]);
   }
 
   template<typename T>
