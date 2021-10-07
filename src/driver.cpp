@@ -38,7 +38,6 @@
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
-#include <iostream>
 #include <mutex>
 #include <numeric>
 #include <sstream>
@@ -53,6 +52,8 @@ namespace panda::timeswipe {
 namespace detail {
 class iDriver final : public Driver {
 public:
+  using Resampler = detail::Resampler<Channels_data::Value_type>;
+
   ~iDriver()
   {
     stop_measurement();
@@ -245,7 +246,7 @@ public:
 
   /// @overload
   void set_driver_settings(const Driver_settings& settings,
-    std::unique_ptr<detail::Resampler> resampler)
+    std::unique_ptr<Resampler> resampler)
   {
     const auto srate = settings.sample_rate();
     if (srate)
@@ -272,7 +273,7 @@ public:
     return driver_settings_;
   }
 
-  void start_measurement(Data_handler data_handler) override
+  void start_measurement(Data_handler handler) override
   {
     if (!is_initialized())
       throw Generic_exception{Generic_errc::driver_not_initialized,
@@ -280,7 +281,7 @@ public:
 
     const auto gains = board_settings().channel_gains();
     const auto modes = board_settings().channel_measurement_modes();
-    if (!data_handler)
+    if (!handler)
       throw Generic_exception{"cannot start measurement by using invalid data handler"};
     else if (is_measurement_started())
       throw Generic_exception{Generic_errc::board_measurement_started,
@@ -331,7 +332,7 @@ public:
     try {
       is_measurement_started_ = true;
       threads_.emplace_back(&iDriver::fetcher_loop, this);
-      threads_.emplace_back(&iDriver::poller_loop, this, std::move(data_handler));
+      threads_.emplace_back(&iDriver::poller_loop, this, std::move(handler));
     } catch (...) {
       calibration_slopes_.swap(new_calibration_slopes); // noexcept
       throw;
@@ -370,14 +371,15 @@ public:
       [this]{return Drift_affected_state_guard{*this};}); // strong guarantee
 
     // Discard the first half.
-    data.erase_front(drift_samples_count / 2);
+    data.erase_begin_rows(drift_samples_count / 2);
 
     // Take averages of measured data (references).
-    std::vector<float> result(data.channel_count());
-    transform(data.cbegin(), data.cend(), result.begin(), [](const auto& vec)
-    {
-      return static_cast<float>(dmitigr::math::avg(vec));
-    });
+    std::vector<float> result(data.column_count());
+    transform(data.columns_cbegin(), data.columns_cend(), result.begin(),
+      [](const auto& column)
+      {
+        return static_cast<float>(dmitigr::math::avg(column));
+      });
 
     // Put references to the tmp_dir/drift_references.
     const auto tmp = tmp_dir();
@@ -417,17 +419,18 @@ public:
     auto data = collect_channels_data(drift_samples_count, [this] {
       return Drift_affected_state_guard{*this};
     }); // strong guarantee
-    PANDA_TIMESWIPE_ASSERT(refs->size() == data.channel_count());
+    PANDA_TIMESWIPE_ASSERT(refs->size() == data.column_count());
 
     // Discard the first half.
-    data.erase_front(drift_samples_count / 2);
+    data.erase_begin_rows(drift_samples_count / 2);
 
     // Take averages of measured data (references) and subtract the references.
-    std::vector<float> result(data.channel_count());
-    transform(data.cbegin(), data.cend(), refs->cbegin(), result.begin(),
-      [](const auto& vec, const auto ref)
+    std::vector<float> result(data.column_count());
+    transform(data.columns_cbegin(), data.columns_cend(),
+      refs->cbegin(), result.begin(),
+      [](const auto& column, const auto ref)
       {
-        return static_cast<float>(dmitigr::math::avg(vec) - ref);
+        return static_cast<float>(dmitigr::math::avg(column) - ref);
       });
 
     // Cache deltas.
@@ -525,13 +528,13 @@ private:
   hat::Calibration_map calibration_map_;
   Board_settings board_settings_;
   Driver_settings driver_settings_;
-  std::unique_ptr<detail::Resampler> resampler_;
+  std::unique_ptr<Resampler> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
-  boost::lockfree::spsc_queue<Data_vector, boost::lockfree::capacity<48000/32*2>> record_queue_;
+  boost::lockfree::spsc_queue<Channels_data, boost::lockfree::capacity<48000/32*2>> record_queue_;
   std::atomic_int record_error_count_{};
   std::size_t burst_buffer_size_{};
-  Data_vector burst_buffer_;
+  Channels_data burst_buffer_;
   std::vector<std::thread> threads_;
 
   // ---------------------------------------------------------------------------
@@ -744,7 +747,7 @@ private:
       return result;
     }
 
-    static void append_chunk(Data_vector& data,
+    static void append_chunk(Channels_data& data,
       const Chunk& chunk,
       const std::vector<float>& slopes,
       const std::vector<int>& translation_offsets,
@@ -755,9 +758,7 @@ private:
 
       std::array<std::uint16_t, detail::max_channel_count> digits{};
       static_assert(sizeof(channel_offset) == sizeof(digits[0]));
-
-      const auto channel_count = data.channel_count();
-      PANDA_TIMESWIPE_ASSERT(channel_count <= digits.size());
+      PANDA_TIMESWIPE_ASSERT(data.column_count() <= digits.size());
 
       constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
       {
@@ -781,11 +782,11 @@ private:
         count++;
       }
 
-      for (std::decay_t<decltype(channel_count)> i{}; i < channel_count; ++i) {
+      data.append_generated_row([&](const auto i)
+      {
         const auto mv = (digits[i] - channel_offset) * slopes[i];
-        const auto unit = (mv - translation_offsets[i]) * translation_slopes[i];
-        data[i].push_back(unit);
-      }
+        return (mv - translation_offsets[i]) * translation_slopes[i];
+      });
     }
 
   private:
@@ -831,7 +832,7 @@ private:
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
-  Data_vector read_channels_data()
+  Channels_data read_channels_data()
   {
     static const auto wait_for_pi_ok = []
     {
@@ -862,8 +863,8 @@ private:
      * becomes high it indicates that the RAM is full (failure - data loss).
      * So, check this case.
      */
-    Data_vector result(max_channel_count());
-    result.reserve(8192);
+    Channels_data result(max_channel_count());
+    result.reserve_rows(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();
       Gpio_data::append_chunk(result, chunk, calibration_slopes_,
@@ -893,7 +894,7 @@ private:
   {
     PANDA_TIMESWIPE_ASSERT(handler);
     while (is_measurement_started_) {
-      Data_vector records[10];
+      Channels_data records[10];
       const auto num = record_queue_.pop(records);
       const auto errors = record_error_count_.fetch_and(0);
 
@@ -906,55 +907,50 @@ private:
       if (drift_deltas_) {
         const auto& deltas = *drift_deltas_;
         for (std::decay_t<decltype(num)> i{}; i < num; ++i) {
-          const auto channel_count = records[i].channel_count();
+          const auto channel_count = records[i].column_count();
           PANDA_TIMESWIPE_ASSERT(deltas.size() == channel_count);
-          for (std::decay_t<decltype(channel_count)> j{}; j < channel_count; ++j) {
-            auto& values = records[i][j];
-            const auto delta = deltas[j];
-            transform(cbegin(values), cend(values), begin(values),
-              [delta](const auto& value) { return value - delta; });
-          }
+          for (std::decay_t<decltype(channel_count)> j{}; j < channel_count; ++j)
+            records[i].transform_column(j,
+              [delta = deltas[j]](const auto value){return value - delta;});
         }
       }
 
-      Data_vector* records_ptr{};
-      Data_vector samples;
+      Channels_data* records_ptr{};
+      Channels_data samples;
       if (resampler_) {
         for (std::decay_t<decltype(num)> i{}; i < num; ++i) {
           auto s = resampler_->apply(std::move(records[i]));
-          samples.append(std::move(s));
+          samples.append_rows(std::move(s));
         }
         records_ptr = &samples;
       } else {
-        for (std::decay_t<decltype(num)> i{1}; i < num; ++i) {
-          records[0].append(std::move(records[i]));
-        }
+        for (std::decay_t<decltype(num)> i{1}; i < num; ++i)
+          records[0].append_rows(std::move(records[i]));
         records_ptr = records;
       }
 
-      if (burst_buffer_.empty() && burst_buffer_size_ <= records_ptr->size()) {
-        // Optimization: if burst buffer not used or smaller than first buffer.
-        handler(std::move(*records_ptr), errors);
-        records_ptr->clear();
-      } else {
-        // Utilize burst buffer.
-        burst_buffer_.append(std::move(*records_ptr));
-        records_ptr->clear();
-        if (burst_buffer_.size() >= burst_buffer_size_) {
+      // std::clog << "burst_buffer_.row_count() = " << burst_buffer_.row_count()
+      //           << "burst_buffer_size_ = " << burst_buffer_size_ << std::endl;
+      if (!burst_buffer_.is_empty() || records_ptr->row_count() < burst_buffer_size_) {
+        // Go through burst buffer.
+        burst_buffer_.append_rows(std::move(*records_ptr));
+        if (burst_buffer_.row_count() >= burst_buffer_size_) {
           handler(std::move(burst_buffer_), errors);
-          burst_buffer_ = Data_vector(max_channel_count());
+          burst_buffer_ = Channels_data(max_channel_count());
         }
-      }
+      } else
+        // Go directly (burst buffer not used or smaller than data).
+        handler(std::move(*records_ptr), errors);
     }
 
     // Flush the resampler instance into the burst buffer.
     if (resampler_)
-      burst_buffer_.append(resampler_->flush());
+      burst_buffer_.append_rows(resampler_->flush());
 
     // Flush the remaining values from the burst buffer.
-    if (!burst_buffer_.empty()) {
+    if (!burst_buffer_.is_empty()) {
       handler(std::move(burst_buffer_), 0);
-      burst_buffer_ = Data_vector(max_channel_count());
+      burst_buffer_ = Channels_data(max_channel_count());
     }
   }
 
@@ -968,8 +964,8 @@ private:
    * @par Exception safety guarantee
    * Strong.
    */
-  std::unique_ptr<detail::Resampler> set_resampler(const int rate,
-    std::unique_ptr<detail::Resampler> resampler = {})
+  std::unique_ptr<Resampler> set_resampler(const int rate,
+    std::unique_ptr<Resampler> resampler = {})
   {
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
 
@@ -987,8 +983,8 @@ private:
         PANDA_TIMESWIPE_ASSERT(down == resampler->options().down_factor());
         resampler_ = std::move(resampler);
       } else
-        resampler_ = std::make_unique<detail::Resampler>
-          (detail::Resampler_options{max_channel_count()}.set_up_down(up, down));
+        resampler_ = std::make_unique<Resampler>(detail::Resampler_options{}
+          .set_channel_count(max_channel_count()).set_up_down(up, down));
     } else {
       PANDA_TIMESWIPE_ASSERT(!resampler);
       resampler_.reset();
@@ -1026,7 +1022,8 @@ private:
    * for automatic resourse cleanup (e.g. RAII state keeper and restorer).
    */
   template<typename F>
-  Data_vector collect_channels_data(const std::size_t samples_count, F&& state_guard)
+  Channels_data collect_channels_data(const std::size_t samples_count,
+    const F& state_guard)
   {
     if (is_measurement_started())
       throw Generic_exception{Generic_errc::board_measurement_started,
@@ -1036,22 +1033,22 @@ private:
 
     std::error_condition errc;
     std::atomic_bool done{};
-    Data_vector data;
+    Channels_data data;
     std::condition_variable update;
-    start_measurement([this, samples_count, &errc, &done, &data, &update]
-      (const Data_vector sd, const int)
+    start_measurement([this, samples_count,
+      &errc, &done, &data, &update](const Channels_data sd, const int)
     {
       if (errc || done)
         return;
 
       try {
-        if (data.size() < samples_count)
-          data.append(sd, samples_count - data.size());
+        if (data.row_count() < samples_count)
+          data.append_rows(sd, samples_count - data.row_count());
       } catch (...) {
         errc = Generic_errc::generic;
       }
 
-      if (errc || (!done && data.size() == samples_count)) {
+      if (errc || (!done && (data.row_count() == samples_count))) {
         done = true;
         update.notify_one();
       }

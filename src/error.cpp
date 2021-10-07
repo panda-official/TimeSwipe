@@ -16,22 +16,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_TYPES_FWD_HPP
-#define PANDA_TIMESWIPE_TYPES_FWD_HPP
+#include "error.hpp"
+#include "error_detail.hpp"
 
-namespace panda::timeswipe {
+namespace panda::timeswipe::detail {
 
-enum class Measurement_mode;
-enum class Signal_mode;
+void throw_exception(const std::string& what)
+{
+  throw Generic_exception{what};
+}
 
-class Board_settings;
-class Driver;
-class Driver_settings;
-template<typename> class Table;
+void throw_exception(const std::error_condition errc, const std::string& what)
+{
+  if (errc.category() == std::system_category())
+    throw Sys_exception{errc.value(), what};
+  else
+    throw Generic_exception{errc, what};
+}
 
-namespace detail {
-class iDriver;
-} // namespace detail
-} // namespace panda::timeswipe
-
-#endif  // PANDA_TIMESWIPE_TYPES_FWD_HPP
+} // namespace panda::timeswipe::detail

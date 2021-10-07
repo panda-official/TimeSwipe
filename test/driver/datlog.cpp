@@ -142,41 +142,43 @@ int main(int argc, char *argv[])
     };
 
     // Start measurement.
-    int counter{};
-    driver.set_settings(std::move(ts::Driver_settings{}
-        .set_sample_rate(samplerate).set_burst_buffer_size(samplerate)));
-    driver.start_measurement([&](auto&& records, const int error_marker) {
-      if (error_marker < 0) {
-        std::clog << "Got fatal error " << -error_marker << "\n";
-        return;
-      } else if (error_marker > 0) {
-        std::cout << "Got errors count " << error_marker << "\n";
-        return;
-      }
-      counter += records.size();
-      for (size_t i = 0; i < records.size(); i++) {
-        if (i == 0) {
-          for (size_t j = 0; j < records.channel_count(); j++) {
-            if (j != 0) std::cout << "\t";
-            std::cout << records[j][i];
-          }
-          std::cout << '\n';
+    unsigned total_row_count{};
+    driver.set_settings(ts::Driver_settings{}
+      .set_sample_rate(samplerate).set_burst_buffer_size(samplerate))
+      .start_measurement([&](const auto records, const int error_marker) {
+        if (error_marker < 0) {
+          std::clog << "Got fatal error " << -error_marker << "\n";
+          return;
+        } else if (error_marker > 0) {
+          std::cout << "Got errors count " << error_marker << "\n";
+          return;
         }
-        if (dump) {
-          for (size_t j = 0; j < records.channel_count(); j++) {
-            if (j != 0) data_log << "\t";
-            data_log << records[j][i];
+        const auto col_count = records.column_count();
+        const auto row_count = records.row_count();
+          total_row_count += row_count;
+        for (size_t i = 0; i < row_count; i++) {
+          if (i == 0) {
+            for (size_t j = 0; j < col_count; j++) {
+              if (j != 0) std::cout << "\t";
+              std::cout << records.value(j, i);
+            }
+            std::cout << '\n';
           }
-          data_log << '\n';
+          if (dump) {
+            for (size_t j = 0; j < col_count; j++) {
+              if (j != 0) data_log << "\t";
+              data_log << records.value(j, i);
+            }
+            data_log << '\n';
+          }
         }
-      }
-    });
+      });
 
     const auto start_moment = std::chrono::system_clock::now();
     std::this_thread::sleep_for(std::chrono::seconds{runtime});
     driver.stop_measurement();
     const auto end_moment = std::chrono::system_clock::now();
     const std::chrono::duration<float> duration = end_moment - start_moment;
-    std::cout << "time: " << duration.count() << "s records: " << counter
-              << " rec/sec: " << counter / duration.count() << std::endl;
+    std::cout << "time: " << duration.count() << "s records: " << total_row_count
+              << " rec/sec: " << total_row_count / duration.count() << std::endl;
 }

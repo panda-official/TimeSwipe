@@ -385,9 +385,9 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   set(timeswipe_src
     src/board_settings.cpp
-    src/data_vector.cpp
     src/driver.cpp
     src/driver_settings.cpp
+    src/error.cpp
     src/3rdparty/BCMsrc/bcm2835.c
     )
 
@@ -449,10 +449,10 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
 
   install(FILES
     src/board_settings.hpp
-    src/data_vector.hpp
     src/driver.hpp
     src/driver_settings.hpp
     src/error.hpp
+    src/table.hpp
     src/types_fwd.hpp
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/panda/timeswipe)
 

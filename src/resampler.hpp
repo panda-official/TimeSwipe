@@ -19,10 +19,10 @@
 #ifndef PANDA_TIMESWIPE_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_RESAMPLER_HPP
 
-#include "data_vector.hpp"
 #include "error_detail.hpp"
 #include "fir_resampler.hpp"
 #include "math.hpp"
+#include "table.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -39,21 +39,17 @@ namespace panda::timeswipe::detail {
 /// A timeswipe resampler options.
 class Resampler_options final {
 public:
-  /**
-   * The constructor.
-   *
-   * @par Requires
-   * `(channel_count_value > 0)`.
-   */
-  explicit Resampler_options(const unsigned channel_count_value)
+  /// The default constructor.
+  Resampler_options()
+    : channel_count_{1}
+    , up_factor_{1}
+    , down_factor_{1}
+    , extrapolation_{Signal_extrapolation::zero}
+    , crop_extra_{true}
+    , filter_length_{default_filter_length(up_factor_, down_factor_)}
+    , freq_{default_freq(up_factor_)}
+    , ampl_{default_ampl()}
   {
-    // Warning: the order in which the following functions are called is matter!
-    set_channel_count(channel_count_value);
-    set_up_down(1, 1);
-    set_extrapolation(Signal_extrapolation::zero);
-    set_crop_extra(true);
-    set_filter_length(default_filter_length(up_factor_, down_factor_));
-    set_freq_ampl(default_freq(up_factor_), default_ampl());
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
   }
 
@@ -231,12 +227,12 @@ public:
   }
 
 private:
-  unsigned channel_count_{};
-  int up_factor_{1};
-  int down_factor_{1};
-  Signal_extrapolation extrapolation_{Signal_extrapolation::zero};
-  bool crop_extra_{true};
-  int filter_length_{};
+  unsigned channel_count_;
+  int up_factor_;
+  int down_factor_;
+  Signal_extrapolation extrapolation_;
+  bool crop_extra_;
+  int filter_length_;
   std::vector<double> freq_;
   std::vector<double> ampl_;
 
@@ -295,6 +291,7 @@ private:
  *
  * @see apply(), flush(), Fir_resampler.
  */
+template<typename T>
 class Resampler final {
 public:
   /// An alias of Resampler_options.
@@ -395,28 +392,28 @@ public:
   }
 
   /**
-   * Resamples the given records.
+   * Resamples the given table.
    *
-   * @returns The resampled records.
+   * @returns The resampled table.
    */
-  Data_vector apply(Data_vector&& records)
+  Table<T> apply(const Table<T>& table)
   {
-    if (static_cast<unsigned>(records.channel_count()) != rstates_.size())
-      throw Generic_exception{std::string{"cannot resample records with"}
-        .append(" illegal channel count (")
-        .append(std::to_string(records.channel_count()))
+    if (table.column_count() != rstates_.size())
+      throw Generic_exception{std::string{"cannot resample table with"}
+        .append(" illegal column count (")
+        .append(std::to_string(table.column_count()))
         .append(" instead of ")
         .append(std::to_string(rstates_.size()))
         .append(")")};
 
-    return resample([this, &records](const std::size_t column_index)
+    return resample([this, &table](const std::size_t column_index)
     {
       auto& rstate = rstates_[column_index];
       auto& resampler = rstate.resampler;
-      auto& input = records[column_index];
+      auto& input = table.column(column_index);
       const auto input_size = input.size();
       if (!input_size)
-        return Data_vector::value_type{}; // short-circuit
+        return typename Table<T>::Column_type{}; // short-circuit
 
       // Apply the filter.
       auto result = make_zero_result(resampler, input_size);
@@ -438,19 +435,19 @@ public:
   /**
    * @brief Resamples the extrapolated sequence.
    *
-   * @returns The resampled records.
+   * @returns The resampled table.
    *
    * @remarks Normally, this method should be called after the resampling of
    * the last chunk of data.
    */
-  Data_vector flush()
+  Table<T> flush()
   {
     return resample([this](const std::size_t column_index)
     {
       auto& rstate = rstates_[column_index];
       auto& resampler = rstate.resampler;
       if (!resampler.is_applied())
-        return Data_vector::value_type{}; // short-circuit
+        return typename Table<T>::Column_type{}; // short-circuit
 
       // Flush the end samples.
       auto result = make_zero_result(resampler, resampler.coefs_per_phase() - 1);
@@ -467,16 +464,17 @@ public:
   }
 
 private:
-  using R = Fir_resampler<float>;
+  using R = Fir_resampler<T>;
   Options options_;
   struct State final {
     State() = default;
 
-    template<class T>
-    explicit State(const Options& options, const std::vector<T>& firc)
+    template<class U>
+    explicit State(const Options& options, const std::vector<U>& firc)
       : resampler{options.up_factor(), options.down_factor(),
                   cbegin(firc), cend(firc), options.extrapolation()}
-      , unskipped_leading_count{options.crop_extra() ? leading_skip_count(resampler) : 0}
+      , unskipped_leading_count{options.crop_extra() ?
+                                leading_skip_count(resampler) : 0}
     {}
 
     R resampler;
@@ -486,24 +484,25 @@ private:
 
   bool is_invariant_ok() const
   {
-    return static_cast<unsigned>(options_.channel_count()) == rstates_.size()
-      && !rstates_.empty();
+    return !rstates_.empty() && (options_.channel_count() == rstates_.size());
   }
 
   template<typename F>
-  Data_vector resample(F&& run)
+  Table<T> resample(const F& make_resampled)
   {
-    const auto cc = rstates_.size();
-    Data_vector result(cc);
-    for (std::decay_t<decltype(cc)> i{}; i < cc; ++i)
-      result[i] = run(i);
+    const auto column_count = rstates_.size();
+    Table<T> result;
+    result.reserve_columns(column_count);
+    for (std::decay_t<decltype(column_count)> i{}; i < column_count; ++i)
+      result.append_column(make_resampled(i));
     return result;
   }
 
-  static Data_vector::value_type make_zero_result(const R& resampler, const std::size_t input_size)
+  static typename Table<T>::Column_type make_zero_result(const R& resampler,
+    const std::size_t input_size)
   {
     const auto result_size = resampler.output_sequence_size(input_size);
-    return Data_vector::value_type(result_size);
+    return typename Table<T>::Column_type(result_size);
   }
 
   static std::size_t leading_skip_count(const R& resampler) noexcept

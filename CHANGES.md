@@ -6,7 +6,7 @@
   - New class Driver_settings which represents driver-level settings;
   - New class Exception and enum class Generic_errc which represents exception
   class and error codes correspondingly;
-  - Class SensorsData replaced by new class Data_vector;
+  - Class SensorsData replaced by new class template Table;
   - Class TimeSwipe replaced by new class Driver;
   - Massive code base reorganizations, completely redesigned API;
   - Sensor gains and offsets abolished by the combination of slope and offset

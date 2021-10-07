@@ -228,6 +228,13 @@ public:
   virtual std::error_condition condition() const noexcept = 0;
 };
 
+namespace detail {
+/// @throws Exception. For use in header-only code (such as templates).
+[[noreturn]] void throw_exception(const std::string& what);
+
+/// @overload
+[[noreturn]] void throw_exception(std::error_condition errc, const std::string& what);
+} // namespace detail
 } // namespace panda::timeswipe
 
 #endif  // PANDA_TIMESWIPE_ERROR_HPP

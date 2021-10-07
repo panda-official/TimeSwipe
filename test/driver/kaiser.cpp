@@ -25,9 +25,10 @@ int main()
     threads[i] = std::thread{[up_from = step*i + 1, up_to = step * (i + 1) + r]
     {
       for (unsigned up{up_from}; up <= up_to; ++up) {
-        Resampler_options options{4};
+        Resampler_options options;
+        options.set_channel_count(4);
         for (unsigned down{1}; down <= max_factor; ++down)
-          Resampler resampler{options.set_up_down(up, down)};
+          Resampler<float> resampler{options.set_up_down(up, down)};
       }
     }};
   }

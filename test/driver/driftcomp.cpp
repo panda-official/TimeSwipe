@@ -32,17 +32,18 @@ void log(const std::vector<float>& data)
 
 void measure(ts::Driver& ts, const std::filesystem::path& logfile)
 {
-  ts.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
-      .set_burst_buffer_size(48000 / 10)));
+  ts.set_settings(ts::Driver_settings{}
+    .set_sample_rate(48000).set_burst_buffer_size(48000 / 10));
   constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
   std::ofstream log{logfile, log_mode};
   log.precision(5 + 4);
   ts.start_measurement([&log](const auto data, const auto)
   {
-    const auto row_count = data.size();
+    const auto col_count = data.column_count();
+    const auto row_count = data.row_count();
     for (std::size_t row{}; row < row_count; ++row) {
-      for (const auto& channel : data)
-        log << channel[row] << " ";
+      for (std::size_t col{}; col < col_count; ++col)
+        log << data.value(col, row) << " ";
       log << "\n";
     }
   });

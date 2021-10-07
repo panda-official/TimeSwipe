@@ -21,9 +21,9 @@
 
 // All the public API headers.
 #include "board_settings.hpp"
-#include "data_vector.hpp"
 #include "driver_settings.hpp"
 #include "error.hpp"
+#include "table.hpp"
 #include "types_fwd.hpp"
 
 #include <functional>
@@ -40,8 +40,11 @@ namespace panda::timeswipe {
  */
 class Driver {
 public:
+  /// An alias of channels data.
+  using Channels_data = Table<float>;
+
   /**
-   * An alias of a function to handle the incoming channel data.
+   * An alias of a function to handle the incoming channels data.
    *
    * @param data Portion of the incoming data to process.
    * @param error_marker The error marker:
@@ -53,7 +56,7 @@ public:
    *
    * @see start_measurement().
    */
-  using Data_handler = std::function<void(Data_vector data, int error_marker)>;
+  using Data_handler = std::function<void(Channels_data data, int error_marker)>;
 
   /**
    * The destructor. Calls stop_measurement().
@@ -222,7 +225,7 @@ public:
    *
    * @see set_measurement_options(), set_state(), stop_measurement().
    */
-  virtual void start_measurement(Data_handler data_handler) = 0;
+  virtual void start_measurement(Data_handler handler) = 0;
 
   /**
    * @returns `true` if the measurement in progress.

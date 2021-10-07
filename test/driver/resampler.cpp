@@ -36,7 +36,8 @@
 namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
-using Sensor_value = ts::Data_vector::value_type::value_type;
+using Sensors_data = ts::Driver::Channels_data;
+using Sensor_value = Sensors_data::Value_type;
 const auto sensor_count = ts::Driver::instance().max_channel_count();
 
 namespace {
@@ -176,19 +177,19 @@ inline Input_file open_input_file(const std::filesystem::path& path)
 
 enum class Output_format { bin, csv };
 
-inline void write_output(std::ostream& out, const Output_format format, const ts::Data_vector& records)
+inline void write_output(std::ostream& out, const Output_format format, const Sensors_data& table)
 {
-  const auto sample_rate = records.size();
-  const auto columns_count = count_if(records.cbegin(), records.cend(), [](const auto& v){return !v.empty();});
-  if (!columns_count)
+  const auto sample_rate = table.row_count();
+  const auto column_count = table.column_count();
+  if (!column_count)
     return;
   if (format == Output_format::bin) {
     std::vector<Sensor_value> buf;
-    buf.reserve(columns_count);
-    for (auto j = 0*sample_rate; j < sample_rate; ++j) {
-      for (auto k = 0*sensor_count; k < sensor_count; ++k) {
-        if (!records[k].empty())
-          buf.push_back(records[k][j]);
+    buf.reserve(column_count);
+    for (std::decay_t<decltype(sample_rate)> j{}; j < sample_rate; ++j) {
+      for (std::decay_t<decltype(sensor_count)> k{}; k < sensor_count; ++k) {
+        if (!table.column(k).empty())
+          buf.push_back(table.value(k, j));
       }
       if (!out.write(reinterpret_cast<char*>(buf.data()), buf.size() * sizeof(decltype(buf)::value_type)))
         throw std::runtime_error{"error upon writing the output"};
@@ -196,12 +197,12 @@ inline void write_output(std::ostream& out, const Output_format format, const ts
     }
   } else { // CSV
     constexpr char delim = ',';
-    for (auto j = 0*sample_rate; j < sample_rate; ++j) {
-      auto columns_processed = 0*columns_count;
-      for (auto k = 0*sensor_count; k < sensor_count; ++k) {
-        if (!records[k].empty())
-          out << records[k][j];
-        if (columns_processed < columns_count - 1) {
+    for (std::decay_t<decltype(sample_rate)> j{}; j < sample_rate; ++j) {
+      std::decay_t<decltype(column_count)> columns_processed{};
+      for (std::decay_t<decltype(sensor_count)> k{}; k < sensor_count; ++k) {
+        if (!table.column(k).empty())
+          out << table.value(k, j);
+        if (columns_processed < column_count - 1) {
           out << delim;
           ++columns_processed;
         }
@@ -261,8 +262,8 @@ try {
     throw std::runtime_error{"either input file is likely corrupted or incorrect sample rate specified"};
 
   // Create the resampler options instance.
-  ts::detail::Resampler_options r_opts{sensor_count};
-  r_opts.set_up_down(up_factor, down_factor);
+  ts::detail::Resampler_options r_opts;
+  r_opts.set_channel_count(sensor_count).set_up_down(up_factor, down_factor);
 
   // Parse --sensors option.
   const auto sensors = []
@@ -447,28 +448,26 @@ try {
 
   // Define the convenient function for resampling and output.
   unsigned entry_count{};
-  const auto process_records = [&](ts::Data_vector&& records)
+  const auto process_records = [&](const Sensors_data& table)
   {
     static const auto proc_recs = [&]
     {
-      std::function<void(ts::Data_vector&&, bool)> process_records;
+      std::function<void(const Sensors_data&, bool)> process_records;
       if (is_resampling_mode()) {
-        const auto resampler = std::make_shared<ts::detail::Resampler>(r_opts);
-        process_records = [resampler, &os, output_format](ts::Data_vector&& records, const bool end)
+        const auto resampler = std::make_shared<ts::detail::Resampler<float>>(r_opts);
+        process_records = [resampler, &os, output_format](const Sensors_data& table, const bool end)
         {
-          auto recs = resampler->apply(std::move(records));
+          auto recs = resampler->apply(table);
           write_output(os, output_format, recs);
           if (end) {
             recs = resampler->flush();
             write_output(os, output_format, recs);
           }
-          records.clear();
         };
       } else {
-        process_records = [&os, output_format](ts::Data_vector&& records, const bool /*end*/)
+        process_records = [&os, output_format](const Sensors_data& table, const bool /*end*/)
         {
-          write_output(os, output_format, records);
-          records.clear();
+          write_output(os, output_format, table);
         };
       }
       return process_records;
@@ -480,35 +479,35 @@ try {
       message("warning: unaligned input: ", sample_rate - last_progress, " records are missing ",
         "(sample rate is ", sample_rate, ")");
 
-    const bool end = last_progress || records.empty();
-    proc_recs(std::move(records), end);
+    const bool end = last_progress || table.is_empty();
+    proc_recs(table, end);
   };
 
   // Read the input and resample it.
-  const auto fill_by_sensors = [&sensors, sz = sensors.size()](auto& records, const auto& buf)
+  const auto fill_by_sensors = [&sensors, sz = sensors.size()](auto& table, const auto& buf)
   {
-    for (auto j = 0*sensors.size(); j < sz; ++j) {
-      if (const auto idx = sensors[j]; !idx)
-        records[j].emplace_back();
-      else
-        records[j].push_back(buf[idx - 1]);
-    }
+    table.append_generated_row([&](const auto i)
+    {
+      const auto idx = sensors[i];
+      return idx ? buf[idx - 1] : 0;
+    });
   };
-  ts::Data_vector records;
-  records.reserve(sample_rate);
-  std::vector<Sensor_value> buf(sensor_count);
+  Sensors_data table;
+  table.reserve_rows(sample_rate);
+  std::vector<Sensor_value> row(sensor_count);
   if (input_file.is_binary) {
     while (input_file.stream) {
       for (int i{}; i < sample_rate; ++i) {
-        input_file.stream.read(reinterpret_cast<char*>(buf.data()), buf.size() * sizeof(decltype(buf)::value_type));
+        input_file.stream.read(reinterpret_cast<char*>(row.data()),
+          row.size() * sizeof(decltype(row)::value_type));
         const auto gcount = input_file.stream.gcount();
         if (input_file.stream) {
           ++entry_count;
-          fill_by_sensors(records, buf);
+          fill_by_sensors(table, row);
         } else if (gcount)
           throw std::runtime_error{"unable to read the record completely"};
       }
-      process_records(std::move(records));
+      process_records(table);
     }
   } else { // CSV
     const std::string separators{" \t,"};
@@ -533,16 +532,16 @@ try {
             PANDA_TIMESWIPE_ASSERT(field_length);
             const auto field = line.substr(offset, field_length);
             const Sensor_value value = stof(field); // stof() discards leading whitespaces
-            buf[j] = value;
+            row[j] = value;
             offset += field_length + 1;
             ++j;
           }
           if (j < sensors.size())
             throw std::runtime_error{"too few fields at line " + std::to_string(entry_count)};
-          fill_by_sensors(records, buf);
+          fill_by_sensors(table, row);
         }
       }
-      process_records(std::move(records));
+      process_records(table);
     }
   }
 } catch (const std::exception& e) {

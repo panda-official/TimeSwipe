@@ -29,14 +29,14 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 {
   drv.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
       .set_burst_buffer_size(48000)));
-  const int channel_count = drv.max_channel_count();
+  const unsigned channel_count = drv.max_channel_count();
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
   drv.start_measurement([&aavg,
       &astddev, call_count=0, channel_count](auto data, const auto) mutable
   {
-    for (int i{}; i < channel_count; ++i) {
-      const auto& channel= data[i];
+    for (unsigned i{}; i < channel_count; ++i) {
+      const auto& channel = data.column(i);
       const auto avg = math::avg(channel);
       const auto var = math::variance(channel, avg, false);
       const auto stddev = std::sqrt(var);
@@ -57,13 +57,13 @@ void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
   try {
     std::cout.precision(5 + 4);
     std::cout << "avg: ";
-    for (int i{}; i < channel_count; ++i) {
+    for (unsigned i{}; i < channel_count; ++i) {
       std::cout << aavg[i];
       if (i < channel_count - 1)
         std::cout << ' ';
     }
     std::cout << "\nstddev: ";
-    for (int i{}; i < channel_count; ++i) {
+    for (unsigned i{}; i < channel_count; ++i) {
       std::cout << astddev[i];
       if (i < channel_count - 1)
         std::cout << ' ';
