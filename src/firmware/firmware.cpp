@@ -371,7 +371,7 @@ try {
         //------------------JSON EVENTS-------------------
         auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
         pDisp->Add("je", pJE);
-        button.CJSONEvCP::AdviseSink(pJE);
+//        button.CJSONEvCP::AdviseSink(pJE);
         nodeControl::Instance().AdviseSink(pJE);
         //--------------------------------------------------------------------------------------------------------------
 
