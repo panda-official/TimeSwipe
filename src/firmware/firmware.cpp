@@ -391,7 +391,7 @@ try {
 
         while(1) //endless loop ("super loop")
         {
-             button.update();
+//             button.update();
              nc.Update();
              view.Update();
 
