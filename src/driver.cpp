@@ -116,8 +116,8 @@ public:
       set_gpio_low(gpio_clock);
       set_gpio_high(gpio_reset);
 
-      using std::chrono::milliseconds;
-      std::this_thread::sleep_for(milliseconds{1});
+      // Some delay required to get SPI communication work.
+      std::this_thread::sleep_for(std::chrono::milliseconds{100});
 
       is_gpio_inited_ = true;
     }

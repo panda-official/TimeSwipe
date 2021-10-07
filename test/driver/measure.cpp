@@ -65,7 +65,6 @@ try {
 
   // Initialize the driver.
   auto& driver = ts::Driver::instance().initialize();
-  std::this_thread::sleep_for(chrono::milliseconds{100});
   constexpr auto volt = ts::Measurement_mode::voltage;
   driver
     .set_settings(ts::Board_settings{}
