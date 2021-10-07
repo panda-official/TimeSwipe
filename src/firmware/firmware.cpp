@@ -290,15 +290,15 @@ try {
         pDisp->Add("Fan.freq", std::make_shared< CCmdSGHandler<CPinPWM, unsigned int> >(pFanPWM, &CPinPWM::GetFrequency, &CPinPWM::SetFrequency) );
         pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CFanControl, bool> >(pFanControl, &CFanControl::GetEnabled, &CFanControl::SetEnabled) );
 
-        //button:
+        //No button:
 #ifdef CALIBRATION_STATION
-        auto pBtnHandler=std::make_shared<CCalFWbtnHandler>();
+		//auto pBtnHandler=std::make_shared<CCalFWbtnHandler>();
 #else
-        auto pBtnHandler=std::make_shared<CNewMenu>();
+        //auto pBtnHandler=std::make_shared<CNewMenu>();
 #endif
 
-        SAMButton &button=SAMButton::Instance();
-        button.AdviseSink( pBtnHandler );
+        //SAMButton &button=SAMButton::Instance();
+        //button.AdviseSink( pBtnHandler );
 
 
         //---------------------------------------------------command system------------------------------------------------------
@@ -346,9 +346,9 @@ try {
 
         CView &view=CView::Instance();
 #ifdef CALIBRATION_STATION
-        pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
-                                                                                       &CCalFWbtnHandler::HasUItestBeenDone,
-                                                                                       &CCalFWbtnHandler::StartUItest) );
+        //pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
+        //                                                                               &CCalFWbtnHandler::HasUItestBeenDone,
+        //                                                                               &CCalFWbtnHandler::StartUItest) );
         //testing Ext EEPROM:
         pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<CSamI2CeepromMaster, bool> >(pEEPROM_MasterBus,
                                                                                                &CSamI2CeepromMaster::GetSelfTestResult,  &CSamI2CeepromMaster::RunSelfTest) );
