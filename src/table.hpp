@@ -22,6 +22,7 @@
 #include "error.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <type_traits>
 #include <vector>
 #include <utility>
@@ -164,7 +165,8 @@ public:
    * @par Exception safety guarantee
    * Basic.
    */
-  void append_rows(const Table& other, const Size_type count = -1)
+  void append_rows(const Table& other,
+    const Size_type count = std::numeric_limits<Size_type>::max())
   {
     if (is_empty()) {
       columns_ = {}; // prevent UB if instance was moved
