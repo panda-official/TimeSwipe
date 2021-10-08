@@ -26,9 +26,6 @@
 
 #include <atomic>
 #include <cstdint>
-#ifdef PANDA_TIMESWIPE_TRACE_SPI
-#include <iostream>
-#endif
 #include <thread>
 
 namespace panda::timeswipe::detail {
@@ -262,9 +259,6 @@ public:
     CFIFO fifo;
     fifo += request;
     const auto res = send(fifo);
-#ifdef PANDA_TIMESWIPE_TRACE_SPI
-    std::clog << "spi: sent: \"" << request << "\"" << std::endl;
-#endif
     if (!res)
       throw Generic_exception{Generic_errc::spi_send_failed,
         std::string{"cannot send SPI request "}.append(request)};
@@ -291,14 +285,8 @@ public:
       if (!result.empty() && result.back() == '\n')
         result.pop_back();
 
-#ifdef PANDA_TIMESWIPE_TRACE_SPI
-      std::clog << "spi: received: \"" << result << "\"" << std::endl;
-#endif
       return result;
     }
-#ifdef PANDA_TIMESWIPE_TRACE_SPI
-    std::clog << "spi: receive error" << std::endl;
-#endif
     throw Generic_exception{Generic_errc::spi_receive_failed,
       "cannot receive SPI response"};
   }
