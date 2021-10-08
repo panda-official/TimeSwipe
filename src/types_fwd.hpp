@@ -19,16 +19,22 @@
 #ifndef PANDA_TIMESWIPE_TYPES_FWD_HPP
 #define PANDA_TIMESWIPE_TYPES_FWD_HPP
 
+/// Public API.
 namespace panda::timeswipe {
 
+enum class Generic_errc;
 enum class Measurement_mode;
 enum class Signal_mode;
+
+class Exception;
+class Generic_error_category;
 
 class Board_settings;
 class Driver;
 class Driver_settings;
 template<typename> class Table;
 
+/// Implementation details.
 namespace detail {
 class iDriver;
 } // namespace detail
