@@ -1039,14 +1039,14 @@ private:
     Channels_data data;
     std::condition_variable update;
     start_measurement([this, samples_count,
-      &errc, &done, &data, &update](const Channels_data sd, const int)
+      &errc, &done, &data, &update](const Channels_data data, const int)
     {
       if (errc || done)
         return;
 
       try {
         if (data.row_count() < samples_count)
-          data.append_rows(sd, samples_count - data.row_count());
+          data.append_rows(data, samples_count - data.row_count());
       } catch (...) {
         errc = Generic_errc::generic;
       }

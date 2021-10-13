@@ -257,9 +257,9 @@ public:
   /// @brief This API provides a way to compensate the long term drift of the
   /// measurement hardware when making long term measurements.
   ///
-  /// @details The approach assumes the calculation for each channel of the
-  /// reference values (*references*) and deviations from these values
-  /// (*deltas*). The later are used for correction (by subtraction) of all the
+  /// @details The approach assumes the calculation of reference values
+  /// (*references*) and deviations from these values (*deltas*) for each
+  /// channel. The later are used for correction (by subtraction) of all the
   /// values which comes from the hardware.
   /// The calculated references are saved to a file for long-term storage which
   /// can be useful in cases like power failures. The deltas can only be
