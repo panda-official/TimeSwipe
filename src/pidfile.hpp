@@ -42,10 +42,10 @@ public:
   }
 
   /**
-   * The constructor.
+   * @brief The constructor.
    *
-   * Doesn't creates PID file implicitly. The creation is deferred until call
-   * of lock().
+   * @details Doesn't creates PID file implicitly. The creation is deferred
+   * until call of lock().
    *
    * @param stem Filename with stripped extension.
    *

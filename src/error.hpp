@@ -35,7 +35,7 @@ namespace panda::timeswipe {
 /**
  * @ingroup errors
  *
- * Generic error conditions.
+ * @brief Generic error conditions.
  */
 enum class Generic_errc {
   /// Generic error.
@@ -217,7 +217,7 @@ inline std::error_condition make_error_condition(const Generic_errc errc) noexce
 /**
  * @ingroup errors
  *
- * The base exception class.
+ * @brief The base exception class.
  */
 class Exception : public std::exception {
 public:

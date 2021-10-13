@@ -83,7 +83,7 @@ public:
     // Initialize BCM and SPI.
     spi_.initialize(detail::Bcm_spi::Pins::spi0);
 
-    /**
+    /*
      * Initialize GPIO pins.
      *
      * @par Effects
@@ -548,9 +548,11 @@ private:
   // RAII protectors
   // ---------------------------------------------------------------------------
 
-  /*
-   * An automatic restorer of state affected by drift calculation stuff. Stashed
-   * state will be restored upon destruction of the instance of this class.
+  /**
+   * @brief An automatic restorer of state affected by drift calculation stuff.
+   *
+   * @details Stashed state will be restored upon destruction of the instance of
+   * this class.
    */
   class Drift_affected_state_guard final {
     friend iDriver;
@@ -560,25 +562,14 @@ private:
     Drift_affected_state_guard(Drift_affected_state_guard&&) = delete;
     Drift_affected_state_guard& operator=(Drift_affected_state_guard&&) = delete;
 
-    // Restores the driver state.
-    void restore() noexcept
-    {
-      try {
-        // Restore driver settings.
-        driver_.set_driver_settings(std::move(driver_settings_), std::move(resampler_));
-
-        // Restore board settings (input modes).
-        driver_.set_settings(Board_settings{}.set_channel_measurement_modes(chmm_));
-      } catch (...) {}
-    }
-
+    /// Calls restore().
     ~Drift_affected_state_guard()
     {
       restore();
     }
 
     /**
-     * Stores the rep state and driver settings, and prepares the board
+     * @brief Stores the rep state and driver settings, and prepares the board
      * for measurement.
      */
     Drift_affected_state_guard(iDriver& driver) try
@@ -614,6 +605,18 @@ private:
         .set_burst_buffer_size(driver_.drift_samples_count));
     } catch (...) {
       restore();
+    }
+
+    /// Restores the driver state.
+    void restore() noexcept
+    {
+      try {
+        // Restore driver settings.
+        driver_.set_driver_settings(std::move(driver_settings_), std::move(resampler_));
+
+        // Restore board settings (input modes).
+        driver_.set_settings(Board_settings{}.set_channel_measurement_modes(chmm_));
+      } catch (...) {}
     }
 
     iDriver& driver_;
@@ -714,7 +717,7 @@ private:
     unsigned tco{};
     bool pi_ok{};
 
-    // chunk-Layout:
+    // Chunk Layout
     // ------+----------------------------+---------------------------
     //  Byte | Bit7   Bit6   Bit5   Bit4  | Bit3   Bit2   Bit1   Bit0
     // ------+----------------------------+---------------------------
@@ -836,7 +839,7 @@ private:
   {
     static const auto wait_for_pi_ok = []
     {
-      /// Matches 12MHz Quartz.
+      // Matches 12 MHz Quartz.
       std::this_thread::sleep_for(std::chrono::microseconds{700});
     };
 
@@ -1013,7 +1016,7 @@ private:
   }
 
   /**
-   * Collects the specified samples count.
+   * @brief Collects the specified samples count.
    *
    * @returns The collected channel data.
    *

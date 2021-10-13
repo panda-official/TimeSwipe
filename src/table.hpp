@@ -110,7 +110,7 @@ public:
   }
 
   /**
-   * Appends row specified as `args` to the end of this table.
+   * @brief Appends row specified as `args` to the end of this table.
    *
    * @par Requires
    * `(column_count() == sizeof...(args))`.
@@ -132,7 +132,7 @@ public:
   }
 
   /**
-   * Appends row by using `make_value` to the end of this table.
+   * @brief Appends row by using `make_value` to the end of this table.
    *
    * @param make_value Function with one parameter "column index" of type
    * Size_type that returns a value of type Value_type. This function will be
@@ -153,7 +153,8 @@ public:
   }
 
   /**
-   * Appends no more than `count` rows of `other` to the end of this table.
+   * @brief Appends no more than `count` rows of `other` to the end of this
+   * table.
    *
    * @par Requires
    * `(is_empty() || (column_count() == other.column_count()))`.
@@ -186,7 +187,7 @@ public:
   }
 
   /**
-   * Appends `column` to this table.
+   * @brief Appends `column` to this table.
    *
    * @param column Column to append.
    *
@@ -213,7 +214,7 @@ public:
   }
 
   /**
-   * Transforms column of the given `index` by using `make_value`.
+   * @brief Transforms column of the given `index` by using `make_value`.
    *
    * @param make_value Value transformer with one parameter "column value"
    * of type Value_type which will be called row_count() times.
@@ -262,7 +263,7 @@ public:
   }
 
   /**
-   * Clears this table.
+   * @brief Clears this table.
    *
    * @par Effects
    * `is_empty()`.
@@ -275,7 +276,7 @@ public:
   }
 
   /**
-   * Clears rows of this table.
+   * @brief Clears rows of this table.
    *
    * @par Effects
    * `!row_count()`.

@@ -54,7 +54,7 @@ public:
   }
 
   /**
-   * Sets the channel count.
+   * @brief Sets the channel count.
    *
    * @par Requires
    * `(value > 0)`.
@@ -78,7 +78,7 @@ public:
   }
 
   /**
-   * Sets the up and down factors.
+   * @brief Sets the up and down factors.
    *
    * @param up Up factor.
    * @param down Down factor.
@@ -115,7 +115,7 @@ public:
   }
 
   /**
-   * Sets the signal extrapolation mode.
+   * @brief Sets the signal extrapolation mode.
    *
    * @returns *this.
    */
@@ -135,9 +135,9 @@ public:
   /**
    * @brief Sets the crop extra samples mode.
    *
-   * The resampled sequence is always contains some extra samples at both the
-   * begin and end. If this option is set to `true` these extra samples are
-   * eliminated automatically.
+   * @details The resampled sequence is always contains some extra samples at
+   * both the begin and end. If this option is set to `true` these extra samples
+   * are eliminated automatically.
    *
    * @returns *this.
    */
@@ -155,7 +155,7 @@ public:
   }
 
   /**
-   * Sets the filter length.
+   * @brief Sets the filter length.
    *
    * @par Requires
    * `(value > 0)`.
@@ -179,7 +179,7 @@ public:
   }
 
   /**
-   * Sets the both pairs of frequency band edges and amplitude values.
+   * @brief Sets the both pairs of frequency band edges and amplitude values.
    *
    * @param freq The pairs of frequency band edges. See firls().
    * @param ampl Amplitude values of the function at each frequency point. See firls().
@@ -280,10 +280,10 @@ private:
 /**
  * @brief A resampler.
  *
- * This class is the wrapper of the class Fir_resampler and provides the
- * stream-style API in order to resample the chunks of variable length. After
- * the resampling of the last chunk, the method flush() should be called in
- * order to resample and flush the extrapolated (extra) sequence of length of
+ * @details This class is the wrapper of the class Fir_resampler and provides
+ * the stream-style API in order to resample the chunks of variable length.
+ * After the resampling of the last chunk, the method flush() should be called
+ * in order to resample and flush the extrapolated (extra) sequence of length of
  * one polyphase of filter.
  *
  * @remarks Both excess leading and excess trailing samples (which are actually
@@ -392,7 +392,7 @@ public:
   }
 
   /**
-   * Resamples the given table.
+   * @brief Resamples the given table.
    *
    * @returns The resampled table.
    */

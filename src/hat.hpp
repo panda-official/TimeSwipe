@@ -61,11 +61,7 @@ enum class Type : std::uint16_t {
   invalid2 = 0xFFFF
 };
 
-/**
- * Atom stub.
- *
- * Used as a stub for unimplemented EEPROM atoms.
- */
+/// Atom stub for unimplemented EEPROM atoms.
 class Stub final {
 public:
   /// The constructor.
@@ -80,7 +76,7 @@ private:
   int index_{};
 
   /**
-   * Simulates successful import of data fields from an ATOM binary image.
+   * @brief Simulates successful import of data fields from an ATOM binary image.
    *
    * @returns `true`.
    */
@@ -90,7 +86,7 @@ private:
   }
 
   /**
-   * Simulates successful export of data fields to an ATOM binary image.
+   * @brief Simulates successful export of data fields to an ATOM binary image.
    *
    * @returns `true`.
    */
@@ -164,7 +160,7 @@ private:
   std::string pstr_;
 
   /**
-   * Resets data fields from an ATOM binary image.
+   * @brief Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
@@ -222,7 +218,7 @@ private:
   }
 
   /**
-   * Stores data fields to an ATOM binary image.
+   * @brief Stores data fields to an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
@@ -297,7 +293,7 @@ private:
   static constexpr int index_{1}; // Per EEPROM specification.
 
   /**
-   * Resets data fields from an ATOM binary image.
+   * @brief Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image
    *
@@ -317,7 +313,7 @@ private:
   }
 
   /**
-   * Stores data fields to an ATOM binary image.
+   * @brief Stores data fields to an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
@@ -372,7 +368,7 @@ public:
     }
 
     /**
-     * Resets data fields from an ATOM binary image.
+     * @brief Resets data fields from an ATOM binary image.
      *
      * @param buf ATOM binary image.
      *
@@ -392,7 +388,7 @@ public:
     }
 
     /**
-     * Exports data fields to an ATOM binary image.
+     * @brief Exports data fields to an ATOM binary image.
      *
      * @param buf ATOM binary image.
      *
@@ -503,7 +499,7 @@ private:
   std::vector<Entry> entries_;
 
   /**
-   * Resets data fields from an ATOM binary image.
+   * @brief Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image
    *
@@ -527,7 +523,7 @@ private:
   }
 
   /**
-   * Stores data fields to an ATOM binary image.
+   * @brief Stores data fields to an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
@@ -605,7 +601,7 @@ private:
   static constexpr int index_{3}; // Per EEPROM specification.
 
   /**
-   * Resets data fields from an ATOM binary image.
+   * @brief Resets data fields from an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
@@ -629,7 +625,7 @@ private:
   }
 
   /**
-   * Stores data fields to an ATOM binary image.
+   * @brief Stores data fields to an ATOM binary image.
    *
    * @param buf ATOM binary image.
    *
@@ -663,7 +659,7 @@ public:
   };
 
   /**
-   * The constructor.
+   * @brief The constructor.
    *
    * @param fifo_buf The buffer with EEPROM binary image.
    */
@@ -672,7 +668,7 @@ public:
   {}
 
   /**
-   * Gets atom's raw binary data.
+   * @brief Gets atom's raw binary data.
    *
    * @param pos Atom position (zero-based).
    * @param[out] type Atom type.
@@ -712,7 +708,7 @@ public:
   }
 
   /**
-   * Resets the atom of given type from the image.
+   * @brief Resets the atom of given type from the image.
    *
    * @returns `Op_result::ok` on success.
    */
@@ -727,7 +723,7 @@ public:
   }
 
   /**
-   * Set atom from the `input` buffer to the specified position.
+   * @brief Set atom from the `input` buffer to the specified position.
    *
    * @param pos Atom position (zero-based).
    * @param type Atom type.
@@ -788,7 +784,7 @@ public:
   }
 
   /**
-   * Stores the atom of given type to the image.
+   * @brief Stores the atom of given type to the image.
    *
    * @returns `Op_result::ok` on success.
    */
@@ -821,12 +817,12 @@ public:
   }
 
   /**
-   * Checks the image data integrity.
+   * @brief Checks the image data integrity.
    *
-   * The method must be called before performing any operations on the binary
-   * image. It checks all headers and atoms validity and sets `storage_state_`
-   * to `Op_result::ok` on success. If the image is empty then reset() must be
-   * called instead.
+   * @details The method must be called before performing any operations on the
+   * binary image. It checks all headers and atoms validity and sets
+   * `storage_state_` to `Op_result::ok` on success. If the image is empty then
+   * reset() must be called instead.
    *
    * @returns `Op_result::ok` on success.
    */
@@ -836,8 +832,9 @@ public:
   }
 
   /**
-   * Resets all the image data to the default state (zero atom count). Must
-   * be called when start working on empty image.
+   * @brief Resets all the image data to the default state (zero atom count).
+   *
+   * @details Must be called when start working on empty image.
    */
   void reset()
   {
@@ -889,7 +886,7 @@ private:
   /// @{
 
   /**
-   * Searchs for the atom with the given `pos` in EEPROM buffer.
+   * @brief Searchs for the atom with the given `pos` in EEPROM buffer.
    *
    * @param pos The position of the atom to find.
    * @param[out] header The result.
@@ -922,7 +919,7 @@ private:
   }
 
   /**
-   * Checks the atom.
+   * @brief Checks the atom.
    *
    * @returns `Op_result::ok` on success.
    */
@@ -948,7 +945,7 @@ private:
   /// @{
 
   /**
-   * Verifies EEPROM buffer.
+   * @brief Verifies EEPROM buffer.
    *
    * @return `Op_result::ok` on success.
    */

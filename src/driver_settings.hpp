@@ -29,7 +29,7 @@
 namespace panda::timeswipe {
 
 /**
- * Driver-level settings.
+ * @brief Driver-level settings.
  *
  * @see Driver::set_settings().
  */
@@ -54,9 +54,9 @@ public:
   Driver_settings();
 
   /**
-   * The constructor.
+   * @brief The constructor.
    *
-   * Parses the JSON input. Possible JSON members are:
+   * @details Parses the JSON input. Possible JSON members are:
    *   - `sampleRate` - an integer (see sample_rate());
    *   - `burstBufferSize` - an integer (see burst_buffer_size());
    *   - `frequency` - an integer (see frequency());
@@ -80,9 +80,10 @@ public:
   void set(const Driver_settings& other);
 
   /**
-   * Set sample rate.
+   * @brief Set sample rate.
    *
-   * If this setting isn't set, the driver will use Driver::instance().max_sample_rate().
+   * @details If this setting isn't set, the driver will use
+   * `Driver::instance().max_sample_rate()`.
    *
    * @param rate The value of sample rate.
    *
@@ -113,7 +114,7 @@ public:
   std::optional<int> sample_rate() const;
 
   /**
-   * Sets the burst buffer size.
+   * @brief Sets the burst buffer size.
    *
    * @par Requires
    * `(Driver::instance().min_sample_rate() <= size &&
@@ -141,7 +142,7 @@ public:
   std::optional<std::size_t> burst_buffer_size() const;
 
   /**
-   * Indirect way to set the burst buffer size.
+   * @brief Indirect way to set the burst buffer size.
    *
    * @par Requires
    * `(1 <= frequency && frequency <= sample_rate())`.
@@ -168,7 +169,7 @@ public:
   std::optional<int> frequency() const;
 
   /**
-   * Sets translation offsets for all channels.
+   * @brief Sets translation offsets for all channels.
    *
    * @par Requires
    * `(values.size() == Driver::instance().max_channel_count())`.
@@ -190,7 +191,7 @@ public:
   std::optional<std::vector<int>> translation_offsets() const;
 
   /**
-   * Sets translation slopes for all channels.
+   * @brief Sets translation slopes for all channels.
    *
    * @par Requires
    * `(values.size() == Driver::instance().max_channel_count())`.

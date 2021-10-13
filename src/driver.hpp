@@ -34,9 +34,9 @@
 namespace panda::timeswipe {
 
 /**
- * A Timeswipe driver.
+ * @brief A Timeswipe driver.
  *
- * @note This class is designed by following the singleton pattern.
+ * @note This class is designed by following the Singleton pattern.
  */
 class Driver {
 public:
@@ -44,7 +44,7 @@ public:
   using Channels_data = Table<float>;
 
   /**
-   * An alias of a function to handle the incoming channels data.
+   * @brief An alias of a function to handle the incoming channels data.
    *
    * @param data Portion of the incoming data to process.
    * @param error_marker The error marker:
@@ -59,7 +59,7 @@ public:
   using Data_handler = std::function<void(Channels_data data, int error_marker)>;
 
   /**
-   * The destructor. Calls stop_measurement().
+   * @brief The destructor. Calls stop_measurement().
    *
    * @see stop_measurement().
    */
@@ -87,7 +87,7 @@ public:
   static Driver& instance();
 
   /**
-   * Explicitly initializes the driver.
+   * @brief Explicitly initializes the driver.
    *
    * @returns `*this`.
    *
@@ -124,7 +124,7 @@ public:
   virtual float max_channel_gain() const = 0;
 
   /**
-   * Sets the board-level settings.
+   * @brief Sets the board-level settings.
    *
    * @returns `*this`.
    *
@@ -156,13 +156,12 @@ public:
   virtual const Board_settings& board_settings() const = 0;
 
   /**
-   * Sets the driver-level settings.
+   * @brief Sets the driver-level settings.
+   *
+   * @details Each call of this method affects only a subset of driver settings,
+   * allowing to apply the driver settings gradually.
    *
    * @returns `*this`.
-   *
-   * Each call of this method affects only a subset of current settings(). I.e.,
-   * it's not necessary to pass all possible settings per call - the settings()
-   * can be constructed piecewise.
    *
    * @warning Some of the driver-level settings can be applied only when
    * `!is_measurement_started()` as explained in the documentation of
@@ -195,14 +194,15 @@ public:
   /// @{
 
   /**
-   * Initiates the start of measurement.
+   * @brief Initiates the start of measurement.
    *
-   * Repeatedly calls the `data_handler` with frequency (Hz) that depends on the
-   * burst size, specified in the measurement options: the greater it's value,
-   * the less frequent the handler is called. When `burst_size == sample_rate`
-   * the frequency is `1`.
+   * @details Repeatedly calls the `data_handler` with frequency (Hz) that depends
+   * on the burst buffer size, specified in the driver settings: the greater it's
+   * value, the less frequent the handler is called. The frequency is `1` when
+   * `driver_settings().burst_buffer_size() == driver_settings().sample_rate()`.
    *
-   * @warning The `data_handler` must not take more than `burst_size / sample_rate`
+   * @warning The `data_handler` must not take more than
+   * `driver_settings().burst_buffer_size() / driver_settings().sample_rate()`
    * seconds of runtime! Otherwise, the driver will throttle by skipping the
    * incoming channel data and `data_handler` will be called with positive error
    * marker.
@@ -238,7 +238,7 @@ public:
   virtual bool is_measurement_started() const noexcept = 0;
 
   /**
-   * Stops the measurement.
+   * @brief Stops the measurement.
    *
    * @par Effects
    * `!is_measurement_started()`.
@@ -257,7 +257,7 @@ public:
   /// @brief This API provides a way to compensate the long term drift of the
   /// measurement hardware when making long term measurements.
   ///
-  /// @detail The approach assumes the calculation for each channel of the
+  /// @details The approach assumes the calculation for each channel of the
   /// reference values (*references*) and deviations from these values
   /// (*deltas*). The later are used for correction (by subtraction) of all the
   /// values which comes from the hardware.
@@ -274,10 +274,10 @@ public:
   /// @{
 
   /**
-   * Calculates drift references.
+   * @brief Calculates drift references.
    *
-   * The calculated references are stored to
-   * `<CWD>/.panda/timeswipe/drift_reference` for persistent storage until
+   * @details The calculated references are stored to
+   * `<CWD>/.panda/timeswipe/drift_references` for persistent storage until
    * either it deleted directly or by calling clear_drift_references().
    *
    * @par Requires
@@ -296,7 +296,7 @@ public:
   virtual std::vector<float> calculate_drift_references() = 0;
 
   /**
-   * Clears drift references if any.
+   * @brief Clears drift references if any.
    *
    * @par Requires
    * `!is_measurement_started()`.

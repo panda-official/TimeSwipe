@@ -50,11 +50,12 @@ inline double sinc(const double x) noexcept
 }
 
 /**
- * Calculates least-square linear-phase finite impulse response (FIR) filter.
+ * @brief Calculates least-square linear-phase finite impulse response (FIR)
+ * filter.
  *
- * This filter minimizes the weighted, integrated squared error between an ideal
- * piecewise linear function and the magnitude response of the filter over a set
- * of desired frequency bands.
+ * @details This filter minimizes the weighted, integrated squared error between
+ * an ideal piecewise linear function and the magnitude response of the filter
+ * over a set of desired frequency bands.
  *
  * @param order Order of the filter. For odd orders, the frequency response at
  * the Nyquist frequency is necessarily `0`. For this reason, `firls()` is always

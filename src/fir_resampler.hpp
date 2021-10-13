@@ -72,8 +72,8 @@ enum class Signal_extrapolation {
   periodic,
 
   /**
-   * Signal is extended according to the first derivatives calculated on the
-   * edges (straight line).
+   * @brief Signal is extended according to the first derivatives calculated on
+   * the edges (straight line).
    */
   smooth,
 
@@ -102,8 +102,8 @@ enum class Signal_extrapolation {
 /**
  * @brief A functor for resampling.
  *
- * This class provides an efficient, polyphase finite impulse response (FIR)
- * resampling. The FIR filter is usually designed to prevent aliasing from
+ * @details This class provides an efficient, polyphase finite impulse response
+ * (FIR) resampling. The FIR filter is usually designed to prevent aliasing from
  * corrupting the output signal.
  *
  * A "filter bank with resampling" is an operation on an input signal that
@@ -135,18 +135,18 @@ public:
   /**
    * @brief The constructor.
    *
+   * @details The coefficients are copied into local storage in a transposed,
+   * flipped arrangement. For example, suppose `up_rate` is `3`, and the input
+   * number of coefficients is `10`, represented as h[0], ..., h[9]. Then the
+   * internal buffer will be represented as follows:
+   *    h[9], h[6], h[3], h[0],   // flipped phase 0 coefs
+   *       0, h[7], h[4], h[1],   // flipped phase 1 coefs (zero-padded)
+   *       0, h[8], h[5], h[2].   // flipped phase 2 coefs (zero-padded)
+   *
    * @param up_rate Up rate.
    * @param down_rate Down rate.
    * @param coefs_first First coefficient iterator. (Must be random access iterator.)
    * @param coefs_last Last coefficient iterator. (Must be random access iterator.)
-   *
-   * The coefficients are copied into local storage in a transposed, flipped
-   * arrangement. For example, suppose `up_rate` is `3`, and the input number
-   * of coefficients is `10`, represented as h[0], ..., h[9]. Then the internal
-   * buffer will be represented as follows:
-   *    h[9], h[6], h[3], h[0],   // flipped phase 0 coefs
-   *       0, h[7], h[4], h[1],   // flipped phase 1 coefs (zero-padded)
-   *       0, h[8], h[5], h[2],   // flipped phase 2 coefs (zero-padded)
    */
   template<typename InputIt>
   Fir_resampler(const int up_rate, const int down_rate,
@@ -226,9 +226,9 @@ public:
    * `output_sequence_size(std::distance(first, last))` samples to the output
    * sequence that starts with `out`.
    *
-   * The first time this function is called, the initial signal extrapolation
-   * performed. The length of the initial (left-hand-side) signal extension is
-   * `std::min(coefs_per_phase() - 1, last - first)`. In case when
+   * @details The first time this function is called, the initial signal
+   * extrapolation performed. The length of the initial (left-hand-side) signal
+   * extension is `std::min(coefs_per_phase() - 1, last - first)`. In case when
    * `last - first < coefs_per_phase() - 1` the leading values of the extended
    * signal are default-constructed (i.e. zeros).
    *
@@ -374,13 +374,13 @@ public:
 
   /**
    * @brief Resamples the extrapolated (extra) sequence of length of one
-   * polyphase of filter. Writes `output_sequence_size(coefs_per_phase() - 1)`
-   * samples to the output sequence that starts with `out`.
+   * polyphase of filter.
+   *
+   * @details Writes `output_sequence_size(coefs_per_phase() - 1)` samples to
+   * the output sequence that starts with `out`. This method should be called
+   * after the last call of apply() in order to flush the end samples out.
    *
    * @param out First output sequence iterator.
-   *
-   * This method should be called after the last call of apply() in order to
-   * flush the end samples out.
    *
    * @returns Output iterator to the element in the destination range,
    * one-past-the-last element copied.

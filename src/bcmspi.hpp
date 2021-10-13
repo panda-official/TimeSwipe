@@ -99,7 +99,7 @@ public:
   // ---------------------------------------------------------------------------
 
   /**
-   * Executes the SPI `request`.
+   * @brief Executes the SPI `request`.
    *
    * @throws An instance of Exception with either `Generic_errc::spi_send_failed`
    * or `Generic_errc::spi_receive_failed`.
@@ -111,7 +111,7 @@ public:
   }
 
   /**
-   * Executes the SPI set request.
+   * @brief Executes the SPI "set" request.
    *
    * @throws See execute().
    */
@@ -121,7 +121,7 @@ public:
   }
 
   /**
-   * Executes the SPI get request.
+   * @brief Executes the SPI "get" request.
    *
    * @throws See execute().
    */
@@ -131,7 +131,7 @@ public:
   }
 
   /**
-   * Executes the SPI "set many" request.
+   * @brief Executes the SPI "set many" request.
    *
    * @throws See execute().
    */
@@ -141,7 +141,7 @@ public:
   }
 
   /**
-   * Executes the SPI "set many" request.
+   * @brief Executes the SPI "get many" request.
    *
    * @throws See execute().
    */
@@ -210,7 +210,7 @@ public:
   }
 
   /**
-   * Sends the SPI "set one" request.
+   * @brief Sends the SPI "set one" request.
    *
    * @throws See send_throw().
    */
@@ -220,7 +220,7 @@ public:
   }
 
   /**
-   * Sends the SPI "get one" request.
+   * @brief Sends the SPI "get one" request.
    *
    * @throws See send_throw().
    */
@@ -230,7 +230,7 @@ public:
   }
 
   /**
-   * Sends the SPI "set many" request.
+   * @brief Sends the SPI "set many" request.
    *
    * @throws See send_throw().
    */
@@ -240,7 +240,7 @@ public:
   }
 
   /**
-   * Sends the SPI "get many" request.
+   * @brief Sends the SPI "get many" request.
    *
    * @throws See send_throw().
    */
@@ -250,7 +250,7 @@ public:
   }
 
   /**
-   * Sends the SPI `request`.
+   * @brief Sends the SPI `request`.
    *
    * @throws An Exception with Generic_errc::spi_send_failed.
    */
@@ -265,7 +265,7 @@ public:
   }
 
   /**
-   * Receives the SPI response.
+   * @brief Receives the SPI response.
    *
    * @throws An Exception with either Generic_errc::spi_receive_failed or
    * Generic_errc::spi_command_failed.

@@ -58,10 +58,10 @@ public:
 /**
  * @ingroup errors
  *
- * The debug exception class.
+ * @brief The debug exception class.
  *
- * The purpose of this class is to provide the diagnostic information such as
- * the source file name and line from where the exception was thrown.
+ * @details The purpose of this class is to provide the diagnostic information
+ * such as the source file name and line from where the exception was thrown.
  */
 class Debug_exception final : public dmitigr::Basic_debug_exception<Exception> {
 public:
@@ -85,7 +85,7 @@ public:
 /**
  * @ingroup errors
  *
- * An exception thrown on system error.
+ * @brief An exception thrown on system error.
  */
 class Sys_exception final : public Exception, public std::system_error {
 public:

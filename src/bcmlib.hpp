@@ -38,33 +38,36 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-/*! On all recent OSs, the base of the peripherals is read from a /proc file */
+/// On all recent OSes, the base of the peripherals is read from a `/proc` file.
 #define BMC2835_RPI2_DT_FILENAME "/proc/device-tree/soc/ranges"
 
-/*! Physical addresses for various peripheral register sets
-  Base Physical Address of the BCM 2835 peripheral registers
-  Note this is different for the RPi2 BCM2836, where this is derived from /proc/device-tree/soc/ranges
-  If /proc/device-tree/soc/ranges exists on a RPi 1 OS, it would be expected to contain the
-  following numbers:
+/*
+ * Physical addresses for various peripheral register sets.
+ *
+ * Base Physical Address of the BCM 2835 peripheral registers
+ * Note this is different for the RPi2 BCM2836, where this is derived
+ * from `/proc/device-tree/soc/ranges`.
+ * If `/proc/device-tree/soc/ranges` exists on a RPi 1 OS, it would be
+ * expected to contain the following numbers:
 */
-/*! Peripherals block base address on RPi 1 */
+// Peripherals block base address on RPi 1.
 #define BCM2835_PERI_BASE               0x20000000
-/*! Size of the peripherals block on RPi 1 */
+// Size of the peripherals block on RPi 1.
 #define BCM2835_PERI_SIZE               0x01000000
-/*! Alternate base address for RPI  2 / 3 */
+// Alternate base address for RPI 2 / 3.
 #define BCM2835_RPI2_PERI_BASE          0x3F000000
-/*! Alternate base address for RPI  4 */
+// Alternate base address for RPI 4.
 #define BCM2835_RPI4_PERI_BASE          0xFE000000
-/*! Alternate size for RPI  4 */
+// Alternate size for RPI 4.
 #define BCM2835_RPI4_PERI_SIZE          0x01800000
 
-/*! Base Address of the GPIO registers */
+// Base Address of the GPIO registers.
 #define BCM2835_GPIO_BASE               0x200000
 
 #define PAGE_SIZE (4*1024)
 #define BLOCK_SIZE (4*1024)
 
-// Only for binary Output reasons
+// Only for binary output.
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)                    \
   (byte & 0x80 ? '1' : '0'),                    \
@@ -81,7 +84,7 @@ namespace panda::timeswipe::detail {
 /// I/O access.
 volatile unsigned int* bcm_gpio;
 
-/// Init memory to access GPIO.
+/// Initialize memory to access GPIO.
 inline void setup_io() noexcept
 {
   int mem_fd = -1;
@@ -95,9 +98,10 @@ inline void setup_io() noexcept
   uint32_t base_address = 0;
   uint32_t peri_size = 0;
 
-  /* Figure out the base and size of the peripheral address block
-  // using the device-tree. Required for RPi2/3/4, optional for RPi 1
-  */
+  /*
+   * Figure out the base and size of the peripheral address block
+   * using the device-tree. Required for RPi2/3/4, optional for RPi 1.
+   */
   if ( (fp = fopen(BMC2835_RPI2_DT_FILENAME , "rb"))) {
     unsigned char buf[16];
     if (fread(buf, 1, sizeof(buf), fp) >= 8) {
@@ -105,11 +109,11 @@ inline void setup_io() noexcept
       peri_size = (buf[8] << 24) | (buf[9] << 16) | (buf[10] << 8) | (buf[11] << 0);
 
       if (!base_address) {
-        /* looks like RPI 4 */
+        // Looks like RPI 4.
         base_address = (buf[8] << 24) | (buf[9] << 16) | (buf[10] << 8) | (buf[11] << 0);
         peri_size = (buf[12] << 24) | (buf[13] << 16) | (buf[14] << 8) | (buf[15] << 0);
       }
-      /* check for valid known range formats */
+      // Check for valid known range formats.
       if (!((buf[0] == 0x7e) && (buf[1] == 0x00) && (buf[2] == 0x00) && (buf[3] == 0x00) &&
           ((base_address == BCM2835_PERI_BASE) || (base_address == BCM2835_RPI2_PERI_BASE) || (base_address == BCM2835_RPI4_PERI_BASE)))) {
         printf("wrong base address");
@@ -119,26 +123,25 @@ inline void setup_io() noexcept
     fclose(fp);
   }
 
-  if (base_address == 0 || peri_size == 0) {   //if detection failed
+  if (base_address == 0 || peri_size == 0) {
     printf("rpi detection error!");
     exit(-1);
   }
 
-  /* mmap GPIO */
+  // mmap GPIO.
   void *gpio_map = mmap(
-    NULL,                   //Any adddress in our space will do
-    peri_size,             //Map length -> 4 KB
-    PROT_READ | PROT_WRITE, //Enable reading & writting to mapped memory
-    MAP_SHARED,             //Shared with other processes
-    mem_fd,                 //File to map
-    (base_address + BCM2835_GPIO_BASE)    //Offset to GPIO peripheral
-                        );
+    NULL,                                // any adddress in our space will do
+    peri_size,                           // map length -> 4 KB
+    PROT_READ | PROT_WRITE,              // enable read/write to mapped memory
+    MAP_SHARED,                          // shared with other processes
+    mem_fd,                              // file to map
+    (base_address + BCM2835_GPIO_BASE)); // offset to GPIO peripheral
 
-  close(mem_fd); // Ok to close() after mmap
+  close(mem_fd); // it's ok to close() after mmap().
   mem_fd = -1;
 
   if (gpio_map == MAP_FAILED) {
-    printf("mmap error %d\n", (int)(size_t)gpio_map);//errno also set!
+    printf("mmap error %d\n", (int)(size_t)gpio_map); // errno is also set!
     exit(-1);
   }
 
@@ -163,7 +166,7 @@ inline void setup_io() noexcept
 
 #define PANDA_TIMESWIPE_GET_GPIO(g) (*(panda::timeswipe::detail::bcm_gpio+13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
 
-#define PANDA_TIMESWIPE_GPIO_PULL *(panda::timeswipe::detail::bcm_gpio+37) // Pull up/pull down
-#define PANDA_TIMESWIPE_GPIO_PULLCLK0 *(panda::timeswipe::detail::bcm_gpio+38) // Pull up/pull down clock
+#define PANDA_TIMESWIPE_GPIO_PULL *(panda::timeswipe::detail::bcm_gpio+37) // pull up, pull down
+#define PANDA_TIMESWIPE_GPIO_PULLCLK0 *(panda::timeswipe::detail::bcm_gpio+38) // pull up, pull down clock
 
 #endif  // PANDA_TIMESWIPE_BCMLIB_HPP
