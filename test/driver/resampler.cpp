@@ -36,7 +36,7 @@
 namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
-using Sensors_data = ts::Driver::Channels_data;
+using Sensors_data = ts::Driver::Data;
 using Sensor_value = Sensors_data::Value_type;
 const auto sensor_count = ts::Driver::instance().max_channel_count();
 

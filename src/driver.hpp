@@ -40,11 +40,11 @@ namespace panda::timeswipe {
  */
 class Driver {
 public:
-  /// An alias of channels data.
-  using Channels_data = Table<float>;
+  /// An alias of data.
+  using Data = Table<float>;
 
   /**
-   * @brief An alias of a function to handle the incoming channels data.
+   * @brief An alias of a function to handle the incoming data.
    *
    * @param data Portion of the incoming data to process.
    * @param error_marker The error marker:
@@ -56,7 +56,7 @@ public:
    *
    * @see start_measurement().
    */
-  using Data_handler = std::function<void(Channels_data data, int error_marker)>;
+  using Data_handler = std::function<void(Data data, int error_marker)>;
 
   /**
    * @brief The destructor. Calls stop_measurement().
@@ -111,7 +111,7 @@ public:
   /// @returns Max possible sample rate per second the driver can handle.
   virtual int max_sample_rate() const = 0;
 
-  /// @returns Max possible number of data channels the board provides.
+  /// @returns Max possible number of (data) channels the board provides.
   virtual unsigned max_channel_count() const = 0;
 
   /// @returns Max possible number of PWM the board provides.
@@ -196,21 +196,20 @@ public:
   /**
    * @brief Initiates the start of measurement.
    *
-   * @details Repeatedly calls the `data_handler` with frequency (Hz) that depends
-   * on the burst buffer size, specified in the driver settings: the greater it's
-   * value, the less frequent the handler is called. The frequency is `1` when
+   * @details Repeatedly calls the `handler` with frequency (Hz) that depends on
+   * the burst buffer size, specified in the driver settings: the greater it's
+   * value, the less frequent the `handler` is called. The frequency is `1` when
    * `driver_settings().burst_buffer_size() == driver_settings().sample_rate()`.
    *
-   * @warning The `data_handler` must not take more than
+   * @warning The `handler` must not take more than
    * `driver_settings().burst_buffer_size() / driver_settings().sample_rate()`
    * seconds of runtime! Otherwise, the driver will throttle by skipping the
-   * incoming channel data and `data_handler` will be called with positive error
-   * marker.
+   * incoming data and `handler` will be called with positive error marker.
    *
-   * @warning This method cannot be called from `data_handler`.
+   * @warning This method cannot be called from `handler`.
    *
    * @par Requires
-   * `(data_handler &&
+   * `(handler &&
    *   is_initialized() &&
    *   !is_measurement_started() &&
    *   board_settings().channel_measurement_modes() &&
@@ -321,7 +320,7 @@ public:
    * @par Effects
    * `!is_measurement_started() && drift_deltas()`.
    * After calling the `start_measurement()`, calculated deltas will be
-   * substracted from each input value of the corresponding data channel.
+   * substracted from each input value of the corresponding channel.
    *
    * @par Exception safety guarantee
    * Strong.

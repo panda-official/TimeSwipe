@@ -52,7 +52,7 @@ namespace panda::timeswipe {
 namespace detail {
 class iDriver final : public Driver {
 public:
-  using Resampler = detail::Resampler<Channels_data::Value_type>;
+  using Resampler = detail::Resampler<Data::Value_type>;
 
   ~iDriver()
   {
@@ -531,10 +531,10 @@ private:
   std::unique_ptr<Resampler> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
-  boost::lockfree::spsc_queue<Channels_data, boost::lockfree::capacity<48000/32*2>> record_queue_;
+  boost::lockfree::spsc_queue<Data, boost::lockfree::capacity<48000/32*2>> record_queue_;
   std::atomic_int record_error_count_{};
   std::size_t burst_buffer_size_{};
-  Channels_data burst_buffer_;
+  Data burst_buffer_;
   std::vector<std::thread> threads_;
 
   // ---------------------------------------------------------------------------
@@ -750,7 +750,7 @@ private:
       return result;
     }
 
-    static void append_chunk(Channels_data& data,
+    static void append_chunk(Data& data,
       const Chunk& chunk,
       const std::vector<float>& slopes,
       const std::vector<int>& translation_offsets,
@@ -835,7 +835,7 @@ private:
   // -----------------------------------------------------------------------------
 
   /// Read records from hardware buffer.
-  Channels_data read_channels_data()
+  Data read_data()
   {
     static const auto wait_for_pi_ok = []
     {
@@ -866,7 +866,7 @@ private:
      * becomes high it indicates that the RAM is full (failure - data loss).
      * So, check this case.
      */
-    Channels_data result(max_channel_count());
+    Data result(max_channel_count());
     result.reserve_rows(8192);
     do {
       const auto [chunk, tco] = Gpio_data::read_chunk();
@@ -888,7 +888,7 @@ private:
   void fetcher_loop()
   {
     while (is_measurement_started_) {
-      if (const auto data = read_channels_data(); !record_queue_.push(data))
+      if (const auto data = read_data(); !record_queue_.push(data))
         ++record_error_count_;
     }
   }
@@ -897,7 +897,7 @@ private:
   {
     PANDA_TIMESWIPE_ASSERT(handler);
     while (is_measurement_started_) {
-      Channels_data records[10];
+      Data records[10];
       const auto num = record_queue_.pop(records);
       const auto errors = record_error_count_.fetch_and(0);
 
@@ -918,8 +918,8 @@ private:
         }
       }
 
-      Channels_data* records_ptr{};
-      Channels_data samples;
+      Data* records_ptr{};
+      Data samples;
       if (resampler_) {
         for (std::decay_t<decltype(num)> i{}; i < num; ++i) {
           auto s = resampler_->apply(std::move(records[i]));
@@ -939,7 +939,7 @@ private:
         burst_buffer_.append_rows(std::move(*records_ptr));
         if (burst_buffer_.row_count() >= burst_buffer_size_) {
           handler(std::move(burst_buffer_), errors);
-          burst_buffer_ = Channels_data(max_channel_count());
+          burst_buffer_ = Data(max_channel_count());
         }
       } else
         // Go directly (burst buffer not used or smaller than data).
@@ -953,7 +953,7 @@ private:
     // Flush the remaining values from the burst buffer.
     if (!burst_buffer_.is_empty()) {
       handler(std::move(burst_buffer_), 0);
-      burst_buffer_ = Channels_data(max_channel_count());
+      burst_buffer_ = Data(max_channel_count());
     }
   }
 
@@ -1025,8 +1025,7 @@ private:
    * for automatic resourse cleanup (e.g. RAII state keeper and restorer).
    */
   template<typename F>
-  Channels_data collect_channels_data(const std::size_t samples_count,
-    const F& state_guard)
+  Data collect_channels_data(const std::size_t samples_count, const F& state_guard)
   {
     if (is_measurement_started())
       throw Generic_exception{Generic_errc::board_measurement_started,
@@ -1036,22 +1035,22 @@ private:
 
     std::error_condition errc;
     std::atomic_bool done{};
-    Channels_data data;
+    Data result;
     std::condition_variable update;
     start_measurement([this, samples_count,
-      &errc, &done, &data, &update](const Channels_data data, const int)
+      &errc, &done, &result, &update](const Data data, const int)
     {
       if (errc || done)
         return;
 
       try {
-        if (data.row_count() < samples_count)
-          data.append_rows(data, samples_count - data.row_count());
+        if (result.row_count() < samples_count)
+          result.append_rows(data, samples_count - result.row_count());
       } catch (...) {
         errc = Generic_errc::generic;
       }
 
-      if (errc || (!done && (data.row_count() == samples_count))) {
+      if (errc || (!done && (result.row_count() == samples_count))) {
         done = true;
         update.notify_one();
       }
@@ -1070,7 +1069,7 @@ private:
     if (errc)
       throw Generic_exception{errc, "cannot collect channels data"};
 
-    return data;
+    return result;
   }
 };
 } // namespace detail
