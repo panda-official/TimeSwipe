@@ -95,11 +95,16 @@ public:
    * Restarts the firmware on very first call!
    *
    * @warning Firmware developers must remember, that restarting the firmware
-   * causes reset of all the settings the firmware keeps in the on-board RAM!
+   * causes reset of all the settings the firmware cached in the on-board RAM!
    */
   virtual Driver& initialize() = 0;
 
-  /// @returns `true` if the driver initialized.
+  /**
+   * @returns `true` if the driver initialized.
+   *
+   * @par Thread-safety
+   * Thread-safe.
+   */
   virtual bool is_initialized() const = 0;
 
   /// @returns The driver version value as `major*10000 + minor*100 + patch`.
@@ -230,6 +235,9 @@ public:
    * @returns `true` if the measurement in progress.
    *
    * @remarks Implies is_initialized().
+   *
+   * @par Thread-safety
+   * Thread-safe.
    *
    * @see calculate_drift_references(), calculate_drift_deltas(),
    * start_measurement().
