@@ -158,11 +158,14 @@ public:
   /// Swaps this instance with the `other` one.
   void swap(Board_settings& other) noexcept;
 
+  /// Sets settings from `other` instance.
+  void set(const Board_settings& other);
+
   /// @returns The result of conversion of this instance to a JSON text.
   std::string to_json_text() const;
 
-  /// Sets settings from `other` instance.
-  void set(const Board_settings& other);
+  /// @returns `true` if this instance has no settings.
+  bool is_empty() const;
 
   /// @name General control
   ///

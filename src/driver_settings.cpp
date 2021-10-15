@@ -37,6 +37,9 @@ struct Driver_settings::Rep final {
   explicit Rep(const std::string_view json_text) try
     : doc_{rajson::to_document(json_text)}
   {
+    // Convert to object if NULL passed.
+    if (doc_.IsNull()) doc_.SetObject();
+
     const auto srate = sample_rate();
     check_sample_rate(srate);
 
@@ -81,11 +84,6 @@ struct Driver_settings::Rep final {
     doc_.Swap(rhs.doc_);
   }
 
-  std::string to_json_text() const
-  {
-    return rajson::to_text(doc_);
-  }
-
   void set(const Rep& other)
   {
     const auto apply = [this](const auto& setter, const auto& data)
@@ -97,6 +95,21 @@ struct Driver_settings::Rep final {
     apply(&Rep::set_frequency, other.frequency());
     apply(&Rep::set_translation_offsets, other.translation_offsets());
     apply(&Rep::set_translation_slopes, other.translation_slopes());
+  }
+
+  std::string to_json_text() const
+  {
+    return rajson::to_text(doc_);
+  }
+
+  bool is_empty() const
+  {
+    return doc_.ObjectEmpty() ||
+      !(sample_rate() ||
+        burst_buffer_size() ||
+        frequency() ||
+        translation_offsets() ||
+        translation_slopes());
   }
 
   // ---------------------------------------------------------------------------
@@ -266,14 +279,19 @@ void Driver_settings::swap(Driver_settings& other) noexcept
   swap(rep_, other.rep_);
 }
 
+void Driver_settings::set(const Driver_settings& other)
+{
+  rep_->set(*other.rep_);
+}
+
 std::string Driver_settings::to_json_text() const
 {
   return rep_->to_json_text();
 }
 
-void Driver_settings::set(const Driver_settings& other)
+bool Driver_settings::is_empty() const
 {
-  rep_->set(*other.rep_);
+  return rep_->is_empty();
 }
 
 Driver_settings& Driver_settings::set_sample_rate(const int rate)

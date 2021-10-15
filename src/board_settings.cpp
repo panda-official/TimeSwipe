@@ -42,6 +42,9 @@ struct Board_settings::Rep final {
   explicit Rep(const std::string_view json_text) try
     : doc_{rajson::to_document(json_text)}
   {
+    // Convert to object if NULL passed.
+    if (doc_.IsNull()) doc_.SetObject();
+
     // Check signal mode.
     signal_mode();
 
@@ -101,11 +104,6 @@ struct Board_settings::Rep final {
     doc_.Swap(rhs.doc_);
   }
 
-  std::string to_json_text() const
-  {
-    return rajson::to_text(doc_);
-  }
-
   void set(const Rep& other)
   {
     const auto apply = [this](const auto& setter, const auto& data)
@@ -121,6 +119,25 @@ struct Board_settings::Rep final {
     apply(&Rep::set_pwm_signal_levels, other.pwm_signal_levels());
     apply(&Rep::set_pwm_repeat_counts, other.pwm_repeat_counts());
     apply(&Rep::set_pwm_duty_cycles, other.pwm_duty_cycles());
+  }
+
+  std::string to_json_text() const
+  {
+    return rajson::to_text(doc_);
+  }
+
+  bool is_empty() const
+  {
+    return doc_.ObjectEmpty() ||
+      !(signal_mode() ||
+        channel_measurement_modes() ||
+        channel_gains() ||
+        channel_iepes() ||
+        pwms() ||
+        pwm_frequencies() ||
+        pwm_signal_levels() ||
+        pwm_repeat_counts() ||
+        pwm_duty_cycles());
   }
 
   // ---------------------------------------------------------------------------
@@ -469,14 +486,19 @@ void Board_settings::swap(Board_settings& other) noexcept
   swap(rep_, other.rep_);
 }
 
+void Board_settings::set(const Board_settings& other)
+{
+  rep_->set(*other.rep_);
+}
+
 std::string Board_settings::to_json_text() const
 {
   return rep_->to_json_text();
 }
 
-void Board_settings::set(const Board_settings& other)
+bool Board_settings::is_empty() const
 {
-  rep_->set(*other.rep_);
+  return rep_->is_empty();
 }
 
 // -----------------------------------------------------------------------------
