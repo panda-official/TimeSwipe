@@ -501,7 +501,6 @@ private:
     const bool offset_ok = apply_offset_ >= 0;
     const bool coefs_per_phase_ok = coefs_per_phase_ > 0;
     const bool vecs_ok =
-      !state_.empty() &&
       (state_.size() == static_cast<std::size_t>(coefs_per_phase_ - 1)) &&
       (transposed_coefs_.size() == static_cast<std::size_t>(coefs_per_phase_ * up_rate_)) &&
       !(transposed_coefs_.size() % up_rate_);
