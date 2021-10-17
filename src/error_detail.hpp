@@ -37,7 +37,7 @@ constexpr bool is_debug{dmitigr::is_debug};
  *
  * The generic exception class.
  */
-class Generic_exception final : public dmitigr::Basic_generic_exception<Exception> {
+class Generic_exception : public dmitigr::Basic_generic_exception<Exception> {
 public:
   /// The constructor.
   explicit Generic_exception(const std::error_condition& errc,
@@ -87,24 +87,12 @@ public:
  *
  * @brief An exception thrown on system error.
  */
-class Sys_exception final : public Exception, public std::system_error {
+class Sys_exception final : public Generic_exception {
 public:
   /// The constructor.
   Sys_exception(const int ev, const std::string& what)
-    : system_error{ev, std::system_category(), what}
+    : Generic_exception{{ev, std::system_category()}, what}
   {}
-
-  /// @see std::system_error::what().
-  const char* what() const noexcept override
-  {
-    return system_error::what();
-  }
-
-  /// @see Exception::condition().
-  std::error_condition condition() const noexcept override
-  {
-    return system_error::code().default_error_condition();
-  }
 };
 
 } // namespace panda::timeswipe::detail
