@@ -209,11 +209,6 @@ public:
 
     // Some settings cannot be applied if the measurement started.
     if (is_measurement_started()) {
-      // Check if signal mode setting presents.
-      if (settings.signal_mode())
-        throw Generic_exception{Generic_errc::board_settings_invalid,
-          "cannot set board signal mode when measurement started"};
-
       // Check if channel measurement modes setting presents.
       if (settings.channel_measurement_modes())
         throw Generic_exception{Generic_errc::board_settings_invalid,

@@ -40,14 +40,6 @@ template<> struct Enum_traits<Measurement_mode> final {
   }
 };
 
-/// Full specialization for Signal_mode.
-template<> struct Enum_traits<Signal_mode> final {
-  static constexpr const char* singular_name() noexcept
-  {
-    return "signal mode";
-  }
-};
-
 /// Generic enum/JSON conversions.
 template<class E>
 struct Enum_conversions {
@@ -79,11 +71,6 @@ namespace dmitigr::rajson {
 template<>
 struct Conversions<panda::timeswipe::Measurement_mode> final :
   panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Measurement_mode>{};
-
-/// Full specialization for `panda::timeswipe::Signal_mode`.
-template<>
-struct Conversions<panda::timeswipe::Signal_mode> final :
-  panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Signal_mode>{};
 
 } // dmitigr::rajson
 

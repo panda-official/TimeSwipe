@@ -45,9 +45,6 @@ struct Board_settings::Rep final {
     // Convert to object if NULL passed.
     if (doc_.IsNull()) doc_.SetObject();
 
-    // Check signal mode.
-    signal_mode();
-
     // Check measurement modes.
     channel_measurement_modes();
 
@@ -114,7 +111,6 @@ struct Board_settings::Rep final {
     {
       if (data) (this->*setter)(*data);
     };
-    apply(&Rep::set_signal_mode, other.signal_mode());
     apply(&Rep::set_channel_measurement_modes, other.channel_measurement_modes());
     apply(&Rep::set_channel_gains, other.channel_gains());
     apply(&Rep::set_channel_iepes, other.channel_iepes());
@@ -133,8 +129,7 @@ struct Board_settings::Rep final {
   bool is_empty() const
   {
     return doc_.ObjectEmpty() ||
-      !(signal_mode() ||
-        channel_measurement_modes() ||
+      !(channel_measurement_modes() ||
         channel_gains() ||
         channel_iepes() ||
         pwms() ||
@@ -142,18 +137,6 @@ struct Board_settings::Rep final {
         pwm_signal_levels() ||
         pwm_repeat_counts() ||
         pwm_duty_cycles());
-  }
-
-  // ---------------------------------------------------------------------------
-
-  void set_signal_mode(const Signal_mode value)
-  {
-    set_member("Mode", value);
-  }
-
-  std::optional<Signal_mode> signal_mode() const
-  {
-    return member<Signal_mode>("Mode");
   }
 
   // ---------------------------------------------------------------------------
@@ -507,19 +490,6 @@ std::string Board_settings::to_json_text() const
 bool Board_settings::is_empty() const
 {
   return rep_->is_empty();
-}
-
-// -----------------------------------------------------------------------------
-
-Board_settings& Board_settings::set_signal_mode(const Signal_mode value)
-{
-  rep_->set_signal_mode(value);
-  return *this;
-}
-
-std::optional<Signal_mode> Board_settings::signal_mode() const
-{
-  return rep_->signal_mode();
 }
 
 // -----------------------------------------------------------------------------

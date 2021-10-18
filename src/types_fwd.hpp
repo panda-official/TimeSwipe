@@ -24,7 +24,6 @@ namespace panda::timeswipe {
 
 enum class Generic_errc;
 enum class Measurement_mode;
-enum class Signal_mode;
 
 class Exception;
 class Generic_error_category;

@@ -65,46 +65,6 @@ constexpr const char* to_literal(const Measurement_mode value) noexcept
 }
 
 // -----------------------------------------------------------------------------
-// Signal_mode
-// -----------------------------------------------------------------------------
-
-/// Signal mode.
-enum class Signal_mode {
-  /// IEPE.
-  iepe,
-  /// Normal signal.
-  normal,
-  /// Digital.
-  digital
-};
-
-/**
- * @returns The value of type `Signal_mode` converted from `value`, or
- * `std::nullopt` if `value` doesn't corresponds to any member of Signal_mode.
- */
-constexpr std::optional<Signal_mode> to_signal_mode(const std::string_view value) noexcept
-{
-  if (value == "iepe") return Signal_mode::iepe;
-  else if (value == "normal") return Signal_mode::normal;
-  else if (value == "digital") return Signal_mode::digital;
-  else return {};
-}
-
-/**
- * @returns The character literal converted from `value`, or `nullptr`
- * if `value` doesn't corresponds to any member of Signal_mode.
- */
-constexpr const char* to_literal(const Signal_mode value) noexcept
-{
-  switch (value) {
-  case Signal_mode::iepe: return "iepe";
-  case Signal_mode::normal: return "normal";
-  case Signal_mode::digital: return "digital";
-  }
-  return nullptr;
-}
-
-// -----------------------------------------------------------------------------
 // Board_settings
 // -----------------------------------------------------------------------------
 
@@ -137,7 +97,6 @@ public:
    * @brief The constructor.
    *
    * @details Parses the JSON input. Possible JSON members are:
-   *   - `Mode` - an integer (see signal_mode());
    *   - `CHi.mode` - an integer (see channel_measurement_modes());
    *   - `CHi.gain` - a float (see channel_gains());
    *   - `CHi.iepe` - a boolean (see channel_iepes());
@@ -166,31 +125,6 @@ public:
 
   /// @returns `true` if this instance has no settings.
   bool is_empty() const;
-
-  /// @name General control
-  ///
-  /// @brief This API provides a way to control of general board parameters.
-  ///
-  /// @{
-
-  /**
-   * @brief Sets the signal mode.
-   *
-   * @warning This setting can be applied with Driver::set_board_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
-   *
-   * @see signal_mode().
-   */
-  Board_settings& set_signal_mode(Signal_mode value);
-
-  /**
-   * @returns The value of signal mode.
-   *
-   * @see set_signal_mode().
-   */
-  std::optional<Signal_mode> signal_mode() const;
-
-  /// @}
 
   /// @name Channel control
   ///

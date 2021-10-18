@@ -88,13 +88,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    using panda::timeswipe::Signal_mode;
-    static std::unordered_map<std::string, Signal_mode> const modes = {
-      {"PRIMARY", Signal_mode::iepe},
-      {"NORM", Signal_mode::normal},
-      {"DIGITAL", Signal_mode::digital},
-    };
-
     std::ifstream iconfigname;
     iconfigname.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
@@ -128,7 +121,6 @@ int main(int argc, char *argv[])
     ts::Board_settings settings;
     if (!config_script.empty())
       settings = ts::Board_settings{config_script.dump()};
-    settings.set_signal_mode(modes.at(configitem["MODE"]));
 
     driver.set_settings(settings);
 

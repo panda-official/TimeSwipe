@@ -16,7 +16,6 @@
 
 constexpr std::string_view json_text{R"(
 {
-"Mode": 1,
 "CH1.mode": 0, "CH2.mode": 0, "CH3.mode": 1, "CH4.mode": 1,
 "CH1.gain": 1.1, "CH2.gain": 2.2, "CH3.gain": 3.3, "CH4.gain": 4.4,
 "CH1.iepe": true, "CH2.iepe": false, "CH3.iepe": false, "CH4.iepe": true,
@@ -33,8 +32,6 @@ int main()
 try {
   namespace ts = panda::timeswipe;
   ts::Board_settings bs{json_text};
-
-  ASSERT(bs.signal_mode() == ts::Signal_mode::normal);
 
   // Measurement mode.
   {
