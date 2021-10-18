@@ -51,13 +51,17 @@ struct Board_settings::Rep final {
     // Check measurement modes.
     channel_measurement_modes();
 
-    // Check channel-related settings.
+    // Check channel gains settings.
     if (const auto gains = channel_gains()) {
       for (std::decay_t<decltype(mcc_)> i{}; i < mcc_; ++i)
         check_channel_gain((*gains)[i]);
     }
 
+    // Check channel IEPEs settings.
+    channel_iepes();
+
     // Check PWM-related settings.
+    pwms();
     {
       static const auto apply = [](const auto& checker, const auto& values)
       {
@@ -343,10 +347,14 @@ private:
     for (std::size_t i{}; i < result_size; ++i) {
       if (const auto mm = member<T>(root_name, i + 1, sub_name))
         result.push_back(*mm);
-      else
-        return std::nullopt;
     }
-    return result;
+    if (result.empty())
+      return std::nullopt;
+    else if (result.size() == result_size)
+      return result;
+    else
+      throw Generic_exception{Generic_errc::board_settings_invalid,
+        std::string{"cannot use invalid set of "}.append(root_name)};
   }
 
   template<typename T, typename F>

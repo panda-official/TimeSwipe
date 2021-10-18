@@ -40,19 +40,24 @@ struct Driver_settings::Rep final {
     // Convert to object if NULL passed.
     if (doc_.IsNull()) doc_.SetObject();
 
+    // Check sample rate.
     const auto srate = sample_rate();
     check_sample_rate(srate);
 
+    // Check burst buffer and frequency possible conflict.
     const auto bbs = burst_buffer_size();
     const auto freq = frequency();
     if (bbs && freq)
       throw Generic_exception{Generic_errc::driver_settings_invalid,
         "cannot set mutually exclusive settings: burstBufferSize, frequency"};
-
     check_burst_buffer_size(bbs);
     check_frequency(freq, srate);
 
-    // Translation offsets and translation slopes doesn't need to be checked.
+    // Check translation offsets.
+    translation_offsets();
+
+    // Check translation slopes.
+    translation_slopes();
   } catch (const rajson::Parse_exception& e) {
     throw Generic_exception{Generic_errc::driver_settings_invalid,
       std::string{"cannot create driver settings from JSON text (error near"}
@@ -160,7 +165,7 @@ struct Driver_settings::Rep final {
 
   std::optional<std::vector<int>> translation_offsets() const
   {
-    return member<std::vector<int>>("translationOffsets");
+    return channel_array<int>("translationOffsets");
   }
 
   void set_translation_slopes(const std::vector<float>& values)
@@ -174,7 +179,7 @@ struct Driver_settings::Rep final {
 
   std::optional<std::vector<float>> translation_slopes() const
   {
-    return member<std::vector<float>>("translationSlopes");
+    return channel_array<float>("translationSlopes");
   }
 
 private:
@@ -218,6 +223,22 @@ private:
         throw Generic_exception{Generic_errc::driver_settings_invalid,
           "cannot set invalid frequency"};
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // High-level helpers setters and getters
+  // ---------------------------------------------------------------------------
+
+  template<typename T>
+  std::optional<std::vector<T>> channel_array(const std::string_view name) const
+  {
+    if (auto result = member<std::vector<T>>(name); !result)
+      return std::nullopt;
+    else if (result->size() == Driver::instance().max_channel_count())
+      return result;
+    else
+      throw Generic_exception{Generic_errc::driver_settings_invalid,
+        std::string{"cannot use invalid array "}.append(name)};
   }
 
   // ---------------------------------------------------------------------------
