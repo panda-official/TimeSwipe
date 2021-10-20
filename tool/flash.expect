@@ -6,7 +6,7 @@
 # Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 
 # Set default timeout
-set timeout 20
+set timeout 120
 
 # Set host
 set host [lindex $argv 0]
