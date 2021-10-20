@@ -67,6 +67,21 @@ This access point is used to control board's Supply Voltage Output.
 The `.voltage` access point is only available in TimeSwipe 1.0+ boards. On older
 boards the voltage is fixed to `24VDC`.
 
+### Calibration access point
+This access point is used to get and set board's calibration values.
+
+|Domain        |Description                                |Valid values      |Access|
+|:-------------|:------------------------------------------|:-----------------|:-----|
+|`Calibration` |Returns if board is calibrated or not      |bool              |r|
+|`.version`    |Returns the version of the calibration     |string            |r|
+|`.date`       |Returns the date of the calibration        |string            |r|
+|`.cAtom`      |Access to the cAtoms                       |cAtom object      |r|
+
+The `.voltage` access point is only available in TimeSwipe 1.0+ boards. On older
+boards the voltage is fixed to `24VDC`.
+The Calibration cAtom structure is described in the Calibration Atom Specification
+This data is only r/w in calibration firmware.
+
 ### Access points with only root domain
 
 |Access point |Description |Valid values|Access|
@@ -78,7 +93,6 @@ boards the voltage is fixed to `24VDC`.
 |Temp         |Holds the current core temperature of ARM Chip in degrees Celsius.|float                                       |r|
 |ARMID		  |Holds Hardware Chip ID.|string                                                                                 |r|
 |fwVersion	  |Holds firmware Version in the SemVer format.|string                                                            |r|
-|CalStatus    |Holds board calibration status.|bool                                                                           |r|
 
 The following access points are only available on older Boards prior to Timeswipe 1.0:
 
