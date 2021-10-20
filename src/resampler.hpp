@@ -102,6 +102,12 @@ public:
     return *this;
   }
 
+  /// @overload
+  Resampler_options& set_up_down(const std::pair<int, int> ud)
+  {
+    return set_up_down(ud.first, ud.second);
+  }
+
   /// @returns The up factor.
   int up_factor() const noexcept
   {
@@ -112,6 +118,12 @@ public:
   int down_factor() const noexcept
   {
     return down_factor_;
+  }
+
+  /// @returns The pair of up_factor() and down_factor().
+  std::pair<int, int> up_down() const noexcept
+  {
+    return {up_factor(), down_factor()};
   }
 
   /**
@@ -206,6 +218,12 @@ public:
     return *this;
   }
 
+  /// @overload
+  Resampler_options& set_freq_ampl(std::pair<std::vector<double>, std::vector<double>> fa)
+  {
+    return set_freq_ampl(std::move(fa.first), std::move(fa.second));
+  }
+
   /**
    * @returns The pairs of frequency band edges.
    *
@@ -226,29 +244,34 @@ public:
     return ampl_;
   }
 
-private:
-  unsigned channel_count_;
-  int up_factor_;
-  int down_factor_;
-  Signal_extrapolation extrapolation_;
-  bool crop_extra_;
-  int filter_length_;
-  std::vector<double> freq_;
-  std::vector<double> ampl_;
-
-  bool is_invariant_ok() const noexcept
+  /// @returns The pair of copies of freq() and ampl().
+  std::pair<std::vector<double>, std::vector<double>> freq_ampl() const
   {
-    const bool channel_count_ok = channel_count_ > 0;
-    const bool factors_ok = up_factor_ > 0 && down_factor_ > 0;
-    const bool length_ok = filter_length_ > 0;
-    const bool vecs_ok = !freq_.empty() && !ampl_.empty() && (freq_.size() == ampl_.size());
-    return channel_count_ok && factors_ok && length_ok && vecs_ok;
+    return {freq(), ampl()};
   }
 
-  /// @returns The default up and factors.
+  /// @name Utilities
+  ///
+  /// @brief Default values.
+  ///
+  /// @{
+
+  /// @returns The default up factor.
+  static int default_up_factor() noexcept
+  {
+    return 1;
+  }
+
+  /// @returns The default down factor.
+  static int default_down_factor() noexcept
+  {
+    return 1;
+  }
+
+  /// @returns The pair of default_up_factor() and default_down_factor().
   static std::pair<int, int> default_up_down() noexcept
   {
-    return {1, 1};
+    return {default_up_factor(), default_down_factor()};
   }
 
   /// @returns The default filter length.
@@ -274,6 +297,33 @@ private:
   static std::vector<double> default_ampl()
   {
     return {1, 1, 0, 0};
+  }
+
+  /// @returns The pair of default_freq() and default_ampt().
+  static std::pair<std::vector<double>, std::vector<double>> default_freq_ampl(const int up_factor)
+  {
+    return {default_freq(up_factor), default_ampl()};
+  }
+
+  /// @}
+
+private:
+  unsigned channel_count_;
+  int up_factor_;
+  int down_factor_;
+  Signal_extrapolation extrapolation_;
+  bool crop_extra_;
+  int filter_length_;
+  std::vector<double> freq_;
+  std::vector<double> ampl_;
+
+  bool is_invariant_ok() const noexcept
+  {
+    const bool channel_count_ok = channel_count_ > 0;
+    const bool factors_ok = up_factor_ > 0 && down_factor_ > 0;
+    const bool length_ok = filter_length_ > 0;
+    const bool vecs_ok = !freq_.empty() && !ampl_.empty() && (freq_.size() == ampl_.size());
+    return channel_count_ok && factors_ok && length_ok && vecs_ok;
   }
 };
 

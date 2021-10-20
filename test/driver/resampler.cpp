@@ -39,7 +39,7 @@ namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
 using Table = ts::Driver::Data;
 using Cell = Table::Value_type;
-constexpr unsigned max_column_count{32};
+constexpr unsigned max_column_count{4};
 
 namespace {
 
@@ -226,6 +226,9 @@ try {
   if (!is_conversion_mode() && !is_resampling_mode())
     exit_usage();
 
+  // Create the resampler options instance.
+  ts::detail::Resampler_options r_opts;
+
   // Parse sample-rate argument.
   const auto sample_rate = [s = params[0]]
   {
@@ -258,8 +261,8 @@ try {
     }();
     if (up <= 0 || down <= 0)
       throw std::runtime_error{"both up-factor and down-factor must be positive"};
-    return std::pair<unsigned, unsigned>{up, down};
-  }() : std::make_pair(0u, 0u);
+    return std::make_pair(up, down);
+  }() : std::make_pair(0, 0);
 
   // Parse input-file argument and opening the input file.
   auto input_file = open_input_file(params[input_file_param_index()]);
@@ -267,9 +270,8 @@ try {
     throw std::runtime_error{"either input file is likely corrupted or"
       " incorrect sample rate specified"};
 
-  // Create the resampler options instance.
-  ts::detail::Resampler_options r_opts;
-  r_opts.set_channel_count(max_column_count).set_up_down(up_factor, down_factor);
+  // Set up and down factors.
+  r_opts.set_up_down(up_factor, down_factor);
 
   // Parse --columns option.
   const auto columns = []
@@ -310,6 +312,9 @@ try {
     return result;
   }();
 
+  // Set column count resampler option.
+  r_opts.set_channel_count(columns.size());
+
   // Parse --output-format option.
   const auto output_format = [&input_file]
   {
@@ -327,7 +332,7 @@ try {
       return Output_format::csv;
   }();
 
-  // Parse --extrapolation option.
+  // Parse --extrapolation option and set the corresponding resampler option.
   r_opts.set_extrapolation([]
   {
     using ts::detail::Signal_extrapolation;
@@ -355,7 +360,7 @@ try {
       return Signal_extrapolation::zero;
   }());
 
-  // Parse --no-crop-extra option.
+  // Parse --no-crop-extra option and set the corresponding resampler option.
   r_opts.set_crop_extra(not []
   {
     bool result{};
@@ -368,8 +373,8 @@ try {
     return result;
   }());
 
-  // Parse --filter-length option.
-  r_opts.set_filter_length([]
+  // Parse --filter-length option and set the corresponding resampler option.
+  r_opts.set_filter_length([up_factor, down_factor]
   {
     if (const auto o = params["filter-length"]) {
       if (const auto& v = o.value()) {
@@ -383,57 +388,54 @@ try {
         }();
         if (result < 0)
           throw std::runtime_error{"filter length must be non-negative"};
-        return static_cast<unsigned>(result);
+        return result;
       }
       exit_usage();
     } else
-      return 0u;
+      return ts::detail::Resampler_options::default_filter_length(up_factor, down_factor);
   }());
 
-  // Parse --freq and --ampl options.
+  // Parse --freq and --ampl options and set the corresponding resampler options.
+  r_opts.set_freq_ampl([up_factor]
   {
-    const auto [freq, ampl] = []
+    static const auto parse = [](const std::string& v)
     {
-      static const auto parse = [](const std::string& v)
-      {
-        try {
-          const auto vals = str::split(v, ",");
-          std::vector<double> result(vals.size());
-          transform(cbegin(vals), cend(vals), begin(result),
-            [](const auto f){return std::stod(f);});
-          return result;
-        } catch (...) {
-          throw std::runtime_error{"invalid freq or ampl"};
-        }
-      };
+      try {
+        const auto vals = str::split(v, ",");
+        std::vector<double> result(vals.size());
+        transform(cbegin(vals), cend(vals), begin(result),
+          [](const auto f){return std::stod(f);});
+        return result;
+      } catch (...) {
+        throw std::runtime_error{"invalid freq or ampl"};
+      }
+    };
 
-      auto freq = []
-      {
-        if (const auto o = params["freq"]) {
-          if (const auto& v = o.value())
-            return parse(*v);
-          exit_usage();
-        }
-        return std::vector<double>{};
-      }();
-
-      auto ampl = []
-      {
-        if (const auto o = params["ampl"]) {
-          if (const auto& v = o.value())
-            return parse(*v);
-          exit_usage();
-        }
-        return std::vector<double>{};
-      }();
-
-      if (freq.size() != ampl.size())
-        throw std::runtime_error{"both freq and ampl must be equal length"};
-
-      return std::make_pair(std::move(freq), std::move(ampl));
+    auto freq = [up_factor]
+    {
+      if (const auto o = params["freq"]) {
+        if (const auto& v = o.value())
+          return parse(*v);
+        exit_usage();
+      }
+      return ts::detail::Resampler_options::default_freq(up_factor);
     }();
-    r_opts.set_freq_ampl(freq, ampl);
-  }
+
+    auto ampl = []
+    {
+      if (const auto o = params["ampl"]) {
+        if (const auto& v = o.value())
+          return parse(*v);
+        exit_usage();
+      }
+      return ts::detail::Resampler_options::default_ampl();
+    }();
+
+    if (freq.size() != ampl.size())
+      throw std::runtime_error{"both freq and ampl must be equal length"};
+
+    return std::make_pair(std::move(freq), std::move(ampl));
+  }());
 
   // Parse optional output-file argument.
   auto output_file = [output_format]
@@ -458,15 +460,14 @@ try {
 
   // Define the convenient function for resampling and output.
   unsigned entry_count{};
-  const auto process_rows = [&](const Table& table)
+  const auto process = [&](Table& table)
   {
-    static const auto proc_rows = [&]
+    static const auto proc = [&]
     {
-      std::function<void(const Table&, bool)> process_rows;
+      std::function<void(const Table&, bool)> result;
       if (is_resampling_mode()) {
         const auto resampler = std::make_shared<ts::detail::Resampler<float>>(r_opts);
-        process_rows = [resampler, &os, output_format]
-          (const Table& table, const bool end)
+        result = [resampler, &os, output_format](const Table& table, const bool end)
         {
           auto recs = resampler->apply(table);
           write_output(os, output_format, recs);
@@ -476,37 +477,39 @@ try {
           }
         };
       } else {
-        process_rows = [&os, output_format](const Table& table, const bool /*end*/)
+        result = [&os, output_format](const Table& table, const bool /*end*/)
         {
           write_output(os, output_format, table);
         };
       }
-      return process_rows;
+      return result;
     }();
-    PANDA_TIMESWIPE_ASSERT(proc_rows);
+    PANDA_TIMESWIPE_ASSERT(proc);
 
     const auto last_progress = entry_count % sample_rate;
     if (last_progress)
       message("warning: unaligned input: ", sample_rate - last_progress,
         " rows are missing (sample rate is ", sample_rate, ")");
 
-    const bool end = last_progress || table.is_empty();
-    proc_rows(table, end);
+    const bool end{last_progress || table.is_empty()};
+    proc(table, end);
+    table.clear_rows();
   };
 
   // Read the input and resample it.
   const auto fill_by_columns = [&columns, sz = columns.size()]
-    (auto& table, const auto& buf)
+    (auto& table, const auto& row)
   {
+    PANDA_TIMESWIPE_ASSERT(table.column_count());
     table.append_generated_row([&](const auto i)
     {
       const auto idx = columns[i];
-      return idx ? buf[idx - 1] : 0;
+      return idx ? row[idx - 1] : 0;
     });
   };
-  Table table;
+  Table table(columns.size());
   table.reserve_rows(sample_rate);
-  std::vector<Cell> row(max_column_count);
+  std::vector<Cell> row(columns.size());
   if (input_file.is_binary) {
     while (input_file.stream) {
       for (int i{}; i < sample_rate; ++i) {
@@ -519,12 +522,12 @@ try {
         } else if (gcount)
           throw std::runtime_error{"unable to read the row completely"};
       }
-      process_rows(table);
+      process(table);
     }
   } else { // CSV
     const std::string separators{" \t,"};
     PANDA_TIMESWIPE_ASSERT(!separators.empty());
-    std::string line(512, '\0');
+    std::string line(max_column_count * 128, '\0');
     auto& in = input_file.stream;
     while (in) {
       for (int i{}; in && i < sample_rate; ++i) {
@@ -555,7 +558,7 @@ try {
           fill_by_columns(table, row);
         }
       }
-      process_rows(table);
+      process(table);
     }
   }
 } catch (const std::exception& e) {
