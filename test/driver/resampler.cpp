@@ -30,15 +30,16 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
-using Sensors_data = ts::Driver::Data;
-using Sensor_value = Sensors_data::Value_type;
-const auto sensor_count = ts::Driver::instance().max_channel_count();
+using Table = ts::Driver::Data;
+using Cell = Table::Value_type;
+constexpr unsigned max_column_count{32};
 
 namespace {
 
@@ -95,12 +96,12 @@ template<typename ... Types>
   exit_message(1, "usage:\n",
     "Conversion mode syntax:\n"
     "  ", params.path().string(),
-    " [--sensors=<comma-separated-non-negative-integers>]\n"
+    " [--columns=<comma-separated-non-negative-integers>]\n"
     "    [--output-format=bin|csv] <sample-rate> <input-file> [<output-file>]\n\n",
 
     "Resampling mode syntax:\n"
     "  ", params.path().string(),
-    " [--sensors=<comma-separated-non-negative-integers>]\n"
+    " [--columns=<comma-separated-non-negative-integers>]\n"
     "    [--output-format=bin|csv]\n"
     "    [--extrapolation=zero|constant|symmetric|reflect|periodic|smooth|antisymmetric|antireflect]\n"
     "    [--no-crop-extra]\n"
@@ -115,22 +116,22 @@ template<typename ... Types>
     "  --ampl=1,1,0,0\n\n"
 
     "Common defaults:\n"
-    "  --sensors=<comma-separated-list-of-X>, where X=[0,",sensor_count,"]\n"
+    "  --columns=<comma-separated-list-of-X>, where X=[0,",max_column_count,"]\n"
     "  --output-format is determined automatically from the input\n\n"
 
     "Remarks:\n"
-    "  Up to ",sensor_count," values can be specified in --sensors option.\n"
-    "  The value of 0 in --sensors option means \"all-zero column\".\n"
-    "  The --sensors option can be used to customize the output. For example, if\n"
-    "  --sensors=1,3,0 the output contains 3 columns: 1, 3 columns (in that\n"
+    "  Up to ",max_column_count," values can be specified in --columns option.\n"
+    "  The value of 0 in --columns option means \"all-zero column\".\n"
+    "  The --columns option can be used to customize the output. For example, if\n"
+    "  --columns=1,3,0 the output contains 3 columns: 1, 3 columns (in that\n"
     "  order) of the resampled/converted input followed by the column of zeros; the\n"
     "  4rd column of the input is ignored.\n\n"
     "  --no-crop-extra can be specified to prevent the automatic crop of extra\n"
     "  samples at both the begin and end of the result.\n\n"
 
     "Warnings:\n"
-    "  When the input format is binary and the number of columns is not equals to ",sensor_count,"\n"
-    "  the --sensors option must be used in order to specify the both input column\n"
+    "  When the input format is binary and the number of columns is not equals to ",max_column_count,"\n"
+    "  the --columns option must be used in order to specify the both input column\n"
     "  count and the output layout.");
 }
 
@@ -177,31 +178,34 @@ inline Input_file open_input_file(const std::filesystem::path& path)
 
 enum class Output_format { bin, csv };
 
-inline void write_output(std::ostream& out, const Output_format format, const Sensors_data& table)
+inline void write_output(std::ostream& out, const Output_format format, const Table& table)
 {
-  const auto sample_rate = table.row_count();
+  const auto row_count = table.row_count(); // same as sample rate
   const auto column_count = table.column_count();
+  using Row_count = std::decay_t<decltype(row_count)>;
+  using Column_count = std::decay_t<decltype(column_count)>;
+
   if (!column_count)
     return;
+
   if (format == Output_format::bin) {
-    std::vector<Sensor_value> buf;
-    buf.reserve(column_count);
-    for (std::decay_t<decltype(sample_rate)> j{}; j < sample_rate; ++j) {
-      for (std::decay_t<decltype(sensor_count)> k{}; k < sensor_count; ++k) {
-        if (!table.column(k).empty())
-          buf.push_back(table.value(k, j));
-      }
-      if (!out.write(reinterpret_cast<char*>(buf.data()), buf.size() * sizeof(decltype(buf)::value_type)))
+    std::vector<Cell> row;
+    row.reserve(column_count);
+    for (Row_count ri{}; ri < row_count; ++ri) {
+      for (Column_count ci{}; ci < column_count; ++ci)
+        row.push_back(table.value(ci, ri));
+      auto* const data = reinterpret_cast<char*>(row.data());
+      const auto data_size = row.size() * sizeof(decltype(row)::value_type);
+      if (!out.write(data, data_size))
         throw std::runtime_error{"error upon writing the output"};
-      buf.clear();
+      row.clear();
     }
   } else { // CSV
-    constexpr char delim = ',';
-    for (std::decay_t<decltype(sample_rate)> j{}; j < sample_rate; ++j) {
-      std::decay_t<decltype(column_count)> columns_processed{};
-      for (std::decay_t<decltype(sensor_count)> k{}; k < sensor_count; ++k) {
-        if (!table.column(k).empty())
-          out << table.value(k, j);
+    constexpr char delim{','};
+    for (Row_count ri{}; ri < row_count; ++ri) {
+      Column_count columns_processed{};
+      for (Column_count ci{}; ci < column_count; ++ci) {
+        out << table.value(ci, ri);
         if (columns_processed < column_count - 1) {
           out << delim;
           ++columns_processed;
@@ -239,7 +243,8 @@ try {
   }();
 
   // Parse up-factor and down-factor arguments.
-  const auto [up_factor, down_factor] = is_resampling_mode() ? [u = params[1], d = params[2]]
+  const auto [up_factor, down_factor] = is_resampling_mode() ?
+  [u = params[1], d = params[2]]
   {
     const auto [up, down] = [u, d]
     {
@@ -259,43 +264,47 @@ try {
   // Parse input-file argument and opening the input file.
   auto input_file = open_input_file(params[input_file_param_index()]);
   if (input_file.is_binary && (input_file.size % sample_rate))
-    throw std::runtime_error{"either input file is likely corrupted or incorrect sample rate specified"};
+    throw std::runtime_error{"either input file is likely corrupted or"
+      " incorrect sample rate specified"};
 
   // Create the resampler options instance.
   ts::detail::Resampler_options r_opts;
-  r_opts.set_channel_count(sensor_count).set_up_down(up_factor, down_factor);
+  r_opts.set_channel_count(max_column_count).set_up_down(up_factor, down_factor);
 
-  // Parse --sensors option.
-  const auto sensors = []
+  // Parse --columns option.
+  const auto columns = []
   {
     static const auto parse = [](const std::string& v)
     {
       try {
         const auto vals = str::split(v, ",");
         std::vector<unsigned> result(vals.size());
-        transform(cbegin(vals), cend(vals), begin(result), [](const auto s){return std::stoi(s);});
+        transform(cbegin(vals), cend(vals), begin(result),
+          [](const auto s){return std::stoi(s);});
         return result;
       } catch (...) {
-        throw std::runtime_error{"invalid sensor number"};
+        throw std::runtime_error{"invalid column number"};
       }
     };
 
     std::vector<unsigned> result;
-    if (const auto o = params["sensors"]) {
+    if (const auto o = params["columns"]) {
       if (const auto& v = o.value()) {
         result = parse(*v);
 
         // Check the size.
-        if (result.empty() || result.size() > sensor_count)
-          throw std::runtime_error{"invalid number of sensors specified"};
+        if (result.empty() || result.size() > max_column_count)
+          throw std::runtime_error{"invalid number of columns specified"};
 
         // Check the content.
-        if (const auto [mi, ma] = minmax_element(cbegin(result), cend(result)); *ma > sensor_count)
-          throw std::runtime_error{"invalid sensor number"};
+        const auto ma = max_element(cbegin(result), cend(result));
+        static_assert(!std::is_signed_v<decltype(*ma)>);
+        if (*ma > max_column_count)
+          throw std::runtime_error{"invalid column number"};
       } else
         exit_usage();
     } else {
-      result.resize(sensor_count);
+      result.resize(max_column_count);
       generate(begin(result), end(result), [s = 1]() mutable {return s++;});
     }
     return result;
@@ -390,7 +399,8 @@ try {
         try {
           const auto vals = str::split(v, ",");
           std::vector<double> result(vals.size());
-          transform(cbegin(vals), cend(vals), begin(result), [](const auto f){return std::stod(f);});
+          transform(cbegin(vals), cend(vals), begin(result),
+            [](const auto f){return std::stod(f);});
           return result;
         } catch (...) {
           throw std::runtime_error{"invalid freq or ampl"};
@@ -444,18 +454,19 @@ try {
 
   // Set the output stream.
   auto& os = output_file.is_open() ? output_file : std::cout;
-  os.precision(std::numeric_limits<Sensor_value>::max_digits10);
+  os.precision(std::numeric_limits<Cell>::max_digits10);
 
   // Define the convenient function for resampling and output.
   unsigned entry_count{};
-  const auto process_records = [&](const Sensors_data& table)
+  const auto process_rows = [&](const Table& table)
   {
-    static const auto proc_recs = [&]
+    static const auto proc_rows = [&]
     {
-      std::function<void(const Sensors_data&, bool)> process_records;
+      std::function<void(const Table&, bool)> process_rows;
       if (is_resampling_mode()) {
         const auto resampler = std::make_shared<ts::detail::Resampler<float>>(r_opts);
-        process_records = [resampler, &os, output_format](const Sensors_data& table, const bool end)
+        process_rows = [resampler, &os, output_format]
+          (const Table& table, const bool end)
         {
           auto recs = resampler->apply(table);
           write_output(os, output_format, recs);
@@ -465,36 +476,37 @@ try {
           }
         };
       } else {
-        process_records = [&os, output_format](const Sensors_data& table, const bool /*end*/)
+        process_rows = [&os, output_format](const Table& table, const bool /*end*/)
         {
           write_output(os, output_format, table);
         };
       }
-      return process_records;
+      return process_rows;
     }();
-    PANDA_TIMESWIPE_ASSERT(proc_recs);
+    PANDA_TIMESWIPE_ASSERT(proc_rows);
 
     const auto last_progress = entry_count % sample_rate;
     if (last_progress)
-      message("warning: unaligned input: ", sample_rate - last_progress, " records are missing ",
-        "(sample rate is ", sample_rate, ")");
+      message("warning: unaligned input: ", sample_rate - last_progress,
+        " rows are missing (sample rate is ", sample_rate, ")");
 
     const bool end = last_progress || table.is_empty();
-    proc_recs(table, end);
+    proc_rows(table, end);
   };
 
   // Read the input and resample it.
-  const auto fill_by_sensors = [&sensors, sz = sensors.size()](auto& table, const auto& buf)
+  const auto fill_by_columns = [&columns, sz = columns.size()]
+    (auto& table, const auto& buf)
   {
     table.append_generated_row([&](const auto i)
     {
-      const auto idx = sensors[i];
+      const auto idx = columns[i];
       return idx ? buf[idx - 1] : 0;
     });
   };
-  Sensors_data table;
+  Table table;
   table.reserve_rows(sample_rate);
-  std::vector<Sensor_value> row(sensor_count);
+  std::vector<Cell> row(max_column_count);
   if (input_file.is_binary) {
     while (input_file.stream) {
       for (int i{}; i < sample_rate; ++i) {
@@ -503,11 +515,11 @@ try {
         const auto gcount = input_file.stream.gcount();
         if (input_file.stream) {
           ++entry_count;
-          fill_by_sensors(table, row);
+          fill_by_columns(table, row);
         } else if (gcount)
-          throw std::runtime_error{"unable to read the record completely"};
+          throw std::runtime_error{"unable to read the row completely"};
       }
-      process_records(table);
+      process_rows(table);
     }
   } else { // CSV
     const std::string separators{" \t,"};
@@ -524,24 +536,26 @@ try {
           unsigned j{};
           Size offset{};
           while (offset < gcount) {
-            if (j >= sensor_count)
-              throw std::runtime_error{"too many fields at line " + std::to_string(entry_count)};
+            if (j >= max_column_count)
+              throw std::runtime_error{"too many fields at line "
+                + std::to_string(entry_count)};
             const auto pos = line.find_first_of(separators, offset);
             PANDA_TIMESWIPE_ASSERT(offset < pos);
             const auto field_length = std::min(pos, gcount) - offset;
             PANDA_TIMESWIPE_ASSERT(field_length);
             const auto field = line.substr(offset, field_length);
-            const Sensor_value value = stof(field); // stof() discards leading whitespaces
+            const Cell value = stof(field); // stof() discards leading whitespaces
             row[j] = value;
             offset += field_length + 1;
             ++j;
           }
-          if (j < sensors.size())
-            throw std::runtime_error{"too few fields at line " + std::to_string(entry_count)};
-          fill_by_sensors(table, row);
+          if (j < columns.size())
+            throw std::runtime_error{"too few fields at line "
+              + std::to_string(entry_count)};
+          fill_by_columns(table, row);
         }
       }
-      process_records(table);
+      process_rows(table);
     }
   }
 } catch (const std::exception& e) {
