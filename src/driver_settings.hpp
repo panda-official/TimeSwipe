@@ -171,6 +171,22 @@ public:
    */
   std::optional<int> frequency() const;
 
+  /// @name Measured values transformation control
+  ///
+  /// @brief This API allows to control how the values, measured in `mV` must
+  /// be transformed.
+  ///
+  /// @details Parameters `translationOffsets` and `translationSlopes` can be
+  /// used to provide values for transformations of the values, measured in
+  /// `mV`, by applying the following formula for that purpose:
+  /// ```
+  /// sensorsDataRecord[i] = (value[i] - translationOffsets[i]) * translationSlopes[i]
+  /// ```
+  /// where: `i` - is a sensor number, `value` - is a value, measured in `mV` by the
+  /// sensor `i`.
+  ///
+  /// @{
+
   /**
    * @brief Sets translation offsets for all channels.
    *
@@ -214,6 +230,8 @@ public:
    * @see set_translation_slopes().
    */
   std::optional<std::vector<float>> translation_slopes() const;
+
+  /// @}
 
 private:
   struct Rep;
