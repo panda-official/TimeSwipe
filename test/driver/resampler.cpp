@@ -497,7 +497,7 @@ try {
   };
 
   // Read the input and resample it.
-  const auto fill_by_columns = [&columns, sz = columns.size()]
+  const auto append_row = [&columns, sz = columns.size()]
     (auto& table, const auto& row)
   {
     PANDA_TIMESWIPE_ASSERT(table.column_count());
@@ -518,7 +518,7 @@ try {
         const auto gcount = input_file.stream.gcount();
         if (input_file.stream) {
           ++entry_count;
-          fill_by_columns(table, row);
+          append_row(table, row);
         } else if (gcount)
           throw std::runtime_error{"unable to read the row completely"};
       }
@@ -530,16 +530,16 @@ try {
     std::string line(max_column_count * 128, '\0');
     auto& in = input_file.stream;
     while (in) {
-      for (int i{}; in && i < sample_rate; ++i) {
+      for (int ri{}; in && ri < sample_rate; ++ri) {
         // Parse next line (even if CSV file has no newline after the last line).
         in.getline(line.data(), line.size());
         using Size = std::string::size_type;
         if (const Size gcount = in.gcount(); in || (gcount && (gcount < line.size()))) {
           ++entry_count;
-          unsigned j{};
+          unsigned ci{};
           Size offset{};
           while (offset < gcount) {
-            if (j >= max_column_count)
+            if (ci >= max_column_count)
               throw std::runtime_error{"too many fields at line "
                 + std::to_string(entry_count)};
             const auto pos = line.find_first_of(separators, offset);
@@ -548,14 +548,14 @@ try {
             PANDA_TIMESWIPE_ASSERT(field_length);
             const auto field = line.substr(offset, field_length);
             const Cell value = stof(field); // stof() discards leading whitespaces
-            row[j] = value;
+            row[ci] = value;
             offset += field_length + 1;
-            ++j;
+            ++ci;
           }
-          if (j < columns.size())
+          if (ci < columns.size())
             throw std::runtime_error{"too few fields at line "
               + std::to_string(entry_count)};
-          fill_by_columns(table, row);
+          append_row(table, row);
         }
       }
       process(table);
