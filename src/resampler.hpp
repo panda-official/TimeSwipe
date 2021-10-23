@@ -463,7 +463,7 @@ public:
       auto& input = table.column(column_index);
       const auto input_size = input.size();
       if (!input_size)
-        return typename Table<T>::Column_type{}; // short-circuit
+        return typename Table<T>::Column{}; // short-circuit
 
       // Apply the filter.
       auto result = make_zero_result(resampler, input_size);
@@ -497,7 +497,7 @@ public:
       auto& rstate = rstates_[column_index];
       auto& resampler = rstate.resampler;
       if (!resampler.is_applied())
-        return typename Table<T>::Column_type{}; // short-circuit
+        return typename Table<T>::Column{}; // short-circuit
 
       // Flush the end samples.
       auto result = make_zero_result(resampler, resampler.coefs_per_phase() - 1);
@@ -548,11 +548,11 @@ private:
     return result;
   }
 
-  static typename Table<T>::Column_type make_zero_result(const R& resampler,
+  static typename Table<T>::Column make_zero_result(const R& resampler,
     const std::size_t input_size)
   {
     const auto result_size = resampler.output_sequence_size(input_size);
-    return typename Table<T>::Column_type(result_size);
+    return typename Table<T>::Column(result_size);
   }
 
   static std::size_t leading_skip_count(const R& resampler) noexcept

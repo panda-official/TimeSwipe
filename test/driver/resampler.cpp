@@ -38,7 +38,7 @@ namespace ts = panda::timeswipe;
 namespace progpar = dmitigr::progpar;
 namespace str = dmitigr::str;
 using Table = ts::Driver::Data;
-using Cell = Table::Value_type;
+using Value = Table::Value;
 
 namespace {
 
@@ -214,12 +214,12 @@ inline void write_output(std::ostream& out, const Output_format format,
   PANDA_TIMESWIPE_ASSERT(table.column_count() <= output_columns.size());
 
   if (format == Output_format::bin) {
-    std::vector<Cell> row;
+    std::vector<Value> row;
     row.reserve(output_column_count);
     for (Row_count ri{}; ri < row_count; ++ri) {
       for (Column_count ci{}; ci < output_column_count; ++ci) {
         const auto idx = output_columns[ci];
-        const auto val = (idx >= 0) ? table.value(idx, ri) : Cell{};
+        const auto val = (idx >= 0) ? table.value(idx, ri) : Value{};
         row.push_back(val);
       }
       auto* const data = reinterpret_cast<char*>(row.data());
@@ -234,7 +234,7 @@ inline void write_output(std::ostream& out, const Output_format format,
       Column_count columns_processed{};
       for (Column_count ci{}; ci < output_column_count; ++ci) {
         const auto idx = output_columns[ci];
-        const auto val = (idx >= 0) ? table.value(idx, ri) : Cell{};
+        const auto val = (idx >= 0) ? table.value(idx, ri) : Value{};
         out << val;
         if (columns_processed < output_column_count - 1) {
           out << delim;
@@ -487,7 +487,7 @@ try {
 
   // Set the output stream.
   auto& os = output_file.is_open() ? output_file : std::cout;
-  os.precision(std::numeric_limits<Cell>::max_digits10);
+  os.precision(std::numeric_limits<Value>::max_digits10);
 
   // Make the data processing function.
   unsigned entry_count{};
@@ -524,7 +524,7 @@ try {
       message("warning: unaligned input: ", sample_rate - last_progress,
         " rows are missing (sample rate is ", sample_rate, ")");
 
-    const bool end{last_progress || table.is_empty()};
+    const bool end{last_progress || !table.row_count()};
     proc(table, end);
     table.clear_rows();
   };
@@ -550,7 +550,7 @@ try {
    */
   Table table(real_columns.size());
   table.reserve_rows(sample_rate);
-  std::vector<Cell> row;
+  std::vector<Value> row;
   row.reserve(max_input_column_number);
   if (input_file.is_binary) {
     row.resize(max_input_column_number);
@@ -587,7 +587,7 @@ try {
             const auto field_length = std::min(pos, gcount) - offset;
             PANDA_TIMESWIPE_ASSERT(field_length);
             const auto field = line.substr(offset, field_length);
-            const Cell value = stof(field); // stof() discards leading whitespaces
+            const Value value = stof(field); // stof() discards leading whitespaces
             row.push_back(value);
             offset += field_length + 1;
             ++ci;

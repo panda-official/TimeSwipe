@@ -52,7 +52,7 @@ namespace panda::timeswipe {
 namespace detail {
 class iDriver final : public Driver {
 public:
-  using Resampler = detail::Resampler<Data::Value_type>;
+  using Resampler = detail::Resampler<Data::Value>;
 
   ~iDriver()
   {
@@ -366,7 +366,7 @@ public:
       [this]{return Drift_affected_state_guard{*this};}); // strong guarantee
 
     // Discard the first half.
-    data.erase_begin_rows(drift_samples_count / 2);
+    data.remove_begin_rows(drift_samples_count / 2);
 
     // Take averages of measured data (references).
     std::vector<float> result(data.column_count());
@@ -417,7 +417,7 @@ public:
     PANDA_TIMESWIPE_ASSERT(refs->size() == data.column_count());
 
     // Discard the first half.
-    data.erase_begin_rows(drift_samples_count / 2);
+    data.remove_begin_rows(drift_samples_count / 2);
 
     // Take averages of measured data (references) and subtract the references.
     std::vector<float> result(data.column_count());
@@ -929,7 +929,7 @@ private:
 
       // std::clog << "burst_buffer_.row_count() = " << burst_buffer_.row_count()
       //           << "burst_buffer_size_ = " << burst_buffer_size_ << std::endl;
-      if (!burst_buffer_.is_empty() || records_ptr->row_count() < burst_buffer_size_) {
+      if (burst_buffer_.row_count() || records_ptr->row_count() < burst_buffer_size_) {
         // Go through burst buffer.
         burst_buffer_.append_rows(std::move(*records_ptr));
         if (burst_buffer_.row_count() >= burst_buffer_size_) {
@@ -946,7 +946,7 @@ private:
       burst_buffer_.append_rows(resampler_->flush());
 
     // Flush the remaining values from the burst buffer.
-    if (!burst_buffer_.is_empty()) {
+    if (burst_buffer_.row_count()) {
       handler(std::move(burst_buffer_), 0);
       burst_buffer_ = Data(max_channel_count());
     }
