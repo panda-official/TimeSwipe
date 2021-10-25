@@ -22,7 +22,7 @@
 #include "error_detail.hpp"
 #include "spi.hpp"
 #include "synccom.hpp"
-#include "3rdparty/BCMsrc/bcm2835.h"
+#include "3rdparty/bcm/bcm2835.h"
 
 #include <atomic>
 #include <cstdint>

@@ -55,6 +55,6 @@
 
  -  bcm2835 library  <br />
     C library for Broadcom BCM 2835 as used in Raspberry Pi  https://www.airspayce.com/mikem/bcm2835/ <br />
-    dir: /3rdparty/BCMsrc <br />
+    dir: /src/3rdparty/bcm <br />
     status: changed/tuned <br />
     license: Open Source Licensing GPL V2 https://www.gnu.org/licenses/gpl-2.0.html

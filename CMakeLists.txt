@@ -381,7 +381,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/driver.cpp
     src/driver_settings.cpp
     src/error.cpp
-    src/3rdparty/BCMsrc/bcm2835.c
+    src/3rdparty/bcm/bcm2835.c
     )
 
   add_library(panda_timeswipe STATIC ${timeswipe_src})
