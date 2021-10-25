@@ -609,6 +609,10 @@ private:
    */
   bool reset(CFIFO& buf)
   {
+    // Check that input can fit header.
+    if (buf.in_avail() < sizeof(header_))
+      return false;
+
     // Import header.
     auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
     for (std::size_t i{}; i < sizeof(header_); ++i) {
@@ -616,6 +620,10 @@ private:
       buf >> ch;
       header_bytes[i] = static_cast<std::uint8_t>(ch);
     }
+
+    // Check that rest of input can fit data.
+    if (buf.in_avail() != header_.callen - sizeof(header_))
+      return false;
 
     // Import data.
     for (auto& atom : atoms_)

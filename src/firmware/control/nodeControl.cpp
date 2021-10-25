@@ -41,7 +41,8 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 
     hat::Calibration_map map;
     m_CalStatus = m_EEPROMstorage.get(map);
-    ApplyCalibrationData(map);
+    if (m_CalStatus == hat::Manager::Op_result::ok)
+      ApplyCalibrationData(map);
 }
 
 void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
