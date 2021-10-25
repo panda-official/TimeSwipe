@@ -305,7 +305,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   endforeach()
 
   # Third-party stuff
-  ## Adafruit Neopixel
+  ## Adafruit NeoPixel
   list(TRANSFORM adafruit_neopixel_src PREPEND src/3rdparty/adafruit/neopixel/)
   list(APPEND firmware_src ${adafruit_neopixel_src})
 
@@ -317,7 +317,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     # sam
     __SAME54P20A__
 
-    # Adafruit Neopixel
+    # Adafruit NeoPixel
     SAM_BRM __arm__  __SAMD51__  __SAME54P20A__
     )
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
