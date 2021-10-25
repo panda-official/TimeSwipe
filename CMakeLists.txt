@@ -177,7 +177,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   # --------------------------------
 
   # 3rdparty
-  set(Adafruit_NeoPixel_src
+  set(adafruit_neopixel_src
     Adafruit_NeoPixel.cpp
     Adafruit_NeoPixel.h
     Adafruit_NeoPixel_stub.h
@@ -305,10 +305,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   endforeach()
 
   # Third-party stuff
-  foreach(dep Adafruit_NeoPixel)
-    list(TRANSFORM ${dep}_src PREPEND src/3rdparty/${dep}/)
-    list(APPEND firmware_src ${${dep}_src})
-  endforeach()
+  ## Adafruit Neopixel
+  list(TRANSFORM adafruit_neopixel_src PREPEND src/3rdparty/adafruit/neopixel/)
+  list(APPEND firmware_src ${adafruit_neopixel_src})
 
   add_library(firmware STATIC ${firmware_src})
   target_compile_definitions(firmware PUBLIC
@@ -318,7 +317,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     # sam
     __SAME54P20A__
 
-    # Adafruit_NeoPixel
+    # Adafruit Neopixel
     SAM_BRM __arm__  __SAMD51__  __SAME54P20A__
     )
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)

@@ -39,9 +39,9 @@
     status: original <br />
     license: Apache-2.0 www.apache.org/licenses/LICENSE-2.0
 
- - Adafruit_NeoPixel <br />
+ - Adafruit NeoPixel <br />
     an Arduino library used for control of LEDs https://github.com/adafruit/Adafruit_NeoPixel <br />
-    dir: /3rdparty/Adafruit_NeoPixel <br />
+    dir: /src/3rdparty/adafruit/neopixel <br />
     status: changed/tuned <br />
     license: GNU LESSER GENERAL PUBLIC LICENSE https://www.gnu.org/licenses/lgpl-3.0.html
 
