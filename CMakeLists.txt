@@ -146,9 +146,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   enable_language(ASM)
 
   if(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE)
-    set(linker_script "src/3rdparty/prj_templ/Custom/gcc_RAM.ld")
+    set(linker_script "src/3rdparty/gcc/gcc_RAM.ld")
   else()
-    set(linker_script "src/3rdparty/prj_templ/Custom/gcc.ld")
+    set(linker_script "src/3rdparty/gcc/gcc.ld")
   endif()
 
   add_compile_options(
@@ -315,7 +315,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
 
-    # prj_templ
+    # sam
     __SAME54P20A__
 
     # Adafruit_NeoPixel
@@ -345,9 +345,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   list(TRANSFORM firmware_elf_src PREPEND src/firmware/)
 
   # Third-party firmware.elf sources
-  list(APPEND firmware_elf_3rdparty_src
-    prj_templ/Custom/startup_ARMCM4.S
-    )
+  list(APPEND firmware_elf_3rdparty_src gcc/startup_ARMCM4.S)
   list(TRANSFORM firmware_elf_3rdparty_src PREPEND src/3rdparty/)
   list(APPEND firmware_elf_src ${firmware_elf_3rdparty_src})
 
@@ -476,7 +474,7 @@ if(PANDA_TIMESWIPE_TESTS)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
-  set(button_event_extra_sources src/3rdparty/prj_templ/Custom/startup_ARMCM4.S)
+  set(button_event_extra_sources src/3rdparty/gcc/startup_ARMCM4.S)
 
   # Configure the tests from the lists above.
   function(panda_configure_test test)
