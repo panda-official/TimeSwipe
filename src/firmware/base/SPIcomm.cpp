@@ -6,7 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "SPIcomm.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)

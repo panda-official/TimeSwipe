@@ -329,7 +329,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   endif()
   target_include_directories(firmware PUBLIC src/firmware
     PRIVATE
-    src/3rdparty/prj_templ/include
     src/3rdparty/prj_templ/CMSIS/Include
     )
 

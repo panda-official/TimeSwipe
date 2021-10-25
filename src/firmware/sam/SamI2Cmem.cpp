@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 
 #include "SamI2Cmem.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)

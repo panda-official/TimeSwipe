@@ -9,8 +9,7 @@ Copyright (c) 2019 Panda Team
 
 #include "SamDACcntr.h"
 #include "../os.h"
-
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 #define GCLK_DAC   42
 

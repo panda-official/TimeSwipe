@@ -6,8 +6,8 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "SamADCcntr.h"
-#include "sam.h"
 #include "NVMpage.h"
+#include "../../3rdparty/sam/sam.h"
 
 #define SELECT_SAMADC(x) (x==(typeSamADC::Adc0) ? ADC0:ADC1);
 
@@ -116,13 +116,13 @@ short CSamADCcntr::SingleConv()
 
 CSamADCcntr::CSamADCcntr(typeSamADC nADC)
 {
-	m_nADC=nADC;
-	
-	//select ptr:
-	Adc *pADC=SELECT_SAMADC(nADC);
-	
-	
-	//------------------------setup PINs---------------------------------
+    m_nADC=nADC;
+
+    //select ptr:
+    Adc *pADC=SELECT_SAMADC(nADC);
+
+
+    //------------------------setup PINs---------------------------------
     //PA04 -> group 0, even, function "B"(ADC)=0x01: ANAREF (VREFB) AIN4
     PORT->Group[0].PMUX[2].bit.PMUXE=0x01;
     PORT->Group[0].PINCFG[4].bit.PMUXEN=1; //enable
@@ -144,31 +144,31 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     PORT->Group[1].PINCFG[9].bit.PMUXEN=1; //enable
 
     //-------------------------------------------------------------------
-    
-    
+
+
     //------------------enable main clock to drive ADC bus---------------
     if(typeSamADC::Adc0==nADC)
-		MCLK->APBDMASK.bit.ADC0_=1;
-	else
-		MCLK->APBDMASK.bit.ADC1_=1;
+        MCLK->APBDMASK.bit.ADC0_=1;
+    else
+        MCLK->APBDMASK.bit.ADC1_=1;
     //-------------------------------------------------------------------
-    
+
     //--------------------------calibrating------------------------------
     struct NVMscpage *pNVMpage=(NVMscpage *)NVMCTRL_SW0; //addr
     if(typeSamADC::Adc0==nADC)
     {
-		ADC0->CALIB.bit.BIASREFBUF  =pNVMpage->ADC0_BIASREFBUF;
-		ADC0->CALIB.bit.BIASR2R     =pNVMpage->ADC0_BIASR2R;
-		ADC0->CALIB.bit.BIASCOMP    =pNVMpage->ADC0_BIASCOMP;
+        ADC0->CALIB.bit.BIASREFBUF  =pNVMpage->ADC0_BIASREFBUF;
+        ADC0->CALIB.bit.BIASR2R     =pNVMpage->ADC0_BIASR2R;
+        ADC0->CALIB.bit.BIASCOMP    =pNVMpage->ADC0_BIASCOMP;
     }
     else
     {
-		ADC1->CALIB.bit.BIASREFBUF  =pNVMpage->ADC1_BIASREFBUF;
-		ADC1->CALIB.bit.BIASR2R     =pNVMpage->ADC1_BIASR2R;
-		ADC1->CALIB.bit.BIASCOMP    =pNVMpage->ADC1_BIASCOMP;
+        ADC1->CALIB.bit.BIASREFBUF  =pNVMpage->ADC1_BIASREFBUF;
+        ADC1->CALIB.bit.BIASR2R     =pNVMpage->ADC1_BIASR2R;
+        ADC1->CALIB.bit.BIASCOMP    =pNVMpage->ADC1_BIASCOMP;
     }
     //-------------------------------------------------------------------
-    
+
     //----------------------connect default gen--------------------------
     m_pCLK=CSamCLK::Factory();
 
@@ -189,7 +189,7 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
         while(pADC->SYNCBUSY.bit.CTRLB){}
     //-------------------------------------------------------------------
 
-    
+
     //--------------------------enabling---------------------------------
     pADC->REFCTRL.bit.REFSEL    =0x05; //AREFB
     while(pADC->SYNCBUSY.bit.REFCTRL){}
@@ -197,4 +197,3 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     while(pADC->SYNCBUSY.bit.ENABLE){}
     //-------------------------------------------------------------------
 }
-

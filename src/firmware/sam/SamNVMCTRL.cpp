@@ -7,7 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 
 #include "SamNVMCTRL.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 /*from SAM D5x/E5x - SmartEEPROM Code Example:
   "User needs to configure SBLK and PSZ fuses,

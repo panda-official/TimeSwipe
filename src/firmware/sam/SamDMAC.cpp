@@ -5,9 +5,10 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include <string.h>
 #include "SamDMAC.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
+
+#include <cstring>
 
 static unsigned char *MemAlign128(unsigned char *pMem)
 {
@@ -139,5 +140,3 @@ std::shared_ptr<CSamDMAChannel> CSamDMAC::Factory()
     }
     return nullptr;
 }
-
-
