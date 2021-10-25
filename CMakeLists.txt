@@ -328,8 +328,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     target_compile_definitions(firmware PUBLIC DMS_BOARD)
   endif()
   target_include_directories(firmware PUBLIC src/firmware
-    PRIVATE
-    src/3rdparty/prj_templ/CMSIS/Include
+    PRIVATE src/3rdparty/cmsis
     )
 
   # -------------------
