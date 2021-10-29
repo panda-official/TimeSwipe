@@ -43,8 +43,8 @@ Copyright (c) 2019-2020 Panda Team
 
 // -----------------------------------------------------------------------------
 // volatile bool stopflag{};
-// // stopflag = true;
-// // while (stopflag) os::wait(10);
+// stopflag = true;
+// while (stopflag) os::wait(10);
 // -----------------------------------------------------------------------------
 
 namespace ts = panda::timeswipe;

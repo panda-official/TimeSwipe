@@ -21,7 +21,7 @@ Copyright (c) 2019-2020 Panda Team
 * \brief An I2C master class for communication with an external EEPROM chip ( CAT2430 )
 * \details This is a fullfeatured service version,  chip read/write functions are implemented.
 * For reading the chip data, ISerial interface is used.
-* EEPROMmemory address an a count of data to red are set by CSamI2CeepromMaster::SetDataAddrAndCountLim method
+* EEPROMmemory address an a count of data to read are set by method CSamI2CeepromMaster::SetDataAddrAndCountLim.
 */
 class CSamI2CeepromMaster : public CSamSercom
 {
@@ -307,4 +307,3 @@ public:
          */
         inline bool GetSelfTestResult(){ return m_bSelfTestResult;}
 };
-
