@@ -531,12 +531,12 @@ private:
 };
 
 /**
- * @brief Performs a one-shot resampling.
+ * @brief Upsamples, applies FIR filter, downsamples.
  *
  * @returns The result vector.
  */
 template<typename InputIt, typename CoefInputIt>
-auto resample(const int up_rate, const int down_rate,
+auto upfirdn(const int up_rate, const int down_rate,
   const CoefInputIt coefs_first, const CoefInputIt coefs_last,
   const InputIt first, const InputIt last,
   const Signal_extrapolation extrapolation = Signal_extrapolation::zero)
