@@ -77,7 +77,7 @@ cd ..
 After installation, run OpenOCD with the config file:
 
 ```
-sudo openocd -f timeswipe/tool/PandaOCD.cfg
+sudo openocd -f timeswipe/tool/openocd_rpi4_.cfg
 ```
 
 You should see something like:
@@ -87,13 +87,15 @@ Open On-Chip Debugger 0.11.0-dirty (2021-10-19-11:03)
 Licensed under GNU GPL v2
 For bug reports, read
 	http://openocd.org/doc/doxygen/bugs.html
+srst_only separate srst_gates_jtag srst_push_pull connect_deassert_srst
+
 Info : Listening on port 6666 for tcl connections
 Info : Listening on port 4444 for telnet connections
 Info : Linux GPIOD JTAG/SWD bitbang driver
 Info : This adapter doesn't support configurable speed
 Info : SWD DPIDR 0x2ba01477
-Info : atsame5.cpu: hardware has 6 breakpoints, 4 watchpoints
-Info : starting gdb server for atsame5.cpu on 3333
+Info : atsame54p20a.cpu: hardware has 6 breakpoints, 4 watchpoints
+Info : starting gdb server for atsame54p20a.cpu on 3333
 Info : Listening on port 3333 for gdb connections
 ```
 
@@ -105,49 +107,14 @@ For this, open a `telnet` connection to the Pi, by switching to a second console
 telnet localhost 4444
 ```
 
-To prepare the chip for flash erase/write operations, type:
+To flash the newly built firmware, type:
 
 ```
-reset init
+program normal_firmware.elf verify reset exit
 ```
 
-To delete any old firmware in the flash memory of the TimeSwipe board, type:
+openocd will now erase the device, flash the new firmware, verifies the contents of the flash and finally reset the device.
+If no error appears, the firmware was flashed successfully and you should see the LEDs on the timeswipe flash twice as confirmation.
 
-```
-atsame5 chip-erase
-```
-
-To verify that the previous step worked, use:
-
-```
-flash erase_check 0
-```
-This takes some time, you should see output along the lines of `Bank is erased`. To write a new
-firmware, type:
-
-```
-flash write_image timeswipe/build_fw/normal_firmware.elf
-```
-
-This assumes you are running OpenOCD from the home directory and the firmware
-has been built in the default path. Change accordingly. Verify the write process
-by typing:
-
-```
-flash verify_image timeswipe/build_fw/normal_firmware.elf
-```
-
-You should see a confirmation of the verification process
-
-After the firmware has been written, it can be started by:
-
-```
-reset
-```
-
-You should see the 4 LEDs on the TimeSwipe blink twice to confirm successful startup.
-
-Type `exit` to disconnect the telnet session and again `exit` to log out of the
-second console. Switch to the first console with `Ctrl + Alt + F1` and exit
-OpenOCD with `Ctrl + c`. Shutdown the Raspberry Pi and the TimeSwipe board and
-power on again to start using the new firmware.
+Type `exit` to log out of the second console. Switch to the first console with `Ctrl + Alt + F1` and exit
+OpenOCD with `Ctrl + c`. Shutdown the Raspberry Pi and the TimeSwipe board and power on again to start using the new firmware.
