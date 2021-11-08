@@ -170,17 +170,17 @@ private:
   {
     if (buf.in_avail() < 22) return false;
 
-    // Import uuid_.
+    // Reset uuid_.
     {
       auto* const uuid_bytes = reinterpret_cast<std::uint8_t*>(uuid_.data());
-      for (int i{}; i < sizeof(*uuid_.data()) * uuid_.size(); ++i) {
+      for (unsigned i{}; i < sizeof(*uuid_.data()) * uuid_.size(); ++i) {
         Character ch;
         buf >> ch;
         uuid_bytes[i] = static_cast<std::uint8_t>(ch);
       }
     }
 
-    // Import pid_.
+    // Reset pid_.
     {
       Character b0, b1;
       buf >> b0 >> b1;
@@ -188,7 +188,7 @@ private:
       reinterpret_cast<std::uint8_t*>(&pid_)[1] = b1;
     }
 
-    // Import pver_.
+    // Reset pver_.
     {
       Character b0, b1;
       buf >> b0 >> b1;
@@ -196,7 +196,7 @@ private:
       reinterpret_cast<std::uint8_t*>(&pver_)[1] = b1;
     }
 
-    // Import vstr_, pstr_.
+    // Reset vstr_, pstr_.
     {
       int vlen, plen;
       buf >> vlen >> plen;
@@ -205,12 +205,12 @@ private:
       for (int i{}; i < vlen; ++i) {
         Character ch;
         buf >> ch;
-        vstr_[i] = ch;
+        vstr_.at(i) = ch;
       }
       for (int i{}; i < plen; ++i) {
         Character ch;
         buf >> ch;
-        pstr_[i] = ch;
+        pstr_.at(i) = ch;
       }
     }
 
@@ -301,10 +301,13 @@ private:
    */
   bool reset(CFIFO& buf)
   {
-    if (buf.in_avail() < sizeof(*this))
+    constexpr auto data_size = sizeof(bank_drive_) + sizeof(power_) + sizeof(gpio_);
+
+    if (buf.in_avail() < data_size)
       return false;
-    auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
-    for (std::size_t i{}; i < sizeof(*this); ++i) {
+
+    auto* const this_bytes = reinterpret_cast<std::uint8_t*>(&bank_drive_);
+    for (std::size_t i{}; i < data_size; ++i) {
       Character ch;
       buf >> ch;
       this_bytes[i] = static_cast<std::uint8_t>(ch);
@@ -376,13 +379,15 @@ public:
      */
     bool reset(CFIFO& buf)
     {
-      if (buf.in_avail() < sizeof(*this))
+      constexpr auto data_size = sizeof(slope_) + sizeof(offset_);
+      if (buf.in_avail() < data_size)
         return false;
-      auto* const this_bytes = reinterpret_cast<std::uint8_t*>(this);
-      for (std::size_t i{}; i < sizeof(*this); ++i) {
+
+      auto* const data = reinterpret_cast<std::uint8_t*>(&slope_);
+      for (std::size_t i{}; i < data_size; ++i) {
         Character ch;
         buf >> ch;
-        this_bytes[i] = static_cast<std::uint8_t>(ch);
+        data[i] = static_cast<std::uint8_t>(ch);
       }
       return true;
     }
@@ -396,9 +401,10 @@ public:
      */
     bool dump(CFIFO& buf) const
     {
-      const auto* const this_bytes = reinterpret_cast<const std::uint8_t*>(this);
-      for (std::size_t i{}; i < sizeof(*this); ++i)
-        buf << this_bytes[i];
+      const auto* const data = reinterpret_cast<const std::uint8_t*>(&slope_);
+      constexpr auto data_size = sizeof(slope_) + sizeof(offset_);
+      for (std::size_t i{}; i < data_size; ++i)
+        buf << data[i];
       return true;
     }
 
@@ -409,7 +415,11 @@ public:
     std::int16_t offset_{};
   };
 
-  /// Calibration atom type.
+  /**
+   * Calibration atom type.
+   *
+   * @warning Must be std::uint16_t.
+   */
   enum class Type : std::uint16_t {
     v_in1    = 0x0001,
     v_in2    = 0x0002,
@@ -459,7 +469,7 @@ public:
   /// The constructor.
   Calibration(const Type type, const std::uint16_t count)
     : header_{type, count, count * static_cast<std::uint32_t>(sizeof(Entry))}
-    , entries_{count}
+    , entries_(count)
   {}
 
   /// @returns The size in bytes.
@@ -507,15 +517,21 @@ private:
    */
   bool reset(CFIFO& buf)
   {
-    // Import header.
-    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
-    for (std::size_t i{}; i < sizeof(header_); ++i) {
+    Header header;
+
+    // Check that input can fit header.
+    if (buf.in_avail() < sizeof(header))
+      return false;
+
+    // Read header into local variable.
+    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header);
+    for (std::size_t i{}; i < sizeof(header); ++i) {
       Character ch;
       buf >> ch;
       header_bytes[i] = static_cast<std::uint8_t>(ch);
     }
 
-    // Import data.
+    // Reset entries.
     for (auto& entry : entries_)
       entry.reset(buf);
 
@@ -609,23 +625,25 @@ private:
    */
   bool reset(CFIFO& buf)
   {
+    Header header;
+
     // Check that input can fit header.
-    if (buf.in_avail() < sizeof(header_))
+    if (buf.in_avail() < sizeof(header))
       return false;
 
-    // Import header.
-    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header_);
-    for (std::size_t i{}; i < sizeof(header_); ++i) {
+    // Read header into local variable.
+    auto* const header_bytes = reinterpret_cast<std::uint8_t*>(&header);
+    for (std::size_t i{}; i < sizeof(header); ++i) {
       Character ch;
       buf >> ch;
       header_bytes[i] = static_cast<std::uint8_t>(ch);
     }
 
-    // Check that rest of input can fit data.
-    if (buf.in_avail() != header_.callen - sizeof(header_))
+    // Compare lengths of header and header_.
+    if (header.callen != header_.callen)
       return false;
 
-    // Import data.
+    // Reset data.
     for (auto& atom : atoms_)
       atom.reset(buf);
 
