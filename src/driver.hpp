@@ -204,6 +204,7 @@ public:
    * @details Repeatedly calls the `handler` with frequency (Hz) that depends on
    * the burst buffer size, specified in the driver settings: the greater it's
    * value, the less frequent the `handler` is called. The frequency is `1` when
+   * `!driver_settings().burst_buffer_size() && !driver_settings.frequency()` or
    * `driver_settings().burst_buffer_size() == driver_settings().sample_rate()`.
    *
    * @warning The `handler` must not take more than
