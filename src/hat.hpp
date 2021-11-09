@@ -51,7 +51,11 @@ struct Eeprom_header final {
 
 namespace atom {
 
-/// Atom type.
+/**
+ * @brief Atom type.
+ *
+ * @warning Must be std::uint16_t.
+ */
 enum class Type : std::uint16_t {
   invalid = 0x0000,
   vendor_info = 0x0001,
@@ -76,7 +80,7 @@ private:
   int index_{};
 
   /**
-   * @brief Simulates successful import of data fields from an ATOM binary image.
+   * @brief Simulates successful data reset.
    *
    * @returns `true`.
    */
@@ -86,7 +90,7 @@ private:
   }
 
   /**
-   * @brief Simulates successful export of data fields to an ATOM binary image.
+   * @brief Simulates successful data dump.
    *
    * @returns `true`.
    */
@@ -235,26 +239,24 @@ private:
 
     // Export pid_.
     {
-      const Character b0{reinterpret_cast<const std::uint8_t*>(&pid_)[0]},
-        b1{reinterpret_cast<const std::uint8_t*>(&pid_)[1]};
-      buf << b0 << b1;
+      const auto* const pid_bytes = reinterpret_cast<const std::uint8_t*>(&pid_);
+      buf << pid_bytes[0] << pid_bytes[1];
     }
 
     // Export pver_.
     {
-      const Character b0{reinterpret_cast<const std::uint8_t*>(&pver_)[0]},
-        b1{reinterpret_cast<const std::uint8_t*>(&pver_)[1]};
-      buf << b0 << b1;
+      const auto* const pver_bytes = reinterpret_cast<const std::uint8_t*>(&pver_);
+      buf << pver_bytes[0] << pver_bytes[1];
     }
 
     // Export vstr_, pstr_.
     {
-      const int vlen = vstr_.size();
-      const int plen = pstr_.size();
+      const auto vlen = vstr_.size();
+      const auto plen = pstr_.size();
       buf << vlen << plen;
-      for (int i{}; i < vlen; ++i)
+      for (std::size_t i{}; i < vlen; ++i)
         buf << vstr_[i];
-      for (int i{}; i < plen; ++i)
+      for (std::size_t i{}; i < plen; ++i)
         buf << pstr_[i];
     }
 
@@ -306,11 +308,11 @@ private:
     if (buf.in_avail() < data_size)
       return false;
 
-    auto* const this_bytes = reinterpret_cast<std::uint8_t*>(&bank_drive_);
+    auto* const data = reinterpret_cast<std::uint8_t*>(&bank_drive_);
     for (std::size_t i{}; i < data_size; ++i) {
       Character ch;
       buf >> ch;
-      this_bytes[i] = static_cast<std::uint8_t>(ch);
+      data[i] = static_cast<std::uint8_t>(ch);
     }
     return true;
   }
@@ -324,9 +326,10 @@ private:
    */
   bool dump(CFIFO& buf) const
   {
-    const auto* const this_bytes = reinterpret_cast<const std::uint8_t*>(this);
-    for (std::size_t i{}; i < sizeof(*this); ++i)
-      buf << this_bytes[i];
+    constexpr auto data_size = sizeof(bank_drive_) + sizeof(power_) + sizeof(gpio_);
+    const auto* const data = reinterpret_cast<const std::uint8_t*>(&bank_drive_);
+    for (std::size_t i{}; i < data_size; ++i)
+      buf << data[i];
     return true;
   }
 };
@@ -338,7 +341,7 @@ public:
   class Entry final {
   public:
     /// The default constructor.
-    Entry() = default;
+    Entry() noexcept = default;
 
     /// The constructor.
     Entry(const float slope, const std::int16_t offset) noexcept
@@ -346,32 +349,32 @@ public:
       , offset_{offset}
     {}
 
-    /// @returns `slope`.
+    /// @returns Value of slope.
     float slope() const noexcept
     {
       return slope_;
     }
 
-    /// Sets `slope`.
+    /// Sets value of slope.
     void set_slope(const float slope) noexcept
     {
       slope_ = slope;
     }
 
-    /// @returns `offset`.
+    /// @returns Value of offset.
     std::int16_t offset() const noexcept
     {
       return offset_;
     }
 
-    /// Sets `offset`.
+    /// Sets value of offset.
     void set_offset(const std::int16_t offset) noexcept
     {
       offset_ = offset;
     }
 
     /**
-     * @brief Resets data fields from an ATOM binary image.
+     * @brief Resets data fields from `buf`.
      *
      * @param buf ATOM binary image.
      *
@@ -393,7 +396,7 @@ public:
     }
 
     /**
-     * @brief Exports data fields to an ATOM binary image.
+     * @brief Dumps data fields to `buf`.
      *
      * @param buf ATOM binary image.
      *
@@ -416,7 +419,7 @@ public:
   };
 
   /**
-   * Calibration atom type.
+   * @brief Calibration atom type.
    *
    * @warning Must be std::uint16_t.
    */
@@ -435,7 +438,7 @@ public:
 
   /**
    * @returns A literal that represents the `value`, or `nullptr` if `value`
-   * doesn't matches to any member of type Type.
+   * doesn't matches to any member of enum.
    */
   static constexpr const char* to_literal(const Type value)
   {
@@ -455,7 +458,7 @@ public:
   }
 
   /**
-   * @returns A value of type Type converted from `value`. The returned value
+   * @returns A value of enum type converted from `value`. The returned value
    * is invalid if `err` is not empty after return.
    */
   static Type to_type(const std::uint16_t value, std::string& err)
@@ -468,7 +471,7 @@ public:
 
   /// The constructor.
   Calibration(const Type type, const std::uint16_t count)
-    : header_{type, count, count * static_cast<std::uint32_t>(sizeof(Entry))}
+    : header_{type, count, count * sizeof(Entry)}
     , entries_(count)
   {}
 
@@ -509,7 +512,7 @@ private:
   std::vector<Entry> entries_;
 
   /**
-   * @brief Resets data fields from an ATOM binary image.
+   * @brief Resets data fields from `buf`.
    *
    * @param buf ATOM binary image
    *
@@ -539,7 +542,7 @@ private:
   }
 
   /**
-   * @brief Stores data fields to an ATOM binary image.
+   * @brief Dumps data fields to `buf`.
    *
    * @param buf ATOM binary image.
    *
@@ -547,12 +550,12 @@ private:
    */
   bool dump(CFIFO& buf) const
   {
-    // Export header.
+    // Dump header.
     const auto* const header_bytes = reinterpret_cast<const std::uint8_t*>(&header_);
     for (std::size_t i{}; i < sizeof(header_); ++i)
       buf << header_bytes[i];
 
-    // Export data.
+    // Dump data.
     for (auto& entry : entries_)
       entry.dump(buf);
 
@@ -592,7 +595,7 @@ public:
   /// @returns Caliration atom of the given `type`.
   const atom::Calibration& atom(const atom::Calibration::Type type) const noexcept
   {
-    return atoms_[static_cast<std::uint16_t>(type) - 1];
+    return atoms_.at(static_cast<std::uint16_t>(type) - 1);
   }
 
   /// @overload
@@ -617,7 +620,7 @@ private:
   static constexpr int index_{3}; // Per EEPROM specification.
 
   /**
-   * @brief Resets data fields from an ATOM binary image.
+   * @brief Resets data fields from `buf`.
    *
    * @param buf ATOM binary image.
    *
@@ -651,7 +654,7 @@ private:
   }
 
   /**
-   * @brief Stores data fields to an ATOM binary image.
+   * @brief Dumps data fields to `buf`.
    *
    * @param buf ATOM binary image.
    *
@@ -659,12 +662,12 @@ private:
    */
   bool dump(CFIFO& buf) const
   {
-    // Export header.
+    // Dump header.
     auto* const header_bytes = reinterpret_cast<const std::uint8_t*>(&header_);
     for (std::size_t i{}; i < sizeof(header_); ++i)
       buf << header_bytes[i];
 
-    // Export data.
+    // Dump data.
     for (auto& atom : atoms_)
       atom.dump(buf);
 
@@ -714,7 +717,7 @@ public:
 
     // Set helpers.
     const auto* const header_bytes = reinterpret_cast<const char*>(atom);
-    const auto* const data_bytes = header_bytes + sizeof(Atom_header); // atom->data_begin;
+    const auto* const data_bytes = header_bytes + sizeof(Atom_header);
     const auto dlen = atom->dlen - 2; // real dlen without CRC
 
     // Check the CRC of the atom.
@@ -725,7 +728,7 @@ public:
         return Op_result::atom_corrupted;
     }
 
-    // Fill the out variables.
+    // Fill the output variables.
     type = static_cast<atom::Type>(atom->type);
     for (int i{}; i < dlen; ++i)
       output << data_bytes[i];
@@ -873,7 +876,7 @@ private:
     std::uint16_t type{};
     std::uint16_t count{};
     std::uint32_t dlen{};
-    // char data_begin;
+    // char data_bytes;
   };
 
   static constexpr std::uint32_t signature{0x69502d52};
