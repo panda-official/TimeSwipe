@@ -782,8 +782,8 @@ private:
 
       data.append_generated_row([&](const auto i)
       {
-        const auto mv = (digits[i] - channel_offset) * slopes[i];
-        return (mv - translation_offsets[i]) * translation_slopes[i];
+        const auto mv = (digits[i] - channel_offset) / slopes[i];
+        return (mv - translation_offsets[i]) / translation_slopes[i];
       });
     }
 
