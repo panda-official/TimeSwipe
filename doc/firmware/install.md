@@ -6,19 +6,10 @@ Raspberry Pi with OpenOCD. The firmware can either be downloaded from
 [the releases section](https://github.com/panda-official/TimeSwipe/releases) or
 can be built on the Raspberry Pi from the sources.
 
-## Caveats
-
-There are two generation of boards exists at the moment: *DMS* (actual) and
-*IEPE* (legacy), which are not binary compatible to each other! An improper
-firmware can be flashed but simply will not work! By default, when building
-from source, the firmware for *DMS* boards is built. In order to build for
-*IEPE* board the command line option `-DPANDA_TIMESWIPE_FIRMWARE_DMS=Off` should
-be passed to CMake (please see the examples below).
-
 ## Building the Firmware
 
 For building the firmware, Raspbian Buster (and to an extent, all Debian-based
-systems) and Arch Linux ARMv8 AArch64 are supported.
+systems) and Ubuntu arm64 are supported.
 
 ### Building on Raspbian Buster
 
@@ -28,6 +19,41 @@ installed:
 ```
 sudo apt-get update
 sudo apt-get install gcc-arm-none-eabi cmake git
+```
+
+You can then clone this repository, if you haven't done that already:
+
+```
+git clone https://github.com/panda-official/timeswipe.git
+```
+
+Then navigate to the project directory:
+
+```
+cd timeswipe
+```
+
+We can then build the firmware.
+
+```
+mkdir -p build_fw
+cd build_fw
+cmake .. -DPANDA_TIMESWIPE_FIRMWARE=On
+make -j$(nproc)
+cd ../..
+```
+
+The last step should generate a `normal_firmware.elf` file, which can be flashed to
+the TimeSwipe board.
+
+### Building on Ubuntu arm64
+
+On a vanilla installation of Ubuntu arm64, the following packages have to be
+installed:
+
+```
+sudo apt update
+sudo apt install gcc-arm-none-eabi cmake git
 ```
 
 You can then clone this repository, if you haven't done that already:
