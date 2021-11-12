@@ -71,7 +71,8 @@ public:
     // Open file.
     if ( (fd_ = ::open(name_.c_str(), O_CREAT | O_RDWR, 0600)) < 0) {
       const auto code = errno;
-      throw Sys_exception{code, std::string{"cannot open file "}.append(name())};
+      throw Sys_exception{code,
+        std::string{"cannot open file "}.append(name())};
     }
 
     // Lock file.
@@ -84,14 +85,14 @@ public:
 
     // Check if process with PID from file exists.
     const auto proc_name = std::string{"/proc/"}.append(read_pid()).append("/exe");
-    if (!::access(proc_name.c_str(), F_OK)) {
+    if (!::access(proc_name.c_str(), F_OK))
       /*
        * Process with PID from file exists, but the corresponding PID file is
        * successfully locked by the current process. Thus, it's okay to truncate
        * it out.
        */
       truncate_pid();
-    }
+
     write_pid();
 
     guard.done = true;

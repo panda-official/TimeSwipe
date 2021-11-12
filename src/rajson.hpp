@@ -48,7 +48,7 @@ struct Enum_conversions {
   {
     const auto result = static_cast<E>(dmitigr::rajson::to<std::underlying_type_t<E>>(value));
     if (!to_literal(result))
-      throw Exception{std::string{"cannot use JSON value that doesn't match any "}
+      throw Exception{std::string{"invalid JSON representation of "}
         .append(Enum_traits<E>::singular_name())};
     return result;
   }
@@ -57,8 +57,8 @@ struct Enum_conversions {
   static auto to_value(const E value, Allocator&)
   {
     if (!to_literal(value))
-      throw Exception{std::string{"cannot convert invalid "}
-        .append(Enum_traits<E>::singular_name()).append(" to JSON value")};
+      throw Exception{std::string{"cannot represent "}
+        .append(Enum_traits<E>::singular_name()).append(" as JSON value")};
     return rapidjson::GenericValue<Encoding, Allocator>(static_cast<int>(value));
   }
 };

@@ -76,12 +76,12 @@ struct Board_settings::Rep final {
     }
   } catch (const rajson::Parse_exception& e) {
     throw Exception{Errc::board_settings_invalid,
-      std::string{"cannot create board settings from JSON text (error near"}
-        .append(" position ").append(std::to_string(e.parse_result().Offset()))
-        .append("): ").append(e.what())};
+      std::string{"cannot parse board settings: error near position "}
+        .append(std::to_string(e.parse_result().Offset())).append(": ")
+        .append(e.what())};
   } catch (const std::exception& e) {
     throw Exception{Errc::board_settings_invalid,
-      std::string{"cannot create board settings from JSON text: "}.append(e.what())};
+      std::string{"invalid board settings: "}.append(e.what())};
   }
 
   Rep(const Rep& rhs)
@@ -196,8 +196,7 @@ struct Board_settings::Rep final {
   void set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values)
   {
     if (!(values.size() == mpc_))
-      throw Exception{"cannot set PWM signal levels (invalid number"
-        " of values)"};
+      throw Exception{"invalid number of PWM signal levels"};
 
     // Ensure all the values are ok before applying them.
     for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i)
@@ -258,15 +257,13 @@ private:
   {
     if (!(Driver::instance().min_channel_gain() <= value &&
         value <= Driver::instance().max_channel_gain()))
-      throw Exception{Errc::board_settings_invalid,
-        "cannot set invalid channel gain"};
+      throw Exception{Errc::board_settings_invalid, "invalid channel gain"};
   }
 
   static void check_pwm_frequency(const int value)
   {
     if (!(1 <= value && value <= 1000))
-      throw Exception{Errc::board_settings_invalid,
-        "cannot set invalid PWM frequency"};
+      throw Exception{Errc::board_settings_invalid, "invalid PWM frequency"};
   }
 
   static void check_pwm_signal_level(const std::pair<int, int>& value)
@@ -274,30 +271,26 @@ private:
     static const auto check_value = [](const int value)
     {
       if (!(0 <= value && value <= 4095))
-        throw Exception{Errc::board_settings_invalid,
-          "cannot set invalid PWM signal level"};
+        throw Exception{Errc::board_settings_invalid, "invalid PWM signal level"};
     };
     const auto low = value.first;
     const auto high = value.second;
     check_value(low);
     check_value(high);
     if (!(low <= high))
-      throw Exception{Errc::board_settings_invalid,
-        R"(cannot set invalid PWM signal level ("low" cannot be greater than "high"))"};
+      throw Exception{Errc::board_settings_invalid, "invalid range of PWM signal level"};
   }
 
   static void check_pwm_repeat_count(const int value)
   {
     if (!(value >= 0))
-      throw Exception{Errc::board_settings_invalid,
-        "cannot set invalid PWM repeat count"};
+      throw Exception{Errc::board_settings_invalid, "invalid PWM repeat count"};
   }
 
   static void check_pwm_duty_cycle(const float value)
   {
     if (!(0 < value && value < 1))
-      throw Exception{Errc::board_settings_invalid,
-        "cannot set invalid PWM duty cycle"};
+      throw Exception{Errc::board_settings_invalid, "invalid PWM duty cycle"};
   }
 
   // ---------------------------------------------------------------------------
@@ -311,8 +304,7 @@ private:
     const F& check_value)
   {
     if (!(values.size() == values_req_size))
-      throw Exception{std::string{"cannot set "}.append(plural)
-        .append(" (invalid number of values)")};
+      throw Exception{std::string{"invalid number of "}.append(plural)};
 
     for (std::size_t i{}; i < values_req_size; ++i)
       check_value(values[i]);
@@ -337,7 +329,7 @@ private:
       return result;
     else
       throw Exception{Errc::board_settings_invalid,
-        std::string{"cannot use invalid set of "}.append(root_name)};
+        std::string{"invalid number of "}.append(root_name)};
   }
 
   template<typename T, typename F>

@@ -161,11 +161,11 @@ public:
 
     const auto coefs_size = std::distance(coefs_first, coefs_last);
     if (up_rate <= 0)
-      throw Exception{"cannot use invalid up rate as FIR resampler option"};
+      throw Exception{"invalid up rate value for FIR resampler"};
     else if (down_rate <= 0)
-      throw Exception{"cannot use invalid down rate as FIR resampler option"};
+      throw Exception{"invalid down rate value for FIR resampler"};
     else if (!coefs_size)
-      throw Exception{"cannot use invalid coefficient interators as FIR resampler options"};
+      throw Exception{"invalid coefficients for FIR resampler"};
 
     // Initial coefficients with padding.
     transposed_coefs_.resize(coefs_size + (up_rate - coefs_size % up_rate));

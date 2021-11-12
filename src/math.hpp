@@ -151,11 +151,10 @@ inline std::vector<double> firls(const int order, std::vector<double> freq, cons
 
   // Final preconditions.
   if (!is_fullband)
-    throw Exception{"cannot calculate FIR filter"
-      " because frequences doesn't represents fullband"};
+    throw Exception{"cannot calculate FIR filter: frequences doesn't "
+      "represents fullband"};
   else if (!is_constant_weights)
-    throw Exception{"cannot calculate FIR filter"
-      " because weights not a constant"};
+    throw Exception{"cannot calculate FIR filter: weights aren't constants"};
 
   // Find the order.
   const int k_size = (filter_length - 1)/2 + 1;

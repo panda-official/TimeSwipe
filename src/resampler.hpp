@@ -64,7 +64,7 @@ public:
   Resampler_options& set_channel_count(const unsigned value)
   {
     if (!(value > 0))
-      throw Exception{"cannot use invalid channel count as resampler option"};
+      throw Exception{"invalid channel count for resampler"};
 
     channel_count_ = value;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
@@ -91,9 +91,9 @@ public:
   Resampler_options& set_up_down(const int up, const int down)
   {
     if (!(up > 0))
-      throw Exception{"cannot use invalid up factor as resampler option"};
+      throw Exception{"invalid up factor for resampler"};
     else if (!(down > 0))
-      throw Exception{"cannot use invalid down factor as resampler option"};
+      throw Exception{"invalid down factor for resampler"};
 
     up_factor_ = up;
     down_factor_ = down;
@@ -177,7 +177,7 @@ public:
   Resampler_options& set_filter_length(const int value)
   {
     if (!(value > 0))
-      throw Exception{"cannot use invalid filter length as resampler option"};
+      throw Exception{"invalid filter length for resampler"};
 
     filter_length_ = value;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
@@ -206,11 +206,11 @@ public:
   Resampler_options& set_freq_ampl(std::vector<double> freq, std::vector<double> ampl)
   {
     if (freq.empty())
-      throw Exception{"cannot use empty freq as resampler option"};
+      throw Exception{"empty freq for resampler"};
     else if (ampl.empty())
-      throw Exception{"cannot use empty ampl as resampler option"};
+      throw Exception{"empty ampl for resampler"};
     else if (freq.size() != ampl.size())
-      throw Exception{"cannot use freq and ampl of different sizes as resampler options"};
+      throw Exception{"freq and ampl of different sizes for resampler"};
 
     freq_ = std::move(freq);
     ampl_ = std::move(ampl);
@@ -358,7 +358,7 @@ public:
       std::clog << "Calculating FIR coefficients...";
       std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
       if (firc.size() > std::numeric_limits<int>::max())
-        throw Exception{"cannot calculate so many FIR coefficients required"};
+        throw Exception{"too many FIR coefficients required"};
       PANDA_TIMESWIPE_ASSERT(static_cast<unsigned>(options_.filter_length()) == firc.size());
       std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
@@ -416,8 +416,8 @@ public:
           break;
         } else if (!(inf < beta && beta < sup))
           throw Exception{"unable to guess shape factor for Kaiser window"
-              " (probably, either up-factor "+std::to_string(options_.up_factor())+
-              " or down-factor "+std::to_string(options_.down_factor())+
+              " (probably, either up factor "+std::to_string(options_.up_factor())+
+              " or down factor "+std::to_string(options_.down_factor())+
               " are exorbitant to handle)"};
 
         prev_beta = beta;
@@ -449,8 +449,8 @@ public:
   Table<T> apply(const Table<T>& table)
   {
     if (table.column_count() != rstates_.size())
-      throw Exception{std::string{"cannot resample table with"}
-        .append(" illegal column count (")
+      throw Exception{std::string{"cannot resample table with "}
+        .append("illegal column count (")
         .append(std::to_string(table.column_count()))
         .append(" instead of ")
         .append(std::to_string(rstates_.size()))

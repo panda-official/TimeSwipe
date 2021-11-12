@@ -143,16 +143,14 @@ public:
           for (std::decay_t<decltype(cal_entries_size)> i{}; i < cal_entries_size; ++i) {
             const rajson::Value_view cal_entry{cal_entries[i]};
             if (!cal_entry.value().IsObject())
-              throw Exception{Errc::calib_data_invalid,
-                "cannot initialize Timeswipe driver by using invalid calibration atom entry"};
+              throw Exception{Errc::calib_data_invalid, "invalid calibration atom entry"};
             const auto slope = cal_entry.mandatory<float>("m");
             const auto offset = cal_entry.mandatory<std::int16_t>("b");
             const hat::atom::Calibration::Entry entry{slope, offset};
             atom.set_entry(i, entry);
           }
         } else
-          throw Exception{Errc::calib_data_invalid,
-            "cannot initialize Timeswipe driver by using invalid calibration data"};
+          throw Exception{Errc::calib_data_invalid, "invalid calibration data"};
       }
       return result;
     }();
@@ -211,7 +209,7 @@ public:
     if (is_measurement_started()) {
       // Check if channel measurement modes setting presents.
       if (settings.channel_measurement_modes())
-        throw Exception{Errc::board_settings_invalid,
+        throw Exception{Errc::board_measurement_started,
           "cannot set board measurement modes when measurement started"};
     }
 
@@ -243,6 +241,14 @@ public:
   void set_driver_settings(const Driver_settings& settings,
     std::unique_ptr<Resampler> resampler)
   {
+    if (is_measurement_started())
+      /*
+       * Currently, there are no driver settings which can be applied when
+       * measurement in progress.
+       */
+      throw Exception{Errc::board_measurement_started,
+        "cannot set driver settings when measurement started"};
+
     const auto srate = settings.sample_rate();
     if (srate)
       set_resampler(*srate, std::move(resampler)); // strong guarantee
@@ -272,12 +278,12 @@ public:
   {
     if (!is_initialized())
       throw Exception{Errc::driver_not_initialized,
-        "cannot start measurement while driver is not initialized"};
+        "cannot start measurement while driver isn't initialized"};
 
     const auto gains = board_settings().channel_gains();
     const auto modes = board_settings().channel_measurement_modes();
     if (!handler)
-      throw Exception{"cannot start measurement by using invalid data handler"};
+      throw Exception{"cannot start measurement with invalid data handler"};
     else if (is_measurement_started())
       throw Exception{Errc::board_measurement_started,
         "cannot start measurement because it's already started"};
@@ -571,27 +577,17 @@ private:
       : driver_{driver}
       , resampler_{std::move(driver_.resampler_)} // store
       , driver_settings_{std::move(driver_.driver_settings_)} // settings
-      , chmm_(driver.max_channel_count())
+      , chmm_{driver_.board_settings().channel_measurement_modes()} // store
     {
-      // Store board settings (input modes).
-      if (const auto modes = driver_.board_settings().channel_measurement_modes())
-        chmm_ = std::move(*modes);
-      else
-        throw Exception{Errc::board_settings_invalid,
-          "channel measurement modes are not available"};
-
       /*
        * Change input modes to `current`.
        * This will cause a "switching oscillation" appears at the output of
        * the measured value, which completely (according to PSpice) decays
        * after 1.5 ms.
        */
-      {
-        auto chmm = chmm_;
-        for (auto& mm : chmm) mm = Measurement_mode::current;
-        driver_.set_board_settings(Board_settings{}
-          .set_channel_measurement_modes(chmm));
-      }
+      driver_.set_settings(Board_settings{}.set_channel_measurement_modes(
+        std::vector<Measurement_mode>(driver.max_channel_count(),
+          Measurement_mode::current)));
 
       std::this_thread::sleep_for(driver_.switching_oscillation_period);
 
@@ -609,15 +605,16 @@ private:
         // Restore driver settings.
         driver_.set_driver_settings(std::move(driver_settings_), std::move(resampler_));
 
-        // Restore board settings (input modes).
-        driver_.set_settings(Board_settings{}.set_channel_measurement_modes(chmm_));
+        // Restore board settings.
+        if (chmm_)
+          driver_.set_settings(Board_settings{}.set_channel_measurement_modes(*chmm_));
       } catch (...) {}
     }
 
     iDriver& driver_;
     decltype(driver_.resampler_) resampler_;
     decltype(driver_.driver_settings_) driver_settings_;
-    std::vector<Measurement_mode> chmm_;
+    std::optional<std::vector<Measurement_mode>> chmm_;
   };
 
   // ---------------------------------------------------------------------------
@@ -965,12 +962,9 @@ private:
   std::unique_ptr<Resampler> set_resampler(const int rate,
     std::unique_ptr<Resampler> resampler = {})
   {
-    PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
-
     const auto max_rate = max_sample_rate();
-    if (!(1 <= rate && rate <= max_rate))
-      throw Exception{"cannot use invalid sample rate"};
-
+    PANDA_TIMESWIPE_ASSERT(1 <= rate && rate <= max_rate);
+    PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
     auto result = std::move(resampler_);
     if (rate != max_rate) {
       const auto rates_gcd = std::gcd(rate, max_rate);

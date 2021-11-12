@@ -60,12 +60,12 @@ struct Driver_settings::Rep final {
     translation_slopes();
   } catch (const rajson::Parse_exception& e) {
     throw Exception{Errc::driver_settings_invalid,
-      std::string{"cannot create driver settings from JSON text (error near"}
-        .append(" position ").append(std::to_string(e.parse_result().Offset()))
-        .append("): ").append(e.what())};
+      std::string{"cannot parse driver settings: error near position "}
+        .append(std::to_string(e.parse_result().Offset())).append(": ")
+        .append(e.what())};
   } catch (const std::exception& e) {
     throw Exception{Errc::driver_settings_invalid,
-      std::string{"cannot create driver settings from JSON text: "}.append(e.what())};
+      std::string{"invalid driver settings: "}.append(e.what())};
   }
 
   Rep(const Rep& rhs)
@@ -158,7 +158,7 @@ struct Driver_settings::Rep final {
   {
     if (!(values.size() == Driver::instance().max_channel_count()))
       throw Exception{Errc::driver_settings_invalid,
-        "cannot set invalid translation offsets"};
+        "invalid number of translation offsets"};
 
     set_member("translationOffsets", values);
   }
@@ -172,7 +172,7 @@ struct Driver_settings::Rep final {
   {
     if (!(values.size() == Driver::instance().max_channel_count()))
       throw Exception{Errc::driver_settings_invalid,
-        "cannot set invalid translation slopes"};
+        "invalid number of translation slopes"};
 
     set_member("translationSlopes", values);
   }
@@ -194,8 +194,7 @@ private:
     if (rate) {
       if (!(Driver::instance().min_sample_rate() <= *rate &&
           *rate <= Driver::instance().max_sample_rate()))
-        throw Exception{Errc::driver_settings_invalid,
-          "cannot set invalid sample rate"};
+        throw Exception{Errc::driver_settings_invalid, "invalid sample rate"};
     }
   }
 
@@ -206,8 +205,7 @@ private:
       const auto misr = static_cast<unsigned>(Driver::instance().min_sample_rate());
       const auto masr = static_cast<unsigned>(Driver::instance().max_sample_rate());
       if (!(misr <= sz && sz <= masr))
-        throw Exception{Errc::driver_settings_invalid,
-          "cannot set invalid burst buffer size"};
+        throw Exception{Errc::driver_settings_invalid, "invalid burst buffer size"};
     }
   }
 
@@ -220,8 +218,7 @@ private:
           "cannot set frequency without sample rate"};
 
       if (!(1 <= *frequency && *frequency <= *srate))
-        throw Exception{Errc::driver_settings_invalid,
-          "cannot set invalid frequency"};
+        throw Exception{Errc::driver_settings_invalid, "invalid frequency"};
     }
   }
 
@@ -238,7 +235,7 @@ private:
       return result;
     else
       throw Exception{Errc::driver_settings_invalid,
-        std::string{"cannot use invalid array "}.append(name)};
+        std::string{"invalid "}.append(name)};
   }
 
   // ---------------------------------------------------------------------------

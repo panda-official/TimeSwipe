@@ -287,8 +287,7 @@ public:
 
       return result;
     }
-    throw Exception{Errc::spi_receive_failed,
-      "cannot receive SPI response"};
+    throw Exception{Errc::spi_receive_failed, "cannot receive SPI response"};
   }
 
 private:
