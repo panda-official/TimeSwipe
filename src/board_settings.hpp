@@ -162,6 +162,9 @@ public:
    * `(values.size() == Driver::instance().max_channel_count()`.
    * `values` must be in range `[Driver::instance().min_channel_gain(), Driver::instance().max_channel_gain()]`.
    *
+   * @warning This setting can be applied with Driver::set_board_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
+   *
    * @see channel_gains().
    */
   Board_settings& set_channel_gains(const std::vector<float>& values);

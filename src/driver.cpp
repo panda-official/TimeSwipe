@@ -211,6 +211,11 @@ public:
       if (settings.channel_measurement_modes())
         throw Exception{Errc::board_measurement_started,
           "cannot set board measurement modes when measurement started"};
+
+      // Check if channel gains setting presents.
+      if (settings.channel_gains())
+        throw Exception{Errc::board_measurement_started,
+          "cannot set board gains when measurement started"};
     }
 
     Board_settings new_settings{board_settings_}; // may throw
