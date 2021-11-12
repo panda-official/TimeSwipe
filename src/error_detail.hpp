@@ -47,7 +47,7 @@ public:
 
   /// @overload
   explicit Generic_exception(const std::string& what)
-    : Generic_exception{Generic_errc::generic, what}
+    : Generic_exception{Errc::generic, what}
   {}
 };
 
@@ -74,7 +74,7 @@ public:
   /// @overload
   Debug_exception(const char* const file, const int line,
     const std::string& what)
-    : Debug_exception{file, line, Generic_errc::generic, what}
+    : Debug_exception{file, line, Errc::generic, what}
   {}
 };
 

@@ -101,8 +101,8 @@ public:
   /**
    * @brief Executes the SPI `request`.
    *
-   * @throws An instance of Exception with either `Generic_errc::spi_send_failed`
-   * or `Generic_errc::spi_receive_failed`.
+   * @throws An instance of Exception with either `Errc::spi_send_failed`
+   * or `Errc::spi_receive_failed`.
    */
   std::string execute(const std::string& request)
   {
@@ -252,7 +252,7 @@ public:
   /**
    * @brief Sends the SPI `request`.
    *
-   * @throws An Exception with Generic_errc::spi_send_failed.
+   * @throws An Exception with Errc::spi_send_failed.
    */
   void send_throw(const std::string& request)
   {
@@ -260,15 +260,15 @@ public:
     fifo += request;
     const auto res = send(fifo);
     if (!res)
-      throw Generic_exception{Generic_errc::spi_send_failed,
+      throw Generic_exception{Errc::spi_send_failed,
         std::string{"cannot send SPI request "}.append(request)};
   }
 
   /**
    * @brief Receives the SPI response.
    *
-   * @throws An Exception with either Generic_errc::spi_receive_failed or
-   * Generic_errc::spi_command_failed.
+   * @throws An Exception with either Errc::spi_receive_failed or
+   * Errc::spi_command_failed.
    */
   std::string receive_throw()
   {
@@ -278,7 +278,7 @@ public:
       result = fifo;
       // If error returned throw exception.
       if (!result.empty() && result[0] == '!')
-        throw Generic_exception{Generic_errc::spi_command_failed,
+        throw Generic_exception{Errc::spi_command_failed,
           std::string{"SPI command failed ("}.append(result).append(")")};
 
       // Strip result.
@@ -287,7 +287,7 @@ public:
 
       return result;
     }
-    throw Generic_exception{Generic_errc::spi_receive_failed,
+    throw Generic_exception{Errc::spi_receive_failed,
       "cannot receive SPI response"};
   }
 

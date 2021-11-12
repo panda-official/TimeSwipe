@@ -22,7 +22,7 @@
 /// Public API.
 namespace panda::timeswipe {
 
-enum class Generic_errc;
+enum class Errc;
 enum class Measurement_mode;
 
 class Exception;

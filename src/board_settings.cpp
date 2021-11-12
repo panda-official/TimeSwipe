@@ -75,12 +75,12 @@ struct Board_settings::Rep final {
       apply(check_pwm_duty_cycle, pwm_duty_cycles());
     }
   } catch (const rajson::Parse_exception& e) {
-    throw Generic_exception{Generic_errc::board_settings_invalid,
+    throw Generic_exception{Errc::board_settings_invalid,
       std::string{"cannot create board settings from JSON text (error near"}
         .append(" position ").append(std::to_string(e.parse_result().Offset()))
         .append("): ").append(e.what())};
   } catch (const std::exception& e) {
-    throw Generic_exception{Generic_errc::board_settings_invalid,
+    throw Generic_exception{Errc::board_settings_invalid,
       std::string{"cannot create board settings from JSON text: "}.append(e.what())};
   }
 
@@ -258,14 +258,14 @@ private:
   {
     if (!(Driver::instance().min_channel_gain() <= value &&
         value <= Driver::instance().max_channel_gain()))
-      throw Generic_exception{Generic_errc::board_settings_invalid,
+      throw Generic_exception{Errc::board_settings_invalid,
         "cannot set invalid channel gain"};
   }
 
   static void check_pwm_frequency(const int value)
   {
     if (!(1 <= value && value <= 1000))
-      throw Generic_exception{Generic_errc::board_settings_invalid,
+      throw Generic_exception{Errc::board_settings_invalid,
         "cannot set invalid PWM frequency"};
   }
 
@@ -274,7 +274,7 @@ private:
     static const auto check_value = [](const int value)
     {
       if (!(0 <= value && value <= 4095))
-        throw Generic_exception{Generic_errc::board_settings_invalid,
+        throw Generic_exception{Errc::board_settings_invalid,
           "cannot set invalid PWM signal level"};
     };
     const auto low = value.first;
@@ -282,21 +282,21 @@ private:
     check_value(low);
     check_value(high);
     if (!(low <= high))
-      throw Generic_exception{Generic_errc::board_settings_invalid,
+      throw Generic_exception{Errc::board_settings_invalid,
         R"(cannot set invalid PWM signal level ("low" cannot be greater than "high"))"};
   }
 
   static void check_pwm_repeat_count(const int value)
   {
     if (!(value >= 0))
-      throw Generic_exception{Generic_errc::board_settings_invalid,
+      throw Generic_exception{Errc::board_settings_invalid,
         "cannot set invalid PWM repeat count"};
   }
 
   static void check_pwm_duty_cycle(const float value)
   {
     if (!(0 < value && value < 1))
-      throw Generic_exception{Generic_errc::board_settings_invalid,
+      throw Generic_exception{Errc::board_settings_invalid,
         "cannot set invalid PWM duty cycle"};
   }
 
@@ -336,7 +336,7 @@ private:
     else if (result.size() == result_size)
       return result;
     else
-      throw Generic_exception{Generic_errc::board_settings_invalid,
+      throw Generic_exception{Errc::board_settings_invalid,
         std::string{"cannot use invalid set of "}.append(root_name)};
   }
 

@@ -62,9 +62,8 @@ public:
    *   - `frequency` - an integer (see frequency());
    *   - `translationOffsets` - an array of integers (see translation_offsets());
    *   - `translationSlopes` - an array of floats (see translation_slopes()).
-   * The exception with code `Generic_errc::driver_settings_invalid` will be
-   * thrown if both `burstBufferSize` and `frequency` are presents in the same
-   * JSON input.
+   * The exception with code `Errc::driver_settings_invalid` will be thrown if
+   * both `burstBufferSize` and `frequency` are presents in the same JSON input.
    *
    * @see to_json_text().
    */

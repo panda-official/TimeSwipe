@@ -29,7 +29,7 @@
 namespace panda::timeswipe {
 
 // -----------------------------------------------------------------------------
-// Generic_errc
+// Errc
 // -----------------------------------------------------------------------------
 
 /**
@@ -37,7 +37,7 @@ namespace panda::timeswipe {
  *
  * @brief Generic error conditions.
  */
-enum class Generic_errc {
+enum class Errc {
   /// Generic error.
   generic = 1,
 
@@ -77,11 +77,10 @@ enum class Generic_errc {
 
 /**
  * @returns The literal representation of the `errc`, or `nullptr`
- * if `errc` does not corresponds to any value defined by Generic_errc.
+ * if `errc` does not corresponds to any value defined by Errc.
  */
-constexpr const char* to_literal(const Generic_errc errc) noexcept
+constexpr const char* to_literal(const Errc errc) noexcept
 {
-  using Errc = Generic_errc;
   switch (errc) {
   case Errc::generic:
     return "generic";
@@ -126,7 +125,7 @@ constexpr const char* to_literal(const Generic_errc errc) noexcept
  * @returns The literal returned by `to_literal(errc)`, or literal
  * `unknown error` if `to_literal(errc)` returned `nullptr`.
  */
-constexpr const char* to_literal_anyway(const Generic_errc errc) noexcept
+constexpr const char* to_literal_anyway(const Errc errc) noexcept
 {
   constexpr const char* unknown{"unknown error"};
   const char* const literal{to_literal(errc)};
@@ -147,7 +146,7 @@ namespace std {
  * @brief Full specialization for integration with `<system_error>`.
  */
 template<>
-struct is_error_condition_enum<panda::timeswipe::Generic_errc> final : true_type {};
+struct is_error_condition_enum<panda::timeswipe::Errc> final : true_type {};
 
 } // namespace std
 
@@ -174,14 +173,14 @@ public:
    * @returns The string that describes the error condition denoted by `ev`.
    *
    * @par Requires
-   * `ev` must corresponds to the value of Generic_errc.
+   * `ev` must corresponds to the value of Errc.
    *
    * @remarks The caller should not rely on the return value as it is a
    * subject to change.
    */
   std::string message(const int ev) const override
   {
-    const char* const desc{to_literal_anyway(static_cast<Generic_errc>(ev))};
+    const char* const desc{to_literal_anyway(static_cast<Errc>(ev))};
     constexpr const char* const sep{": "};
     std::string result;
     result.reserve(std::strlen(name()) + std::strlen(sep) + std::strlen(desc));
@@ -205,7 +204,7 @@ inline const Generic_error_category& generic_error_category() noexcept
  *
  * @returns `std::error_condition(int(errc), generic_error_category())`.
  */
-inline std::error_condition make_error_condition(const Generic_errc errc) noexcept
+inline std::error_condition make_error_condition(const Errc errc) noexcept
 {
   return {static_cast<int>(errc), generic_error_category()};
 }

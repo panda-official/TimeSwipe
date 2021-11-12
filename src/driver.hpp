@@ -51,7 +51,7 @@ public:
    *   - zero indicates "no error";
    *   - positive value indicates the number of data losts;
    *   - negative value indicates the negated error code (some value of
-   *   panda::timeswipe::Generic_errc with the minus sign) in case of fatal
+   *   panda::timeswipe::Errc with the minus sign) in case of fatal
    *   error when the measurement process is about to stop.
    *
    * @see start_measurement().
@@ -362,7 +362,7 @@ public:
    * @param force Forces the reading of references from a filesystem if `true`.
    * Otherwise, the last cached value will be returned.
    *
-   * @throws An Exception with code `Generic_errc::drift_comp_refs_invalid` if
+   * @throws An Exception with code `Errc::drift_comp_refs_invalid` if
    * file `<CWD>/.panda/timeswipe/drift_references` contains a junk.
    *
    * @see calculate_drift_references(), clear_drift_references(), drift_deltas().
