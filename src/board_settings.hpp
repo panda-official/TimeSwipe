@@ -183,6 +183,9 @@ public:
    * @par Requires
    * `(values.size() == Driver::instance().max_channel_count())`.
    *
+   * @warning This setting can be applied with Driver::set_board_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
+   *
    * @see channel_iepes().
    */
   Board_settings& set_channel_iepes(const std::vector<bool>& values);

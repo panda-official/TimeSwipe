@@ -216,6 +216,11 @@ public:
       if (settings.channel_gains())
         throw Exception{Errc::board_measurement_started,
           "cannot set board gains when measurement started"};
+
+      // Check if channel IEPEs setting presents.
+      if (settings.channel_iepes())
+        throw Exception{Errc::board_measurement_started,
+          "cannot set board IEPEs when measurement started"};
     }
 
     Board_settings new_settings{board_settings_}; // may throw
