@@ -259,12 +259,9 @@ public:
       throw Exception{Errc::board_measurement_started,
         "cannot set driver settings when measurement started"};
 
-    const auto srate = settings.sample_rate();
-    if (srate)
-      set_resampler(*srate, std::move(resampler)); // strong guarantee
-
     const auto bbs = settings.burst_buffer_size();
     const auto freq = settings.frequency();
+    const auto srate = settings.sample_rate();
     PANDA_TIMESWIPE_ASSERT(!(bbs && freq));
     if (bbs)
       burst_buffer_size_ = *bbs;
@@ -292,6 +289,7 @@ public:
 
     const auto gains = board_settings().channel_gains();
     const auto modes = board_settings().channel_measurement_modes();
+    const auto srate = driver_settings().sample_rate();
     if (!handler)
       throw Exception{"cannot start measurement with invalid data handler"};
     else if (is_measurement_started())
@@ -303,7 +301,7 @@ public:
     else if (!modes)
       throw Exception{Errc::board_settings_insufficient,
         "cannot start measurement with unspecified channel measurement modes"};
-    else if (!driver_settings().sample_rate())
+    else if (!srate)
       throw Exception{Errc::driver_settings_insufficient,
         "cannot start measurement with unspecified sample rate"};
 
@@ -329,6 +327,9 @@ public:
       new_calibration_slopes[i] = atom.entry(ogain_index).slope();
     }
     calibration_slopes_.swap(new_calibration_slopes); // noexcept
+
+    // Reset resampler.
+    set_resampler(*srate, {}); // strong guarantee
 
     /*
      * Send the command to the firmware to start the measurement.
@@ -976,20 +977,25 @@ private:
     PANDA_TIMESWIPE_ASSERT(1 <= rate && rate <= max_rate);
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
     auto result = std::move(resampler_);
-    if (rate != max_rate) {
-      const auto rates_gcd = std::gcd(rate, max_rate);
-      const auto up = rate / rates_gcd;
-      const auto down = max_rate / rates_gcd;
-      if (resampler) {
-        PANDA_TIMESWIPE_ASSERT(up == resampler->options().up_factor());
-        PANDA_TIMESWIPE_ASSERT(down == resampler->options().down_factor());
-        resampler_ = std::move(resampler);
-      } else
-        resampler_ = std::make_unique<Resampler>(detail::Resampler_options{}
-          .set_channel_count(max_channel_count()).set_up_down(up, down));
-    } else {
-      PANDA_TIMESWIPE_ASSERT(!resampler);
-      resampler_.reset();
+    try {
+      if (rate != max_rate) {
+        const auto rates_gcd = std::gcd(rate, max_rate);
+        const auto up = rate / rates_gcd;
+        const auto down = max_rate / rates_gcd;
+        if (resampler) {
+          PANDA_TIMESWIPE_ASSERT(up == resampler->options().up_factor());
+          PANDA_TIMESWIPE_ASSERT(down == resampler->options().down_factor());
+          resampler_ = std::move(resampler);
+        } else
+          resampler_ = std::make_unique<Resampler>(detail::Resampler_options{}
+            .set_channel_count(max_channel_count()).set_up_down(up, down));
+      } else {
+        PANDA_TIMESWIPE_ASSERT(!resampler);
+        resampler_.reset();
+      }
+    } catch (...) {
+      resampler_.swap(result);
+      throw;
     }
 
     return result;
