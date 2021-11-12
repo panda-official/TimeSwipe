@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_DRIVER_READER_HPP
 
 #include "board.hpp"
+#include "../3rdparty/dmitigr/assert.hpp"
 
 #include <array>
 #include <cstdint>
@@ -188,10 +189,11 @@ private:
     std::this_thread::sleep_for(std::chrono::microseconds(700));
   }
 
-  void Setup()
+  void Init()
   {
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    setup_io();
+    InitBoard();
+    DMITIGR_ASSERT(IsBoardInited());
 #endif
   }
 
@@ -203,14 +205,18 @@ private:
     emul_point_begin_ = std::chrono::steady_clock::now();
     emul_sent_ = 0;
 #else
-    init(mode_);
+    DMITIGR_CHECK(IsBoardInited());
+    StartMeasurement(mode_);
+    DMITIGR_ASSERT(IsMeasurementStarted());
 #endif
   }
 
   void Stop()
   {
 #ifndef PANDA_TIMESWIPE_FIRMWARE_EMU
-    shutdown();
+    DMITIGR_CHECK(IsBoardInited());
+    StopMeasurement();
+    DMITIGR_ASSERT(!IsMeasurementStarted());
 #endif
     read_skip_count_ = kInitialInvalidDataSetsCount;
   }

@@ -6,7 +6,7 @@
 # Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 
 # Set default timeout
-set timeout 20
+set timeout 60
 
 # Set host
 set host [lindex $argv 0]
@@ -29,53 +29,14 @@ proc handle_failure {} {
 
 # Expectations
 expect {
-    "Open On-Chip Debugger" { send "reset halt\r" }
+    "Open On-Chip Debugger" { send "program $image verify\r" }
     timeout "exit 11"
 }
 
 expect {
-    -re "target halted due to debug-request.*xPSR.*\r" { send "reset init\r" }
-    timeout handle_failure
-}
-
-expect {
-    -re "target halted due to debug-request.*xPSR.*\r" { send "atsame5 chip-erase\r" }
-    timeout handle_failure
-}
-
-expect {
-    -re "chip erase started.*\r" {
-        sleep 2
-        send "flash erase_check 0\r"
-    }
-    timeout handle_failure
-}
-
-expect {
-    -re "successfully checked erase state.*\r" {
-        sleep 2
-        send "flash write_image $image\r"
-    }
-    -re "error when checking erase state.*\r" handle_failure
-    timeout handle_failure
-}
-
-expect {
-    -re "wrote \[0-9\]+ bytes from file $image.*\r" {
-        sleep 2
-        send "halt\rflash erase_check 0\r"
-    }
-    -re "error writing to flash.*\r" handle_failure
-    timeout handle_failure
-}
-
-expect {
-    -re "successfully checked erase state" exp_continue
-    -re "error when checking erase state.*\r" handle_failure
-    -re "not erased" {
-        sleep 2
-        send "reset\r"
-    }
+    -re "\\*\\* Verified OK.*\r" { 
+	    sleep 2
+	    send "reset\r"}
     timeout handle_failure
 }
 

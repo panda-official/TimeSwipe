@@ -11,7 +11,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "../common/os.h"
 #include "../common/std_port.h"
 #include "../common/HatsMemMan.h"
-#include "error.hpp"
+#include "../common/version.hpp"
 #include "base/SPIcomm.h"
 #include "base/SAMbutton.h"
 #include "base/DMSchannel.h"
@@ -38,6 +38,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamDACcntr.h"
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
+#include "error.hpp"
 
 using namespace std::placeholders;
 
@@ -78,7 +79,8 @@ try {
         typeBoard ThisBoard=typeBoard::IEPEBoard;
 #endif
 
-        auto pVersion=std::make_shared<CSemVer>(0,0,16);
+        namespace ver = panda::timeswipe::version;
+        auto pVersion=std::make_shared<CSemVer>(ver::major, ver::minor, ver::patch);
 
         CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
 
@@ -105,7 +107,7 @@ try {
         pEEPROM_HAT->EnableIRQs(true);
 
         //set iface:
-        nodeControl &nc=nodeControl::Instance();
+        auto& nc = nodeControl::Instance();
         nc.SetEEPROMiface(pEEPROM_MasterBus, pEEPROM_MemBuf);
         //----------------------------------------------------------
 
@@ -359,10 +361,7 @@ try {
         //--------------------JSON- ---------------------
         auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
         pDisp->Add("js", pJC);
-
         pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*pNC), _1, _2, _3 ) );
-
-       // pJC->AddSubHandler("cAtom", &nodeControl::procCAtom);
 
 //#ifdef CALIBRATION_STATION
 
@@ -377,7 +376,11 @@ try {
         //--------------------------------------------------------------------------------------------------------------
 
 
-        nc.LoadSettings();
+        /*
+         * nodeControl::LoadSettings() activates the persistent
+         * storage handling which is currently broken!
+         */
+        // nc.LoadSettings();
         nc.SetMode(0); //set default mode
 #ifndef CALIBRATION_STATION
         view.BlinkAtStart();

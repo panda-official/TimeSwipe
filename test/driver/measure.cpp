@@ -68,6 +68,20 @@ try {
   ts.SetSampleRate(sample_rate);
   ts.SetBurstSize(sample_rate / frequency);
 
+  ts.onEvent([](const ::TimeSwipeEvent& event)
+  {
+    try {
+      if (event.is<TimeSwipeEvent::Gain>()) {
+        auto gain = event.get<TimeSwipeEvent::Gain>();
+        std::cout << "Gain event: " << gain.value() << std::endl;
+      }
+    } catch (const std::exception& e) {
+      std::clog << "onEvent: " << e.what() << '\n';
+    } catch (...) {
+      std::clog << "onEvent: unknown error\n";
+    }
+  });
+
   // Start TimeSwipe. (Measure.)
   {
     using chrono::duration_cast;

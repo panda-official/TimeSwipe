@@ -80,7 +80,7 @@ set(CMAKE_TOOLCHAIN_FILE "cmake/arm.cmake" CACHE PATH
 # Project
 # ------------------------------------------------------------------------------
 
-file(STRINGS .driver_version driver_version
+file(STRINGS .version version
   LENGTH_MINIMUM 5 LENGTH_MAXIMUM 8 LIMIT_COUNT 1) # ab.cd.ef
 
 # The `software` variable is a helper for substitution/interpolation.
@@ -103,7 +103,7 @@ endif()
 project(panda_timeswipe
   DESCRIPTION "Timeswipe driver"
   HOMEPAGE_URL https://github.com/panda-official/TimeSwipe
-  VERSION ${driver_version}
+  VERSION ${version}
 )
 
 if(CMAKE_CROSSCOMPILING)
@@ -306,15 +306,17 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     cortex_handlers.cpp
     )
 
-  # Third-party stuff
-  foreach(dep Adafruit_NeoPixel)
-    list(TRANSFORM ${dep}_src PREPEND src/3rdparty/${dep}/)
+  # Our stuff
+  set(firmware_src adcdac.hpp error.hpp)
+  list(TRANSFORM firmware_src PREPEND src/firmware/)
+  foreach(dep base control json led misc sam)
+    list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
     list(APPEND firmware_src ${${dep}_src})
   endforeach()
 
-  # Our stuff
-  foreach(dep base control json led misc sam)
-    list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
+  # Third-party stuff
+  foreach(dep Adafruit_NeoPixel)
+    list(TRANSFORM ${dep}_src PREPEND src/3rdparty/${dep}/)
     list(APPEND firmware_src ${${dep}_src})
   endforeach()
 

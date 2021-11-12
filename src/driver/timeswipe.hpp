@@ -33,10 +33,22 @@
 #include <string_view>
 #include <vector>
 
+namespace panda::timeswipe::driver {
+/// A driver version.
+struct Version final {
+  int major{};
+  int minor{};
+  int patch{};
+};
+
+/// @returns The driver version.
+Version version() noexcept;
+} // namespace panda::timeswipe::driver
+
 /**
  * \brief Sensors container
  */
-class SensorsData {
+class SensorsData final {
   static constexpr std::size_t SENSORS = 4;
   using CONTAINER = std::array<std::vector<float>, SENSORS>;
 public:
@@ -136,7 +148,7 @@ class TimeSwipeEventImpl;
 /**
  * TimeSwipe events
  */
-class TimeSwipeEvent {
+class TimeSwipeEvent final {
 public:
 
   /**
@@ -285,11 +297,35 @@ class TimeSwipeImpl;
 /**
  * TimeSwipe interface for Sensor
  */
-class TimeSwipe {
+class TimeSwipe final {
 public:
-  TimeSwipe();
+  /**
+   * The destructor.
+   *
+   * @par Effects
+   * Same as for Stop().
+   */
   ~TimeSwipe();
+
+  /**
+   * Default-constructible.
+   *
+   * @par Effects
+   * Restarts TimeSwipe firmware on very first run!
+   */
+  TimeSwipe();
+
+  /// Move-constructible.
+  TimeSwipe(TimeSwipe&&) = default;
+
+  /// Move-assignable.
+  TimeSwipe& operator=(TimeSwipe&&) = default;
+
+  /// No copy-constructible.
   TimeSwipe(const TimeSwipe&) = delete;
+
+  /// No copy-assignable.
+  TimeSwipe& operator=(const TimeSwipe&) = delete;
 
   /** @enum TimeSwipe::Mode
    *
@@ -337,7 +373,7 @@ public:
    * \brief Board channel index
    *
    */
-  enum class Channel : int {
+  enum class Channel {
     CH1,
     CH2,
     CH3,
@@ -349,7 +385,7 @@ public:
    * @brief The channel measurement mode
    *
    */
-  enum class ChannelMesMode : int {
+  enum class ChannelMesMode {
     Voltage,
     Current
   };
@@ -740,10 +776,7 @@ public:
    */
   bool Stop();
 
-  /*!
-   * \brief TraceSPI
-   * \param val true=on
-   */
+  /// Enables or disables SPI command tracing by using standard error output stream.
   void TraceSPI(bool val);
 
   inline static bool resample_log;

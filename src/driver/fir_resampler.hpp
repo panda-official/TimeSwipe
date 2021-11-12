@@ -10,6 +10,8 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_DRIVER_FIR_RESAMPLER_HPP
 
+#include "../3rdparty/dmitigr/assert.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -157,9 +159,9 @@ public:
     static_assert(std::is_same_v<ItCtg, std::random_access_iterator_tag>);
 
     const auto coefs_size = std::distance(coefs_first, coefs_last);
-    assert(up_rate > 0);
-    assert(down_rate > 0);
-    assert(coefs_size);
+    DMITIGR_ASSERT(up_rate > 0);
+    DMITIGR_ASSERT(down_rate > 0);
+    DMITIGR_ASSERT(coefs_size);
 
     // Initial coefficients with padding.
     transposed_coefs_.resize(coefs_size + (up_rate - coefs_size % up_rate));
@@ -395,7 +397,7 @@ public:
       const auto [xn, xn_1] = extra.size() > 1 ?
         std::make_pair(extra[sz - 1], extra[sz - 2]) :
         std::make_pair(Value{}, extra[sz - 1]);
-      for (auto k = 1; k <= sz; ++k)
+      for (auto k = 0*sz + 1; k <= sz; ++k)
         extra[k - 1] = xn + k*(xn - xn_1);
       break;
     }

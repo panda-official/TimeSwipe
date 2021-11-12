@@ -31,8 +31,7 @@ Copyright (c) 2019-2020 Panda Team
 class CDMSchannel : public CMesChannel
 {
 protected:
-
-    size_t m_nGainIndex=0;
+    std::size_t m_nGainIndex{};
 
     /*!
      * \brief The pointer to the IEPE switch pin
@@ -44,14 +43,15 @@ protected:
      */
     std::shared_ptr<CPGA280> m_pPGA;
 
-    virtual void UpdateOffsets() override;
+public:
+    void UpdateOffsets() override;
 
     /*!
      * \brief Turns IEPEmode on/off
      * \param bHow - true=IEPE mode ON, false=IEPE mode off
      */
-    virtual void IEPEon(bool bHow) override{
-
+    void IEPEon(bool bHow) override
+    {
         m_bIEPEon=bHow;
         m_pIEPEswitch->Set(bHow);
     }
@@ -60,21 +60,18 @@ protected:
      * \brief Sets the measurement mode (Voltage or Current)
      * \param nMode - the measuremnt mode to be set
      */
-    virtual void SetMesMode(mes_mode nMode) override{
-
+    void SetMesMode(mes_mode nMode) override
+    {
         m_MesMode=nMode;
         m_pPGA->SetMode( static_cast<CPGA280::mode>(nMode) );
         UpdateOffsets();
-
     }
 
     /*!
      * \brief Sets the channel amplification gain
      * \param GainValue - the Gain value to be set
      */
-    virtual void SetAmpGain(float GainValue) override;
-
-public:
+    void SetAmpGain(float GainValue) override;
 
     /*!
      * \brief The class constructor
@@ -93,4 +90,3 @@ public:
         m_pPGA=pPGA;
     }
 };
-

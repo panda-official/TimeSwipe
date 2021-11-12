@@ -176,18 +176,18 @@ void SERCOM7_3_Handler(void)
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom)
 {
-	switch(nSercom)
-	{
-		case typeSamSercoms::Sercom0: return SERCOM0;
-		case typeSamSercoms::Sercom1: return SERCOM1;
-		case typeSamSercoms::Sercom2: return SERCOM2;
-		case typeSamSercoms::Sercom3: return SERCOM3;
-		case typeSamSercoms::Sercom4: return SERCOM4;
-		case typeSamSercoms::Sercom5: return SERCOM5;
-		case typeSamSercoms::Sercom6: return SERCOM6;
-		case typeSamSercoms::Sercom7: return SERCOM7;
-	}
-	return nullptr;
+    switch(nSercom)
+    {
+        case typeSamSercoms::Sercom0: return SERCOM0;
+        case typeSamSercoms::Sercom1: return SERCOM1;
+        case typeSamSercoms::Sercom2: return SERCOM2;
+        case typeSamSercoms::Sercom3: return SERCOM3;
+        case typeSamSercoms::Sercom4: return SERCOM4;
+        case typeSamSercoms::Sercom5: return SERCOM5;
+        case typeSamSercoms::Sercom6: return SERCOM6;
+        case typeSamSercoms::Sercom7: return SERCOM7;
+    }
+    return nullptr;
 }
 void CSamSercom::EnableSercomBus(typeSamSercoms nSercom, bool how)
 {
@@ -231,6 +231,3 @@ void CSamSercom::ConnectGCLK(typeSamSercoms nSercom, typeSamCLK nCLK)
        GCLK->PCHCTRL[pind].bit.CHEN=1; //add
     }
 }
-
-
-

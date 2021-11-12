@@ -3,6 +3,7 @@
 #include "resampler.hpp"
 #include "timeswipe.hpp"
 #include "timeswipe_eeprom.hpp"
+#include "../common/version.hpp"
 
 #include "../3rdparty/dmitigr/filesystem.hpp"
 #include "../3rdparty/dmitigr/math.hpp"
@@ -18,6 +19,14 @@
 #include <numeric>
 #include <stdexcept>
 #include <thread>
+
+namespace panda::timeswipe::driver {
+Version version() noexcept
+{
+  namespace ver = version;
+  return {ver::major, ver::minor, ver::patch};
+}
+} // namespace panda::timeswipe::driver
 
 // FIXME!!!
 using namespace panda::timeswipe::driver;
@@ -107,6 +116,8 @@ public:
     if (!pid_file_.Lock(msg))
       // Lock here. Second lock from the same process is allowed.
       throw Exception{Errc::kPidFileLockFailed};
+
+    record_reader_.Init();
   }
 
   void SetMode(const int number)
@@ -469,10 +480,7 @@ private:
     }
 
     clearThreads();
-
-    record_reader_.Setup();
     record_reader_.Start();
-
     started_instance_ = this;
     work_ = true;
     threads_.push_back(std::thread(std::bind(&TimeSwipeImpl::fetcherLoop, this)));

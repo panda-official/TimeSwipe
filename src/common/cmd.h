@@ -28,23 +28,24 @@
 
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 /**
  * @brief An uniform command request descriptor.
  *
- * The processing of all incoming command requests is released by an instance
- * of CCmdDispatcher. The port class that implements the current communication
- * protocol (simple text, binary/specific) transforms an incoming request from
- * a protocol depended form to an uniform request described by the CCmdCallDescr
- * class, where command name in a string format (if presents) denotes hash value,
- * pointers to input/output streams and other service information stored. Then
- * a port calls the method "Call" of CCmdDispatcher by passing CCmdCallDescr as
- * a parameter. CCmdDispatcher handles the incoming request by finding specific
- * command handler in its internal map and invokes that handler. The result of
- * call is stored in the same CCmdCallDescr parameter and hence its further
- * accesible by a port. By adding number of different port instances several
- * communication protocols can be implemented at once.
+ * The processing of all incoming commands is handled by an instance of class
+ * CCmdDispatcher. The implementation of the current communication protocol
+ * (simple text, binary/specific) transforms an incoming request from a protocol
+ * depended form to an uniform request described by the class CCmdCallDescr,
+ * where command name in a string format (if presents) denotes hash value,
+ * pointers to input/output streams and other service information stored.
+ * Implementation then calls method CCmdDispatcher::Call with an object of type
+ * CCmdCallDescr as a parameter. CCmdDispatcher::Call handles it by finding
+ * specific command handler in its internal map and invokes that handler. The
+ * result of call is stored to the passed parameter and hence its further
+ * accesible by a port. By adding number of different port classes communication
+ * protocols can be implemented at once.
  */
 struct CCmdCallDescr {
   /// The command in a string format.
@@ -93,19 +94,8 @@ struct CCmdCallDescr {
 typedef  CCmdCallDescr::cres typeCRes;
 
 /// A command execution exception
-class CCmdException : public std::exception {
-protected:
-  std::string what_;
-
-public:
-  explicit CCmdException(std::string what)
-    : what_{std::move(what)}
-  {}
-
-  const char* what() const noexcept override
-  {
-    return what_.data();
-  }
+class CCmdException final : public std::runtime_error {
+  using runtime_error::runtime_error;
 };
 
 /// A basic class for command handler.
@@ -118,12 +108,12 @@ struct CCmdCallHandler {
   virtual typeCRes Call(CCmdCallDescr& d) = 0;
 };
 
-/// Dispatching table.
-typedef std::map<std::string, std::shared_ptr<CCmdCallHandler>> typeDispTable;
-
 /// A command dispatcher class.
 class  CCmdDispatcher {
 protected:
+  /// Dispatching table.
+  using typeDispTable = std::map<std::string, std::shared_ptr<CCmdCallHandler>>;
+
   typeDispTable m_DispTable;
   typeCRes __Call(CCmdCallDescr &d)
   {
@@ -153,9 +143,9 @@ public:
    * @param pCmdName Command in a string format.
    * @param pHandler A pointer to the command handler object.
    */
-  void Add(const char* pCmdName, const std::shared_ptr<CCmdCallHandler>& pHandler)
+  void Add(const char* pCmdName, const std::shared_ptr<CCmdCallHandler> pHandler)
   {
-    m_DispTable.emplace(pCmdName, pHandler);
+    m_DispTable[pCmdName] = pHandler;
   }
 
   /**
@@ -171,33 +161,35 @@ public:
     typeCRes cres=__Call(d);
     if(d.m_bThrowExcptOnErr) {
       if(typeCRes::obj_not_found == cres)
-        throw CCmdException("obj_not_found!");
+        throw CCmdException{"obj_not_found!"};
       if(typeCRes::fget_not_supported == cres)
-        throw CCmdException(">_not_supported!");
+        throw CCmdException{">_not_supported!"};
       if(typeCRes::fset_not_supported == cres)
-        throw CCmdException("<_not_supported!");
+        throw CCmdException{"<_not_supported!"};
       if(typeCRes::disabled == cres)
-        throw CCmdException("disabled!");
+        throw CCmdException{"disabled!"};
     }
     return cres;
   }
 };
 
 /**
- * @brief A command dispatcher handler for handling an access point "get" and
- * "set" requests via binding to the methods with a corresponding signature of
+ * @brief A command dispatcher handler for handling an access point `get` and
+ * `set` requests via binding to the methods with a corresponding signature of
  * an arbitrary class.
  *
  * @tparam typeClass The type of a class.
  * @tparam typeArg The type of an access point.
  */
 template<typename typeClass, typename typeArg>
-class CCmdSGHandler : public CCmdCallHandler {
+class CCmdSGHandler final : public CCmdCallHandler {
 protected:
-  std::shared_ptr<typeClass> m_pObj;
-  typeArg (typeClass::*m_pGetter)(void);
-  void (typeClass::*m_pSetter)(typeArg val);
+  using Getter = typeArg(typeClass::*)();
+  using Setter = void(typeClass::*)(typeArg);
 
+  std::shared_ptr<typeClass> m_pObj;
+  Getter m_pGetter{};
+  Setter m_pSetter{};
 public:
   /**
    * @brief The class constructor.
@@ -206,34 +198,32 @@ public:
    * @param pSetter An optional pointer to the class method with "set" signature.
    */
   CCmdSGHandler(const std::shared_ptr<typeClass>& pObj,
-    typeArg (typeClass::*pGetter)(void),
-    void (typeClass::*pSetter)(typeArg val) = nullptr)
-  {
-    m_pObj=pObj;
-    m_pGetter=pGetter;
-    m_pSetter=pSetter;
-  }
+    Getter pGetter, Setter pSetter = {})
+    : m_pObj{pObj}
+    , m_pGetter{pGetter}
+    , m_pSetter{pSetter}
+  {}
 
   virtual typeCRes Call(CCmdCallDescr &d)
   {
-    if(d.m_ctype & CCmdCallDescr::ctype::ctSet) { //set
-      if(m_pSetter) {
+    if (d.m_ctype & CCmdCallDescr::ctype::ctSet) { //set
+      if (m_pSetter) {
         typeArg val;
         *(d.m_pIn)>>val;
-        if( d.m_pIn->bad())
+        if (d.m_pIn->bad())
           return typeCRes::parse_err;
 
         (m_pObj.get()->*m_pSetter)(val);
 
         //14.08.2019: feedback
-        if(m_pGetter)
+        if (m_pGetter)
           *(d.m_pOut)<<(m_pObj.get()->*m_pGetter)();
       } else // error
         return typeCRes::fset_not_supported;
     }
 
-    if(d.m_ctype & CCmdCallDescr::ctype::ctGet) {
-      if(m_pGetter)
+    if (d.m_ctype & CCmdCallDescr::ctype::ctGet) {
+      if (m_pGetter)
         *(d.m_pOut)<<(m_pObj.get()->*m_pGetter)();
       else // error
         return typeCRes::fget_not_supported;
