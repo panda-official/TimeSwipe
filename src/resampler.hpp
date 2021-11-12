@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_RESAMPLER_HPP
 
-#include "error_detail.hpp"
+#include "error.hpp"
 #include "fir_resampler.hpp"
 #include "math.hpp"
 #include "table.hpp"
@@ -64,7 +64,7 @@ public:
   Resampler_options& set_channel_count(const unsigned value)
   {
     if (!(value > 0))
-      throw Generic_exception{"cannot use invalid channel count as resampler option"};
+      throw Exception{"cannot use invalid channel count as resampler option"};
 
     channel_count_ = value;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
@@ -91,9 +91,9 @@ public:
   Resampler_options& set_up_down(const int up, const int down)
   {
     if (!(up > 0))
-      throw Generic_exception{"cannot use invalid up factor as resampler option"};
+      throw Exception{"cannot use invalid up factor as resampler option"};
     else if (!(down > 0))
-      throw Generic_exception{"cannot use invalid down factor as resampler option"};
+      throw Exception{"cannot use invalid down factor as resampler option"};
 
     up_factor_ = up;
     down_factor_ = down;
@@ -177,7 +177,7 @@ public:
   Resampler_options& set_filter_length(const int value)
   {
     if (!(value > 0))
-      throw Generic_exception{"cannot use invalid filter length as resampler option"};
+      throw Exception{"cannot use invalid filter length as resampler option"};
 
     filter_length_ = value;
     PANDA_TIMESWIPE_ASSERT(is_invariant_ok());
@@ -206,11 +206,11 @@ public:
   Resampler_options& set_freq_ampl(std::vector<double> freq, std::vector<double> ampl)
   {
     if (freq.empty())
-      throw Generic_exception{"cannot use empty freq as resampler option"};
+      throw Exception{"cannot use empty freq as resampler option"};
     else if (ampl.empty())
-      throw Generic_exception{"cannot use empty ampl as resampler option"};
+      throw Exception{"cannot use empty ampl as resampler option"};
     else if (freq.size() != ampl.size())
-      throw Generic_exception{"cannot use freq and ampl of different sizes as resampler options"};
+      throw Exception{"cannot use freq and ampl of different sizes as resampler options"};
 
     freq_ = std::move(freq);
     ampl_ = std::move(ampl);
@@ -358,7 +358,7 @@ public:
       std::clog << "Calculating FIR coefficients...";
       std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
       if (firc.size() > std::numeric_limits<int>::max())
-        throw Generic_exception{"cannot calculate so many FIR coefficients required"};
+        throw Exception{"cannot calculate so many FIR coefficients required"};
       PANDA_TIMESWIPE_ASSERT(static_cast<unsigned>(options_.filter_length()) == firc.size());
       std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
@@ -382,7 +382,7 @@ public:
           [u](const auto w, const auto c)
           {
             if (const auto val = u * w * c; std::isnan(val))
-              throw Generic_exception{"one of FIR coefficients would be NaN"};
+              throw Exception{"one of FIR coefficients would be NaN"};
             else
               return val;
           });
@@ -415,7 +415,7 @@ public:
           std::clog << prev_beta << "\n";
           break;
         } else if (!(inf < beta && beta < sup))
-          throw Generic_exception{"unable to guess shape factor for Kaiser window"
+          throw Exception{"unable to guess shape factor for Kaiser window"
               " (probably, either up-factor "+std::to_string(options_.up_factor())+
               " or down-factor "+std::to_string(options_.down_factor())+
               " are exorbitant to handle)"};
@@ -449,7 +449,7 @@ public:
   Table<T> apply(const Table<T>& table)
   {
     if (table.column_count() != rstates_.size())
-      throw Generic_exception{std::string{"cannot resample table with"}
+      throw Exception{std::string{"cannot resample table with"}
         .append(" illegal column count (")
         .append(std::to_string(table.column_count()))
         .append(" instead of ")

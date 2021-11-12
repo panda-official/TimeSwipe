@@ -9,7 +9,7 @@
 
 #include "../../src/firmware/json.hpp"
 #include "../../src/driver.hpp"
-#include "../../src/error_detail.hpp"
+#include "../../src/error.hpp"
 #include "../../src/3rdparty/dmitigr/math.hpp"
 
 #include <chrono>

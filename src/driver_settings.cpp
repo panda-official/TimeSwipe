@@ -18,7 +18,7 @@
 
 #include "driver.hpp"
 #include "driver_settings.hpp"
-#include "error_detail.hpp"
+#include "error.hpp"
 #include "rajson.hpp"
 
 namespace rajson = dmitigr::rajson;
@@ -48,7 +48,7 @@ struct Driver_settings::Rep final {
     const auto bbs = burst_buffer_size();
     const auto freq = frequency();
     if (bbs && freq)
-      throw Generic_exception{Errc::driver_settings_invalid,
+      throw Exception{Errc::driver_settings_invalid,
         "cannot set mutually exclusive settings: burstBufferSize, frequency"};
     check_burst_buffer_size(bbs);
     check_frequency(freq, srate);
@@ -59,12 +59,12 @@ struct Driver_settings::Rep final {
     // Check translation slopes.
     translation_slopes();
   } catch (const rajson::Parse_exception& e) {
-    throw Generic_exception{Errc::driver_settings_invalid,
+    throw Exception{Errc::driver_settings_invalid,
       std::string{"cannot create driver settings from JSON text (error near"}
         .append(" position ").append(std::to_string(e.parse_result().Offset()))
         .append("): ").append(e.what())};
   } catch (const std::exception& e) {
-    throw Generic_exception{Errc::driver_settings_invalid,
+    throw Exception{Errc::driver_settings_invalid,
       std::string{"cannot create driver settings from JSON text: "}.append(e.what())};
   }
 
@@ -157,7 +157,7 @@ struct Driver_settings::Rep final {
   void set_translation_offsets(const std::vector<int>& values)
   {
     if (!(values.size() == Driver::instance().max_channel_count()))
-      throw Generic_exception{Errc::driver_settings_invalid,
+      throw Exception{Errc::driver_settings_invalid,
         "cannot set invalid translation offsets"};
 
     set_member("translationOffsets", values);
@@ -171,7 +171,7 @@ struct Driver_settings::Rep final {
   void set_translation_slopes(const std::vector<float>& values)
   {
     if (!(values.size() == Driver::instance().max_channel_count()))
-      throw Generic_exception{Errc::driver_settings_invalid,
+      throw Exception{Errc::driver_settings_invalid,
         "cannot set invalid translation slopes"};
 
     set_member("translationSlopes", values);
@@ -194,7 +194,7 @@ private:
     if (rate) {
       if (!(Driver::instance().min_sample_rate() <= *rate &&
           *rate <= Driver::instance().max_sample_rate()))
-        throw Generic_exception{Errc::driver_settings_invalid,
+        throw Exception{Errc::driver_settings_invalid,
           "cannot set invalid sample rate"};
     }
   }
@@ -206,7 +206,7 @@ private:
       const auto misr = static_cast<unsigned>(Driver::instance().min_sample_rate());
       const auto masr = static_cast<unsigned>(Driver::instance().max_sample_rate());
       if (!(misr <= sz && sz <= masr))
-        throw Generic_exception{Errc::driver_settings_invalid,
+        throw Exception{Errc::driver_settings_invalid,
           "cannot set invalid burst buffer size"};
     }
   }
@@ -216,11 +216,11 @@ private:
   {
     if (frequency) {
       if (!srate)
-        throw Generic_exception{Errc::driver_settings_invalid,
+        throw Exception{Errc::driver_settings_invalid,
           "cannot set frequency without sample rate"};
 
       if (!(1 <= *frequency && *frequency <= *srate))
-        throw Generic_exception{Errc::driver_settings_invalid,
+        throw Exception{Errc::driver_settings_invalid,
           "cannot set invalid frequency"};
     }
   }
@@ -237,7 +237,7 @@ private:
     else if (result->size() == Driver::instance().max_channel_count())
       return result;
     else
-      throw Generic_exception{Errc::driver_settings_invalid,
+      throw Exception{Errc::driver_settings_invalid,
         std::string{"cannot use invalid array "}.append(name)};
   }
 

@@ -8,7 +8,7 @@ Copyright (c) 2019-2020 Panda Team
 //build for ADCs-DACs:
 
 #include "../basics.hpp"
-#include "../error_detail.hpp"
+#include "../error.hpp"
 #include "../hat.hpp"
 #include "../version.hpp"
 #include "cmd.h"
@@ -409,8 +409,6 @@ int main()
       pSamADC0->Update();
       pFanControl->Update();
     }
-  } catch (const panda::timeswipe::detail::Debug_exception& e) {
-    // FIXME: store error code and category to EEPROM.
   } catch (const std::exception& e) {
   } catch (...) {
   }

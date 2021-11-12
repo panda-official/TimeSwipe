@@ -10,7 +10,7 @@
 #ifndef PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
 
-#include "error_detail.hpp"
+#include "error.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -161,11 +161,11 @@ public:
 
     const auto coefs_size = std::distance(coefs_first, coefs_last);
     if (up_rate <= 0)
-      throw Generic_exception{"cannot use invalid up rate as FIR resampler option"};
+      throw Exception{"cannot use invalid up rate as FIR resampler option"};
     else if (down_rate <= 0)
-      throw Generic_exception{"cannot use invalid down rate as FIR resampler option"};
+      throw Exception{"cannot use invalid down rate as FIR resampler option"};
     else if (!coefs_size)
-      throw Generic_exception{"cannot use invalid coefficient interators as FIR resampler options"};
+      throw Exception{"cannot use invalid coefficient interators as FIR resampler options"};
 
     // Initial coefficients with padding.
     transposed_coefs_.resize(coefs_size + (up_rate - coefs_size % up_rate));

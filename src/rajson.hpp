@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_RAJSON_HPP
 
 #include "board_settings.hpp"
-#include "error_detail.hpp"
+#include "error.hpp"
 
 #include "3rdparty/dmitigr/rajson.hpp"
 
@@ -48,7 +48,7 @@ struct Enum_conversions {
   {
     const auto result = static_cast<E>(dmitigr::rajson::to<std::underlying_type_t<E>>(value));
     if (!to_literal(result))
-      throw Generic_exception{std::string{"cannot use JSON value that doesn't match any "}
+      throw Exception{std::string{"cannot use JSON value that doesn't match any "}
         .append(Enum_traits<E>::singular_name())};
     return result;
   }
@@ -57,7 +57,7 @@ struct Enum_conversions {
   static auto to_value(const E value, Allocator&)
   {
     if (!to_literal(value))
-      throw Generic_exception{std::string{"cannot convert invalid "}
+      throw Exception{std::string{"cannot convert invalid "}
         .append(Enum_traits<E>::singular_name()).append(" to JSON value")};
     return rapidjson::GenericValue<Encoding, Allocator>(static_cast<int>(value));
   }

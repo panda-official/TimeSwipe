@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_BCMSPI_HPP
 #define PANDA_TIMESWIPE_BCMSPI_HPP
 
-#include "error_detail.hpp"
+#include "error.hpp"
 #include "spi.hpp"
 #include "synccom.hpp"
 #include "3rdparty/bcm/bcm2835.h"
@@ -71,12 +71,12 @@ public:
 
     /// Initialize BCM.
     if (!is_initialized_ && !(is_initialized_ = bcm2835_init()))
-      throw Generic_exception{"cannot initialize BCM"};
+      throw Exception{"cannot initialize BCM"};
 
     /// Initialize SPI.
     if (!is_spi_initialized_[pins_] && !(is_spi_initialized_[pins_] =
         (pins_ == Pins::spi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
-      throw Generic_exception{"cannot initialize SPI"};
+      throw Exception{"cannot initialize SPI"};
     else
       // Set default rate.
       set_spi_speed(50000);
@@ -260,7 +260,7 @@ public:
     fifo += request;
     const auto res = send(fifo);
     if (!res)
-      throw Generic_exception{Errc::spi_send_failed,
+      throw Exception{Errc::spi_send_failed,
         std::string{"cannot send SPI request "}.append(request)};
   }
 
@@ -278,7 +278,7 @@ public:
       result = fifo;
       // If error returned throw exception.
       if (!result.empty() && result[0] == '!')
-        throw Generic_exception{Errc::spi_command_failed,
+        throw Exception{Errc::spi_command_failed,
           std::string{"SPI command failed ("}.append(result).append(")")};
 
       // Strip result.
@@ -287,7 +287,7 @@ public:
 
       return result;
     }
-    throw Generic_exception{Errc::spi_receive_failed,
+    throw Exception{Errc::spi_receive_failed,
       "cannot receive SPI response"};
   }
 

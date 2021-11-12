@@ -78,7 +78,7 @@ public:
   const Column& column(const Size index) const
   {
     if (!(index < column_count()))
-      detail::throw_exception("cannot get column by invalid index");
+      throw Exception{"cannot get column by invalid index"};
 
     return columns_[index];
   }
@@ -93,9 +93,9 @@ public:
   const Value& value(const Size column, const Size row) const
   {
     if (!(column < column_count()))
-      detail::throw_exception("cannot get value by invalid column index");
+      throw Exception{"cannot get value by invalid column index"};
     else if (!(row < row_count()))
-      detail::throw_exception("cannot get value by invalid row index");
+      throw Exception{"cannot get value by invalid row index"};
 
     return columns_[column][row];
   }
@@ -122,7 +122,7 @@ public:
   void append_emplaced_row(Types&& ... args)
   {
     if (column_count() != sizeof...(args))
-      detail::throw_exception("cannot append table row with invalid number of columns");
+      throw Exception{"cannot append table row with invalid number of columns"};
 
     append_emplaced_row__(std::make_index_sequence<sizeof...(args)>{},
       std::forward<Types>(args)...);
@@ -173,8 +173,8 @@ public:
       columns_ = {}; // prevent UB if instance was moved
       columns_.resize(other.column_count());
     } else if (!(column_count() == other.column_count()))
-      detail::throw_exception("cannot append table rows from table"
-        " with different column count");
+      throw Exception{"cannot append table rows from table"
+        " with different column count"};
 
     const Size cc = column_count();
     const Size in_size = std::min(other.row_count(), count);
@@ -234,8 +234,8 @@ public:
     static_assert(std::is_same_v<std::decay_t<C>, Column>);
 
     if (!(!column_count() || (row_count() == column.size())))
-      detail::throw_exception("cannot append table column"
-        " with different row count");
+      throw Exception{"cannot append table column"
+        " with different row count"};
 
     columns_.push_back(std::forward<C>(column));
   }

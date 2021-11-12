@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_PIDFILE_HPP
 #define PANDA_TIMESWIPE_PIDFILE_HPP
 
-#include "error_detail.hpp"
+#include "error.hpp"
 
 #include <cerrno>
 #include <string>

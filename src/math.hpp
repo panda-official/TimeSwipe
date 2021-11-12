@@ -10,7 +10,7 @@
 #ifndef PANDA_TIMESWIPE_MATH_HPP
 #define PANDA_TIMESWIPE_MATH_HPP
 
-#include "error_detail.hpp"
+#include "error.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -85,7 +85,7 @@ inline double sinc(const double x) noexcept
  * then the vector or size `(order + 2)` will be returned since `firls()` is always
  * uses an even filter order, and thus, initial value of `order` is `(order + 1)`.
  *
- * @throws `Generic_exception` if `freq` doesn't represents fullband.
+ * @throws `Exception` if `freq` doesn't represents fullband.
  */
 inline std::vector<double> firls(const int order, std::vector<double> freq, const std::vector<double>& ampl)
 {
@@ -151,10 +151,10 @@ inline std::vector<double> firls(const int order, std::vector<double> freq, cons
 
   // Final preconditions.
   if (!is_fullband)
-    throw Generic_exception{"cannot calculate FIR filter"
+    throw Exception{"cannot calculate FIR filter"
       " because frequences doesn't represents fullband"};
   else if (!is_constant_weights)
-    throw Generic_exception{"cannot calculate FIR filter"
+    throw Exception{"cannot calculate FIR filter"
       " because weights not a constant"};
 
   // Find the order.

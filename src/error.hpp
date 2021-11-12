@@ -20,11 +20,11 @@
 #define PANDA_TIMESWIPE_ERROR_HPP
 
 #include <cstring> // std::strlen
+#include <exception> // std::terminate
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <system_error>
-#include <type_traits>
-#include <utility>
 
 namespace panda::timeswipe {
 
@@ -216,24 +216,76 @@ inline std::error_condition make_error_condition(const Errc errc) noexcept
 /**
  * @ingroup errors
  *
- * @brief The base exception class.
+ * @brief The generic exception class.
  */
-class Exception : public std::exception {
+class Exception : public std::runtime_error {
 public:
-  /// @returns The what-string.
-  virtual const char* what() const noexcept override = 0;
+  /**
+   * @brief The constructor.
+   *
+   * @param errc The error condition.
+   * @param what The what-string.
+   */
+  Exception(const std::error_condition& errc, const std::string& what)
+    : runtime_error{what}
+    , condition_{errc}
+  {}
+
+  /**
+   * @brief Constructs an instance associated with Errc::generic.
+   *
+   * @param what The what-string.
+   */
+  explicit Exception(const std::string& what)
+    : Exception{Errc::generic, what}
+  {}
 
   /// @returns The error condition.
-  virtual std::error_condition condition() const noexcept = 0;
+  std::error_condition condition() const noexcept
+  {
+    return condition_;
+  }
+
+private:
+  std::error_condition condition_;
 };
 
-namespace detail {
-/// @throws Exception. For use in header-only code (such as templates).
-[[noreturn]] void throw_exception(const std::string& what);
+// -----------------------------------------------------------------------------
+// Sys_exception
+// -----------------------------------------------------------------------------
 
-/// @overload
-[[noreturn]] void throw_exception(std::error_condition errc, const std::string& what);
-} // namespace detail
+/**
+ * @ingroup errors
+ *
+ * @brief An exception thrown on system error.
+ */
+class Sys_exception final : public Exception {
+public:
+  /// The constructor.
+  Sys_exception(const int ev, const std::string& what)
+    : Exception{std::system_category().default_error_condition(ev), what}
+  {}
+};
+
+// -----------------------------------------------------------------------------
+// Macros
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Checks the assertion `a`.
+ *
+ * @details Always active regardless of `NDEBUG`.
+ *
+ * @par Effects
+ * Terminates the process if `!a`.
+ */
+#define PANDA_TIMESWIPE_ASSERT(a) do {                                  \
+    if (!(a)) {                                                         \
+      std::cerr<<"assertion ("<<#a<<") failed at "<<__FILE__<<":"<<__LINE__<<"\n"; \
+      std::terminate();                                                 \
+    }                                                                   \
+  } while (false)
+
 } // namespace panda::timeswipe
 
 #endif  // PANDA_TIMESWIPE_ERROR_HPP

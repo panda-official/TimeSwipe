@@ -8,7 +8,7 @@
 */
 
 #include "../../src/table.hpp"
-#include "../../src/error_detail.hpp"
+#include "../../src/error.hpp"
 
 #include <iostream>
 #include <vector>

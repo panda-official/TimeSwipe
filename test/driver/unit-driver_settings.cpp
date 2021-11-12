@@ -7,7 +7,7 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/error_detail.hpp"
+#include "../../src/error.hpp"
 #include "../../src/driver_settings.hpp"
 
 #include <iostream>
