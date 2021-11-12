@@ -91,7 +91,7 @@ class Sys_exception final : public Generic_exception {
 public:
   /// The constructor.
   Sys_exception(const int ev, const std::string& what)
-    : Generic_exception{{ev, std::system_category()}, what}
+    : Generic_exception{std::system_category().default_error_condition(ev), what}
   {}
 };
 
