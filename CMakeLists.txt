@@ -116,6 +116,10 @@ set(CXX_STANDARD_REQUIRED On)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS Off)
 
+# Parse C++ compiler version.
+dmitigr_get_version(${CMAKE_CXX_COMPILER_VERSION}
+  cxx_version_major cxx_version_minor cxx_version_patch)
+
 # ------------------------------------------------------------------------------
 # Output settings
 # ------------------------------------------------------------------------------
@@ -399,7 +403,8 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   if(NOT CMAKE_CROSSCOMPILING)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
-        find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS /usr/lib/gcc/arm-linux-gnueabihf/8)
+        set(atomic_lib_path "/usr/lib/gcc/arm-linux-gnueabihf/${cxx_version_major}")
+        find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS ${atomic_lib_path})
         if(atomic_lib)
           message("Explicit Linking with atomic library.")
           target_link_libraries(panda_timeswipe PUBLIC ${atomic_lib})
