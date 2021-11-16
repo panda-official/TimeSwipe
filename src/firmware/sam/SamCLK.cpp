@@ -8,7 +8,7 @@ Copyright (c) 2019 Panda Team
 //SAM clocks contol:
 
 #include "SamCLK.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 std::list<CSamCLK *> CSamCLK::m_Clocks;
 bool                 CSamCLK::m_bOcupied[12]={0};
@@ -58,4 +58,3 @@ void CSamCLK::Enable(bool how)
     GCLK->GENCTRL[m_nCLK].bit.GENEN=how ? 1:0;
     WaitSync();
 }
-

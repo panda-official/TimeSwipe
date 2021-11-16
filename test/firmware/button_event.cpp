@@ -5,11 +5,11 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2021 Panda Team
 */
 
-#include "../../src/common/button.h"
-#include "../../src/common/cmd.h"
-#include "../../src/common/os.h"
-#include "../../src/common/std_port.h"
-#include "../../src/common/timer.h"
+#include "../../src/firmware/button.h"
+#include "../../src/firmware/cmd.h"
+#include "../../src/firmware/os.h"
+#include "../../src/firmware/std_port.h"
+#include "../../src/firmware/timer.h"
 #include "../../src/firmware/base/SPIcomm.h"
 #include "../../src/firmware/base/SAMbutton.h"
 #include "../../src/firmware/json/jsondisp.h"

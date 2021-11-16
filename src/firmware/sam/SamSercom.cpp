@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 
 #include "SamSercom.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 
 static CSamSercom *glob_pSC[8]={nullptr};

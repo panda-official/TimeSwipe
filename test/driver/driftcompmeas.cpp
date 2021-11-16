@@ -7,11 +7,11 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/common/json.hpp"
+#include "../../src/firmware/json.hpp"
 #include "../../src/driver.hpp"
+#include "../../src/error.hpp"
 #include "../../src/3rdparty/dmitigr/math.hpp"
 
-#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -20,25 +20,26 @@
 #include <thread>
 
 namespace chrono = std::chrono;
-namespace drv = panda::timeswipe::driver;
 namespace math = dmitigr::math;
+namespace ts = panda::timeswipe;
 
 namespace {
 
-void measure(TimeSwipe& ts, const std::chrono::milliseconds dur)
+void measure(ts::Driver& drv, const std::chrono::milliseconds dur)
 {
-  ts.SetSampleRate(48000);
-  ts.SetBurstSize(48000);
-  constexpr auto channel_count{SensorsData::SensorsSize()};
+  drv.set_settings(std::move(ts::Driver_settings{}.set_sample_rate(48000)
+      .set_burst_buffer_size(48000)));
+  const unsigned channel_count = drv.max_channel_count();
   std::vector<double> aavg(channel_count);
   std::vector<double> astddev(channel_count);
-  ts.Start([&aavg, &astddev, call_count=0](auto data, const auto) mutable
+  drv.start_measurement([&aavg,
+      &astddev, call_count=0, channel_count](auto data, const auto) mutable
   {
-    for (auto i{0*channel_count}; i < channel_count; ++i) {
-      const auto& channel{data[i]};
-      const auto avg{math::avg(channel)};
-      const auto var{math::dispersion(channel, avg, false)};
-      const auto stddev{std::sqrt(var)};
+    for (unsigned i{}; i < channel_count; ++i) {
+      const auto& channel = data.column(i);
+      const auto avg = math::avg(channel);
+      const auto var = math::variance(channel, avg, false);
+      const auto stddev = std::sqrt(var);
       aavg[i] += avg;
       astddev[i] += stddev;
       if (call_count) {
@@ -49,21 +50,20 @@ void measure(TimeSwipe& ts, const std::chrono::milliseconds dur)
     call_count++;
   });
   std::this_thread::sleep_for(dur);
-  const auto stopped = ts.Stop();
-  assert(stopped);
+  drv.stop_measurement();
 
   // Print the results
-  const auto prec{std::cout.precision()};
+  const auto prec = std::cout.precision();
   try {
     std::cout.precision(5 + 4);
     std::cout << "avg: ";
-    for (std::size_t i{}; i < channel_count; ++i) {
+    for (unsigned i{}; i < channel_count; ++i) {
       std::cout << aavg[i];
       if (i < channel_count - 1)
         std::cout << ' ';
     }
     std::cout << "\nstddev: ";
-    for (std::size_t i{}; i < channel_count; ++i) {
+    for (unsigned i{}; i < channel_count; ++i) {
       std::cout << astddev[i];
       if (i < channel_count - 1)
         std::cout << ' ';
@@ -80,8 +80,8 @@ void measure(TimeSwipe& ts, const std::chrono::milliseconds dur)
 
 int main(const int argc, const char* const argv[])
 try {
-  TimeSwipe ts;
-  assert(!ts.IsBusy());
+  auto& driver = ts::Driver::instance().initialize();
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
 
   // Set the measure duration.
   using ms = chrono::milliseconds;
@@ -95,32 +95,28 @@ try {
     nlohmann::json config;
     in >> config;
     if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
-      if (!cs->empty()) {
-        std::string msg;
-        ts.SetSettings(cs->dump(), msg);
-        if(!msg.empty())
-          throw std::invalid_argument{"invalid config: " + msg};
-      }
+      if (!cs->empty())
+        driver.set_settings(ts::Board_settings{cs->dump()});
     }
   }
 
-  if (!ts.DriftReferences()) {
+  if (!driver.drift_references()) {
     // Normally, it means the first program run.
-    const auto refs{ts.CalculateDriftReferences()};
+    const auto refs = driver.calculate_drift_references();
     (void)refs;
-    assert(refs.size() == SensorsData::SensorsSize());
+    PANDA_TIMESWIPE_ASSERT(refs.size() == static_cast<unsigned>(driver.max_channel_count()));
   }
-  assert(ts.DriftReferences());
+  PANDA_TIMESWIPE_ASSERT(driver.drift_references());
 
   // Calculate deltas.
-  assert(!ts.DriftDeltas());
-  auto deltas{ts.CalculateDriftDeltas()};
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
+  auto deltas{driver.calculate_drift_deltas()};
   (void)deltas;
-  assert(deltas.size() == SensorsData::SensorsSize());
-  assert(ts.DriftDeltas());
+  PANDA_TIMESWIPE_ASSERT(deltas.size() == static_cast<unsigned>(driver.max_channel_count()));
+  PANDA_TIMESWIPE_ASSERT(driver.drift_deltas());
 
   // Measure.
-  measure(ts, dur);
+  measure(driver, dur);
 } catch (const std::exception& e) {
   std::clog << "error: " << e.what() << std::endl;
   return 1;

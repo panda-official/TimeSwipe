@@ -6,7 +6,7 @@ Copyright (c) 2019 Panda Team
 */
 //DAC max 5715 impl:
 
-#include "../../common/os.h"
+#include "../os.h"
 #include "DACmax5715.h"
 
 CDac5715sa::CDac5715sa(CSPI *pBus, std::shared_ptr<IPin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax)

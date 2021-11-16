@@ -6,8 +6,8 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "PGA280.h"
-#include "../error.hpp"
-#include "../../common/os.h"
+#include "../../error.hpp"
+#include "../os.h"
 
 bool CPGA280cmdBuf::transfer(CSPI &spi_bus, IPin &CS)
 {
@@ -46,7 +46,7 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
     WriteRegister(reg::soft_reset, 1);
     // FIXME
     // if (!WriteRegister(reg::soft_reset, 1))
-    //   throw Exception{Errc::kGeneric};
+    //   PANDA_TIMESWIPE_THROW(Errc::generic);
     SetMode(mode::Voltage);
     SetIGain(igain::ig_1_8);
     SetOGain(ogain::og1);

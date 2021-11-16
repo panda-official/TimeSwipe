@@ -8,9 +8,9 @@ Copyright (c) 2019-2020 Panda Team
 //build for ADCs-DACs:
 
 #include "cmd.h"
+#include "hat.hpp"
 #include "os.h"
 #include "std_port.h"
-#include "HatsMemMan.h"
 
 #include "base/SPIcomm.h"
 #include "sam/SamSPIbase.h"

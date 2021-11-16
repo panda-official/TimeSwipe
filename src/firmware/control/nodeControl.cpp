@@ -24,97 +24,82 @@ nodeControl::nodeControl()
 
 void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf)
 {
-    m_EEPROMstorage.SetBuf(pMemBuf);
+    m_EEPROMstorage.set_buf(pMemBuf);
     m_pEEPROMbus=pBus;
 
-    if(CHatsMemMan::op_result::OK!=m_EEPROMstorage.Verify()) //image is corrupted
-    {
-        //make default image:
-        m_EEPROMstorage.Reset();
-
-        CHatAtomVendorInfo vinf;
-
-        vinf.m_uuid=CSamService::GetSerial();
-        vinf.m_PID=0;
-        vinf.m_pver=2;
-        vinf.m_vstr="PANDA";
-        vinf.m_pstr="TimeSwipe";
-
-        m_EEPROMstorage.Store(vinf); //storage is ready
+    if (m_EEPROMstorage.verify() != hat::Manager::Op_result::ok) {
+      m_EEPROMstorage.reset();
+      hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
+      m_EEPROMstorage.set(vinf); //storage is ready
     }
 
     //fill blank atoms with the stubs:
-    for(unsigned int i=m_EEPROMstorage.GetAtomsCount(); i<3; i++)
-    {
-        CHatAtomStub stub(i);
-        m_EEPROMstorage.Store( stub );
+    for (int i = m_EEPROMstorage.atom_count(); i < 3; ++i) {
+      hat::atom::Stub stub{i};
+      m_EEPROMstorage.set(stub);
     }
 
-    CHatAtomCalibration cal_data;
-    m_CalStatus=m_EEPROMstorage.Load(cal_data);
-    ApplyCalibrationData(cal_data);
+    hat::Calibration_map map;
+    m_CalStatus = m_EEPROMstorage.get(map);
+    if (m_CalStatus == hat::Manager::Op_result::ok)
+      ApplyCalibrationData(map);
 }
 
-void nodeControl::ApplyCalibrationData(CHatAtomCalibration &Data)
+void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
 {
-    if(!m_bCalEnabled)
-        return;
+  if (!m_bCalEnabled) return;
 
-    if(m_pVoltageDAC){
+  if (m_pVoltageDAC) {
+    const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
+    if (atom.entry_count() != 1) // exactly 1 entry per specification
+      return;
+    const auto& entry = atom.entry(0);
+    m_pVoltageDAC->SetLinearFactors(entry.slope(), entry.offset());
+    m_pVoltageDAC->SetVal();
+  }
 
-        std::string strError;
-        CCalAtomPair cpair;
-        Data.GetCalPair(CCalAtom::atom_type::V_supply, 0, cpair, strError);
-
-        m_pVoltageDAC->SetLinearFactors(cpair.m, cpair.b);
-        m_pVoltageDAC->SetVal();
-    }
-
-    //update all channels:
-    for(auto &el : m_pMesChans) el->UpdateOffsets();
-
+  // Update channels.
+  for (auto &el : m_pMesChans) el->UpdateOffsets();
 }
 
-bool nodeControl::SetCalibrationData(CHatAtomCalibration &Data, std::string &strError)
+bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& strError)
 {
-     m_CalStatus=m_EEPROMstorage.Store(Data);
-     ApplyCalibrationData(Data);
+  m_CalStatus = m_EEPROMstorage.set(map);
+  ApplyCalibrationData(map);
 
-    if(CHatsMemMan::op_result::OK==m_CalStatus)
-    {
-        if(m_pEEPROMbus->send(*m_EEPROMstorage.GetBuf()))
-            return true;
+  if (m_CalStatus == hat::Manager::Op_result::ok) {
+    if (m_pEEPROMbus->send(*m_EEPROMstorage.buf()))
+      return true;
 
-        strError="failed to write EEPROM";
-    }
-    return false;
+    strError="failed to write EEPROM";
+  }
+  return false;
 }
-bool nodeControl::GetCalibrationData(CHatAtomCalibration &Data, std::string &strError)
+
+bool nodeControl::GetCalibrationData(hat::Calibration_map& data, std::string& strError)
 {
-    CHatsMemMan::op_result res=m_EEPROMstorage.Load(Data);
+  using Op_result = hat::Manager::Op_result;
+  if (const auto r = m_EEPROMstorage.get(data);
+    r == Op_result::ok || r == Op_result::atom_not_found)
+    return true;
 
-    if (CHatsMemMan::op_result::OK==res || CHatsMemMan::op_result::atom_not_found==res)
-        return true;
-
-    strError="EEPROM image is corrupted";
-    return false;
+  strError = "EEPROM image is corrupted";
+  return false;
 }
 
 bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
 {
-    CHatAtomCalibration cal_atom;
+    hat::Calibration_map map;
 
     //load existing atom
-    nodeControl &nc=nodeControl::Instance();
-    if(!nc.GetCalibrationData(cal_atom, strError))
-        return false;
+    auto& nc = nodeControl::Instance();
+    if (!nc.GetCalibrationData(map, strError))
+      return false;
 
-    size_t nAtom=jObj["cAtom"];
+    const auto type = hat::atom::Calibration::to_type(jObj["cAtom"], strError);
+    if (!strError.empty()) return false;
 
-    size_t nCalPairs;
-    if(!cal_atom.GetPairsCount(nAtom, nCalPairs, strError))
-        return false;
-
+    const auto cal_entry_count = map.atom(type).entry_count();
 
     //if call type=set
     if(CCmdCallDescr::ctype::ctSet==ct)
@@ -124,45 +109,31 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
         return false;
 #endif
 
-        auto &data=jObj["data"];
-        if(data.size()>nCalPairs)
-        {
-            strError="wrong data count";
-            return false;
+        auto& data = jObj["data"];
+        if (data.size() > cal_entry_count) {
+          strError="wrong data count";
+          return false;
         }
 
-
         size_t pair_ind=0;
-        for(auto &el : data)
-        {
-            CCalAtomPair cpair;
+        for(auto &el : data) {
+          //init the pair:
+          auto entry = map.atom(type).entry(pair_ind);
+          if (!strError.empty()) return false;
 
-            //init the pair:
-            if(!cal_atom.GetCalPair(nAtom, pair_ind, cpair, strError))
-                return false;
+          if (const auto it_m = el.find("m"); it_m != el.end())
+            entry.set_slope(*it_m);
+          if (const auto it_b = el.find("b"); it_b != el.end())
+            entry.set_offset(*it_b);
 
+          map.atom(type).set_entry(pair_ind, std::move(entry));
+          if (!strError.empty()) return false;
 
-            auto it_m=el.find("m");
-            if(it_m!=el.end())
-            {
-                cpair.m=*it_m;
-            }
-
-            auto it_b=el.find("b");
-            if(it_b!=el.end())
-            {
-                cpair.b=*it_b;
-            }
-
-
-            if(!cal_atom.SetCalPair(nAtom, pair_ind, std::move(cpair), strError))
-                return false;
-
-            pair_ind++;
+          pair_ind++;
         }
 
         //save the atom:
-        if(!nc.SetCalibrationData(cal_atom, strError))
+        if(!nc.SetCalibrationData(map, strError))
         {
             //strError="failed to save calibration data";
             return false;
@@ -172,21 +143,16 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     //form the answer:
     //auto resp_data=jResp["data"];//.array();
 
-    auto resp_data=nlohmann::json::array();
-    for(size_t pair_ind=0; pair_ind < nCalPairs; pair_ind++)
-    {
-        CCalAtomPair pair;
-
-        if(!cal_atom.GetCalPair(nAtom, pair_ind, pair, strError))
-            return false;
-
-        //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
-        nlohmann::json jpair;
-        jpair["m"]=pair.m;
-        jpair["b"]=pair.b;
-        resp_data.emplace_back(jpair);
+    auto resp_data = nlohmann::json::array();
+    for (std::size_t i{}; i < cal_entry_count; ++i) {
+      const auto& entry = map.atom(type).entry(i);
+      //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
+      nlohmann::json jpair;
+      jpair["m"]=entry.slope();
+      jpair["b"]=entry.offset();
+      resp_data.emplace_back(jpair);
     }
-    jResp["cAtom"]=nAtom;
+    jResp["cAtom"]=type;
     jResp["data"]=resp_data;
 
     return true;
@@ -218,7 +184,7 @@ void nodeControl::Serialize(CStorage &st)
 
     st.ser(m_GainSetting).ser(m_BridgeSetting).ser(m_SecondarySetting);
 
-    if(st.IsDownloading())
+    if(st.IsImporting())
     {
         SetGain(m_GainSetting);
         SetBridge(m_BridgeSetting);

@@ -23,8 +23,10 @@
 #ifndef DMITIGR_MATH_MATH_HPP
 #define DMITIGR_MATH_MATH_HPP
 
+#include "exceptions.hpp"
 #include "version.hpp"
-#include "../assert.hpp"
+#include "../error/assert.hpp"
+#include "../error/errc.hpp"
 
 #include <utility>
 
@@ -66,7 +68,8 @@ public:
     , min_{std::move(min)}
     , max_{std::move(max)}
   {
-    DMITIGR_CHECK_ARG(min_ <= max_);
+    if (!(min_ <= max_))
+      throw Generic_exception{"interval is invalid (min > max)"};
   }
 
   /**
@@ -80,8 +83,10 @@ public:
     , min_{std::move(min)}
     , max_{std::move(max)}
   {
-    DMITIGR_CHECK_ARG((type_ == Type::closed && min_ <= max_) ||
-      (type_ != Type::closed && min_ < max_));
+    const bool requirement = (type_ == Type::closed && min_ <= max_) ||
+      (type_ != Type::closed && min_ < max_);
+    if (!requirement)
+      throw Generic_exception{"interval is invalid (min > max or min >= max)"};
   }
 
   /// @returns [min, max] interval.
@@ -163,7 +168,7 @@ private:
  * @param data Input data
  */
 template<class Container>
-constexpr double avg(const Container& data) noexcept
+constexpr double avg(const Container& data)
 {
   double result{};
   const auto data_size = data.size();
@@ -173,29 +178,30 @@ constexpr double avg(const Container& data) noexcept
 }
 
 /**
- * @returns A dispersion of values.
+ * @returns A variance of values.
  *
  * @param data Input data.
  * @param avg An average of `data`.
  * @param general Is the `data` represents general population?
  */
 template<class Container>
-constexpr double dispersion(const Container& data, const double avg, const bool general = true) noexcept
+constexpr double variance(const Container& data, const double avg, const bool general = true)
 {
+  const double den = data.size() - !general;
   double result{};
-  const auto data_size = general ? data.size() : data.size() - 1;
   for (const double num : data) {
     const double d = num - avg;
-    result += (d * d) / static_cast<double>(data_size);
+    result += (d / den) * d; // (d * d) / den
   }
+  DMITIGR_ASSERT(result >= 0);
   return result;
 }
 
 /// @overload
 template<class Container>
-constexpr double dispersion(const Container& data, const bool general = true) noexcept
+constexpr double variance(const Container& data, const bool general = true) noexcept
 {
-  return dispersion(data, avg(data), general);
+  return variance(data, avg(data), general);
 }
 
 /// @returns `true` if `number` is a power of 2.
@@ -206,34 +212,38 @@ constexpr bool is_power_of_two(const T number) noexcept
 }
 
 /**
- * @returns The number to add to `size` to
- * get the aligned value by using `alignment`.
+ * @returns The size of padding.
+ *
+ * @param value A value for which a padding need to be calculated.
+ * @param alignment An aligment to calculated the padding.
  *
  * @par Requires
- * `size >= 0 && is_power_of_two(alignment)`.
+ * `(size >= 0 && is_power_of_two(alignment))`.
  */
-template<typename T, typename U>
-constexpr auto padding(const T size, const U alignment)
+template<typename T>
+constexpr auto padding(const T value, const T alignment)
 {
-  DMITIGR_CHECK_ARG(size >= 0);
-  DMITIGR_CHECK_ARG(is_power_of_two(alignment));
-  const auto a = alignment;
-  return (static_cast<T>(0) - size) & static_cast<T>(a - 1);
+  if (!(value >= 0))
+    throw Generic_exception{"cannot calculate padding for a negative value"};
+  else if (!is_power_of_two(alignment))
+    throw Generic_exception{"cannot calculate padding with alignment that is not power of 2"};
+  return (static_cast<T>(0) - value) & static_cast<T>(alignment - 1);
 }
 
 /**
- * @return The value of `size` aligned by using `alignment`.
+ * @returns The value aligned by using `alignment`.
  *
  * @par Requires
- * `size >= 0 && is_power_of_two(alignment)`.
+ * `(value >= 0 && is_power_of_two(alignment))`.
  */
-template<typename T, typename U>
-constexpr T aligned(const T size, const U alignment)
+template<typename T>
+constexpr T aligned(const T value, const T alignment)
 {
-  DMITIGR_CHECK_ARG(size >= 0);
-  DMITIGR_CHECK_ARG(is_power_of_two(alignment));
-  const T a = alignment;
-  return (size + (a - 1)) & -a;
+  if (!(value >= 0))
+    throw Generic_exception{"cannot align a negative value"};
+  else if (!is_power_of_two(alignment))
+    throw Generic_exception{"cannot align a value with alignment that is not power of 2"};
+  return (value + (alignment - 1)) & -alignment;
 }
 
 } // namespace dmitigr::math

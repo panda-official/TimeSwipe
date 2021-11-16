@@ -6,7 +6,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "SamTC.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 CSamTC::CSamTC(typeSamTC nTC)
 {
@@ -82,4 +82,3 @@ Tc *glob_GetTcPtr(typeSamTC nTc)
     }
     return nullptr;
 }
-

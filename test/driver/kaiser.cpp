@@ -7,27 +7,28 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/driver/resampler.hpp"
+#include "../../src/resampler.hpp"
 
 #include <thread>
 #include <vector>
 
 int main()
 {
-  const unsigned thread_count{std::thread::hardware_concurrency()};
+  using namespace panda::timeswipe::detail;
+  const unsigned thread_count = std::thread::hardware_concurrency();
   std::vector<std::thread> threads(thread_count);
-  constexpr unsigned max_factor{500};
-  const auto rest{max_factor % thread_count};
-  const auto step{max_factor / thread_count};
+  constexpr int max_factor{500};
+  const auto rest = max_factor % thread_count;
+  const auto step = max_factor / thread_count;
   for (unsigned i{}; i < thread_count; ++i) {
     const auto r{(i == thread_count - 1) ? rest : 0};
     threads[i] = std::thread{[up_from = step*i + 1, up_to = step * (i + 1) + r]
     {
       for (unsigned up{up_from}; up <= up_to; ++up) {
-        for (unsigned down{1}; down <= max_factor; ++down) {
-          TimeSwipeResamplerOptions opts{up, down};
-          TimeSwipeResampler resampler{std::move(opts)};
-        }
+        Resampler_options options;
+        options.set_channel_count(4);
+        for (unsigned down{1}; down <= max_factor; ++down)
+          Resampler<float> resampler{options.set_up_down(up, down)};
       }
     }};
   }

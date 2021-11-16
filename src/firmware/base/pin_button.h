@@ -14,8 +14,8 @@ Copyright (c) 2019 Panda Team
 *
 */
 
-#include "../../common/button.h"
-#include "../../common/os.h"
+#include "../button.h"
+#include "../os.h"
 
 #define LONG_CLICK_ON_PRESS
 

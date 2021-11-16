@@ -14,9 +14,7 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include "json_base.h"
-//#include "../control/nodeControl.h"
-#include "../../common/cmd.h"
-//#include "../../common/HatsMemMan.h"
+#include "../cmd.h"
 
 #include <map>
 

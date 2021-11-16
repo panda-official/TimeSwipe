@@ -9,7 +9,7 @@ Copyright (c) 2019 Panda Team
 #include "board_type.h"
 #include "DataVis.h"
 #include "View.h"
-#include "../../common/os.h"
+#include "../os.h"
 
 #include <cmath>
 

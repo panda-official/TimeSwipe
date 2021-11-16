@@ -7,7 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 
 #include "PINPWM.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
@@ -110,6 +110,3 @@ void CPinPWM::on_settings_changed()
 void CPinPWM::impl_LoadNextHalfPeriod()
 {
 }
-
-
-

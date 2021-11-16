@@ -9,7 +9,7 @@ Copyright (c) 2019 Panda Team
 
 //unsigned long get_tick_mS(void);
 
-#include "../../common/os.h"
+#include "../os.h"
 
 namespace os{
 void wait(unsigned long time_mS)

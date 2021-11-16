@@ -6,7 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "SPIcomm.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
@@ -16,7 +16,7 @@ void CSPIcomm::IRQhandler()
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
     if(pSPI->INTFLAG.bit.RXC)
     {
-        typeSChar ch=pSPI->DATA.bit.DATA;
+        Character ch=pSPI->DATA.bit.DATA;
         m_ComCntr.proc(ch, m_recFIFO);
         return;
     }
@@ -24,7 +24,7 @@ void CSPIcomm::IRQhandler()
     {
      //  m_bCSactive=true;
        m_recFIFO.reset();
-       m_ComCntr.start(CSyncSerComFSM::FSM::recLengthMSB);
+       m_ComCntr.start(CSyncSerComFSM::State::recLengthMSB);
        pSPI->INTFLAG.bit.SSL=1;
        return;
     }
@@ -58,9 +58,9 @@ void CSPIcomm::OnIRQ3()
 bool CSPIcomm::send(CFIFO &msg)
 {
     //blocking mode:
-    typeSChar ch;
+    Character ch;
     CSyncSerComFSM cntr;
-    cntr.start(CSyncSerComFSM::FSM::sendSilenceFrame);
+    cntr.start(CSyncSerComFSM::State::sendSilenceFrame);
     while(cntr.proc(ch, msg))
     {
        if(!send_char(ch))
@@ -79,10 +79,9 @@ void CSPIcomm::Update()
     //check: thread-safe
     bool bProc=false;
     __disable_irq();
-        if(m_ComCntr.get_state()==CSyncSerComFSM::FSM::recOK)
-        {
+        if (m_ComCntr.state() == CSyncSerComFSM::State::recOK) {
             m_recFIFO.dumpres(m_recFIFOhold);
-            m_ComCntr.start(CSyncSerComFSM::FSM::halted);
+            m_ComCntr.start(CSyncSerComFSM::State::halted);
             bProc=true;
         }
     __enable_irq();
@@ -91,10 +90,9 @@ void CSPIcomm::Update()
     {
         while(m_recFIFOhold.in_avail())
         {
-            typeSChar ch;
+            Character ch;
             m_recFIFOhold>>ch;
             Fire_on_rec_char(ch);
         }
     }
 }
-

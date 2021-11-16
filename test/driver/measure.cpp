@@ -7,8 +7,7 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/driver/timeswipe.hpp"
-#include "../../src/3rdparty/dmitigr/assert.hpp"
+#include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/progpar.hpp"
 
 #include <chrono>
@@ -23,6 +22,7 @@
 namespace chrono = std::chrono;
 namespace fs = std::filesystem;
 namespace progpar = dmitigr::progpar;
+namespace ts = panda::timeswipe;
 
 inline progpar::Program_parameters params;
 
@@ -63,26 +63,18 @@ try {
   if (frequency > sample_rate)
     throw std::runtime_error{"frequency cannot be greater than sample-rate"};
 
-  // Initialize TimeSwipe.
-  TimeSwipe ts;
-  ts.SetSampleRate(sample_rate);
-  ts.SetBurstSize(sample_rate / frequency);
+  // Initialize the driver.
+  auto& driver = ts::Driver::instance().initialize();
+  constexpr auto volt = ts::Measurement_mode::voltage;
+  driver
+    .set_settings(ts::Board_settings{}
+      .set_channel_gains({1.0,1.0,1.0,1.0})
+      .set_channel_measurement_modes({volt,volt,volt,volt}))
+    .set_settings(ts::Driver_settings{}
+      .set_sample_rate(sample_rate)
+      .set_burst_buffer_size(sample_rate / frequency));
 
-  ts.onEvent([](const ::TimeSwipeEvent& event)
-  {
-    try {
-      if (event.is<TimeSwipeEvent::Gain>()) {
-        auto gain = event.get<TimeSwipeEvent::Gain>();
-        std::cout << "Gain event: " << gain.value() << std::endl;
-      }
-    } catch (const std::exception& e) {
-      std::clog << "onEvent: " << e.what() << '\n';
-    } catch (...) {
-      std::clog << "onEvent: unknown error\n";
-    }
-  });
-
-  // Start TimeSwipe. (Measure.)
+  // Start measurement.
   {
     using chrono::duration_cast;
     using Dur = chrono::nanoseconds;
@@ -93,7 +85,7 @@ try {
     std::ofstream log_file;
     std::ofstream elog_file;
 
-    const auto is_started = ts.Start([
+    driver.start_measurement([
         logs_ready = false, &log_file, &elog_file,
         i = 0u, count,
         d = Dur{}, delta = duration_cast<Dur>(seconds{1}) / frequency, duration = duration_cast<Dur>(duration),
@@ -116,10 +108,11 @@ try {
 
       // Write data.
       const auto begin = chrono::system_clock::now();
-      const auto row_count{data.DataSize()};
+      const auto row_count = data.row_count();
+      const auto col_count = data.column_count();
       for (std::size_t row{}; row < row_count; ++row) {
-        for (std::size_t col{}; col < data.SensorsSize(); ++col)
-          log_file << data[col][row] << " ";
+        for (std::size_t col{}; col < col_count; ++col)
+          log_file << data.value(col, row) << " ";
         log_file << "\n";
       }
       if (eco)
@@ -135,19 +128,16 @@ try {
         i++;
         if (i >= count) {
           const std::lock_guard lk{finished_mutex};
-          finish.notify_one();
           finished = true;
+          finish.notify_one();
         } else
           logs_ready = false;
       }
     });
-    if (is_started) {
-      std::unique_lock lk{finished_mutex};
-      finish.wait(lk, [&finished]{ return finished; });
-      if (!ts.Stop())
-        std::cerr << "cannot stop the driver\n";
-    } else
-      throw std::runtime_error{"cannot start the driver"};
+
+    std::unique_lock lk{finished_mutex};
+    finish.wait(lk, [&finished]{ return finished; });
+    driver.stop_measurement();
   }
 
   // Cleanup.

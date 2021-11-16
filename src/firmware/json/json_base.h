@@ -13,7 +13,7 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include "../../common/json.hpp"
+#include "../json.hpp"
 
 /*!
  * \brief A superclass for all JSON-stuff objects

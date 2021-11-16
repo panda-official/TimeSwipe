@@ -17,9 +17,12 @@ Copyright (c) 2019 Panda Team
 #include "../base/BaseMesChannel.h"
 #include "../base/RawBinStorage.h"
 #include "../json/json_evsys.h"
-#include "../../common/HatsMemMan.h"
+#include "../../hat.hpp"
 
 #include <memory>
+
+/// FIXME: remove after placing the entire code base in the namespace
+using namespace panda::timeswipe::detail;
 
 /*!
  * \brief Provides the basic functionality of the board
@@ -90,7 +93,7 @@ protected:
         /*!
          * \brief The external EEPROM storage manager
          */
-        CHatsMemMan    m_EEPROMstorage;
+        hat::Manager    m_EEPROMstorage;
 
         /*!
          * \brief The serial bus used to read/write EEPROM binary image placed in CFIFO
@@ -100,12 +103,12 @@ protected:
         /*!
          * \brief The board calibration status
          */
-        CHatsMemMan::op_result m_CalStatus;
+        hat::Manager::Op_result m_CalStatus;
 
         /*!
          * \brief true when settings are first loaded from the persist storage
          */
-        bool  m_bSettingsLoaded=false;
+        bool  m_bSettingsImported=false;
 
 
         /*!
@@ -200,7 +203,7 @@ protected:
          * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
          * \param Data
          */
-        void ApplyCalibrationData(CHatAtomCalibration &Data);
+        void ApplyCalibrationData(const hat::Calibration_map& map);
 
         /*!
          * \brief JSON handler to store/retrieve calibration atoms.
@@ -240,8 +243,8 @@ public:
             m_bCalEnabled=bHow;
             if(bHow)
             {
-                CHatAtomCalibration cal_data;
-                m_CalStatus=m_EEPROMstorage.Load(cal_data);
+                hat::Calibration_map cal_data;
+                m_CalStatus=m_EEPROMstorage.get(cal_data);
                 ApplyCalibrationData(cal_data);
             }
         }
@@ -332,15 +335,15 @@ public:
 
 
         /*!
-         * \brief Loads all settings from the persist storage. Should be called once at startup
+         * \brief Imports all settings from the persist storage. Should be called once at startup
          */
-        void LoadSettings(){
+        void ImportSettings(){
 
-            if(!m_bSettingsLoaded)
+            if(!m_bSettingsImported)
             {
                 m_PersistStorage.AddItem(this->shared_from_this());
-                m_PersistStorage.Load();
-                m_bSettingsLoaded=true;
+                m_PersistStorage.Import();
+                m_bSettingsImported=true;
             }
         }
 
@@ -482,9 +485,9 @@ public:
          * \brief Returns board calibration status
          * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
          */
-        inline bool GetCalStatus(){
-
-            return (CHatsMemMan::op_result::OK==m_CalStatus);
+        inline bool GetCalStatus()
+        {
+          return m_CalStatus == hat::Manager::Op_result::ok;
         }
 
         /*!
@@ -500,7 +503,7 @@ public:
          * \param strError - the operation error (if occurred)
          * \return true on success, false otherwise (actual error is placed into the strError )
          */
-        bool SetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
+        bool SetCalibrationData(hat::Calibration_map& map, std::string &strError);
 
         /*!
          * \brief Retrieves the calibration data preloaded into the EEPROM image RAM storage
@@ -508,7 +511,7 @@ public:
          * \param strError - the operation error (if occurred)
          * \return true on success, false otherwise (actual error is placed into the strError )
          */
-        bool GetCalibrationData(CHatAtomCalibration &Data, std::string &strError);
+        bool GetCalibrationData(hat::Calibration_map &Data, std::string &strError);
 
         /*!
          * \brief Starts/Stops the board cooler

@@ -6,11 +6,11 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "zerocal_man.h"
-#include "../../common/os.h"
+#include "../os.h"
 
 void CCalMan::Serialize(CStorage &st)
 {
-    bool bSet=st.IsDownloading();
+    bool bSet=st.IsImporting();
     for(auto &ch : m_ChanCal)
     {
         if(st.IsDefaultSettingsOrder())

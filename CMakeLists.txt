@@ -47,9 +47,6 @@ set(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE Off CACHE BOOL
 set(PANDA_TIMESWIPE_FIRMWARE_DMS On CACHE BOOL
   "Build firmware for the DMS board?")
 
-set(PANDA_TIMESWIPE_FIRMWARE_EMU Off CACHE BOOL
-  "Build firmware emulator?")
-
 set(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE Off CACHE BOOL
   "Build firmware as RAM image?")
 
@@ -138,10 +135,6 @@ endif()
 # Targets
 # ------------------------------------------------------------------------------
 
-if(PANDA_TIMESWIPE_FIRMWARE_EMU)
-  add_compile_definitions(PANDA_TIMESWIPE_FIRMWARE_EMU)
-endif()
-
 if(PANDA_TIMESWIPE_FIRMWARE)
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
     set(firmware_subtype "calibration")
@@ -153,9 +146,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   enable_language(ASM)
 
   if(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE)
-    set(linker_script "src/3rdparty/prj_templ/Custom/gcc_RAM.ld")
+    set(linker_script "src/3rdparty/gcc/gcc_RAM.ld")
   else()
-    set(linker_script "src/3rdparty/prj_templ/Custom/gcc.ld")
+    set(linker_script "src/3rdparty/gcc/gcc.ld")
   endif()
 
   add_compile_options(
@@ -184,7 +177,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   # --------------------------------
 
   # 3rdparty
-  set(Adafruit_NeoPixel_src
+  set(adafruit_neopixel_src
     Adafruit_NeoPixel.cpp
     Adafruit_NeoPixel.h
     Adafruit_NeoPixel_stub.h
@@ -242,13 +235,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     View.h
     board_type.h
     nodeControl.h
+    nodeControl.cpp
     rgbacol.h
     )
-  if(NOT PANDA_TIMESWIPE_FIRMWARE_EMU)
-    list(APPEND control_src nodeControl.cpp)
-  else()
-    list(APPEND control_src nodeControl_emu.cpp)
-  endif()
 
   set(json_src
     jsondisp.cpp
@@ -307,7 +296,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     )
 
   # Our stuff
-  set(firmware_src adcdac.hpp error.hpp)
+  set(firmware_src PWM.h Pin.h Storage.h adcdac.hpp button.h cmd.h frm_stream.h
+    json.hpp os.h std_port.h timer.h)
   list(TRANSFORM firmware_src PREPEND src/firmware/)
   foreach(dep base control json led misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
@@ -315,20 +305,19 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   endforeach()
 
   # Third-party stuff
-  foreach(dep Adafruit_NeoPixel)
-    list(TRANSFORM ${dep}_src PREPEND src/3rdparty/${dep}/)
-    list(APPEND firmware_src ${${dep}_src})
-  endforeach()
+  ## Adafruit NeoPixel
+  list(TRANSFORM adafruit_neopixel_src PREPEND src/3rdparty/adafruit/neopixel/)
+  list(APPEND firmware_src ${adafruit_neopixel_src})
 
   add_library(firmware STATIC ${firmware_src})
   target_compile_definitions(firmware PUBLIC
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
 
-    # prj_templ
+    # sam
     __SAME54P20A__
 
-    # Adafruit_NeoPixel
+    # Adafruit NeoPixel
     SAM_BRM __arm__  __SAMD51__  __SAME54P20A__
     )
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
@@ -338,9 +327,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     target_compile_definitions(firmware PUBLIC DMS_BOARD)
   endif()
   target_include_directories(firmware PUBLIC src/firmware
-    PRIVATE
-    src/3rdparty/prj_templ/include
-    src/3rdparty/prj_templ/CMSIS/Include
+    PRIVATE src/3rdparty/cmsis
     )
 
   # -------------------
@@ -357,9 +344,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   list(TRANSFORM firmware_elf_src PREPEND src/firmware/)
 
   # Third-party firmware.elf sources
-  list(APPEND firmware_elf_3rdparty_src
-    prj_templ/Custom/startup_ARMCM4.S
-    )
+  list(APPEND firmware_elf_3rdparty_src gcc/startup_ARMCM4.S)
   list(TRANSFORM firmware_elf_3rdparty_src PREPEND src/3rdparty/)
   list(APPEND firmware_elf_src ${firmware_elf_3rdparty_src})
 
@@ -385,24 +370,26 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # timeswipe target
   # ----------------
 
-  set(timeswipe_src
-    src/driver/timeswipe.cpp
-    src/driver/timeswipe_eeprom.cpp
-    src/driver/timeswipe_event.cpp
-    src/driver/pidfile.cpp
-    src/driver/board_iface.cpp
-    src/driver/RaspberryPi/bcmspi.cpp
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp"
+    @ONLY
+    NEWLINE_STYLE UNIX)
 
-    # BCM
-    src/3rdparty/BCMsrc/bcm2835.c
+  set(timeswipe_src
+    src/board_settings.cpp
+    src/driver.cpp
+    src/driver_settings.cpp
+    src/3rdparty/bcm/bcm2835.c
     )
 
   add_library(panda_timeswipe STATIC ${timeswipe_src})
+
   list(APPEND timeswipe_link_libraries_public pthread)
   dmitigr_append_cppfs(timeswipe_link_libraries_public)
   target_link_libraries(panda_timeswipe
     PUBLIC ${timeswipe_link_libraries_public}
     PRIVATE Boost::boost)
+
   target_compile_definitions(panda_timeswipe PUBLIC
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
@@ -447,13 +434,13 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     FILE panda_timeswipe-config.cmake)
 
   install(FILES
+    src/board_settings.hpp
     src/driver.hpp
+    src/driver_settings.hpp
+    src/error.hpp
+    src/table.hpp
+    src/types_fwd.hpp
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/panda/timeswipe)
-
-  install(FILES
-    src/driver/error.hpp
-    src/driver/timeswipe.hpp
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/panda/timeswipe/driver)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/panda_timeswipe.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
@@ -470,7 +457,9 @@ if(PANDA_TIMESWIPE_TESTS)
   message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
-  set(driver_tests datlog driftcomp driftcompmeas kaiser measure pwm resampler rpispi)
+  set(driver_tests board_settings driver_settings
+    datlog driftcomp driftcompmeas kaiser measure resampler rpispi
+    table)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.
@@ -483,7 +472,7 @@ if(PANDA_TIMESWIPE_TESTS)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
-  set(button_event_extra_sources src/3rdparty/prj_templ/Custom/startup_ARMCM4.S)
+  set(button_event_extra_sources src/3rdparty/gcc/startup_ARMCM4.S)
 
   # Configure the tests from the lists above.
   function(panda_configure_test test)

@@ -20,7 +20,6 @@ function(panda_target_compile_options target)
       -pedantic
       -Wall
       -Wextra
-      -Winline
       -Winit-self
       -Wuninitialized
       -Wmaybe-uninitialized

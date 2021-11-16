@@ -6,7 +6,7 @@
 # Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 
 # Set default timeout
-set timeout 60
+set timeout 120
 
 # Set host
 set host [lindex $argv 0]
@@ -34,9 +34,9 @@ expect {
 }
 
 expect {
-    -re "\\*\\* Verified OK.*\r" { 
-	    sleep 2
-	    send "reset\r"}
+    -re "\\*\\* Verified OK.*\r" {
+        sleep 2
+        send "reset\r"}
     timeout handle_failure
 }
 

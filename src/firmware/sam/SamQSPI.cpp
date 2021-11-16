@@ -8,9 +8,8 @@ Copyright (c) 2019 Panda Team
 //SAM QSPI implementation:
 
 #include "SamQSPI.h"
-#include "../../common/os.h"
-
-#include "sam.h"
+#include "../os.h"
+#include "../../3rdparty/sam/sam.h"
 
 //ctor:
 CSamQSPI::CSamQSPI(bool bAutoCS)
@@ -59,7 +58,7 @@ bool CSamQSPI::send(CFIFO &msg)
 {
     while(msg.in_avail())
     {
-        typeSChar b;
+        Character b;
         msg>>b;
 
         //send:

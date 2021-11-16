@@ -7,8 +7,8 @@
  * file `temp.txt`.
  */
 
-#include "../../src/common/json.hpp"
-#include "../../src/driver/timeswipe.hpp"
+#include "../../src/driver.hpp"
+#include "../../src/firmware/json.hpp"
 
 #include <chrono>
 #include <csignal>
@@ -22,12 +22,14 @@
 
 #include <unistd.h>
 
+namespace ts = panda::timeswipe;
+
 std::function<void(int)> shutdown_handler;
 void signal_handler(int signal) { shutdown_handler(signal); }
 
 void usage(const char* name)
 {
-    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [-- time <runtime>] [--samplerate <hz>] [--log-resample] [--trace-spi]'" << std::endl;
+    std::cerr << "Usage: 'sudo " << name << " [--config <configname>] [--input <input_type>] [--output <outname>] [-- time <runtime>] [--samplerate <hz>] [--trace-spi]'" << std::endl;
     std::cerr << "default for <configname> is ./datlog.json" << std::endl;
     std::cerr << "possible values: PRIMARY NORM DIGITAL. default for <input_type> is the first one from <configname>" << std::endl;
     std::cerr << "if --output given then <outname> created in TSV format" << std::endl;
@@ -43,7 +45,6 @@ int main(int argc, char *argv[])
     std::string input;
     int runtime = 10;
     int samplerate = 48000;
-    bool trace_spi = false;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i],"--config")) {
@@ -81,21 +82,11 @@ int main(int argc, char *argv[])
             }
             samplerate = std::stoi (argv[i+1] );
             ++i;
-        } else if (!strcmp(argv[i],"--log-resample")) {
-            TimeSwipe::resample_log = true;
-        } else if (!strcmp(argv[i],"--trace-spi")) {
-            trace_spi = true;
         } else {
             usage(argv[0]);
             return 1;
         }
     }
-
-    static std::unordered_map<std::string,TimeSwipe::Mode> const modes = {
-        {"PRIMARY",TimeSwipe::Mode::Primary},
-        {"NORM",TimeSwipe::Mode::Norm},
-        {"DIGITAL",TimeSwipe::Mode::Digital},
-    };
 
     std::ifstream iconfigname;
     iconfigname.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -124,124 +115,62 @@ int main(int argc, char *argv[])
     }
 
 
-    TimeSwipe tswipe;
-    tswipe.TraceSPI(trace_spi);
+    auto& driver = ts::Driver::instance().initialize();
 
     // Board Preparation
-    if(!config_script.empty())
-    {
-        //configure the board before start:
-        std::string strErrMsg;
-        tswipe.SetSettings(config_script.dump(), strErrMsg);
-        if(!strErrMsg.empty())
-        {
-            std::cout << "Board configuration error: " << strErrMsg << std::endl;
-        }
-    }
+    ts::Board_settings settings;
+    if (!config_script.empty())
+      settings = ts::Board_settings{config_script.dump()};
 
-
-
-    tswipe.SetMode(modes.at(configitem["MODE"]));
-
-    const auto& offs = configitem["SENSOR_OFFSET"];
-    tswipe.SetSensorOffsets(offs[0], offs[1], offs[2], offs[3]);
-
-    const auto& gains = configitem["SENSOR_GAIN"];
-    tswipe.SetSensorGains(gains[0], gains[1], gains[2], gains[3]);
-
-    const auto& trans = configitem["SENSOR_TRANSMISSION"];
-    tswipe.SetSensorTransmissions(trans[0], trans[1], trans[2], trans[3]);
-
+    driver.set_settings(settings);
 
     // Board Shutdown on signals
 
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
     shutdown_handler = [&](int /*signal*/) {
-        tswipe.Stop();
+        driver.stop_measurement();
         exit(1);
     };
 
-
-    bool ret = tswipe.onEvent([&](TimeSwipeEvent&& event) {
-        if (event.is<TimeSwipeEvent::Button>()) {
-            auto button = event.get<TimeSwipeEvent::Button>();
-            std::cout << "Button event: " <<  (button.pressed() ? "pressed":"released") << " counter: " << button.count() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Gain>()) {
-            auto val = event.get<TimeSwipeEvent::Gain>();
-            std::cout << "Gain event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::SetSecondary>()) {
-            auto val = event.get<TimeSwipeEvent::SetSecondary>();
-            std::cout << "SetSecondary event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Bridge>()) {
-            auto val = event.get<TimeSwipeEvent::Bridge>();
-            std::cout << "Bridge event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Record>()) {
-            auto val = event.get<TimeSwipeEvent::Record>();
-            std::cout << "Record event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Offset>()) {
-            auto val = event.get<TimeSwipeEvent::Offset>();
-            std::cout << "Offset event: " <<  val.value() << std::endl;
-        } else if(event.is<TimeSwipeEvent::Mode>()) {
-            auto val = event.get<TimeSwipeEvent::Mode>();
-            std::cout << "Mode event: " <<  val.value() << std::endl;
+    // Start measurement.
+    unsigned total_row_count{};
+    driver.set_settings(ts::Driver_settings{}
+      .set_sample_rate(samplerate).set_burst_buffer_size(samplerate))
+      .start_measurement([&](const auto records, const int error_marker) {
+        if (error_marker < 0) {
+          std::clog << "Got fatal error " << -error_marker << "\n";
+          return;
+        } else if (error_marker > 0) {
+          std::cout << "Got errors count " << error_marker << "\n";
+          return;
         }
-    });
-    if (!ret) {
-        std::cerr << "onEvent init failed" << std::endl;
-        return 1;
-    }
-
-    ret = tswipe.onError([&](uint64_t errors) {
-        std::cout << "Got errors: " << errors << std::endl;
-    });
-    if (!ret) {
-        std::cerr << "onError init failed" << std::endl;
-        return 1;
-    }
-
-    tswipe.SetSampleRate(samplerate);
-    tswipe.SetBurstSize(samplerate);
-
-
-
-    // Board Start
-    int counter = 0;
-    ret = tswipe.Start([&](auto&& records, uint64_t /*errors*/) {
-        counter += records.DataSize();
-            for (size_t i = 0; i < records.DataSize(); i++) {
-                if (i == 0) {
-                    for (size_t j = 0; j < records.SensorsSize(); j++) {
-                        if (j != 0) std::cout << "\t";
-                        std::cout << records[j][i];
-                    }
-                    std::cout << '\n';
-                }
-                if (dump) {
-                    for (size_t j = 0; j < records.SensorsSize(); j++) {
-                        if (j != 0) data_log << "\t";
-                        data_log << records[j][i];
-                    }
-                    data_log << '\n';
-                }
+        const auto col_count = records.column_count();
+        const auto row_count = records.row_count();
+          total_row_count += row_count;
+        for (size_t i = 0; i < row_count; i++) {
+          if (i == 0) {
+            for (size_t j = 0; j < col_count; j++) {
+              if (j != 0) std::cout << "\t";
+              std::cout << records.value(j, i);
             }
-    });
-    if (!ret) {
-        std::cerr << "timeswipe start failed" << std::endl;
-        return -1;
-    }
+            std::cout << '\n';
+          }
+          if (dump) {
+            for (size_t j = 0; j < col_count; j++) {
+              if (j != 0) data_log << "\t";
+              data_log << records.value(j, i);
+            }
+            data_log << '\n';
+          }
+        }
+      });
 
-    auto start = std::chrono::system_clock::now();
-    std::this_thread::sleep_for(std::chrono::seconds(runtime));
-
-    // Board Stop
-    if (!tswipe.Stop()) {
-        std::cerr << "timeswipe stop failed" << std::endl;
-        return -1;
-    }
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<float> diff = end - start;
-    std::cout << "time: " << diff.count() << "s records: " << counter << " rec/sec: " << counter / diff.count() << "\n";
-
-    return 0;
+    const auto start_moment = std::chrono::system_clock::now();
+    std::this_thread::sleep_for(std::chrono::seconds{runtime});
+    driver.stop_measurement();
+    const auto end_moment = std::chrono::system_clock::now();
+    const std::chrono::duration<float> duration = end_moment - start_moment;
+    std::cout << "time: " << duration.count() << "s records: " << total_row_count
+              << " rec/sec: " << total_row_count / duration.count() << std::endl;
 }

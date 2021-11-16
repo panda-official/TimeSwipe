@@ -7,9 +7,8 @@ Copyright (c) 2019 Panda Team
 
 
 #include "SamI2CeepromMaster.h"
-#include "../../common/os.h"
-
-#include "sam.h"
+#include "../os.h"
+#include "../../3rdparty/sam/sam.h"
 
 //#define EEPROM_8BIT_ADDR
 
@@ -471,7 +470,7 @@ int CSamI2CeepromMaster::readB()
     if(0==m_pBuf->in_avail())
         return -1;
 
-    typeSChar ch;
+    Character ch;
     (*m_pBuf)>>ch;
     return ch;
 }
@@ -484,7 +483,7 @@ int CSamI2CeepromMaster::writeB(int val)
         if(0==m_pBuf->in_avail())
             return -1;
 
-        typeSChar ch;
+        Character ch;
         (*m_pBuf)>>ch;
         if(ch!=val)
         {

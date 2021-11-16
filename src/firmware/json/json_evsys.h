@@ -13,10 +13,11 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include <vector>
-#include <memory>
+#include "../cmd.h"
 #include "json_base.h"
 
+#include <memory>
+#include <vector>
 
 /*!
  * \brief A callback interface used to notify the derived class that a JSON event happened
@@ -104,7 +105,6 @@ public:
 
 };
 
-#include "../../common/cmd.h"
 /*!
  * \brief The "je" command dispatcher and holder of the last JSON events
  * \details Please, see CommunicationProtocol.md and EventSysytem.md for details.

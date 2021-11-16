@@ -1,13 +1,13 @@
-![](https://github.com/panda-official/TimeSwipe/workflows/Build%20Linux%20Packages/badge.svg)
+![](https://github.com/panda-official/timeswipe/workflows/Build%20Linux%20Packages/badge.svg)
 
-# PANDA TimeSwipe Driver and Firmware
+# PANDA Timeswipe driver and firmware
 
-The [releases section](https://github.com/panda-official/TimeSwipe/releases)
+The [releases section](https://github.com/panda-official/timeswipe/releases)
 contains pre-built driver for both ARM32 and ARM64 architectures.
 
 ## Documentation
 
-[Driver API](https://panda-official.github.io/TimeSwipe/index.html)
+[Driver API](https://panda-official.github.io/timeswipe/index.html)
 
 ### General documentation
 
@@ -22,7 +22,7 @@ contains pre-built driver for both ARM32 and ARM64 architectures.
 
 ## Versioning
 
-Both TimeSwipe Driver and Firmware follows [semantic versioning 2.0.0][semver].
+Both Timeswipe driver and firmware follows [semantic versioning 2.0.0][semver].
 Compatibility is defined by major version numbers, i.e. driver and firmware are
 compatible if theirs major version numbers are equal.
 

@@ -7,8 +7,8 @@ Copyright (c) 2019 Panda Team
 
 
 #include "nodeLED.h"
-#include "../../common/os.h"
-#include "../../3rdparty/Adafruit_NeoPixel/Adafruit_NeoPixel.h"
+#include "../os.h"
+#include "../../3rdparty/adafruit/neopixel/Adafruit_NeoPixel.h"
 
 #include <random>
 

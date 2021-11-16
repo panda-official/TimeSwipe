@@ -23,7 +23,7 @@ enum class typeSamSercoms : int {Sercom0=0, Sercom1, Sercom2, Sercom3, Sercom4, 
  */
 enum class typeSamSercomIRQs : int {IRQ0=0, IRQ1, IRQ2, IRQ3};
 
-#include "../../common/Serial.h"
+#include "../../serial.hpp"
 #include "SamCLK.h"
 
 extern "C"{

@@ -12,14 +12,15 @@ Copyright (c) 2019 Panda Team
  * be printed on `stdout`. `Ctrl + c` exits the application.
  */
 
-#include "../../src/common/Serial.h"
-#include "../../src/driver/RaspberryPi/bcmspi.h"
+#include "../../src/bcmspi.hpp"
 
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
+
+namespace ts = panda::timeswipe;
 
 class CNixConsole final : public CSerial {
 public:
@@ -50,12 +51,12 @@ public:
     return true;
   }
 
-  bool send(typeSChar)
+  bool send(Character)
   {
     return false;
   }
 
-  bool receive(typeSChar&)
+  bool receive(Character&)
   {
     return false;
   }
@@ -71,7 +72,7 @@ int main ( int argc, char *argv[] )
       nSPI = std::stoi(argv[1]);
         if ( 0 != nSPI && 1 != nSPI && 2 != nSPI )
         {
-            std::cout << "Wrong SPI number: must be 0 or 1! Use 2 for SPI1 in Slave mode!" << std::endl;
+            std::cout << "Wrong SPI number: must be 0 or 1! Use 2 for AUX in Slave mode!" << std::endl;
             return 0;
         }
     }
@@ -94,10 +95,10 @@ int main ( int argc, char *argv[] )
 
     if ( bMasterMode )
     {
-
-        CBcmSPI spi ( nSPI ? CBcmLIB::iSPI::SPI1 : CBcmLIB::iSPI::SPI0 );
-
-        if ( !spi.is_initialzed ( ) )
+        using ts::detail::Bcm_spi;
+        Bcm_spi spi;
+        spi.initialize(nSPI ? Bcm_spi::Pins::aux : Bcm_spi::Pins::spi0);
+        if (!spi.is_initialized())
         {
             std::cout << "Failed to initialize BCM SPI-" << nSPI << "Master. Try using sudo!" << std::endl;
             return 0;
@@ -121,12 +122,12 @@ int main ( int argc, char *argv[] )
                     }
                     else
                     {
-                      switch ( spi.m_ComCntr.get_state ( ) )
+                      switch ( spi.fsm_state() )
                         {
-                        case CSyncSerComFSM::errLine:
+                        case CSyncSerComFSM::State::errLine:
                           std::cout << "!Line_err!";
                           break;
-                        case CSyncSerComFSM::errTimeout:
+                        case CSyncSerComFSM::State::errTimeout:
                           std::cout << "!Timeout_err!";
                           break;
                         default: break;

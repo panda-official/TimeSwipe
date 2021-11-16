@@ -6,7 +6,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "SAMbutton.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 //#define TIME_SWIPE_BRD_V0
 
@@ -36,18 +36,13 @@ bool SAMButton::IsButtonLEDon()
 }
 
 
-bool SAMButton::impl_get_signal(void){
-
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-        return is_key_pressed();
+bool SAMButton::impl_get_signal(void)
+{
+#ifdef TIME_SWIPE_BRD_V0
+  return ( (PORT->Group[0].IN.reg) & (1L<<16) ) ? false:true; //this is the right one for the PandaBoard! 24.04.2019
 #else
-    #ifdef TIME_SWIPE_BRD_V0
-         return ( (PORT->Group[0].IN.reg) & (1L<<16) ) ? false:true; //this is the right one for the PandaBoard! 24.04.2019
-    #else
-         return ( (PORT->Group[0].IN.reg) & (1L<<18) ) ? false:true;
-    #endif
+  return ( (PORT->Group[0].IN.reg) & (1L<<18) ) ? false:true;
 #endif
-
 }
 
 void SAMButton::impl_on_state_changed(typeButtonState nState)

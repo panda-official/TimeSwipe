@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 
 #include "SamI2Cmem.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)
@@ -54,8 +54,8 @@ CSamI2Cmem::CSamI2Cmem(typeSamSercoms nSercom) : CSamSercom(nSercom)
 }
 bool CSamI2Cmem::send(CFIFO &msg){ return false;}
  bool CSamI2Cmem::receive(CFIFO &msg){return false;}
- bool CSamI2Cmem::send(typeSChar ch){return false;}
- bool CSamI2Cmem::receive(typeSChar &ch){return false;}
+ bool CSamI2Cmem::send(Character ch){return false;}
+ bool CSamI2Cmem::receive(Character &ch){return false;}
 
 //IRQ handling:
 void CSamI2Cmem::IRQhandler()
@@ -206,4 +206,3 @@ void CSamI2Cmem::set_addr_L(int addr)
 {
     m_nMemCurInd+=addr;
 }
-

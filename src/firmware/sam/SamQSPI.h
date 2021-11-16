@@ -12,8 +12,8 @@ Copyright (c) 2019 Panda Team
 */
 
 #pragma once
-#include "../../common/Pin.h"
-#include "../../common/SPI.h"
+#include "../Pin.h"
+#include "../../spi.hpp"
 
 /*!
  * \brief An implementation of SAM E54 QSPI bus

@@ -13,8 +13,8 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include "../../common/frm_stream.h"
-#include "../../common/json.hpp"
+#include "../frm_stream.h"
+#include "../json.hpp"
 
 /*!
  * \brief A JSON-based formatted stream

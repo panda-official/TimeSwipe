@@ -8,9 +8,8 @@ Copyright (c) 2019 Panda Team
 //SAM DAC controller class impl:
 
 #include "SamDACcntr.h"
-#include "../../common/os.h"
-
-#include "sam.h"
+#include "../os.h"
+#include "../../3rdparty/sam/sam.h"
 
 #define GCLK_DAC   42
 

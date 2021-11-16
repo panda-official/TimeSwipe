@@ -1,5 +1,5 @@
 #include "I2Cmem8Pin.h"
-#include "sam.h"
+#include "../../3rdparty/sam/sam.h"
 
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)

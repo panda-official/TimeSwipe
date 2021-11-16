@@ -5,22 +5,19 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "../../common/gain.hpp"
-#include "../../common/HatsMemMan.h"
-#include "base/DMSchannel.h"
-#include "control/nodeControl.h"
-
-/// FIXME: namespace
-using namespace panda::timeswipe;
+#include "../../basics.hpp"
+#include "../../hat.hpp"
+#include "../control/nodeControl.h"
+#include "DMSchannel.h"
 
 void CDMSchannel::SetAmpGain(const float GainValue)
 {
-    const auto index = OgainTableIndex(GainValue);
+    const auto index = gain::ogain_table_index(GainValue);
     const auto igain = static_cast<CPGA280::igain>(index / 2);
     const auto ogain = static_cast<CPGA280::ogain>(index % 2);
     if (m_pPGA->SetGains(igain, ogain)) {
         m_nGainIndex = index;
-        m_ActualAmpGain = ogain_table[index];
+        m_ActualAmpGain = gain::ogain_table[index];
         UpdateOffsets();
     }
 }
@@ -31,11 +28,13 @@ void CDMSchannel::UpdateOffsets()
         return;
 
     std::string strError;
-    CHatAtomCalibration cdata;
-    m_pCont->GetCalibrationData(cdata, strError);
+    hat::Calibration_map cmap;
+    m_pCont->GetCalibrationData(cmap, strError);
 
-    CCalAtomPair pair;
-    const auto atom = mes_mode::Voltage == m_MesMode ? CCalAtom::atom_type::V_In1 : CCalAtom::atom_type::C_In1;
-    cdata.GetCalPair(atom + static_cast<std::size_t>(m_nChanInd), m_nGainIndex, pair, strError);
-    m_pDAC->SetRawOutput(pair.b);
+    using Type = hat::atom::Calibration::Type;
+    const auto atom = mes_mode::Voltage == m_MesMode ? Type::v_in1 : Type::c_in1;
+    const hat::atom::Calibration::Type type{static_cast<std::uint16_t>(atom) +
+      static_cast<std::uint16_t>(m_nChanInd)};
+    const auto& entry = cmap.atom(type).entry(m_nGainIndex);
+    m_pDAC->SetRawOutput(entry.offset());
 }

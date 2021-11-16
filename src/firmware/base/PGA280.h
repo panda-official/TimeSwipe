@@ -14,8 +14,8 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "../../common/SPI.h"
-#include "../../common/Pin.h"
+#include "../../spi.hpp"
+#include "../Pin.h"
 
 #include <cstdint>
 #include <vector>
@@ -96,7 +96,7 @@ public:
         uint8_t CHKsum=0x9B;
 
         size_t nSend;
-        typeSChar frame[4]={m_Command|m_Addr, 0, 0, 0};
+        Character frame[4]={m_Command|m_Addr, 0, 0, 0};
         if(m_TBUF)
         {
             frame[0]|=cmd::tbuf;
@@ -162,7 +162,7 @@ public:
             return false;
 
         //pop the buffer data:
-        typeSChar frame[4];
+        Character frame[4];
         for(int i=0; i<m_CmdLen; i++)
             istr>>frame[i];
 

@@ -8,10 +8,10 @@
 */
 
 #include "../../src/driver.hpp"
+#include "../../src/error.hpp"
 #include "../../src/3rdparty/dmitigr/filesystem.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -19,7 +19,7 @@
 #include <thread>
 
 namespace chrono = std::chrono;
-namespace drv = panda::timeswipe::driver;
+namespace ts = panda::timeswipe;
 
 namespace {
 
@@ -30,60 +30,60 @@ void log(const std::vector<float>& data)
   std::clog << std::endl;
 }
 
-void measure(TimeSwipe& ts, const std::filesystem::path& logfile)
+void measure(ts::Driver& ts, const std::filesystem::path& logfile)
 {
-  ts.SetSampleRate(48000);
-  ts.SetBurstSize(48000 / 10);
+  ts.set_settings(ts::Driver_settings{}
+    .set_sample_rate(48000).set_burst_buffer_size(48000 / 10));
   constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
   std::ofstream log{logfile, log_mode};
   log.precision(5 + 4);
-  ts.Start([&log](auto data, const auto)
+  ts.start_measurement([&log](const auto data, const auto)
   {
-    const auto row_count{data.DataSize()};
-    for (auto row{0*row_count}; row < row_count; ++row) {
-      for (const auto& channel : data)
-        log << channel[row] << " ";
+    const auto col_count = data.column_count();
+    const auto row_count = data.row_count();
+    for (std::size_t row{}; row < row_count; ++row) {
+      for (std::size_t col{}; col < col_count; ++col)
+        log << data.value(col, row) << " ";
       log << "\n";
     }
   });
   std::this_thread::sleep_for(chrono::seconds{1});
-  const auto stopped = ts.Stop();
-  assert(stopped);
+  ts.stop_measurement();
 }
 
 } // namespace
 
 int main()
 {
-  TimeSwipe ts;
-  assert(!ts.IsBusy());
+  auto& driver = ts::Driver::instance().initialize();
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
 
-  ts.ClearDriftReferences();
-  assert(!ts.DriftReferences(false));
-  assert(!ts.DriftReferences(true));
+  driver.clear_drift_references();
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_references(false));
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_references(true));
 
   try {
-    assert(!ts.DriftDeltas());
-    ts.CalculateDriftDeltas();
-  } catch (const drv::Exception& e) {
-    assert(e.condition() == drv::Errc::kNoDriftReferences);
+    PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
+    driver.calculate_drift_deltas();
+  } catch (const ts::Exception& e) {
+    PANDA_TIMESWIPE_ASSERT(e.condition() == ts::Errc::drift_comp_refs_not_found);
   }
 
   // ---------------------------------------------------------------------------
   // Calculate references
   // ---------------------------------------------------------------------------
 
-  const auto refs{ts.CalculateDriftReferences()};
-  assert(refs.size() == SensorsData::SensorsSize());
+  const auto refs{driver.calculate_drift_references()};
+  PANDA_TIMESWIPE_ASSERT(refs.size() == static_cast<unsigned>(driver.max_channel_count()));
   std::clog << "Calculated references: ";
   log(refs);
 
-  assert(!ts.IsBusy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   {
-    const auto refs1{ts.DriftReferences(false)};
-    const auto refs2{ts.DriftReferences(true)};
-    assert(refs1);
-    assert(refs2);
+    const auto refs1{driver.drift_references(false)};
+    const auto refs2{driver.drift_references(true)};
+    PANDA_TIMESWIPE_ASSERT(refs1);
+    PANDA_TIMESWIPE_ASSERT(refs2);
     std::vector<int> refsi(refs.size());
     transform(cbegin(refs), cend(refs), begin(refsi),
       [](const auto v) {return static_cast<int>(std::lroundf(v));});
@@ -93,25 +93,25 @@ int main()
     std::vector<int> refsi2(refs2->size());
     transform(cbegin(*refs2), cend(*refs2), begin(refsi2),
       [](const auto v) {return static_cast<int>(std::lroundf(v));});
-    assert(refsi1 == refsi2);
-    assert(refsi == refsi1);
+    PANDA_TIMESWIPE_ASSERT(refsi1 == refsi2);
+    PANDA_TIMESWIPE_ASSERT(refsi == refsi1);
   }
 
   // ---------------------------------------------------------------------------
   // Calculate deltas
   // ---------------------------------------------------------------------------
 
-  assert(!ts.DriftDeltas());
-  auto deltas{ts.CalculateDriftDeltas()};
-  assert(deltas.size() == refs.size());
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
+  auto deltas{driver.calculate_drift_deltas()};
+  PANDA_TIMESWIPE_ASSERT(deltas.size() == refs.size());
   std::clog << "Calculated deltas: ";
   log(deltas);
 
-  assert(!ts.IsBusy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   {
-    const auto deltas1{ts.DriftDeltas()};
-    assert(deltas1);
-    assert(deltas == deltas1);
+    const auto deltas1{driver.drift_deltas()};
+    PANDA_TIMESWIPE_ASSERT(deltas1);
+    PANDA_TIMESWIPE_ASSERT(deltas == deltas1);
   }
 
   // ---------------------------------------------------------------------------
@@ -119,33 +119,33 @@ int main()
   // ---------------------------------------------------------------------------
 
   std::clog << "Measuring compensated..." << std::endl;
-  measure(ts, "drift_compensation-compensated.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-compensated.log");
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
-  ts.ClearDriftDeltas();
-  assert(!ts.DriftDeltas());
+  driver.clear_drift_deltas();
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
 
   std::clog << "Measuring uncompensated..." << std::endl;
-  measure(ts, "drift_compensation-uncompensated.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-uncompensated.log");
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
   // ---------------------------------------------------------------------------
   // Calculate deltas 2
   // ---------------------------------------------------------------------------
 
-  assert(!ts.DriftDeltas());
-  deltas = ts.CalculateDriftDeltas();
-  assert(deltas.size() == refs.size());
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
+  deltas = driver.calculate_drift_deltas();
+  PANDA_TIMESWIPE_ASSERT(deltas.size() == refs.size());
   std::clog << "Calculated deltas 2: ";
   log(deltas);
 
-  assert(!ts.IsBusy());
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   {
-    const auto deltas1{ts.DriftDeltas()};
-    assert(deltas1);
-    assert(deltas == deltas1);
+    const auto deltas1{driver.drift_deltas()};
+    PANDA_TIMESWIPE_ASSERT(deltas1);
+    PANDA_TIMESWIPE_ASSERT(deltas == deltas1);
   }
 
   // ---------------------------------------------------------------------------
@@ -153,23 +153,23 @@ int main()
   // ---------------------------------------------------------------------------
 
   std::clog << "Measuring compensated 2..." << std::endl;
-  measure(ts, "drift_compensation-compensated2.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-compensated2.log");
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
-  ts.ClearDriftDeltas();
-  assert(!ts.DriftDeltas());
+  driver.clear_drift_deltas();
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_deltas());
 
   std::clog << "Measuring uncompensated 2..." << std::endl;
-  measure(ts, "drift_compensation-uncompensated2.log");
-  assert(!ts.IsBusy());
+  measure(driver, "drift_compensation-uncompensated2.log");
+  PANDA_TIMESWIPE_ASSERT(!driver.is_measurement_started());
   std::clog << "done" << std::endl;
 
   // ---------------------------------------------------------------------------
   // Clear references
   // ---------------------------------------------------------------------------
 
-  ts.ClearDriftReferences();
-  assert(!ts.DriftReferences(false));
-  assert(!ts.DriftReferences(true));
+  driver.clear_drift_references();
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_references(false));
+  PANDA_TIMESWIPE_ASSERT(!driver.drift_references(true));
 }

@@ -16,7 +16,7 @@ Copyright (c) 2019 Panda Team
 #include "../adcdac.hpp"
 #include "../json/json_evsys.h"
 #include "ADpointSearch.h"
-#include "../../common/Storage.h"
+#include "../Storage.h"
 #include "View.h"
 
 #include <memory>
