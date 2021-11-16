@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_ERROR_HPP
 
 #include <cstring> // std::strlen
-#include <exception> // std::terminate
+#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -218,7 +218,7 @@ inline std::error_condition make_error_condition(const Errc errc) noexcept
  *
  * @brief The generic exception class.
  */
-class Exception : public std::runtime_error {
+class Exception : public std::exception {
 public:
   /**
    * @brief The constructor.
@@ -227,7 +227,7 @@ public:
    * @param what The what-string.
    */
   Exception(const std::error_condition& errc, const std::string& what)
-    : runtime_error{what}
+    : what_{what}
     , condition_{errc}
   {}
 
@@ -240,6 +240,12 @@ public:
     : Exception{Errc::generic, what}
   {}
 
+  /// @returns The what-string.
+  const char* what() const noexcept override
+  {
+    return what_.what();
+  }
+
   /// @returns The error condition.
   std::error_condition condition() const noexcept
   {
@@ -247,6 +253,7 @@ public:
   }
 
 private:
+  std::runtime_error what_;
   std::error_condition condition_;
 };
 
