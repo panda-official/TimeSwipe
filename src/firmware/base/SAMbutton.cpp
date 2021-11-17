@@ -19,10 +19,17 @@ SAMButton::SAMButton()
     PORT->Group[0].PINCFG[18].bit.INEN=1;
  #endif
 
-    //enable button LED (PC16):
-    PORT->Group[2].DIRSET.reg=(1L<<16);
-    PORT->Group[2].OUTSET.reg=(1L<<16);
-
+#if defined(__SAME54P20A__)
+    // Enable Button LED (PC16)
+    PORT->Group[2].DIRSET.reg = (1L<<16);
+    PORT->Group[2].OUTSET.reg = (1L<<16);
+#elif defined(__SAME53N19A__)
+    // Enable Button LED (PC19)
+    PORT->Group[2].DIRSET.reg = (1L<<19);
+    PORT->Group[2].OUTSET.reg = (1L<<19);
+#else
+#error Unsupported SAM
+#endif
 }
 void SAMButton::TurnButtonLED(bool how)
 {
