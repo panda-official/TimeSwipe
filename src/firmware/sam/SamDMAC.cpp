@@ -6,7 +6,8 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "SamDMAC.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 #include <cstring>
 

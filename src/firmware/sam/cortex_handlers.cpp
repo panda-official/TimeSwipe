@@ -17,7 +17,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "../os.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 //timer func for M4:
 // FIXME: atomic

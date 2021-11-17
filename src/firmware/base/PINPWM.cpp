@@ -7,7 +7,8 @@ Copyright (c) 2019-2020 Panda Team
 
 
 #include "PINPWM.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);

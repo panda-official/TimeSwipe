@@ -6,7 +6,8 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "SamPORT.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 std::shared_ptr<CSamPin> CSamPORT::FactoryPin(const CSamPORT::group nGroup,
   const CSamPORT::pin nPin, const bool bOutput)

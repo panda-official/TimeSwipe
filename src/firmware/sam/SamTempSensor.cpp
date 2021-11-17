@@ -8,7 +8,8 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "NVMpage.h"
 #include "SamTempSensor.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 CSamTempSensor::CSamTempSensor(std::shared_ptr<CSamADCcntr> &pCont) :
     m_VTP(pCont, typeSamADCmuxpos::PTAT, typeSamADCmuxneg::none, 0.0f, 2.5f, false),

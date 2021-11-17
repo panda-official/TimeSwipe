@@ -8,7 +8,8 @@ Copyright (c) 2019 Panda Team
 //SAM clocks contol:
 
 #include "SamCLK.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 std::list<CSamCLK *> CSamCLK::m_Clocks;
 bool                 CSamCLK::m_bOcupied[12]={0};

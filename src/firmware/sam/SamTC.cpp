@@ -6,7 +6,8 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "SamTC.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 CSamTC::CSamTC(typeSamTC nTC)
 {

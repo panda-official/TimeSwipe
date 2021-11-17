@@ -41,6 +41,9 @@ set(PANDA_ARM64 Off CACHE BOOL
 set(PANDA_TIMESWIPE_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
+set(PANDA_TIMESWIPE_FIRMWARE_SAM "E54P20A" CACHE STRING
+  "Model of Atmel SAM controller to build firmware for.")
+
 set(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE Off CACHE BOOL
   "Build calibration firmware? (Disables driver build.)")
 
@@ -60,6 +63,16 @@ endif()
 if(PANDA_TIMESWIPE_FIRMWARE)
   set(PANDA_ARM On)
   set(PANDA_ARM_BARE_METAL On)
+
+  if(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E54P20A")
+    set(sam_compile_definitions __SAME54P20A__)
+    set(sam_include_directories src/3rdparty/same54)
+  elseif(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E53N19A")
+    set(sam_compile_definitions __SAME53N19A__)
+    set(sam_include_directories src/3rdparty/same53)
+  else()
+    message(FATAL_ERROR "Unsupported model of SAM - ${PANDA_TIMESWIPE_FIRMWARE_SAM}")
+  endif()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -145,7 +158,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   else()
     set(firmware_subtype "normal")
   endif()
-  message(CHECK_START "Configuring the ${firmware_subtype} firmware build.")
+  message(CHECK_START "Configuring the ${firmware_subtype} firmware build for SAM${PANDA_TIMESWIPE_FIRMWARE_SAM}")
 
   enable_language(ASM)
 
@@ -319,10 +332,10 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
 
     # sam
-    __SAME54P20A__
+    ${sam_compile_definitions}
 
     # Adafruit NeoPixel
-    SAM_BRM __arm__  __SAMD51__  __SAME54P20A__
+    SAM_BRM __arm__  __SAMD51__
     )
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
     target_compile_definitions(firmware PUBLIC CALIBRATION_STATION)
@@ -331,7 +344,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     target_compile_definitions(firmware PUBLIC DMS_BOARD)
   endif()
   target_include_directories(firmware PUBLIC src/firmware
-    PRIVATE src/3rdparty/cmsis
+    PRIVATE src/3rdparty/cmsis ${sam_include_directories}
     )
 
   # -------------------

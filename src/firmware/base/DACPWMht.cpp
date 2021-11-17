@@ -6,7 +6,8 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "DACPWMht.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 std::shared_ptr<CSamCLK> CDacPWMht::m_pCLK;
 

@@ -7,7 +7,8 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "SamSPIbase.h"
 #include "../os.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 #include <cassert>
 

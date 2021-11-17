@@ -5,10 +5,9 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-
 #include "SamSercom.h"
-#include "../../3rdparty/sam/sam.h"
 
+#include <sam.h>
 
 static CSamSercom *glob_pSC[8]={nullptr};
 

@@ -7,7 +7,8 @@ Copyright (c) 2019 Panda Team
 
 #include "SamADCcntr.h"
 #include "NVMpage.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 #define SELECT_SAMADC(x) (x==(typeSamADC::Adc0) ? ADC0:ADC1);
 

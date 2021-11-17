@@ -8,7 +8,8 @@ Copyright (c) 2019 Panda Team
 
 #include "SamI2CeepromMaster.h"
 #include "../os.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 //#define EEPROM_8BIT_ADDR
 

@@ -1,6 +1,6 @@
 //setup system clocks + CORTEX-Mx SysTick:
 
-#include "../../3rdparty/sam/sam.h"
+#include <sam.h>
 
 #define SRC_GEN 2
 
