@@ -70,11 +70,8 @@ public:
     pfh, pfi, pfj, pfk, pfl, pfm, pfn
   };
 
-  /// The destructor.
-  ~Sam_pin() override
-  {
-    ReleasePin(m_nGroup, m_nPin);
-  }
+  /// Releases previously occupied pin.
+  ~Sam_pin() override;
 
   /**
    * @brief Constructs single pin control object.
@@ -212,13 +209,6 @@ private:
    * \return measured logical value of the pin
    */
   static bool GetPin(Group nGroup, Number  nPin);
-
-  /*!
-   * \brief Releases previously occupied pin
-   * \param nGroup  - SAME54 pin's Group
-   * \param nPin  - SAME54 pin number in the current Group
-   */
-  static void ReleasePin(Group nGroup, Number  nPin);
 
   /*!
    * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available

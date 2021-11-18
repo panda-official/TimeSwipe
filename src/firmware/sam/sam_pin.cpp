@@ -9,6 +9,12 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <sam.h>
 
+Sam_pin::~Sam_pin()
+{
+  using Uint = decltype(PORT->Group[0].DIRCLR.reg);
+  PORT->Group[m_nGroup].DIRCLR.reg = Uint{1}<<m_nPin;
+}
+
 Sam_pin::Sam_pin(const Group group, const Number number, const bool bOutput)
   : m_nGroup{group}
   , m_nPin{number}
@@ -44,12 +50,6 @@ bool Sam_pin::GetPin(const Group nGroup, const Number nPin)
 {
     using Uint = decltype(PORT->Group[0].IN.reg);
     return PORT->Group[nGroup].IN.reg & (Uint{1}<<nPin);
-}
-
-void Sam_pin::ReleasePin(const Group nGroup, const Number nPin)
-{
-    using Uint = decltype(PORT->Group[0].DIRCLR.reg);
-    PORT->Group[nGroup].DIRCLR.reg = Uint{1}<<nPin;
 }
 
 bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
