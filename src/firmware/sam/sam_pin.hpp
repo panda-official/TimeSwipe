@@ -103,33 +103,31 @@ public:
    */
   inline bool MUX(typeSamSercoms nSercom)
   {
-    return Sam_pin::MUX( Sam_pin::id(m_nGroup, m_nPin), nSercom, m_nPinPAD);
+    return Sam_pin::MUX( Sam_pin::id(group_, number_), nSercom, pad_);
   }
 
-  /*!
-   * \brief Returns current PADindex for connected pin
-   * \return - the PADindex of the connected pin
-   */
-  Pad GetPAD() const
+  /// @returns Pin group.
+  Group group() const noexcept
   {
-    return m_nPinPAD;
+    return group_;
+  }
+
+  /// @returns Pin number within `group()`.
+  Number number() const noexcept
+  {
+    return number_;
+  }
+
+  /// @returns PAD index of this pin.
+  Pad pad() const noexcept
+  {
+    return pad_;
   }
 
 private:
-    /*!
-     * \brief SAME54 group of the pin
-     */
-    Group m_nGroup;
-
-    /*!
-     * \brief SAME54 pin number in the current group
-     */
-    Number   m_nPin;
-
-    /*!
-     * \brief Keeps current pin's PAD (the value is filled after connection to the specified peripheral)
-     */
-  Pad   m_nPinPAD;
+  Group group_;
+  Number number_;
+  Pad pad_; // set after connection to the specified peripheral
 
   // ---------------------------------------------------------------------------
   // Pin overridings
@@ -141,7 +139,7 @@ private:
    */
   void impl_Set(bool bHow) override
   {
-    SetPin(m_nGroup, m_nPin, bHow);
+    SetPin(group_, number_, bHow);
   }
 
   /*!
@@ -150,7 +148,7 @@ private:
    */
   bool impl_RbSet() override
   {
-    return RbSetPin(m_nGroup, m_nPin);
+    return RbSetPin(group_, number_);
   }
 
   /*!
@@ -159,7 +157,7 @@ private:
    */
   bool impl_Get() override
   {
-    return GetPin(m_nGroup, m_nPin);
+    return GetPin(group_, number_);
   }
 
   // ---------------------------------------------------------------------------

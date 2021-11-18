@@ -12,13 +12,13 @@ Copyright (c) 2019-2020 Panda Team
 Sam_pin::~Sam_pin()
 {
   using Uint = decltype(PORT->Group[0].DIRCLR.reg);
-  PORT->Group[m_nGroup].DIRCLR.reg = Uint{1}<<m_nPin;
+  PORT->Group[group_].DIRCLR.reg = Uint{1}<<number_;
 }
 
 Sam_pin::Sam_pin(const Group group, const Number number, const bool bOutput)
-  : m_nGroup{group}
-  , m_nPin{number}
-  , m_nPinPAD{Pad::pad0}
+  : group_{group}
+  , number_{number}
+  , pad_{Pad::pad0}
 {
   m_SetupTime_uS = 50;
 
