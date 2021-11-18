@@ -64,26 +64,23 @@ public:
   /// SAME5x pin pads
   enum Pad { pad0, pad1, pad2, pad3 };
 
-    /*!
-     * \brief The list of possible multiplexer values for a pin
-     */
-    enum muxf{
-
-        fA=0,
-        fB,
-        fC,
-        fD,
-        fE,
-        fF,
-        fG,
-        fH,
-        fI,
-        fJ,
-        fK,
-        fL,
-        fM,
-        fN
-    };
+  /// Peripheral function.
+  enum Peripheral_function {
+    fA,
+    fB,
+    fC,
+    fD,
+    fE,
+    fF,
+    fG,
+    fH,
+    fI,
+    fJ,
+    fK,
+    fL,
+    fM,
+    fN
+  };
 
     /*!
      * \brief Fetches pin group from pin identifier.
@@ -175,7 +172,7 @@ protected:
      * \param nMuxF - required multiplexer setting for given configuration
      * \return true if the given Sercom-Pin combination is available
      */
-    static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, Pad &nPad, muxf &nMuxF);
+    static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, Pad &nPad, Peripheral_function &nMuxF);
 
 
 public:

@@ -51,76 +51,76 @@ void Sam_pin::ReleasePin(const Group nGroup, const Number nPin)
 }
 
 bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
-  Pad& nPad, muxf &nMuxF)
+  Pad& nPad, Peripheral_function &nMuxF)
 {
     //table: sercom->(ID+fmux)
     constexpr struct {
         char Pin;
         char MuxF;
     } SercomIDmap[] = {
-        {Id::pa04, Sam_pin::muxf::fD},  //sc0p0
-        {Id::pa05, Sam_pin::muxf::fD},  //sc0p1
-        {Id::pa06, Sam_pin::muxf::fD},  //sc0p2
-        {Id::pa07, Sam_pin::muxf::fD},  //sc0p3
+        {Id::pa04, Peripheral_function::fD},  //sc0p0
+        {Id::pa05, Peripheral_function::fD},  //sc0p1
+        {Id::pa06, Peripheral_function::fD},  //sc0p2
+        {Id::pa07, Peripheral_function::fD},  //sc0p3
 
-        {Id::pa16, Sam_pin::muxf::fC},  //sc1p0
-        {Id::pa17, Sam_pin::muxf::fC},  //sc1p1
-        {Id::pa18, Sam_pin::muxf::fC},  //sc1p2
-        {Id::pa19, Sam_pin::muxf::fC},  //sc1p3
+        {Id::pa16, Peripheral_function::fC},  //sc1p0
+        {Id::pa17, Peripheral_function::fC},  //sc1p1
+        {Id::pa18, Peripheral_function::fC},  //sc1p2
+        {Id::pa19, Peripheral_function::fC},  //sc1p3
 
-        {Id::pa09, Sam_pin::muxf::fD},  //sc2p0 (+ alt sc0)
-        {Id::pa08, Sam_pin::muxf::fD},  //sc2p1 (+ alt sc0)
-        {Id::pa10, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
-        {Id::pa11, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
+        {Id::pa09, Peripheral_function::fD},  //sc2p0 (+ alt sc0)
+        {Id::pa08, Peripheral_function::fD},  //sc2p1 (+ alt sc0)
+        {Id::pa10, Peripheral_function::fD},  //sc2p2 (+ alt sc0)
+        {Id::pa11, Peripheral_function::fD},  //sc2p2 (+ alt sc0)
 
-        {Id::pa17, Sam_pin::muxf::fD},  //sc3p0
-        {Id::pa16, Sam_pin::muxf::fD},  //sc3p1
-        {Id::pa18, Sam_pin::muxf::fD},  //sc3p2
-        {Id::pa19, Sam_pin::muxf::fD},  //sc3p3
+        {Id::pa17, Peripheral_function::fD},  //sc3p0
+        {Id::pa16, Peripheral_function::fD},  //sc3p1
+        {Id::pa18, Peripheral_function::fD},  //sc3p2
+        {Id::pa19, Peripheral_function::fD},  //sc3p3
 
-        {Id::pb12, Sam_pin::muxf::fC},  //sc4p0
-        {Id::pb13, Sam_pin::muxf::fC},  //sc4p1
-        {Id::pb14, Sam_pin::muxf::fC},  //sc4p2
-        {Id::pb15, Sam_pin::muxf::fC},  //sc4p3
+        {Id::pb12, Peripheral_function::fC},  //sc4p0
+        {Id::pb13, Peripheral_function::fC},  //sc4p1
+        {Id::pb14, Peripheral_function::fC},  //sc4p2
+        {Id::pb15, Peripheral_function::fC},  //sc4p3
 
-        {Id::pb16, Sam_pin::muxf::fC},  //sc5p0
-        {Id::pb17, Sam_pin::muxf::fC},  //sc5p1
-        {Id::pb18, Sam_pin::muxf::fC},  //sc5p2
-        {Id::pb19, Sam_pin::muxf::fC},  //sc5p3
+        {Id::pb16, Peripheral_function::fC},  //sc5p0
+        {Id::pb17, Peripheral_function::fC},  //sc5p1
+        {Id::pb18, Peripheral_function::fC},  //sc5p2
+        {Id::pb19, Peripheral_function::fC},  //sc5p3
 
 #if defined(__SAME54P20A__)
-        {Id::pd09, Sam_pin::muxf::fD},  //sc6p0
-        {Id::pd08, Sam_pin::muxf::fD},  //sc6p1
-        {Id::pd10, Sam_pin::muxf::fD},  //sc6p2
+        {Id::pd09, Peripheral_function::fD},  //sc6p0
+        {Id::pd08, Peripheral_function::fD},  //sc6p1
+        {Id::pd10, Peripheral_function::fD},  //sc6p2
 #elif defined(__SAME53N19A__)
-        {Id::pc16, Sam_pin::muxf::fC},  //sc6p0
-        {Id::pc17, Sam_pin::muxf::fC},  //sc6p1
-        {Id::pc18, Sam_pin::muxf::fC},  //sc6p2
+        {Id::pc16, Peripheral_function::fC},  //sc6p0
+        {Id::pc17, Peripheral_function::fC},  //sc6p1
+        {Id::pc18, Peripheral_function::fC},  //sc6p2
 #else
 #error Unsupported SAM
 #endif
-        {Id::pd11, Sam_pin::muxf::fD},  //sc6p3
+        {Id::pd11, Peripheral_function::fD},  //sc6p3
 
-        {Id::pd08, Sam_pin::muxf::fC},  //sc7p0
-        {Id::pd09, Sam_pin::muxf::fC},  //sc7p1
-        {Id::pd10, Sam_pin::muxf::fC},  //sc7p2
-        {Id::pd11, Sam_pin::muxf::fC},  //sc7p3
+        {Id::pd08, Peripheral_function::fC},  //sc7p0
+        {Id::pd09, Peripheral_function::fC},  //sc7p1
+        {Id::pd10, Peripheral_function::fC},  //sc7p2
+        {Id::pd11, Peripheral_function::fC},  //sc7p3
 
         //----------------alt-1----------------------------
-        {Id::pa08, Sam_pin::muxf::fC},  //sc0p0
-        {Id::pa09, Sam_pin::muxf::fC},  //sc0p1
-        {Id::pa10, Sam_pin::muxf::fC},  //sc0p2
-        {Id::pa11, Sam_pin::muxf::fC},  //sc0p3
+        {Id::pa08, Peripheral_function::fC},  //sc0p0
+        {Id::pa09, Peripheral_function::fC},  //sc0p1
+        {Id::pa10, Peripheral_function::fC},  //sc0p2
+        {Id::pa11, Peripheral_function::fC},  //sc0p3
 
-        {Id::pa00, Sam_pin::muxf::fD},  //sc1p0
-        {Id::pa01, Sam_pin::muxf::fD},  //sc1p1
-        {Id::pa06, Sam_pin::muxf::fD},  //sc1p2
-        {Id::pa07, Sam_pin::muxf::fD},  //sc1p3
+        {Id::pa00, Peripheral_function::fD},  //sc1p0
+        {Id::pa01, Peripheral_function::fD},  //sc1p1
+        {Id::pa06, Peripheral_function::fD},  //sc1p2
+        {Id::pa07, Peripheral_function::fD},  //sc1p3
 
-        {Id::pa12, Sam_pin::muxf::fC},  //sc2p0
-        {Id::pa13, Sam_pin::muxf::fC},  //sc2p1
-        {Id::pa14, Sam_pin::muxf::fC},  //sc2p2
-        {Id::pa15, Sam_pin::muxf::fC},  //sc2p3
+        {Id::pa12, Peripheral_function::fC},  //sc2p0
+        {Id::pa13, Peripheral_function::fC},  //sc2p1
+        {Id::pa14, Peripheral_function::fC},  //sc2p2
+        {Id::pa15, Peripheral_function::fC},  //sc2p3
     };
 
     constexpr auto nTabSize = sizeof(SercomIDmap) / sizeof(*SercomIDmap);
@@ -130,7 +130,7 @@ bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
             const auto& sc = SercomIDmap[nSercomInd + i];
             if (nPin == sc.Pin) {
                 nPad = static_cast<Pad>(i);
-                nMuxF = static_cast<muxf>(sc.MuxF);
+                nMuxF = static_cast<Peripheral_function>(sc.MuxF);
                 return true;
             }
         }
@@ -140,7 +140,7 @@ bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
 
 bool Sam_pin::MUX(const Id nPin, const typeSamSercoms nSercom, Pad &nPad)
 {
-    muxf nMuxF;
+    Peripheral_function nMuxF;
     if (!FindSercomPad(nPin, nSercom, nPad, nMuxF))
         return false;
 
