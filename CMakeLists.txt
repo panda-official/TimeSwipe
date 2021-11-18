@@ -67,9 +67,15 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   if(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E54P20A")
     set(sam_compile_definitions __SAME54P20A__)
     set(sam_include_directories src/3rdparty/same54)
+    set(sam_startup_file "startup/startup_ARMCM4_E54.S")
+    set(sam_sram_linker_file "src/3rdparty/linker/gcc_E54_RAM.ld")
+    set(sam_flash_linker_file "src/3rdparty/linker/gcc_E54.ld")
   elseif(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E53N19A")
     set(sam_compile_definitions __SAME53N19A__)
     set(sam_include_directories src/3rdparty/same53)
+    set(sam_startup_file "startup/startup_ARMCM4_E53.S")
+    set(sam_sram_linker_file "src/3rdparty/linker/gcc_E53_RAM.ld")
+    set(sam_flash_linker_file "src/3rdparty/linker/gcc_E53.ld")
   else()
     message(FATAL_ERROR "Unsupported model of SAM - ${PANDA_TIMESWIPE_FIRMWARE_SAM}")
   endif()
@@ -163,9 +169,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   enable_language(ASM)
 
   if(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE)
-    set(linker_script "src/3rdparty/gcc/gcc_RAM.ld")
+    set(linker_script ${sam_sram_linker_file})
   else()
-    set(linker_script "src/3rdparty/gcc/gcc.ld")
+    set(linker_script ${sam_flash_linker_file})
   endif()
 
   add_compile_options(
@@ -361,7 +367,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   list(TRANSFORM firmware_elf_src PREPEND src/firmware/)
 
   # Third-party firmware.elf sources
-  list(APPEND firmware_elf_3rdparty_src gcc/startup_ARMCM4.S)
+  list(APPEND firmware_elf_3rdparty_src ${sam_startup_file})
   list(TRANSFORM firmware_elf_3rdparty_src PREPEND src/3rdparty/)
   list(APPEND firmware_elf_src ${firmware_elf_3rdparty_src})
 
@@ -490,7 +496,8 @@ if(PANDA_TIMESWIPE_TESTS)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
-  set(button_event_extra_sources src/3rdparty/gcc/startup_ARMCM4.S)
+
+  set(button_event_extra_sources src/3rdparty/${sam_startup_file})
 
   # Configure the tests from the lists above.
   function(panda_configure_test test)
