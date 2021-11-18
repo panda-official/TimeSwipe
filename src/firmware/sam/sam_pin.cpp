@@ -51,7 +51,7 @@ void Sam_pin::ReleasePin(const Group nGroup, const Number nPin)
 }
 
 bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
-  pad& nPad, muxf &nMuxF)
+  Pad& nPad, muxf &nMuxF)
 {
     //table: sercom->(ID+fmux)
     constexpr struct {
@@ -129,7 +129,7 @@ bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
         for(std::size_t i{}; i < 4; i++) {
             const auto& sc = SercomIDmap[nSercomInd + i];
             if (nPin == sc.Pin) {
-                nPad = static_cast<pad>(i);
+                nPad = static_cast<Pad>(i);
                 nMuxF = static_cast<muxf>(sc.MuxF);
                 return true;
             }
@@ -138,7 +138,7 @@ bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
     return false;
 }
 
-bool Sam_pin::MUX(const Id nPin, const typeSamSercoms nSercom, pad &nPad)
+bool Sam_pin::MUX(const Id nPin, const typeSamSercoms nSercom, Pad &nPad)
 {
     muxf nMuxF;
     if (!FindSercomPad(nPin, nSercom, nPad, nMuxF))

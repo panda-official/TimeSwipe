@@ -35,7 +35,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     }
 
     bool bRes;
-    Sam_pin::pad DOpad, DIpad, CLOCKpad; //, CSpad;
+    Sam_pin::Pad DOpad, DIpad, CLOCKpad; //, CSpad;
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
    // Port *pPort=PORT;
 
@@ -64,7 +64,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
 
     //config DIPO/DOPO depending on PAD:
    // assert(Sam_pin::pad::PAD0==DOpad || Sam_pin::pad::PAD3==DIpad);
-    if(Sam_pin::pad::PAD0==DOpad) //variant DOPO=0
+    if(Sam_pin::Pad::pad0==DOpad) //variant DOPO=0
     {
         //DI->PAD3
         assert(Sam_pin::pad::PAD3==DIpad);

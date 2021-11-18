@@ -61,16 +61,8 @@ public:
     pd24, pd25, pd26, pd27, pd28, pd29, pd30, pd31
   };
 
-    /*!
-     * \brief SAME54 pin pads
-     */
-    enum pad{
-
-        PAD0,
-        PAD1,
-        PAD2,
-        PAD3
-    };
+  /// SAME5x pin pads
+  enum Pad { pad0, pad1, pad2, pad3 };
 
     /*!
      * \brief The list of possible multiplexer values for a pin
@@ -183,7 +175,7 @@ protected:
      * \param nMuxF - required multiplexer setting for given configuration
      * \return true if the given Sercom-Pin combination is available
      */
-    static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, pad &nPad, muxf &nMuxF);
+    static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, Pad &nPad, muxf &nMuxF);
 
 
 public:
@@ -194,7 +186,7 @@ public:
      * \param nPad - pin PAD value to be filled after connection
      * \return - true if connection is successful, false otherwise
      */
-    static bool MUX(Id nPin, typeSamSercoms nSercom, pad &nPad);
+    static bool MUX(Id nPin, typeSamSercoms nSercom, Pad &nPad);
 
 public:
     /*!
@@ -214,7 +206,7 @@ public:
     {
         m_nGroup=nGroup;
         m_nPin=nPin;
-        m_nPinPAD=Sam_pin::pad::PAD0;
+        m_nPinPAD=Pad::pad0;
 
         m_SetupTime_uS=50;
     }
@@ -233,7 +225,7 @@ public:
      * \brief Returns current PADindex for connected pin
      * \return - the PADindex of the connected pin
      */
-    inline Sam_pin::pad GetPAD() const
+    inline Pad GetPAD() const
     {
         return m_nPinPAD;
     }
@@ -281,7 +273,7 @@ private:
     /*!
      * \brief Keeps current pin's PAD (the value is filled after connection to the specified peripheral)
      */
-    Sam_pin::pad   m_nPinPAD;
+    Pad   m_nPinPAD;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
