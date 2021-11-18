@@ -123,7 +123,7 @@ public:
 
 protected:
     /*!
-     * \brief The channel index
+     * \brief The zero-based channel index.
      */
     int m_nChanInd;
 
@@ -182,6 +182,7 @@ protected:
 public:
     /*!
      * \brief The class constructor
+     * \param nChanInd Zero-based channel index.
      * \param pADC - The pointer to channel's offset control DAC
      * \param pDAC - The pointer to the channel's ADC
      * \param nCh  - The visualization index of the channel

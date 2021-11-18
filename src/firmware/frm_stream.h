@@ -58,7 +58,7 @@ protected:
     }
 
     bool bHexMode=false;
-    int HexVal=0;
+    unsigned HexVal{};
     if(str.length()>=2) {
       if('0'==str[0] && 'x'==str[1]) {
         bHexMode=true;
