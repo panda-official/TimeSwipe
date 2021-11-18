@@ -14,9 +14,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License.
  * You may obtain a copy of the Licence at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -608,10 +608,10 @@ void SDHC1_Handler               ( void );
 #include "component/sercom.h"
 #include "component/supc.h"
 #include "component/tc.h"
-/* #include "component/tcc.h" */
-/* #include "component/trng.h" */
-/* #include "component/usb.h" */
-/* #include "component/wdt.h" */
+#include "component/tcc.h"
+#include "component/trng.h"
+#include "component/usb.h"
+#include "component/wdt.h"
 /*@}*/
 
 /* ************************************************************************** */
@@ -620,64 +620,64 @@ void SDHC1_Handler               ( void );
 /** \defgroup SAME53N19A_reg Registers Access Definitions */
 /*@{*/
 
-/* #include "instance/ac.h" */
-/* #include "instance/adc0.h" */
-/* #include "instance/adc1.h" */
-/* #include "instance/aes.h" */
-/* #include "instance/ccl.h" */
-/* #include "instance/cmcc.h" */
-/* #include "instance/dac.h" */
-/* #include "instance/dmac.h" */
-/* #include "instance/dsu.h" */
-/* #include "instance/eic.h" */
-/* #include "instance/evsys.h" */
-/* #include "instance/freqm.h" */
-/* #include "instance/gclk.h" */
-/* #include "instance/gmac.h" */
-/* #include "instance/hmatrix.h" */
-/* #include "instance/icm.h" */
-/* #include "instance/i2s.h" */
-/* #include "instance/mclk.h" */
-/* #include "instance/nvmctrl.h" */
-/* #include "instance/oscctrl.h" */
-/* #include "instance/osc32kctrl.h" */
-/* #include "instance/pac.h" */
-/* #include "instance/pcc.h" */
-/* #include "instance/pdec.h" */
-/* #include "instance/pm.h" */
-/* #include "instance/port.h" */
-/* #include "instance/pukcc.h" */
-/* #include "instance/qspi.h" */
-/* #include "instance/ramecc.h" */
-/* #include "instance/rstc.h" */
-/* #include "instance/rtc.h" */
-/* #include "instance/sdhc0.h" */
-/* #include "instance/sdhc1.h" */
-/* #include "instance/sercom0.h" */
-/* #include "instance/sercom1.h" */
-/* #include "instance/sercom2.h" */
-/* #include "instance/sercom3.h" */
-/* #include "instance/sercom4.h" */
-/* #include "instance/sercom5.h" */
-/* #include "instance/sercom6.h" */
-/* #include "instance/sercom7.h" */
-/* #include "instance/supc.h" */
-/* #include "instance/tc0.h" */
-/* #include "instance/tc1.h" */
-/* #include "instance/tc2.h" */
-/* #include "instance/tc3.h" */
-/* #include "instance/tc4.h" */
-/* #include "instance/tc5.h" */
-/* #include "instance/tc6.h" */
-/* #include "instance/tc7.h" */
-/* #include "instance/tcc0.h" */
-/* #include "instance/tcc1.h" */
-/* #include "instance/tcc2.h" */
-/* #include "instance/tcc3.h" */
-/* #include "instance/tcc4.h" */
-/* #include "instance/trng.h" */
-/* #include "instance/usb.h" */
-/* #include "instance/wdt.h" */
+#include "instance/ac.h"
+#include "instance/adc0.h"
+#include "instance/adc1.h"
+#include "instance/aes.h"
+#include "instance/ccl.h"
+#include "instance/cmcc.h"
+#include "instance/dac.h"
+#include "instance/dmac.h"
+#include "instance/dsu.h"
+#include "instance/eic.h"
+#include "instance/evsys.h"
+#include "instance/freqm.h"
+#include "instance/gclk.h"
+#include "instance/gmac.h"
+#include "instance/hmatrix.h"
+#include "instance/icm.h"
+#include "instance/i2s.h"
+#include "instance/mclk.h"
+#include "instance/nvmctrl.h"
+#include "instance/oscctrl.h"
+#include "instance/osc32kctrl.h"
+#include "instance/pac.h"
+#include "instance/pcc.h"
+#include "instance/pdec.h"
+#include "instance/pm.h"
+#include "instance/port.h"
+#include "instance/pukcc.h"
+#include "instance/qspi.h"
+#include "instance/ramecc.h"
+#include "instance/rstc.h"
+#include "instance/rtc.h"
+#include "instance/sdhc0.h"
+#include "instance/sdhc1.h"
+#include "instance/sercom0.h"
+#include "instance/sercom1.h"
+#include "instance/sercom2.h"
+#include "instance/sercom3.h"
+#include "instance/sercom4.h"
+#include "instance/sercom5.h"
+#include "instance/sercom6.h"
+#include "instance/sercom7.h"
+#include "instance/supc.h"
+#include "instance/tc0.h"
+#include "instance/tc1.h"
+#include "instance/tc2.h"
+#include "instance/tc3.h"
+#include "instance/tc4.h"
+#include "instance/tc5.h"
+#include "instance/tc6.h"
+#include "instance/tc7.h"
+#include "instance/tcc0.h"
+#include "instance/tcc1.h"
+#include "instance/tcc2.h"
+#include "instance/tcc3.h"
+#include "instance/tcc4.h"
+#include "instance/trng.h"
+#include "instance/usb.h"
+#include "instance/wdt.h"
 /*@}*/
 
 /* ************************************************************************** */
@@ -1016,7 +1016,7 @@ void SDHC1_Handler               ( void );
 /** \defgroup SAME53N19A_port PORT Definitions */
 /*@{*/
 
-/* #include "pio/same53n19a.h" */
+#include "pio/same53n19a.h"
 /*@}*/
 
 /* ************************************************************************** */
