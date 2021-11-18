@@ -37,7 +37,7 @@ public:
      * \param nGroup - Port Group of the fan control pin
      * \param nPin - Port Pin of the fan control pin
      */
-    CPinPWM(Sam_pin::Group nGroup, Sam_pin::pin nPin);
+    CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin);
 
 protected:
     /*!

@@ -10,7 +10,7 @@ Copyright (c) 2019-2020 Panda Team
 #include <sam.h>
 
 std::shared_ptr<Sam_pin> Sam_pin::FactoryPin(const Group nGroup,
-  const Sam_pin::pin nPin, const bool bOutput)
+  const Number nPin, const bool bOutput)
 {
     //check if the pin is hardware occupied:
     //......................................
@@ -20,7 +20,7 @@ std::shared_ptr<Sam_pin> Sam_pin::FactoryPin(const Group nGroup,
     return result;
 }
 
-void Sam_pin::SetPin(const Group nGroup, const Sam_pin::pin nPin,
+void Sam_pin::SetPin(const Group nGroup, const Number nPin,
   const bool bHow)
 {
     if (bHow) {
@@ -32,19 +32,19 @@ void Sam_pin::SetPin(const Group nGroup, const Sam_pin::pin nPin,
     }
 }
 
-bool Sam_pin::RbSetPin(const Group nGroup, const Sam_pin::pin nPin)
+bool Sam_pin::RbSetPin(const Group nGroup, const Number nPin)
 {
     using Uint = decltype(PORT->Group[0].OUT.reg);
     return PORT->Group[nGroup].OUT.reg & (Uint{1}<<nPin);
 }
 
-bool Sam_pin::GetPin(const Group nGroup, const Sam_pin::pin nPin)
+bool Sam_pin::GetPin(const Group nGroup, const Number nPin)
 {
     using Uint = decltype(PORT->Group[0].IN.reg);
     return PORT->Group[nGroup].IN.reg & (Uint{1}<<nPin);
 }
 
-void Sam_pin::ReleasePin(const Group nGroup, const Sam_pin::pin nPin)
+void Sam_pin::ReleasePin(const Group nGroup, const Number nPin)
 {
     using Uint = decltype(PORT->Group[0].DIRCLR.reg);
     PORT->Group[nGroup].DIRCLR.reg = Uint{1}<<nPin;

@@ -44,7 +44,7 @@ protected:
     /*!
      * \brief Port Pin of the fan control pin
      */
-    Sam_pin::pin   m_PortPin;
+    Sam_pin::Number   m_PortPin;
 
     /*!
      * \brief Last time when update() method was called, mSec
@@ -71,7 +71,7 @@ public:
      * \param TempOnC0 - higher temperature threshold
      * \param TempOffC0 - lower temperature threshold
      */
-    CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, Sam_pin::Group nGroup, Sam_pin::pin nPin,
+    CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, Sam_pin::Group nGroup, Sam_pin::Number nPin,
                 float TempOnC0=40.0f, float TempOffC0=35.0f);
 
     /*!

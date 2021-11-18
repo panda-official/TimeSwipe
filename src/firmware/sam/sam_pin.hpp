@@ -27,55 +27,16 @@
 /// Single pin functionality for SAME5x.
 class Sam_pin : public Pin {
 public:
-  /// The SAME5x pin groups.
-  enum Group {
-    a,
-    b,
-    c,
-    d
+  /// The SAME5x pin group.
+  enum Group { a, b, c, d };
+
+  /// The SAME5x pin number.
+  enum Number {
+    p00, p01, p02, p03, p04, p05, p06, p07,
+    p08, p09, p10, p11, p12, p13, p14, p15,
+    p16, p17, p18, p19, p20, p21, p22, p23,
+    p24, p25, p26, p27, p28, p29, p30, p31
   };
-
-    /*!
-     * \brief The SAME54 pins in the group
-     */
-    enum pin{
-
-        P00=0,
-        P01,
-        P02,
-        P03,
-        P04,
-        P05,
-        P06,
-        P07,
-
-        P08,
-        P09,
-        P10,
-        P11,
-        P12,
-        P13,
-        P14,
-        P15,
-
-        P16,
-        P17,
-        P18,
-        P19,
-        P20,
-        P21,
-        P22,
-        P23,
-
-        P24,
-        P25,
-        P26,
-        P27,
-        P28,
-        P29,
-        P30,
-        P31
-    };
 
     /*!
      * \brief All possible SAME54 pins in the GroupPin format
@@ -279,8 +240,8 @@ public:
      * \param pin  - the pin number in the pxy format
      * \return SAME54 pin number in the current Group
      */
-    static inline Sam_pin::pin pxy2pin(pxy pin){
-        return static_cast<Sam_pin::pin>(pin%32);
+    static inline Number pxy2pin(pxy pin){
+        return static_cast<Number>(pin%32);
     }
 
     /*!
@@ -289,7 +250,7 @@ public:
      * \param pin - SAME54 pin number in the current Group
      * \return pin number in the pxy(PinGroup) format
      */
-    static inline Sam_pin::pxy make_pxy(Group group, Sam_pin::pin pin){
+    static inline Sam_pin::pxy make_pxy(Group group, Number pin){
 
         return static_cast<Sam_pin::pxy>(group*32+pin);
     }
@@ -301,7 +262,7 @@ public:
      * \param bOutput - true=configure pin as output, false=configure pin as an input
      * \return
      */
-    static std::shared_ptr<Sam_pin> FactoryPin(Group nGroup, Sam_pin::pin  nPin, bool bOutput=false);
+    static std::shared_ptr<Sam_pin> FactoryPin(Group nGroup, Number  nPin, bool bOutput=false);
 
     /*!
      * \brief Factory for Sam_pin single pin control object
@@ -322,7 +283,7 @@ protected:
      * \param nPin - SAME54 pin number in the current Group
      * \param bHow  - the logical state to be set
      */
-    static void SetPin(Group nGroup, Sam_pin::pin  nPin, bool bHow);
+    static void SetPin(Group nGroup, Number  nPin, bool bHow);
 
     /*!
      * \brief Reads back set logical state of the pin
@@ -330,7 +291,7 @@ protected:
      * \param nPin - SAME54 pin number in the current Group
      * \return set logical value of the pin
      */
-    static bool RbSetPin(Group nGroup, Sam_pin::pin  nPin);
+    static bool RbSetPin(Group nGroup, Number  nPin);
 
     /*!
      * \brief Returns measured logic state when pin acts as an input.
@@ -338,14 +299,14 @@ protected:
      * \param nPin  - SAME54 pin number in the current Group
      * \return measured logical value of the pin
      */
-    static bool GetPin(Group nGroup, Sam_pin::pin  nPin);
+    static bool GetPin(Group nGroup, Number  nPin);
 
     /*!
      * \brief Releases previously occupied pin
      * \param nGroup  - SAME54 pin's Group
      * \param nPin  - SAME54 pin number in the current Group
      */
-    static void ReleasePin(Group nGroup, Sam_pin::pin  nPin);
+    static void ReleasePin(Group nGroup, Number  nPin);
 
     /*!
      * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available
@@ -382,7 +343,7 @@ public:
      * \param nGroup - the SAME54 pin's group
      * \param nPin - the SAME54 pin number in the current Group
      */
-    Sam_pin(Group nGroup, Sam_pin::pin  nPin)
+    Sam_pin(Group nGroup, Number  nPin)
     {
         m_nGroup=nGroup;
         m_nPin=nPin;
@@ -448,7 +409,7 @@ private:
     /*!
      * \brief SAME54 pin number in the current group
      */
-    Sam_pin::pin   m_nPin;
+    Number   m_nPin;
 
     /*!
      * \brief Keeps current pin's PAD (the value is filled after connection to the specified peripheral)
