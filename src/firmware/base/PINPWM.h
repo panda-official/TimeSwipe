@@ -18,7 +18,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamCLK.h"
 #include "sam/SamTC.h"
 #include "sam/SamDMAC.h"
-#include "sam/SamPORT.h"
+#include "sam/sam_pin.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -37,7 +37,7 @@ public:
      * \param nGroup - Port Group of the fan control pin
      * \param nPin - Port Pin of the fan control pin
      */
-    CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin);
+    CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin);
 
 protected:
     /*!
@@ -48,7 +48,7 @@ protected:
     /*!
      * \brief Port Group of the fan control pin
      */
-    CSamPORT::group m_prmPortGroup;
+    Sam_pin::Group m_prmPortGroup;
 
     /*!
      * \brief The DMA channel used to map m_prmHighLevel16 onto the DAC

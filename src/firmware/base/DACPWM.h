@@ -9,7 +9,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "adcdac.hpp"
 //#include "ADmux.h"
-#include "../Pin.h"
+#include "../pin.h"
 #include "../PWM.h"
 
 #include <memory>
@@ -37,7 +37,7 @@ protected:
     /*!
      * \brief The pointer to the DAC mode switcher
      */
-    std::shared_ptr<CPin>  m_pDACsw;
+    std::shared_ptr<Pin>  m_pDACsw;
 
     /*!
      * \brief Called from the base class for additional specific actions for this class
@@ -61,5 +61,5 @@ public:
      * \param pDAC The pointer to the output controlling DAC
      * \param pMUX The pointer to the DAC mode switcher
      */
-    CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<CPin> &pDACsw);
+    CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<Pin> &pDACsw);
 };

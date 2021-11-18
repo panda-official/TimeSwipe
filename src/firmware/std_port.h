@@ -82,8 +82,6 @@ protected:
     }
 
     if(TERM_CHAR==ch) {
-      typeCRes cres;
-
       //preparing streams:
       CFrmStream in(&m_In);
       CFrmStream out(&m_Out);
@@ -96,7 +94,7 @@ protected:
         m_CallDescr.m_pIn=&in;
         m_CallDescr.m_pOut=&out;
         m_CallDescr.m_bThrowExcptOnErr=true;
-        cres=m_pDisp->Call(m_CallDescr);
+        m_pDisp->Call(m_CallDescr);
 
       } catch(const std::exception& ex) {
         out<<"!"<<ex.what();
@@ -147,6 +145,9 @@ protected:
 
     case proc_args:
       m_In<<ch;
+      return;
+
+    case err_protocol:
       return;
     }
   }

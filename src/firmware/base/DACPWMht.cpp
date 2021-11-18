@@ -59,7 +59,7 @@ void TC5_Handler(void)
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
-CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, mode nOpMode) :
+CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, mode nOpMode) :
     CSamTC(PWM1==nPWM ? typeSamTC::Tc0 : typeSamTC::Tc2),
     m_PeriodsCounter(PWM1==nPWM ? typeSamTC::Tc4 : typeSamTC::Tc5)
 {

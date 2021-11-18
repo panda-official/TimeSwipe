@@ -14,7 +14,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "../Pin.h"
+#include "../pin.h"
 
 #include <bitset>
 #include <cstdint>
@@ -50,17 +50,17 @@ protected:
     /*!
      * \brief m_pDataPin - the pointer to the data pin
      */
-    std::shared_ptr<IPin>    m_pDataPin;
+    std::shared_ptr<Pin>    m_pDataPin;
 
     /*!
      * \brief m_pClockPin - the pointer to the clock pin
      */
-    std::shared_ptr<IPin>    m_pClockPin;
+    std::shared_ptr<Pin>    m_pClockPin;
 
     /*!
      * \brief m_pStrobePin - the pointer to the strobe pin
      */
-    std::shared_ptr<IPin>    m_pStrobePin;
+    std::shared_ptr<Pin>    m_pStrobePin;
 
     /*!
      * \brief Sets shift register value
@@ -97,7 +97,7 @@ protected:
      * \param pStrobePin - the pointer to the Strobe pin
      * \param BitsInUse - the digit capacity of the register (8/16/32)
      */
-    inline CShiftReg(const std::shared_ptr<IPin> &pDataPin, const std::shared_ptr<IPin> &pClockPin, const std::shared_ptr<IPin> &pStrobePin,  std::size_t BitsInUse)
+    inline CShiftReg(const std::shared_ptr<Pin> &pDataPin, const std::shared_ptr<Pin> &pClockPin, const std::shared_ptr<Pin> &pStrobePin,  std::size_t BitsInUse)
     {
         m_pDataPin=pDataPin;
         m_pClockPin=pClockPin;
@@ -117,7 +117,7 @@ protected:
 /*!
  * \brief The common shift register single pin control class
  */
-class CShiftRegPin : public CPin
+class CShiftRegPin : public Pin
 {
 friend class CShiftReg;
 protected:
@@ -133,7 +133,7 @@ protected:
     std::size_t                m_nPin;
 
     /*!
-     * \brief Implements Set functionality of CPin
+     * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
     virtual void impl_Set(bool bHow)
@@ -142,7 +142,7 @@ protected:
     }
 
     /*!
-     * \brief Implements RbSet (read back setup value) functionality of CPin
+     * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
     virtual bool impl_RbSet()
@@ -151,7 +151,7 @@ protected:
     }
 
     /*!
-     * \brief Implements Get functionality of CPin
+     * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
     virtual bool impl_Get()
@@ -228,7 +228,7 @@ public:
      * \param pClockPin - the pointer to the Clock pin
      * \param pStrobePin - the pointer to the Strobe pin
      */
-    inline CDMSsr(const std::shared_ptr<IPin> &pDataPin, const std::shared_ptr<IPin> &pClockPin, const std::shared_ptr<IPin> &pStrobePin)
+    inline CDMSsr(const std::shared_ptr<Pin> &pDataPin, const std::shared_ptr<Pin> &pClockPin, const std::shared_ptr<Pin> &pStrobePin)
         :CShiftReg(pDataPin, pClockPin, pStrobePin, 16)
     {
     }
@@ -278,9 +278,9 @@ public:
 
 /*!
  * \brief The DMS channel amplifier chip select pin implementation
- * \details Implements CPin interface to control selection of PGA280 chip (virtual pin that can be simply used with PGA280 control class)
+ * \details Implements Pin interface to control selection of PGA280 chip (virtual pin that can be simply used with PGA280 control class)
  */
-class CPGA_CS : public CPin
+class CPGA_CS : public Pin
 {
 protected:
 
@@ -297,10 +297,10 @@ protected:
     /*!
      * \brief The pointer to the select pin which is multiplexed for each of the PGA280 chips by the DMS shift register
      */
-    std::shared_ptr<CPin> m_pCSpin;
+    std::shared_ptr<Pin> m_pCSpin;
 
     /*!
-     * \brief Implements Set functionality of CPin
+     * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
     virtual void impl_Set(bool bHow)
@@ -312,7 +312,7 @@ protected:
     }
 
     /*!
-     * \brief Implements RbSet (read back setup value) functionality of CPin
+     * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
     virtual bool impl_RbSet()
@@ -321,7 +321,7 @@ protected:
     }
 
     /*!
-     * \brief Implements Get functionality of CPin
+     * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
     virtual bool impl_Get()
@@ -337,7 +337,7 @@ public:
      * \param pDMSsr - the pointer to the DMS shift register (used as multiplexer for CSpin)
      * \param pCSpin - the pointer to the select pin which is multiplexed for each of the PGA280 chips by the DMS shift register
      */
-    CPGA_CS(CDMSsr::pga_sel nPGA, const std::shared_ptr<CDMSsr> &pDMSsr, const std::shared_ptr<CPin> &pCSpin)
+    CPGA_CS(CDMSsr::pga_sel nPGA, const std::shared_ptr<CDMSsr> &pDMSsr, const std::shared_ptr<Pin> &pCSpin)
     {
         m_nPGA=nPGA;
         m_pDMSsr=pDMSsr;

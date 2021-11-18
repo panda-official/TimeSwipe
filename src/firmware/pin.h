@@ -29,7 +29,7 @@
 /*!
  * \brief The implementation of an abstract interface of the pin
  */
-class CPin
+class Pin
 {
 protected:
 
@@ -47,20 +47,20 @@ protected:
     unsigned long m_SetupTime_uS=0;
 
     /*!
-     * \brief Implements Set functionality of CPin. Must be re-implemented in the derived class
+     * \brief Implements Set functionality of Pin. Must be re-implemented in the derived class
      * \param bHow - the pin value to be set: logical true or false
      */
     virtual void impl_Set(bool bHow)=0;
 
     /*!
-     * \brief Implements RbSet (read back setup value) functionality of CPin. Must be re-implemented in the derived class
+     * \brief Implements RbSet (read back setup value) functionality of Pin. Must be re-implemented in the derived class
      * \return the pin value that was set: logical true or false
      */
     virtual bool impl_RbSet()=0;
 
 
     /*!
-     * \brief Implements Get functionality of CPin. Must be re-implemented in the derived class
+     * \brief Implements Get functionality of Pin. Must be re-implemented in the derived class
      * \return actual pin state: logical true or false
      */
     virtual bool impl_Get()=0;
@@ -124,14 +124,14 @@ public:
     /*!
      * The class default constructor
      */
-    CPin()=default;
+    Pin()=default;
 
     /*!
      * \brief remove copy constructor
      * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
      *  that is unacceptable)
      */
-    CPin(const CPin&) = delete;
+    Pin(const Pin&) = delete;
 
     /*!
      * \brief remove copy operator
@@ -139,14 +139,13 @@ public:
      * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
      *  that is unacceptable)
      */
-    CPin& operator=(const CPin&) = delete;
+    Pin& operator=(const Pin&) = delete;
 
 protected:
     /*!
      * The virtual destructor of the class
      */
-    virtual ~CPin()=default;
+    virtual ~Pin()=default;
 };
-typedef CPin IPin;
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_PIN_HPP

@@ -9,7 +9,7 @@ Copyright (c) 2019 Panda Team
 #include "../os.h"
 #include "DACmax5715.h"
 
-CDac5715sa::CDac5715sa(CSPI *pBus, std::shared_ptr<IPin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax)
+CDac5715sa::CDac5715sa(CSPI *pBus, std::shared_ptr<Pin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax)
 {
     m_pBus=pBus;
     m_pCS=pCS;

@@ -43,32 +43,32 @@ protected:
         /*!
          * \brief The pointer to the UBR switch (bridge voltage)
          */
-        std::shared_ptr<CPin> m_pUBRswitch;
+        std::shared_ptr<Pin> m_pUBRswitch;
 
         /*!
          * \brief The pointer to the DAC mode switch (when true AOUT3 & AOUT4 are enabled)
          */
-        std::shared_ptr<CPin> m_pDACon;
+        std::shared_ptr<Pin> m_pDACon;
 
         /*!
          * \brief The pointer to the ADC measurements enable switch
          */
-        std::shared_ptr<CPin> m_pEnableMes;
+        std::shared_ptr<Pin> m_pEnableMes;
 
         /*!
          * \brief The pointer to the fan cntrol Pin
          */
-        std::shared_ptr<CPin> m_pFanOn;
+        std::shared_ptr<Pin> m_pFanOn;
 
         /*!
          * \brief The pointer to the LSB gain select pin of the IEPE board
          */
-        std::shared_ptr<CPin> m_pGain0pin;
+        std::shared_ptr<Pin> m_pGain0pin;
 
         /*!
          * \brief The pointer to the MSB gain select pin of the IEPE board
          */
-        std::shared_ptr<CPin> m_pGain1pin;
+        std::shared_ptr<Pin> m_pGain1pin;
 
         /*!
          * \brief The pointer to the Voltage DAC controlled by the SetVoltage()
@@ -263,7 +263,7 @@ public:
          * \brief Sets pointer to the the UBR switch (bridge voltage)
          * \param pUBRswitch - the pointer to the the UBR switch (bridge voltage)
          */
-        inline void SetUBRpin(const std::shared_ptr<CPin> &pUBRswitch){
+        inline void SetUBRpin(const std::shared_ptr<Pin> &pUBRswitch){
             m_pUBRswitch=pUBRswitch;
         }
 
@@ -271,7 +271,7 @@ public:
          * \brief Sets pointer to the DAC mode switch
          * \param pDACon - the pointer to the DAC mode switch
          */
-        inline void SetDAConPin(const std::shared_ptr<CPin> &pDACon){
+        inline void SetDAConPin(const std::shared_ptr<Pin> &pDACon){
             m_pDACon=pDACon;
         }
 
@@ -279,7 +279,7 @@ public:
          * \brief Sets pointer to the ADC measurements enable switch
          * \param pEnableMes -the pointer to the ADC measurements enable switch
          */
-        inline void SetEnableMesPin(const std::shared_ptr<CPin> &pEnableMes){
+        inline void SetEnableMesPin(const std::shared_ptr<Pin> &pEnableMes){
             m_pEnableMes=pEnableMes;
         }
 
@@ -287,7 +287,7 @@ public:
          * \brief Sets pointer to the fan cntrol pin
          * \param pFanOn - the pointer to the fan cntrol pin
          */
-        inline void SetFanPin(const std::shared_ptr<CPin> &pFanOn){
+        inline void SetFanPin(const std::shared_ptr<Pin> &pFanOn){
             m_pFanOn=pFanOn;
         }
 
@@ -296,7 +296,7 @@ public:
          * \param pGain0pin - the pointer to the LSB gain select pin
          * \param pGain1pin - the pointer to the MSB gain select pin
          */
-        inline void SetIEPEboardGainSwitches(const std::shared_ptr<CPin> &pGain0pin, const std::shared_ptr<CPin> &pGain1pin){
+        inline void SetIEPEboardGainSwitches(const std::shared_ptr<Pin> &pGain0pin, const std::shared_ptr<Pin> &pGain1pin){
             m_pGain0pin=pGain0pin;
             m_pGain1pin=pGain1pin;
         }
