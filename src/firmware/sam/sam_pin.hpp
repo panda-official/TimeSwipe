@@ -58,9 +58,7 @@ public:
     pd00, pd01, pd02, pd03, pd04, pd05, pd06, pd07,
     pd08, pd09, pd10, pd11, pd12, pd13, pd14, pd15,
     pd16, pd17, pd18, pd19, pd20, pd21, pd22, pd23,
-    pd24, pd25, pd26, pd27, pd28, pd29, pd30, pd31,
-
-    none=-1 // FIXME: remove me
+    pd24, pd25, pd26, pd27, pd28, pd29, pd30, pd31
   };
 
     /*!

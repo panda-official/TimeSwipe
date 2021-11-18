@@ -20,6 +20,8 @@ Copyright (c) 2019-2020 Panda Team
 #include "../os.h"
 #include "../../spi.hpp"
 
+#include <optional>
+
 /*!
  * \brief The class implements basic functionality of SAME54 Sercom SPI
  */
@@ -86,8 +88,8 @@ public:
      */
 
     CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
-                Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, Sam_pin::Id CS=Sam_pin::Id::none,
-                std::shared_ptr<CSamCLK> pCLK=nullptr);
+      Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
+                std::shared_ptr<CSamCLK> pCLK);
 
     /*!
      * \brief Returns the pointer to the CS pin instance

@@ -217,7 +217,7 @@ int main()
 
         //create PGA280 extension bus:
         auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
-          Sam_pin::Id::pb16, Sam_pin::Id::pb19, Sam_pin::Id::pb17, Sam_pin::none);
+          Sam_pin::Id::pb16, Sam_pin::Id::pb19, Sam_pin::Id::pb17, std::nullopt, nullptr);
 
 
         auto pInaSpiCSpin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::Number::p18, true);

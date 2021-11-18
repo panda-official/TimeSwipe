@@ -18,6 +18,8 @@ Copyright (c) 2019-2020 Panda Team
 #include "../../synccom.hpp"
 #include "sam/SamSPIbase.h"
 
+#include <optional>
+
 /*!
  * \brief The class providing functionality for external communication via SPI with integrated flow-control (CSyncSerComFSM)
  * \details The external communication via SPI is based on a simple flow control protocol, please see CSyncSerComFSM description for details
@@ -35,7 +37,7 @@ public:
      * \param CS      - Chip Select input for selected Sercom
      */
     CSPIcomm(typeSamSercoms nSercom,
-                         Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, Sam_pin::Id CS=Sam_pin::Id::none) :
+      Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS) :
     CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, nullptr)
     {
 

@@ -16,7 +16,7 @@ Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
 
 CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
-                         Sam_pin::Id MOSI, Sam_pin::Id MISO, Sam_pin::Id CLOCK, Sam_pin::Id CS,
+  Sam_pin::Id MOSI, Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
                          std::shared_ptr<CSamCLK> pCLK) :
     CSamSercom(nSercom)
 {
@@ -50,9 +50,9 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     assert(bRes);
     assert(Sam_pin::pad::PAD1==CLOCKpad); //always
 
-    if(Sam_pin::Id::none!=CS)
+    if(CS)
     {
-        m_pCS=Sam_pin::FactoryPin(CS, bMaster);
+        m_pCS=Sam_pin::FactoryPin(*CS, bMaster);
         assert(m_pCS);
         bRes=m_pCS->MUX(nSercom);
         assert(bRes && Sam_pin::pad::PAD2==m_pCS->GetPAD()); //always
