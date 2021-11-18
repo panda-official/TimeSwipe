@@ -16,11 +16,11 @@ Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
 
 CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
-                         CSamPin::pxy MOSI, CSamPin::pxy MISO, CSamPin::pxy CLOCK, CSamPin::pxy CS,
+                         Sam_pin::pxy MOSI, Sam_pin::pxy MISO, Sam_pin::pxy CLOCK, Sam_pin::pxy CS,
                          std::shared_ptr<CSamCLK> pCLK) :
     CSamSercom(nSercom)
 {
-    CSamPin::pxy DO, DI;
+    Sam_pin::pxy DO, DI;
 
     m_bMaster=bMaster;
     if(bMaster)
@@ -35,27 +35,27 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     }
 
     bool bRes;
-    CSamPin::pad DOpad, DIpad, CLOCKpad; //, CSpad;
+    Sam_pin::pad DOpad, DIpad, CLOCKpad; //, CSpad;
     SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
    // Port *pPort=PORT;
 
     //enable sercom bus:
     CSamSercom::EnableSercomBus(nSercom, true);
 
-    bRes=CSamPin::MUX(DO, nSercom, DOpad);
+    bRes=Sam_pin::MUX(DO, nSercom, DOpad);
     assert(bRes);
-    bRes=CSamPin::MUX(DI, nSercom, DIpad);
+    bRes=Sam_pin::MUX(DI, nSercom, DIpad);
     assert(bRes);
-    bRes=CSamPin::MUX(CLOCK, nSercom, CLOCKpad);
+    bRes=Sam_pin::MUX(CLOCK, nSercom, CLOCKpad);
     assert(bRes);
-    assert(CSamPin::pad::PAD1==CLOCKpad); //always
+    assert(Sam_pin::pad::PAD1==CLOCKpad); //always
 
-    if(CSamPin::pxy::none!=CS)
+    if(Sam_pin::pxy::none!=CS)
     {
-        m_pCS=CSamPin::FactoryPin(CS, bMaster);
+        m_pCS=Sam_pin::FactoryPin(CS, bMaster);
         assert(m_pCS);
         bRes=m_pCS->MUX(nSercom);
-        assert(bRes && CSamPin::pad::PAD2==m_pCS->GetPAD()); //always
+        assert(bRes && Sam_pin::pad::PAD2==m_pCS->GetPAD()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
         pSPI->CTRLB.bit.MSSEN=bMaster; //auto cs
@@ -63,11 +63,11 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
 
 
     //config DIPO/DOPO depending on PAD:
-   // assert(CSamPin::pad::PAD0==DOpad || CSamPin::pad::PAD3==DIpad);
-    if(CSamPin::pad::PAD0==DOpad) //variant DOPO=0
+   // assert(Sam_pin::pad::PAD0==DOpad || Sam_pin::pad::PAD3==DIpad);
+    if(Sam_pin::pad::PAD0==DOpad) //variant DOPO=0
     {
         //DI->PAD3
-        assert(CSamPin::pad::PAD3==DIpad);
+        assert(Sam_pin::pad::PAD3==DIpad);
 
         pSPI->CTRLA.bit.DOPO=0x00;
         pSPI->CTRLA.bit.DIPO=0x03;
@@ -75,7 +75,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     else                            //variant DOPO=2
     {
         //DI->PAD0
-        assert(CSamPin::pad::PAD0==DIpad);
+        assert(Sam_pin::pad::PAD0==DIpad);
 
         pSPI->CTRLA.bit.DOPO=0x02;
         pSPI->CTRLA.bit.DIPO=0x00;

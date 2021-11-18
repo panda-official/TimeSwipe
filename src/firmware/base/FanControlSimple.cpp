@@ -9,7 +9,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <sam.h>
 
-CFanControlSimple::CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, CSamPin::group nGroup, CSamPin::pin nPin,
+CFanControlSimple::CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, Sam_pin::group nGroup, Sam_pin::pin nPin,
                                      float TempOnC0, float TempOffC0)
 {
     m_pTempSens=pTempSens;

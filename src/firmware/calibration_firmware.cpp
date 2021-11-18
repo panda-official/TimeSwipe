@@ -133,7 +133,7 @@ int main(void)
 
 
         //communication bus:
-        auto pSPIsc2    =std::make_shared<CSPIcomm>(typeSamSercoms::Sercom2, CSamPin::pxy::PA12, CSamPin::pxy::PA15, CSamPin::pxy::PA13, CSamPin::pxy::PA14);
+        auto pSPIsc2    =std::make_shared<CSPIcomm>(typeSamSercoms::Sercom2, Sam_pin::pxy::PA12, Sam_pin::pxy::PA15, Sam_pin::pxy::PA13, Sam_pin::pxy::PA14);
         pSPIsc2->EnableIRQs(true);
         auto pDisp=         std::make_shared<CCmdDispatcher>();
         auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
@@ -160,9 +160,9 @@ int main(void)
         if(typeBoard::DMSBoard==ThisBoard)
         {
             pDMSsr=std::make_shared<CDMSsr>(
-                        CSamPin::FactoryPin(CSamPin::group::C, CSamPin::pin::P05, true),
-                        CSamPin::FactoryPin(CSamPin::group::C, CSamPin::pin::P06, true),
-                        CSamPin::FactoryPin(CSamPin::group::C, CSamPin::pin::P07, true) );
+                        Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P05, true),
+                        Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P06, true),
+                        Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P07, true) );
 
             pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
             pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
@@ -176,18 +176,18 @@ int main(void)
         }
         else
         {
-            pDAConPin=CSamPin::FactoryPin(CSamPin::group::B, CSamPin::pin::P04, true);
-            pUB1onPin=CSamPin::FactoryPin(CSamPin::group::C, CSamPin::pin::P07, true); pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
-            pQSPICS0Pin=CSamPin::FactoryPin(CSamPin::group::B, CSamPin::pin::P11, true);
+            pDAConPin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P04, true);
+            pUB1onPin=Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P07, true); pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
+            pQSPICS0Pin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P11, true);
 
             //old IEPE gain switches:
-            auto pGain0=CSamPin::FactoryPin(CSamPin::group::B, CSamPin::pin::P15, true);
-            auto pGain1=CSamPin::FactoryPin(CSamPin::group::B, CSamPin::pin::P14, true);
+            auto pGain0=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P15, true);
+            auto pGain1=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P14, true);
             nc.SetIEPEboardGainSwitches(pGain0, pGain1);
 
         }
-        auto pEnableMesPin=CSamPin::FactoryPin(CSamPin::group::B, CSamPin::pin::P13, true);
-        auto pFanPin=CSamPin::FactoryPin(CSamPin::group::A, CSamPin::pin::P09, true);
+        auto pEnableMesPin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P13, true);
+        auto pFanPin=Sam_pin::FactoryPin(Sam_pin::group::A, Sam_pin::pin::P09, true);
 
         //setup control:
         nc.SetUBRpin(pUB1onPin);
@@ -236,10 +236,10 @@ int main(void)
 
             //create PGA280 extension bus:
             auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
-                                                       CSamPin::pxy::PB16, CSamPin::pxy::PB19, CSamPin::pxy::PB17, CSamPin::none);
+                                                       Sam_pin::pxy::PB16, Sam_pin::pxy::PB19, Sam_pin::pxy::PB17, Sam_pin::none);
 
 
-            auto pInaSpiCSpin=CSamPin::FactoryPin(CSamPin::group::B, CSamPin::pin::P18, true);
+            auto pInaSpiCSpin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P18, true);
             pInaSpiCSpin->SetInvertedBehaviour(true);
             pInaSpiCSpin->Set(false);
 
@@ -305,7 +305,7 @@ int main(void)
         //temp sens+fan control:
         auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
         pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );
-        auto pFanControl=std::make_shared<CFanControlSimple>(pTempSens, CSamPin::group::A, CSamPin::pin::P09);
+        auto pFanControl=std::make_shared<CFanControlSimple>(pTempSens, Sam_pin::group::A, Sam_pin::pin::P09);
 
 
         //---------------------------------------------------command system------------------------------------------------------
