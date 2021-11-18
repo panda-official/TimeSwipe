@@ -35,7 +35,7 @@ public:
      * \param CS      - Chip Select input for selected Sercom
      */
     CSPIcomm(typeSamSercoms nSercom,
-                         CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none) :
+                         CSamPin::pxy MOSI,  CSamPin::pxy MISO, CSamPin::pxy CLOCK, CSamPin::pxy CS=CSamPin::pxy::none) :
     CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, nullptr)
     {
 

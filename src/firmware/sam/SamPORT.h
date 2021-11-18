@@ -1,33 +1,32 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019-2020 Panda Team
-*/
+// -*- C++ -*-
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSamPORT
-*/
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-#pragma once
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-#include "SamSercom.h"
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
 
 #include "../pin.h"
+#include "SamSercom.h"
 
 #include <memory>
 
-class CSamPin;
-/*!
- * \brief The SAME54 PORT control implementation
- */
-class CSamPORT
-{
-friend class CSamPin;
+/// Single pin functionality for SAME5x.
+class CSamPin : public Pin {
 public:
-
     /*!
      * \brief The SAME54 pin groups
      */
@@ -274,8 +273,8 @@ public:
      * \param pin - the pin number in the pxy format
      * \return SAME54 pin's Group
      */
-    static inline CSamPORT::group pxy2group(pxy pin){
-        return static_cast<CSamPORT::group>(pin/32);
+    static inline CSamPin::group pxy2group(pxy pin){
+        return static_cast<CSamPin::group>(pin/32);
     }
 
     /*!
@@ -283,8 +282,8 @@ public:
      * \param pin  - the pin number in the pxy format
      * \return SAME54 pin number in the current Group
      */
-    static inline CSamPORT::pin pxy2pin(pxy pin){
-        return static_cast<CSamPORT::pin>(pin%32);
+    static inline CSamPin::pin pxy2pin(pxy pin){
+        return static_cast<CSamPin::pin>(pin%32);
     }
 
     /*!
@@ -293,9 +292,9 @@ public:
      * \param pin - SAME54 pin number in the current Group
      * \return pin number in the pxy(PinGroup) format
      */
-    static inline CSamPORT::pxy make_pxy(CSamPORT::group group, CSamPORT::pin pin){
+    static inline CSamPin::pxy make_pxy(CSamPin::group group, CSamPin::pin pin){
 
-        return static_cast<CSamPORT::pxy>(group*32+pin);
+        return static_cast<CSamPin::pxy>(group*32+pin);
     }
 
     /*!
@@ -305,7 +304,7 @@ public:
      * \param bOutput - true=configure pin as output, false=configure pin as an input
      * \return
      */
-    static std::shared_ptr<CSamPin> FactoryPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bOutput=false);
+    static std::shared_ptr<CSamPin> FactoryPin(CSamPin::group nGroup, CSamPin::pin  nPin, bool bOutput=false);
 
     /*!
      * \brief Factory for CSamPin single pin control object
@@ -313,7 +312,7 @@ public:
      * \param bOutput
      * \return
      */
-    static inline std::shared_ptr<CSamPin> FactoryPin(CSamPORT::pxy nPin, bool bOutput=false){
+    static inline std::shared_ptr<CSamPin> FactoryPin(CSamPin::pxy nPin, bool bOutput=false){
 
         return FactoryPin(pxy2group(nPin), pxy2pin(nPin), bOutput);
     }
@@ -326,7 +325,7 @@ protected:
      * \param nPin - SAME54 pin number in the current Group
      * \param bHow  - the logical state to be set
      */
-    static void SetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin, bool bHow);
+    static void SetPin(CSamPin::group nGroup, CSamPin::pin  nPin, bool bHow);
 
     /*!
      * \brief Reads back set logical state of the pin
@@ -334,7 +333,7 @@ protected:
      * \param nPin - SAME54 pin number in the current Group
      * \return set logical value of the pin
      */
-    static bool RbSetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+    static bool RbSetPin(CSamPin::group nGroup, CSamPin::pin  nPin);
 
     /*!
      * \brief Returns measured logic state when pin acts as an input.
@@ -342,14 +341,14 @@ protected:
      * \param nPin  - SAME54 pin number in the current Group
      * \return measured logical value of the pin
      */
-    static bool GetPin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+    static bool GetPin(CSamPin::group nGroup, CSamPin::pin  nPin);
 
     /*!
      * \brief Releases previously occupied pin
      * \param nGroup  - SAME54 pin's Group
      * \param nPin  - SAME54 pin number in the current Group
      */
-    static void ReleasePin(CSamPORT::group nGroup, CSamPORT::pin  nPin);
+    static void ReleasePin(CSamPin::group nGroup, CSamPin::pin  nPin);
 
     /*!
      * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available
@@ -371,42 +370,6 @@ public:
      * \return - true if connection is successful, false otherwise
      */
     static bool MUX(pxy nPin, typeSamSercoms nSercom, pad &nPad);
-};
-
-/*!
- * \brief The class implements Pin functionality for SAME54 single pin
- */
-class CSamPin : public Pin
-{
-friend class CSamPORT;
-protected:
-
-    /*!
-     * \brief Implements Set functionality of Pin
-     * \param bHow - the pin value to be set: logical true or false
-    */
-    void impl_Set(bool bHow) override
-    {
-        CSamPORT::SetPin(m_nGroup, m_nPin, bHow);
-    }
-
-    /*!
-    * \brief Implements RbSet (read back setup value) functionality of Pin
-    * \return the pin value that was set: logical true or false
-    */
-    bool impl_RbSet() override
-    {
-        return CSamPORT::RbSetPin(m_nGroup, m_nPin);
-    }
-
-    /*!
-     * \brief Implements Get functionality of Pin
-     * \return actual pin state: logical true or false
-     */
-    bool impl_Get() override
-    {
-        return CSamPORT::GetPin(m_nGroup, m_nPin);
-    }
 
 public:
     /*!
@@ -414,7 +377,21 @@ public:
      */
     virtual ~CSamPin()
     {
-        CSamPORT::ReleasePin(m_nGroup, m_nPin);
+        ReleasePin(m_nGroup, m_nPin);
+    }
+
+    /*!
+     * \brief The protected constructor of the class. Called from CSamPin factories.
+     * \param nGroup - the SAME54 pin's group
+     * \param nPin - the SAME54 pin number in the current Group
+     */
+    CSamPin(CSamPin::group nGroup, CSamPin::pin  nPin)
+    {
+        m_nGroup=nGroup;
+        m_nPin=nPin;
+        m_nPinPAD=CSamPin::pad::PAD0;
+
+        m_SetupTime_uS=50;
     }
 
     /*!
@@ -424,45 +401,62 @@ public:
      */
     inline bool MUX(typeSamSercoms nSercom)
     {
-        return CSamPORT::MUX( CSamPORT::make_pxy(m_nGroup, m_nPin), nSercom, m_nPinPAD);
+        return CSamPin::MUX( CSamPin::make_pxy(m_nGroup, m_nPin), nSercom, m_nPinPAD);
     }
 
     /*!
      * \brief Returns current PADindex for connected pin
      * \return - the PADindex of the connected pin
      */
-    inline CSamPORT::pad GetPAD() const
+    inline CSamPin::pad GetPAD() const
     {
         return m_nPinPAD;
     }
 
 protected:
-    /*!
-     * \brief The protected constructor of the class. Called from CSamPORT factories.
-     * \param nGroup - the SAME54 pin's group
-     * \param nPin - the SAME54 pin number in the current Group
-     */
-    CSamPin(CSamPORT::group nGroup, CSamPORT::pin  nPin)
-    {
-        m_nGroup=nGroup;
-        m_nPin=nPin;
-        m_nPinPAD=CSamPORT::pad::PAD0;
 
-        m_SetupTime_uS=50;
+    /*!
+     * \brief Implements Set functionality of Pin
+     * \param bHow - the pin value to be set: logical true or false
+    */
+    void impl_Set(bool bHow) override
+    {
+        SetPin(m_nGroup, m_nPin, bHow);
     }
 
     /*!
+    * \brief Implements RbSet (read back setup value) functionality of Pin
+    * \return the pin value that was set: logical true or false
+    */
+    bool impl_RbSet() override
+    {
+        return RbSetPin(m_nGroup, m_nPin);
+    }
+
+    /*!
+     * \brief Implements Get functionality of Pin
+     * \return actual pin state: logical true or false
+     */
+    bool impl_Get() override
+    {
+        return GetPin(m_nGroup, m_nPin);
+    }
+
+private:
+    /*!
      * \brief SAME54 group of the pin
      */
-    CSamPORT::group m_nGroup;
+    CSamPin::group m_nGroup;
 
     /*!
      * \brief SAME54 pin number in the current group
      */
-    CSamPORT::pin   m_nPin;
+    CSamPin::pin   m_nPin;
 
     /*!
      * \brief Keeps current pin's PAD (the value is filled after connection to the specified peripheral)
      */
-    CSamPORT::pad   m_nPinPAD;
+    CSamPin::pad   m_nPinPAD;
 };
+
+#endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
