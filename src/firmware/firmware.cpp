@@ -131,9 +131,9 @@ int main()
 
 
     nc.SetBoardType(ThisBoard);
-    std::shared_ptr<IPin> pDAConPin;
-    std::shared_ptr<IPin> pUB1onPin;
-    std::shared_ptr<IPin> pQSPICS0Pin;
+    std::shared_ptr<Pin> pDAConPin;
+    std::shared_ptr<Pin> pUB1onPin;
+    std::shared_ptr<Pin> pQSPICS0Pin;
     std::shared_ptr<CDMSsr> pDMSsr;
 
 
@@ -206,7 +206,7 @@ int main()
       }
     pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC0, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
     pDisp->Add("AOUT4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC1, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CPin, bool> >(pDAConPin, &CPin::RbSet,  &CPin::Set) );
+    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<Pin, bool> >(pDAConPin, &Pin::RbSet,  &Pin::Set) );
 
 
 

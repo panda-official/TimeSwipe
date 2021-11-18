@@ -9,7 +9,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "../../error.hpp"
 #include "../os.h"
 
-bool CPGA280cmdBuf::transfer(CSPI &spi_bus, IPin &CS)
+bool CPGA280cmdBuf::transfer(CSPI &spi_bus, Pin &CS)
 {
     size_t sz=m_cmd.size();
     for(size_t i=0; i<sz; i++)
@@ -37,7 +37,7 @@ bool CPGA280cmdBuf::transfer(CSPI &spi_bus, IPin &CS)
     return true;
 }
 
-CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS)
+CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<Pin> pCS)
 {
     m_pSPIbus=pSPIbus;
     m_pCS=pCS;

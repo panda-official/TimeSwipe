@@ -61,7 +61,7 @@ protected:
     /*!
      * \brief The pointer to the DAC mode switcher
      */
-    std::shared_ptr<CPin>  m_pDACsw;
+    std::shared_ptr<Pin>  m_pDACsw;
 
     /*!
      * \brief The 16-bit variable holding the HighLevel of PWM output to be mapped onto the DAC by the DMA
@@ -119,5 +119,5 @@ protected:
 
 
 public:
-    CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
+    CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
 };

@@ -53,7 +53,7 @@ protected:
      */
     CSPI *m_pBus;
 
-    std::shared_ptr<IPin> m_pCS;
+    std::shared_ptr<Pin> m_pCS;
 
     /*!
      * \brief m_chan what channel of MAX5715 is controlled (A or B or C or D)
@@ -77,6 +77,6 @@ public:
      * \param RangeMin  -a channel range minimum value in user defined units (Volts, Amperes, e.t.c)
      * \param RangeMax  -a channel range maximum value in user defined units (Volts, Amperes, e.t.c)
      */
-    CDac5715sa(CSPI *pBus, std::shared_ptr<IPin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax);
+    CDac5715sa(CSPI *pBus, std::shared_ptr<Pin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax);
      //   virtual ~CDac5715sa(){} //just to keep polymorphic behaviour, should be never called
 };

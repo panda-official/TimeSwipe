@@ -374,15 +374,15 @@ public:
 };
 
 /*!
- * \brief The class implements CPin functionality for SAME54 single pin
+ * \brief The class implements Pin functionality for SAME54 single pin
  */
-class CSamPin : public CPin
+class CSamPin : public Pin
 {
 friend class CSamPORT;
 protected:
 
     /*!
-     * \brief Implements Set functionality of CPin
+     * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
     */
     void impl_Set(bool bHow) override
@@ -391,7 +391,7 @@ protected:
     }
 
     /*!
-    * \brief Implements RbSet (read back setup value) functionality of CPin
+    * \brief Implements RbSet (read back setup value) functionality of Pin
     * \return the pin value that was set: logical true or false
     */
     bool impl_RbSet() override
@@ -400,7 +400,7 @@ protected:
     }
 
     /*!
-     * \brief Implements Get functionality of CPin
+     * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
     bool impl_Get() override

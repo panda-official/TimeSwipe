@@ -7,7 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "DACPWM.h"
 
-CDacPWM::CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<CPin> &pDACsw)
+CDacPWM::CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<Pin> &pDACsw)
 {
     m_pDAC=pDAC;
     m_pDACsw=pDACsw;
@@ -33,4 +33,3 @@ void CDacPWM::impl_LoadNextHalfPeriod()
 {
     m_pDAC->SetRawOutput( m_CurHalfPeriodIndex ? m_prmLowLevel:m_prmHighLevel );
 }
-

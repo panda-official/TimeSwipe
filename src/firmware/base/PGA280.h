@@ -216,7 +216,7 @@ public:
      * \param CS - the pointer to the chip select pin
      * \return true on success, false on any error
      */
-    bool transfer(CSPI &spi_bus, IPin &CS);
+    bool transfer(CSPI &spi_bus, Pin &CS);
 
 
     /*!
@@ -479,7 +479,7 @@ public:
      * \param pSPIbus - the pointer to a SPI bus
      * \param pCS     - the pointer to the chip select pin
      */
-    CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<IPin> pCS);
+    CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<Pin> pCS);
 
 private:
     /*!
@@ -490,7 +490,7 @@ private:
     /*!
      * \brief m_pCS - the pointer to the chip select pin
      */
-    std::shared_ptr<IPin> m_pCS;
+    std::shared_ptr<Pin> m_pCS;
 
     /*!
      * \brief m_CmdBuf - the buffer for storing a command sequence for a current transfer operation
