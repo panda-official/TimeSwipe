@@ -9,15 +9,17 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <sam.h>
 
-std::shared_ptr<Sam_pin> Sam_pin::FactoryPin(const Group nGroup,
-  const Number nPin, const bool bOutput)
+Sam_pin::Sam_pin(const Group group, const Number number, const bool bOutput)
+  : m_nGroup{group}
+  , m_nPin{number}
+  , m_nPinPAD{Pad::pad0}
 {
-    //check if the pin is hardware occupied:
-    //......................................
-    using Uint = decltype(PORT->Group[0].DIRSET.reg);
-    std::shared_ptr<Sam_pin> result{new Sam_pin{nGroup, nPin}};
-    PORT->Group[nGroup].DIRSET.reg = Uint{bOutput}<<nPin;
-    return result;
+  m_SetupTime_uS = 50;
+
+  //check if the pin is hardware occupied:
+  //......................................
+  using Uint = decltype(PORT->Group[0].DIRSET.reg);
+  PORT->Group[group].DIRSET.reg = Uint{bOutput}<<number;
 }
 
 void Sam_pin::SetPin(const Group nGroup, const Number nPin,

@@ -25,7 +25,7 @@
 #include <memory>
 
 /// Single pin functionality for SAME5x.
-class Sam_pin : public Pin {
+class Sam_pin final : public Pin {
 public:
   /// The SAME5x pin group.
   enum Group { a, b, c, d };
@@ -70,179 +70,53 @@ public:
     pfh, pfi, pfj, pfk, pfl, pfm, pfn
   };
 
-    /*!
-     * \brief Fetches pin group from pin identifier.
-     * \param pin - the pin number in the Id format
-     * \return SAME54 pin's Group
-     */
-    static inline Group id2group(Id pin){
-        return static_cast<Group>(pin/32);
-    }
+  /// The destructor.
+  ~Sam_pin() override
+  {
+    ReleasePin(m_nGroup, m_nPin);
+  }
 
-    /*!
-     * \brief Fetches pin number in the current Group from the Id(GroupPin) format
-     * \param pin  - the pin number in the Id format
-     * \return SAME54 pin number in the current Group
-     */
-    static inline Number id2pin(Id pin){
-        return static_cast<Number>(pin%32);
-    }
+  /**
+   * @brief Constructs single pin control object.
+   *
+   * @param Group SAME5x pin group.
+   * @param Number SAME5x pin number within `group`.
+   * @param output Configure pin for output if `true`.
+   */
+  Sam_pin(Group group, Number number, bool output=false);
 
-    /*!
-     * \brief Transforms pin's Group number and the pin number in the Group to the Id(PinGroup) format
-     * \param group - SAME54 pin's Group
-     * \param pin - SAME54 pin number in the current Group
-     * \return pin number in the Id(PinGroup) format
-     */
-    static inline Id make_id(Group group, Number pin){
+  /// @overload
+  explicit Sam_pin(Id id, bool output=false)
+    : Sam_pin{group(id), number(id), output}
+  {}
 
-        return static_cast<Id>(group*32+pin);
-    }
+  /*!
+   * \brief Connects given pin to the corresponding Sercom
+   * \param nPin - the pin to connect in the Id format
+   * \param nSercom - SAME54 Sercom number
+   * \param nPad - pin PAD value to be filled after connection
+   * \return - true if connection is successful, false otherwise
+   */
+  static bool MUX(Id nPin, typeSamSercoms nSercom, Pad &nPad);
 
-    /*!
-     * \brief Factory for Sam_pin single pin control object
-     * \param nGroup - SAME54 pin's Group
-     * \param nPin - SAME54 pin number in the current Group
-     * \param bOutput - true=configure pin as output, false=configure pin as an input
-     * \return
-     */
-    static std::shared_ptr<Sam_pin> FactoryPin(Group nGroup, Number  nPin, bool bOutput=false);
+  /*!
+   * \brief Connects the pin to the corresponding Sercom
+   * \param nSercom - SAME54 Sercom number
+   * \return - true if connection is successful, false otherwise
+   */
+  inline bool MUX(typeSamSercoms nSercom)
+  {
+    return Sam_pin::MUX( Sam_pin::id(m_nGroup, m_nPin), nSercom, m_nPinPAD);
+  }
 
-    /*!
-     * \brief Factory for Sam_pin single pin control object
-     * \param nPin - SAME54 pin number in the Id(PinGroup) format
-     * \param bOutput
-     * \return
-     */
-    static inline std::shared_ptr<Sam_pin> FactoryPin(Id nPin, bool bOutput=false){
-
-        return FactoryPin(id2group(nPin), id2pin(nPin), bOutput);
-    }
-
-protected:
-
-    /*!
-     * \brief Sets logic state of the pin.
-     * \param nGroup - SAME54 pin's Group
-     * \param nPin - SAME54 pin number in the current Group
-     * \param bHow  - the logical state to be set
-     */
-    static void SetPin(Group nGroup, Number  nPin, bool bHow);
-
-    /*!
-     * \brief Reads back set logical state of the pin
-     * \param nGroup  - SAME54 pin's Group
-     * \param nPin - SAME54 pin number in the current Group
-     * \return set logical value of the pin
-     */
-    static bool RbSetPin(Group nGroup, Number  nPin);
-
-    /*!
-     * \brief Returns measured logic state when pin acts as an input.
-     * \param nGroup   - SAME54 pin's Group
-     * \param nPin  - SAME54 pin number in the current Group
-     * \return measured logical value of the pin
-     */
-    static bool GetPin(Group nGroup, Number  nPin);
-
-    /*!
-     * \brief Releases previously occupied pin
-     * \param nGroup  - SAME54 pin's Group
-     * \param nPin  - SAME54 pin number in the current Group
-     */
-    static void ReleasePin(Group nGroup, Number  nPin);
-
-    /*!
-     * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available
-     * \param nPin  - SAME54 pin number in the Id(PinGroup) format
-     * \param nSercom - SAME54 Sercom number
-     * \param nPad - pin PAD to be searched
-     * \param nMuxF - required multiplexer setting for given configuration
-     * \return true if the given Sercom-Pin combination is available
-     */
-    static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, Pad &nPad, Peripheral_function &nMuxF);
-
-
-public:
-    /*!
-     * \brief Connects given pin to the corresponding Sercom
-     * \param nPin - the pin to connect in the Id format
-     * \param nSercom - SAME54 Sercom number
-     * \param nPad - pin PAD value to be filled after connection
-     * \return - true if connection is successful, false otherwise
-     */
-    static bool MUX(Id nPin, typeSamSercoms nSercom, Pad &nPad);
-
-public:
-    /*!
-     * \brief The virtual destructor of the class
-     */
-    virtual ~Sam_pin()
-    {
-        ReleasePin(m_nGroup, m_nPin);
-    }
-
-    /*!
-     * \brief The protected constructor of the class. Called from Sam_pin factories.
-     * \param nGroup - the SAME54 pin's group
-     * \param nPin - the SAME54 pin number in the current Group
-     */
-    Sam_pin(Group nGroup, Number  nPin)
-    {
-        m_nGroup=nGroup;
-        m_nPin=nPin;
-        m_nPinPAD=Pad::pad0;
-
-        m_SetupTime_uS=50;
-    }
-
-    /*!
-     * \brief Connects the pin to the corresponding Sercom
-     * \param nSercom - SAME54 Sercom number
-     * \return - true if connection is successful, false otherwise
-     */
-    inline bool MUX(typeSamSercoms nSercom)
-    {
-        return Sam_pin::MUX( Sam_pin::make_id(m_nGroup, m_nPin), nSercom, m_nPinPAD);
-    }
-
-    /*!
-     * \brief Returns current PADindex for connected pin
-     * \return - the PADindex of the connected pin
-     */
-    inline Pad GetPAD() const
-    {
-        return m_nPinPAD;
-    }
-
-protected:
-
-    /*!
-     * \brief Implements Set functionality of Pin
-     * \param bHow - the pin value to be set: logical true or false
-    */
-    void impl_Set(bool bHow) override
-    {
-        SetPin(m_nGroup, m_nPin, bHow);
-    }
-
-    /*!
-    * \brief Implements RbSet (read back setup value) functionality of Pin
-    * \return the pin value that was set: logical true or false
-    */
-    bool impl_RbSet() override
-    {
-        return RbSetPin(m_nGroup, m_nPin);
-    }
-
-    /*!
-     * \brief Implements Get functionality of Pin
-     * \return actual pin state: logical true or false
-     */
-    bool impl_Get() override
-    {
-        return GetPin(m_nGroup, m_nPin);
-    }
+  /*!
+   * \brief Returns current PADindex for connected pin
+   * \return - the PADindex of the connected pin
+   */
+  Pad GetPAD() const
+  {
+    return m_nPinPAD;
+  }
 
 private:
     /*!
@@ -258,7 +132,103 @@ private:
     /*!
      * \brief Keeps current pin's PAD (the value is filled after connection to the specified peripheral)
      */
-    Pad   m_nPinPAD;
+  Pad   m_nPinPAD;
+
+  // ---------------------------------------------------------------------------
+  // Pin overridings
+  // ---------------------------------------------------------------------------
+
+  /*!
+   * \brief Implements Set functionality of Pin
+   * \param bHow - the pin value to be set: logical true or false
+   */
+  void impl_Set(bool bHow) override
+  {
+    SetPin(m_nGroup, m_nPin, bHow);
+  }
+
+  /*!
+   * \brief Implements RbSet (read back setup value) functionality of Pin
+   * \return the pin value that was set: logical true or false
+   */
+  bool impl_RbSet() override
+  {
+    return RbSetPin(m_nGroup, m_nPin);
+  }
+
+  /*!
+   * \brief Implements Get functionality of Pin
+   * \return actual pin state: logical true or false
+   */
+  bool impl_Get() override
+  {
+    return GetPin(m_nGroup, m_nPin);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  /// @returns Group by Id.
+  static constexpr Group group(const Id id) noexcept
+  {
+    return static_cast<Group>(id/32);
+  }
+
+  /// @returns Number by Id.
+  static constexpr Number number(const Id id) noexcept
+  {
+    return static_cast<Number>(id%32);
+  }
+
+  /// @returns Id by `group` and `number`.
+  static constexpr Id id(const Group group, const Number number)
+  {
+    return static_cast<Id>(group*32 + number);
+  }
+
+  // ---------------------------------------------------------------------------
+
+  /*!
+   * \brief Sets logic state of the pin.
+   * \param nGroup - SAME54 pin's Group
+   * \param nPin - SAME54 pin number in the current Group
+   * \param bHow  - the logical state to be set
+   */
+  static void SetPin(Group nGroup, Number  nPin, bool bHow);
+
+  /*!
+   * \brief Reads back set logical state of the pin
+   * \param nGroup  - SAME54 pin's Group
+   * \param nPin - SAME54 pin number in the current Group
+   * \return set logical value of the pin
+   */
+  static bool RbSetPin(Group nGroup, Number  nPin);
+
+  /*!
+   * \brief Returns measured logic state when pin acts as an input.
+   * \param nGroup   - SAME54 pin's Group
+   * \param nPin  - SAME54 pin number in the current Group
+   * \return measured logical value of the pin
+   */
+  static bool GetPin(Group nGroup, Number  nPin);
+
+  /*!
+   * \brief Releases previously occupied pin
+   * \param nGroup  - SAME54 pin's Group
+   * \param nPin  - SAME54 pin number in the current Group
+   */
+  static void ReleasePin(Group nGroup, Number  nPin);
+
+  /*!
+   * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available
+   * \param nPin  - SAME54 pin number in the Id(PinGroup) format
+   * \param nSercom - SAME54 Sercom number
+   * \param nPad - pin PAD to be searched
+   * \param nMuxF - required multiplexer setting for given configuration
+   * \return true if the given Sercom-Pin combination is available
+   */
+  static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, Pad &nPad, Peripheral_function &nMuxF);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP

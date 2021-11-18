@@ -52,7 +52,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
 
     if(CS)
     {
-        m_pCS=Sam_pin::FactoryPin(*CS, bMaster);
+        m_pCS = std::make_shared<Sam_pin>(*CS, bMaster);
         assert(m_pCS);
         bRes=m_pCS->MUX(nSercom);
         assert(bRes && Sam_pin::pad::PAD2==m_pCS->GetPAD()); //always

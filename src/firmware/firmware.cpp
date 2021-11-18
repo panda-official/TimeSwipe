@@ -141,9 +141,9 @@ int main()
     if(typeBoard::DMSBoard==ThisBoard)
       {
         pDMSsr=std::make_shared<CDMSsr>(
-          Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::Number::p05, true),
-          Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::Number::p06, true),
-          Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::Number::p07, true) );
+          std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p05, true),
+          std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p06, true),
+          std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true));
 
         pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
         pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
@@ -157,18 +157,18 @@ int main()
       }
     else
       {
-        pDAConPin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::Number::p04, true);
-        pUB1onPin=Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::Number::p07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
-        pQSPICS0Pin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::Number::p11, true);
+        pDAConPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p04, true);
+        pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
+        pQSPICS0Pin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p11, true);
 
         //old IEPE gain switches:
-        auto pGain0=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::Number::p15, true);
-        auto pGain1=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::Number::p14, true);
+        auto pGain0=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p15, true);
+        auto pGain1=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p14, true);
         nc.SetIEPEboardGainSwitches(pGain0, pGain1);
 
       }
-    auto pEnableMesPin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::Number::p13, true);
-    auto pFanPin=Sam_pin::FactoryPin(Sam_pin::Group::a, Sam_pin::Number::p09, true);
+    auto pEnableMesPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p13, true);
+    auto pFanPin=std::make_shared<Sam_pin>(Sam_pin::Group::a, Sam_pin::Number::p09, true);
 
     //setup control:
     nc.SetUBRpin(pUB1onPin);
@@ -220,7 +220,7 @@ int main()
           Sam_pin::Id::pb16, Sam_pin::Id::pb19, Sam_pin::Id::pb17, std::nullopt, nullptr);
 
 
-        auto pInaSpiCSpin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::Number::p18, true);
+        auto pInaSpiCSpin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p18, true);
         pInaSpiCSpin->SetInvertedBehaviour(true);
         pInaSpiCSpin->Set(false);
 
