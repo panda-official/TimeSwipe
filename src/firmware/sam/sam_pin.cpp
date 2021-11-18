@@ -58,69 +58,69 @@ bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
         char Pin;
         char MuxF;
     } SercomIDmap[] = {
-        {Id::PA04, Sam_pin::muxf::fD},  //sc0p0
-        {Id::PA05, Sam_pin::muxf::fD},  //sc0p1
-        {Id::PA06, Sam_pin::muxf::fD},  //sc0p2
-        {Id::PA07, Sam_pin::muxf::fD},  //sc0p3
+        {Id::pa04, Sam_pin::muxf::fD},  //sc0p0
+        {Id::pa05, Sam_pin::muxf::fD},  //sc0p1
+        {Id::pa06, Sam_pin::muxf::fD},  //sc0p2
+        {Id::pa07, Sam_pin::muxf::fD},  //sc0p3
 
-        {Id::PA16, Sam_pin::muxf::fC},  //sc1p0
-        {Id::PA17, Sam_pin::muxf::fC},  //sc1p1
-        {Id::PA18, Sam_pin::muxf::fC},  //sc1p2
-        {Id::PA19, Sam_pin::muxf::fC},  //sc1p3
+        {Id::pa16, Sam_pin::muxf::fC},  //sc1p0
+        {Id::pa17, Sam_pin::muxf::fC},  //sc1p1
+        {Id::pa18, Sam_pin::muxf::fC},  //sc1p2
+        {Id::pa19, Sam_pin::muxf::fC},  //sc1p3
 
-        {Id::PA09, Sam_pin::muxf::fD},  //sc2p0 (+ alt sc0)
-        {Id::PA08, Sam_pin::muxf::fD},  //sc2p1 (+ alt sc0)
-        {Id::PA10, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
-        {Id::PA11, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
+        {Id::pa09, Sam_pin::muxf::fD},  //sc2p0 (+ alt sc0)
+        {Id::pa08, Sam_pin::muxf::fD},  //sc2p1 (+ alt sc0)
+        {Id::pa10, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
+        {Id::pa11, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
 
-        {Id::PA17, Sam_pin::muxf::fD},  //sc3p0
-        {Id::PA16, Sam_pin::muxf::fD},  //sc3p1
-        {Id::PA18, Sam_pin::muxf::fD},  //sc3p2
-        {Id::PA19, Sam_pin::muxf::fD},  //sc3p3
+        {Id::pa17, Sam_pin::muxf::fD},  //sc3p0
+        {Id::pa16, Sam_pin::muxf::fD},  //sc3p1
+        {Id::pa18, Sam_pin::muxf::fD},  //sc3p2
+        {Id::pa19, Sam_pin::muxf::fD},  //sc3p3
 
-        {Id::PB12, Sam_pin::muxf::fC},  //sc4p0
-        {Id::PB13, Sam_pin::muxf::fC},  //sc4p1
-        {Id::PB14, Sam_pin::muxf::fC},  //sc4p2
-        {Id::PB15, Sam_pin::muxf::fC},  //sc4p3
+        {Id::pb12, Sam_pin::muxf::fC},  //sc4p0
+        {Id::pb13, Sam_pin::muxf::fC},  //sc4p1
+        {Id::pb14, Sam_pin::muxf::fC},  //sc4p2
+        {Id::pb15, Sam_pin::muxf::fC},  //sc4p3
 
-        {Id::PB16, Sam_pin::muxf::fC},  //sc5p0
-        {Id::PB17, Sam_pin::muxf::fC},  //sc5p1
-        {Id::PB18, Sam_pin::muxf::fC},  //sc5p2
-        {Id::PB19, Sam_pin::muxf::fC},  //sc5p3
+        {Id::pb16, Sam_pin::muxf::fC},  //sc5p0
+        {Id::pb17, Sam_pin::muxf::fC},  //sc5p1
+        {Id::pb18, Sam_pin::muxf::fC},  //sc5p2
+        {Id::pb19, Sam_pin::muxf::fC},  //sc5p3
 
 #if defined(__SAME54P20A__)
-        {Id::PD09, Sam_pin::muxf::fD},  //sc6p0
-        {Id::PD08, Sam_pin::muxf::fD},  //sc6p1
-        {Id::PD10, Sam_pin::muxf::fD},  //sc6p2
+        {Id::pd09, Sam_pin::muxf::fD},  //sc6p0
+        {Id::pd08, Sam_pin::muxf::fD},  //sc6p1
+        {Id::pd10, Sam_pin::muxf::fD},  //sc6p2
 #elif defined(__SAME53N19A__)
-        {Id::PC16, Sam_pin::muxf::fC},  //sc6p0
-        {Id::PC17, Sam_pin::muxf::fC},  //sc6p1
-        {Id::PC18, Sam_pin::muxf::fC},  //sc6p2
+        {Id::pc16, Sam_pin::muxf::fC},  //sc6p0
+        {Id::pc17, Sam_pin::muxf::fC},  //sc6p1
+        {Id::pc18, Sam_pin::muxf::fC},  //sc6p2
 #else
 #error Unsupported SAM
 #endif
-        {Id::PD11, Sam_pin::muxf::fD},  //sc6p3
+        {Id::pd11, Sam_pin::muxf::fD},  //sc6p3
 
-        {Id::PD08, Sam_pin::muxf::fC},  //sc7p0
-        {Id::PD09, Sam_pin::muxf::fC},  //sc7p1
-        {Id::PD10, Sam_pin::muxf::fC},  //sc7p2
-        {Id::PD11, Sam_pin::muxf::fC},  //sc7p3
+        {Id::pd08, Sam_pin::muxf::fC},  //sc7p0
+        {Id::pd09, Sam_pin::muxf::fC},  //sc7p1
+        {Id::pd10, Sam_pin::muxf::fC},  //sc7p2
+        {Id::pd11, Sam_pin::muxf::fC},  //sc7p3
 
         //----------------alt-1----------------------------
-        {Id::PA08, Sam_pin::muxf::fC},  //sc0p0
-        {Id::PA09, Sam_pin::muxf::fC},  //sc0p1
-        {Id::PA10, Sam_pin::muxf::fC},  //sc0p2
-        {Id::PA11, Sam_pin::muxf::fC},  //sc0p3
+        {Id::pa08, Sam_pin::muxf::fC},  //sc0p0
+        {Id::pa09, Sam_pin::muxf::fC},  //sc0p1
+        {Id::pa10, Sam_pin::muxf::fC},  //sc0p2
+        {Id::pa11, Sam_pin::muxf::fC},  //sc0p3
 
-        {Id::PA00, Sam_pin::muxf::fD},  //sc1p0
-        {Id::PA01, Sam_pin::muxf::fD},  //sc1p1
-        {Id::PA06, Sam_pin::muxf::fD},  //sc1p2
-        {Id::PA07, Sam_pin::muxf::fD},  //sc1p3
+        {Id::pa00, Sam_pin::muxf::fD},  //sc1p0
+        {Id::pa01, Sam_pin::muxf::fD},  //sc1p1
+        {Id::pa06, Sam_pin::muxf::fD},  //sc1p2
+        {Id::pa07, Sam_pin::muxf::fD},  //sc1p3
 
-        {Id::PA12, Sam_pin::muxf::fC},  //sc2p0
-        {Id::PA13, Sam_pin::muxf::fC},  //sc2p1
-        {Id::PA14, Sam_pin::muxf::fC},  //sc2p2
-        {Id::PA15, Sam_pin::muxf::fC},  //sc2p3
+        {Id::pa12, Sam_pin::muxf::fC},  //sc2p0
+        {Id::pa13, Sam_pin::muxf::fC},  //sc2p1
+        {Id::pa14, Sam_pin::muxf::fC},  //sc2p2
+        {Id::pa15, Sam_pin::muxf::fC},  //sc2p3
     };
 
     constexpr auto nTabSize = sizeof(SercomIDmap) / sizeof(*SercomIDmap);

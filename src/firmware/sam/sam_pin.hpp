@@ -40,25 +40,25 @@ public:
 
   /// SAME5x pin unique identifier.
   enum Id {
-    PA00, PA01, PA02, PA03, PA04, PA05, PA06, PA07,
-    PA08, PA09, PA10, PA11, PA12, PA13, PA14, PA15,
-    PA16, PA17, PA18, PA19, PA20, PA21, PA22, PA23,
-    PA24, PA25, PA26, PA27, PA28, PA29, PA30, PA31,
+    pa00, pa01, pa02, pa03, pa04, pa05, pa06, pa07,
+    pa08, pa09, pa10, pa11, pa12, pa13, pa14, pa15,
+    pa16, pa17, pa18, pa19, pa20, pa21, pa22, pa23,
+    pa24, pa25, pa26, pa27, pa28, pa29, pa30, pa31,
 
-    PB00, PB01, PB02, PB03, PB04, PB05, PB06, PB07,
-    PB08, PB09, PB10, PB11, PB12, PB13, PB14, PB15,
-    PB16, PB17, PB18, PB19, PB20, PB21, PB22, PB23,
-    PB24, PB25, PB26, PB27, PB28, PB29, PB30, PB31,
+    pb00, pb01, pb02, pb03, pb04, pb05, pb06, pb07,
+    pb08, pb09, pb10, pb11, pb12, pb13, pb14, pb15,
+    pb16, pb17, pb18, pb19, pb20, pb21, pb22, pb23,
+    pb24, pb25, pb26, pb27, pb28, pb29, pb30, pb31,
 
-    PC00, PC01, PC02, PC03, PC04, PC05, PC06, PC07,
-    PC08, PC09, PC10, PC11, PC12, PC13, PC14, PC15,
-    PC16, PC17, PC18, PC19, PC20, PC21, PC22, PC23,
-    PC24, PC25, PC26, PC27, PC28, PC29, PC30, PC31,
+    pc00, pc01, pc02, pc03, pc04, pc05, pc06, pc07,
+    pc08, pc09, pc10, pc11, pc12, pc13, pc14, pc15,
+    pc16, pc17, pc18, pc19, pc20, pc21, pc22, pc23,
+    pc24, pc25, pc26, pc27, pc28, pc29, pc30, pc31,
 
-    PD00, PD01, PD02, PD03, PD04, PD05, PD06, PD07,
-    PD08, PD09, PD10, PD11, PD12, PD13, PD14, PD15,
-    PD16, PD17, PD18, PD19, PD20, PD21, PD22, PD23,
-    PD24, PD25, PD26, PD27, PD28, PD29, PD30, PD31,
+    pd00, pd01, pd02, pd03, pd04, pd05, pd06, pd07,
+    pd08, pd09, pd10, pd11, pd12, pd13, pd14, pd15,
+    pd16, pd17, pd18, pd19, pd20, pd21, pd22, pd23,
+    pd24, pd25, pd26, pd27, pd28, pd29, pd30, pd31,
 
     none=-1 // FIXME: remove me
   };
