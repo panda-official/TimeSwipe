@@ -82,7 +82,7 @@ int main(void)
     auto pLED4      =std::make_shared<CLED>(typeLED::LED4);
 
     //communication bus:
-    auto pSPIsc2    =std::make_shared<CSPIcomm>(typeSamSercoms::Sercom2, Sam_pin::pxy::PA12, Sam_pin::pxy::PA15, Sam_pin::pxy::PA13, Sam_pin::pxy::PA14);
+    auto pSPIsc2    =std::make_shared<CSPIcomm>(typeSamSercoms::Sercom2, Sam_pin::Id::PA12, Sam_pin::Id::PA15, Sam_pin::Id::PA13, Sam_pin::Id::PA14);
     pSPIsc2->EnableIRQs(true);
     auto pDisp=         std::make_shared<CCmdDispatcher>();
     auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);

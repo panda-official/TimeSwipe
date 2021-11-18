@@ -80,13 +80,13 @@ public:
      * \param MOSI - Master-Output-Slave-Input Pin of SAME54 for selected Sercom
      * \param MISO - Master-Input-Slave-Output Pin of SAME54 for selected Sercom
      * \param CLOCK - Clock input pin for selected Sercom
-     * \param CS - specify this only if you'd like CS pin to be automaically controlled by SAM's internal logic, otherwise specify Sam_pin::pxy::none
+     * \param CS - specify this only if you'd like CS pin to be automaically controlled by SAM's internal logic, otherwise specify Sam_pin::Id::none
      * \param pCLK - Predefined Generic Clock to be used with this SPI instance in a master mode.
      *  If nullptr is specified a new Generic Clock will be created from available in a master mode. In the Slave mode Generic Clock is not required.
      */
 
     CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
-                Sam_pin::pxy MOSI,  Sam_pin::pxy MISO, Sam_pin::pxy CLOCK, Sam_pin::pxy CS=Sam_pin::pxy::none,
+                Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, Sam_pin::Id CS=Sam_pin::Id::none,
                 std::shared_ptr<CSamCLK> pCLK=nullptr);
 
     /*!

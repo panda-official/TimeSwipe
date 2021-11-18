@@ -38,161 +38,30 @@ public:
     p24, p25, p26, p27, p28, p29, p30, p31
   };
 
-    /*!
-     * \brief All possible SAME54 pins in the GroupPin format
-     */
-    enum pxy{
+  /// SAME5x pin unique identifier.
+  enum Id {
+    PA00, PA01, PA02, PA03, PA04, PA05, PA06, PA07,
+    PA08, PA09, PA10, PA11, PA12, PA13, PA14, PA15,
+    PA16, PA17, PA18, PA19, PA20, PA21, PA22, PA23,
+    PA24, PA25, PA26, PA27, PA28, PA29, PA30, PA31,
 
-        PA00=0,
-        PA01,
-        PA02,
-        PA03,
-        PA04,
-        PA05,
-        PA06,
-        PA07,
+    PB00, PB01, PB02, PB03, PB04, PB05, PB06, PB07,
+    PB08, PB09, PB10, PB11, PB12, PB13, PB14, PB15,
+    PB16, PB17, PB18, PB19, PB20, PB21, PB22, PB23,
+    PB24, PB25, PB26, PB27, PB28, PB29, PB30, PB31,
 
-        PA08,
-        PA09,
-        PA10,
-        PA11,
-        PA12,
-        PA13,
-        PA14,
-        PA15,
+    PC00, PC01, PC02, PC03, PC04, PC05, PC06, PC07,
+    PC08, PC09, PC10, PC11, PC12, PC13, PC14, PC15,
+    PC16, PC17, PC18, PC19, PC20, PC21, PC22, PC23,
+    PC24, PC25, PC26, PC27, PC28, PC29, PC30, PC31,
 
-        PA16,
-        PA17,
-        PA18,
-        PA19,
-        PA20,
-        PA21,
-        PA22,
-        PA23,
+    PD00, PD01, PD02, PD03, PD04, PD05, PD06, PD07,
+    PD08, PD09, PD10, PD11, PD12, PD13, PD14, PD15,
+    PD16, PD17, PD18, PD19, PD20, PD21, PD22, PD23,
+    PD24, PD25, PD26, PD27, PD28, PD29, PD30, PD31,
 
-        PA24,
-        PA25,
-        PA26,
-        PA27,
-        PA28,
-        PA29,
-        PA30,
-        PA31,
-
-
-        PB00,
-        PB01,
-        PB02,
-        PB03,
-        PB04,
-        PB05,
-        PB06,
-        PB07,
-
-        PB08,
-        PB09,
-        PB10,
-        PB11,
-        PB12,
-        PB13,
-        PB14,
-        PB15,
-
-        PB16,
-        PB17,
-        PB18,
-        PB19,
-        PB20,
-        PB21,
-        PB22,
-        PB23,
-
-        PB24,
-        PB25,
-        PB26,
-        PB27,
-        PB28,
-        PB29,
-        PB30,
-        PB31,
-
-
-        PC00,
-        PC01,
-        PC02,
-        PC03,
-        PC04,
-        PC05,
-        PC06,
-        PC07,
-
-        PC08,
-        PC09,
-        PC10,
-        PC11,
-        PC12,
-        PC13,
-        PC14,
-        PC15,
-
-        PC16,
-        PC17,
-        PC18,
-        PC19,
-        PC20,
-        PC21,
-        PC22,
-        PC23,
-
-        PC24,
-        PC25,
-        PC26,
-        PC27,
-        PC28,
-        PC29,
-        PC30,
-        PC31,
-
-
-
-        PD00,
-        PD01,
-        PD02,
-        PD03,
-        PD04,
-        PD05,
-        PD06,
-        PD07,
-
-        PD08,
-        PD09,
-        PD10,
-        PD11,
-        PD12,
-        PD13,
-        PD14,
-        PD15,
-
-        PD16,
-        PD17,
-        PD18,
-        PD19,
-        PD20,
-        PD21,
-        PD22,
-        PD23,
-
-        PD24,
-        PD25,
-        PD26,
-        PD27,
-        PD28,
-        PD29,
-        PD30,
-        PD31,
-
-        none=-1
-    };
+    none=-1 // FIXME: remove me
+  };
 
     /*!
      * \brief SAME54 pin pads
@@ -227,32 +96,32 @@ public:
     };
 
     /*!
-     * \brief Fetches pin group from the pxy(GroupPin) format
-     * \param pin - the pin number in the pxy format
+     * \brief Fetches pin group from pin identifier.
+     * \param pin - the pin number in the Id format
      * \return SAME54 pin's Group
      */
-    static inline Group pxy2group(pxy pin){
+    static inline Group id2group(Id pin){
         return static_cast<Group>(pin/32);
     }
 
     /*!
-     * \brief Fetches pin number in the current Group from the pxy(GroupPin) format
-     * \param pin  - the pin number in the pxy format
+     * \brief Fetches pin number in the current Group from the Id(GroupPin) format
+     * \param pin  - the pin number in the Id format
      * \return SAME54 pin number in the current Group
      */
-    static inline Number pxy2pin(pxy pin){
+    static inline Number id2pin(Id pin){
         return static_cast<Number>(pin%32);
     }
 
     /*!
-     * \brief Transforms pin's Group number and the pin number in the Group to the pxy(PinGroup) format
+     * \brief Transforms pin's Group number and the pin number in the Group to the Id(PinGroup) format
      * \param group - SAME54 pin's Group
      * \param pin - SAME54 pin number in the current Group
-     * \return pin number in the pxy(PinGroup) format
+     * \return pin number in the Id(PinGroup) format
      */
-    static inline Sam_pin::pxy make_pxy(Group group, Number pin){
+    static inline Id make_id(Group group, Number pin){
 
-        return static_cast<Sam_pin::pxy>(group*32+pin);
+        return static_cast<Id>(group*32+pin);
     }
 
     /*!
@@ -266,13 +135,13 @@ public:
 
     /*!
      * \brief Factory for Sam_pin single pin control object
-     * \param nPin - SAME54 pin number in the pxy(PinGroup) format
+     * \param nPin - SAME54 pin number in the Id(PinGroup) format
      * \param bOutput
      * \return
      */
-    static inline std::shared_ptr<Sam_pin> FactoryPin(Sam_pin::pxy nPin, bool bOutput=false){
+    static inline std::shared_ptr<Sam_pin> FactoryPin(Id nPin, bool bOutput=false){
 
-        return FactoryPin(pxy2group(nPin), pxy2pin(nPin), bOutput);
+        return FactoryPin(id2group(nPin), id2pin(nPin), bOutput);
     }
 
 protected:
@@ -310,24 +179,24 @@ protected:
 
     /*!
      * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available
-     * \param nPin  - SAME54 pin number in the pxy(PinGroup) format
+     * \param nPin  - SAME54 pin number in the Id(PinGroup) format
      * \param nSercom - SAME54 Sercom number
      * \param nPad - pin PAD to be searched
      * \param nMuxF - required multiplexer setting for given configuration
      * \return true if the given Sercom-Pin combination is available
      */
-    static bool FindSercomPad(pxy nPin, typeSamSercoms nSercom, pad &nPad, muxf &nMuxF);
+    static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, pad &nPad, muxf &nMuxF);
 
 
 public:
     /*!
      * \brief Connects given pin to the corresponding Sercom
-     * \param nPin - the pin to connect in the pxy format
+     * \param nPin - the pin to connect in the Id format
      * \param nSercom - SAME54 Sercom number
      * \param nPad - pin PAD value to be filled after connection
      * \return - true if connection is successful, false otherwise
      */
-    static bool MUX(pxy nPin, typeSamSercoms nSercom, pad &nPad);
+    static bool MUX(Id nPin, typeSamSercoms nSercom, pad &nPad);
 
 public:
     /*!
@@ -359,7 +228,7 @@ public:
      */
     inline bool MUX(typeSamSercoms nSercom)
     {
-        return Sam_pin::MUX( Sam_pin::make_pxy(m_nGroup, m_nPin), nSercom, m_nPinPAD);
+        return Sam_pin::MUX( Sam_pin::make_id(m_nGroup, m_nPin), nSercom, m_nPinPAD);
     }
 
     /*!

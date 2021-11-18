@@ -50,84 +50,84 @@ void Sam_pin::ReleasePin(const Group nGroup, const Number nPin)
     PORT->Group[nGroup].DIRCLR.reg = Uint{1}<<nPin;
 }
 
-bool Sam_pin::FindSercomPad(const pxy nPin, const typeSamSercoms nSercom,
+bool Sam_pin::FindSercomPad(const Id nPin, const typeSamSercoms nSercom,
   pad& nPad, muxf &nMuxF)
 {
-    //table: sercom->(PXY+fmux)
+    //table: sercom->(ID+fmux)
     constexpr struct {
         char Pin;
         char MuxF;
-    } SercomPXYmap[] = {
-        {Sam_pin::pxy::PA04, Sam_pin::muxf::fD},  //sc0p0
-        {Sam_pin::pxy::PA05, Sam_pin::muxf::fD},  //sc0p1
-        {Sam_pin::pxy::PA06, Sam_pin::muxf::fD},  //sc0p2
-        {Sam_pin::pxy::PA07, Sam_pin::muxf::fD},  //sc0p3
+    } SercomIDmap[] = {
+        {Id::PA04, Sam_pin::muxf::fD},  //sc0p0
+        {Id::PA05, Sam_pin::muxf::fD},  //sc0p1
+        {Id::PA06, Sam_pin::muxf::fD},  //sc0p2
+        {Id::PA07, Sam_pin::muxf::fD},  //sc0p3
 
-        {Sam_pin::pxy::PA16, Sam_pin::muxf::fC},  //sc1p0
-        {Sam_pin::pxy::PA17, Sam_pin::muxf::fC},  //sc1p1
-        {Sam_pin::pxy::PA18, Sam_pin::muxf::fC},  //sc1p2
-        {Sam_pin::pxy::PA19, Sam_pin::muxf::fC},  //sc1p3
+        {Id::PA16, Sam_pin::muxf::fC},  //sc1p0
+        {Id::PA17, Sam_pin::muxf::fC},  //sc1p1
+        {Id::PA18, Sam_pin::muxf::fC},  //sc1p2
+        {Id::PA19, Sam_pin::muxf::fC},  //sc1p3
 
-        {Sam_pin::pxy::PA09, Sam_pin::muxf::fD},  //sc2p0 (+ alt sc0)
-        {Sam_pin::pxy::PA08, Sam_pin::muxf::fD},  //sc2p1 (+ alt sc0)
-        {Sam_pin::pxy::PA10, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
-        {Sam_pin::pxy::PA11, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
+        {Id::PA09, Sam_pin::muxf::fD},  //sc2p0 (+ alt sc0)
+        {Id::PA08, Sam_pin::muxf::fD},  //sc2p1 (+ alt sc0)
+        {Id::PA10, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
+        {Id::PA11, Sam_pin::muxf::fD},  //sc2p2 (+ alt sc0)
 
-        {Sam_pin::pxy::PA17, Sam_pin::muxf::fD},  //sc3p0
-        {Sam_pin::pxy::PA16, Sam_pin::muxf::fD},  //sc3p1
-        {Sam_pin::pxy::PA18, Sam_pin::muxf::fD},  //sc3p2
-        {Sam_pin::pxy::PA19, Sam_pin::muxf::fD},  //sc3p3
+        {Id::PA17, Sam_pin::muxf::fD},  //sc3p0
+        {Id::PA16, Sam_pin::muxf::fD},  //sc3p1
+        {Id::PA18, Sam_pin::muxf::fD},  //sc3p2
+        {Id::PA19, Sam_pin::muxf::fD},  //sc3p3
 
-        {Sam_pin::pxy::PB12, Sam_pin::muxf::fC},  //sc4p0
-        {Sam_pin::pxy::PB13, Sam_pin::muxf::fC},  //sc4p1
-        {Sam_pin::pxy::PB14, Sam_pin::muxf::fC},  //sc4p2
-        {Sam_pin::pxy::PB15, Sam_pin::muxf::fC},  //sc4p3
+        {Id::PB12, Sam_pin::muxf::fC},  //sc4p0
+        {Id::PB13, Sam_pin::muxf::fC},  //sc4p1
+        {Id::PB14, Sam_pin::muxf::fC},  //sc4p2
+        {Id::PB15, Sam_pin::muxf::fC},  //sc4p3
 
-        {Sam_pin::pxy::PB16, Sam_pin::muxf::fC},  //sc5p0
-        {Sam_pin::pxy::PB17, Sam_pin::muxf::fC},  //sc5p1
-        {Sam_pin::pxy::PB18, Sam_pin::muxf::fC},  //sc5p2
-        {Sam_pin::pxy::PB19, Sam_pin::muxf::fC},  //sc5p3
+        {Id::PB16, Sam_pin::muxf::fC},  //sc5p0
+        {Id::PB17, Sam_pin::muxf::fC},  //sc5p1
+        {Id::PB18, Sam_pin::muxf::fC},  //sc5p2
+        {Id::PB19, Sam_pin::muxf::fC},  //sc5p3
 
 #if defined(__SAME54P20A__)
-        {Sam_pin::pxy::PD09, Sam_pin::muxf::fD},  //sc6p0
-        {Sam_pin::pxy::PD08, Sam_pin::muxf::fD},  //sc6p1
-        {Sam_pin::pxy::PD10, Sam_pin::muxf::fD},  //sc6p2
+        {Id::PD09, Sam_pin::muxf::fD},  //sc6p0
+        {Id::PD08, Sam_pin::muxf::fD},  //sc6p1
+        {Id::PD10, Sam_pin::muxf::fD},  //sc6p2
 #elif defined(__SAME53N19A__)
-        {Sam_pin::pxy::PC16, Sam_pin::muxf::fC},  //sc6p0
-        {Sam_pin::pxy::PC17, Sam_pin::muxf::fC},  //sc6p1
-        {Sam_pin::pxy::PC18, Sam_pin::muxf::fC},  //sc6p2
+        {Id::PC16, Sam_pin::muxf::fC},  //sc6p0
+        {Id::PC17, Sam_pin::muxf::fC},  //sc6p1
+        {Id::PC18, Sam_pin::muxf::fC},  //sc6p2
 #else
 #error Unsupported SAM
 #endif
-        {Sam_pin::pxy::PD11, Sam_pin::muxf::fD},  //sc6p3
+        {Id::PD11, Sam_pin::muxf::fD},  //sc6p3
 
-        {Sam_pin::pxy::PD08, Sam_pin::muxf::fC},  //sc7p0
-        {Sam_pin::pxy::PD09, Sam_pin::muxf::fC},  //sc7p1
-        {Sam_pin::pxy::PD10, Sam_pin::muxf::fC},  //sc7p2
-        {Sam_pin::pxy::PD11, Sam_pin::muxf::fC},  //sc7p3
+        {Id::PD08, Sam_pin::muxf::fC},  //sc7p0
+        {Id::PD09, Sam_pin::muxf::fC},  //sc7p1
+        {Id::PD10, Sam_pin::muxf::fC},  //sc7p2
+        {Id::PD11, Sam_pin::muxf::fC},  //sc7p3
 
         //----------------alt-1----------------------------
-        {Sam_pin::pxy::PA08, Sam_pin::muxf::fC},  //sc0p0
-        {Sam_pin::pxy::PA09, Sam_pin::muxf::fC},  //sc0p1
-        {Sam_pin::pxy::PA10, Sam_pin::muxf::fC},  //sc0p2
-        {Sam_pin::pxy::PA11, Sam_pin::muxf::fC},  //sc0p3
+        {Id::PA08, Sam_pin::muxf::fC},  //sc0p0
+        {Id::PA09, Sam_pin::muxf::fC},  //sc0p1
+        {Id::PA10, Sam_pin::muxf::fC},  //sc0p2
+        {Id::PA11, Sam_pin::muxf::fC},  //sc0p3
 
-        {Sam_pin::pxy::PA00, Sam_pin::muxf::fD},  //sc1p0
-        {Sam_pin::pxy::PA01, Sam_pin::muxf::fD},  //sc1p1
-        {Sam_pin::pxy::PA06, Sam_pin::muxf::fD},  //sc1p2
-        {Sam_pin::pxy::PA07, Sam_pin::muxf::fD},  //sc1p3
+        {Id::PA00, Sam_pin::muxf::fD},  //sc1p0
+        {Id::PA01, Sam_pin::muxf::fD},  //sc1p1
+        {Id::PA06, Sam_pin::muxf::fD},  //sc1p2
+        {Id::PA07, Sam_pin::muxf::fD},  //sc1p3
 
-        {Sam_pin::pxy::PA12, Sam_pin::muxf::fC},  //sc2p0
-        {Sam_pin::pxy::PA13, Sam_pin::muxf::fC},  //sc2p1
-        {Sam_pin::pxy::PA14, Sam_pin::muxf::fC},  //sc2p2
-        {Sam_pin::pxy::PA15, Sam_pin::muxf::fC},  //sc2p3
+        {Id::PA12, Sam_pin::muxf::fC},  //sc2p0
+        {Id::PA13, Sam_pin::muxf::fC},  //sc2p1
+        {Id::PA14, Sam_pin::muxf::fC},  //sc2p2
+        {Id::PA15, Sam_pin::muxf::fC},  //sc2p3
     };
 
-    constexpr auto nTabSize = sizeof(SercomPXYmap) / sizeof(*SercomPXYmap);
+    constexpr auto nTabSize = sizeof(SercomIDmap) / sizeof(*SercomIDmap);
     for (auto nSercomInd = static_cast<std::size_t>(nSercom)<<2;
          nSercomInd <= (nTabSize - 4); nSercomInd += 32) {
         for(std::size_t i{}; i < 4; i++) {
-            const auto& sc = SercomPXYmap[nSercomInd + i];
+            const auto& sc = SercomIDmap[nSercomInd + i];
             if (nPin == sc.Pin) {
                 nPad = static_cast<pad>(i);
                 nMuxF = static_cast<muxf>(sc.MuxF);
@@ -138,7 +138,7 @@ bool Sam_pin::FindSercomPad(const pxy nPin, const typeSamSercoms nSercom,
     return false;
 }
 
-bool Sam_pin::MUX(const pxy nPin, const typeSamSercoms nSercom, pad &nPad)
+bool Sam_pin::MUX(const Id nPin, const typeSamSercoms nSercom, pad &nPad)
 {
     muxf nMuxF;
     if (!FindSercomPad(nPin, nSercom, nPad, nMuxF))
