@@ -66,20 +66,8 @@ public:
 
   /// Peripheral function.
   enum Peripheral_function {
-    fA,
-    fB,
-    fC,
-    fD,
-    fE,
-    fF,
-    fG,
-    fH,
-    fI,
-    fJ,
-    fK,
-    fL,
-    fM,
-    fN
+    pfa, pfb, pfc, pfd, pfe, pff, pfg,
+    pfh, pfi, pfj, pfk, pfl, pfm, pfn
   };
 
     /*!
