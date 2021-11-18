@@ -27,7 +27,7 @@ enum class typeDac5715chan : int
 };
 
 #include "../../spi.hpp"
-#include "../Pin.h"
+#include "../pin.h"
 #include "adcdac.hpp"
 
 /*!

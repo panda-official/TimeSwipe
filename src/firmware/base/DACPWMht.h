@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include "adcdac.hpp"
-#include "../Pin.h"
+#include "../pin.h"
 #include "../PWM.h"
 #include "sam/SamCLK.h"
 #include "sam/SamTC.h"

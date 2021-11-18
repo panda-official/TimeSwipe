@@ -12,7 +12,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #pragma once
-#include "../Pin.h"
+#include "../pin.h"
 #include "../../spi.hpp"
 
 /*!

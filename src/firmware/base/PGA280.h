@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include "../../spi.hpp"
-#include "../Pin.h"
+#include "../pin.h"
 
 #include <cstdint>
 #include <vector>
