@@ -37,7 +37,7 @@ public:
      * \param nGroup - Port Group of the fan control pin
      * \param nPin - Port Pin of the fan control pin
      */
-    CPinPWM(Sam_pin::group nGroup, Sam_pin::pin nPin);
+    CPinPWM(Sam_pin::Group nGroup, Sam_pin::pin nPin);
 
 protected:
     /*!
@@ -48,7 +48,7 @@ protected:
     /*!
      * \brief Port Group of the fan control pin
      */
-    Sam_pin::group m_prmPortGroup;
+    Sam_pin::Group m_prmPortGroup;
 
     /*!
      * \brief The DMA channel used to map m_prmHighLevel16 onto the DAC

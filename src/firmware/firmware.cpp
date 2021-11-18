@@ -141,9 +141,9 @@ int main()
     if(typeBoard::DMSBoard==ThisBoard)
       {
         pDMSsr=std::make_shared<CDMSsr>(
-          Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P05, true),
-          Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P06, true),
-          Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P07, true) );
+          Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::pin::P05, true),
+          Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::pin::P06, true),
+          Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::pin::P07, true) );
 
         pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
         pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
@@ -157,18 +157,18 @@ int main()
       }
     else
       {
-        pDAConPin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P04, true);
-        pUB1onPin=Sam_pin::FactoryPin(Sam_pin::group::C, Sam_pin::pin::P07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
-        pQSPICS0Pin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P11, true);
+        pDAConPin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::pin::P04, true);
+        pUB1onPin=Sam_pin::FactoryPin(Sam_pin::Group::c, Sam_pin::pin::P07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
+        pQSPICS0Pin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::pin::P11, true);
 
         //old IEPE gain switches:
-        auto pGain0=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P15, true);
-        auto pGain1=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P14, true);
+        auto pGain0=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::pin::P15, true);
+        auto pGain1=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::pin::P14, true);
         nc.SetIEPEboardGainSwitches(pGain0, pGain1);
 
       }
-    auto pEnableMesPin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P13, true);
-    auto pFanPin=Sam_pin::FactoryPin(Sam_pin::group::A, Sam_pin::pin::P09, true);
+    auto pEnableMesPin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::pin::P13, true);
+    auto pFanPin=Sam_pin::FactoryPin(Sam_pin::Group::a, Sam_pin::pin::P09, true);
 
     //setup control:
     nc.SetUBRpin(pUB1onPin);
@@ -220,7 +220,7 @@ int main()
           Sam_pin::pxy::PB16, Sam_pin::pxy::PB19, Sam_pin::pxy::PB17, Sam_pin::none);
 
 
-        auto pInaSpiCSpin=Sam_pin::FactoryPin(Sam_pin::group::B, Sam_pin::pin::P18, true);
+        auto pInaSpiCSpin=Sam_pin::FactoryPin(Sam_pin::Group::b, Sam_pin::pin::P18, true);
         pInaSpiCSpin->SetInvertedBehaviour(true);
         pInaSpiCSpin->Set(false);
 
@@ -291,7 +291,7 @@ int main()
 
     //temp sensor+ PIN PWM:
     auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
-    auto pFanPWM=std::make_shared<CPinPWM>(Sam_pin::group::A, Sam_pin::pin::P09);
+    auto pFanPWM=std::make_shared<CPinPWM>(Sam_pin::Group::a, Sam_pin::pin::P09);
     auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
 
     //temp sens+fan control:

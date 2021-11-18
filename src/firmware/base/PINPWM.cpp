@@ -12,7 +12,7 @@ Copyright (c) 2019-2020 Panda Team
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
-CPinPWM::CPinPWM(Sam_pin::group nGroup, Sam_pin::pin nPin) : CSamTC(typeSamTC::Tc6)
+CPinPWM::CPinPWM(Sam_pin::Group nGroup, Sam_pin::pin nPin) : CSamTC(typeSamTC::Tc6)
 {
     m_prmPortGroup=nGroup;
     m_prmPortMask=(1L<<nPin);

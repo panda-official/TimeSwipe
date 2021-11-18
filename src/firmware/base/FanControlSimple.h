@@ -39,7 +39,7 @@ protected:
     /*!
      * \brief Port Group of the fan control pin
      */
-    Sam_pin::group m_PortGroup;
+    Sam_pin::Group m_PortGroup;
 
     /*!
      * \brief Port Pin of the fan control pin
@@ -71,7 +71,7 @@ public:
      * \param TempOnC0 - higher temperature threshold
      * \param TempOffC0 - lower temperature threshold
      */
-    CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, Sam_pin::group nGroup, Sam_pin::pin nPin,
+    CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, Sam_pin::Group nGroup, Sam_pin::pin nPin,
                 float TempOnC0=40.0f, float TempOffC0=35.0f);
 
     /*!
