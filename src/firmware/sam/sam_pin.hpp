@@ -153,7 +153,7 @@ private:
    * \brief Implements RbSet (read back setup value) functionality of Pin
    * \return the pin value that was set: logical true or false
    */
-  bool impl_RbSet() override
+  bool do_read_back() override
   {
     return RbSetPin(group_, number_);
   }

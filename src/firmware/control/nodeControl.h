@@ -468,7 +468,7 @@ public:
         bool IsMeasurementsEnabled()
         {
             assert(m_pEnableMes);
-            return m_pEnableMes->RbSet();
+            return m_pEnableMes->read_back();
         }
 
 
@@ -530,7 +530,7 @@ public:
         inline bool IsFanStarted()
         {
             assert(m_pFanOn);
-            return m_pFanOn->RbSet();
+            return m_pFanOn->read_back();
         }
 
         /*!

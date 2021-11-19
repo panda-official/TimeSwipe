@@ -74,14 +74,13 @@ public:
   }
 
   /**
-   * @brief Reads back set logical state of the pin.
+   * @brief Reads back logic state of the pin.
    *
-   * @returns The pin value that was set.
+   * @returns The pin value that was written.
    */
-  bool RbSet()
+  bool read_back()
   {
-    bool rv=impl_RbSet();
-    return is_inverted_ ? !rv:rv;
+    return is_inverted_ ^ do_read_back();
   }
 
   /**
@@ -133,8 +132,8 @@ private:
   /// Called by write().
   virtual void do_write(bool state) = 0;
 
-  /// Called by Rbset().
-  virtual bool impl_RbSet() = 0;
+  /// Called by read_back().
+  virtual bool do_read_back() = 0;
 
   /// Called by read().
   virtual bool do_read() const noexcept = 0;

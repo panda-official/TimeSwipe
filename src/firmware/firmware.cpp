@@ -206,7 +206,7 @@ int main()
       }
     pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC0, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
     pDisp->Add("AOUT4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC1, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<Pin, bool> >(pDAConPin, &Pin::RbSet,  &Pin::write) );
+    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<Pin, bool> >(pDAConPin, &Pin::read_back,  &Pin::write) );
 
 
 

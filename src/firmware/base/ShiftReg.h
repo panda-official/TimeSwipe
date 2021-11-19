@@ -145,7 +145,7 @@ protected:
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    bool impl_RbSet() override
+    bool do_read_back() override
     {
         return do_read();
     }
@@ -315,9 +315,9 @@ protected:
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    bool impl_RbSet() override
+    bool do_read_back() override
     {
-        return m_pCSpin->RbSet();
+        return m_pCSpin->read_back();
     }
 
     /*!
