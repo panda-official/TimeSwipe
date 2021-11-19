@@ -28,28 +28,47 @@ Sam_pin::Sam_pin(const Group group, const Number number, const bool bOutput)
   PORT->Group[group].DIRSET.reg = Uint{bOutput}<<number;
 }
 
-void Sam_pin::SetPin(const Group nGroup, const Number nPin,
-  const bool bHow)
+bool Sam_pin::connect(const Id id, const typeSamSercoms sercom, Pad& pad)
 {
-    if (bHow) {
-      using Uint = decltype(PORT->Group[0].OUTSET.reg);
-      PORT->Group[nGroup].OUTSET.reg = Uint{1}<<nPin;
-    } else {
-      using Uint = decltype(PORT->Group[0].OUTCLR.reg);
-      PORT->Group[nGroup].OUTCLR.reg = Uint{1}<<nPin;
-    }
+  Peripheral_function pf;
+  if (!get_sercom_pad(id, sercom, pad, pf))
+    return false;
+
+  //check if the pin is hardware occupied:
+  //......................................
+
+  // Multiplex.
+  const auto grp = group(id);
+  const auto num = number(id);
+  if (num & 1) // odd
+    PORT->Group[grp].PMUX[num>>1].bit.PMUXO = pf;
+  else         // even
+    PORT->Group[grp].PMUX[num>>1].bit.PMUXE = pf;
+  PORT->Group[grp].PINCFG[num].bit.PMUXEN = 1;
+  return true;
 }
 
-bool Sam_pin::RbSetPin(const Group nGroup, const Number nPin) noexcept
+void Sam_pin::do_write(const bool state)
+{
+  if (state) {
+    using Uint = decltype(PORT->Group[0].OUTSET.reg);
+    PORT->Group[group_].OUTSET.reg = Uint{1}<<number_;
+  } else {
+    using Uint = decltype(PORT->Group[0].OUTCLR.reg);
+    PORT->Group[group_].OUTCLR.reg = Uint{1}<<number_;
+  }
+}
+
+bool Sam_pin::do_read_back() const noexcept
 {
     using Uint = decltype(PORT->Group[0].OUT.reg);
-    return PORT->Group[nGroup].OUT.reg & (Uint{1}<<nPin);
+    return PORT->Group[group_].OUT.reg & (Uint{1}<<number_);
 }
 
-bool Sam_pin::GetPin(const Group nGroup, const Number nPin) noexcept
+bool Sam_pin::do_read() const noexcept
 {
     using Uint = decltype(PORT->Group[0].IN.reg);
-    return PORT->Group[nGroup].IN.reg & (Uint{1}<<nPin);
+    return PORT->Group[group_].IN.reg & (Uint{1}<<number_);
 }
 
 bool Sam_pin::get_sercom_pad(const Id id, const typeSamSercoms sercom,
@@ -137,24 +156,4 @@ bool Sam_pin::get_sercom_pad(const Id id, const typeSamSercoms sercom,
     }
   }
   return false;
-}
-
-bool Sam_pin::connect(const Id id, const typeSamSercoms sercom, Pad& pad)
-{
-  Peripheral_function pf;
-  if (!get_sercom_pad(id, sercom, pad, pf))
-    return false;
-
-  //check if the pin is hardware occupied:
-  //......................................
-
-  // Multiplex.
-  const auto grp = group(id);
-  const auto num = number(id);
-  if (num & 1) // odd
-    PORT->Group[grp].PMUX[num>>1].bit.PMUXO = pf;
-  else         // even
-    PORT->Group[grp].PMUX[num>>1].bit.PMUXE = pf;
-  PORT->Group[grp].PINCFG[num].bit.PMUXEN = 1;
-  return true;
 }
