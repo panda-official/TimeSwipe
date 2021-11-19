@@ -42,11 +42,11 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     //enable sercom bus:
     CSamSercom::EnableSercomBus(nSercom, true);
 
-    bRes=Sam_pin::MUX(DO, nSercom, DOpad);
+    bRes=Sam_pin::connect(DO, nSercom, DOpad);
     assert(bRes);
-    bRes=Sam_pin::MUX(DI, nSercom, DIpad);
+    bRes=Sam_pin::connect(DI, nSercom, DIpad);
     assert(bRes);
-    bRes=Sam_pin::MUX(CLOCK, nSercom, CLOCKpad);
+    bRes=Sam_pin::connect(CLOCK, nSercom, CLOCKpad);
     assert(bRes);
     assert(Sam_pin::pad::PAD1==CLOCKpad); //always
 
@@ -54,7 +54,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     {
         m_pCS = std::make_shared<Sam_pin>(*CS, bMaster);
         assert(m_pCS);
-        bRes=m_pCS->MUX(nSercom);
+        bRes=m_pCS->connect(nSercom);
         assert(bRes && Sam_pin::pad::PAD2==m_pCS->GetPAD()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
