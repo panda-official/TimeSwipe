@@ -136,7 +136,7 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    virtual void do_set(const bool state)
+    void do_set(const bool state) override
     {
         m_pCont->SetBit(m_nPin, state);
     }
@@ -145,7 +145,7 @@ protected:
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    virtual bool impl_RbSet()
+    bool impl_RbSet() override
     {
         return do_get();
     }
@@ -154,7 +154,7 @@ protected:
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    virtual bool do_get()
+    bool do_get() override
     {
         return m_pCont->GetBit(m_nPin);
     }
@@ -303,7 +303,7 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    virtual void do_set(const bool state)
+    void do_set(const bool state) override
     {
         if (state)
            m_pDMSsr->SelectPGA(m_nPGA);
@@ -315,7 +315,7 @@ protected:
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    virtual bool impl_RbSet()
+    bool impl_RbSet() override
     {
         return m_pCSpin->RbSet();
     }
@@ -324,7 +324,7 @@ protected:
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    virtual bool do_get()
+    bool do_get() override
     {
         return m_pCSpin->get();
     }
