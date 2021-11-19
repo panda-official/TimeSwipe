@@ -90,10 +90,9 @@ public:
    *
    * @see SetInvertedBehavior().
    */
-  bool Get()
+  bool get()
   {
-    bool rv=impl_Get();
-    return is_inverted_ ? !rv:rv;
+    return is_inverted_ ^ impl_Get();
   }
 
   /// Inverts logic behavior of the pin.

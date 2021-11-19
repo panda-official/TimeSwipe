@@ -326,7 +326,7 @@ protected:
      */
     virtual bool impl_Get()
     {
-        return m_pCSpin->Get();
+        return m_pCSpin->get();
     }
 
 public:
