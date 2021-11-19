@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
 
-#include "../pin.h"
+#include "../pin.hpp"
 #include "SamSercom.h"
 
 #include <memory>
