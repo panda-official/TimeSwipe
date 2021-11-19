@@ -162,7 +162,7 @@ private:
    * \brief Implements Get functionality of Pin
    * \return actual pin state: logical true or false
    */
-  bool do_get() override
+  bool do_read() const noexcept override
   {
     return GetPin(group_, number_);
   }
@@ -213,7 +213,7 @@ private:
    * \param nPin  - SAME54 pin number in the current Group
    * \return measured logical value of the pin
    */
-  static bool GetPin(Group nGroup, Number  nPin);
+  static bool GetPin(Group nGroup, Number  nPin) noexcept;
 
   /**
    * @brief Finds Sercom pin PAD and peripheral function for the given pin.

@@ -46,7 +46,7 @@ bool Sam_pin::RbSetPin(const Group nGroup, const Number nPin)
     return PORT->Group[nGroup].OUT.reg & (Uint{1}<<nPin);
 }
 
-bool Sam_pin::GetPin(const Group nGroup, const Number nPin)
+bool Sam_pin::GetPin(const Group nGroup, const Number nPin) noexcept
 {
     using Uint = decltype(PORT->Group[0].IN.reg);
     return PORT->Group[nGroup].IN.reg & (Uint{1}<<nPin);

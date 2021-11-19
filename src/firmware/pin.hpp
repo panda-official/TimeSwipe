@@ -91,9 +91,9 @@ public:
    *
    * @see set_inverted().
    */
-  bool get()
+  bool read() const noexcept
   {
-    return is_inverted_ ^ do_get();
+    return is_inverted_ ^ do_read();
   }
 
   /// Enables or disables inverted logic behavior of the pin.
@@ -136,8 +136,8 @@ private:
   /// Called by Rbset().
   virtual bool impl_RbSet() = 0;
 
-  /// Called by get().
-  virtual bool do_get() = 0;
+  /// Called by read().
+  virtual bool do_read() const noexcept = 0;
 
 private:
   bool is_inverted_{};

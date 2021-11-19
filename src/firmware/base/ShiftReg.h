@@ -85,7 +85,7 @@ protected:
      * \param nBit - the bit number to read (from 0)
      * \return the actual bit value: true or false
      */
-    inline bool GetBit(std::size_t nBit)
+    inline bool GetBit(std::size_t nBit) noexcept
     {
         return m_RegValue[nBit];
     }
@@ -147,14 +147,14 @@ protected:
      */
     bool impl_RbSet() override
     {
-        return do_get();
+        return do_read();
     }
 
     /*!
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    bool do_get() override
+    bool do_read() const noexcept override
     {
         return m_pCont->GetBit(m_nPin);
     }
@@ -324,9 +324,9 @@ protected:
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    bool do_get() override
+    bool do_read() const noexcept override
     {
-        return m_pCSpin->get();
+        return m_pCSpin->read();
     }
 
 public:
