@@ -20,7 +20,7 @@ Sam_pin::Sam_pin(const Group group, const Number number, const bool bOutput)
   , number_{number}
   , pad_{Pad::pad0}
 {
-  m_SetupTime_uS = 50;
+  SetPinSetupTime(50);
 
   //check if the pin is hardware occupied:
   //......................................

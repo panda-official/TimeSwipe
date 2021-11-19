@@ -168,7 +168,7 @@ protected:
     {
         m_pCont=pCont;
         m_nPin=nPin;
-        m_SetupTime_uS=50;
+        SetPinSetupTime(50);
     }
 public:
 

@@ -62,11 +62,11 @@ public:
    *
    * @remarks May differ from actual output level.
    *
-   * @see SetInvertedBehaviour().
+   * @see SetInvertedBehavior().
    */
   void Set(const bool how)
   {
-    impl_Set(m_bInvertedBehaviour ? !how:how);
+    impl_Set(is_inverted_ ? !how:how);
 
     if(m_SetupTime_uS)
       os::uwait(m_SetupTime_uS);
@@ -80,7 +80,7 @@ public:
   bool RbSet()
   {
     bool rv=impl_RbSet();
-    return m_bInvertedBehaviour ? !rv:rv;
+    return is_inverted_ ? !rv:rv;
   }
 
   /**
@@ -88,18 +88,18 @@ public:
    *
    * @remarks May differ from actual output level.
    *
-   * @see SetInvertedBehaviour().
+   * @see SetInvertedBehavior().
    */
   bool Get()
   {
     bool rv=impl_Get();
-    return m_bInvertedBehaviour ? !rv:rv;
+    return is_inverted_ ? !rv:rv;
   }
 
-  /// Inverts logic behaviour of the pin.
-  void SetInvertedBehaviour(bool how)
+  /// Inverts logic behavior of the pin.
+  void SetInvertedBehavior(bool how)
   {
-    m_bInvertedBehaviour=how;
+    is_inverted_=how;
   }
 
   /**
@@ -112,7 +112,7 @@ public:
    */
   void SetPinSetupTime(unsigned long nSetupTime_uS)
   {
-    m_SetupTime_uS=nSetupTime_uS;
+    m_SetupTime_uS = nSetupTime_uS;
   }
 
 private:
@@ -125,8 +125,8 @@ private:
   /// Called by Get().
   virtual bool impl_Get()=0;
 
-protected:
-  bool m_bInvertedBehaviour{};
+private:
+  bool is_inverted_{};
   unsigned long m_SetupTime_uS{};
 };
 

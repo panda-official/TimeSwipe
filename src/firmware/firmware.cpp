@@ -148,7 +148,7 @@ int main()
         pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
         pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
 
-        auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->SetInvertedBehaviour(true);  pQSPICS0Pin=pCS0; pCS0->Set(false);
+        auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->SetInvertedBehavior(true);  pQSPICS0Pin=pCS0; pCS0->Set(false);
 
 #ifdef DMS_TEST_MODE
         pDisp->Add("SR", std::make_shared< CCmdSGHandler<CDMSsr, unsigned int> >(pDMSsr, &CDMSsr::GetShiftReg, &CDMSsr::SetShiftReg) );
@@ -158,7 +158,7 @@ int main()
     else
       {
         pDAConPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p04, true);
-        pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
+        pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true); //pUB1onPin->SetInvertedBehavior(true); pUB1onPin->Set(false);
         pQSPICS0Pin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p11, true);
 
         //old IEPE gain switches:
@@ -213,7 +213,7 @@ int main()
     //2nd step:
     if(typeBoard::DMSBoard==ThisBoard)
       {
-        auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->SetInvertedBehaviour(true);  pCS1->Set(false);
+        auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->SetInvertedBehavior(true);  pCS1->Set(false);
 
         //create PGA280 extension bus:
         auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
@@ -221,7 +221,7 @@ int main()
 
 
         auto pInaSpiCSpin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p18, true);
-        pInaSpiCSpin->SetInvertedBehaviour(true);
+        pInaSpiCSpin->SetInvertedBehavior(true);
         pInaSpiCSpin->Set(false);
 
         auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
