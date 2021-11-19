@@ -26,126 +26,108 @@
 
 #include "os.h"
 
-/*!
- * \brief The implementation of an abstract interface of the pin
+/**
+ * Pin abstraction.
+ *
+ * @details There are two possible Pin behaviors:
+ *   - normal behavior: logical `true` denotes high output level (1), logical
+ *   `false` denotes low output level (0);
+ *   - inverted behavior: logical `true` denotes low output level (0), logical
+ *   `false` denotes high output level (1).
  */
-class Pin
-{
-protected:
-
-    /*!
-     * \brief Inverted pin behaviour flag.
-     *  Inverted pin behaviour means: logical pin state=true gives real output level=0 and vice versa: logical state=false gives output level=1.
-     *  When normal behaviour: true=1, false=0.
-     */
-    bool m_bInvertedBehaviour=false;
-
-    /*!
-     * \brief Setup time for the output level.
-     *  Usually pin output level does not change immediately but some short time is required to wait for the level rise or fall
-     */
-    unsigned long m_SetupTime_uS=0;
-
-    /*!
-     * \brief Implements Set functionality of Pin. Must be re-implemented in the derived class
-     * \param bHow - the pin value to be set: logical true or false
-     */
-    virtual void impl_Set(bool bHow)=0;
-
-    /*!
-     * \brief Implements RbSet (read back setup value) functionality of Pin. Must be re-implemented in the derived class
-     * \return the pin value that was set: logical true or false
-     */
-    virtual bool impl_RbSet()=0;
-
-
-    /*!
-     * \brief Implements Get functionality of Pin. Must be re-implemented in the derived class
-     * \return actual pin state: logical true or false
-     */
-    virtual bool impl_Get()=0;
-
+class Pin {
 public:
+  /// The destructor.
+  virtual ~Pin() = default;
 
-    /*!
-     * \brief Sets logic state of the pin. May differ from actual output level (see SetInvertedBehaviour() )
-     * \param bHow - the logical state to be set
-     */
-    void Set(bool bHow)
-    {
-        impl_Set(m_bInvertedBehaviour ? !bHow:bHow);
+  /// The default-constructible.
+  Pin() = default;
 
-        if(m_SetupTime_uS)
-            os::uwait(m_SetupTime_uS);
-    }
+  /// Non copy-constructible.
+  Pin(const Pin&) = delete;
 
-    /*!
-     * \brief Reads back set logical state of the pin
-     * \return set logical value of the pin
-     */
-    bool RbSet()
-    {
-        bool rv=impl_RbSet();
-        return m_bInvertedBehaviour ? !rv:rv;
-    }
+  /// Non copy-assignable.
+  Pin& operator=(const Pin&) = delete;
 
-    /*!
-     * \brief Returns measured logic state when pin acts as an input. May differ from actual output level (see SetInvertedBehaviour() )
-     * \return measured logical value of the pin
-     */
-    bool Get()
-    {
-        bool rv=impl_Get();
-        return m_bInvertedBehaviour ? !rv:rv;
-    }
+  /// Non move-constructible.
+  Pin(Pin&&) = delete;
 
-    /*!
-     * \brief Inverts logic behaviour of the pin
-     * \details Normal behaviour: logical true=high output level(1), logical false=low output level(0)
-     * Inverted behaviour: logical true=low output level(0), logical false=high output level(1)
-     * \param how - true=inverted behaviour, false=normal behaviour (default)
-     */
-    void SetInvertedBehaviour(bool how)
-    {
-        m_bInvertedBehaviour=how;
-    }
+  /// Non move-assignable.
+  Pin& operator=(Pin&&) = delete;
 
-    /*!
-     * \brief Sets output level setup time
-     * \details Usually pin output level does not change immediately but some short time is required to wait for the level rise or fall
-     * \param nSetupTime_uS - the setup time in uS
-     */
-    void SetPinSetupTime(unsigned long nSetupTime_uS)
-    {
-        m_SetupTime_uS=nSetupTime_uS;
-    }
+  /**
+   * @brief Sets logic state of the pin.
+   *
+   * @param how The logical state to be set.
+   *
+   * @remarks May differ from actual output level.
+   *
+   * @see SetInvertedBehaviour().
+   */
+  void Set(const bool how)
+  {
+    impl_Set(m_bInvertedBehaviour ? !how:how);
 
+    if(m_SetupTime_uS)
+      os::uwait(m_SetupTime_uS);
+  }
 
-    /*!
-     * The class default constructor
-     */
-    Pin()=default;
+  /**
+   * @brief Reads back set logical state of the pin.
+   *
+   * @returns The pin value that was set.
+   */
+  bool RbSet()
+  {
+    bool rv=impl_RbSet();
+    return m_bInvertedBehaviour ? !rv:rv;
+  }
 
-    /*!
-     * \brief remove copy constructor
-     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-     *  that is unacceptable)
-     */
-    Pin(const Pin&) = delete;
+  /**
+   * @returns Measured logic state when pin acts as an input.
+   *
+   * @remarks May differ from actual output level.
+   *
+   * @see SetInvertedBehaviour().
+   */
+  bool Get()
+  {
+    bool rv=impl_Get();
+    return m_bInvertedBehaviour ? !rv:rv;
+  }
 
-    /*!
-     * \brief remove copy operator
-     * \return
-     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-     *  that is unacceptable)
-     */
-    Pin& operator=(const Pin&) = delete;
+  /// Inverts logic behaviour of the pin.
+  void SetInvertedBehaviour(bool how)
+  {
+    m_bInvertedBehaviour=how;
+  }
+
+  /**
+   * @brief Sets output level setup time.
+   *
+   * @details In general, pin output level doesn't changes instantly. It takes
+   * a while to wait for the level to rise or fall.
+   *
+   * @param nSetupTime_uS - the setup time in uS
+   */
+  void SetPinSetupTime(unsigned long nSetupTime_uS)
+  {
+    m_SetupTime_uS=nSetupTime_uS;
+  }
+
+private:
+  /// Called by Set().
+  virtual void impl_Set(bool bHow) = 0;
+
+  /// Called by Rbset().
+  virtual bool impl_RbSet() = 0;
+
+  /// Called by Get().
+  virtual bool impl_Get()=0;
 
 protected:
-    /*!
-     * The virtual destructor of the class
-     */
-    virtual ~Pin()=default;
+  bool m_bInvertedBehaviour{};
+  unsigned long m_SetupTime_uS{};
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_PIN_HPP
