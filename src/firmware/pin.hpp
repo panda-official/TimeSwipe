@@ -68,8 +68,8 @@ public:
   {
     impl_Set(is_inverted_ ? !how:how);
 
-    if(m_SetupTime_uS)
-      os::uwait(m_SetupTime_uS);
+    if(setup_time_us_)
+      os::uwait(setup_time_us_);
   }
 
   /**
@@ -112,7 +112,7 @@ public:
    */
   void SetPinSetupTime(unsigned long nSetupTime_uS)
   {
-    m_SetupTime_uS = nSetupTime_uS;
+    setup_time_us_ = nSetupTime_uS;
   }
 
 private:
@@ -127,7 +127,7 @@ private:
 
 private:
   bool is_inverted_{};
-  unsigned long m_SetupTime_uS{};
+  unsigned long setup_time_us_{};
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_PIN_HPP
