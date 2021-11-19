@@ -222,8 +222,8 @@ int nodeControl::gain_out(int val)
      if(typeBoard::IEPEBoard==m_BoardType)
      {
          int gset=val-1;
-         m_pGain1pin->Set(gset>>1);
-         m_pGain0pin->Set(gset&1);
+         m_pGain1pin->write(gset>>1);
+         m_pGain0pin->write(gset&1);
      }
 
 
@@ -233,7 +233,7 @@ int nodeControl::gain_out(int val)
 
      return val;
 }
-bool nodeControl::GetBridge()
+bool nodeControl::GetBridge() const noexcept
 {
     return m_BridgeSetting;
 }
@@ -244,7 +244,7 @@ void nodeControl::SetBridge(bool how)
      if(typeBoard::IEPEBoard!=m_BoardType)
      {
         assert(m_pUBRswitch);
-        m_pUBRswitch->Set(how);
+        m_pUBRswitch->write(how);
      }
 
 
@@ -259,7 +259,7 @@ void nodeControl::SetSecondary(int nMode)
 
     m_SecondarySetting=nMode;
 }
-int nodeControl::GetSecondary()
+int nodeControl::GetSecondary() const noexcept
 {
     return m_SecondarySetting;
 }
@@ -276,7 +276,7 @@ void nodeControl::SetMode(int nMode)
     {
         //SetBridge(m_OpMode);
         assert(m_pUBRswitch);
-        m_pUBRswitch->Set(MesModes::IEPE==m_OpMode ? true:false);
+        m_pUBRswitch->write(MesModes::IEPE==m_OpMode ? true:false);
     }
 
     //switch all channels to IEPE:
@@ -289,7 +289,7 @@ void nodeControl::SetMode(int nMode)
     nlohmann::json v=nMode;
     Instance().Fire_on_event("Mode", v);
 }
-int nodeControl::GetMode()
+int nodeControl::GetMode() const noexcept
 {
     return m_OpMode;
 }

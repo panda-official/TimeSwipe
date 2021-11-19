@@ -148,7 +148,7 @@ int main()
         pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
         pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
 
-        auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->SetInvertedBehaviour(true);  pQSPICS0Pin=pCS0; pCS0->Set(false);
+        auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->set_inverted(true);  pQSPICS0Pin=pCS0; pCS0->write(false);
 
 #ifdef DMS_TEST_MODE
         pDisp->Add("SR", std::make_shared< CCmdSGHandler<CDMSsr, unsigned int> >(pDMSsr, &CDMSsr::GetShiftReg, &CDMSsr::SetShiftReg) );
@@ -158,7 +158,7 @@ int main()
     else
       {
         pDAConPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p04, true);
-        pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
+        pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true); //pUB1onPin->set_inverted(true); pUB1onPin->Set(false);
         pQSPICS0Pin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p11, true);
 
         //old IEPE gain switches:
@@ -206,14 +206,14 @@ int main()
       }
     pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC0, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
     pDisp->Add("AOUT4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC1, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<Pin, bool> >(pDAConPin, &Pin::RbSet,  &Pin::Set) );
+    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<Pin, bool> >(pDAConPin, &Pin::read_back,  &Pin::write) );
 
 
 
     //2nd step:
     if(typeBoard::DMSBoard==ThisBoard)
       {
-        auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->SetInvertedBehaviour(true);  pCS1->Set(false);
+        auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->set_inverted(true);  pCS1->write(false);
 
         //create PGA280 extension bus:
         auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
@@ -221,8 +221,8 @@ int main()
 
 
         auto pInaSpiCSpin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p18, true);
-        pInaSpiCSpin->SetInvertedBehaviour(true);
-        pInaSpiCSpin->Set(false);
+        pInaSpiCSpin->set_inverted(true);
+        pInaSpiCSpin->write(false);
 
         auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
         // #ifdef CALIBRATION_STATION

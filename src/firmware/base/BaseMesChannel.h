@@ -62,8 +62,8 @@ public:
      * \brief Checks if IEPE measurement mode is on or not
      * \return true=IEPE mode is ON, false IEPEmode is OFF
      */
-    inline bool IsIEPEon(){
-
+    bool IsIEPEon() const noexcept
+    {
         return  m_bIEPEon;
     }
 
@@ -95,7 +95,7 @@ public:
      * \brief Returns current amplification gain of the channel
      * \return Current amplification gain of the channel
      */
-    inline float GetActualAmpGain()
+    float GetActualAmpGain() const noexcept
     {
         return m_ActualAmpGain;
     }
@@ -104,8 +104,8 @@ public:
      * \brief Returns current measurement mode. This is a wrapper to be used with a command processor
      * \return Integer value of the current measurement mode
      */
-    inline unsigned int CmGetMesMode(){
-
+    unsigned int CmGetMesMode() const noexcept
+    {
         return static_cast<int>(m_MesMode);
     }
 

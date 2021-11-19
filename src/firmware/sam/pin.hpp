@@ -30,7 +30,7 @@ public:
   /// The SAME5x pin group.
   enum Group { a, b, c, d };
 
-  /// The SAME5x pin number.
+  /// The SAME5x pin number within Group.
   enum Number {
     p00, p01, p02, p03, p04, p05, p06, p07,
     p08, p09, p10, p11, p12, p13, p14, p15,
@@ -137,35 +137,17 @@ private:
   Pad pad_; // set after connection to the specified peripheral
 
   // ---------------------------------------------------------------------------
-  // Pin overridings
+  // Overridings
   // ---------------------------------------------------------------------------
 
-  /*!
-   * \brief Implements Set functionality of Pin
-   * \param bHow - the pin value to be set: logical true or false
-   */
-  void impl_Set(bool bHow) override
-  {
-    SetPin(group_, number_, bHow);
-  }
+  /// @see Pin::do_write().
+  void do_write(bool state) override;
 
-  /*!
-   * \brief Implements RbSet (read back setup value) functionality of Pin
-   * \return the pin value that was set: logical true or false
-   */
-  bool impl_RbSet() override
-  {
-    return RbSetPin(group_, number_);
-  }
+  /// @see Pin::do_read_back().
+  bool do_read_back() const noexcept override;
 
-  /*!
-   * \brief Implements Get functionality of Pin
-   * \return actual pin state: logical true or false
-   */
-  bool impl_Get() override
-  {
-    return GetPin(group_, number_);
-  }
+  /// @see Pin::do_read().
+  bool do_read() const noexcept override;
 
   // ---------------------------------------------------------------------------
   // Helpers
@@ -188,32 +170,6 @@ private:
   {
     return static_cast<Id>(group*32 + number);
   }
-
-  // ---------------------------------------------------------------------------
-
-  /*!
-   * \brief Sets logic state of the pin.
-   * \param nGroup - SAME54 pin's Group
-   * \param nPin - SAME54 pin number in the current Group
-   * \param bHow  - the logical state to be set
-   */
-  static void SetPin(Group nGroup, Number  nPin, bool bHow);
-
-  /*!
-   * \brief Reads back set logical state of the pin
-   * \param nGroup  - SAME54 pin's Group
-   * \param nPin - SAME54 pin number in the current Group
-   * \return set logical value of the pin
-   */
-  static bool RbSetPin(Group nGroup, Number  nPin);
-
-  /*!
-   * \brief Returns measured logic state when pin acts as an input.
-   * \param nGroup   - SAME54 pin's Group
-   * \param nPin  - SAME54 pin number in the current Group
-   * \return measured logical value of the pin
-   */
-  static bool GetPin(Group nGroup, Number  nPin);
 
   /**
    * @brief Finds Sercom pin PAD and peripheral function for the given pin.

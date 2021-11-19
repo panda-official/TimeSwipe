@@ -85,7 +85,7 @@ protected:
      * \param nBit - the bit number to read (from 0)
      * \return the actual bit value: true or false
      */
-    inline bool GetBit(std::size_t nBit)
+    inline bool GetBit(std::size_t nBit) noexcept
     {
         return m_RegValue[nBit];
     }
@@ -136,25 +136,25 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    virtual void impl_Set(bool bHow)
+    void do_write(const bool state) override
     {
-        m_pCont->SetBit(m_nPin, bHow);
+        m_pCont->SetBit(m_nPin, state);
     }
 
     /*!
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    virtual bool impl_RbSet()
+    bool do_read_back() const noexcept override
     {
-        return impl_Get();
+        return do_read();
     }
 
     /*!
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    virtual bool impl_Get()
+    bool do_read() const noexcept override
     {
         return m_pCont->GetBit(m_nPin);
     }
@@ -168,7 +168,7 @@ protected:
     {
         m_pCont=pCont;
         m_nPin=nPin;
-        m_SetupTime_uS=50;
+        set_setup_time(std::chrono::microseconds{50});
     }
 public:
 
@@ -303,30 +303,30 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    virtual void impl_Set(bool bHow)
+    void do_write(const bool state) override
     {
-        if(bHow)
+        if (state)
            m_pDMSsr->SelectPGA(m_nPGA);
 
-        m_pCSpin->Set(bHow);
+        m_pCSpin->write(state);
     }
 
     /*!
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    virtual bool impl_RbSet()
+    bool do_read_back() const noexcept override
     {
-        return m_pCSpin->RbSet();
+        return m_pCSpin->read_back();
     }
 
     /*!
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    virtual bool impl_Get()
+    bool do_read() const noexcept override
     {
-        return m_pCSpin->Get();
+        return m_pCSpin->read();
     }
 
 public:

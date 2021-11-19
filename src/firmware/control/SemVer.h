@@ -56,6 +56,8 @@ public:
     /*!
      * \brief Returns version string in the semver formar: "x.y.z"
      * \return version string in the semver formar: "x.y.z"
+     *
+     * FIXME: return by reference or string_view and enable noexcept.
      */
-    std::string GetVersionString(){ return m_VersionString; }
+    std::string GetVersionString() const { return m_VersionString; }
 };

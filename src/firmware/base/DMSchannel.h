@@ -53,7 +53,7 @@ public:
     void IEPEon(bool bHow) override
     {
         m_bIEPEon=bHow;
-        m_pIEPEswitch->Set(bHow);
+        m_pIEPEswitch->write(bHow);
     }
 
     /*!

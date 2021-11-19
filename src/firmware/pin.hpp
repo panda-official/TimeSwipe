@@ -26,126 +26,121 @@
 
 #include "os.h"
 
-/*!
- * \brief The implementation of an abstract interface of the pin
+#include <chrono>
+
+/**
+ * Pin abstraction.
+ *
+ * @details There are two possible Pin behaviors:
+ *   - normal behavior: logical `true` denotes high output level (1), logical
+ *   `false` denotes low output level (0);
+ *   - inverted behavior: logical `true` denotes low output level (0), logical
+ *   `false` denotes high output level (1).
  */
-class Pin
-{
-protected:
-
-    /*!
-     * \brief Inverted pin behaviour flag.
-     *  Inverted pin behaviour means: logical pin state=true gives real output level=0 and vice versa: logical state=false gives output level=1.
-     *  When normal behaviour: true=1, false=0.
-     */
-    bool m_bInvertedBehaviour=false;
-
-    /*!
-     * \brief Setup time for the output level.
-     *  Usually pin output level does not change immediately but some short time is required to wait for the level rise or fall
-     */
-    unsigned long m_SetupTime_uS=0;
-
-    /*!
-     * \brief Implements Set functionality of Pin. Must be re-implemented in the derived class
-     * \param bHow - the pin value to be set: logical true or false
-     */
-    virtual void impl_Set(bool bHow)=0;
-
-    /*!
-     * \brief Implements RbSet (read back setup value) functionality of Pin. Must be re-implemented in the derived class
-     * \return the pin value that was set: logical true or false
-     */
-    virtual bool impl_RbSet()=0;
-
-
-    /*!
-     * \brief Implements Get functionality of Pin. Must be re-implemented in the derived class
-     * \return actual pin state: logical true or false
-     */
-    virtual bool impl_Get()=0;
-
+class Pin {
 public:
+  /// The destructor.
+  virtual ~Pin() = default;
 
-    /*!
-     * \brief Sets logic state of the pin. May differ from actual output level (see SetInvertedBehaviour() )
-     * \param bHow - the logical state to be set
-     */
-    void Set(bool bHow)
-    {
-        impl_Set(m_bInvertedBehaviour ? !bHow:bHow);
+  /// The default-constructible.
+  Pin() = default;
 
-        if(m_SetupTime_uS)
-            os::uwait(m_SetupTime_uS);
-    }
+  /// Non copy-constructible.
+  Pin(const Pin&) = delete;
 
-    /*!
-     * \brief Reads back set logical state of the pin
-     * \return set logical value of the pin
-     */
-    bool RbSet()
-    {
-        bool rv=impl_RbSet();
-        return m_bInvertedBehaviour ? !rv:rv;
-    }
+  /// Non copy-assignable.
+  Pin& operator=(const Pin&) = delete;
 
-    /*!
-     * \brief Returns measured logic state when pin acts as an input. May differ from actual output level (see SetInvertedBehaviour() )
-     * \return measured logical value of the pin
-     */
-    bool Get()
-    {
-        bool rv=impl_Get();
-        return m_bInvertedBehaviour ? !rv:rv;
-    }
+  /// Non move-constructible.
+  Pin(Pin&&) = delete;
 
-    /*!
-     * \brief Inverts logic behaviour of the pin
-     * \details Normal behaviour: logical true=high output level(1), logical false=low output level(0)
-     * Inverted behaviour: logical true=low output level(0), logical false=high output level(1)
-     * \param how - true=inverted behaviour, false=normal behaviour (default)
-     */
-    void SetInvertedBehaviour(bool how)
-    {
-        m_bInvertedBehaviour=how;
-    }
+  /// Non move-assignable.
+  Pin& operator=(Pin&&) = delete;
 
-    /*!
-     * \brief Sets output level setup time
-     * \details Usually pin output level does not change immediately but some short time is required to wait for the level rise or fall
-     * \param nSetupTime_uS - the setup time in uS
-     */
-    void SetPinSetupTime(unsigned long nSetupTime_uS)
-    {
-        m_SetupTime_uS=nSetupTime_uS;
-    }
+  /**
+   * @brief Sets logic state of the pin.
+   *
+   * @param state The logical state to be set.
+   *
+   * @remarks May differ from actual output level.
+   *
+   * @see set_inverted().
+   */
+  void write(const bool state)
+  {
+    do_write(is_inverted_ ^ state);
+    if (setup_time_ > std::chrono::microseconds::zero())
+      os::uwait(setup_time_.count());
+  }
 
+  /**
+   * @brief Reads back logic state of the pin.
+   *
+   * @returns The pin value that was written.
+   */
+  bool read_back() const noexcept
+  {
+    return is_inverted_ ^ do_read_back();
+  }
 
-    /*!
-     * The class default constructor
-     */
-    Pin()=default;
+  /**
+   * @returns Measured logic state when pin acts as an input.
+   *
+   * @remarks May differ from actual output level.
+   *
+   * @see set_inverted().
+   */
+  bool read() const noexcept
+  {
+    return is_inverted_ ^ do_read();
+  }
 
-    /*!
-     * \brief remove copy constructor
-     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-     *  that is unacceptable)
-     */
-    Pin(const Pin&) = delete;
+  /// Enables or disables inverted logic behavior of the pin.
+  void set_inverted(const bool value)
+  {
+    is_inverted_ = value;
+  }
 
-    /*!
-     * \brief remove copy operator
-     * \return
-     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-     *  that is unacceptable)
-     */
-    Pin& operator=(const Pin&) = delete;
+  /// @returns `true` if the bevaior of this pin is inverted.
+  bool is_inverted() const noexcept
+  {
+    return is_inverted_;
+  }
 
-protected:
-    /*!
-     * The virtual destructor of the class
-     */
-    virtual ~Pin()=default;
+  /**
+   * @brief Sets output level setup time.
+   *
+   * @details In general, pin output level doesn't changes instantly. It takes
+   * a while to wait for the level to rise or fall.
+   *
+   * @param value The setup time.
+   *
+   * @warning Non-positive setup time value will be ignored!
+   */
+  void set_setup_time(const std::chrono::microseconds value)
+  {
+    setup_time_ = value;
+  }
+
+  /// @returns Output level setup time.
+  std::chrono::microseconds setup_time() const noexcept
+  {
+    return setup_time_;
+  }
+
+private:
+  /// Called by write().
+  virtual void do_write(bool state) = 0;
+
+  /// Called by read_back().
+  virtual bool do_read_back() const noexcept = 0;
+
+  /// Called by read().
+  virtual bool do_read() const noexcept = 0;
+
+private:
+  bool is_inverted_{};
+  std::chrono::microseconds setup_time_{};
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_PIN_HPP

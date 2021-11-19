@@ -365,8 +365,8 @@ public:
          * \return The value that was set by StartRecord
          * \deprecated Kept just for compatibility with previous versions
          */
-        bool IsRecordStarted(){
-
+        bool IsRecordStarted() const noexcept
+        {
             return false;
         }
 
@@ -403,8 +403,8 @@ public:
          * \brief Returns an actual gain setpoint
          * \return An actual gain setpoint
          */
-        int GetGain(){
-
+        int GetGain() const noexcept
+        {
             return m_GainSetting;
         }
 
@@ -418,7 +418,7 @@ public:
          * \brief Returns an actual bridge voltage state
          * \return true=bridge voltage is ON, false=bridge voltage is off
          */
-        bool GetBridge();
+        bool GetBridge() const noexcept;
 
         /*!
          * \brief Sets the measurement mode
@@ -430,7 +430,7 @@ public:
          * \brief Gets current measurement mode
          * \return 0 = IEPE; 1 = Normsignal
          */
-        int GetSecondary();
+        int GetSecondary() const noexcept;
 
         /*!
          * \brief Sets the board opearation mode
@@ -442,7 +442,7 @@ public:
          * \brief Gets current board operation mode
          * \return 0 = IEPE; 1 = Normsignal
          */
-        int GetMode();
+        int GetMode() const noexcept;
 
         /*!
          * \brief Starts/stops finding amplifier offsets procedure
@@ -457,7 +457,7 @@ public:
         void EnableMeasurements(bool bHow)
         {
             assert(m_pEnableMes);
-            m_pEnableMes->Set(bHow);
+            m_pEnableMes->write(bHow);
             CView::Instance().SetButtonHeartbeat(bHow);
         }
 
@@ -465,10 +465,10 @@ public:
          * \brief Returns board ADC measurements enabled flag
          * \return true=enabled, false=disabled
          */
-        bool IsMeasurementsEnabled()
+        bool IsMeasurementsEnabled() const noexcept
         {
             assert(m_pEnableMes);
-            return m_pEnableMes->RbSet();
+            return m_pEnableMes->read_back();
         }
 
 
@@ -476,7 +476,7 @@ public:
          * \brief Returns current finding amplifier offsets procedure state
          * \return true=the procedure is running, false=the procedure is finished
          */
-        inline int GetOffsetRunSt()
+        int GetOffsetRunSt() const noexcept
         {
             return m_OffsetSearch.IsStarted();
         }
@@ -485,7 +485,7 @@ public:
          * \brief Returns board calibration status
          * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
          */
-        inline bool GetCalStatus()
+        bool GetCalStatus() const noexcept
         {
           return m_CalStatus == hat::Manager::Op_result::ok;
         }
@@ -520,17 +520,17 @@ public:
         inline void StartFan(bool bHow)
         {
             assert(m_pFanOn);
-            m_pFanOn->Set(bHow);
+            m_pFanOn->write(bHow);
         }
 
         /*!
          * \brief Checks if board's cooler is running or not
          * \return true=running, false=stopped
          */
-        inline bool IsFanStarted()
+        bool IsFanStarted() const noexcept
         {
             assert(m_pFanOn);
-            return m_pFanOn->RbSet();
+            return m_pFanOn->read_back();
         }
 
         /*!
@@ -550,7 +550,7 @@ public:
          * \brief Returns actual Voltage Setting
          * \return the Voltage Setting
          */
-        float GetVoltage()
+        float GetVoltage() const noexcept
         {
             if(m_pVoltageDAC)
                 return m_pVoltageDAC->GetRealVal();
@@ -568,7 +568,7 @@ public:
          * \brief Returns actual Current Setting
          * \return the Current Setting
          */
-        float GetCurrent(){ return m_Current; }
+        float GetCurrent() const noexcept { return m_Current; }
 
         /*!
          * \brief Sets MaxCurrent (current limiter) Setting
@@ -580,7 +580,7 @@ public:
          * \brief Returns actual MaxCurrent Setting
          * \return the MaxCurrent Setting
          */
-        float GetMaxCurrent(){return m_MaxCurrent; }
+        float GetMaxCurrent() const noexcept {return m_MaxCurrent; }
 
 
         /*!

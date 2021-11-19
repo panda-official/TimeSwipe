@@ -184,7 +184,7 @@ public:
 template<typename typeClass, typename typeArg>
 class CCmdSGHandler final : public CCmdCallHandler {
 protected:
-  using Getter = typeArg(typeClass::*)();
+  using Getter = typeArg(typeClass::*)()const;
   using Setter = void(typeClass::*)(typeArg);
 
   std::shared_ptr<typeClass> m_pObj;

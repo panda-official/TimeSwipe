@@ -102,7 +102,7 @@ public:
                 float MinTempC0=45.0f, float MaxTempC0=65.0f,
                 float MinDuty=0.5, float MaxDuty=1.0);
 
-    bool GetEnabled();
+    bool GetEnabled() const noexcept;
     void SetEnabled(bool enabled);
 
     /*!

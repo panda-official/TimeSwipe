@@ -55,11 +55,11 @@ void CDac5715sa::DriverSetVal(float val, int out_bin)
     cmd += data8;
     cmd += data4;
 
-    m_pCS->Set(true);
+    m_pCS->write(true);
     //os::uwait(80);
 
     m_pBus->send(cmd);
 
-    m_pCS->Set(false);
+    m_pCS->write(false);
     //os::uwait(80);
 }

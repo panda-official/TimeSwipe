@@ -29,7 +29,7 @@ void CFanControl::SetEnabled(bool enabled)
     m_enabled = enabled;
 }
 
-bool CFanControl::GetEnabled()
+bool CFanControl::GetEnabled() const noexcept
 {
     return m_enabled;
 }

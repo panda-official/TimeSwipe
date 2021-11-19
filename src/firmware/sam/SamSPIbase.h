@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include "SamSercom.h"
-#include "sam_pin.hpp"
+#include "pin.hpp"
 
 #include "../os.h"
 #include "../../spi.hpp"
