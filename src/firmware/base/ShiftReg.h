@@ -168,7 +168,7 @@ protected:
     {
         m_pCont=pCont;
         m_nPin=nPin;
-        SetPinSetupTime(50);
+        set_setup_time(std::chrono::microseconds{50});
     }
 public:
 

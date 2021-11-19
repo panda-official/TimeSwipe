@@ -26,6 +26,8 @@
 
 #include "os.h"
 
+#include <chrono>
+
 /**
  * Pin abstraction.
  *
@@ -62,14 +64,14 @@ public:
    *
    * @remarks May differ from actual output level.
    *
-   * @see SetInvertedBehavior().
+   * @see set_inverted().
    */
   void set(const bool how)
   {
     impl_Set(is_inverted_ ? !how:how);
 
-    if(setup_time_us_)
-      os::uwait(setup_time_us_);
+    if (setup_time_ > std::chrono::microseconds::zero())
+      os::uwait(setup_time_.count());
   }
 
   /**
@@ -88,17 +90,23 @@ public:
    *
    * @remarks May differ from actual output level.
    *
-   * @see SetInvertedBehavior().
+   * @see set_inverted().
    */
   bool get()
   {
     return is_inverted_ ^ impl_Get();
   }
 
-  /// Inverts logic behavior of the pin.
-  void SetInvertedBehavior(bool how)
+  /// Enables or disables inverted logic behavior of the pin.
+  void set_inverted(const bool value)
   {
-    is_inverted_=how;
+    is_inverted_ = value;
+  }
+
+  /// @returns `true` if the bevaior of this pin is inverted.
+  bool is_inverted() const noexcept
+  {
+    return is_inverted_;
   }
 
   /**
@@ -107,11 +115,19 @@ public:
    * @details In general, pin output level doesn't changes instantly. It takes
    * a while to wait for the level to rise or fall.
    *
-   * @param nSetupTime_uS - the setup time in uS
+   * @param value The setup time.
+   *
+   * @warning Non-positive setup time value will be ignored!
    */
-  void SetPinSetupTime(unsigned long nSetupTime_uS)
+  void set_setup_time(const std::chrono::microseconds value)
   {
-    setup_time_us_ = nSetupTime_uS;
+    setup_time_ = value;
+  }
+
+  /// @returns Output level setup time.
+  std::chrono::microseconds setup_time() const noexcept
+  {
+    return setup_time_;
   }
 
 private:
@@ -126,7 +142,7 @@ private:
 
 private:
   bool is_inverted_{};
-  unsigned long setup_time_us_{};
+  std::chrono::microseconds setup_time_{};
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_PIN_HPP
