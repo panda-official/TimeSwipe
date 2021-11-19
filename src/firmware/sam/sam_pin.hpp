@@ -80,30 +80,37 @@ public:
    * @param Number SAME5x pin number within `group`.
    * @param output Configure pin for output if `true`.
    */
-  Sam_pin(Group group, Number number, bool output=false);
+  Sam_pin(Group group, Number number, bool output = false);
 
   /// @overload
-  explicit Sam_pin(Id id, bool output=false)
+  explicit Sam_pin(Id id, bool output = false)
     : Sam_pin{group(id), number(id), output}
   {}
 
-  /*!
-   * \brief Connects given pin to the corresponding Sercom
-   * \param nPin - the pin to connect in the Id format
-   * \param nSercom - SAME54 Sercom number
-   * \param nPad - pin PAD value to be filled after connection
-   * \return - true if connection is successful, false otherwise
+  /**
+   * @brief Connects the given pin to the given Sercom.
+   *
+   * @param id The pin to connect.
+   * @param sercom SAME5x Sercom number.
+   * @param[out] pad The resulting pin PAD value.
+   *
+   * @returns `true` on success.
    */
-  static bool MUX(Id nPin, typeSamSercoms nSercom, Pad &nPad);
+  static bool connect(Id id, typeSamSercoms sercom, Pad& pad);
 
-  /*!
-   * \brief Connects the pin to the corresponding Sercom
-   * \param nSercom - SAME54 Sercom number
-   * \return - true if connection is successful, false otherwise
+  /**
+   * @brief Connects this pin to the given Sercom.
+   *
+   * @param sercom SAME5x Sercom number.
+   *
+   * @returns `true` on success.
+   *
+   * @par Effects
+   * pad() returns the new PAD value on success.
    */
-  inline bool MUX(typeSamSercoms nSercom)
+  bool connect(const typeSamSercoms sercom)
   {
-    return Sam_pin::MUX( Sam_pin::id(group_, number_), nSercom, pad_);
+    return Sam_pin::connect(Sam_pin::id(group_, number_), sercom, pad_);
   }
 
   /// @returns Pin group.
@@ -208,15 +215,17 @@ private:
    */
   static bool GetPin(Group nGroup, Number  nPin);
 
-  /*!
-   * \brief Searches Sercom's pin PAD for the pin and determines if given Sercom-Pin combination is available
-   * \param nPin  - SAME54 pin number in the Id(PinGroup) format
-   * \param nSercom - SAME54 Sercom number
-   * \param nPad - pin PAD to be searched
-   * \param nMuxF - required multiplexer setting for given configuration
-   * \return true if the given Sercom-Pin combination is available
+  /**
+   * @brief Finds Sercom pin PAD and peripheral function for the given pin.
+   *
+   * @param id SAME5x pin ID.
+   * @param sercom SAME5x Sercom number.
+   * @param[out] pad Resulting pin pad.
+   * @param[out] pf Resulting periferal function.
+   *
+   * @returns `true` if found.
    */
-  static bool FindSercomPad(Id nPin, typeSamSercoms nSercom, Pad &nPad, Peripheral_function &nMuxF);
+  static bool get_sercom_pad(Id id, typeSamSercoms sercom, Pad& pad, Peripheral_function& pf);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
