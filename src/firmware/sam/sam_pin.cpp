@@ -40,7 +40,7 @@ void Sam_pin::SetPin(const Group nGroup, const Number nPin,
     }
 }
 
-bool Sam_pin::RbSetPin(const Group nGroup, const Number nPin)
+bool Sam_pin::RbSetPin(const Group nGroup, const Number nPin) noexcept
 {
     using Uint = decltype(PORT->Group[0].OUT.reg);
     return PORT->Group[nGroup].OUT.reg & (Uint{1}<<nPin);

@@ -75,7 +75,7 @@ public:
      * to obtain and refresh the value Update() method should be used
      */
 
-    float GetTempCD(){ return m_MeasuredTempCD; }
+    float GetTempCD() const noexcept { return m_MeasuredTempCD; }
 
     /*!
      * \brief Update: by this method we receive the CPU time to perform internal updation

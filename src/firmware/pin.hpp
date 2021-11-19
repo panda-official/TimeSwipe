@@ -78,7 +78,7 @@ public:
    *
    * @returns The pin value that was written.
    */
-  bool read_back()
+  bool read_back() const noexcept
   {
     return is_inverted_ ^ do_read_back();
   }
@@ -133,7 +133,7 @@ private:
   virtual void do_write(bool state) = 0;
 
   /// Called by read_back().
-  virtual bool do_read_back() = 0;
+  virtual bool do_read_back() const noexcept = 0;
 
   /// Called by read().
   virtual bool do_read() const noexcept = 0;

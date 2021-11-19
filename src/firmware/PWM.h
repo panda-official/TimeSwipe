@@ -111,7 +111,7 @@ public:
      * \brief Returns frequncy setting
      * \return Curent frequency
      */
-    unsigned int GetFrequency(){ return m_prmFrequency; }
+    unsigned int GetFrequency() const noexcept { return m_prmFrequency; }
 
     /*!
      * \brief Sets the frequency
@@ -129,7 +129,7 @@ public:
      * \brief Returns number of periods to generate
      * \return
      */
-    unsigned int GetRepeats(){ return m_prmRepeats; }
+    unsigned int GetRepeats() const noexcept { return m_prmRepeats; }
 
     /*!
      * \brief Sets number of periods to generate
@@ -141,7 +141,7 @@ public:
      * \brief Returns duty cycle (pulse width) setting
      * \return
      */
-    float GetDutyCycle(){ return m_prmDutyCycle; }
+    float GetDutyCycle() const noexcept { return m_prmDutyCycle; }
 
     /*!
      * \brief Sets duty cycle (pulse width)
@@ -153,7 +153,7 @@ public:
      * \brief Returns the output high level
      * \return The output high level
      */
-    int GetHighLevel(){ return m_prmHighLevel; }
+    int GetHighLevel() const noexcept { return m_prmHighLevel; }
 
     /*!
      * \brief Sets the output high level
@@ -170,7 +170,7 @@ public:
      * \brief Returns the output low level
      * \return The output low level
      */
-    int GetLowLevel(){ return m_prmLowLevel; }
+    int GetLowLevel() const noexcept { return m_prmLowLevel; }
 
     /*!
      * \brief Sets the output low level
@@ -187,7 +187,7 @@ public:
      * \brief Is generation started?
      * \return true=started, false=stopped
      */
-    bool IsStarted() {return m_bStarted;}
+    bool IsStarted() const noexcept {return m_bStarted;}
 
     /*!
      * \brief Starts or stops the generation
@@ -213,8 +213,8 @@ public:
      * \brief Returns the time left for current half-period
      * \return The current half-period time left in mS
      */
-    long GetHalfPeriodTimeLeft(){
-
+    long GetHalfPeriodTimeLeft() const noexcept
+    {
         return m_HalfPeriod_mS[m_CurHalfPeriodIndex]-(os::get_tick_mS() - m_HalfPeriodStartTime);
     }
 

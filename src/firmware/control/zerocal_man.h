@@ -97,7 +97,7 @@ public:
      * \brief Is group search process started?
      * \return true=at least one search algorithm in collection is started, false=no any searching is performed
      */
-    bool IsStarted(){ return (FSM::halted!=m_PState); }
+    bool IsStarted() const noexcept { return (FSM::halted!=m_PState); }
 
     /*!
      * \brief Starts all searching algorithms in collection

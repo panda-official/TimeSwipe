@@ -153,7 +153,7 @@ private:
    * \brief Implements RbSet (read back setup value) functionality of Pin
    * \return the pin value that was set: logical true or false
    */
-  bool do_read_back() override
+  bool do_read_back() const noexcept override
   {
     return RbSetPin(group_, number_);
   }
@@ -205,7 +205,7 @@ private:
    * \param nPin - SAME54 pin number in the current Group
    * \return set logical value of the pin
    */
-  static bool RbSetPin(Group nGroup, Number  nPin);
+  static bool RbSetPin(Group nGroup, Number  nPin) noexcept;
 
   /*!
    * \brief Returns measured logic state when pin acts as an input.

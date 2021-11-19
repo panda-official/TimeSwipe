@@ -145,7 +145,7 @@ protected:
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    bool do_read_back() override
+    bool do_read_back() const noexcept override
     {
         return do_read();
     }
@@ -315,7 +315,7 @@ protected:
      * \brief Implements RbSet (read back setup value) functionality of Pin
      * \return the pin value that was set: logical true or false
      */
-    bool do_read_back() override
+    bool do_read_back() const noexcept override
     {
         return m_pCSpin->read_back();
     }

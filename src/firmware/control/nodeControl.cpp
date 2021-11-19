@@ -233,7 +233,7 @@ int nodeControl::gain_out(int val)
 
      return val;
 }
-bool nodeControl::GetBridge()
+bool nodeControl::GetBridge() const noexcept
 {
     return m_BridgeSetting;
 }
@@ -259,7 +259,7 @@ void nodeControl::SetSecondary(int nMode)
 
     m_SecondarySetting=nMode;
 }
-int nodeControl::GetSecondary()
+int nodeControl::GetSecondary() const noexcept
 {
     return m_SecondarySetting;
 }
@@ -289,7 +289,7 @@ void nodeControl::SetMode(int nMode)
     nlohmann::json v=nMode;
     Instance().Fire_on_event("Mode", v);
 }
-int nodeControl::GetMode()
+int nodeControl::GetMode() const noexcept
 {
     return m_OpMode;
 }
