@@ -136,7 +136,7 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    void do_set(const bool state) override
+    void do_write(const bool state) override
     {
         m_pCont->SetBit(m_nPin, state);
     }
@@ -303,12 +303,12 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    void do_set(const bool state) override
+    void do_write(const bool state) override
     {
         if (state)
            m_pDMSsr->SelectPGA(m_nPGA);
 
-        m_pCSpin->set(state);
+        m_pCSpin->write(state);
     }
 
     /*!

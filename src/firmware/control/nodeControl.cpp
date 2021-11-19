@@ -222,8 +222,8 @@ int nodeControl::gain_out(int val)
      if(typeBoard::IEPEBoard==m_BoardType)
      {
          int gset=val-1;
-         m_pGain1pin->set(gset>>1);
-         m_pGain0pin->set(gset&1);
+         m_pGain1pin->write(gset>>1);
+         m_pGain0pin->write(gset&1);
      }
 
 
@@ -244,7 +244,7 @@ void nodeControl::SetBridge(bool how)
      if(typeBoard::IEPEBoard!=m_BoardType)
      {
         assert(m_pUBRswitch);
-        m_pUBRswitch->set(how);
+        m_pUBRswitch->write(how);
      }
 
 
@@ -276,7 +276,7 @@ void nodeControl::SetMode(int nMode)
     {
         //SetBridge(m_OpMode);
         assert(m_pUBRswitch);
-        m_pUBRswitch->set(MesModes::IEPE==m_OpMode ? true:false);
+        m_pUBRswitch->write(MesModes::IEPE==m_OpMode ? true:false);
     }
 
     //switch all channels to IEPE:

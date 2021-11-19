@@ -19,11 +19,11 @@ bool CPGA280cmdBuf::transfer(CSPI &spi_bus, Pin &CS)
 
     //setup the bus:
     spi_bus.set_phpol(false, true);
-    CS.set(true);
+    CS.write(true);
 
     bool tres=spi_bus.transfer(m_ostr, m_istr);
 
-    CS.set(false);
+    CS.write(false);
 
     if(!tres)
         return false;

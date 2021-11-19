@@ -457,7 +457,7 @@ public:
         void EnableMeasurements(bool bHow)
         {
             assert(m_pEnableMes);
-            m_pEnableMes->set(bHow);
+            m_pEnableMes->write(bHow);
             CView::Instance().SetButtonHeartbeat(bHow);
         }
 
@@ -520,7 +520,7 @@ public:
         inline void StartFan(bool bHow)
         {
             assert(m_pFanOn);
-            m_pFanOn->set(bHow);
+            m_pFanOn->write(bHow);
         }
 
         /*!

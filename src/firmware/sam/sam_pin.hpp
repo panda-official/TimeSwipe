@@ -144,7 +144,7 @@ private:
    * \brief Implements Set functionality of Pin
    * \param bHow - the pin value to be set: logical true or false
    */
-  void do_set(const bool state) override
+  void do_write(const bool state) override
   {
     SetPin(group_, number_, state);
   }

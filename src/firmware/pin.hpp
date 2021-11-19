@@ -66,9 +66,9 @@ public:
    *
    * @see set_inverted().
    */
-  void set(const bool state)
+  void write(const bool state)
   {
-    do_set(is_inverted_ ^ state);
+    do_write(is_inverted_ ^ state);
     if (setup_time_ > std::chrono::microseconds::zero())
       os::uwait(setup_time_.count());
   }
@@ -130,8 +130,8 @@ public:
   }
 
 private:
-  /// Called by set().
-  virtual void do_set(bool state) = 0;
+  /// Called by write().
+  virtual void do_write(bool state) = 0;
 
   /// Called by Rbset().
   virtual bool impl_RbSet() = 0;
