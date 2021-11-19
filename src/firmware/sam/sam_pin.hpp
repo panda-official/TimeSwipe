@@ -144,9 +144,9 @@ private:
    * \brief Implements Set functionality of Pin
    * \param bHow - the pin value to be set: logical true or false
    */
-  void impl_Set(bool bHow) override
+  void do_set(const bool state) override
   {
-    SetPin(group_, number_, bHow);
+    SetPin(group_, number_, state);
   }
 
   /*!
@@ -162,7 +162,7 @@ private:
    * \brief Implements Get functionality of Pin
    * \return actual pin state: logical true or false
    */
-  bool impl_Get() override
+  bool do_get() override
   {
     return GetPin(group_, number_);
   }

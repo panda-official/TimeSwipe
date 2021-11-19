@@ -60,16 +60,15 @@ public:
   /**
    * @brief Sets logic state of the pin.
    *
-   * @param how The logical state to be set.
+   * @param state The logical state to be set.
    *
    * @remarks May differ from actual output level.
    *
    * @see set_inverted().
    */
-  void set(const bool how)
+  void set(const bool state)
   {
-    impl_Set(is_inverted_ ? !how:how);
-
+    do_set(is_inverted_ ^ state);
     if (setup_time_ > std::chrono::microseconds::zero())
       os::uwait(setup_time_.count());
   }
@@ -94,7 +93,7 @@ public:
    */
   bool get()
   {
-    return is_inverted_ ^ impl_Get();
+    return is_inverted_ ^ do_get();
   }
 
   /// Enables or disables inverted logic behavior of the pin.
@@ -131,14 +130,14 @@ public:
   }
 
 private:
-  /// Called by Set().
-  virtual void impl_Set(bool bHow) = 0;
+  /// Called by set().
+  virtual void do_set(bool state) = 0;
 
   /// Called by Rbset().
   virtual bool impl_RbSet() = 0;
 
-  /// Called by Get().
-  virtual bool impl_Get()=0;
+  /// Called by get().
+  virtual bool do_get() = 0;
 
 private:
   bool is_inverted_{};

@@ -136,9 +136,9 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    virtual void impl_Set(bool bHow)
+    virtual void do_set(const bool state)
     {
-        m_pCont->SetBit(m_nPin, bHow);
+        m_pCont->SetBit(m_nPin, state);
     }
 
     /*!
@@ -147,14 +147,14 @@ protected:
      */
     virtual bool impl_RbSet()
     {
-        return impl_Get();
+        return do_get();
     }
 
     /*!
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    virtual bool impl_Get()
+    virtual bool do_get()
     {
         return m_pCont->GetBit(m_nPin);
     }
@@ -303,12 +303,12 @@ protected:
      * \brief Implements Set functionality of Pin
      * \param bHow - the pin value to be set: logical true or false
      */
-    virtual void impl_Set(bool bHow)
+    virtual void do_set(const bool state)
     {
-        if(bHow)
+        if (state)
            m_pDMSsr->SelectPGA(m_nPGA);
 
-        m_pCSpin->set(bHow);
+        m_pCSpin->set(state);
     }
 
     /*!
@@ -324,7 +324,7 @@ protected:
      * \brief Implements Get functionality of Pin
      * \return actual pin state: logical true or false
      */
-    virtual bool impl_Get()
+    virtual bool do_get()
     {
         return m_pCSpin->get();
     }
