@@ -198,7 +198,7 @@ void CDacPWMht::impl_Start(bool bHow)
     {
         on_settings_changed();
         synced_DAC_set(m_prmHighLevel); //start with high
-        m_pDACsw->Set(true);
+        m_pDACsw->set(true);
 
         while(pTc2->COUNT16.SYNCBUSY.bit.ENABLE){}
         if(m_prmRepeats)

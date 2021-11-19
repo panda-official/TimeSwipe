@@ -64,7 +64,7 @@ public:
    *
    * @see SetInvertedBehavior().
    */
-  void Set(const bool how)
+  void set(const bool how)
   {
     impl_Set(is_inverted_ ? !how:how);
 

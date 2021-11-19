@@ -13,20 +13,20 @@ void CShiftReg::SetShiftReg(typeRegister &RegValue, std::size_t BitsInUse)
 {
     for(std::size_t i=0; i<BitsInUse; i++)
     {
-        m_pDataPin->Set(RegValue[i]);
-        m_pClockPin->Set(true);
+        m_pDataPin->set(RegValue[i]);
+        m_pClockPin->set(true);
         asm("nop; nop; nop; nop; nop; nop; nop; nop;"
             "nop; nop; nop; nop; nop; nop; nop; nop;"); //200nS
-        m_pClockPin->Set(false);
+        m_pClockPin->set(false);
         asm("nop; nop; nop; nop; nop; nop; nop; nop;"
             "nop; nop; nop; nop; nop; nop; nop; nop;"); //200nS
     }
 
     //strobe:
-    m_pStrobePin->Set(true);
+    m_pStrobePin->set(true);
     asm("nop; nop; nop; nop; nop; nop; nop; nop;"
         "nop; nop; nop; nop; nop; nop; nop; nop;"); //200nS
-    m_pStrobePin->Set(false);
+    m_pStrobePin->set(false);
 }
 
 std::shared_ptr<CShiftRegPin> CShiftReg::FactoryPin(std::size_t nBit)

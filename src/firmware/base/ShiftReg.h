@@ -308,7 +308,7 @@ protected:
         if(bHow)
            m_pDMSsr->SelectPGA(m_nPGA);
 
-        m_pCSpin->Set(bHow);
+        m_pCSpin->set(bHow);
     }
 
     /*!

@@ -21,7 +21,7 @@ void CDacPWM::impl_Start(bool bHow)
 {
     if(bHow)
     {
-        m_pDACsw->Set(true);
+        m_pDACsw->set(true);
         m_pDAC->SetRawOutput(m_prmHighLevel);
     }
     else
