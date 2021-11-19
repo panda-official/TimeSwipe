@@ -300,8 +300,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SamI2Cmem.h
     SamNVMCTRL.cpp
     SamNVMCTRL.h
-    sam_pin.cpp
-    sam_pin.hpp
+    pin.cpp
+    pin.hpp
     SamQSPI.cpp
     SamQSPI.h
     SamSPIbase.cpp

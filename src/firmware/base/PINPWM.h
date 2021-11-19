@@ -18,7 +18,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamCLK.h"
 #include "sam/SamTC.h"
 #include "sam/SamDMAC.h"
-#include "sam/sam_pin.hpp"
+#include "sam/pin.hpp"
 
 #include <cstdint>
 #include <memory>
