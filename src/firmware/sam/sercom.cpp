@@ -32,7 +32,7 @@ Sam_sercom::~Sam_sercom()
     glob_pSC[static_cast<int>(m_nSercom)]=nullptr;
 }
 
-void Sam_sercom::EnableIRQ(typeSamSercomIRQs nLine, bool how)
+void Sam_sercom::EnableIRQ(const Irq nLine, bool how)
 {
     IRQn_Type nIRQ=static_cast<IRQn_Type>(SERCOM0_0_IRQn + static_cast<int>(m_nSercom)*4 + static_cast<int>(nLine));
 

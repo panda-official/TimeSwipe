@@ -450,10 +450,10 @@ void CSamI2CeepromMaster::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
-    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
-    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
-    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
+    Sam_sercom::EnableIRQ(Irq::irq0, how);
+    Sam_sercom::EnableIRQ(Irq::irq1, how);
+    Sam_sercom::EnableIRQ(Irq::irq2, how);
+    Sam_sercom::EnableIRQ(Irq::irq3, how);
 }
 
 //+++new mem int:

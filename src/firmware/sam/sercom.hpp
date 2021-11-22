@@ -57,11 +57,6 @@ void SERCOM7_2_Handler(void);
 void SERCOM7_3_Handler(void);
 }
 
-/*!
- * \brief An enumeration of Sercom IRQ channels
- */
-enum class typeSamSercomIRQs : int {IRQ0=0, IRQ1, IRQ2, IRQ3};
-
 /**
  * @brief An implementation of SAME54 basic Serial Communication Interface.
  *
@@ -75,6 +70,9 @@ public:
   enum class Id {
     Sercom0, Sercom1, Sercom2, Sercom3,
     Sercom4, Sercom5, Sercom6, Sercom7 };
+
+  /// SAME5X Sercom IRQ.
+  enum class Irq { irq0, irq1, irq2, irq3 };
 
 protected:
 
@@ -118,7 +116,7 @@ protected:
      * \param nLine An IRQ line ID
      * \param how true=enable, false=disable
      */
-    void EnableIRQ(typeSamSercomIRQs nLine, bool how);
+    void EnableIRQ(Irq nLine, bool how);
 
     /*!
      * \brief Enables internal communication bus with SERCOM
