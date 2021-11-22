@@ -22,8 +22,6 @@
 #include "../pin.hpp"
 #include "SamSercom.h"
 
-#include <memory>
-
 /// Single pin functionality for SAME5x.
 class Sam_pin final : public Pin {
 public:
@@ -110,7 +108,7 @@ public:
    */
   bool connect(const typeSamSercoms sercom)
   {
-    return Sam_pin::connect(Sam_pin::id(group_, number_), sercom, pad_);
+    return connect(id(group_, number_), sercom, pad_);
   }
 
   /// @returns Pin group.
