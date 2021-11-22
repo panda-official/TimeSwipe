@@ -123,7 +123,7 @@ int main()
 
 
     //communication bus:
-    auto pSPIsc2    =std::make_shared<CSPIcomm>(Sam_sercom::Id::Sercom2, Sam_pin::Id::pa12, Sam_pin::Id::pa15, Sam_pin::Id::pa13, Sam_pin::Id::pa14);
+    auto pSPIsc2    =std::make_shared<CSPIcomm>(Sam_sercom::Id::sercom2, Sam_pin::Id::pa12, Sam_pin::Id::pa15, Sam_pin::Id::pa13, Sam_pin::Id::pa14);
     pSPIsc2->EnableIRQs(true);
     auto pDisp=         std::make_shared<CCmdDispatcher>();
     auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
@@ -216,7 +216,7 @@ int main()
         auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->set_inverted(true);  pCS1->write(false);
 
         //create PGA280 extension bus:
-        auto pInaSpi=std::make_shared<CSamSPIbase>(true, Sam_sercom::Id::Sercom5,
+        auto pInaSpi=std::make_shared<CSamSPIbase>(true, Sam_sercom::Id::sercom5,
           Sam_pin::Id::pb16, Sam_pin::Id::pb19, Sam_pin::Id::pb17, std::nullopt, nullptr);
 
 

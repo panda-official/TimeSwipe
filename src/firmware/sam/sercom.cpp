@@ -48,14 +48,14 @@ void Sam_sercom::enable_irq(const Irq irq, const bool enable)
 void Sam_sercom::enable_internal_bus(const bool enable)
 {
   switch(id_) {
-  case Id::Sercom0: MCLK->APBAMASK.bit.SERCOM0_ = enable; break;
-  case Id::Sercom1: MCLK->APBAMASK.bit.SERCOM1_ = enable; break;
-  case Id::Sercom2: MCLK->APBBMASK.bit.SERCOM2_ = enable; break;
-  case Id::Sercom3: MCLK->APBBMASK.bit.SERCOM3_ = enable; break;
-  case Id::Sercom4: MCLK->APBDMASK.bit.SERCOM4_ = enable; break;
-  case Id::Sercom5: MCLK->APBDMASK.bit.SERCOM5_ = enable; break;
-  case Id::Sercom6: MCLK->APBDMASK.bit.SERCOM6_ = enable; break;
-  case Id::Sercom7: MCLK->APBDMASK.bit.SERCOM7_ = enable; break;
+  case Id::sercom0: MCLK->APBAMASK.bit.SERCOM0_ = enable; break;
+  case Id::sercom1: MCLK->APBAMASK.bit.SERCOM1_ = enable; break;
+  case Id::sercom2: MCLK->APBBMASK.bit.SERCOM2_ = enable; break;
+  case Id::sercom3: MCLK->APBBMASK.bit.SERCOM3_ = enable; break;
+  case Id::sercom4: MCLK->APBDMASK.bit.SERCOM4_ = enable; break;
+  case Id::sercom5: MCLK->APBDMASK.bit.SERCOM5_ = enable; break;
+  case Id::sercom6: MCLK->APBDMASK.bit.SERCOM6_ = enable; break;
+  case Id::sercom7: MCLK->APBDMASK.bit.SERCOM7_ = enable; break;
   }
 }
 
@@ -200,14 +200,14 @@ Sercom *glob_GetSercomPtr(const Sam_sercom::Id sercom)
 {
   using Id = Sam_sercom::Id;
   switch (sercom) {
-  case Id::Sercom0: return SERCOM0;
-  case Id::Sercom1: return SERCOM1;
-  case Id::Sercom2: return SERCOM2;
-  case Id::Sercom3: return SERCOM3;
-  case Id::Sercom4: return SERCOM4;
-  case Id::Sercom5: return SERCOM5;
-  case Id::Sercom6: return SERCOM6;
-  case Id::Sercom7: return SERCOM7;
+  case Id::sercom0: return SERCOM0;
+  case Id::sercom1: return SERCOM1;
+  case Id::sercom2: return SERCOM2;
+  case Id::sercom3: return SERCOM3;
+  case Id::sercom4: return SERCOM4;
+  case Id::sercom5: return SERCOM5;
+  case Id::sercom6: return SERCOM6;
+  case Id::sercom7: return SERCOM7;
   }
   return nullptr;
 }
@@ -217,14 +217,14 @@ void Sam_sercom::connect_clock_generator(const typeSamCLK nCLK)
   const int pind = [this]
   {
     switch(id_) {
-    case Id::Sercom0: return 7;
-    case Id::Sercom1: return 8;
-    case Id::Sercom2: return 23;
-    case Id::Sercom3: return 24;
-    case Id::Sercom4: return 34;
-    case Id::Sercom5: return 35;
-    case Id::Sercom6: return 36;
-    case Id::Sercom7: return 37;
+    case Id::sercom0: return 7;
+    case Id::sercom1: return 8;
+    case Id::sercom2: return 23;
+    case Id::sercom3: return 24;
+    case Id::sercom4: return 34;
+    case Id::sercom5: return 35;
+    case Id::sercom6: return 36;
+    case Id::sercom7: return 37;
     }
     std::terminate();
   }();

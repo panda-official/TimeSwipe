@@ -5,7 +5,8 @@
 Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)
 
-CSamI2Cmem8Pin::CSamI2Cmem8Pin() : CSamI2Cmem(Id::Sercom3)
+CSamI2Cmem8Pin::CSamI2Cmem8Pin()
+  : CSamI2Cmem(Id::sercom3)
 {
     //----------setup PINs: Version2: PA22,PA23----------------
     PORT->Group[0].PMUX[11].bit.PMUXE=0x02; //(PAD0)

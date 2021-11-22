@@ -68,8 +68,8 @@ class Sam_sercom : virtual public CSerial {
 public:
   /// SAME5x Sercom ID.
   enum class Id {
-    Sercom0, Sercom1, Sercom2, Sercom3,
-    Sercom4, Sercom5, Sercom6, Sercom7 };
+    sercom0, sercom1, sercom2, sercom3,
+    sercom4, sercom5, sercom6, sercom7 };
 
   /// SAME5X Sercom IRQ.
   enum class Irq { irq0, irq1, irq2, irq3 };

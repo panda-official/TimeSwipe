@@ -18,7 +18,7 @@ Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 
 
 CSamI2CeepromMaster::CSamI2CeepromMaster()
-  : Sam_sercom{Id::Sercom6}
+  : Sam_sercom{Id::sercom6}
 {
     PORT->Group[3].DIRSET.reg=(1L<<10);
     SetWriteProtection(true);
