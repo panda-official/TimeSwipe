@@ -29,7 +29,7 @@ CSamI2CeepromMaster::CSamI2CeepromMaster()
 
     //connect:
     connect_clock_generator(m_pCLK->id());
-    m_pCLK->Enable(true);
+    m_pCLK->enable(true);
 
     setup_bus();
 

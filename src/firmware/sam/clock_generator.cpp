@@ -22,8 +22,9 @@
 
 Sam_clock_generator::~Sam_clock_generator()
 {
-  Enable(false);
-  instances_[static_cast<int>(id_)] = nullptr;
+  if (is_enabled())
+    enable(false);
+  instances_[instance_index()] = nullptr;
 }
 
 Sam_clock_generator::Sam_clock_generator(const Id id)
@@ -47,17 +48,27 @@ std::shared_ptr<Sam_clock_generator> Sam_clock_generator::make()
 
 void Sam_clock_generator::wait_sync()
 {
-  while (GCLK->SYNCBUSY.reg & (4UL<<static_cast<int>(id_)));
+  while (GCLK->SYNCBUSY.reg & (4UL<<instance_index()));
 }
 
 void Sam_clock_generator::set_frequency_divider(const unsigned short divider)
 {
-  GCLK->GENCTRL[static_cast<int>(id_)].bit.DIV = divider;
+  GCLK->GENCTRL[instance_index()].bit.DIV = divider;
   wait_sync();
 }
 
-void Sam_clock_generator::Enable(const bool how)
+unsigned short Sam_clock_generator::frequency_divider() const noexcept
 {
-  GCLK->GENCTRL[static_cast<int>(id_)].bit.GENEN = how;
+  return GCLK->GENCTRL[instance_index()].bit.DIV;
+}
+
+void Sam_clock_generator::enable(const bool is_enabled)
+{
+  GCLK->GENCTRL[instance_index()].bit.GENEN = is_enabled;
   wait_sync();
+}
+
+bool Sam_clock_generator::is_enabled() const noexcept
+{
+  return GCLK->GENCTRL[instance_index()].bit.GENEN;
 }

@@ -179,7 +179,7 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     GCLK->PCHCTRL[pchind].bit.GEN=static_cast<uint32_t>(m_pCLK->id());
     GCLK->PCHCTRL[pchind].bit.CHEN=1;
 
-     m_pCLK->Enable(true);
+     m_pCLK->enable(true);
     //------------------------------------------------------------------
 
 

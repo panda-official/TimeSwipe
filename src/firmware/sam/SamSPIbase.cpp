@@ -96,7 +96,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
             PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
         }
         connect_clock_generator(m_pCLK->id());
-        m_pCLK->Enable(true);
+        m_pCLK->enable(true);
         pSPI->BAUD.bit.BAUD=0xff; //lowest possible by default
      }
      else

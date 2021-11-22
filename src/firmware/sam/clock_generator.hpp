@@ -65,11 +65,14 @@ public:
    */
   void set_frequency_divider(unsigned short divider);
 
-  /*!
-   * \brief Enables the generator
-   * \param how true=enabled, false=disabled
-   */
-  void Enable(bool how);
+  /// @returns The divider of the clock generator frequency.
+  unsigned short frequency_divider() const noexcept;
+
+  /// Enables this generator.
+  void enable(bool is_enabled);
+
+  /// @returns `true` if this generator enabled.
+  bool is_enabled() const noexcept;
 
 private:
   inline static Sam_clock_generator* instances_[12]{};
@@ -77,6 +80,12 @@ private:
 
   /// The constructor.
   explicit Sam_clock_generator(Id id);
+
+  /// @returns Instance index.
+  int instance_index() const noexcept
+  {
+    return static_cast<int>(id_);
+  }
 
   /**
    * @brief Waits the completion of the bus synchronization.

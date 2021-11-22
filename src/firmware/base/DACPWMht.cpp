@@ -78,7 +78,7 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, mode nOpMode)
     {
         m_pCLK = Sam_clock_generator::make();
         PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
-        m_pCLK->Enable(true); //???
+        m_pCLK->enable(true); //???
     }
     CSamTC::ConnectGCLK(m_pCLK->id());
 

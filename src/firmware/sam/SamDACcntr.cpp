@@ -77,7 +77,7 @@ void CSamDACcntr::common_init() //common settings for both dacs
     GCLK->PCHCTRL[GCLK_DAC].bit.CHEN=1;
 
     m_pCLK->set_frequency_divider(6);
-    m_pCLK->Enable(true);
+    m_pCLK->enable(true);
     //----------------------------------------------------------------
 
 

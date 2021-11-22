@@ -25,7 +25,7 @@ CPinPWM::CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin) : CSamTC(typeSamTC
     m_pCLK=Sam_clock_generator::make();
     PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
     CSamTC::ConnectGCLK(m_pCLK->id());
-    m_pCLK->Enable(true);
+    m_pCLK->enable(true);
 
     CSamDMAC &dmac=CSamDMAC::Instance();
 
