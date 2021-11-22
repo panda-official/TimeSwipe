@@ -5,6 +5,7 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
+#include "../error.hpp"
 #include "DACPWMht.h"
 
 #include <sam.h>
@@ -75,7 +76,8 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, mode nOpMode)
     //get clock:
     if(!m_pCLK)
     {
-        m_pCLK=Sam_clock_generator::Factory();
+        m_pCLK = Sam_clock_generator::make();
+        PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
         m_pCLK->Enable(true); //???
     }
     CSamTC::ConnectGCLK(m_pCLK->id());

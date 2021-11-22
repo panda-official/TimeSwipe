@@ -20,39 +20,28 @@
 
 #include <sam.h>
 
-std::list<Sam_clock_generator*> Sam_clock_generator::instances_;
-bool Sam_clock_generator::busy_[12];
-
 Sam_clock_generator::~Sam_clock_generator()
 {
-  instances_.remove(this);
-  busy_[static_cast<int>(id_)] = false;
+  instances_[static_cast<int>(id_)] = nullptr;
 }
 
-//factory:
-std::shared_ptr<Sam_clock_generator> Sam_clock_generator::Factory()
+Sam_clock_generator::Sam_clock_generator(const Id id)
+  : id_{id}
+{}
+
+std::shared_ptr<Sam_clock_generator> Sam_clock_generator::make()
 {
-    for(int i=static_cast<int>(Id::GCLK2); i<=static_cast<int>(Id::GCLK11); i++)
-    {
-        //check if hardware occupied by a first time
-        if (GCLK->GENCTRL[i].bit.GENEN) {
-          busy_[i] = true;
-          continue;
-        }
-
-
-        if(!busy_[i])
-        {
-            busy_[i]=true;
-            Sam_clock_generator *pClk= new Sam_clock_generator; //because of protected ctor
-            pClk->id_ = static_cast<Id>(i);
-            instances_.push_back(pClk);
-            GCLK->GENCTRL[i].bit.SRC=GCLK_GENCTRL_SRC_DFLL; //def source
-            pClk->WaitSync();
-            return std::shared_ptr<Sam_clock_generator>(pClk);
-        }
+  for (int i = static_cast<int>(Id::GCLK2); i <= static_cast<int>(Id::GCLK11); ++i) {
+    if (!instances_[i]) {
+      std::shared_ptr<Sam_clock_generator> instance{new
+        Sam_clock_generator{static_cast<Id>(i)}};
+      GCLK->GENCTRL[i].bit.SRC = GCLK_GENCTRL_SRC_DFLL; // def source
+      instance->WaitSync();
+      instances_[i] = instance.get();
+      return instance;
     }
-    return nullptr;
+  }
+  return nullptr;
 }
 
 void Sam_clock_generator::WaitSync()

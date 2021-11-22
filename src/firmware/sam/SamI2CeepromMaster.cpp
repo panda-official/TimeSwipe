@@ -5,9 +5,9 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-
-#include "SamI2CeepromMaster.h"
+#include "../error.hpp"
 #include "../os.h"
+#include "SamI2CeepromMaster.h"
 
 #include <sam.h>
 
@@ -24,7 +24,8 @@ CSamI2CeepromMaster::CSamI2CeepromMaster()
     SetWriteProtection(true);
 
     enable_internal_bus(true);
-    m_pCLK=Sam_clock_generator::Factory();
+    m_pCLK=Sam_clock_generator::make();
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
 
     //connect:
     connect_clock_generator(m_pCLK->id());

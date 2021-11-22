@@ -5,12 +5,11 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "SamSPIbase.h"
+#include "../error.hpp"
 #include "../os.h"
+#include "SamSPIbase.h"
 
 #include <sam.h>
-
-#include <cassert>
 
 Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
@@ -43,19 +42,19 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
     enable_internal_bus(true);
 
     bRes=Sam_pin::connect(DO, id(), DOpad);
-    assert(bRes);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(bRes);
     bRes=Sam_pin::connect(DI, id(), DIpad);
-    assert(bRes);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(bRes);
     bRes=Sam_pin::connect(CLOCK, id(), CLOCKpad);
-    assert(bRes);
-    assert(Sam_pin::pad::PAD1==CLOCKpad); //always
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(bRes);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(Sam_pin::Pad::pad1==CLOCKpad); //always
 
     if(CS)
     {
         m_pCS = std::make_shared<Sam_pin>(*CS, bMaster);
-        assert(m_pCS);
+        PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCS);
         bRes=m_pCS->connect(id());
-        assert(bRes && Sam_pin::pad::PAD2==m_pCS->GetPAD()); //always
+        PANDA_TIMESWIPE_FIRMWARE_ASSERT(bRes && Sam_pin::Pad::pad2==m_pCS->pad()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
         pSPI->CTRLB.bit.MSSEN=bMaster; //auto cs
@@ -63,11 +62,11 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
 
 
     //config DIPO/DOPO depending on PAD:
-   // assert(Sam_pin::pad::PAD0==DOpad || Sam_pin::pad::PAD3==DIpad);
+   // PANDA_TIMESWIPE_FIRMWARE_ASSERT(Sam_pin::pad::PAD0==DOpad || Sam_pin::pad::PAD3==DIpad);
     if(Sam_pin::Pad::pad0==DOpad) //variant DOPO=0
     {
         //DI->PAD3
-        assert(Sam_pin::pad::PAD3==DIpad);
+        PANDA_TIMESWIPE_FIRMWARE_ASSERT(Sam_pin::Pad::pad3==DIpad);
 
         pSPI->CTRLA.bit.DOPO=0x00;
         pSPI->CTRLA.bit.DIPO=0x03;
@@ -75,7 +74,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
     else                            //variant DOPO=2
     {
         //DI->PAD0
-        assert(Sam_pin::pad::PAD0==DIpad);
+        PANDA_TIMESWIPE_FIRMWARE_ASSERT(Sam_pin::Pad::pad0==DIpad);
 
         pSPI->CTRLA.bit.DOPO=0x02;
         pSPI->CTRLA.bit.DIPO=0x00;
@@ -93,8 +92,8 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
         }
         else
         {
-            m_pCLK=Sam_clock_generator::Factory();  //or generate automatically
-            assert(m_pCLK);
+            m_pCLK=Sam_clock_generator::make();  //or generate automatically
+            PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
         }
         connect_clock_generator(m_pCLK->id());
         m_pCLK->Enable(true);
@@ -147,7 +146,7 @@ bool CSamSPIbase::send_char(uint32_t ch)
 bool CSamSPIbase::transfer(CFIFO &out_msg, CFIFO &in_msg)
 {
     //only possible in the master mode (means master clock is provided)
-    assert(m_bMaster);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_bMaster);
 
     in_msg.reset(); //???
 

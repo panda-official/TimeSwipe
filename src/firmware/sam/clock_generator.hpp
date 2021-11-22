@@ -19,13 +19,9 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_SAM_CLOCK_GENERATOR_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_SAM_CLOCK_GENERATOR_HPP
 
-#include <list>
 #include <memory>
 
-/*!
- * \brief A clock generators manager class
- * \details A Sam_clock_generator::Factory() used to find free clock generator, reserve it and provide class methods for setup.
- */
+/// A SAME5x clock generator.
 class Sam_clock_generator final {
 public:
   /// Clock generator ID.
@@ -36,62 +32,58 @@ public:
   /// The destructor.
   ~Sam_clock_generator();
 
+  /// Non copy-constructible.
+  Sam_clock_generator(const Sam_clock_generator&) = delete;
+
+  /// Non copy-assignable.
+  Sam_clock_generator& operator=(const Sam_clock_generator&) = delete;
+
+  /// Non move-constructible.
+  Sam_clock_generator(Sam_clock_generator&&) = delete;
+
+  /// Non move-assignable.
+  Sam_clock_generator& operator=(Sam_clock_generator&&) = delete;
+
   /// @returns The generator ID.
   Id id() const noexcept
   {
     return id_;
   }
 
-  /*!
-   * \brief The class factory
-   * \return A pointer to the created instance
-   * \details The created object will be added into the instances_ list
+  /**
+   * @returns The newly created instance, or `nullptr` if no clock generators
+   * available.
    */
-  static std::shared_ptr<Sam_clock_generator> Factory();
+  static std::shared_ptr<Sam_clock_generator> make();
 
+  /*!
+   * \brief Waiting until bus synchronization is completed
+   * \details Required for some GCLK operations, please see SAME54 manual for details:
+   * "Due to asynchronicity between the main clock domain and the peripheral clock domains, some registers
+   need to be synchronized when written or read." page 159
+  */
+  void WaitSync();
 
-    /*!
-     * \brief Waiting until bus synchronization is completed
-     * \details Required for some GCLK operations, please see SAME54 manual for details:
-     * "Due to asynchronicity between the main clock domain and the peripheral clock domains, some registers
-        need to be synchronized when written or read." page 159
-     */
-    void WaitSync();
+  /*!
+   * \brief Sets clock generator output frequency divider
+   * \param div A divider value
+   * \details "The Generator clock frequency equals the clock source frequency divided by 2^(N+1), where
+   N is the Division Factor Bits for the selected generator" page 165
+  */
+  void SetDiv(unsigned short div);
 
-    /*!
-     * \brief Sets clock generator output frequency divider
-     * \param div A divider value
-     * \details "The Generator clock frequency equals the clock source frequency divided by 2^(N+1), where
-       N is the Division Factor Bits for the selected generator" page 165
-     */
-    void SetDiv(unsigned short div);
-
-    /*!
-     * \brief Enables the generator
-     * \param how true=enabled, false=disabled
-     */
-    void Enable(bool how);
+  /*!
+   * \brief Enables the generator
+   * \param how true=enabled, false=disabled
+   */
+  void Enable(bool how);
 
 private:
-  /*!
-   * \brief A collection of clock generator objects
-   */
-  static std::list<Sam_clock_generator*> instances_;
-
-  /*!
-   * \brief An array of "busy" flags: if a new object is factored, the flag with index=GCLK index will be set to "true"
-   */
-  static bool busy_[12];
-
-  /*!
-   * \brief An integer generator index to be used with SAME54 peripheral registers
-   */
+  inline static Sam_clock_generator* instances_[12]{};
   Id id_;
 
-  /*!
-   * \brief A protected class constructor: the instances should created only by Sam_clock_generator::Factory()
-   */
-  Sam_clock_generator(){}
+  /// The constructor.
+  explicit Sam_clock_generator(Id id);
 };
 
 #endif  //  PANDA_TIMESWIPE_FIRMWARE_SAM_CLOCK_GENERATOR_HPP

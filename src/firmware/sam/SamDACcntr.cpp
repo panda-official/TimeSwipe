@@ -7,8 +7,9 @@ Copyright (c) 2019 Panda Team
 
 //SAM DAC controller class impl:
 
-#include "SamDACcntr.h"
+#include "../error.hpp"
 #include "../os.h"
+#include "SamDACcntr.h"
 
 #include <sam.h>
 
@@ -68,7 +69,8 @@ void CSamDACcntr::common_init() //common settings for both dacs
     //----------------------------------------------------------------
 
     //-----------------------connect default generator----------------
-    m_pCLK=Sam_clock_generator::Factory();
+    m_pCLK=Sam_clock_generator::make();
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
 
     //enable gclk: set to Current Control default: CC100K GCLK_DAC ≤ 1.2MHz (100kSPS) 48MHz/64=750KHz
     GCLK->PCHCTRL[GCLK_DAC].bit.GEN=static_cast<uint32_t>(m_pCLK->id());
