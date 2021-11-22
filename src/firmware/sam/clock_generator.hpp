@@ -27,30 +27,7 @@
  * \details A Sam_clock_generator::Factory() used to find free clock generator, reserve it and provide class methods for setup.
  */
 class Sam_clock_generator final {
-protected:
-
-    /*!
-     * \brief A collection of clock generator objects
-     */
-    static std::list<Sam_clock_generator *> m_Clocks;
-
-    /*!
-     * \brief An array of "occupied" flags: if a new object is factored, the flag with index=GCLK index will be set to "true"
-     */
-    static bool m_bOcupied[12];
-
-    /*!
-     * \brief An integer generator index to be used with SAME54 peripheral registers
-     */
-    int  m_nCLK;
-
-    /*!
-     * \brief A protected class constructor: the instances should created only by Sam_clock_generator::Factory()
-     */
-    Sam_clock_generator(){}
-
 public:
-
   /// Clock generator ID.
   enum class Id {
     none=-1,
@@ -101,6 +78,26 @@ public:
      */
     void Enable(bool how);
 
+private:
+  /*!
+   * \brief A collection of clock generator objects
+   */
+  static std::list<Sam_clock_generator *> m_Clocks;
+
+  /*!
+   * \brief An array of "occupied" flags: if a new object is factored, the flag with index=GCLK index will be set to "true"
+   */
+  static bool m_bOcupied[12];
+
+  /*!
+   * \brief An integer generator index to be used with SAME54 peripheral registers
+   */
+  int  m_nCLK;
+
+  /*!
+   * \brief A protected class constructor: the instances should created only by Sam_clock_generator::Factory()
+   */
+  Sam_clock_generator(){}
 };
 
 #endif  //  PANDA_TIMESWIPE_FIRMWARE_SAM_CLOCK_GENERATOR_HPP
