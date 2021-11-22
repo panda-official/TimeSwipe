@@ -57,14 +57,6 @@ public:
   static std::shared_ptr<Sam_clock_generator> make();
 
   /*!
-   * \brief Waiting until bus synchronization is completed
-   * \details Required for some GCLK operations, please see SAME54 manual for details:
-   * "Due to asynchronicity between the main clock domain and the peripheral clock domains, some registers
-   need to be synchronized when written or read." page 159
-  */
-  void WaitSync();
-
-  /*!
    * \brief Sets clock generator output frequency divider
    * \param div A divider value
    * \details "The Generator clock frequency equals the clock source frequency divided by 2^(N+1), where
@@ -84,6 +76,17 @@ private:
 
   /// The constructor.
   explicit Sam_clock_generator(Id id);
+
+  /**
+   * @brief Waits the completion of the bus synchronization.
+   *
+   * @details Required for some GCLK operations.
+   *
+   * @see SAME54 manual, page 159: "Due to asynchronicity between the main clock
+   * domain and the peripheral clock domains, some registers need to be
+   * synchronized when written or read."
+   */
+  void wait_sync();
 };
 
 #endif  //  PANDA_TIMESWIPE_FIRMWARE_SAM_CLOCK_GENERATOR_HPP

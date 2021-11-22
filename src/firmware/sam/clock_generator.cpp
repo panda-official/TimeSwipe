@@ -36,7 +36,7 @@ std::shared_ptr<Sam_clock_generator> Sam_clock_generator::make()
       std::shared_ptr<Sam_clock_generator> instance{new
         Sam_clock_generator{static_cast<Id>(i)}};
       GCLK->GENCTRL[i].bit.SRC = GCLK_GENCTRL_SRC_DFLL; // def source
-      instance->WaitSync();
+      instance->wait_sync();
       instances_[i] = instance.get();
       return instance;
     }
@@ -44,7 +44,7 @@ std::shared_ptr<Sam_clock_generator> Sam_clock_generator::make()
   return nullptr;
 }
 
-void Sam_clock_generator::WaitSync()
+void Sam_clock_generator::wait_sync()
 {
   while (GCLK->SYNCBUSY.reg & (4UL<<static_cast<int>(id_)));
 }
@@ -52,11 +52,11 @@ void Sam_clock_generator::WaitSync()
 void Sam_clock_generator::SetDiv(unsigned short div)
 {
   GCLK->GENCTRL[static_cast<int>(id_)].bit.DIV = div;
-  WaitSync();
+  wait_sync();
 }
 
 void Sam_clock_generator::Enable(const bool how)
 {
   GCLK->GENCTRL[static_cast<int>(id_)].bit.GENEN = how;
-  WaitSync();
+  wait_sync();
 }
