@@ -23,17 +23,10 @@
 #include <memory>
 
 /*!
- * \brief An enumeration of possible clock generators
- */
-enum class typeSamCLK : int {none=-1,  MCLK=0, GCLK1, GCLK2, GCLK3, GCLK4, GCLK5, GCLK6, GCLK7, GCLK8, GCLK9, GCLK10, GCLK11};
-
-
-/*!
  * \brief A clock generators manager class
  * \details A Sam_clock_generator::Factory() used to find free clock generator, reserve it and provide class methods for setup.
  */
-class Sam_clock_generator
-{
+class Sam_clock_generator final {
 protected:
 
     /*!
@@ -58,11 +51,17 @@ protected:
 
 public:
 
+  /// Clock generator type.
+  enum class Type {
+    none=-1,
+    MCLK,  GCLK1, GCLK2, GCLK3, GCLK4, GCLK5,
+    GCLK6, GCLK7, GCLK8, GCLK9, GCLK10, GCLK11 };
+
     /*!
-     * \brief Returns clock index as the typeSamCLK enumeration type
+     * \brief Returns clock index as the Type enumeration type
      * \return
      */
-    typeSamCLK CLKind(){return static_cast<typeSamCLK>(m_nCLK);}
+    Type CLKind(){return static_cast<Type>(m_nCLK);}
 
     /*!
      * \brief The class factory

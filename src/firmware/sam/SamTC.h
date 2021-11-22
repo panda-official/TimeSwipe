@@ -70,5 +70,5 @@ public:
      * \brief Connects a clock generator to TC device
      * \param nCLK A clock generator ID
      */
-    void ConnectGCLK(typeSamCLK nCLK);
+    void ConnectGCLK(Sam_clock_generator::Type nCLK);
 };

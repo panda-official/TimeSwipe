@@ -26,12 +26,12 @@ bool                 Sam_clock_generator::m_bOcupied[12]={0};
 //factory:
 std::shared_ptr<Sam_clock_generator> Sam_clock_generator::Factory()
 {
-    for(int i=static_cast<int>(typeSamCLK::GCLK2); i<=static_cast<int>(typeSamCLK::GCLK11); i++)
+    for(int i=static_cast<int>(Type::GCLK2); i<=static_cast<int>(Type::GCLK11); i++)
     {
         //check if hardware occupied by a first time
-        if(GCLK->GENCTRL[i].bit.GENEN)
-        {
-            m_bOcupied[i]=true; continue;
+        if (GCLK->GENCTRL[i].bit.GENEN) {
+          m_bOcupied[i] = true;
+          continue;
         }
 
 

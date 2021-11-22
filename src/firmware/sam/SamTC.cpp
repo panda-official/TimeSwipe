@@ -42,7 +42,7 @@ void CSamTC::EnableAPBbus(typeSamTC nTC, bool how)
         case typeSamTC::Tc7 : MCLK->APBDMASK.bit.TC7_=set; break;
     }
 }
-void CSamTC::ConnectGCLK(typeSamCLK nCLK)
+void CSamTC::ConnectGCLK(const Sam_clock_generator::Type type)
 {
     int pind;
     switch(m_nTC)
@@ -57,14 +57,14 @@ void CSamTC::ConnectGCLK(typeSamCLK nCLK)
         case typeSamTC::Tc7: pind=39;
     }
 
-    if(nCLK==typeSamCLK::none)
+    if (type==Sam_clock_generator::Type::none)
     {
-        GCLK->PCHCTRL[pind].bit.CHEN=0; //remove
+        GCLK->PCHCTRL[pind].bit.CHEN = 0; //remove
     }
     else
     {
-       GCLK->PCHCTRL[pind].bit.GEN=(uint32_t)nCLK;
-       GCLK->PCHCTRL[pind].bit.CHEN=1; //add
+       GCLK->PCHCTRL[pind].bit.GEN = static_cast<std::uint32_t>(type);
+       GCLK->PCHCTRL[pind].bit.CHEN = 1; //add
     }
 }
 
