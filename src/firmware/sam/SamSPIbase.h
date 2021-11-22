@@ -74,20 +74,20 @@ protected:
      */
     bool send_char(uint32_t ch);
 
-  /// @see Sam_sercom::OnIRQ0();
-  void OnIRQ0() override
+  /// @see Sam_sercom::handle_irq0();
+  void handle_irq0() override
   {}
 
-  /// @see Sam_sercom::OnIRQ1();
-  void OnIRQ1() override
+  /// @see Sam_sercom::handle_irq1();
+  void handle_irq1() override
   {}
 
-  /// @see Sam_sercom::OnIRQ2();
-  void OnIRQ2() override
+  /// @see Sam_sercom::handle_irq2();
+  void handle_irq2() override
   {}
 
-  /// @see Sam_sercom::OnIRQ3();
-  void OnIRQ3() override
+  /// @see Sam_sercom::handle_irq3();
+  void handle_irq3() override
   {}
 
 public:

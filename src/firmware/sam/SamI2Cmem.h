@@ -98,10 +98,10 @@ protected:
     }
 
 
-    virtual void OnIRQ0();
-    virtual void OnIRQ1();
-    virtual void OnIRQ2();
-    virtual void OnIRQ3();
+    void handle_irq0() override;
+    void handle_irq1() override;
+    void handle_irq2() override;
+    void handle_irq3() override;
 
 public:
     /*!

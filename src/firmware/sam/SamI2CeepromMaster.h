@@ -124,25 +124,17 @@ protected:
       */
       CFIFO *m_pBuf=nullptr;
 
-    /*!
-     * \brief The handler of the 1st IRQ line of the Sercom
-     */
-    virtual void OnIRQ0();
+    /// @see Sam_sercom::handle_irq0();
+    void handle_irq0() override;
 
-    /*!
-     * \brief The handler of the 2nd IRQ line of the Sercom
-     */
-    virtual void OnIRQ1();
+    /// @see Sam_sercom::handle_irq1();
+    void handle_irq1() override;
 
-    /*!
-     * \brief The handler of the 3rd IRQ line of the Sercom
-     */
-    virtual void OnIRQ2();
+    /// @see Sam_sercom::handle_irq2();
+    void handle_irq2() override;
 
-    /*!
-     * \brief The handler of the 4th IRQ line of the Sercom
-     */
-    virtual void OnIRQ3();
+    /// @see Sam_sercom::handle_irq3();
+    void handle_irq3() override;
 
     /*!
      * \brief Activates write protection pin of the chip

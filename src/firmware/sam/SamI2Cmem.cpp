@@ -149,19 +149,19 @@ void CSamI2Cmem::IRQhandler()
     }
 }
 
-void CSamI2Cmem::OnIRQ0()  //#0
+void CSamI2Cmem::handle_irq0()
 {
     IRQhandler();
 }
-void CSamI2Cmem::OnIRQ1()  //#1
+void CSamI2Cmem::handle_irq1()
 {
     IRQhandler();
 }
-void CSamI2Cmem::OnIRQ2()  //#2
+void CSamI2Cmem::handle_irq2()
 {
     IRQhandler();
 }
-void CSamI2Cmem::OnIRQ3()  //#3
+void CSamI2Cmem::handle_irq3()
 {
     IRQhandler();
 }

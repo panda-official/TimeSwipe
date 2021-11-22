@@ -22,7 +22,171 @@
 
 #include <exception>
 
+namespace {
+
 static Sam_sercom* glob_pSC[8];
+
+void SERCOM0_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom0)]->handle_irq0();
+}
+
+void SERCOM0_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom0)]->handle_irq1();
+}
+
+void SERCOM0_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom0)]->handle_irq2();
+}
+
+void SERCOM0_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom0)]->handle_irq3();
+}
+
+void SERCOM1_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom1)]->handle_irq0();
+}
+
+void SERCOM1_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom1)]->handle_irq1();
+}
+
+void SERCOM1_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom1)]->handle_irq2();
+}
+
+void SERCOM1_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom1)]->handle_irq3();
+}
+
+void SERCOM2_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom2)]->handle_irq0();
+}
+
+void SERCOM2_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom2)]->handle_irq1();
+}
+
+void SERCOM2_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom2)]->handle_irq2();
+}
+
+void SERCOM2_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom2)]->handle_irq3();
+}
+
+void SERCOM3_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom3)]->handle_irq0();
+}
+
+void SERCOM3_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom3)]->handle_irq1();
+}
+
+void SERCOM3_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom3)]->handle_irq2();
+}
+
+void SERCOM3_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom3)]->handle_irq3();
+}
+
+void SERCOM4_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom4)]->handle_irq0();
+}
+
+void SERCOM4_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom4)]->handle_irq1();
+}
+
+void SERCOM4_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom4)]->handle_irq2();
+}
+
+void SERCOM4_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom4)]->handle_irq3();
+}
+
+void SERCOM5_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom5)]->handle_irq0();
+}
+
+void SERCOM5_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom5)]->handle_irq1();
+}
+
+void SERCOM5_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom5)]->handle_irq2();
+}
+
+void SERCOM5_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom5)]->handle_irq3();
+}
+
+void SERCOM6_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom6)]->handle_irq0();
+}
+
+void SERCOM6_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom6)]->handle_irq1();
+}
+
+void SERCOM6_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom6)]->handle_irq2();
+}
+
+void SERCOM6_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom6)]->handle_irq3();
+}
+
+void SERCOM7_0_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom7)]->handle_irq0();
+}
+
+void SERCOM7_1_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom7)]->handle_irq1();
+}
+
+void SERCOM7_2_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom7)]->handle_irq2();
+}
+
+void SERCOM7_3_Handler()
+{
+  glob_pSC[static_cast<int>(Sam_sercom::Id::sercom7)]->handle_irq3();
+}
+
+} // namespace
 
 Sam_sercom::~Sam_sercom()
 {
@@ -57,143 +221,6 @@ void Sam_sercom::enable_internal_bus(const bool enable)
   case Id::sercom6: MCLK->APBDMASK.bit.SERCOM6_ = enable; break;
   case Id::sercom7: MCLK->APBDMASK.bit.SERCOM7_ = enable; break;
   }
-}
-
-//IRQs handling:
-void SERCOM0_0_Handler(void)
-{
-    glob_pSC[0]->OnIRQ0();
-}
-void SERCOM0_1_Handler(void)
-{
-    glob_pSC[0]->OnIRQ1();
-}
-void SERCOM0_2_Handler(void)
-{
-    glob_pSC[0]->OnIRQ2();
-}
-void SERCOM0_3_Handler(void)
-{
-     glob_pSC[0]->OnIRQ3();
-}
-
-void SERCOM1_0_Handler(void)
-{
-    glob_pSC[1]->OnIRQ0();
-}
-void SERCOM1_1_Handler(void)
-{
-    glob_pSC[1]->OnIRQ1();
-}
-void SERCOM1_2_Handler(void)
-{
-    glob_pSC[1]->OnIRQ2();
-}
-void SERCOM1_3_Handler(void)
-{
-     glob_pSC[1]->OnIRQ3();
-}
-
-void SERCOM2_0_Handler(void)
-{
-    glob_pSC[2]->OnIRQ0();
-}
-void SERCOM2_1_Handler(void)
-{
-    glob_pSC[2]->OnIRQ1();
-}
-void SERCOM2_2_Handler(void)
-{
-    glob_pSC[2]->OnIRQ2();
-}
-void SERCOM2_3_Handler(void)
-{
-     glob_pSC[2]->OnIRQ3();
-}
-
-void SERCOM3_0_Handler(void)
-{
-    glob_pSC[3]->OnIRQ0();
-}
-void SERCOM3_1_Handler(void)
-{
-    glob_pSC[3]->OnIRQ1();
-}
-void SERCOM3_2_Handler(void)
-{
-    glob_pSC[3]->OnIRQ2();
-}
-void SERCOM3_3_Handler(void)
-{
-     glob_pSC[2]->OnIRQ3();
-}
-
-void SERCOM4_0_Handler(void)
-{
-    glob_pSC[4]->OnIRQ0();
-}
-void SERCOM4_1_Handler(void)
-{
-    glob_pSC[4]->OnIRQ1();
-}
-void SERCOM4_2_Handler(void)
-{
-    glob_pSC[4]->OnIRQ2();
-}
-void SERCOM4_3_Handler(void)
-{
-     glob_pSC[4]->OnIRQ3();
-}
-
-void SERCOM5_0_Handler(void)
-{
-    glob_pSC[5]->OnIRQ0();
-}
-void SERCOM5_1_Handler(void)
-{
-    glob_pSC[5]->OnIRQ1();
-}
-void SERCOM5_2_Handler(void)
-{
-    glob_pSC[5]->OnIRQ2();
-}
-void SERCOM5_3_Handler(void)
-{
-     glob_pSC[5]->OnIRQ3();
-}
-
-void SERCOM6_0_Handler(void)
-{
-    glob_pSC[6]->OnIRQ0();
-}
-void SERCOM6_1_Handler(void)
-{
-    glob_pSC[6]->OnIRQ1();
-}
-void SERCOM6_2_Handler(void)
-{
-    glob_pSC[6]->OnIRQ2();
-}
-void SERCOM6_3_Handler(void)
-{
-     glob_pSC[6]->OnIRQ3();
-}
-
-void SERCOM7_0_Handler(void)
-{
-    glob_pSC[7]->OnIRQ0();
-}
-void SERCOM7_1_Handler(void)
-{
-    glob_pSC[7]->OnIRQ1();
-}
-void SERCOM7_2_Handler(void)
-{
-    glob_pSC[7]->OnIRQ2();
-}
-void SERCOM7_3_Handler(void)
-{
-     glob_pSC[7]->OnIRQ3();
 }
 
 Sercom *glob_GetSercomPtr(const Sam_sercom::Id sercom)

@@ -22,39 +22,39 @@
 #include "../../serial.hpp"
 #include "SamCLK.h"
 
-extern "C"{
-void SERCOM0_0_Handler(void);
-void SERCOM0_1_Handler(void);
-void SERCOM0_2_Handler(void);
-void SERCOM0_3_Handler(void);
-void SERCOM1_0_Handler(void);
-void SERCOM1_1_Handler(void);
-void SERCOM1_2_Handler(void);
-void SERCOM1_3_Handler(void);
-void SERCOM2_0_Handler(void);
-void SERCOM2_1_Handler(void);
-void SERCOM2_2_Handler(void);
-void SERCOM2_3_Handler(void);
-void SERCOM3_0_Handler(void);
-void SERCOM3_1_Handler(void);
-void SERCOM3_2_Handler(void);
-void SERCOM3_3_Handler(void);
-void SERCOM4_0_Handler(void);
-void SERCOM4_1_Handler(void);
-void SERCOM4_2_Handler(void);
-void SERCOM4_3_Handler(void);
-void SERCOM5_0_Handler(void);
-void SERCOM5_1_Handler(void);
-void SERCOM5_2_Handler(void);
-void SERCOM5_3_Handler(void);
-void SERCOM6_0_Handler(void);
-void SERCOM6_1_Handler(void);
-void SERCOM6_2_Handler(void);
-void SERCOM6_3_Handler(void);
-void SERCOM7_0_Handler(void);
-void SERCOM7_1_Handler(void);
-void SERCOM7_2_Handler(void);
-void SERCOM7_3_Handler(void);
+extern "C" {
+void SERCOM0_0_Handler();
+void SERCOM0_1_Handler();
+void SERCOM0_2_Handler();
+void SERCOM0_3_Handler();
+void SERCOM1_0_Handler();
+void SERCOM1_1_Handler();
+void SERCOM1_2_Handler();
+void SERCOM1_3_Handler();
+void SERCOM2_0_Handler();
+void SERCOM2_1_Handler();
+void SERCOM2_2_Handler();
+void SERCOM2_3_Handler();
+void SERCOM3_0_Handler();
+void SERCOM3_1_Handler();
+void SERCOM3_2_Handler();
+void SERCOM3_3_Handler();
+void SERCOM4_0_Handler();
+void SERCOM4_1_Handler();
+void SERCOM4_2_Handler();
+void SERCOM4_3_Handler();
+void SERCOM5_0_Handler();
+void SERCOM5_1_Handler();
+void SERCOM5_2_Handler();
+void SERCOM5_3_Handler();
+void SERCOM6_0_Handler();
+void SERCOM6_1_Handler();
+void SERCOM6_2_Handler();
+void SERCOM6_3_Handler();
+void SERCOM7_0_Handler();
+void SERCOM7_1_Handler();
+void SERCOM7_2_Handler();
+void SERCOM7_3_Handler();
 }
 
 /**
@@ -71,19 +71,12 @@ public:
     sercom0, sercom1, sercom2, sercom3,
     sercom4, sercom5, sercom6, sercom7 };
 
-  /// SAME5X Sercom IRQ.
+  /// SAME5x Sercom IRQ.
   enum class Irq { irq0, irq1, irq2, irq3 };
 
   /// The destructor.
   ~Sam_sercom() override;
 
-  /// @returns Sercom ID.
-  Id id() const noexcept
-  {
-    return id_;
-  }
-
-protected:
   /**
    * @brief The constructor.
    *
@@ -92,17 +85,11 @@ protected:
    */
   Sam_sercom(Id id);
 
-  /// Line 1 IRQ handler.
-  virtual void OnIRQ0() = 0;
-
-  /// Line 2 IRQ handler.
-  virtual void OnIRQ1() = 0;
-
-  /// Line 3 IRQ handler.
-  virtual void OnIRQ2() = 0;
-
-  /// Line 4 IRQ handler.
-  virtual void OnIRQ3() = 0;
+  /// @returns Sercom ID.
+  Id id() const noexcept
+  {
+    return id_;
+  }
 
   /// Enables or disables the given IRQ line.
   void enable_irq(Irq irq, bool enable);
@@ -113,48 +100,20 @@ protected:
   /// Connects the given clock generator to this Sercom device.
   void connect_clock_generator(typeSamCLK nCLK);
 
+  /// Line 1 IRQ handler.
+  virtual void handle_irq0() = 0;
+
+  /// Line 2 IRQ handler.
+  virtual void handle_irq1() = 0;
+
+  /// Line 3 IRQ handler.
+  virtual void handle_irq2() = 0;
+
+  /// Line 4 IRQ handler.
+  virtual void handle_irq3() = 0;
+
 private:
   Id id_;
-
-  friend void SERCOM0_0_Handler(void);
-  friend void SERCOM0_1_Handler(void);
-  friend void SERCOM0_2_Handler(void);
-  friend void SERCOM0_3_Handler(void);
-
-  friend void SERCOM1_0_Handler(void);
-  friend void SERCOM1_1_Handler(void);
-  friend void SERCOM1_2_Handler(void);
-  friend void SERCOM1_3_Handler(void);
-
-  friend void SERCOM2_0_Handler(void);
-  friend void SERCOM2_1_Handler(void);
-  friend void SERCOM2_2_Handler(void);
-  friend void SERCOM2_3_Handler(void);
-
-  friend void SERCOM3_0_Handler(void);
-  friend void SERCOM3_1_Handler(void);
-  friend void SERCOM3_2_Handler(void);
-  friend void SERCOM3_3_Handler(void);
-
-  friend void SERCOM4_0_Handler(void);
-  friend void SERCOM4_1_Handler(void);
-  friend void SERCOM4_2_Handler(void);
-  friend void SERCOM4_3_Handler(void);
-
-  friend void SERCOM5_0_Handler(void);
-  friend void SERCOM5_1_Handler(void);
-  friend void SERCOM5_2_Handler(void);
-  friend void SERCOM5_3_Handler(void);
-
-  friend void SERCOM6_0_Handler(void);
-  friend void SERCOM6_1_Handler(void);
-  friend void SERCOM6_2_Handler(void);
-  friend void SERCOM6_3_Handler(void);
-
-  friend void SERCOM7_0_Handler(void);
-  friend void SERCOM7_1_Handler(void);
-  friend void SERCOM7_2_Handler(void);
-  friend void SERCOM7_3_Handler(void);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_SERCOM_HPP

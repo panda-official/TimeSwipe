@@ -416,19 +416,22 @@ void CSamI2CeepromMaster::IRQhandler()
     }
 }
 
-void CSamI2CeepromMaster::OnIRQ0()  //#0
+void CSamI2CeepromMaster::handle_irq0()
 {
     IRQhandler();
 }
-void CSamI2CeepromMaster::OnIRQ1()  //#1
+
+void CSamI2CeepromMaster::handle_irq1()
 {
     IRQhandler();
 }
-void CSamI2CeepromMaster::OnIRQ2()  //#2
+
+void CSamI2CeepromMaster::handle_irq2()
 {
     IRQhandler();
 }
-void CSamI2CeepromMaster::OnIRQ3()  //#3
+
+void CSamI2CeepromMaster::handle_irq3()
 {
     IRQhandler();
 }

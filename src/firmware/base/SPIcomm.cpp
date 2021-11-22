@@ -39,19 +39,22 @@ void CSPIcomm::IRQhandler()
     }
 }
 
-void CSPIcomm::OnIRQ0()
+void CSPIcomm::handle_irq0()
 {
     IRQhandler();
 }
-void CSPIcomm::OnIRQ1()
+
+void CSPIcomm::handle_irq1()
 {
     IRQhandler();
 }
-void CSPIcomm::OnIRQ2()
+
+void CSPIcomm::handle_irq2()
 {
     IRQhandler();
 }
-void CSPIcomm::OnIRQ3()
+
+void CSPIcomm::handle_irq3()
 {
     IRQhandler();
 }
