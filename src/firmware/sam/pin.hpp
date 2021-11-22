@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP
 
 #include "../pin.hpp"
-#include "SamSercom.h"
+#include "sercom.hpp"
 
 /// Single pin functionality for SAME5x.
 class Sam_pin final : public Pin {

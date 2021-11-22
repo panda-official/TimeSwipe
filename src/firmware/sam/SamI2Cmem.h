@@ -14,7 +14,7 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include "SamSercom.h"
+#include "sercom.hpp"
 
 /*!
  * \brief The CSamI2Cmem class emulates CAT24C32 EEPROM chip in the read-only mode

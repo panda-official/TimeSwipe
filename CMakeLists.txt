@@ -300,14 +300,10 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SamI2Cmem.h
     SamNVMCTRL.cpp
     SamNVMCTRL.h
-    pin.cpp
-    pin.hpp
     SamQSPI.cpp
     SamQSPI.h
     SamSPIbase.cpp
     SamSPIbase.h
-    SamSercom.cpp
-    SamSercom.h
     SamService.cpp
     SamService.h
     SamTC.cpp
@@ -316,6 +312,10 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SamTempSensor.h
     clock_set_SAME54.cpp
     cortex_handlers.cpp
+    pin.cpp
+    pin.hpp
+    sercom.cpp
+    sercom.hpp
     )
 
   # Our stuff
