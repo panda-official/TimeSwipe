@@ -5,11 +5,10 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
+#include "../error.hpp"
 #include "SamTC.h"
 
 #include <sam.h>
-
-#include <exception>
 
 CSamTC::CSamTC(typeSamTC nTC)
 {
@@ -58,7 +57,7 @@ void CSamTC::ConnectGCLK(const std::optional<Sam_clock_generator::Id> id)
     case typeSamTC::Tc6: return 39;
     case typeSamTC::Tc7: return 39;
     }
-    std::terminate();
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(false);
   }();
 
   if (id) {

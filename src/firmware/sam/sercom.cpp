@@ -16,11 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "../error.hpp"
 #include "sercom.hpp"
 
 #include <sam.h>
-
-#include <exception>
 
 namespace {
 
@@ -253,7 +252,7 @@ void Sam_sercom::connect_clock_generator(const std::optional<Sam_clock_generator
     case Id::sercom6: return 36;
     case Id::sercom7: return 37;
     }
-    std::terminate();
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(false);
   }();
 
   if (id) {
