@@ -78,7 +78,7 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, mode nOpMode)
         m_pCLK=Sam_clock_generator::Factory();
         m_pCLK->Enable(true); //???
     }
-    CSamTC::ConnectGCLK(m_pCLK->CLKind());
+    CSamTC::ConnectGCLK(m_pCLK->id());
 
 
     //DMA support:
@@ -131,7 +131,7 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, mode nOpMode)
     pTc2->COUNT16.WAVE.bit.WAVEGEN=1; //MFRQ: CC0=TOP
     pTc2->COUNT16.INTENSET.reg=(TC_INTFLAG_MC0);
 
-    m_PeriodsCounter.ConnectGCLK(m_pCLK->CLKind()); //clock is always required
+    m_PeriodsCounter.ConnectGCLK(m_pCLK->id()); //clock is always required
     m_PeriodsCounter.EnableIRQ(true);
 }
 

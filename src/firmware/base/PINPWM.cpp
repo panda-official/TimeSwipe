@@ -23,7 +23,7 @@ CPinPWM::CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin) : CSamTC(typeSamTC
     CSamTC::EnableAPBbus(static_cast<typeSamTC>(static_cast<int>(m_nTC)+1), true);
 
     m_pCLK=Sam_clock_generator::Factory();
-    CSamTC::ConnectGCLK(m_pCLK->CLKind());
+    CSamTC::ConnectGCLK(m_pCLK->id());
     m_pCLK->Enable(true);
 
     CSamDMAC &dmac=CSamDMAC::Instance();

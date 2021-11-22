@@ -61,7 +61,10 @@ public:
      * \brief Returns clock index as the Id enumeration type
      * \return
      */
-    Id CLKind(){return static_cast<Id>(m_nCLK);}
+  Id id() const noexcept
+  {
+    return static_cast<Id>(m_nCLK);
+  }
 
     /*!
      * \brief The class factory

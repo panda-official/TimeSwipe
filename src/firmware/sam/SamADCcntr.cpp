@@ -174,7 +174,7 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     m_pCLK=Sam_clock_generator::Factory();
 
     int pchind=typeSamADC::Adc0==m_nADC ? GCLK_ADC0:GCLK_ADC1;
-    GCLK->PCHCTRL[pchind].bit.GEN=static_cast<uint32_t>(m_pCLK->CLKind());
+    GCLK->PCHCTRL[pchind].bit.GEN=static_cast<uint32_t>(m_pCLK->id());
     GCLK->PCHCTRL[pchind].bit.CHEN=1;
 
      m_pCLK->Enable(true);

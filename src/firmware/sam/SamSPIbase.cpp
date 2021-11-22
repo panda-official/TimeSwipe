@@ -96,7 +96,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
             m_pCLK=Sam_clock_generator::Factory();  //or generate automatically
             assert(m_pCLK);
         }
-        connect_clock_generator(m_pCLK->CLKind());
+        connect_clock_generator(m_pCLK->id());
         m_pCLK->Enable(true);
         pSPI->BAUD.bit.BAUD=0xff; //lowest possible by default
      }
