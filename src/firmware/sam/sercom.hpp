@@ -98,7 +98,7 @@ public:
   void enable_internal_bus(bool enable);
 
   /// Connects the given clock generator to this Sercom device.
-  void connect_clock_generator(Sam_clock_generator::Type type);
+  void connect_clock_generator(Sam_clock_generator::Id type);
 
   /// Line 1 IRQ handler.
   virtual void handle_irq0() = 0;

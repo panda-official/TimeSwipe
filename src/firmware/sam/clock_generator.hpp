@@ -51,17 +51,17 @@ protected:
 
 public:
 
-  /// Clock generator type.
-  enum class Type {
+  /// Clock generator ID.
+  enum class Id {
     none=-1,
     MCLK,  GCLK1, GCLK2, GCLK3, GCLK4, GCLK5,
     GCLK6, GCLK7, GCLK8, GCLK9, GCLK10, GCLK11 };
 
     /*!
-     * \brief Returns clock index as the Type enumeration type
+     * \brief Returns clock index as the Id enumeration type
      * \return
      */
-    Type CLKind(){return static_cast<Type>(m_nCLK);}
+    Id CLKind(){return static_cast<Id>(m_nCLK);}
 
     /*!
      * \brief The class factory
