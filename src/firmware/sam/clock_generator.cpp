@@ -23,6 +23,12 @@
 std::list<Sam_clock_generator *> Sam_clock_generator::m_Clocks;
 bool                 Sam_clock_generator::m_bOcupied[12]={0};
 
+Sam_clock_generator::~Sam_clock_generator()
+{
+  m_Clocks.remove(this);
+  m_bOcupied[m_nCLK] = false;
+}
+
 //factory:
 std::shared_ptr<Sam_clock_generator> Sam_clock_generator::Factory()
 {
@@ -47,11 +53,6 @@ std::shared_ptr<Sam_clock_generator> Sam_clock_generator::Factory()
         }
     }
     return nullptr;
-}
-Sam_clock_generator::~Sam_clock_generator()
-{
-    m_Clocks.remove(this);
-    m_bOcupied[m_nCLK]=false;
 }
 
 void Sam_clock_generator::WaitSync()

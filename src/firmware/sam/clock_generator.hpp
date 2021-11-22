@@ -33,27 +33,22 @@ public:
     MCLK,  GCLK1, GCLK2, GCLK3, GCLK4, GCLK5,
     GCLK6, GCLK7, GCLK8, GCLK9, GCLK10, GCLK11 };
 
-    /*!
-     * \brief Returns clock index as the Id enumeration type
-     * \return
-     */
+  /// The destructor.
+  ~Sam_clock_generator();
+
+  /// @returns The generator ID.
   Id id() const noexcept
   {
     return static_cast<Id>(m_nCLK);
   }
 
-    /*!
-     * \brief The class factory
-     * \return A pointer to the created instance
-     * \details The created object will be added into the m_Clocks list
-     */
-    static std::shared_ptr<Sam_clock_generator> Factory();
+  /*!
+   * \brief The class factory
+   * \return A pointer to the created instance
+   * \details The created object will be added into the m_Clocks list
+   */
+  static std::shared_ptr<Sam_clock_generator> Factory();
 
-    /*!
-     * \brief The class destructor
-     * \details The object will be removed from the m_Clocks list
-     */
-    ~Sam_clock_generator();
 
     /*!
      * \brief Waiting until bus synchronization is completed
