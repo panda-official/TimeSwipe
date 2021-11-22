@@ -50,9 +50,9 @@ void Sam_clock_generator::wait_sync()
   while (GCLK->SYNCBUSY.reg & (4UL<<static_cast<int>(id_)));
 }
 
-void Sam_clock_generator::SetDiv(unsigned short div)
+void Sam_clock_generator::set_frequency_divider(const unsigned short divider)
 {
-  GCLK->GENCTRL[static_cast<int>(id_)].bit.DIV = div;
+  GCLK->GENCTRL[static_cast<int>(id_)].bit.DIV = divider;
   wait_sync();
 }
 

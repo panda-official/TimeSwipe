@@ -56,13 +56,14 @@ public:
    */
   static std::shared_ptr<Sam_clock_generator> make();
 
-  /*!
-   * \brief Sets clock generator output frequency divider
-   * \param div A divider value
-   * \details "The Generator clock frequency equals the clock source frequency divided by 2^(N+1), where
-   N is the Division Factor Bits for the selected generator" page 165
-  */
-  void SetDiv(unsigned short div);
+  /**
+   * @brief Sets divider of the clock generator frequency.
+   *
+   * @see SAME54 manual, page 165: "The Generator clock frequency equals the
+   * clock source frequency divided by `2^(N+1)`, where `N` is the Division
+   * Factor Bits for the selected generator".
+   */
+  void set_frequency_divider(unsigned short divider);
 
   /*!
    * \brief Enables the generator
