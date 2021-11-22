@@ -22,6 +22,8 @@
 #include "../../serial.hpp"
 #include "clock_generator.hpp"
 
+#include <optional>
+
 extern "C" {
 void SERCOM0_0_Handler();
 void SERCOM0_1_Handler();
@@ -98,7 +100,7 @@ public:
   void enable_internal_bus(bool enable);
 
   /// Connects the given clock generator to this Sercom device.
-  void connect_clock_generator(Sam_clock_generator::Id type);
+  void connect_clock_generator(std::optional<Sam_clock_generator::Id> type);
 
   /// Line 1 IRQ handler.
   virtual void handle_irq0() = 0;

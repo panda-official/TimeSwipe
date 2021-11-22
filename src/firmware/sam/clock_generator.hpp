@@ -30,7 +30,6 @@ class Sam_clock_generator final {
 public:
   /// Clock generator ID.
   enum class Id {
-    none=-1,
     MCLK,  GCLK1, GCLK2, GCLK3, GCLK4, GCLK5,
     GCLK6, GCLK7, GCLK8, GCLK9, GCLK10, GCLK11 };
 

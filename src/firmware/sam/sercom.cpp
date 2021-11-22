@@ -239,7 +239,7 @@ Sercom *glob_GetSercomPtr(const Sam_sercom::Id sercom)
   return nullptr;
 }
 
-void Sam_sercom::connect_clock_generator(const Sam_clock_generator::Id type)
+void Sam_sercom::connect_clock_generator(const std::optional<Sam_clock_generator::Id> id)
 {
   const int pind = [this]
   {
@@ -256,13 +256,12 @@ void Sam_sercom::connect_clock_generator(const Sam_clock_generator::Id type)
     std::terminate();
   }();
 
-  if(type == Sam_clock_generator::Id::none) {
-    GCLK->PCHCTRL[pind].bit.CHEN = 0; // remove
-  } else {
-    GCLK->PCHCTRL[3].bit.GEN = static_cast<std::uint32_t>(type); // slow
+  if (id) {
+    const auto gen = static_cast<std::uint32_t>(*id);
+    GCLK->PCHCTRL[3].bit.GEN = gen; // slow
     GCLK->PCHCTRL[3].bit.CHEN = 1; // add
-
-    GCLK->PCHCTRL[pind].bit.GEN = static_cast<std::uint32_t>(type);
+    GCLK->PCHCTRL[pind].bit.GEN = gen;
     GCLK->PCHCTRL[pind].bit.CHEN = 1; // add
-  }
+  } else
+    GCLK->PCHCTRL[pind].bit.CHEN = 0; // remove
 }
