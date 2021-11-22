@@ -39,13 +39,13 @@ public:
   /// @returns The generator ID.
   Id id() const noexcept
   {
-    return static_cast<Id>(m_nCLK);
+    return id_;
   }
 
   /*!
    * \brief The class factory
    * \return A pointer to the created instance
-   * \details The created object will be added into the m_Clocks list
+   * \details The created object will be added into the instances_ list
    */
   static std::shared_ptr<Sam_clock_generator> Factory();
 
@@ -76,17 +76,17 @@ private:
   /*!
    * \brief A collection of clock generator objects
    */
-  static std::list<Sam_clock_generator *> m_Clocks;
+  static std::list<Sam_clock_generator*> instances_;
 
   /*!
-   * \brief An array of "occupied" flags: if a new object is factored, the flag with index=GCLK index will be set to "true"
+   * \brief An array of "busy" flags: if a new object is factored, the flag with index=GCLK index will be set to "true"
    */
-  static bool m_bOcupied[12];
+  static bool busy_[12];
 
   /*!
    * \brief An integer generator index to be used with SAME54 peripheral registers
    */
-  int  m_nCLK;
+  Id id_;
 
   /*!
    * \brief A protected class constructor: the instances should created only by Sam_clock_generator::Factory()

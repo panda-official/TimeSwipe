@@ -20,13 +20,13 @@
 
 #include <sam.h>
 
-std::list<Sam_clock_generator *> Sam_clock_generator::m_Clocks;
-bool                 Sam_clock_generator::m_bOcupied[12]={0};
+std::list<Sam_clock_generator*> Sam_clock_generator::instances_;
+bool Sam_clock_generator::busy_[12];
 
 Sam_clock_generator::~Sam_clock_generator()
 {
-  m_Clocks.remove(this);
-  m_bOcupied[m_nCLK] = false;
+  instances_.remove(this);
+  busy_[static_cast<int>(id_)] = false;
 }
 
 //factory:
@@ -36,17 +36,17 @@ std::shared_ptr<Sam_clock_generator> Sam_clock_generator::Factory()
     {
         //check if hardware occupied by a first time
         if (GCLK->GENCTRL[i].bit.GENEN) {
-          m_bOcupied[i] = true;
+          busy_[i] = true;
           continue;
         }
 
 
-        if(!m_bOcupied[i])
+        if(!busy_[i])
         {
-            m_bOcupied[i]=true;
+            busy_[i]=true;
             Sam_clock_generator *pClk= new Sam_clock_generator; //because of protected ctor
-            pClk->m_nCLK=i;
-            m_Clocks.push_back(pClk);
+            pClk->id_ = static_cast<Id>(i);
+            instances_.push_back(pClk);
             GCLK->GENCTRL[i].bit.SRC=GCLK_GENCTRL_SRC_DFLL; //def source
             pClk->WaitSync();
             return std::shared_ptr<Sam_clock_generator>(pClk);
@@ -57,15 +57,17 @@ std::shared_ptr<Sam_clock_generator> Sam_clock_generator::Factory()
 
 void Sam_clock_generator::WaitSync()
 {
-    while( GCLK->SYNCBUSY.reg & (4UL<<m_nCLK)){}
+  while (GCLK->SYNCBUSY.reg & (4UL<<static_cast<int>(id_)));
 }
+
 void Sam_clock_generator::SetDiv(unsigned short div)
 {
-    GCLK->GENCTRL[m_nCLK].bit.DIV=div;
-    WaitSync();
+  GCLK->GENCTRL[static_cast<int>(id_)].bit.DIV = div;
+  WaitSync();
 }
-void Sam_clock_generator::Enable(bool how)
+
+void Sam_clock_generator::Enable(const bool how)
 {
-    GCLK->GENCTRL[m_nCLK].bit.GENEN=how ? 1:0;
-    WaitSync();
+  GCLK->GENCTRL[static_cast<int>(id_)].bit.GENEN = how;
+  WaitSync();
 }
