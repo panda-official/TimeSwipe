@@ -15,7 +15,7 @@ CSamI2Cmem8Pin::CSamI2Cmem8Pin() : CSamI2Cmem(Id::Sercom3)
     PORT->Group[0].PINCFG[23].bit.PMUXEN=1; //enable
     //---------------------------------------------------------
 
-    SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
+    SercomI2cs *pI2C=SELECT_SAMI2C(id());
     //enabling:
     pI2C->CTRLA.bit.ENABLE=1;
 }

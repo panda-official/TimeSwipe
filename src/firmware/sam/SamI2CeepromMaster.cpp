@@ -22,11 +22,11 @@ CSamI2CeepromMaster::CSamI2CeepromMaster() : Sam_sercom(Id::Sercom6)
     PORT->Group[3].DIRSET.reg=(1L<<10);
     SetWriteProtection(true);
 
-    Sam_sercom::EnableSercomBus(m_nSercom, true);
+    Sam_sercom::EnableSercomBus(id(), true);
     m_pCLK=CSamCLK::Factory();
 
     //connect:
-    ConnectGCLK(m_nSercom, m_pCLK->CLKind());
+    ConnectGCLK(id(), m_pCLK->CLKind());
     m_pCLK->Enable(true);
 
     setup_bus();
@@ -67,7 +67,7 @@ void CSamI2CeepromMaster::setup_bus()
     *   state by a software Reset (CTRLA.SWRST='1')." page 1026
     */
 
-    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+    SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
     while(pI2Cm->SYNCBUSY.bit.SWRST){}
     pI2Cm->CTRLA.bit.SWRST=1;
     while(pI2Cm->CTRLA.bit.SWRST){}
@@ -102,7 +102,7 @@ void CSamI2CeepromMaster::setup_bus()
 
 void CSamI2CeepromMaster::check_reset()
 {
-    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+    SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
     if(3==pI2Cm->STATUS.bit.BUSSTATE) //chip is hanging...
     {
@@ -226,7 +226,7 @@ bool CSamI2CeepromMaster::receive(CFIFO &msg) //blocking call
 //helpers:
 void CSamI2CeepromMaster::StartTranfer(bool how)
 {
-    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+    SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
     check_reset(); //! check chip & bus states before transfer, reset if needed
 
@@ -308,7 +308,7 @@ SetWriteProtection(true);
 //IRQ handling:
 void CSamI2CeepromMaster::IRQhandler()
 {
-    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+    SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
     SYNC_BUS(pI2Cm)
 
@@ -435,7 +435,7 @@ void CSamI2CeepromMaster::OnIRQ3()  //#3
 void CSamI2CeepromMaster::EnableIRQs(bool how)
 {
     //select ptr:
-    SercomI2cm *pI2Cm=SELECT_SAMI2CM(m_nSercom);
+    SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
     m_bIRQmode=how;
     if(how)

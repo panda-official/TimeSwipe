@@ -36,7 +36,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
 
     bool bRes;
     Sam_pin::Pad DOpad, DIpad, CLOCKpad; //, CSpad;
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
    // Port *pPort=PORT;
 
     //enable sercom bus:
@@ -96,7 +96,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
             m_pCLK=CSamCLK::Factory();  //or generate automatically
             assert(m_pCLK);
         }
-        ConnectGCLK(m_nSercom, m_pCLK->CLKind());
+        ConnectGCLK(id(), m_pCLK->CLKind());
         m_pCLK->Enable(true);
         pSPI->BAUD.bit.BAUD=0xff; //lowest possible by default
      }
@@ -118,7 +118,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
 
 uint32_t CSamSPIbase::transfer_char(uint32_t nChar)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     while( 0==(pSPI->INTFLAG.bit.DRE) ){}
     pSPI->DATA.bit.DATA=nChar;
@@ -128,7 +128,7 @@ uint32_t CSamSPIbase::transfer_char(uint32_t nChar)
 
 bool CSamSPIbase::send_char(uint32_t ch)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     unsigned long WaitBeginTime=os::get_tick_mS();
     while( 0==(pSPI->INTFLAG.bit.DRE) )
@@ -190,7 +190,7 @@ bool CSamSPIbase::send(CFIFO &out_msg)
 
 void CSamSPIbase::set_phpol(bool bPhase, bool bPol)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     while( pSPI->SYNCBUSY.bit.ENABLE ){} //wait sync
     pSPI->CTRLA.bit.ENABLE=0;
@@ -204,7 +204,7 @@ void CSamSPIbase::set_phpol(bool bPhase, bool bPol)
 }
 void CSamSPIbase::set_baud_div(unsigned char div)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     pSPI->BAUD.bit.BAUD=div;
 
@@ -214,7 +214,7 @@ void CSamSPIbase::set_baud_div(unsigned char div)
 void CSamSPIbase::EnableIRQs(bool how)
 {
     //select ptr:
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
  //   Port *pPort=PORT;
 
     m_bIRQmode=how;

@@ -74,12 +74,10 @@ public:
   /// SAME5X Sercom IRQ.
   enum class Irq { irq0, irq1, irq2, irq3 };
 
-protected:
-
-    /*!
-     * \brief The SERCOM ID
-     */
-    Id m_nSercom;
+  Id id() const noexcept
+  {
+    return id_;
+  }
 
 protected:
 
@@ -132,45 +130,48 @@ protected:
      */
     static void ConnectGCLK(Id nSercom, typeSamCLK nCLK);
 
-friend void SERCOM0_0_Handler(void);
-friend void SERCOM0_1_Handler(void);
-friend void SERCOM0_2_Handler(void);
-friend void SERCOM0_3_Handler(void);
+private:
+  Id id_;
 
-friend void SERCOM1_0_Handler(void);
-friend void SERCOM1_1_Handler(void);
-friend void SERCOM1_2_Handler(void);
-friend void SERCOM1_3_Handler(void);
+  friend void SERCOM0_0_Handler(void);
+  friend void SERCOM0_1_Handler(void);
+  friend void SERCOM0_2_Handler(void);
+  friend void SERCOM0_3_Handler(void);
 
-friend void SERCOM2_0_Handler(void);
-friend void SERCOM2_1_Handler(void);
-friend void SERCOM2_2_Handler(void);
-friend void SERCOM2_3_Handler(void);
+  friend void SERCOM1_0_Handler(void);
+  friend void SERCOM1_1_Handler(void);
+  friend void SERCOM1_2_Handler(void);
+  friend void SERCOM1_3_Handler(void);
 
-friend void SERCOM3_0_Handler(void);
-friend void SERCOM3_1_Handler(void);
-friend void SERCOM3_2_Handler(void);
-friend void SERCOM3_3_Handler(void);
+  friend void SERCOM2_0_Handler(void);
+  friend void SERCOM2_1_Handler(void);
+  friend void SERCOM2_2_Handler(void);
+  friend void SERCOM2_3_Handler(void);
 
-friend void SERCOM4_0_Handler(void);
-friend void SERCOM4_1_Handler(void);
-friend void SERCOM4_2_Handler(void);
-friend void SERCOM4_3_Handler(void);
+  friend void SERCOM3_0_Handler(void);
+  friend void SERCOM3_1_Handler(void);
+  friend void SERCOM3_2_Handler(void);
+  friend void SERCOM3_3_Handler(void);
 
-friend void SERCOM5_0_Handler(void);
-friend void SERCOM5_1_Handler(void);
-friend void SERCOM5_2_Handler(void);
-friend void SERCOM5_3_Handler(void);
+  friend void SERCOM4_0_Handler(void);
+  friend void SERCOM4_1_Handler(void);
+  friend void SERCOM4_2_Handler(void);
+  friend void SERCOM4_3_Handler(void);
 
-friend void SERCOM6_0_Handler(void);
-friend void SERCOM6_1_Handler(void);
-friend void SERCOM6_2_Handler(void);
-friend void SERCOM6_3_Handler(void);
+  friend void SERCOM5_0_Handler(void);
+  friend void SERCOM5_1_Handler(void);
+  friend void SERCOM5_2_Handler(void);
+  friend void SERCOM5_3_Handler(void);
 
-friend void SERCOM7_0_Handler(void);
-friend void SERCOM7_1_Handler(void);
-friend void SERCOM7_2_Handler(void);
-friend void SERCOM7_3_Handler(void);
+  friend void SERCOM6_0_Handler(void);
+  friend void SERCOM6_1_Handler(void);
+  friend void SERCOM6_2_Handler(void);
+  friend void SERCOM6_3_Handler(void);
+
+  friend void SERCOM7_0_Handler(void);
+  friend void SERCOM7_1_Handler(void);
+  friend void SERCOM7_2_Handler(void);
+  friend void SERCOM7_3_Handler(void);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_SERCOM_HPP

@@ -20,21 +20,22 @@
 
 #include <sam.h>
 
-static Sam_sercom *glob_pSC[8]={nullptr};
+static Sam_sercom* glob_pSC[8];
 
-Sam_sercom::Sam_sercom(Id nSercom)
+Sam_sercom::Sam_sercom(const Id id)
+  : id_{id}
 {
-    m_nSercom=nSercom;
-    glob_pSC[static_cast<int>(nSercom)]=this;
+    glob_pSC[static_cast<int>(id_)] = this;
 }
+
 Sam_sercom::~Sam_sercom()
 {
-    glob_pSC[static_cast<int>(m_nSercom)]=nullptr;
+    glob_pSC[static_cast<int>(id_)]=nullptr;
 }
 
 void Sam_sercom::EnableIRQ(const Irq nLine, bool how)
 {
-    IRQn_Type nIRQ=static_cast<IRQn_Type>(SERCOM0_0_IRQn + static_cast<int>(m_nSercom)*4 + static_cast<int>(nLine));
+    IRQn_Type nIRQ=static_cast<IRQn_Type>(SERCOM0_0_IRQn + static_cast<int>(id_)*4 + static_cast<int>(nLine));
 
     if(how)
     {

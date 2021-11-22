@@ -16,9 +16,9 @@ Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 CSamI2Cmem::CSamI2Cmem(Sam_sercom::Id nSercom) : Sam_sercom(nSercom)
 {
 
-    SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
+    SercomI2cs *pI2C=SELECT_SAMI2C(id());
 
-    Sam_sercom::EnableSercomBus(m_nSercom, true);
+    Sam_sercom::EnableSercomBus(id(), true);
 
     //perform a soft reset before use:
     pI2C->CTRLA.bit.SWRST=1;
@@ -61,7 +61,7 @@ bool CSamI2Cmem::send(CFIFO &msg){ return false;}
 //IRQ handling:
 void CSamI2Cmem::IRQhandler()
 {
-    SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
+    SercomI2cs *pI2C=SELECT_SAMI2C(id());
 
     if(pI2C->INTFLAG.bit.AMATCH) //adress match
     {
@@ -169,7 +169,7 @@ void CSamI2Cmem::OnIRQ3()  //#3
 void CSamI2Cmem::EnableIRQs(bool how)
 {
     //select ptr:
-    SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
+    SercomI2cs *pI2C=SELECT_SAMI2C(id());
 
     m_bIRQmode=how;
     if(how)

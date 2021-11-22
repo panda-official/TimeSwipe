@@ -14,7 +14,7 @@ Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 
 void CSPIcomm::IRQhandler()
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
     if(pSPI->INTFLAG.bit.RXC)
     {
         Character ch=pSPI->DATA.bit.DATA;
