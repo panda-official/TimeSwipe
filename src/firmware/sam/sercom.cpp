@@ -20,31 +20,43 @@
 
 #include <sam.h>
 
+#include <exception>
+
 static Sam_sercom* glob_pSC[8];
+
+Sam_sercom::~Sam_sercom()
+{
+  glob_pSC[static_cast<int>(id_)] = nullptr;
+}
 
 Sam_sercom::Sam_sercom(const Id id)
   : id_{id}
 {
-    glob_pSC[static_cast<int>(id_)] = this;
+  glob_pSC[static_cast<int>(id_)] = this;
 }
 
-Sam_sercom::~Sam_sercom()
+void Sam_sercom::enable_irq(const Irq irq, const bool enable)
 {
-    glob_pSC[static_cast<int>(id_)]=nullptr;
+  const auto num = static_cast<IRQn_Type>(SERCOM0_0_IRQn +
+    static_cast<int>(id_)*4 + static_cast<int>(irq));
+  if (enable)
+    __NVIC_EnableIRQ(num);
+  else
+    __NVIC_DisableIRQ(num);
 }
 
-void Sam_sercom::EnableIRQ(const Irq nLine, bool how)
+void Sam_sercom::enable_internal_bus(const bool enable)
 {
-    IRQn_Type nIRQ=static_cast<IRQn_Type>(SERCOM0_0_IRQn + static_cast<int>(id_)*4 + static_cast<int>(nLine));
-
-    if(how)
-    {
-        __NVIC_EnableIRQ(nIRQ);
-    }
-    else
-    {
-        __NVIC_DisableIRQ(nIRQ);
-    }
+  switch(id_) {
+  case Id::Sercom0: MCLK->APBAMASK.bit.SERCOM0_ = enable; break;
+  case Id::Sercom1: MCLK->APBAMASK.bit.SERCOM1_ = enable; break;
+  case Id::Sercom2: MCLK->APBBMASK.bit.SERCOM2_ = enable; break;
+  case Id::Sercom3: MCLK->APBBMASK.bit.SERCOM3_ = enable; break;
+  case Id::Sercom4: MCLK->APBDMASK.bit.SERCOM4_ = enable; break;
+  case Id::Sercom5: MCLK->APBDMASK.bit.SERCOM5_ = enable; break;
+  case Id::Sercom6: MCLK->APBDMASK.bit.SERCOM6_ = enable; break;
+  case Id::Sercom7: MCLK->APBDMASK.bit.SERCOM7_ = enable; break;
+  }
 }
 
 //IRQs handling:
@@ -200,43 +212,30 @@ Sercom *glob_GetSercomPtr(const Sam_sercom::Id sercom)
   return nullptr;
 }
 
-void Sam_sercom::EnableSercomBus(const Id nSercom, const bool how)
+void Sam_sercom::connect_clock_generator(const typeSamCLK nCLK)
 {
-  switch(nSercom) {
-  case Id::Sercom0: MCLK->APBAMASK.bit.SERCOM0_ = how; break;
-  case Id::Sercom1: MCLK->APBAMASK.bit.SERCOM1_ = how; break;
-  case Id::Sercom2: MCLK->APBBMASK.bit.SERCOM2_ = how; break;
-  case Id::Sercom3: MCLK->APBBMASK.bit.SERCOM3_ = how; break;
-  case Id::Sercom4: MCLK->APBDMASK.bit.SERCOM4_ = how; break;
-  case Id::Sercom5: MCLK->APBDMASK.bit.SERCOM5_ = how; break;
-  case Id::Sercom6: MCLK->APBDMASK.bit.SERCOM6_ = how; break;
-  case Id::Sercom7: MCLK->APBDMASK.bit.SERCOM7_ = how; break;
-  }
-}
-void Sam_sercom::ConnectGCLK(Id nSercom, typeSamCLK nCLK)
-{
-    int pind;
-    switch(nSercom)
-    {
-        case Id::Sercom0: pind=7;   break;
-        case Id::Sercom1: pind=8;   break;
-        case Id::Sercom2: pind=23;  break;
-        case Id::Sercom3: pind=24;  break;
-        case Id::Sercom4: pind=34;  break;
-        case Id::Sercom5: pind=35;  break;
-        case Id::Sercom6: pind=36;  break;
-    case Id::Sercom7: pind=37;  break;
+  const int pind = [this]
+  {
+    switch(id_) {
+    case Id::Sercom0: return 7;
+    case Id::Sercom1: return 8;
+    case Id::Sercom2: return 23;
+    case Id::Sercom3: return 24;
+    case Id::Sercom4: return 34;
+    case Id::Sercom5: return 35;
+    case Id::Sercom6: return 36;
+    case Id::Sercom7: return 37;
     }
-    if(nCLK==typeSamCLK::none)
-    {
-        GCLK->PCHCTRL[pind].bit.CHEN=0; //remove
-    }
-    else
-    {
-        GCLK->PCHCTRL[3].bit.GEN=(uint32_t)nCLK; //sercom slow
-        GCLK->PCHCTRL[3].bit.CHEN=1; //add
+    std::terminate();
+  }();
 
-       GCLK->PCHCTRL[pind].bit.GEN=(uint32_t)nCLK;
-       GCLK->PCHCTRL[pind].bit.CHEN=1; //add
-    }
+  if(nCLK == typeSamCLK::none) {
+    GCLK->PCHCTRL[pind].bit.CHEN = 0; //remove
+  } else {
+    GCLK->PCHCTRL[3].bit.GEN = static_cast<std::uint32_t>(nCLK); // slow
+    GCLK->PCHCTRL[3].bit.CHEN = 1; // add
+
+    GCLK->PCHCTRL[pind].bit.GEN = static_cast<std::uint32_t>(nCLK);
+    GCLK->PCHCTRL[pind].bit.CHEN = 1; // add
+  }
 }

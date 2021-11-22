@@ -113,7 +113,7 @@ public:
      * 3) turns SERCOM to I2Cslave
      * 4) performs final tuning and enables SERCOM I2Cslave
      */
-    CSamI2Cmem(Sam_sercom::Id nSercom);
+    CSamI2Cmem(Id id);
 
     /*!
      * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)

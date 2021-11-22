@@ -13,12 +13,12 @@ Copyright (c) 2019 Panda Team
 Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)
 
-CSamI2Cmem::CSamI2Cmem(Sam_sercom::Id nSercom) : Sam_sercom(nSercom)
+CSamI2Cmem::CSamI2Cmem(const Id ident)
+  : Sam_sercom{ident}
 {
-
     SercomI2cs *pI2C=SELECT_SAMI2C(id());
 
-    Sam_sercom::EnableSercomBus(id(), true);
+    enable_internal_bus(true);
 
     //perform a soft reset before use:
     pI2C->CTRLA.bit.SWRST=1;
@@ -183,10 +183,10 @@ void CSamI2Cmem::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    Sam_sercom::EnableIRQ(Irq::irq0, how);
-    Sam_sercom::EnableIRQ(Irq::irq1, how);
-    Sam_sercom::EnableIRQ(Irq::irq2, how);
-    Sam_sercom::EnableIRQ(Irq::irq3, how);
+    Sam_sercom::enable_irq(Irq::irq0, how);
+    Sam_sercom::enable_irq(Irq::irq1, how);
+    Sam_sercom::enable_irq(Irq::irq2, how);
+    Sam_sercom::enable_irq(Irq::irq3, how);
 }
 
 //mem interface:

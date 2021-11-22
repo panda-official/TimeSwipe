@@ -74,6 +74,22 @@ protected:
      */
     bool send_char(uint32_t ch);
 
+  /// @see Sam_sercom::OnIRQ0();
+  void OnIRQ0() override
+  {}
+
+  /// @see Sam_sercom::OnIRQ1();
+  void OnIRQ1() override
+  {}
+
+  /// @see Sam_sercom::OnIRQ2();
+  void OnIRQ2() override
+  {}
+
+  /// @see Sam_sercom::OnIRQ3();
+  void OnIRQ3() override
+  {}
+
 public:
     /*!
      * \brief The class constructor

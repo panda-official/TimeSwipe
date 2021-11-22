@@ -74,61 +74,44 @@ public:
   /// SAME5X Sercom IRQ.
   enum class Irq { irq0, irq1, irq2, irq3 };
 
+  /// The destructor.
+  ~Sam_sercom() override;
+
+  /// @returns Sercom ID.
   Id id() const noexcept
   {
     return id_;
   }
 
 protected:
+  /**
+   * @brief The constructor.
+   *
+   * @details Connects Sercom object by the given `id` to the corresponding slot
+   * to handle Cortex M/SAME5x.
+   */
+  Sam_sercom(Id id);
 
-    /*!
-     * \brief The class constructor
-     * \param nSercom The SERCOM ID
-     * \details The constructor does the following:
-     * connects SERCOM object to the corresponding slot allowing to handle corresponding Cortex M/SAME54
-     */
-    Sam_sercom(Id nSercom);
+  /// Line 1 IRQ handler.
+  virtual void OnIRQ0() = 0;
 
-    /// The destructor.
-    ~Sam_sercom() override;
+  /// Line 2 IRQ handler.
+  virtual void OnIRQ1() = 0;
 
-    /*!
-     * \brief The handler of the 1st IRQ line
-     */
-    virtual void OnIRQ0(){}
-    /*!
-     * \brief The handler of the 2nd IRQ line
-     */
-    virtual void OnIRQ1(){}
-    /*!
-     * \brief The handler of the 3rd IRQ line
-     */
-    virtual void OnIRQ2(){}
-    /*!
-     * \brief The handler of the 4th IRQ line
-     */
-    virtual void OnIRQ3(){}
+  /// Line 3 IRQ handler.
+  virtual void OnIRQ2() = 0;
 
-    /*!
-     * \brief Enable corresponding IRQ line
-     * \param nLine An IRQ line ID
-     * \param how true=enable, false=disable
-     */
-    void EnableIRQ(Irq nLine, bool how);
+  /// Line 4 IRQ handler.
+  virtual void OnIRQ3() = 0;
 
-    /*!
-     * \brief Enables internal communication bus with SERCOM
-     * \param nSercom A SERCOM ID
-     * \param how treu=enable, false=disable
-     */
-    static void EnableSercomBus(Id nSercom, bool how);
+  /// Enables or disables the given IRQ line.
+  void enable_irq(Irq irq, bool enable);
 
-    /*!
-     * \brief Connects a clock generator to SERCOM device
-     * \param nSercom A SERCOM ID
-     * \param nCLK A clock generator ID
-     */
-    static void ConnectGCLK(Id nSercom, typeSamCLK nCLK);
+  /// Enables or disables internal communication bus.
+  void enable_internal_bus(bool enable);
+
+  /// Connects the given clock generator to this Sercom device.
+  void connect_clock_generator(typeSamCLK nCLK);
 
 private:
   Id id_;

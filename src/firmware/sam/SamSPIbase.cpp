@@ -15,10 +15,10 @@ Copyright (c) 2019-2020 Panda Team
 Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
 
-CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
-  Sam_pin::Id MOSI, Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
-                         std::shared_ptr<CSamCLK> pCLK) :
-    Sam_sercom(nSercom)
+CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
+  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
+  std::shared_ptr<CSamCLK> pCLK)
+  : Sam_sercom{ident}
 {
     Sam_pin::Id DO, DI;
 
@@ -40,13 +40,13 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
    // Port *pPort=PORT;
 
     //enable sercom bus:
-    Sam_sercom::EnableSercomBus(nSercom, true);
+    enable_internal_bus(true);
 
-    bRes=Sam_pin::connect(DO, nSercom, DOpad);
+    bRes=Sam_pin::connect(DO, id(), DOpad);
     assert(bRes);
-    bRes=Sam_pin::connect(DI, nSercom, DIpad);
+    bRes=Sam_pin::connect(DI, id(), DIpad);
     assert(bRes);
-    bRes=Sam_pin::connect(CLOCK, nSercom, CLOCKpad);
+    bRes=Sam_pin::connect(CLOCK, id(), CLOCKpad);
     assert(bRes);
     assert(Sam_pin::pad::PAD1==CLOCKpad); //always
 
@@ -54,7 +54,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
     {
         m_pCS = std::make_shared<Sam_pin>(*CS, bMaster);
         assert(m_pCS);
-        bRes=m_pCS->connect(nSercom);
+        bRes=m_pCS->connect(id());
         assert(bRes && Sam_pin::pad::PAD2==m_pCS->GetPAD()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
@@ -96,7 +96,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
             m_pCLK=CSamCLK::Factory();  //or generate automatically
             assert(m_pCLK);
         }
-        ConnectGCLK(id(), m_pCLK->CLKind());
+        connect_clock_generator(m_pCLK->CLKind());
         m_pCLK->Enable(true);
         pSPI->BAUD.bit.BAUD=0xff; //lowest possible by default
      }
@@ -229,8 +229,8 @@ void CSamSPIbase::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    Sam_sercom::EnableIRQ(Irq::irq0, how);
-    Sam_sercom::EnableIRQ(Irq::irq1, how);
-    Sam_sercom::EnableIRQ(Irq::irq2, how);
-    Sam_sercom::EnableIRQ(Irq::irq3, how);
+    Sam_sercom::enable_irq(Irq::irq0, how);
+    Sam_sercom::enable_irq(Irq::irq1, how);
+    Sam_sercom::enable_irq(Irq::irq2, how);
+    Sam_sercom::enable_irq(Irq::irq3, how);
 }

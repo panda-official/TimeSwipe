@@ -17,16 +17,17 @@ Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2CM(nSercom) &(glob_GetSercomPtr(nSercom)->I2CM) //ptr to a master section
 
 
-CSamI2CeepromMaster::CSamI2CeepromMaster() : Sam_sercom(Id::Sercom6)
+CSamI2CeepromMaster::CSamI2CeepromMaster()
+  : Sam_sercom{Id::Sercom6}
 {
     PORT->Group[3].DIRSET.reg=(1L<<10);
     SetWriteProtection(true);
 
-    Sam_sercom::EnableSercomBus(id(), true);
+    enable_internal_bus(true);
     m_pCLK=CSamCLK::Factory();
 
     //connect:
-    ConnectGCLK(id(), m_pCLK->CLKind());
+    connect_clock_generator(m_pCLK->CLKind());
     m_pCLK->Enable(true);
 
     setup_bus();
@@ -450,10 +451,10 @@ void CSamI2CeepromMaster::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    Sam_sercom::EnableIRQ(Irq::irq0, how);
-    Sam_sercom::EnableIRQ(Irq::irq1, how);
-    Sam_sercom::EnableIRQ(Irq::irq2, how);
-    Sam_sercom::EnableIRQ(Irq::irq3, how);
+    Sam_sercom::enable_irq(Irq::irq0, how);
+    Sam_sercom::enable_irq(Irq::irq1, how);
+    Sam_sercom::enable_irq(Irq::irq2, how);
+    Sam_sercom::enable_irq(Irq::irq3, how);
 }
 
 //+++new mem int:
