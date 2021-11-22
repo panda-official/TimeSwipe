@@ -30,16 +30,16 @@ enum class typeSamCLK : int {none=-1,  MCLK=0, GCLK1, GCLK2, GCLK3, GCLK4, GCLK5
 
 /*!
  * \brief A clock generators manager class
- * \details A CSamCLK::Factory() used to find free clock generator, reserve it and provide class methods for setup.
+ * \details A Sam_clock_generator::Factory() used to find free clock generator, reserve it and provide class methods for setup.
  */
-class CSamCLK
+class Sam_clock_generator
 {
 protected:
 
     /*!
      * \brief A collection of clock generator objects
      */
-    static std::list<CSamCLK *> m_Clocks;
+    static std::list<Sam_clock_generator *> m_Clocks;
 
     /*!
      * \brief An array of "occupied" flags: if a new object is factored, the flag with index=GCLK index will be set to "true"
@@ -52,9 +52,9 @@ protected:
     int  m_nCLK;
 
     /*!
-     * \brief A protected class constructor: the instances should created only by CSamCLK::Factory()
+     * \brief A protected class constructor: the instances should created only by Sam_clock_generator::Factory()
      */
-    CSamCLK(){}
+    Sam_clock_generator(){}
 
 public:
 
@@ -69,13 +69,13 @@ public:
      * \return A pointer to the created instance
      * \details The created object will be added into the m_Clocks list
      */
-    static std::shared_ptr<CSamCLK> Factory();
+    static std::shared_ptr<Sam_clock_generator> Factory();
 
     /*!
      * \brief The class destructor
      * \details The object will be removed from the m_Clocks list
      */
-    ~CSamCLK();
+    ~Sam_clock_generator();
 
     /*!
      * \brief Waiting until bus synchronization is completed

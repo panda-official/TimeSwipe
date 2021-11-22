@@ -171,7 +171,7 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     //-------------------------------------------------------------------
 
     //----------------------connect default gen--------------------------
-    m_pCLK=CSamCLK::Factory();
+    m_pCLK=Sam_clock_generator::Factory();
 
     int pchind=typeSamADC::Adc0==m_nADC ? GCLK_ADC0:GCLK_ADC1;
     GCLK->PCHCTRL[pchind].bit.GEN=static_cast<uint32_t>(m_pCLK->CLKind());

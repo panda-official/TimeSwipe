@@ -17,7 +17,7 @@ Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 
 CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
   Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
-  std::shared_ptr<CSamCLK> pCLK)
+  std::shared_ptr<Sam_clock_generator> pCLK)
   : Sam_sercom{ident}
 {
     Sam_pin::Id DO, DI;
@@ -93,7 +93,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
         }
         else
         {
-            m_pCLK=CSamCLK::Factory();  //or generate automatically
+            m_pCLK=Sam_clock_generator::Factory();  //or generate automatically
             assert(m_pCLK);
         }
         connect_clock_generator(m_pCLK->CLKind());

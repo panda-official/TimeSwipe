@@ -62,7 +62,7 @@ void SERCOM7_3_Handler();
  *
  * @details Depending on settings it can be turned into USART, SPI, I2C-master
  * or I2C-slave. The functionality of SERCOM is provided by handling interrupts,
- * enabling and connecting corresponding Generic Clock Controller (CSamCLK).
+ * enabling and connecting corresponding Sam_clock_generator.
  */
 class Sam_sercom : virtual public CSerial {
 public:

@@ -63,7 +63,7 @@ protected:
     /*!
      * \brief An associated clock generator
      */
-    std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<Sam_clock_generator> m_pCLK;
 
     /*!
      * \brief Called from the base class for additional specific actions for this class

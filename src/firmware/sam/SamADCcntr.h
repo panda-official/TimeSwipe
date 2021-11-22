@@ -157,7 +157,7 @@ protected:
     /*!
      * \brief An associated clock generator: must be provided to perform conversions
      */
-    std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<Sam_clock_generator> m_pCLK;
 
 public:
     /*!

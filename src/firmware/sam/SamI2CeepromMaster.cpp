@@ -24,7 +24,7 @@ CSamI2CeepromMaster::CSamI2CeepromMaster()
     SetWriteProtection(true);
 
     enable_internal_bus(true);
-    m_pCLK=CSamCLK::Factory();
+    m_pCLK=Sam_clock_generator::Factory();
 
     //connect:
     connect_clock_generator(m_pCLK->CLKind());

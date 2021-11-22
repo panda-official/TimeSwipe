@@ -9,7 +9,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <sam.h>
 
-std::shared_ptr<CSamCLK> CDacPWMht::m_pCLK;
+std::shared_ptr<Sam_clock_generator> CDacPWMht::m_pCLK;
 
 
 //light IRQs:
@@ -75,7 +75,7 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, mode nOpMode)
     //get clock:
     if(!m_pCLK)
     {
-        m_pCLK=CSamCLK::Factory();
+        m_pCLK=Sam_clock_generator::Factory();
         m_pCLK->Enable(true); //???
     }
     CSamTC::ConnectGCLK(m_pCLK->CLKind());

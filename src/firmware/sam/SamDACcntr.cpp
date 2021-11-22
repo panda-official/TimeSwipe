@@ -68,7 +68,7 @@ void CSamDACcntr::common_init() //common settings for both dacs
     //----------------------------------------------------------------
 
     //-----------------------connect default generator----------------
-    m_pCLK=CSamCLK::Factory();
+    m_pCLK=Sam_clock_generator::Factory();
 
     //enable gclk: set to Current Control default: CC100K GCLK_DAC ≤ 1.2MHz (100kSPS) 48MHz/64=750KHz
     GCLK->PCHCTRL[GCLK_DAC].bit.GEN=static_cast<uint32_t>(m_pCLK->CLKind());

@@ -47,7 +47,7 @@ protected:
     /*!
      * \brief An associated clock generator: used only in a master mode
      */
-    std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<Sam_clock_generator> m_pCLK;
 
     /*!
      * \brief The single character send timeout. Used only in a slave mode to prevent hanging when master device stops providing clock frequency
@@ -105,7 +105,7 @@ public:
 
      CSamSPIbase(bool bMaster, Sam_sercom::Id nSercom,
       Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
-                std::shared_ptr<CSamCLK> pCLK);
+                std::shared_ptr<Sam_clock_generator> pCLK);
 
     /*!
      * \brief Returns the pointer to the CS pin instance
