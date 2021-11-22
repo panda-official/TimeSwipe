@@ -17,7 +17,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "adcdac.hpp"
 #include "../pin.hpp"
 #include "../PWM.h"
-#include "sam/SamCLK.h"
+#include "sam/clock_generator.hpp"
 #include "sam/SamTC.h"
 #include "sam/SamDMAC.h"
 

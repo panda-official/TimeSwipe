@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_SAM_SERCOM_HPP
 
 #include "../../serial.hpp"
-#include "SamCLK.h"
+#include "clock_generator.hpp"
 
 extern "C" {
 void SERCOM0_0_Handler();

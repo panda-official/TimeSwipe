@@ -13,7 +13,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "SamCLK.h"
+#include "clock_generator.hpp"
 
 /*!
  * \brief An enumeration of possible SAME54 TC devices
@@ -72,5 +72,3 @@ public:
      */
     void ConnectGCLK(typeSamCLK nCLK);
 };
-
-

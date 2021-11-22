@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 //SAM clocks contol:
 
-#include "SamCLK.h"
+#include "clock_generator.hpp"
 
 #include <sam.h>
 

@@ -15,7 +15,7 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include "adcdac.hpp"
-#include "SamCLK.h"
+#include "clock_generator.hpp"
 
 #include "../os.h"
 

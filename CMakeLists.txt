@@ -288,8 +288,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     NVMpage.h
     SamADCcntr.cpp
     SamADCcntr.h
-    SamCLK.cpp
-    SamCLK.h
     SamDACcntr.cpp
     SamDACcntr.h
     SamDMAC.cpp
@@ -312,6 +310,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SamTempSensor.h
     clock_set_SAME54.cpp
     cortex_handlers.cpp
+    clock_generator.cpp
+    clock_generator.hpp
     pin.cpp
     pin.hpp
     sercom.cpp

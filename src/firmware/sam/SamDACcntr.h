@@ -19,7 +19,7 @@ enum class typeSamDAC{Dac0, Dac1};
 
 
 #include "adcdac.hpp"
-#include "SamCLK.h"
+#include "clock_generator.hpp"
 
 /*!
  * \brief The class implements a single SAME54 DAC channel

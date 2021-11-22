@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include "../PWM.h"
-#include "sam/SamCLK.h"
+#include "sam/clock_generator.hpp"
 #include "sam/SamTC.h"
 #include "sam/SamDMAC.h"
 #include "sam/pin.hpp"
