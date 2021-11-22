@@ -9,7 +9,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <sam.h>
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
 
 void CSPIcomm::IRQhandler()

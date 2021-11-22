@@ -2,10 +2,10 @@
 
 #include <sam.h>
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)
 
-CSamI2CmemHAT::CSamI2CmemHAT() : CSamI2Cmem(typeSamSercoms::Sercom1)
+CSamI2CmemHAT::CSamI2CmemHAT() : CSamI2Cmem(Id::Sercom1)
 {
     //----------setup PINs: Version2: PA16,PA17----------------
     PORT->Group[0].PMUX[8].bit.PMUXE=0x02; //(PAD0)

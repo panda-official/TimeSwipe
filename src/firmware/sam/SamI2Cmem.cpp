@@ -10,15 +10,15 @@ Copyright (c) 2019 Panda Team
 
 #include <sam.h>
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)
 
-CSamI2Cmem::CSamI2Cmem(typeSamSercoms nSercom) : CSamSercom(nSercom)
+CSamI2Cmem::CSamI2Cmem(Sam_sercom::Id nSercom) : Sam_sercom(nSercom)
 {
 
     SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
 
-    CSamSercom::EnableSercomBus(m_nSercom, true);
+    Sam_sercom::EnableSercomBus(m_nSercom, true);
 
     //perform a soft reset before use:
     pI2C->CTRLA.bit.SWRST=1;
@@ -183,10 +183,10 @@ void CSamI2Cmem::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
 }
 
 //mem interface:

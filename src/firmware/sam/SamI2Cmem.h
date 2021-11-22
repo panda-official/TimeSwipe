@@ -24,7 +24,7 @@ Copyright (c) 2019 Panda Team
  */
 
 
-class CSamI2Cmem : public CSamSercom
+class CSamI2Cmem : public Sam_sercom
 {
 public:
 
@@ -108,12 +108,12 @@ public:
      * \brief The class constructor
      * \param nSercom The SERCOM ID
      * \details The constructor does the following:
-     * 1) calls CSamSercom constructor
+     * 1) calls Sam_sercom constructor
      * 2) enables communication bus with corresponding SERCOM
      * 3) turns SERCOM to I2Cslave
      * 4) performs final tuning and enables SERCOM I2Cslave
      */
-    CSamI2Cmem(typeSamSercoms nSercom);
+    CSamI2Cmem(Sam_sercom::Id nSercom);
 
     /*!
      * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)

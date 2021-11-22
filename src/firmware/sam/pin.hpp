@@ -94,7 +94,7 @@ public:
    *
    * @returns `true` on success.
    */
-  static bool connect(Id id, typeSamSercoms sercom, Pad& pad);
+  static bool connect(Id id, Sam_sercom::Id sercom, Pad& pad);
 
   /**
    * @brief Connects this pin to the given Sercom.
@@ -106,7 +106,7 @@ public:
    * @par Effects
    * pad() returns the new PAD value on success.
    */
-  bool connect(const typeSamSercoms sercom)
+  bool connect(const Sam_sercom::Id sercom)
   {
     return connect(id(group_, number_), sercom, pad_);
   }
@@ -179,7 +179,7 @@ private:
    *
    * @returns `true` if found.
    */
-  static bool get_sercom_pad(Id id, typeSamSercoms sercom, Pad& pad, Peripheral_function& pf);
+  static bool get_sercom_pad(Id id, Sam_sercom::Id sercom, Pad& pad, Peripheral_function& pf);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP

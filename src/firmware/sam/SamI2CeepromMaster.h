@@ -23,7 +23,7 @@ Copyright (c) 2019-2020 Panda Team
 * For reading the chip data, ISerial interface is used.
 * EEPROMmemory address an a count of data to read are set by method CSamI2CeepromMaster::SetDataAddrAndCountLim.
 */
-class CSamI2CeepromMaster : public CSamSercom
+class CSamI2CeepromMaster : public Sam_sercom
 {
 public:
     //! Finite State Machine used to handle I2C bus states according to communication algorithm (see CAT24C32 manual)
@@ -235,7 +235,7 @@ public:
     /*!
      * \brief The class constructor
      * \details The constructor does the following:
-     * 1) calls CSamSercom constructor
+     * 1) calls Sam_sercom constructor
      * 2) enables communication bus with corresponding SERCOM
      * 3) setups corresponding PINs and its multiplexing
      * 4) turns SERCOM to I2C master

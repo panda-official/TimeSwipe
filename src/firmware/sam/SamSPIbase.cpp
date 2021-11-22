@@ -12,13 +12,13 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <cassert>
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
 
-CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
+CSamSPIbase::CSamSPIbase(bool bMaster, Id nSercom,
   Sam_pin::Id MOSI, Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
                          std::shared_ptr<CSamCLK> pCLK) :
-    CSamSercom(nSercom)
+    Sam_sercom(nSercom)
 {
     Sam_pin::Id DO, DI;
 
@@ -40,7 +40,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
    // Port *pPort=PORT;
 
     //enable sercom bus:
-    CSamSercom::EnableSercomBus(nSercom, true);
+    Sam_sercom::EnableSercomBus(nSercom, true);
 
     bRes=Sam_pin::connect(DO, nSercom, DOpad);
     assert(bRes);
@@ -229,8 +229,8 @@ void CSamSPIbase::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
 }

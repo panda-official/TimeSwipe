@@ -36,9 +36,9 @@ public:
      * \param CLOCK   - Clock input for selected Sercom
      * \param CS      - Chip Select input for selected Sercom
      */
-    CSPIcomm(typeSamSercoms nSercom,
-      Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS) :
-    CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, nullptr)
+  CSPIcomm(Id nSercom, Sam_pin::Id MOSI, Sam_pin::Id MISO, Sam_pin::Id CLOCK,
+    std::optional<Sam_pin::Id> CS)
+    : CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, nullptr)
     {
 
     }

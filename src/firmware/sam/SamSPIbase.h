@@ -25,7 +25,7 @@ Copyright (c) 2019-2020 Panda Team
 /*!
  * \brief The class implements basic functionality of SAME54 Sercom SPI
  */
-class CSamSPIbase : public CSamSercom, public CSPI
+class CSamSPIbase : public Sam_sercom, public CSPI
 {
 protected:
     /*!
@@ -87,7 +87,7 @@ public:
      *  If nullptr is specified a new Generic Clock will be created from available in a master mode. In the Slave mode Generic Clock is not required.
      */
 
-    CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
+     CSamSPIbase(bool bMaster, Sam_sercom::Id nSercom,
       Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
                 std::shared_ptr<CSamCLK> pCLK);
 

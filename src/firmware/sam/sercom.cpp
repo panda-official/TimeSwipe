@@ -20,19 +20,19 @@
 
 #include <sam.h>
 
-static CSamSercom *glob_pSC[8]={nullptr};
+static Sam_sercom *glob_pSC[8]={nullptr};
 
-CSamSercom::CSamSercom(typeSamSercoms nSercom)
+Sam_sercom::Sam_sercom(Id nSercom)
 {
     m_nSercom=nSercom;
     glob_pSC[static_cast<int>(nSercom)]=this;
 }
-CSamSercom::~CSamSercom()
+Sam_sercom::~Sam_sercom()
 {
     glob_pSC[static_cast<int>(m_nSercom)]=nullptr;
 }
 
-void CSamSercom::EnableIRQ(typeSamSercomIRQs nLine, bool how)
+void Sam_sercom::EnableIRQ(typeSamSercomIRQs nLine, bool how)
 {
     IRQn_Type nIRQ=static_cast<IRQn_Type>(SERCOM0_0_IRQn + static_cast<int>(m_nSercom)*4 + static_cast<int>(nLine));
 
@@ -183,50 +183,48 @@ void SERCOM7_3_Handler(void)
      glob_pSC[7]->OnIRQ3();
 }
 
+Sercom *glob_GetSercomPtr(const Sam_sercom::Id sercom)
+{
+  using Id = Sam_sercom::Id;
+  switch (sercom) {
+  case Id::Sercom0: return SERCOM0;
+  case Id::Sercom1: return SERCOM1;
+  case Id::Sercom2: return SERCOM2;
+  case Id::Sercom3: return SERCOM3;
+  case Id::Sercom4: return SERCOM4;
+  case Id::Sercom5: return SERCOM5;
+  case Id::Sercom6: return SERCOM6;
+  case Id::Sercom7: return SERCOM7;
+  }
+  return nullptr;
+}
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom)
+void Sam_sercom::EnableSercomBus(const Id nSercom, const bool how)
 {
-    switch(nSercom)
-    {
-        case typeSamSercoms::Sercom0: return SERCOM0;
-        case typeSamSercoms::Sercom1: return SERCOM1;
-        case typeSamSercoms::Sercom2: return SERCOM2;
-        case typeSamSercoms::Sercom3: return SERCOM3;
-        case typeSamSercoms::Sercom4: return SERCOM4;
-        case typeSamSercoms::Sercom5: return SERCOM5;
-        case typeSamSercoms::Sercom6: return SERCOM6;
-        case typeSamSercoms::Sercom7: return SERCOM7;
-    }
-    return nullptr;
+  switch(nSercom) {
+  case Id::Sercom0: MCLK->APBAMASK.bit.SERCOM0_ = how; break;
+  case Id::Sercom1: MCLK->APBAMASK.bit.SERCOM1_ = how; break;
+  case Id::Sercom2: MCLK->APBBMASK.bit.SERCOM2_ = how; break;
+  case Id::Sercom3: MCLK->APBBMASK.bit.SERCOM3_ = how; break;
+  case Id::Sercom4: MCLK->APBDMASK.bit.SERCOM4_ = how; break;
+  case Id::Sercom5: MCLK->APBDMASK.bit.SERCOM5_ = how; break;
+  case Id::Sercom6: MCLK->APBDMASK.bit.SERCOM6_ = how; break;
+  case Id::Sercom7: MCLK->APBDMASK.bit.SERCOM7_ = how; break;
+  }
 }
-void CSamSercom::EnableSercomBus(typeSamSercoms nSercom, bool how)
-{
-    unsigned int set=how ? 1:0;
-    switch(nSercom)
-    {
-        case typeSamSercoms::Sercom0: MCLK->APBAMASK.bit.SERCOM0_=set; break;
-        case typeSamSercoms::Sercom1: MCLK->APBAMASK.bit.SERCOM1_=set; break;
-        case typeSamSercoms::Sercom2: MCLK->APBBMASK.bit.SERCOM2_=set; break;
-        case typeSamSercoms::Sercom3: MCLK->APBBMASK.bit.SERCOM3_=set; break;
-        case typeSamSercoms::Sercom4: MCLK->APBDMASK.bit.SERCOM4_=set; break;
-        case typeSamSercoms::Sercom5: MCLK->APBDMASK.bit.SERCOM5_=set; break;
-        case typeSamSercoms::Sercom6: MCLK->APBDMASK.bit.SERCOM6_=set; break;
-        case typeSamSercoms::Sercom7: MCLK->APBDMASK.bit.SERCOM7_=set; //break;
-    }
-}
-void CSamSercom::ConnectGCLK(typeSamSercoms nSercom, typeSamCLK nCLK)
+void Sam_sercom::ConnectGCLK(Id nSercom, typeSamCLK nCLK)
 {
     int pind;
     switch(nSercom)
     {
-        case typeSamSercoms::Sercom0: pind=7;   break;
-        case typeSamSercoms::Sercom1: pind=8;   break;
-        case typeSamSercoms::Sercom2: pind=23;  break;
-        case typeSamSercoms::Sercom3: pind=24;  break;
-        case typeSamSercoms::Sercom4: pind=34;  break;
-        case typeSamSercoms::Sercom5: pind=35;  break;
-        case typeSamSercoms::Sercom6: pind=36;  break;
-        case typeSamSercoms::Sercom7: pind=37;
+        case Id::Sercom0: pind=7;   break;
+        case Id::Sercom1: pind=8;   break;
+        case Id::Sercom2: pind=23;  break;
+        case Id::Sercom3: pind=24;  break;
+        case Id::Sercom4: pind=34;  break;
+        case Id::Sercom5: pind=35;  break;
+        case Id::Sercom6: pind=36;  break;
+    case Id::Sercom7: pind=37;  break;
     }
     if(nCLK==typeSamCLK::none)
     {

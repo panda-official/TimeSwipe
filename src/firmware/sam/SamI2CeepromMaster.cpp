@@ -13,16 +13,16 @@ Copyright (c) 2019 Panda Team
 
 //#define EEPROM_8BIT_ADDR
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2CM(nSercom) &(glob_GetSercomPtr(nSercom)->I2CM) //ptr to a master section
 
 
-CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
+CSamI2CeepromMaster::CSamI2CeepromMaster() : Sam_sercom(Id::Sercom6)
 {
     PORT->Group[3].DIRSET.reg=(1L<<10);
     SetWriteProtection(true);
 
-    CSamSercom::EnableSercomBus(m_nSercom, true);
+    Sam_sercom::EnableSercomBus(m_nSercom, true);
     m_pCLK=CSamCLK::Factory();
 
     //connect:
@@ -450,10 +450,10 @@ void CSamI2CeepromMaster::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
+    Sam_sercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
 }
 
 //+++new mem int:

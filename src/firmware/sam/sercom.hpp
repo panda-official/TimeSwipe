@@ -19,16 +19,6 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_SAM_SERCOM_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_SAM_SERCOM_HPP
 
-/*!
- * \brief An enumeration of possible SAME54 Sercom devices
- */
-enum class typeSamSercoms : int {Sercom0=0, Sercom1, Sercom2, Sercom3, Sercom4, Sercom5, Sercom6, Sercom7};
-
-/*!
- * \brief An enumeration of Sercom IRQ channels
- */
-enum class typeSamSercomIRQs : int {IRQ0=0, IRQ1, IRQ2, IRQ3};
-
 #include "../../serial.hpp"
 #include "SamCLK.h"
 
@@ -68,19 +58,30 @@ void SERCOM7_3_Handler(void);
 }
 
 /*!
- * \brief An implementation of SAME54's basic Serial Communication Interface.
- * \details Depending on settings it can be turned into USART, SPI, I2C-master or I2C-slave.
- * The provides basic functionality of SERCOM mainly dealing with interrupt processing, enabling and connecting corresponding
- * CSamCLK (Generic Clock controller)
+ * \brief An enumeration of Sercom IRQ channels
  */
-class CSamSercom : virtual public CSerial
-{
+enum class typeSamSercomIRQs : int {IRQ0=0, IRQ1, IRQ2, IRQ3};
+
+/**
+ * @brief An implementation of SAME54 basic Serial Communication Interface.
+ *
+ * @details Depending on settings it can be turned into USART, SPI, I2C-master
+ * or I2C-slave. The functionality of SERCOM is provided by handling interrupts,
+ * enabling and connecting corresponding Generic Clock Controller (CSamCLK).
+ */
+class Sam_sercom : virtual public CSerial {
+public:
+  /// SAME5x Sercom ID.
+  enum class Id {
+    Sercom0, Sercom1, Sercom2, Sercom3,
+    Sercom4, Sercom5, Sercom6, Sercom7 };
+
 protected:
 
     /*!
      * \brief The SERCOM ID
      */
-    typeSamSercoms m_nSercom;
+    Id m_nSercom;
 
 protected:
 
@@ -90,12 +91,10 @@ protected:
      * \details The constructor does the following:
      * connects SERCOM object to the corresponding slot allowing to handle corresponding Cortex M/SAME54
      */
-    CSamSercom(typeSamSercoms nSercom);
+    Sam_sercom(Id nSercom);
 
-    /*!
-     * \brief Virtual destructor
-     */
-    virtual ~CSamSercom();
+    /// The destructor.
+    ~Sam_sercom() override;
 
     /*!
      * \brief The handler of the 1st IRQ line
@@ -126,14 +125,14 @@ protected:
      * \param nSercom A SERCOM ID
      * \param how treu=enable, false=disable
      */
-    static void EnableSercomBus(typeSamSercoms nSercom, bool how);
+    static void EnableSercomBus(Id nSercom, bool how);
 
     /*!
      * \brief Connects a clock generator to SERCOM device
      * \param nSercom A SERCOM ID
      * \param nCLK A clock generator ID
      */
-    static void ConnectGCLK(typeSamSercoms nSercom, typeSamCLK nCLK);
+    static void ConnectGCLK(Id nSercom, typeSamCLK nCLK);
 
 friend void SERCOM0_0_Handler(void);
 friend void SERCOM0_1_Handler(void);

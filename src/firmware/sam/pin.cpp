@@ -39,7 +39,7 @@ Sam_pin::Sam_pin(const Group group, const Number number, const bool bOutput)
   PORT->Group[group].DIRSET.reg = Uint{bOutput}<<number;
 }
 
-bool Sam_pin::connect(const Id id, const typeSamSercoms sercom, Pad& pad)
+bool Sam_pin::connect(const Id id, const Sam_sercom::Id sercom, Pad& pad)
 {
   Peripheral_function pf;
   if (!get_sercom_pad(id, sercom, pad, pf))
@@ -81,7 +81,7 @@ bool Sam_pin::do_read() const noexcept
     return PORT->Group[group_].IN.reg & (Uint{1}<<number_);
 }
 
-bool Sam_pin::get_sercom_pad(const Id id, const typeSamSercoms sercom,
+bool Sam_pin::get_sercom_pad(const Id id, const Sam_sercom::Id sercom,
   Pad& pad, Peripheral_function& pf)
 {
   constexpr struct {
