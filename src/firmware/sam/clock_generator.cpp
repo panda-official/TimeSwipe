@@ -22,6 +22,7 @@
 
 Sam_clock_generator::~Sam_clock_generator()
 {
+  Enable(false);
   instances_[static_cast<int>(id_)] = nullptr;
 }
 
