@@ -16,7 +16,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "../button.hpp"
 #include "View.h"
 
-class CCalFWbtnHandler  : public CButtonEvent
+class CCalFWbtnHandler  : public Button_event
 {
 public:
 

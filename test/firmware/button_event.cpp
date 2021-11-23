@@ -18,7 +18,7 @@ Copyright (c) 2019-2021 Panda Team
 #include "../../src/firmware/sam/SamService.h"
 
 class CButtonLogic final : public CTimerEvent
-                         , public CButtonEvent
+                         , public Button_event
                          , public IJSONEvent
                          , public CJSONEvCP {
 public:

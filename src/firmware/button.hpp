@@ -35,22 +35,22 @@ enum class typeButtonState {
 };
 
 /// Button event.
-class CButtonEvent {
+class Button_event {
 public:
   /// The destructor.
-  virtual ~CButtonEvent() = default;
+  virtual ~Button_event() = default;
 
   /// Called when the button state changed.
   virtual void OnButtonState(typeButtonState nState) = 0;
 
   /// Default-constructible.
-  CButtonEvent() = default;
+  Button_event() = default;
 
   /// Non copy-constructible.
-  CButtonEvent(const CButtonEvent&) = delete;
+  Button_event(const Button_event&) = delete;
 
   /// Non copy-assignable.
-  CButtonEvent& operator=(const CButtonEvent&) = delete;
+  Button_event& operator=(const Button_event&) = delete;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP

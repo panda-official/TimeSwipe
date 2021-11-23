@@ -34,15 +34,15 @@ protected:
         unsigned long m_nStateCounter=0;
 
         /*!
-         * \brief A single sink to CButtonEvent
+         * \brief A single sink to Button_event
          * \deprecated Initialy it was used to subscribe a menu object for button events
          * \todo Use only IJSONEvent instead?
          */
-        std::shared_ptr<CButtonEvent> m_pSink;
+        std::shared_ptr<Button_event> m_pSink;
 
 public:
 
-        void AdviseSink(const std::shared_ptr<CButtonEvent> &sink)
+        void AdviseSink(const std::shared_ptr<Button_event> &sink)
         {
             m_pSink=sink;
         }
@@ -54,7 +54,7 @@ public:
         bool impl_get_signal(void);
 
         /*!
-         * \brief Generates both CButtonEvent::OnButtonState and IJSONEvent::on_event event callbacks
+         * \brief Generates both Button_event::OnButtonState and IJSONEvent::on_event event callbacks
          * \param nState the current button state
          */
         void impl_on_state_changed(typeButtonState nState);

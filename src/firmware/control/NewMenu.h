@@ -18,7 +18,7 @@ Copyright (c) 2019-2020 Panda Team
 /*!
  * \brief The Menu v2.0 controller
  */
-class CNewMenu  : public CButtonEvent
+class CNewMenu  : public Button_event
 {
 public:
     /*!
