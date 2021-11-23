@@ -238,7 +238,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SPIcomm.h
     ShiftReg.cpp
     ShiftReg.h
-    pin_button.h
+    pin_button.hpp
     )
 
   set(control_src

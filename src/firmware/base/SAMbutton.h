@@ -16,7 +16,7 @@ Copyright (c) 2019 Panda Team
 *
 */
 
-#include "pin_button.h"
+#include "pin_button.hpp"
 #include "json/json_evsys.h"
 
 /*!
