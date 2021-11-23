@@ -62,11 +62,11 @@ void CNewMenu::ApplyMenuSetting()
     m_CurMode=mode::preview;
 }
 
-void CNewMenu::OnButtonState(typeButtonState nState)
+void CNewMenu::OnButtonState(const Button_state state)
 {
     CView &v=CView::Instance();
 
-    if(typeButtonState::very_long_click==nState)
+    if(Button_state::very_long_click==state)
     {
         nodeControl::Instance().SetDefaultSettings();
         m_CurMode=mode::def;
@@ -76,14 +76,14 @@ void CNewMenu::OnButtonState(typeButtonState nState)
 
     if(mode::def==m_CurMode)
     {
-        switch(nState)
+        switch(state)
         {
-            case typeButtonState::short_click:
+            case Button_state::short_click:
                 nodeControl::Instance().StartRecord(true);
                 v.SetRecordMarker();
             return;
 
-            case typeButtonState::long_click:
+            case Button_state::long_click:
                 m_CurMode=mode::preview;
                 v.SelectMenuPrevew(m_MenuInd);
             return;
@@ -99,21 +99,21 @@ void CNewMenu::OnButtonState(typeButtonState nState)
 
     if(mode::preview==m_CurMode)
     {
-        switch(nState)
+        switch(state)
         {
-            case typeButtonState::double_click:
+            case Button_state::double_click:
                 m_CurMode=mode::def;
                 v.ExitMenu();
             return;
 
-            case typeButtonState::short_click:
+            case Button_state::short_click:
                 if(++m_MenuInd>=(CView::menu::total))
                     m_MenuInd=0;
 
                 v.SelectMenuPrevew(m_MenuInd);
             return;
 
-            case typeButtonState::long_click:
+            case Button_state::long_click:
                 if(m_MenuInd<CView::menu::total)
                 {
                      m_CurMode=mode::inside_menu;
@@ -127,21 +127,21 @@ void CNewMenu::OnButtonState(typeButtonState nState)
     }
     if(mode::inside_menu==m_CurMode)
     {
-        switch(nState)
+        switch(state)
         {
-            case typeButtonState::double_click:
+            case Button_state::double_click:
                 m_CurMode=mode::preview;
                 v.SelectMenuPrevew(m_MenuInd);
             return;
 
-            case typeButtonState::short_click:
+            case Button_state::short_click:
                 if(++m_MenuEl>m_MenuElMax)
                     m_MenuEl=m_MenuElMin;
 
                 v.SelectMenu(m_MenuInd, m_MenuEl, m_MenuElMin, m_MenuElMax);
             return;
 
-            case typeButtonState::long_click:
+            case Button_state::long_click:
                 ApplyMenuSetting();
             return;
 

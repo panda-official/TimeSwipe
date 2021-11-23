@@ -57,7 +57,7 @@ public:
          * \brief Generates both Button_event::OnButtonState and IJSONEvent::on_event event callbacks
          * \param nState the current button state
          */
-        void impl_on_state_changed(typeButtonState nState);
+        void impl_on_state_changed(Button_state state);
 
         /*!
          * \brief Turns buttol LED on/off

@@ -27,7 +27,7 @@ Copyright (c) 2019 Panda Team
 
 SAMButton::SAMButton()
 {
-	PORT->Group[BUTTON_PINGROUP].PINCFG[BUTTON_PINID].bit.INEN=1;
+    PORT->Group[BUTTON_PINGROUP].PINCFG[BUTTON_PINID].bit.INEN=1;
     // Enable Button LED
     PORT->Group[BUTTON_LED_PINGROUP].DIRSET.reg = (1L<<BUTTON_LED_PINID);
     PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg = (1L<<BUTTON_LED_PINID);
@@ -50,17 +50,17 @@ bool SAMButton::impl_get_signal(void)
   return ( (PORT->Group[BUTTON_PINGROUP].IN.reg) & (1L<<BUTTON_PINID) ) ? false:true;
 }
 
-void SAMButton::impl_on_state_changed(typeButtonState nState)
+void SAMButton::impl_on_state_changed(const Button_state state)
 {
     if(m_pSink)
     {
-        m_pSink->OnButtonState(nState);
+        m_pSink->OnButtonState(state);
     }
 
-     if(typeButtonState::pressed==nState || typeButtonState::released==nState){
+     if(Button_state::pressed==state || Button_state::released==state){
 
      m_nStateCounter++;
-     nlohmann::json v=typeButtonState::pressed==nState ? true:false;
+     nlohmann::json v = Button_state::pressed == state;
      nlohmann::json stcnt=m_nStateCounter;
      Fire_on_event("Button", v);
      Fire_on_event("ButtonStateCnt", stcnt); }

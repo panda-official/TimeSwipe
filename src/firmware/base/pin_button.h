@@ -27,7 +27,7 @@ template <class T>
  * When filtered signal level drops down below m_low_trhold the "released" state is established.
  * When filtered signal level  exceeds m_high_trhold the "pressed" state is established.
  * The generation of the corresponding event is delegated to the derived class -
- * it must provide an overridden send_event(typeButtonState nState) virtual function
+ * it must provide an overridden send_event(Button_state state) virtual function
  */
 class CPinButton{
 protected:
@@ -115,12 +115,12 @@ protected:
     /*!
      * \brief Current state of the button
      */
-    typeButtonState m_cur_state		=typeButtonState::released;
+    Button_state m_cur_state		=Button_state::released;
 
     /*!
      * \brief Previous state of the button. Used to generate an event by compare with m_cur_state
      */
-    typeButtonState m_prev_state	=typeButtonState::released;
+    Button_state m_prev_state	=Button_state::released;
 
     /*!
      * \brief Acquires a raw signal level from a pin. The function must be implemented in derived class
@@ -133,11 +133,11 @@ protected:
 
     /*!
      * \brief Generates a button event. The function must be implemented in derived class
-     * \param nState The button state: pressed=typeButtonState::pressed or released=typeButtonState::released
+     * \param state The button state: pressed=Button_state::pressed or released=Button_state::released
      */
-    void on_state_changed(typeButtonState nState)
+    void on_state_changed(const Button_state state)
     {
-        static_cast<T*>(this)->impl_on_state_changed(nState);
+        static_cast<T*>(this)->impl_on_state_changed(state);
     }
 
 public:
@@ -162,15 +162,15 @@ public:
         //! determine the button state based on filtered signal level
         if(m_level>=m_high_trhold)
         {
-            m_cur_state=typeButtonState::pressed;
+            m_cur_state=Button_state::pressed;
         }
         else if(m_level<=m_low_trhold)
         {
-            m_cur_state=typeButtonState::released;
+            m_cur_state=Button_state::released;
         }
 
 
-        if(typeButtonState::pressed==m_prev_state)
+        if(Button_state::pressed==m_prev_state)
         {
             unsigned long pressing_time=os::get_tick_mS()-m_press_time_stamp_mS;
             if(!m_bLongClickIsSet)
@@ -179,7 +179,7 @@ public:
                 {
                     m_bFirstClickOfDouble=false;
                     m_bLongClickIsSet=true;
-                    on_state_changed(typeButtonState::long_click);
+                    on_state_changed(Button_state::long_click);
                 }
             }
             if(!m_bVeryLongClickIsSet)
@@ -188,7 +188,7 @@ public:
                 {
                     m_bFirstClickOfDouble=false;
                     m_bVeryLongClickIsSet=true;
-                    on_state_changed(typeButtonState::very_long_click);
+                    on_state_changed(Button_state::very_long_click);
                 }
             }
         }
@@ -197,7 +197,7 @@ public:
             if( (os::get_tick_mS()-m_release_time_stamp_mS)>m_double_click_trhold_mS )
             {
                 m_bFirstClickOfDouble=false;
-                on_state_changed(typeButtonState::short_click);
+                on_state_changed(Button_state::short_click);
             }
         }
 
@@ -205,7 +205,7 @@ public:
         //! if the state differs from previous state, generate a button event
         if(m_prev_state!=m_cur_state)
         {
-            if(typeButtonState::pressed==m_cur_state)
+            if(Button_state::pressed==m_cur_state)
             {
                 m_press_time_stamp_mS=os::get_tick_mS();
                 m_interclick_time_span_mS=m_press_time_stamp_mS-m_release_time_stamp_mS;
@@ -227,7 +227,7 @@ public:
                         {
                             if(m_interclick_time_span_mS<m_double_click_trhold_mS)
                             {
-                                on_state_changed(typeButtonState::double_click);
+                                on_state_changed(Button_state::double_click);
                             }
                             m_bFirstClickOfDouble=false;
                         }
@@ -238,7 +238,7 @@ public:
                     }
                     else
                     {
-                        on_state_changed(typeButtonState::short_click);
+                        on_state_changed(Button_state::short_click);
                         m_bFirstClickOfDouble=false;
                     }
                 }

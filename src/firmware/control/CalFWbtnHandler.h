@@ -24,9 +24,9 @@ public:
     * \brief A handler for button events
     * \param nState current button state
     */
-    virtual void OnButtonState(typeButtonState nState)
+    virtual void OnButtonState(const Button_state state)
     {
-        if(typeButtonState::released==nState)
+        if(Button_state::released==state)
             return;
 
         CView::Instance().BreakCalUItest();

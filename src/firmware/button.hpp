@@ -25,7 +25,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
 
 /// Button state.
-enum class typeButtonState {
+enum class Button_state {
   pressed,
   released,
   short_click,
@@ -41,7 +41,7 @@ public:
   virtual ~Button_event() = default;
 
   /// Called when the button state changed.
-  virtual void OnButtonState(typeButtonState nState) = 0;
+  virtual void OnButtonState(Button_state state) = 0;
 
   /// Default-constructible.
   Button_event() = default;
