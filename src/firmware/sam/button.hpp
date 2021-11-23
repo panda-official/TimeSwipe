@@ -37,16 +37,23 @@ public:
     return instance;
   }
 
-        void AdviseSink(const std::shared_ptr<Button_event> &sink)
-        {
-            m_pSink=sink;
-        }
+  /**
+   * @brief Sets extra handler of Button_event.
+   *
+   * @deprecated Initialy it was used to subscribe a menu object for button events
+   *
+   * @todo Use only IJSONEvent instead?
+   */
+  void set_extra_handler(const std::shared_ptr<Button_event>& handler)
+  {
+    extra_handler_ = handler;
+  }
 
         /*!
          * \brief Obtains a button's pin state
          * \return true if the button is pressed, false - if released
          */
-        bool impl_get_signal(void);
+        bool impl_get_signal();
 
         /*!
          * \brief Generates both Button_event::OnButtonState and IJSONEvent::on_event event callbacks
@@ -81,12 +88,7 @@ private:
          */
         unsigned long m_nStateCounter=0;
 
-        /*!
-         * \brief A single sink to Button_event
-         * \deprecated Initialy it was used to subscribe a menu object for button events
-         * \todo Use only IJSONEvent instead?
-         */
-        std::shared_ptr<Button_event> m_pSink;
+        std::shared_ptr<Button_event> extra_handler_;
 
         /*!
          * \brief Private class constructor

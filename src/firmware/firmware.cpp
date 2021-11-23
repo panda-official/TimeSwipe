@@ -308,8 +308,7 @@ int main()
 #endif
 
     auto& button = Sam_button::instance();
-    button.AdviseSink( pBtnHandler );
-
+    button.set_extra_handler(pBtnHandler);
 
     //---------------------------------------------------command system------------------------------------------------------
     //channel commands:

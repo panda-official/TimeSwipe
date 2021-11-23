@@ -52,9 +52,9 @@ bool Sam_button::impl_get_signal(void)
 
 void Sam_button::impl_on_state_changed(const Button_state state)
 {
-    if(m_pSink)
+    if(extra_handler_)
     {
-        m_pSink->OnButtonState(state);
+        extra_handler_->OnButtonState(state);
     }
 
      if(Button_state::pressed==state || Button_state::released==state){
