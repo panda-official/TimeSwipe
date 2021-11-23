@@ -16,11 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * @file
- * Basic button event interfaces.
- */
-
 #ifndef PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
 
@@ -51,6 +46,12 @@ public:
 
   /// Non copy-assignable.
   Button_event& operator=(const Button_event&) = delete;
+
+  /// Non move-constructible.
+  Button_event(Button_event&&) = delete;
+
+  /// Non move-assignable.
+  Button_event& operator=(Button_event&&) = delete;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
