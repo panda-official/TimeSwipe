@@ -22,28 +22,13 @@
 #include "../pin_button.hpp"
 #include "json/json_evsys.h"
 
-/*!
- * \brief A hardware-dependent realization of the board's button with ability of generation a JSON event from the button state
+/**
+ * @brief Panda board button.
+ *
+ * @details Emits JSON event according to the button state.
  */
-class Sam_button : public Pin_button<Sam_button>, public CJSONEvCP
-{
-protected:
-
-        /*!
-         * \brief The button state counter: even - released, odd - pressed.
-         *  Incremented on every button event
-         */
-        unsigned long m_nStateCounter=0;
-
-        /*!
-         * \brief A single sink to Button_event
-         * \deprecated Initialy it was used to subscribe a menu object for button events
-         * \todo Use only IJSONEvent instead?
-         */
-        std::shared_ptr<Button_event> m_pSink;
-
+class Sam_button final : public Pin_button<Sam_button>, public CJSONEvCP {
 public:
-
         void AdviseSink(const std::shared_ptr<Button_event> &sink)
         {
             m_pSink=sink;
@@ -93,6 +78,19 @@ public:
 
 private:
         /*!
+         * \brief The button state counter: even - released, odd - pressed.
+         *  Incremented on every button event
+         */
+        unsigned long m_nStateCounter=0;
+
+        /*!
+         * \brief A single sink to Button_event
+         * \deprecated Initialy it was used to subscribe a menu object for button events
+         * \todo Use only IJSONEvent instead?
+         */
+        std::shared_ptr<Button_event> m_pSink;
+
+        /*!
          * \brief Private class constructor
          */
         Sam_button();
@@ -102,6 +100,7 @@ private:
 
         //! Forbid copying
         Sam_button& operator=(const Sam_button&)=delete;
+
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP
