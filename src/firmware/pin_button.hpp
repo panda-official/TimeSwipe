@@ -29,10 +29,10 @@
  *
  * @details This class follows the CRTP design pattern. The derived class T must
  * provide:
- *   -# impl_get_signal() which returns a value of type `bool`, where `true`
+ *   -# do_get_signal() which returns a value of type `bool`, where `true`
  *   means "pressed" and `false` means "released". This function is called to
  *   acquire a raw signal from pin;
- *   -# impl_on_state_changed(Button_state) which returns `void`. This function
+ *   -# do_on_state_changed(Button_state) which returns `void`. This function
  *   is called to emit the corresponding button event.
  * To remove the signal noise (debouncing) a simple 1-order digital filter is
  * used. When filtered signal level drops down below low_threshold_ the "released"
@@ -259,13 +259,13 @@ private:
    */
   bool get_signal()
   {
-    return static_cast<T*>(this)->impl_get_signal();
+    return static_cast<T*>(this)->do_get_signal();
   }
 
   /// Emits the button event.
   void on_state_changed(const Button_state state)
   {
-    static_cast<T*>(this)->impl_on_state_changed(state);
+    static_cast<T*>(this)->do_on_state_changed(state);
   }
 };
 

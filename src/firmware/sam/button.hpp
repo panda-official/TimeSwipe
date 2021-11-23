@@ -96,13 +96,13 @@ private:
   friend Pin_button<Sam_button>;
 
   /// @returns `true` if the button pressed, or `false` if released.
-  bool impl_get_signal();
+  bool do_get_signal();
 
   /**
    * @brief Calls the both Button_event::OnButtonState and IJSONEvent::on_event
    * event callbacks.
    */
-  void impl_on_state_changed(Button_state state);
+  void do_on_state_changed(Button_state state);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP

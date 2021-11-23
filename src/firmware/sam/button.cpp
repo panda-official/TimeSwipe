@@ -57,12 +57,12 @@ bool Sam_button::is_led_enabled() const noexcept
   return PORT->Group[button_led_pin_group].OUT.reg & (1L<<button_led_pin_number);
 }
 
-bool Sam_button::impl_get_signal()
+bool Sam_button::do_get_signal()
 {
   return !((PORT->Group[button_pin_group].IN.reg) & (1L<<button_pin_number));
 }
 
-void Sam_button::impl_on_state_changed(const Button_state state)
+void Sam_button::do_on_state_changed(const Button_state state)
 {
   if (extra_handler_)
     extra_handler_->OnButtonState(state);
