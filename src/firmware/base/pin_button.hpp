@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_BASE_PIN_BUTTON_HPP
 
 #include "../button.hpp"
+#include "../error.hpp"
 #include "../os.h"
 
 /**
@@ -45,15 +46,19 @@ public:
   /// Updates the button state.
   void update()
   {
-    // Return if min update interval doesn't reached.
-    const unsigned long elapsed = os::get_tick_mS() - m_last_time_upd;
-    if (elapsed < m_upd_quant)
-      return;
-    else
-      m_last_time_upd = os::get_tick_mS();
+    // Fixate the call time.
+    const auto call_time = os::get_tick_mS();
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(call_time >= m_last_time_upd);
 
-    // Get the signal level and apply 1-order digital filter.
-    m_level += (get_signal() - m_level) * elapsed * m_filter_factor;
+    /*
+     * If min update interval reached, get the signal level and apply 1-order
+     * digital filter.
+     */
+    if (const auto elapsed = call_time - m_last_time_upd; elapsed >= m_upd_quant) {
+      m_last_time_upd = call_time;
+      m_level += (get_signal() - m_level) * elapsed * m_filter_factor;
+    } else
+      return;
 
     // Determine the button state based on filtered signal level.
     if (m_level >= m_high_trhold)
@@ -62,7 +67,7 @@ public:
       m_cur_state = Button_state::released;
 
     if (m_prev_state == Button_state::pressed) {
-      const unsigned long pressing_time = os::get_tick_mS() - m_press_time_stamp_mS;
+      const auto pressing_time = call_time - m_press_time_stamp_mS;
       if (!m_bLongClickIsSet) {
         if (pressing_time > m_short_click_max_duration_mS) {
           m_bFirstClickOfDouble = false;
@@ -78,7 +83,7 @@ public:
         }
       }
     } else if (m_bFirstClickOfDouble) {
-      if ((os::get_tick_mS() - m_release_time_stamp_mS) > m_double_click_trhold_mS) {
+      if ((call_time - m_release_time_stamp_mS) > m_double_click_trhold_mS) {
         m_bFirstClickOfDouble = false;
         on_state_changed(Button_state::short_click);
       }
@@ -87,13 +92,13 @@ public:
     // Emit Button_event if the state changed.
     if (m_prev_state != m_cur_state) {
       if (m_cur_state == Button_state::pressed) {
-        m_press_time_stamp_mS = os::get_tick_mS();
+        m_press_time_stamp_mS = call_time;
         m_interclick_time_span_mS = m_press_time_stamp_mS - m_release_time_stamp_mS;
       } else {
         m_bLongClickIsSet = false;
         m_bVeryLongClickIsSet = false;
 
-        m_release_time_stamp_mS = os::get_tick_mS();
+        m_release_time_stamp_mS = call_time;
         m_click_duration_mS = m_release_time_stamp_mS - m_press_time_stamp_mS;
 
         // Click.
