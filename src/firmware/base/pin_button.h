@@ -17,8 +17,6 @@ Copyright (c) 2019 Panda Team
 #include "../button.hpp"
 #include "../os.h"
 
-#define LONG_CLICK_ON_PRESS
-
 template <class T>
 /*!
  * \brief The template of a button which uses digital pin state as an input signal with a debouncing code
