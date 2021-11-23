@@ -49,15 +49,6 @@ public:
     extra_handler_ = handler;
   }
 
-  /// @returns `true` if the button pressed, or `false` if released.
-  bool impl_get_signal();
-
-  /**
-   * @brief Calls the both Button_event::OnButtonState and IJSONEvent::on_event
-   * event callbacks.
-   */
-  void impl_on_state_changed(Button_state state);
-
   /// Enables or disables the button LED.
   void enable_led(bool on);
 
@@ -90,6 +81,20 @@ private:
         //! Forbid copying
         Sam_button& operator=(const Sam_button&)=delete;
 
+  // ---------------------------------------------------------------------------
+  // CRTP stuff
+  // ---------------------------------------------------------------------------
+
+  friend Pin_button<Sam_button>;
+
+  /// @returns `true` if the button pressed, or `false` if released.
+  bool impl_get_signal();
+
+  /**
+   * @brief Calls the both Button_event::OnButtonState and IJSONEvent::on_event
+   * event callbacks.
+   */
+  void impl_on_state_changed(Button_state state);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP
