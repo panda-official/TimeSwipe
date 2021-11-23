@@ -16,12 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_FIRMWARE_BASE_PIN_BUTTON_HPP
-#define PANDA_TIMESWIPE_FIRMWARE_BASE_PIN_BUTTON_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_PIN_BUTTON_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_PIN_BUTTON_HPP
 
-#include "../button.hpp"
-#include "../error.hpp"
-#include "../os.h"
+#include "button.hpp"
+#include "error.hpp"
+#include "os.h"
 
 /**
  * @brief The button which uses digital pin state as an input signal with a
@@ -269,4 +269,4 @@ private:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_FIRMWARE_BASE_PIN_BUTTON_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_PIN_BUTTON_HPP
