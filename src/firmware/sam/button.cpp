@@ -25,32 +25,32 @@ Copyright (c) 2019 Panda Team
 #define BUTTON_PINGROUP 0	//Group A
 #define BUTTON_PINID 16 //ID 16
 
-SAMButton::SAMButton()
+Sam_button::Sam_button()
 {
     PORT->Group[BUTTON_PINGROUP].PINCFG[BUTTON_PINID].bit.INEN=1;
     // Enable Button LED
     PORT->Group[BUTTON_LED_PINGROUP].DIRSET.reg = (1L<<BUTTON_LED_PINID);
     PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg = (1L<<BUTTON_LED_PINID);
 }
-void SAMButton::TurnButtonLED(bool how)
+void Sam_button::TurnButtonLED(bool how)
 {
     if(how)
         PORT->Group[BUTTON_LED_PINGROUP].OUTCLR.reg=(1L<<BUTTON_LED_PINID);
     else
         PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg=(1L<<BUTTON_LED_PINID);
 }
-bool SAMButton::IsButtonLEDon()
+bool Sam_button::IsButtonLEDon()
 {
     return ( PORT->Group[BUTTON_LED_PINGROUP].OUT.reg & (1L<<BUTTON_LED_PINID) ) ? true:false;
 }
 
 
-bool SAMButton::impl_get_signal(void)
+bool Sam_button::impl_get_signal(void)
 {
   return ( (PORT->Group[BUTTON_PINGROUP].IN.reg) & (1L<<BUTTON_PINID) ) ? false:true;
 }
 
-void SAMButton::impl_on_state_changed(const Button_state state)
+void Sam_button::impl_on_state_changed(const Button_state state)
 {
     if(m_pSink)
     {

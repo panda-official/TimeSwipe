@@ -1,20 +1,23 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
 
-//Panda's BOARD button
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-#pragma once
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-/*!
-*   \file
-*   \brief A definition file for
-*   SAMButton
-*
-*/
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP
 
 #include "../pin_button.hpp"
 #include "json/json_evsys.h"
@@ -22,8 +25,7 @@ Copyright (c) 2019 Panda Team
 /*!
  * \brief A hardware-dependent realization of the board's button with ability of generation a JSON event from the button state
  */
-
-class SAMButton: public Pin_button<SAMButton>, public CJSONEvCP
+class Sam_button : public Pin_button<Sam_button>, public CJSONEvCP
 {
 protected:
 
@@ -83,9 +85,9 @@ public:
          * \brief The current view access interface
          * \return The current view
          */
-        static SAMButton& Instance()
+        static Sam_button& Instance()
         {
-           static SAMButton singleton;
+           static Sam_button singleton;
            return singleton;
         }
 
@@ -93,11 +95,13 @@ private:
         /*!
          * \brief Private class constructor
          */
-        SAMButton();
+        Sam_button();
 
         //! Forbid copy constructor
-        SAMButton(const SAMButton&)=delete;
+        Sam_button(const Sam_button&)=delete;
 
         //! Forbid copying
-        SAMButton& operator=(const SAMButton&)=delete;
+        Sam_button& operator=(const Sam_button&)=delete;
 };
+
+#endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP

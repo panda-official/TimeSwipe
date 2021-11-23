@@ -93,7 +93,7 @@ int main(void)
 
     //----------------menu+button----------------
     auto pMenu=std::make_shared<CButtonLogic>();
-    SAMButton::Instance().AdviseSink(pMenu);
+    Sam_button::Instance().AdviseSink(pMenu);
 
     //------------------JSON---------------------
     auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
@@ -112,7 +112,7 @@ int main(void)
         nodeLED::Update();
 
         //upd button:
-        SAMButton::Instance().update();
+        Sam_button::Instance().update();
 
         pSPIsc2->Update();
       }

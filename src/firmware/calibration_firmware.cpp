@@ -350,7 +350,7 @@ int main(void)
 
 
         auto pBtnHandler=std::make_shared<CCalFWbtnHandler>();
-        SAMButton &button=SAMButton::Instance();
+        Sam_button &button=Sam_button::Instance();
         button.AdviseSink(pBtnHandler);
 
         pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,

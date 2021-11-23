@@ -164,7 +164,7 @@ void CView::SetButtonHeartbeat(bool how)
 {
     m_ButtonLEDphase=how;
     m_ButtonLEDphaseBeginTime_mS=os::get_tick_mS();
-    SAMButton::Instance().TurnButtonLED(how);
+    Sam_button::Instance().TurnButtonLED(how);
 }
 
 void CView::CalUItest()
@@ -190,7 +190,7 @@ bool CView::CalUItest_IsBroken()
 
     //stop fan here:
     nodeControl::Instance().StartFan(false);
-    SAMButton::Instance().TurnButtonLED(false);
+    Sam_button::Instance().TurnButtonLED(false);
 
     //exit proc:
     m_bCalUItestDone=true;
@@ -207,7 +207,7 @@ void CView::CalUItest_stepLEDsRed()
     {
         m_Channels[i].m_LED.SetColor(LEDrgb(255, 0, 0));
     }
-    SAMButton::Instance().ToggleButtonLED();
+    Sam_button::Instance().ToggleButtonLED();
     Delay(1000, &CView::CalUItest_stepLEDsGreen);
 }
 
@@ -220,7 +220,7 @@ void CView::CalUItest_stepLEDsGreen()
     {
         m_Channels[i].m_LED.SetColor(LEDrgb(0, 255, 0));
     }
-    SAMButton::Instance().ToggleButtonLED();
+    Sam_button::Instance().ToggleButtonLED();
     Delay(1000, &CView::CalUItest_stepLEDsBlue);
 }
 void CView::CalUItest_stepLEDsBlue()
@@ -232,7 +232,7 @@ void CView::CalUItest_stepLEDsBlue()
     {
         m_Channels[i].m_LED.SetColor(LEDrgb(0, 0, 255));
     }
-    SAMButton::Instance().ToggleButtonLED();
+    Sam_button::Instance().ToggleButtonLED();
     Delay(1000, &CView::CalUItest_stepLEDsRed);
 }
 
@@ -264,8 +264,7 @@ void CView::Update()
         }
 
         m_ButtonLEDphaseBeginTime_mS=time_now;
-        SAMButton::Instance().TurnButtonLED(m_ButtonLEDphase&1);
+        Sam_button::Instance().TurnButtonLED(m_ButtonLEDphase&1);
 
     }
 }
-
