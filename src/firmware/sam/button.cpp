@@ -32,20 +32,20 @@ Sam_button::Sam_button()
     PORT->Group[BUTTON_LED_PINGROUP].DIRSET.reg = (1L<<BUTTON_LED_PINID);
     PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg = (1L<<BUTTON_LED_PINID);
 }
-void Sam_button::TurnButtonLED(bool how)
+void Sam_button::enable_led(const bool on)
 {
-    if(how)
-        PORT->Group[BUTTON_LED_PINGROUP].OUTCLR.reg=(1L<<BUTTON_LED_PINID);
-    else
-        PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg=(1L<<BUTTON_LED_PINID);
-}
-bool Sam_button::IsButtonLEDon()
-{
-    return ( PORT->Group[BUTTON_LED_PINGROUP].OUT.reg & (1L<<BUTTON_LED_PINID) ) ? true:false;
+  if (on)
+    PORT->Group[BUTTON_LED_PINGROUP].OUTCLR.reg = (1L<<BUTTON_LED_PINID);
+  else
+    PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg = (1L<<BUTTON_LED_PINID);
 }
 
+bool Sam_button::is_led_enabled() const noexcept
+{
+  return PORT->Group[BUTTON_LED_PINGROUP].OUT.reg & (1L<<BUTTON_LED_PINID);
+}
 
-bool Sam_button::impl_get_signal(void)
+bool Sam_button::impl_get_signal()
 {
   return ( (PORT->Group[BUTTON_PINGROUP].IN.reg) & (1L<<BUTTON_PINID) ) ? false:true;
 }

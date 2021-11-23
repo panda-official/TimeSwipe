@@ -49,37 +49,26 @@ public:
     extra_handler_ = handler;
   }
 
-        /*!
-         * \brief Obtains a button's pin state
-         * \return true if the button is pressed, false - if released
-         */
-        bool impl_get_signal();
+  /// @returns `true` if the button pressed, or `false` if released.
+  bool impl_get_signal();
 
-        /*!
-         * \brief Generates both Button_event::OnButtonState and IJSONEvent::on_event event callbacks
-         * \param nState the current button state
-         */
-        void impl_on_state_changed(Button_state state);
+  /**
+   * @brief Calls the both Button_event::OnButtonState and IJSONEvent::on_event
+   * event callbacks.
+   */
+  void impl_on_state_changed(Button_state state);
 
-        /*!
-         * \brief Turns buttol LED on/off
-         * \param how - true=LED ON, false=LED off
-         */
-        void TurnButtonLED(bool how);
+  /// Enables or disables the button LED.
+  void enable_led(bool on);
 
-        /*!
-         * \brief Returns actual state of the button LED
-         * \return true=LED ON, false=LED off
-         */
-        bool IsButtonLEDon();
+  /// @returns `true` if the button LED is on.
+  bool is_led_enabled() const noexcept;
 
-        /*!
-         * \brief Toggles the button LED (ON->OFF, OFF->ON)
-         */
-        void ToggleButtonLED(){
-
-            TurnButtonLED(!IsButtonLEDon());
-        }
+  /// Toggles the button LED.
+  void toggle_led()
+  {
+    enable_led(!is_led_enabled());
+  }
 
 private:
         /*!
