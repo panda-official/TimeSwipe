@@ -1,23 +1,27 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
 
-#pragma once
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-/*!
-*   \file
-*   \brief A definition file for an implementation  template of a button which uses digital pin state as an input signal with a debouncing code
-*   CPinButton
-*
-*/
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_FIRMWARE_BASE_PIN_BUTTON_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_BASE_PIN_BUTTON_HPP
 
 #include "../button.hpp"
 #include "../os.h"
 
-template <class T>
 /*!
  * \brief The template of a button which uses digital pin state as an input signal with a debouncing code
  * \details A raw signal is acquired via pure virtual function bool get_signal(void) which must be overridden
@@ -27,9 +31,9 @@ template <class T>
  * The generation of the corresponding event is delegated to the derived class -
  * it must provide an overridden send_event(Button_state state) virtual function
  */
-class CPinButton{
+template <class T>
+class CPinButton {
 protected:
-
     /*!
      * \brief Low threshold level of a filtered signal level to detect "released" state
      */
@@ -251,3 +255,5 @@ public:
         }
     }
 };
+
+#endif  // PANDA_TIMESWIPE_FIRMWARE_BASE_PIN_BUTTON_HPP
