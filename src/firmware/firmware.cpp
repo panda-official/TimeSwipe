@@ -307,7 +307,7 @@ int main()
     auto pBtnHandler=std::make_shared<CNewMenu>();
 #endif
 
-    Sam_button &button=Sam_button::Instance();
+    auto& button = Sam_button::instance();
     button.AdviseSink( pBtnHandler );
 
 

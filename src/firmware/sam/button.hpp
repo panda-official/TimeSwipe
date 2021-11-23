@@ -25,10 +25,18 @@
 /**
  * @brief Panda board button.
  *
- * @details Emits JSON event according to the button state.
+ * @details This class follows the Singleton design pattern. Emits JSON event
+ * according to the button state.
  */
 class Sam_button final : public Pin_button<Sam_button>, public CJSONEvCP {
 public:
+  /// @returns The instance of this class.
+  static Sam_button& instance()
+  {
+    static Sam_button instance;
+    return instance;
+  }
+
         void AdviseSink(const std::shared_ptr<Button_event> &sink)
         {
             m_pSink=sink;
@@ -64,16 +72,6 @@ public:
         void ToggleButtonLED(){
 
             TurnButtonLED(!IsButtonLEDon());
-        }
-
-        /*!
-         * \brief The current view access interface
-         * \return The current view
-         */
-        static Sam_button& Instance()
-        {
-           static Sam_button singleton;
-           return singleton;
         }
 
 private:
