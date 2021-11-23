@@ -24,52 +24,33 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
 
-/*!
- * \brief The enumeration of possible button states
- */
-enum class typeButtonState
-{
-    pressed,     //!<button is pressed
-    released,     //!<button is released
-
-    short_click,
-    long_click,
-    double_click,
-    very_long_click
+/// Button state.
+enum class typeButtonState {
+  pressed,
+  released,
+  short_click,
+  long_click,
+  double_click,
+  very_long_click
 };
 
-/*!
- * \brief A callback interface used to notify the derived class that a button state is changed
- */
-class CButtonEvent{
+/// Button event.
+class CButtonEvent {
 public:
+  /// The destructor.
+  virtual ~CButtonEvent() = default;
 
-    /*!
-     * \brief The button state has been changed
-     * \param nState the current button state (pressed or released)
-     */
-    virtual void OnButtonState(typeButtonState nState)=0;
+  /// Called when the button state changed.
+  virtual void OnButtonState(typeButtonState nState) = 0;
 
-    //! default constructor
-    CButtonEvent()=default;
+  /// Default-constructible.
+  CButtonEvent() = default;
 
-    /*!
-     * \brief remove copy constructor
-     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-        that is unacceptable)
-     */
-    CButtonEvent(const CButtonEvent&) = delete;
+  /// Non copy-constructible.
+  CButtonEvent(const CButtonEvent&) = delete;
 
-    /*!
-     * \brief remove copy operator
-     * \return
-     * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-        that is unacceptable)
-     */
-    CButtonEvent& operator=(const CButtonEvent&) = delete;
-protected:
-    //! virtual destructor
-    virtual ~CButtonEvent()=default;
+  /// Non copy-assignable.
+  CButtonEvent& operator=(const CButtonEvent&) = delete;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_BUTTON_HPP
