@@ -33,117 +33,7 @@
  */
 template <class T>
 class Pin_button {
-protected:
-    /*!
-     * \brief Low threshold level of a filtered signal level to detect "released" state
-     */
-    float m_low_trhold=0.05f;
-
-    /*!
-     * \brief High threshold level of a filtered signal level to detect "pressed" state
-     */
-    float m_high_trhold=0.95f;
-
-    /*!
-     * \brief 1st order digital filter pre-calculated factor
-     */
-    float m_filter_factor=1.0f/(0.013f*1000.0f);
-
-    /*!
-     * \brief A filtered signal level
-     */
-    float m_level=0.0f;
-
-    /*!
-     * \brief Last time when update() method was called, mSec
-     */
-    unsigned long m_last_time_upd=os::get_tick_mS();
-
-    /*!
-     * \brief The timestamp of last button press, mSec
-     */
-    unsigned long m_press_time_stamp_mS;
-
-    /*!
-     * \brief The timestamp of last button release, mSec
-     */
-    unsigned long m_release_time_stamp_mS;
-
-    /*!
-     * \brief The current click (press/release) duration, mSec
-     */
-    unsigned long m_click_duration_mS;
-
-    /*!
-     * \brief The time interval between two consecutive clicks
-     */
-    unsigned long m_interclick_time_span_mS;
-
-    /*!
-     * \brief The first short click of double-click detection flag
-     */
-    bool m_bFirstClickOfDouble=false;
-
-    /*!
-     * \brief "Long Click" was set
-     */
-    bool m_bLongClickIsSet=false;
-
-    /*!
-     * \brief "Very Long Click" was set
-     */
-    bool m_bVeryLongClickIsSet=false;
-
-    /*!
-     * \brief The maximum duration of the Short Click (minimum duration of the Long Click)
-     */
-    unsigned long m_short_click_max_duration_mS=1200;
-
-    /*!
-     * \brief The Double Click maximum duration (single click + interclick time span)
-     */
-    unsigned long m_double_click_trhold_mS=400;
-
-    /*!
-     * \brief The Very Long Click minimum duration, mSec
-     */
-    unsigned long m_very_long_click_duration_mS=6000;
-
-    /*!
-     * \brief Minimum time between two consecutive updates
-     */
-    unsigned long m_upd_quant=4;
-
-    /*!
-     * \brief Current state of the button
-     */
-    Button_state m_cur_state		=Button_state::released;
-
-    /*!
-     * \brief Previous state of the button. Used to generate an event by compare with m_cur_state
-     */
-    Button_state m_prev_state	=Button_state::released;
-
-    /*!
-     * \brief Acquires a raw signal level from a pin. The function must be implemented in derived class
-     * \return The signal level: true=pressed, false=released.
-     */
-    bool get_signal(void)
-    {
-        return static_cast<T*>(this)->impl_get_signal();
-    }
-
-    /*!
-     * \brief Generates a button event. The function must be implemented in derived class
-     * \param state The button state: pressed=Button_state::pressed or released=Button_state::released
-     */
-    void on_state_changed(const Button_state state)
-    {
-        static_cast<T*>(this)->impl_on_state_changed(state);
-    }
-
 public:
-
     /*!
      * \brief The button state update method
      * \details
@@ -253,6 +143,115 @@ public:
             on_state_changed(m_cur_state);
             m_prev_state=m_cur_state;
         }
+    }
+
+private:
+    /*!
+     * \brief Low threshold level of a filtered signal level to detect "released" state
+     */
+    float m_low_trhold=0.05f;
+
+    /*!
+     * \brief High threshold level of a filtered signal level to detect "pressed" state
+     */
+    float m_high_trhold=0.95f;
+
+    /*!
+     * \brief 1st order digital filter pre-calculated factor
+     */
+    float m_filter_factor=1.0f/(0.013f*1000.0f);
+
+    /*!
+     * \brief A filtered signal level
+     */
+    float m_level=0.0f;
+
+    /*!
+     * \brief Last time when update() method was called, mSec
+     */
+    unsigned long m_last_time_upd=os::get_tick_mS();
+
+    /*!
+     * \brief The timestamp of last button press, mSec
+     */
+    unsigned long m_press_time_stamp_mS;
+
+    /*!
+     * \brief The timestamp of last button release, mSec
+     */
+    unsigned long m_release_time_stamp_mS;
+
+    /*!
+     * \brief The current click (press/release) duration, mSec
+     */
+    unsigned long m_click_duration_mS;
+
+    /*!
+     * \brief The time interval between two consecutive clicks
+     */
+    unsigned long m_interclick_time_span_mS;
+
+    /*!
+     * \brief The first short click of double-click detection flag
+     */
+    bool m_bFirstClickOfDouble=false;
+
+    /*!
+     * \brief "Long Click" was set
+     */
+    bool m_bLongClickIsSet=false;
+
+    /*!
+     * \brief "Very Long Click" was set
+     */
+    bool m_bVeryLongClickIsSet=false;
+
+    /*!
+     * \brief The maximum duration of the Short Click (minimum duration of the Long Click)
+     */
+    unsigned long m_short_click_max_duration_mS=1200;
+
+    /*!
+     * \brief The Double Click maximum duration (single click + interclick time span)
+     */
+    unsigned long m_double_click_trhold_mS=400;
+
+    /*!
+     * \brief The Very Long Click minimum duration, mSec
+     */
+    unsigned long m_very_long_click_duration_mS=6000;
+
+    /*!
+     * \brief Minimum time between two consecutive updates
+     */
+    unsigned long m_upd_quant=4;
+
+    /*!
+     * \brief Current state of the button
+     */
+    Button_state m_cur_state		=Button_state::released;
+
+    /*!
+     * \brief Previous state of the button. Used to generate an event by compare with m_cur_state
+     */
+    Button_state m_prev_state	=Button_state::released;
+
+    /*!
+     * \brief Acquires a raw signal level from a pin. The function must be implemented in derived class
+     * \return The signal level: true=pressed, false=released.
+     */
+    bool get_signal(void)
+    {
+        return static_cast<T*>(this)->impl_get_signal();
+    }
+
+    /*!
+     * \brief Generates a button event. The function must be implemented in derived class
+     * \param state The button state: pressed=Button_state::pressed or released=Button_state::released
+     */
+    void on_state_changed(const Button_state state)
+    {
+        static_cast<T*>(this)->impl_on_state_changed(state);
     }
 };
 
