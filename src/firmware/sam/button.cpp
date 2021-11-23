@@ -65,7 +65,7 @@ bool Sam_button::do_get_signal()
 void Sam_button::do_on_state_changed(const Button_state state)
 {
   if (extra_handler_)
-    extra_handler_->OnButtonState(state);
+    extra_handler_->handle_state(state);
 
   if (state == Button_state::pressed || state == Button_state::released) {
     ++total_state_count_;

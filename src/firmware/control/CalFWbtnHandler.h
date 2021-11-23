@@ -24,12 +24,11 @@ public:
     * \brief A handler for button events
     * \param nState current button state
     */
-    virtual void OnButtonState(const Button_state state)
+    void handle_state(const Button_state state) override
     {
-        if(Button_state::released==state)
-            return;
-
-        CView::Instance().BreakCalUItest();
+      if (state == Button_state::released)
+        return;
+      CView::Instance().BreakCalUItest();
     }
 
     /*!

@@ -36,7 +36,7 @@ public:
   virtual ~Button_event() = default;
 
   /// Called when the button state changed.
-  virtual void OnButtonState(Button_state state) = 0;
+  virtual void handle_state(Button_state state) = 0;
 
   /// Default-constructible.
   Button_event() = default;

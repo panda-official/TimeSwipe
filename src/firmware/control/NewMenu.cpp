@@ -62,7 +62,7 @@ void CNewMenu::ApplyMenuSetting()
     m_CurMode=mode::preview;
 }
 
-void CNewMenu::OnButtonState(const Button_state state)
+void CNewMenu::handle_state(const Button_state state)
 {
     CView &v=CView::Instance();
 

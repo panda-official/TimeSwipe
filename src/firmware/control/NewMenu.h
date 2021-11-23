@@ -35,7 +35,7 @@ public:
     * \brief A handler for button events
     * \param nState current button state
     */
-    virtual void OnButtonState(Button_state state);
+    void handle_state(Button_state state) override;
 
     /*!
     * \brief The class constructor

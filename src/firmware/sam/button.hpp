@@ -99,7 +99,7 @@ private:
   bool do_get_signal();
 
   /**
-   * @brief Calls the both Button_event::OnButtonState and IJSONEvent::on_event
+   * @brief Calls the both Button_event::handle_state and IJSONEvent::on_event
    * event callbacks.
    */
   void do_on_state_changed(Button_state state);

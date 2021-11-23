@@ -30,10 +30,10 @@ public:
     nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, MAIN_COLOR);
   }
 
-  void OnButtonState(const Button_state state) override
+  void handle_state(const Button_state state) override
   {
     last_button_state_ = state;
-    if (Button_state::released == state) {
+    if (state == Button_state::released) {
       is_recording_ = !is_recording_;
       nodeLED::setMultipleLED(typeLED::LED1, typeLED::LED4, is_recording_ ? RECORDING_COLOR:MAIN_COLOR);
     }
