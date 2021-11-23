@@ -1,9 +1,20 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
+
+// PANDA TimeSwipe Project
+// Copyright (C) 2021  PANDA GmbH
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "button.hpp"
 
@@ -27,11 +38,12 @@ Copyright (c) 2019 Panda Team
 
 Sam_button::Sam_button()
 {
-    PORT->Group[BUTTON_PINGROUP].PINCFG[BUTTON_PINID].bit.INEN=1;
-    // Enable Button LED
-    PORT->Group[BUTTON_LED_PINGROUP].DIRSET.reg = (1L<<BUTTON_LED_PINID);
-    PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg = (1L<<BUTTON_LED_PINID);
+  PORT->Group[BUTTON_PINGROUP].PINCFG[BUTTON_PINID].bit.INEN = 1;
+  // Enable Button LED
+  PORT->Group[BUTTON_LED_PINGROUP].DIRSET.reg = (1L<<BUTTON_LED_PINID);
+  PORT->Group[BUTTON_LED_PINGROUP].OUTSET.reg = (1L<<BUTTON_LED_PINID);
 }
+
 void Sam_button::enable_led(const bool on)
 {
   if (on)
@@ -47,21 +59,19 @@ bool Sam_button::is_led_enabled() const noexcept
 
 bool Sam_button::impl_get_signal()
 {
-  return ( (PORT->Group[BUTTON_PINGROUP].IN.reg) & (1L<<BUTTON_PINID) ) ? false:true;
+  return !((PORT->Group[BUTTON_PINGROUP].IN.reg) & (1L<<BUTTON_PINID));
 }
 
 void Sam_button::impl_on_state_changed(const Button_state state)
 {
-    if(extra_handler_)
-    {
-        extra_handler_->OnButtonState(state);
-    }
+  if (extra_handler_)
+    extra_handler_->OnButtonState(state);
 
-     if(Button_state::pressed==state || Button_state::released==state){
-
-     m_nStateCounter++;
-     nlohmann::json v = Button_state::pressed == state;
-     nlohmann::json stcnt=m_nStateCounter;
-     Fire_on_event("Button", v);
-     Fire_on_event("ButtonStateCnt", stcnt); }
+  if (state == Button_state::pressed || state == Button_state::released) {
+    ++total_state_count_;
+    nlohmann::json v{Button_state::pressed == state};
+    nlohmann::json stcnt{total_state_count_};
+    Fire_on_event("Button", v);
+    Fire_on_event("ButtonStateCnt", stcnt);
+  }
 }

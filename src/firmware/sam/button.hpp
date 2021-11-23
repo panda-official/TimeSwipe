@@ -30,6 +30,18 @@
  */
 class Sam_button final : public Pin_button<Sam_button>, public CJSONEvCP {
 public:
+  /// Non copy-constructible.
+  Sam_button(const Sam_button&) = delete;
+
+  /// Non copy-assignable.
+  Sam_button& operator=(const Sam_button&) = delete;
+
+  /// Non move-constructible.
+  Sam_button(Sam_button&&) = delete;
+
+  /// Non move-assignable.
+  Sam_button& operator=(Sam_button&&) = delete;
+
   /// @returns The instance of this class.
   static Sam_button& instance()
   {
@@ -61,25 +73,21 @@ public:
     enable_led(!is_led_enabled());
   }
 
+  /**
+   * @returns The total state count: even/odd values means the latest state was
+   * "released"/"pressed" correspondingly.
+   */
+  unsigned long total_state_count() const noexcept
+  {
+    return total_state_count_;
+  }
+
 private:
-        /*!
-         * \brief The button state counter: even - released, odd - pressed.
-         *  Incremented on every button event
-         */
-        unsigned long m_nStateCounter=0;
+  unsigned long total_state_count_{};
+  std::shared_ptr<Button_event> extra_handler_;
 
-        std::shared_ptr<Button_event> extra_handler_;
-
-        /*!
-         * \brief Private class constructor
-         */
-        Sam_button();
-
-        //! Forbid copy constructor
-        Sam_button(const Sam_button&)=delete;
-
-        //! Forbid copying
-        Sam_button& operator=(const Sam_button&)=delete;
+  /// Default-constructible.
+  Sam_button();
 
   // ---------------------------------------------------------------------------
   // CRTP stuff
