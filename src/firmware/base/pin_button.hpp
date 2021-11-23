@@ -32,7 +32,7 @@
  * it must provide an overridden send_event(Button_state state) virtual function
  */
 template <class T>
-class CPinButton {
+class Pin_button {
 protected:
     /*!
      * \brief Low threshold level of a filtered signal level to detect "released" state

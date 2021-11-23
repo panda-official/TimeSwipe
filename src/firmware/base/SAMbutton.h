@@ -23,7 +23,7 @@ Copyright (c) 2019 Panda Team
  * \brief A hardware-dependent realization of the board's button with ability of generation a JSON event from the button state
  */
 
-class SAMButton: public CPinButton<SAMButton>, public CJSONEvCP
+class SAMButton: public Pin_button<SAMButton>, public CJSONEvCP
 {
 protected:
 
