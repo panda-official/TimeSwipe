@@ -232,8 +232,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     PINPWM.h
     RawBinStorage.cpp
     RawBinStorage.h
-    SAMbutton.cpp
-    SAMbutton.h
     SPIcomm.cpp
     SPIcomm.h
     ShiftReg.cpp
@@ -308,6 +306,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SamTC.h
     SamTempSensor.cpp
     SamTempSensor.h
+    button.cpp
+    button.hpp
     clock_set_SAME54.cpp
     cortex_handlers.cpp
     clock_generator.cpp

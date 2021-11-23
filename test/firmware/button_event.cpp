@@ -11,10 +11,10 @@ Copyright (c) 2019-2021 Panda Team
 #include "../../src/firmware/std_port.h"
 #include "../../src/firmware/timer.h"
 #include "../../src/firmware/base/SPIcomm.h"
-#include "../../src/firmware/base/SAMbutton.h"
 #include "../../src/firmware/json/jsondisp.h"
 #include "../../src/firmware/json/json_evsys.h"
 #include "../../src/firmware/led/nodeLED.h"
+#include "../../src/firmware/sam/button.hpp"
 #include "../../src/firmware/sam/SamService.h"
 
 class CButtonLogic final : public CTimerEvent

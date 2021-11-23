@@ -15,7 +15,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "board_type.h"
 #include "rgbacol.h"
-#include "../base/SAMbutton.h"
+#include "../sam/button.hpp"
 #include "../led/nodeLED.h"
 #include "../os.h"
 
