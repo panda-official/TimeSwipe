@@ -13,7 +13,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "../button.h"
+#include "../button.hpp"
 #include "View.h"
 
 class CCalFWbtnHandler  : public CButtonEvent

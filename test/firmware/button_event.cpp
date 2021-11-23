@@ -5,7 +5,7 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2021 Panda Team
 */
 
-#include "../../src/firmware/button.h"
+#include "../../src/firmware/button.hpp"
 #include "../../src/firmware/cmd.h"
 #include "../../src/firmware/os.h"
 #include "../../src/firmware/std_port.h"
