@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP
 
 #include "../pin_button.hpp"
-#include "json/json_evsys.h"
+#include "../json/json_evsys.h"
 
 /**
  * @brief Panda board button.
