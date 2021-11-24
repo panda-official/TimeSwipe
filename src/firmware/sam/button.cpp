@@ -26,7 +26,7 @@ constexpr int button_led_pin_group = Sam_pin::Group::c;
 #if defined(__SAME54P20A__)
 constexpr int button_led_pin_number = Sam_pin::Number::p16;
 #elif defined(__SAME53N19A__)
-constexpr int button_led_pid_number = Sam_pin::Number::p19;
+constexpr int button_led_pin_number = Sam_pin::Number::p19;
 #else
 #error Unsupported SAM
 #endif
