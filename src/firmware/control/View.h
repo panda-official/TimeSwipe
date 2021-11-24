@@ -108,7 +108,7 @@ public:
      * \brief Returns setpoint color of the channel's LED
      * \return setpoint color of the LED
      */
-    typeLEDcol GetColor();
+    typeLEDcol GetColor() const noexcept;
 };
 
 
@@ -436,7 +436,7 @@ public:
      * \brief Shows whether Calibration UI test has been done(true) or not (false)
      * \details getter of m_bCalUItestDone flag
      */
-    bool HasCalUItestBeenDone()
+    bool HasCalUItestBeenDone() const noexcept
     {
         return m_bCalUItestDone;
     }

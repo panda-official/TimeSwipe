@@ -65,7 +65,7 @@ void CViewChannel::SetColor(typeLEDcol col)
     m_LED.SetColor(col);
     m_LED.ON(col);
 }
-typeLEDcol CViewChannel::GetColor()
+typeLEDcol CViewChannel::GetColor() const noexcept
 {
     return m_LED.GetColor();
 }

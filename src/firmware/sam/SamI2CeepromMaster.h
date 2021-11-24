@@ -297,5 +297,8 @@ public:
          * \brief Returns the result of the last self-test operation.
          * \return true=self test is ok, false=self the test was failed
          */
-        inline bool GetSelfTestResult(){ return m_bSelfTestResult;}
+        bool GetSelfTestResult() const noexcept
+        {
+          return m_bSelfTestResult;
+        }
 };

@@ -46,7 +46,7 @@ public:
     /*!
      * \brief Shows whether Calibration UI test has been done(true) or not (false)
      */
-    bool HasUItestBeenDone()
+    bool HasUItestBeenDone() const noexcept
     {
         return CView::Instance().HasCalUItestBeenDone();
     }

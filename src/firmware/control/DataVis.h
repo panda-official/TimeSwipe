@@ -153,7 +153,10 @@ public:
      */
     CDataVis(CView::vischan nCh);
 
-    inline CView::vischan GetVisChannel(){ return m_nCh; }
+    CView::vischan GetVisChannel() const noexcept
+    {
+      return m_nCh;
+    }
 
     /*!
      * \brief The object state update method

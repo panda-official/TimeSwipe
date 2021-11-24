@@ -228,7 +228,7 @@ public:
          * \brief Are calibration settings enabled?
          * \return true - yes, false - no
          */
-        inline bool IsCalEnabled()
+        bool IsCalEnabled() const noexcept
         {
             return m_bCalEnabled;
         }

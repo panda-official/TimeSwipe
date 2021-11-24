@@ -209,9 +209,9 @@ public:
      * \brief Returns setpoint color of the channel's LED
      * \return setpoint color of the LED
      */
-    typeLEDcol GetColor(){
-
-        return CView::Instance().GetChannel(m_VisChan.GetVisChannel()).GetColor();
+    typeLEDcol GetColor() const noexcept
+    {
+      return CView::Instance().GetChannel(m_VisChan.GetVisChannel()).GetColor();
     }
 };
 

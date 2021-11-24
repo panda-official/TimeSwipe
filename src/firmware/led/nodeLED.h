@@ -140,8 +140,8 @@ public:
      * \brief Returns setpoint color of the LED
      * \return setpoint color of the LED
      */
-    typeLEDcol GetColor(){
-
+    typeLEDcol GetColor() const noexcept
+    {
         return m_Clr;
     }
 
@@ -210,7 +210,7 @@ public:
      /*!
      * \brief Reset and switch off all LEDsin collection
      */
-	static void resetALL();
+    static void resetALL();
 
     /*!
      * \brief Draws a "selection" GUI element from range (usually "selected" LED is marked with more bright color than others)
@@ -220,7 +220,7 @@ public:
      * \param range_end   LED ID range end
      * \param back_color  A background color
      */
-	static void selectLED(typeLEDind sel, typeLEDcol sel_color, typeLEDind range_begin, typeLEDind range_end, typeLEDcol back_color);
+    static void selectLED(typeLEDind sel, typeLEDcol sel_color, typeLEDind range_begin, typeLEDind range_end, typeLEDcol back_color);
 
     /*!
      * \brief Sets multiple LEDs from the range with a given color
@@ -228,14 +228,14 @@ public:
      * \param range_end  LED ID range end
      * \param back_color A color to set
      */
-	static void setMultipleLED(typeLEDind range_begin, typeLEDind range_end, typeLEDcol back_color);
+    static void setMultipleLED(typeLEDind range_begin, typeLEDind range_end, typeLEDcol back_color);
 
     /*!
      * \brief Blinks a single LED
      * \param sel LED ID
      * \param blink_color A color to blink
      */
-	static void blinkLED(typeLEDind sel, typeLEDcol blink_color);
+    static void blinkLED(typeLEDind sel, typeLEDcol blink_color);
 
     /*!
      * \brief Blinks multiple LEDs from the range
@@ -245,13 +245,13 @@ public:
      * \param replication Number of blinks
      * \param duration Blink period
      */
-	static void blinkMultipleLED(typeLEDind firstLED,  typeLEDind lastLED, typeLEDcol color, int replication, int duration=500);
-	
+    static void blinkMultipleLED(typeLEDind firstLED,  typeLEDind lastLED, typeLEDcol color, int replication, int duration=500);
+
     /*!
      * \brief Inits 3rd-party library (Adafruit)
      * \details The library has to be initialized after corresponding CPU clock frequency is established (120MHz is required)
      */
-	static void init(void);
+    static void init(void);
 
     /*!
      * \brief The object state update method
@@ -259,5 +259,5 @@ public:
      *  Must be called from a "super loop" or from corresponding thread
      */
     static void Update();
-	
+
 };
