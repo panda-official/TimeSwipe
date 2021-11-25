@@ -349,7 +349,7 @@ public:
   using Options = Resampler_options;
 
   /// The constructor.
-  Resampler(Options options)
+  explicit Resampler(Options options)
     : options_{std::move(options)}
     , rstates_(options_.channel_count())
   {
