@@ -21,6 +21,7 @@
 #include "debug.hpp"
 #include "driver.hpp"
 #include "exceptions.hpp"
+#include "filter.hpp"
 #include "gain.hpp"
 #include "hat.hpp"
 #include "limits.hpp"
@@ -603,6 +604,7 @@ private:
   std::vector<float> calibration_slopes_;
   std::vector<float> translation_offsets_;
   std::vector<float> translation_slopes_;
+  Filter filter_;
   Driver_settings driver_settings_;
   std::unique_ptr<Resampler> resampler_;
 
@@ -826,7 +828,8 @@ private:
       const Chunk& chunk,
       const std::vector<float>& slopes,
       const std::vector<float>& translation_offsets,
-      const std::vector<float>& translation_slopes)
+      const std::vector<float>& translation_slopes,
+      const Filter& filter)
     {
       PANDA_TIMESWIPE_ASSERT((slopes.size() == translation_offsets.size())
         && (slopes.size() == translation_slopes.size()));
@@ -860,7 +863,7 @@ private:
       data.append_generated_row([&](const auto i)
       {
         const auto mv = (digits[i] - channel_offset) / slopes[i];
-        return (mv - translation_offsets[i]) / translation_slopes[i];
+        return filter(i, (mv - translation_offsets[i]) / translation_slopes[i]);
       });
     }
 
@@ -950,7 +953,7 @@ private:
     do {
       const auto [chunk, tco, pi_ok] = Gpio_data::read_chunk();
       Gpio_data::append_chunk(result, chunk, calibration_slopes_,
-        translation_offsets_, translation_slopes_);
+        translation_offsets_, translation_slopes_, filter_);
       if (!pi_ok || tco != 0x00004000) break;
     } while (true);
 
@@ -1058,7 +1061,7 @@ private:
   };
 
   /**
-   * @brief Resets FIR resampler.
+   * @brief Resets IIR filter and FIR resampler.
    *
    * @par Exception safety guarantee
    * Strong.
@@ -1068,13 +1071,20 @@ private:
     const auto max_rate = max_sample_rate();
     PANDA_TIMESWIPE_ASSERT(1 <= rate && rate <= max_rate);
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
+
+    // Get channel count.
+    const auto cc = max_channel_count();
+
+    // Reset IIR filters.
+    filter_ = {cc, rate, max_rate};
+
+    // Reset FIR resamplers.
     if (rate != max_rate) {
-      // Reset resampler.
       const auto rates_gcd = std::gcd(rate, max_rate);
       const auto up = rate / rates_gcd;
       const auto down = max_rate / rates_gcd;
       resampler_ = std::make_unique<Resampler>(detail::Resampler_options{}
-        .set_channel_count(max_channel_count()).set_up_down(up, down));
+        .set_channel_count(cc).set_up_down(up, down));
     } else
       resampler_.reset();
   }
