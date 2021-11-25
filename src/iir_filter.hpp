@@ -21,6 +21,8 @@
 #include <cmath>
 #include <stdexcept>
 
+namespace panda::timeswipe::detail {
+
 /**
  * @brief IIR Butterworth filter of 9th order.
  *
@@ -141,5 +143,7 @@ private:
   std::array<unsigned, offset_count_> next_offsets_{};
   std::array<double, stage_count_*(offset_count_ + 1)> data_{};
 };
+
+} // namespace panda::timeswipe::detail
 
 #endif  // PANDA_TIMESWIPE_IIR_FILTER_HPP
