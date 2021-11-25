@@ -373,8 +373,8 @@ public:
     }
     calibration_slopes_.swap(new_calibration_slopes); // noexcept
 
-    // Reset resampler.
-    set_resampler(*srate, {}); // strong guarantee
+    // Reset filters.
+    reset_filters(*srate);
 
     /*
      * Send the command to the firmware to start the measurement.
@@ -1058,40 +1058,25 @@ private:
   };
 
   /**
-   * @returns Previous resampler if any.
+   * @brief Resets FIR resampler.
    *
    * @par Exception safety guarantee
    * Strong.
    */
-  std::unique_ptr<Resampler> set_resampler(const int rate,
-    std::unique_ptr<Resampler> resampler = {})
+  void reset_filters(const int rate)
   {
     const auto max_rate = max_sample_rate();
     PANDA_TIMESWIPE_ASSERT(1 <= rate && rate <= max_rate);
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
-    auto result = std::move(resampler_);
-    try {
-      if (rate != max_rate) {
-        const auto rates_gcd = std::gcd(rate, max_rate);
-        const auto up = rate / rates_gcd;
-        const auto down = max_rate / rates_gcd;
-        if (resampler) {
-          PANDA_TIMESWIPE_ASSERT(up == resampler->options().up_factor());
-          PANDA_TIMESWIPE_ASSERT(down == resampler->options().down_factor());
-          resampler_ = std::move(resampler);
-        } else
-          resampler_ = std::make_unique<Resampler>(detail::Resampler_options{}
-            .set_channel_count(max_channel_count()).set_up_down(up, down));
-      } else {
-        PANDA_TIMESWIPE_ASSERT(!resampler);
-        resampler_.reset();
-      }
-    } catch (...) {
-      resampler_.swap(result);
-      throw;
-    }
-
-    return result;
+    if (rate != max_rate) {
+      // Reset resampler.
+      const auto rates_gcd = std::gcd(rate, max_rate);
+      const auto up = rate / rates_gcd;
+      const auto down = max_rate / rates_gcd;
+      resampler_ = std::make_unique<Resampler>(detail::Resampler_options{}
+        .set_channel_count(max_channel_count()).set_up_down(up, down));
+    } else
+      resampler_.reset();
   }
 
   void join_threads()
