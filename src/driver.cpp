@@ -650,7 +650,6 @@ private:
      */
     Drift_affected_state_guard(iDriver& driver) try
       : driver_{driver}
-      , resampler_{std::move(driver_.resampler_)} // store
       , driver_settings_{std::move(driver_.driver_settings_)} // settings
       , board_settings_{driver_.board_settings("basic")} // store
     {
@@ -683,7 +682,7 @@ private:
     {
       try {
         // Restore driver settings.
-        driver_.set_driver_settings(std::move(driver_settings_), std::move(resampler_));
+        driver_.set_driver_settings(std::move(driver_settings_));
 
         // Restore board settings.
         driver_.set_board_settings(board_settings_);
@@ -691,7 +690,6 @@ private:
     }
 
     iDriver& driver_;
-    decltype(driver_.resampler_) resampler_;
     decltype(driver_.driver_settings_) driver_settings_;
     Board_settings board_settings_;
     std::optional<std::vector<Measurement_mode>> chmm_;
