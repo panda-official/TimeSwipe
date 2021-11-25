@@ -21,7 +21,7 @@
 
 #include <sam.h>
 
-namespace {
+extern "C" {
 
 static Sam_sercom* glob_pSC[8];
 
@@ -185,7 +185,7 @@ void SERCOM7_3_Handler()
   glob_pSC[static_cast<int>(Sam_sercom::Id::sercom7)]->handle_irq3();
 }
 
-} // namespace
+} // extern "C"
 
 Sam_sercom::~Sam_sercom()
 {

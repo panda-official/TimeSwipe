@@ -57,7 +57,7 @@ void SERCOM7_0_Handler();
 void SERCOM7_1_Handler();
 void SERCOM7_2_Handler();
 void SERCOM7_3_Handler();
-}
+} // extern "C"
 
 /**
  * @brief An implementation of SAME54 basic Serial Communication Interface.
