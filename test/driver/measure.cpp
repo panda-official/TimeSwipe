@@ -59,6 +59,7 @@ int main(const int argc, const char* const argv[])
 try {
   using ms = chrono::milliseconds;
   using ns = chrono::nanoseconds;
+  using s = chrono::seconds;
 
   std::signal(SIGINT, handle_signal);
   std::signal(SIGTERM, handle_signal);
@@ -142,7 +143,7 @@ try {
           throw std::runtime_error{"cannot open file " + log_name};
         out_file.precision(5 + 4);
         std::clog << "Writing " << out_name
-                  << " (" << duration_cast<ms>(duration).count() << " ms)...";
+                  << " (" << duration_cast<s>(duration).count() << " s)...";
         files_ready = true;
       }
 
