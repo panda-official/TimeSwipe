@@ -43,9 +43,11 @@ void message_error(Types&& ... parts)
 template<typename ... Types>
 void print_usage()
 {
-  message_error("usage: ", params.path().filename().string(), " --config=<path>\n\n"
+  message_error("usage: ", params.path().filename().string(),
+    " [--out-part-suffix=<string>] --config=<path>\n\n"
     "Options:\n"
-    "  --config - a path to configuration file\n");
+    "  --config - a path to configuration file\n"
+    "  --out-part-suffix - a string to use as an output file suffix");
 }
 
 void handle_signal(const int sig)
@@ -63,6 +65,7 @@ try {
 
   // Get command-line parameters.
   params = {argc, argv};
+  const auto out_suffix = params.option("out-part-suffix").value_or("");
   const auto json = rajson::to_document(
     str::to_string(fs::path{params.option("config").not_empty_value()}));
   rajson::Value_view jv{json};
@@ -93,6 +96,7 @@ try {
     std::ofstream log_file;
     driver.start_measurement([
         files_ready = false, &out_file, &log_file,
+        outsuf = !out_suffix.empty() ? std::string{"_"}.append(out_suffix) : "",
         i = 0, out_count,
         d = ns::zero(), duration = duration_cast<ns>(out_duration),
         t_curr = chrono::system_clock::time_point{},
@@ -129,7 +133,7 @@ try {
 
       // (Re-)open logs.
       if (out_count && !files_ready) {
-        const auto out_name = "meas_"+std::to_string(i)+".csv";
+        const auto out_name = "meas_"+std::to_string(i)+outsuf+".csv";
         const auto log_name = "meas_"+std::to_string(i)+".log";
         constexpr auto fmode{std::ios_base::trunc | std::ios_base::out};
         if ( !(out_file = std::ofstream{out_name, fmode}))

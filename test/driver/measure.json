@@ -1,5 +1,5 @@
 {
-  "outPartCount": null,
+  "outPartCount": 1,
   "outPartDuration": 10000,
   "board": {"CH1.mode": 0, "CH2.mode": 0, "CH3.mode": 0, "CH4.mode": 0,
             "CH1.gain": 1, "CH2.gain": 1, "CH3.gain": 1, "CH4.gain": 1},
