@@ -82,9 +82,6 @@ try {
     std::condition_variable finish;
     bool finished{};
     std::mutex finished_mutex;
-    std::ofstream out_file;
-    std::ofstream log_file;
-
     const auto finish_measurement = [&finish, &finished, &finished_mutex]
     {
       const std::lock_guard lk{finished_mutex};
@@ -92,8 +89,10 @@ try {
       finish.notify_one();
     };
 
+    std::ofstream out_file;
+    std::ofstream log_file;
     driver.start_measurement([
-        logs_ready = false, &out_file, &log_file,
+        files_ready = false, &out_file, &log_file,
         i = 0, out_count,
         d = ns::zero(), duration = duration_cast<ns>(out_duration),
         t_curr = chrono::system_clock::time_point{},
@@ -124,33 +123,39 @@ try {
             finish_measurement();
             return;
           } else
-            logs_ready = false;
+            files_ready = false;
         }
       }
 
       // (Re-)open logs.
-      if (!logs_ready) {
+      if (out_count && !files_ready) {
         const auto out_name = "meas_"+std::to_string(i)+".csv";
         const auto log_name = "meas_"+std::to_string(i)+".log";
         constexpr auto fmode{std::ios_base::trunc | std::ios_base::out};
-        out_file = std::ofstream{out_name, fmode};
+        if ( !(out_file = std::ofstream{out_name, fmode}))
+          throw std::runtime_error{"cannot open file " + out_name};
+        else if ( !(log_file = std::ofstream{log_name, fmode}))
+          throw std::runtime_error{"cannot open file " + log_name};
         out_file.precision(5 + 4);
-        log_file = std::ofstream{log_name, fmode};
         std::clog << "Writing " << out_name
                   << " (" << duration_cast<ms>(duration).count() << " ms)...";
-        logs_ready = true;
+        files_ready = true;
       }
+
+      // Choise output streams.
+      std::ostream& out_stream = out_count ? out_file : std::cout;
+      std::ostream& err_stream = out_count ? log_file : std::cerr;
 
       // Write data.
       const auto row_count = data.row_count();
       const auto col_count = data.column_count();
       for (std::size_t row{}; row < row_count; ++row) {
         for (std::size_t col{}; col < col_count; ++col)
-          out_file << data.value(col, row) << " ";
-        out_file << "\n";
+          out_stream << data.value(col, row) << " ";
+        out_stream << "\n";
       }
       if (err)
-        log_file << err << std::endl;
+        err_stream << err << std::endl;
     });
 
     std::unique_lock lk{finished_mutex};
