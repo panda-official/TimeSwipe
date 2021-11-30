@@ -34,6 +34,10 @@ Sam_clock_generator::Sam_clock_generator(const Id id)
 std::shared_ptr<Sam_clock_generator> Sam_clock_generator::make()
 {
   for (int i = static_cast<int>(Id::GCLK2); i <= static_cast<int>(Id::GCLK11); ++i) {
+    // The generator may be enabled directly! (For example, sys_clock_init().)
+    if (GCLK->GENCTRL[i].bit.GENEN) continue;
+
+    // Create and register the instance at the free slot.
     if (!instances_[i]) {
       std::shared_ptr<Sam_clock_generator> instance{new
         Sam_clock_generator{static_cast<Id>(i)}};
