@@ -24,54 +24,80 @@ Copyright (c) 2019-2020 Panda Team
 #include "ShiftReg.h"
 #include "PGA280.h"
 
-
-/*!
- * \brief The implementation of the DMS measurement channel
- */
-class CDMSchannel : public CMesChannel
-{
-protected:
-    std::size_t m_nGainIndex{};
-
-    /*!
-     * \brief The pointer to the IEPE switch pin
-     */
-    std::shared_ptr<Pin> m_pIEPEswitch;
-
-    /*!
-     * \brief The pointer to the PGA280 amplifier control instance
-     */
-    std::shared_ptr<CPGA280> m_pPGA;
-
+/// The DMS measurement channel.
+class CDMSchannel final : public CMesChannel {
 public:
-    void UpdateOffsets() override;
+  bool is_iepe() const noexcept
+  {
+    return is_iepe_;
+  }
 
-    /*!
-     * \brief Turns IEPEmode on/off
-     * \param bHow - true=IEPE mode ON, false=IEPE mode off
-     */
-    void IEPEon(bool bHow) override
-    {
-        m_bIEPEon=bHow;
-        m_pIEPEswitch->write(bHow);
-    }
+  void set_iepe(const bool value) override
+  {
+    is_iepe_ = value;
+    iepe_switch_->write(value);
+  }
 
-    /*!
-     * \brief Sets the measurement mode (Voltage or Current)
-     * \param nMode - the measuremnt mode to be set
-     */
-    void SetMesMode(mes_mode nMode) override
-    {
-        m_MesMode=nMode;
-        m_pPGA->SetMode( static_cast<CPGA280::mode>(nMode) );
-        UpdateOffsets();
-    }
+  mes_mode measurement_mode() const noexcept override
+  {
+    return measurement_mode_;
+  }
 
-    /*!
-     * \brief Sets the channel amplification gain
-     * \param GainValue - the Gain value to be set
-     */
-    void SetAmpGain(float GainValue) override;
+  void set_measurement_mode(const mes_mode mode) override
+  {
+    measurement_mode_ = mode;
+    pga_->SetMode(static_cast<CPGA280::mode>(mode));
+    update_offsets();
+  }
+
+  float amplification_gain() const noexcept override
+  {
+    return amplification_gain_;
+  }
+
+  void set_amplification_gain(float GainValue) override;
+
+  int channel_index() const noexcept override
+  {
+    return channel_index_;
+  }
+
+  const CDataVis& visualization_index() const noexcept override
+  {
+    return visualization_index_;
+  }
+
+  CDataVis& visualization_index() noexcept override
+  {
+    return visualization_index_;
+  }
+
+  bool is_visualization_enabled() const noexcept override
+  {
+    return is_visualization_enabled_;
+  }
+
+  std::shared_ptr<const CAdc> adc() const noexcept override
+  {
+    return adc_;
+  }
+
+  std::shared_ptr<CAdc> adc() noexcept
+  {
+    return adc_;
+  }
+
+  std::shared_ptr<const CDac> dac() const noexcept
+  {
+    return dac_;
+  }
+
+  std::shared_ptr<CDac> dac() noexcept
+  {
+    return dac_;
+  }
+
+  void update_offsets() override;
 
     /*!
      * \brief The class constructor
@@ -82,11 +108,38 @@ public:
      * \param pPGA - the pointer to the PGA280 amplifier control instance
      * \param bVisEnabled - The visualisation enable flag
      */
-    CDMSchannel(const int nChanInd, const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh,
-                const std::shared_ptr<Pin> &pIEPEswitch, const std::shared_ptr<CPGA280> &pPGA, bool bVisEnabled) :
-        CMesChannel(nChanInd, pADC,  pDAC, nCh, bVisEnabled)
-    {
-        m_pIEPEswitch=pIEPEswitch;
-        m_pPGA=pPGA;
-    }
+  CDMSchannel(const int channel_index,
+    const std::shared_ptr<CAdc>& adc,
+    const std::shared_ptr<CDac>& dac,
+    const CView::vischan visualization_index,
+    const std::shared_ptr<Pin>& pIEPEswitch,
+    const std::shared_ptr<CPGA280>& pPGA,
+    const bool is_visualization_enabled)
+    : channel_index_{channel_index}
+    , visualization_index_{visualization_index}
+    , is_visualization_enabled_{is_visualization_enabled}
+    , adc_{adc}
+    , dac_{dac}
+    , iepe_switch_{pIEPEswitch}
+    , pga_{pPGA}
+    {}
+
+private:
+  bool is_iepe_{};
+  mes_mode measurement_mode_{mes_mode::Voltage};
+  float amplification_gain_{1};
+  std::size_t gain_index_{};
+  int channel_index_{-1};
+
+  CDataVis visualization_index_;
+  bool is_visualization_enabled_{};
+
+  std::shared_ptr<CAdc> adc_;
+  std::shared_ptr<CDac> dac_;
+
+  /// The pointer to the IEPE switch pin.
+  std::shared_ptr<Pin> iepe_switch_;
+
+  /// The pointer to the PGA280 amplifier control instance.
+  std::shared_ptr<CPGA280> pga_;
 };

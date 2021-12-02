@@ -315,9 +315,10 @@ public:
          */
         void AddMesChannel(const std::shared_ptr<CMesChannel> &pChan)
         {
-            pChan->m_pCont=this;
+            pChan->set_node_control(this);
             m_pMesChans.emplace_back(pChan);
-            m_OffsetSearch.Add(pChan->m_pADC, pChan->m_pDAC, pChan->m_VisChan.GetVisChannel());
+            m_OffsetSearch.Add(pChan->adc(), pChan->dac(),
+              pChan->visualization_index().GetVisChannel());
         }
 
         /*!

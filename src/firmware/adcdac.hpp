@@ -101,7 +101,7 @@ public:
     return RawToReal(m_Raw);
   }
 
-  /// @returns An actual measured/controlled value in raw-binary format
+  /// @returns A value measured by the channel's ADC in raw binary format.
   int GetRawBinVal() const noexcept
   {
     return m_Raw;

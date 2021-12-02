@@ -59,7 +59,7 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
   }
 
   // Update channels.
-  for (auto &el : m_pMesChans) el->UpdateOffsets();
+  for (auto& el : m_pMesChans) el->update_offsets();
 }
 
 bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& strError)
@@ -194,7 +194,7 @@ void nodeControl::Serialize(CStorage &st)
 
 void nodeControl::Update()
 {
-    for(auto &el : m_pMesChans) el->Update();
+    for(auto& el : m_pMesChans) el->update();
 
     m_PersistStorage.Update();
     m_OffsetSearch.Update();
@@ -215,7 +215,7 @@ int nodeControl::gain_out(int val)
     //update channels gain setting:
     float gval=val;
     m_GainSetting=val;
-    for(auto &el : m_pMesChans) el->SetAmpGain(gval);
+    for(auto& el : m_pMesChans) el->set_amplification_gain(gval);
 
 
      //set old IEPE gain:
@@ -280,7 +280,7 @@ void nodeControl::SetMode(int nMode)
     }
 
     //switch all channels to IEPE:
-    for(auto &el : m_pMesChans) el->IEPEon(MesModes::IEPE==m_OpMode);
+    for(auto& el : m_pMesChans) el->set_iepe(MesModes::IEPE==m_OpMode);
 
     SetSecondary(m_OpMode);
 

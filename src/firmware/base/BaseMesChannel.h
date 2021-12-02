@@ -25,9 +25,7 @@ class nodeControl;
  * \details Defines the basic interface of the board measurement channel.
  *  Must be overriden in the concrete implementation of the measurement channel for IEPE and DMS boards
  */
-class CMesChannel
-{
-friend class nodeControl;
+class CMesChannel {
 public:
 
     /*!
@@ -40,179 +38,215 @@ public:
     };
 
 
-    /*!
-     * \brief Returns a raw binary value measured by the channel's ADC
-     * \return ADC raw binary value
-     */
-    inline int GetADCmesRawVal(){
+  /// @returns The measurement mode.
+  virtual mes_mode measurement_mode() const noexcept = 0;
 
-        return m_pADC->GetRawBinVal();
-    }
+  /// Sets The measurement mode.
+  virtual void set_measurement_mode(mes_mode mode) = 0;
 
-    /*!
-     * \brief Turns IEPEmode on/off
-     * \param bHow - true=IEPE mode ON, false=IEPE mode off
-     */
-    virtual void IEPEon(bool bHow){
+  /// @returns IEPE mode indicator.
+  virtual bool is_iepe() const noexcept = 0;
 
-        m_bIEPEon=bHow;
-    }
+  /// Sets IEPE mode indicator.
+  virtual void set_iepe(bool enable) = 0;
 
-    /*!
-     * \brief Checks if IEPE measurement mode is on or not
-     * \return true=IEPE mode is ON, false IEPEmode is OFF
-     */
-    bool IsIEPEon() const noexcept
-    {
-        return  m_bIEPEon;
-    }
+  /// @returns The amplification gain.
+  virtual float amplification_gain() const noexcept = 0;
 
-    /*!
-     * \brief Sets the measurement mode (Voltage or Current)
-     * \param nMode - the measuremnt mode to be set
-     */
-    virtual void SetMesMode(mes_mode nMode){
+  /// Sets the amplification gain.
+  virtual void set_amplification_gain(float gain) = 0;
 
-        m_MesMode=nMode;
-    }
+  /// @returns The zero-based channel index.
+  virtual int channel_index() const noexcept = 0;
 
-    /*!
-     * \brief Sets the channel amplification gain
-     * \param GainValue - the Gain value to be set
-     */
-    virtual void SetAmpGain(float GainValue){
+  /**
+   * @brief The visualization index of the channel.
+   *
+   * @details Used to bind the channel with the visualization LED.
+   */
+  virtual const CDataVis& visualization_index() const noexcept = 0;
 
-        m_ActualAmpGain=GainValue;
-    }
+  /// @overload
+  virtual CDataVis& visualization_index() noexcept = 0;
 
-    /*!
-     * \brief Actualise channel offset values
-     */
-    virtual void UpdateOffsets(){}
+  /// @returns `true` if visualization enabled.
+  virtual bool is_visualization_enabled() const noexcept = 0;
 
+  /// @returns The pointer to the channel's ADC.
+  virtual std::shared_ptr<const CAdc> adc() const noexcept = 0;
 
-    /*!
-     * \brief Returns current amplification gain of the channel
-     * \return Current amplification gain of the channel
-     */
-    float GetActualAmpGain() const noexcept
-    {
-        return m_ActualAmpGain;
-    }
+  /// @overload
+  virtual std::shared_ptr<CAdc> adc() noexcept = 0;
 
-    /*!
-     * \brief Returns current measurement mode. This is a wrapper to be used with a command processor
-     * \return Integer value of the current measurement mode
-     */
-    unsigned int CmGetMesMode() const noexcept
-    {
-        return static_cast<int>(m_MesMode);
-    }
+  /// @returns The pointer to the channel's DAC.
+  virtual std::shared_ptr<const CDac> dac() const noexcept = 0;
 
-    /*!
-     * \brief Sets current measurement mode. This is a wrapper to be used with a command processor
-     * \param nMode - the measuremnt mode to be set
-     */
-    inline void CmSetMesMode(unsigned int nMode){
+  /// @overload
+  virtual std::shared_ptr<CDac> dac() noexcept = 0;
 
-        if(nMode>mes_mode::Current)
-            nMode=mes_mode::Current;
+  /// Update channel offset values.
+  virtual void update_offsets() = 0;
 
-        SetMesMode( static_cast<mes_mode>(nMode) );
-    }
+  /// @returns The color of the corresponding LED.
+  typeLEDcol color() const noexcept
+  {
+    return CView::Instance().GetChannel(visualization_index().GetVisChannel()).GetColor();
+  }
 
-protected:
-    /*!
-     * \brief The zero-based channel index.
-     */
-    int m_nChanInd;
+  /// Sets the color of the corresponding LED.
+  void set_color(const typeLEDcol color)
+  {
+    CView::Instance().GetChannel(visualization_index().GetVisChannel()).SetColor(color);
+  }
 
-    /*!
-     * \brief The pointer to the control class containing this channel
-     */
-    nodeControl *m_pCont=nullptr;
+  /**
+   * @returns Measurement mode.
+   *
+   * @see CCmdSGHandler::Getter.
+   *
+   * @todo Remove.
+   */
+  unsigned int CmGetMesMode() const noexcept
+  {
+    return static_cast<int>(measurement_mode());
+  }
 
-    /*!
-     * \brief The state of IEPE mode (ON or OFF)
-     */
-    bool m_bIEPEon=false;
+  /**
+   * @brief Sets measurement mode.
+   *
+   * @see CCmdSGHandler::Setter.
+   *
+   * @todo Remove.
+   */
+  void CmSetMesMode(unsigned int nMode)
+  {
+    if (nMode > mes_mode::Current)
+      nMode = mes_mode::Current;
 
-    /*!
-     * \brief The current measurement mode Voltage or Current
-     */
-    mes_mode m_MesMode=mes_mode::Voltage;
+    set_measurement_mode(static_cast<mes_mode>(nMode));
+  }
 
-    /*!
-     * \brief The actual channel amplification gain
-     */
-    float m_ActualAmpGain=1.0f;
+  /// @returns The pointer to the control instance containing this channel.
+  nodeControl* node_control() const noexcept
+  {
+    return node_control_;
+  }
 
-    /*!
-     * \brief The pointer to channel's offset control DAC
-     */
-    std::shared_ptr<CAdc> m_pADC;
+  /// Associates the control instance with this channel.
+  void set_node_control(nodeControl* const node_control)
+  {
+    node_control_ = node_control;
+  }
 
-    /*!
-     * \brief The pointer to the channel's ADC
-     */
-    std::shared_ptr<CDac> m_pDAC;
+  /**
+   * @brief The object state update method.
+   *
+   * @details Gets the CPU time to update internal state of the object.
+   */
+  void update()
+  {
+    if (is_visualization_enabled())
+      visualization_index().Update(adc()->GetRawBinVal());
+  }
 
-    /*!
-     * \brief The visualization index of the channel. Used to bind the channel with the visualization LED
-     */
-    CDataVis m_VisChan;
-
-    /*!
-     * \brief The visualisation enable flag
-     */
-    bool m_bVisEnabled;
-
-    /*!
-     * \brief The object state update method
-     * \details Gets the CPU time to update internal state of the object.
-     */
-    void Update(){
-
-        if(!m_bVisEnabled)
-            return;
-
-        m_VisChan.Update( m_pADC->GetRawBinVal() );
-    }
-
-public:
-    /*!
-     * \brief The class constructor
-     * \param nChanInd Zero-based channel index.
-     * \param pADC - The pointer to channel's offset control DAC
-     * \param pDAC - The pointer to the channel's ADC
-     * \param nCh  - The visualization index of the channel
-     * \param bVisEnabled - The visualisation enable flag
-     */
-    CMesChannel(const int nChanInd, const std::shared_ptr<CAdc> &pADC,  const std::shared_ptr<CDac> &pDAC,  CView::vischan nCh, bool bVisEnabled) : m_VisChan(nCh){
-
-        m_nChanInd=nChanInd;
-        m_pADC=pADC;
-        m_pDAC=pDAC;
-        m_bVisEnabled=bVisEnabled;
-    }
-
-    /*!
-     * \brief Sets the color of the channel's  LED
-     * \param Clr A color to set
-     */
-    void SetColor(typeLEDcol col){
-
-        CView::Instance().GetChannel(m_VisChan.GetVisChannel()).SetColor(col);
-    }
-
-    /*!
-     * \brief Returns setpoint color of the channel's LED
-     * \return setpoint color of the LED
-     */
-    typeLEDcol GetColor() const noexcept
-    {
-      return CView::Instance().GetChannel(m_VisChan.GetVisChannel()).GetColor();
-    }
+private:
+  nodeControl* node_control_{};
 };
 
-typedef CMesChannel CIEPEchannel;
+class CIEPEchannel final : public CMesChannel {
+public:
+  CIEPEchannel(const int channel_index,
+    const std::shared_ptr<CAdc>& adc,
+    const std::shared_ptr<CDac>& dac,
+    const CView::vischan visualization_index,
+    const bool is_visualization_enabled)
+    : channel_index_{channel_index}
+    , visualization_index_{visualization_index}
+    , is_visualization_enabled_{is_visualization_enabled}
+    , adc_{adc}
+    , dac_{dac}
+  {}
+
+  mes_mode measurement_mode() const noexcept override
+  {
+    return measurement_mode_;
+  }
+
+  void set_measurement_mode(const mes_mode mode) override
+  {
+    measurement_mode_ = mode;
+  }
+
+  bool is_iepe() const noexcept override
+  {
+    return is_iepe_;
+  }
+
+  void set_iepe(bool value) override
+  {
+    is_iepe_ = value;
+  }
+
+  float amplification_gain() const noexcept override
+  {
+    return amplification_gain_;
+  }
+
+  void set_amplification_gain(const float gain) override
+  {
+    amplification_gain_ = gain;
+  }
+
+  int channel_index() const noexcept override
+  {
+    return channel_index_;
+  }
+
+  const CDataVis& visualization_index() const noexcept override
+  {
+    return visualization_index_;
+  }
+
+  CDataVis& visualization_index() noexcept override
+  {
+    return visualization_index_;
+  }
+
+  bool is_visualization_enabled() const noexcept override
+  {
+    return is_visualization_enabled_;
+  }
+
+  std::shared_ptr<const CAdc> adc() const noexcept override
+  {
+    return adc_;
+  }
+
+  std::shared_ptr<CAdc> adc() noexcept
+  {
+    return adc_;
+  }
+
+  std::shared_ptr<const CDac> dac() const noexcept
+  {
+    return dac_;
+  }
+
+  std::shared_ptr<CDac> dac() noexcept
+  {
+    return dac_;
+  }
+
+  void update_offsets() override
+  {}
+
+private:
+  bool is_iepe_{};
+  mes_mode measurement_mode_{mes_mode::Voltage};
+  float amplification_gain_{1};
+  int channel_index_{-1};
+  CDataVis visualization_index_;
+  bool is_visualization_enabled_{};
+  std::shared_ptr<CAdc> adc_;
+  std::shared_ptr<CDac> dac_;
+};

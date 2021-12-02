@@ -312,25 +312,23 @@ int main()
 
     //---------------------------------------------------command system------------------------------------------------------
     //channel commands:
-    for(int i=0; i<nChannels; i++)
-      {
-        char cmd[64];
-        int nInd=i+1;
-        auto pCH=nc.GetMesChannel(i);
+    for (int i{}; i < nChannels; ++i) {
+      char cmd[64];
+      int nInd=i+1;
+      auto pCH=nc.GetMesChannel(i);
 
-        std::sprintf(cmd, "CH%d.mode", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, unsigned int> >(pCH, &CMesChannel::CmGetMesMode, &CMesChannel::CmSetMesMode) );
-        std::sprintf(cmd, "CH%d.gain", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, float> >(pCH, &CMesChannel::GetActualAmpGain, &CMesChannel::SetAmpGain) );
-        std::sprintf(cmd, "CH%d.iepe", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, bool> >(pCH, &CMesChannel::IsIEPEon, &CMesChannel::IEPEon) );
+      std::sprintf(cmd, "CH%d.mode", nInd);
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<CMesChannel, unsigned int>>(pCH, &CMesChannel::CmGetMesMode, &CMesChannel::CmSetMesMode));
+      std::sprintf(cmd, "CH%d.gain", nInd);
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<CMesChannel, float>>(pCH, &CMesChannel::amplification_gain, &CMesChannel::set_amplification_gain));
+      std::sprintf(cmd, "CH%d.iepe", nInd);
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<CMesChannel, bool>>(pCH, &CMesChannel::is_iepe, &CMesChannel::set_iepe));
 
 #ifdef CALIBRATION_STATION
-        std::sprintf(cmd, "CH%d.clr", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, typeLEDcol> >(pCH, &CMesChannel::GetColor, &CMesChannel::SetColor) );
+      std::sprintf(cmd, "CH%d.clr", nInd);
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<CMesChannel, typeLEDcol>>(pCH, &CMesChannel::color, &CMesChannel::set_color));
 #endif
-
-      }
+    }
 
 
 
