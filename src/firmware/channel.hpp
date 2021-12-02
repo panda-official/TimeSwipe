@@ -1,20 +1,26 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019-2020 Panda Team
-*/
+// -*- C++ -*-
 
-/*!
-*   \file
-*   \brief A definition file for CMesChannel class aka CIEPEchannel
-*/
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH / Dmitry Igrishin
 
-#pragma once
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_FIRMWARE_CHANNEL_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_CHANNEL_HPP
 
 #include "adcdac.hpp"
 #include "control/DataVis.h"
-#include "pin.hpp"
 
 #include <memory>
 
@@ -250,3 +256,5 @@ private:
   std::shared_ptr<CAdc> adc_;
   std::shared_ptr<CDac> dac_;
 };
+
+#endif  // PANDA_TIMESWIPE_FIRMWARE_CHANNEL_HPP
