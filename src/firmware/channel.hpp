@@ -22,6 +22,9 @@
 #include "adcdac.hpp"
 #include "control/DataVis.h"
 
+#include "../basics.hpp"
+using namespace panda::timeswipe; // FIXME: remove
+
 #include <memory>
 
 class nodeControl;
@@ -29,22 +32,11 @@ class nodeControl;
 /// A board measurement channel.
 class Channel {
 public:
-
-    /*!
-     * \brief The possible measurement modes
-     */
-    enum mes_mode{
-
-        Voltage=0,  //!<Voltage mode
-        Current     //!<Current mode
-    };
-
-
   /// @returns The measurement mode.
-  virtual mes_mode measurement_mode() const noexcept = 0;
+  virtual Measurement_mode measurement_mode() const noexcept = 0;
 
   /// Sets The measurement mode.
-  virtual void set_measurement_mode(mes_mode mode) = 0;
+  virtual void set_measurement_mode(Measurement_mode mode) = 0;
 
   /// @returns IEPE mode indicator.
   virtual bool is_iepe() const noexcept = 0;
@@ -108,9 +100,9 @@ public:
    *
    * @todo Remove.
    */
-  unsigned int CmGetMesMode() const noexcept
+  unsigned CmGetMesMode() const noexcept
   {
-    return static_cast<int>(measurement_mode());
+    return static_cast<unsigned>(measurement_mode());
   }
 
   /**
@@ -120,12 +112,13 @@ public:
    *
    * @todo Remove.
    */
-  void CmSetMesMode(unsigned int nMode)
+  void CmSetMesMode(unsigned mode)
   {
-    if (nMode > mes_mode::Current)
-      nMode = mes_mode::Current;
+    constexpr auto cur = static_cast<unsigned>(Measurement_mode::current);
+    if (mode > cur)
+      mode = cur;
 
-    set_measurement_mode(static_cast<mes_mode>(nMode));
+    set_measurement_mode(static_cast<Measurement_mode>(mode));
   }
 
   /// @returns The pointer to the control instance containing this channel.
@@ -169,12 +162,12 @@ public:
     , dac_{dac}
   {}
 
-  mes_mode measurement_mode() const noexcept override
+  Measurement_mode measurement_mode() const noexcept override
   {
     return measurement_mode_;
   }
 
-  void set_measurement_mode(const mes_mode mode) override
+  void set_measurement_mode(const Measurement_mode mode) override
   {
     measurement_mode_ = mode;
   }
@@ -244,7 +237,7 @@ public:
 
 private:
   bool is_iepe_{};
-  mes_mode measurement_mode_{mes_mode::Voltage};
+  Measurement_mode measurement_mode_{Measurement_mode::voltage};
   float amplification_gain_{1};
   int channel_index_{-1};
   CDataVis visualization_index_;

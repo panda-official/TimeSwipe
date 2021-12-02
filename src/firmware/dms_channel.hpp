@@ -38,12 +38,12 @@ public:
     iepe_switch_->write(value);
   }
 
-  mes_mode measurement_mode() const noexcept override
+  Measurement_mode measurement_mode() const noexcept override
   {
     return measurement_mode_;
   }
 
-  void set_measurement_mode(const mes_mode mode) override
+  void set_measurement_mode(const Measurement_mode mode) override
   {
     measurement_mode_ = mode;
     pga_->SetMode(static_cast<CPGA280::mode>(mode));
@@ -126,7 +126,7 @@ public:
 
 private:
   bool is_iepe_{};
-  mes_mode measurement_mode_{mes_mode::Voltage};
+  Measurement_mode measurement_mode_{Measurement_mode::voltage};
   float amplification_gain_{1};
   std::size_t gain_index_{};
   int channel_index_{-1};

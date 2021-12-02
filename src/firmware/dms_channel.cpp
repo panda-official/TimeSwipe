@@ -7,7 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "control/nodeControl.h"
 #include "dms_channel.hpp"
-#include "../basics.hpp"
+#include "../gain.hpp"
 #include "../hat.hpp"
 
 void CDMSchannel::set_amplification_gain(const float value)
@@ -32,7 +32,8 @@ void CDMSchannel::update_offsets()
   node_control()->GetCalibrationData(cmap, strError);
 
   using Type = hat::atom::Calibration::Type;
-  const auto atom = mes_mode::Voltage == measurement_mode() ? Type::v_in1 : Type::c_in1;
+  const auto atom = Measurement_mode::voltage == measurement_mode() ?
+    Type::v_in1 : Type::c_in1;
   const auto type = static_cast<Type>(static_cast<int>(atom) + channel_index());
   const auto& entry = cmap.atom(type).entry(gain_index_);
   dac()->SetRawOutput(entry.offset());
