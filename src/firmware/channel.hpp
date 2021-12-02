@@ -26,12 +26,8 @@
 
 class nodeControl;
 
-/*!
- * \brief The basic class representing board measurement channel functionality
- * \details Defines the basic interface of the board measurement channel.
- *  Must be overriden in the concrete implementation of the measurement channel for IEPE and DMS boards
- */
-class CMesChannel {
+/// A board measurement channel.
+class Channel {
 public:
 
     /*!
@@ -159,7 +155,7 @@ private:
   nodeControl* node_control_{};
 };
 
-class CIEPEchannel final : public CMesChannel {
+class CIEPEchannel final : public Channel {
 public:
   CIEPEchannel(const int channel_index,
     const std::shared_ptr<CAdc>& adc,

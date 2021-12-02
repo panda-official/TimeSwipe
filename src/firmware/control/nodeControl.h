@@ -84,7 +84,7 @@ protected:
         /*!
          * \brief The list of board channels to work with
          */
-        std::vector<std::shared_ptr<CMesChannel>>  m_pMesChans;
+        std::vector<std::shared_ptr<Channel>>  m_pMesChans;
 
         /*!
          * \brief The persistent storage controller
@@ -314,7 +314,7 @@ public:
          * \brief Adds Board measurement channel to the tracking list
          * \param pChan - the pointer to the Board measurement channel
          */
-        void AddMesChannel(const std::shared_ptr<CMesChannel> &pChan)
+        void AddMesChannel(const std::shared_ptr<Channel> &pChan)
         {
             pChan->set_node_control(this);
             m_pMesChans.emplace_back(pChan);
@@ -327,7 +327,7 @@ public:
          * \param nCh - the index of the channel
          * \return the pointer to the channel on success, otherwise nullptr
          */
-        std::shared_ptr<CMesChannel> GetMesChannel(size_t nCh)
+        std::shared_ptr<Channel> GetMesChannel(size_t nCh)
         {
             if(nCh<m_pMesChans.size())
                 return m_pMesChans[nCh];

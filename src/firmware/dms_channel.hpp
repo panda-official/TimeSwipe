@@ -7,7 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 /*!
 *   \file
-*   \brief A definition file for CMesChannel class aka CIEPEchannel
+*   \brief A definition file for Channel class aka CIEPEchannel
 *   CDac5715sa
 *
 */
@@ -25,7 +25,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "shiftreg.hpp"
 
 /// The DMS measurement channel.
-class CDMSchannel final : public CMesChannel {
+class CDMSchannel final : public Channel {
 public:
   bool is_iepe() const noexcept
   {
