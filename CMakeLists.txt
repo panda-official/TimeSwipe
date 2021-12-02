@@ -468,6 +468,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     FILE panda_timeswipe-config.cmake)
 
   install(FILES
+    src/basics.hpp
     src/board_settings.hpp
     src/driver.hpp
     src/driver_settings.hpp

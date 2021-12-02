@@ -19,6 +19,7 @@
 #ifndef PANDA_TIMESWIPE_BOARD_SETTINGS_HPP
 #define PANDA_TIMESWIPE_BOARD_SETTINGS_HPP
 
+#include "basics.hpp"
 #include "types_fwd.hpp"
 
 #include <memory>
@@ -28,45 +29,6 @@
 #include <vector>
 
 namespace panda::timeswipe {
-
-// -----------------------------------------------------------------------------
-// Measurement_mode
-// -----------------------------------------------------------------------------
-
-/// Measurement mode.
-enum class Measurement_mode {
-  voltage,
-  current
-};
-
-/**
- * @returns The value of type `Measurement_mode` converted from `value`, or
- * `std::nullopt` if `value` doesn't corresponds to any member of Measurement_mode.
- */
-constexpr std::optional<Measurement_mode> to_measurement_mode(const
-  std::string_view value) noexcept
-{
-  if (value == "voltage") return Measurement_mode::voltage;
-  else if (value == "current") return Measurement_mode::current;
-  else return {};
-}
-
-/**
- * @returns The character literal converted from `value`, or `nullptr`
- * if `value` doesn't corresponds to any member of Measurement_mode.
- */
-constexpr const char* to_literal(const Measurement_mode value) noexcept
-{
-  switch (value) {
-  case Measurement_mode::voltage: return "voltage";
-  case Measurement_mode::current: return "current";
-  }
-  return nullptr;
-}
-
-// -----------------------------------------------------------------------------
-// Board_settings
-// -----------------------------------------------------------------------------
 
 /**
  * @brief Board-level settings.

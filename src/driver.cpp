@@ -16,12 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "basics.hpp"
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
 #include "driver.hpp"
 #include "error.hpp"
+#include "gain.hpp"
 #include "hat.hpp"
+#include "limits.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "version.hpp"

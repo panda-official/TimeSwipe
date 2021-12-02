@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_DRIVER_HPP
 
 // All the public API headers.
+#include "basics.hpp"
 #include "board_settings.hpp"
 #include "driver_settings.hpp"
 #include "error.hpp"
