@@ -208,15 +208,12 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     )
 
   set(base_src
-    BaseMesChannel.h
     DACPWM.cpp
     DACPWM.h
     DACPWMht.cpp
     DACPWMht.h
     DACmax5715.cpp
     DACmax5715.h
-    DMSchannel.cpp
-    DMSchannel.h
     FanControl.cpp
     FanControl.h
     FanControlSimple.cpp
@@ -226,16 +223,12 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     I2CmemHAT.cpp
     I2CmemHAT.h
     OS_stub.cpp
-    PGA280.cpp
-    PGA280.h
     PINPWM.cpp
     PINPWM.h
     RawBinStorage.cpp
     RawBinStorage.h
     SPIcomm.cpp
     SPIcomm.h
-    ShiftReg.cpp
-    ShiftReg.h
     )
 
   set(control_src
@@ -317,9 +310,27 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     sercom.hpp
     )
 
-  # Our stuff
-  set(firmware_src PWM.h Storage.h adcdac.hpp button.hpp cmd.h error.hpp
-    frm_stream.h json.hpp os.h pin.hpp pin_button.hpp std_port.h timer.h)
+  set(firmware_src
+    PWM.h
+    Storage.h
+    adcdac.hpp
+    button.hpp
+    channel.hpp
+    cmd.h
+    dms_channel.cpp
+    dms_channel.hpp
+    error.hpp
+    frm_stream.h
+    json.hpp
+    os.h
+    pga280.cpp
+    pga280.hpp
+    pin.hpp
+    pin_button.hpp
+    shiftreg.cpp
+    shiftreg.hpp
+    std_port.h
+    timer.h)
   list(TRANSFORM firmware_src PREPEND src/firmware/)
   foreach(dep base control json led misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)

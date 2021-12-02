@@ -20,9 +20,9 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "BaseMesChannel.h"
-#include "ShiftReg.h"
-#include "PGA280.h"
+#include "channel.hpp"
+#include "pga280.hpp"
+#include "shiftreg.hpp"
 
 /// The DMS measurement channel.
 class CDMSchannel final : public CMesChannel {

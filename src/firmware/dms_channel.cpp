@@ -5,10 +5,10 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "../../basics.hpp"
-#include "../../hat.hpp"
-#include "../control/nodeControl.h"
-#include "DMSchannel.h"
+#include "control/nodeControl.h"
+#include "dms_channel.hpp"
+#include "../basics.hpp"
+#include "../hat.hpp"
 
 void CDMSchannel::set_amplification_gain(const float value)
 {

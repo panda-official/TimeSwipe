@@ -5,9 +5,9 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "PGA280.h"
-#include "../../error.hpp"
-#include "../os.h"
+#include "os.h"
+#include "pga280.hpp"
+#include "../error.hpp"
 
 bool CPGA280cmdBuf::transfer(CSPI &spi_bus, Pin &CS)
 {

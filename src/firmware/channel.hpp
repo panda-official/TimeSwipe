@@ -12,9 +12,9 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "../adcdac.hpp"
-#include "../control/DataVis.h"
-#include "../pin.hpp"
+#include "adcdac.hpp"
+#include "control/DataVis.h"
+#include "pin.hpp"
 
 #include <memory>
 

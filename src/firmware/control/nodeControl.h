@@ -14,7 +14,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "zerocal_man.h"
-#include "../base/BaseMesChannel.h"
+#include "../channel.hpp"
 #include "../base/RawBinStorage.h"
 #include "../json/json_evsys.h"
 #include "../../hat.hpp"

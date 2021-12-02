@@ -6,7 +6,7 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 
-#include "ShiftReg.h"
+#include "shiftreg.hpp"
 
 
 void CShiftReg::SetShiftReg(typeRegister &RegValue, std::size_t BitsInUse)
