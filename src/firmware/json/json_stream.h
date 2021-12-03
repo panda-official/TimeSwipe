@@ -29,7 +29,8 @@ protected:
     /*!
      * \brief A pointer to a JSON object that acts as "stream buffer" here
      */
-    nlohmann::json *m_pJSON=nullptr;
+  rapidjson::Value& value_;
+  rapidjson::Document::AllocatorType* alloc_{};
 
 public:
     /*!
@@ -50,8 +51,9 @@ public:
      * \brief The class constructor
      * \param A pointer to a JSON object that acts as "stream buffer" here
      */
-    CJSONStream(nlohmann::json *pJSON) : CFrmStream(nullptr)
-    {
-        m_pJSON=pJSON;
-    }
+  CJSONStream(rapidjson::Value& value, rapidjson::Document::AllocatorType* const alloc)
+    : CFrmStream(nullptr)
+    , value_{value}
+    , alloc_{alloc}
+    {}
 };

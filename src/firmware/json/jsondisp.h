@@ -16,6 +16,7 @@ Copyright (c) 2019 Panda Team
 #include "json_base.h"
 #include "../cmd.h"
 
+#include <functional>
 #include <map>
 
 /*!
@@ -27,21 +28,12 @@ class CJSONDispatcher : public CJSONbase, public CCmdCallHandler
 protected:
     std::shared_ptr<CCmdDispatcher> m_pDisp;
 
+    using typeSubHandler = std::function<void(rapidjson::Value& jObj,
+      rapidjson::Document& jResp, const CCmdCallDescr::ctype ct)>;
 
-    //typedef void (CJSONDispatcher::*typeSubHandler)(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
-
-    using typeSubHandler=std::function< void(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct) >;
-
-    //typedef std::map<std::string, typeSubHandler > typeSubMap;
-
-    using typeSubMap=std::map<std::string, typeSubHandler >;
+    using typeSubMap = std::map<std::string, typeSubHandler>;
 
     typeSubMap m_SubHandlersMap;
-
-    //handlers:
-   // void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
-    //bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
-
 
     /*!
      *  \brief: Called for "js>". Returns all possible settings (enumerates all "get" handlers)
@@ -49,7 +41,7 @@ protected:
      *  \param jResp - a JSON object to fill with the settings
      *
      */
-    void DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jResp);
+  void DumpAllSettings(const CCmdCallDescr &d, rapidjson::Document& jResp);
 
     /*!
      * \brief Handles an elementary JSON object that represents a primitive type - this is an endpoint in recursive CJSONDispatcher::Call(...)
@@ -58,7 +50,7 @@ protected:
      * \param jResp An output object (responce)
      * \param ct A call type: "get" or "set"
      */
-    void CallPrimitive(const std::string &strKey, nlohmann::json &ReqVal, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+  void CallPrimitive(const std::string &strKey, rapidjson::Value& ReqVal, rapidjson::Document& jResp, rapidjson::Value& resp_root, const CCmdCallDescr::ctype ct);
 
 public:
 
@@ -68,9 +60,8 @@ public:
      * \param jObj An incoming JSON object
      * \param jResp A responce object
      * \param ct A call type: "get" or "set"
-     * \param bArrayMode Is incoming object an array type? (Used with js>[...])
      */
-    void Call(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, const bool bArrayMode);
+  void Call(rapidjson::Value &jObj, rapidjson::Document& jResp, rapidjson::Value& resp_root, const CCmdCallDescr::ctype ct);
 
     /*!
      * \brief A command dispatcher handler override for this class

@@ -41,18 +41,25 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 
     hat::Calibration_map map;
     m_CalStatus = m_EEPROMstorage.get(map);
-    if (m_CalStatus == hat::Manager::Op_result::ok)
-      ApplyCalibrationData(map);
+    if (m_CalStatus == hat::Manager::Op_result::ok) {
+      std::string err;
+      ApplyCalibrationData(map, err);
+    }
 }
 
-void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
+void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map, std::string& err)
 {
-  if (!m_bCalEnabled) return;
+  if (!m_bCalEnabled) {
+    err = "calibration settings are disabled";
+    return;
+  }
 
   if (m_pVoltageDAC) {
     const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
-    if (atom.entry_count() != 1) // exactly 1 entry per specification
+    if (atom.entry_count() != 1) { // exactly 1 entry per specification
+      err = "invalid v_supply calibration atom";
       return;
+    }
     const auto& entry = atom.entry(0);
     m_pVoltageDAC->SetLinearFactors(entry.slope(), entry.offset());
     m_pVoltageDAC->SetVal();
@@ -62,18 +69,23 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map)
   for (auto& el : m_pMesChans) el->update_offsets();
 }
 
-bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& strError)
+bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& err)
 {
   m_CalStatus = m_EEPROMstorage.set(map);
-  ApplyCalibrationData(map);
-
-  if (m_CalStatus == hat::Manager::Op_result::ok) {
-    if (m_pEEPROMbus->send(*m_EEPROMstorage.buf()))
-      return true;
-
-    strError="failed to write EEPROM";
+  if (m_CalStatus != hat::Manager::Op_result::ok) {
+    err = "invalid calibration map";
+    return false;
   }
-  return false;
+
+  ApplyCalibrationData(map, err);
+  if (!err.empty()) return false;
+
+  if (!m_pEEPROMbus->send(*m_EEPROMstorage.buf())) {
+    err = "failed to write EEPROM";
+    return false;
+  }
+
+  return true;
 }
 
 bool nodeControl::GetCalibrationData(hat::Calibration_map& data, std::string& strError)
@@ -87,7 +99,7 @@ bool nodeControl::GetCalibrationData(hat::Calibration_map& data, std::string& st
   return false;
 }
 
-bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError)
+bool nodeControl::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError)
 {
     hat::Calibration_map map;
 
@@ -96,7 +108,8 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
     if (!nc.GetCalibrationData(map, strError))
       return false;
 
-    const auto type = hat::atom::Calibration::to_type(jObj["cAtom"], strError);
+    const auto catom = jObj["cAtom"].GetUint();
+    const auto type = hat::atom::Calibration::to_type(catom, strError);
     if (!strError.empty()) return false;
 
     const auto cal_entry_count = map.atom(type).entry_count();
@@ -110,67 +123,58 @@ bool nodeControl::_procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const 
 #endif
 
         auto& data = jObj["data"];
-        if (data.size() > cal_entry_count) {
-          strError="wrong data count";
+        const auto data_size = data.Size();
+        if (data_size > cal_entry_count) {
+          strError = "wrong data count";
           return false;
         }
 
-        size_t pair_ind=0;
-        for(auto &el : data) {
-          //init the pair:
-          auto entry = map.atom(type).entry(pair_ind);
-          if (!strError.empty()) return false;
-
-          if (const auto it_m = el.find("m"); it_m != el.end())
-            entry.set_slope(*it_m);
-          if (const auto it_b = el.find("b"); it_b != el.end())
-            entry.set_offset(*it_b);
-
-          map.atom(type).set_entry(pair_ind, std::move(entry));
-          if (!strError.empty()) return false;
-
-          pair_ind++;
+        for (std::size_t i{}; i < data_size; ++i) {
+          const auto& el = data[i];
+          auto entry = map.atom(type).entry(i);
+          if (const auto it = el.FindMember("m"); it != el.MemberEnd())
+            entry.set_slope(it->value.GetFloat());
+          if (const auto it = el.FindMember("b"); it != el.MemberEnd())
+            entry.set_offset(it->value.GetInt());
+          map.atom(type).set_entry(i, std::move(entry));
         }
 
-        //save the atom:
-        if(!nc.SetCalibrationData(map, strError))
-        {
-            //strError="failed to save calibration data";
-            return false;
-        }
+        // Save the calibration map.
+        if (!nc.SetCalibrationData(map, strError)) return false;
     }
 
-    //form the answer:
-    //auto resp_data=jResp["data"];//.array();
-
-    auto resp_data = nlohmann::json::array();
+    // Generate data member of the response.
+    auto& alloc = jResp.GetAllocator();
+    rapidjson::Value data{rapidjson::kArrayType};
+    data.Reserve(cal_entry_count, alloc);
     for (std::size_t i{}; i < cal_entry_count; ++i) {
       const auto& entry = map.atom(type).entry(i);
-      //nlohmann::json jpair={ {{"m", pair.m}, {"b", pair.b}} };
-      nlohmann::json jpair;
-      jpair["m"]=entry.slope();
-      jpair["b"]=entry.offset();
-      resp_data.emplace_back(jpair);
+      const auto m = entry.slope();
+      const auto b = entry.offset();
+      data.PushBack(std::move(rapidjson::Value{rapidjson::kObjectType}
+          .AddMember("m", m, alloc)
+          .AddMember("b", b, alloc)), alloc);
     }
-    jResp["cAtom"]=type;
-    jResp["data"]=resp_data;
+
+    // Fill the response.
+    jResp.RemoveAllMembers();
+    jResp.AddMember("cAtom", catom, alloc);
+    jResp.AddMember("data", std::move(data), alloc);
 
     return true;
 }
 
- void nodeControl::procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct)
- {
-        std::string strError;
-        if(!_procCAtom(jObj, jResp, ct, strError))
-        {
-            //jResp["cAtom"]["error"]["edescr"]=strError;
-
-            nlohmann::json &jerr=jResp["cAtom"]["error"];
-            jerr["edescr"]=strError;
-        }
- }
-
-
+void nodeControl::procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp,
+  const CCmdCallDescr::ctype ct)
+{
+  std::string err;
+  if (!_procCAtom(jObj, jResp, ct, err)) {
+    using Value = rapidjson::Value;
+    auto& alloc = jResp.GetAllocator();
+    jResp.AddMember("cAtom", Value{}, alloc);
+    set_error(jResp, jResp["cAtom"], err);
+  }
+}
 
 void nodeControl::Serialize(CStorage &st)
 {
@@ -206,7 +210,7 @@ void nodeControl::StartRecord(bool how)
     count_mark++;
 
     //generate an event:
-    nlohmann::json v=count_mark;
+    rapidjson::Value v{std::uint64_t{count_mark}};
     Instance().Fire_on_event("Record", v);
 }
 
@@ -228,7 +232,7 @@ int nodeControl::gain_out(int val)
 
 
      //generate an event:
-     nlohmann::json v=val;
+     rapidjson::Value v{val};
      Instance().Fire_on_event("Gain", v);
 
      return val;
@@ -249,7 +253,7 @@ void nodeControl::SetBridge(bool how)
 
 
     //generate an event:
-    nlohmann::json v=how;
+    rapidjson::Value v{how};
     Instance().Fire_on_event("Bridge", v);
 }
 
@@ -286,7 +290,7 @@ void nodeControl::SetMode(int nMode)
 
     //generate an event:
 
-    nlohmann::json v=nMode;
+    rapidjson::Value v{nMode};
     Instance().Fire_on_event("Mode", v);
 }
 int nodeControl::GetMode() const noexcept
@@ -317,6 +321,6 @@ void nodeControl::SetOffset(int nOffs)
         return;
     }
 
-    nlohmann::json v=nOffs;
+    rapidjson::Value v{nOffs};
     Instance().Fire_on_event("Offset", v);
 }

@@ -19,6 +19,7 @@ Copyright (c) 2019 Panda Team
 #include "../base/RawBinStorage.h"
 #include "../json/json_evsys.h"
 #include "../../hat.hpp"
+#include "../json.hpp"
 
 #include <memory>
 
@@ -204,7 +205,7 @@ protected:
          * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
          * \param Data
          */
-        void ApplyCalibrationData(const hat::Calibration_map& map);
+  void ApplyCalibrationData(const hat::Calibration_map& map, std::string& err);
 
         /*!
          * \brief JSON handler to store/retrieve calibration atoms.
@@ -212,7 +213,7 @@ protected:
          * \param jResp -output JSON object
          * \param ct - call type (get or set)
          */
-        bool _procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, std::string &strError);
+  bool _procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError);
 
 public:
         /*!
@@ -221,7 +222,7 @@ public:
          * \param jResp -output JSON object
          * \param ct - call type (get or set)
          */
-        void procCAtom(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct);
+  void procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct);
 
 
 public:
@@ -246,7 +247,8 @@ public:
             {
                 hat::Calibration_map cal_data;
                 m_CalStatus=m_EEPROMstorage.get(cal_data);
-                ApplyCalibrationData(cal_data);
+                std::string err;
+                ApplyCalibrationData(cal_data, err);
             }
         }
 

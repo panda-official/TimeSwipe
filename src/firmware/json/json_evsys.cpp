@@ -8,9 +8,13 @@ Copyright (c) 2019 Panda Team
 #include "../os.h"
 #include "json_evsys.h"
 
-void CJSONEvDispatcher::on_event(const char *key, nlohmann::json &val)
+void CJSONEvDispatcher::on_event(const char* key, rapidjson::Value& val)
 {
-    m_event[key]=val;
+  using Value = rapidjson::Value;
+  auto& alloc = m_event.GetAllocator();
+  if (m_event.FindMember(key) == m_event.MemberEnd())
+    m_event.AddMember(Value{std::string{key}, alloc}, Value{}, alloc);
+  m_event[key].CopyFrom(val, alloc, true);
 }
 typeCRes CJSONEvDispatcher::Call(CCmdCallDescr &d)
 {
@@ -23,10 +27,10 @@ typeCRes CJSONEvDispatcher::Call(CCmdCallDescr &d)
     }
 
     //don't send if there is nothing to send
-    if(!m_event.empty())
+    if (!m_event.ObjectEmpty())
     {
-        *(d.m_pOut)<<m_event.dump();
-        m_event.clear();
+        *(d.m_pOut) << to_text(m_event);
+        m_event.RemoveAllMembers();
     }
     return typeCRes::OK;
 }

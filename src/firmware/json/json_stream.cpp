@@ -7,61 +7,58 @@ Copyright (c) 2019 Panda Team
 
 
 #include "json_stream.h"
+#include "../error.hpp"
 
 void CJSONStream::get(void *pVar, const std::type_info &ti)
 {
-    //JSON native type conv:
-    const nlohmann::json &jo=*m_pJSON;
-
     if(ti==typeid(bool))
     {
-         *(static_cast<bool*>(pVar))=jo;
+      *(static_cast<bool*>(pVar))=value_.GetBool();
     }
     else if(ti==typeid(int))
     {
-        *(static_cast<int*>(pVar))=jo;
+      *(static_cast<int*>(pVar))=value_.GetInt();
     }
     else if(ti==typeid(unsigned int))
     {
-        *(static_cast<unsigned int*>(pVar))=jo;
+      *(static_cast<unsigned int*>(pVar))=value_.GetUint();
     }
     else if(ti==typeid(float))
     {
-        *(static_cast<float*>(pVar))=jo;
+      *(static_cast<float*>(pVar))=value_.GetFloat();
     }
     else if(ti==typeid(std::string))
     {
-        *(static_cast<std::string*>(pVar))=jo;
+      *(static_cast<std::string*>(pVar))=value_.GetString();
     }
 }
 
 void CJSONStream::set(const void *pVar, const std::type_info &ti)
 {
-    //JSON native type conv:
-    nlohmann::json &jo=*m_pJSON;
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(alloc_); // read-only stream
 
     if(ti==typeid(bool))
     {
-         jo=*(static_cast<const bool*>(pVar));
+      value_.SetBool(*(static_cast<const bool*>(pVar)));
     }
     else if(ti==typeid(int))
     {
-        jo=*(static_cast<const int*>(pVar));
+      value_.SetInt(*(static_cast<const int*>(pVar)));
     }
     else if(ti==typeid(unsigned int))
     {
-        jo=*(static_cast<const unsigned int*>(pVar));
+      value_.SetUint(*(static_cast<const unsigned int*>(pVar)));
     }
     else if(ti==typeid(float))
     {
-        jo=*(static_cast<const float*>(pVar));
+      value_.SetFloat(*(static_cast<const float*>(pVar)));
     }
     else if(ti==typeid(const char *))
     {
-        jo=*((const char**)pVar);
+      value_.SetString(static_cast<const char*>(pVar), *alloc_);
     }
     else if(ti==typeid(const std::string))
     {
-        jo=*(static_cast<const std::string*>(pVar));
+      value_.SetString(*static_cast<const std::string*>(pVar), *alloc_);
     }
 }

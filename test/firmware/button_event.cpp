@@ -42,7 +42,7 @@ public:
   void OnTimer(int) override
   {}
 
-  void on_event(const char*, nlohmann::json&) override
+  void on_event(const char*, rapidjson::Value&) override
   {}
 
 protected:

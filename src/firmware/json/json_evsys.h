@@ -29,7 +29,7 @@ struct IJSONEvent
      * \param key The event key (a string name)
      * \param val The event value (a JSON object containig the value)
      */
-    virtual void on_event(const char *key, nlohmann::json &val)=0;
+    virtual void on_event(const char *key, rapidjson::Value& val)=0;
 
     //! default constructor
     IJSONEvent()=default;
@@ -66,43 +66,36 @@ protected:
 class CJSONEvCP
 {
 protected:
-        ~CJSONEvCP(){}
-
-        /*!
-        * \brief A list of connection points for IJSONEvent
-        */
-        std::vector< std::weak_ptr<IJSONEvent> > m_EvSinks;
-
-        /*!
-         * \brief Notify all connected objects with
-         *  a JSON event
-         * \param key The event key (a string name)
-         * \param val The event value (a JSON object containig the value)
-         */
-        void Fire_on_event(const char *key, nlohmann::json &val)
-        {
-            for(std::vector< std::weak_ptr<IJSONEvent> >::const_iterator i=m_EvSinks.begin(); i!=m_EvSinks.end(); i++)
-            {
-                if(i->expired())
-                {
-                   m_EvSinks.erase(i);
-                }
-                else
-                {
-                    i->lock()->on_event(key, val);
-                }
-            }
-        }
+  void Fire_on_event(const char* key, rapidjson::Value& val)
+  {
+    for (auto i = m_EvSinks.begin(); i != m_EvSinks.end(); ++i) {
+      if (i->expired())
+        m_EvSinks.erase(i);
+      else
+        i->lock()->on_event(key, val);
+    }
+  }
 public:
         /*!
          * \brief Subscribe a new listener to the JSON events of derived class (if any)
          * \param A sink to an object to subscribe
          */
-        void AdviseSink(const std::shared_ptr<IJSONEvent> &sink)
+        void AdviseSink(const std::shared_ptr<IJSONEvent>& sink)
         {
             m_EvSinks.emplace_back(sink);
         }
+private:
+  /*!
+   * \brief A list of connection points for IJSONEvent
+   */
+  std::vector< std::weak_ptr<IJSONEvent> > m_EvSinks;
 
+  /*!
+   * \brief Notify all connected objects with
+   *  a JSON event
+   * \param key The event key (a string name)
+   * \param val The event value (a JSON object containig the value)
+   */
 };
 
 /*!
@@ -119,7 +112,7 @@ protected:
     /*!
      * \brief A holder for JSON events
      */
-    nlohmann::json m_event;
+    rapidjson::Document m_event{rapidjson::kObjectType};
 
     /*!
      * \brief A pointer to a command dispatcher
@@ -132,7 +125,7 @@ public:
      * \param key The event key (a string name)
      * \param val The event value (a JSON object containing the value)
      */
-    void on_event(const char *key, nlohmann::json &val) override;
+    void on_event(const char* key, rapidjson::Value& val) override;
 
     /*!
      * \brief A command dispatcher handler override for this class

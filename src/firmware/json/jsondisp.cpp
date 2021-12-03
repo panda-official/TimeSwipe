@@ -9,37 +9,41 @@ Copyright (c) 2019 Panda Team
 #include "json_stream.h"
 //#include "nodeControl.h"
 
-void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr &d, nlohmann::json &jResp)
+void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr& d, rapidjson::Document& jResp)
 {
     //! here we use cmethod::byCmdIndex to enumerate all possible "get" handlers:
-
     CCmdCallDescr CallDescr;    //! the exception mode is set to false
     CallDescr.m_pIn=d.m_pIn; //-!!!
     CallDescr.m_ctype=CCmdCallDescr::ctype::ctGet;
     CallDescr.m_cmethod=CCmdCallDescr::cmethod::byCmdIndex;
 
-    for(CallDescr.m_nCmdIndex=0;; CallDescr.m_nCmdIndex++)
-    {
-        nlohmann::json jval;
-        CJSONStream out(&jval);
-        CallDescr.m_pOut=&out;
-        typeCRes cres=m_pDisp->Call(CallDescr);
-        if(CCmdCallDescr::cres::obj_not_found==cres)
-            break;  //!reached the end of the command table
-        if(CCmdCallDescr::cres::OK==cres)
-        {
-            //!filling the jresp obj: command name will be returned in a CallDescr.m_strCommand
-            jResp[CallDescr.m_strCommand]=jval;
-
-        }
+    auto& alloc = jResp.GetAllocator();
+    jResp.SetObject();
+    for (CallDescr.m_nCmdIndex=0;; CallDescr.m_nCmdIndex++) {
+      rapidjson::Value jval;
+      CJSONStream out(jval, &alloc);
+      CallDescr.m_pOut=&out;
+      typeCRes cres=m_pDisp->Call(CallDescr);
+      if(CCmdCallDescr::cres::obj_not_found==cres)
+        break;  //!reached the end of the command table
+      if (CCmdCallDescr::cres::OK==cres) {
+        //!filling the jresp obj: command name will be returned in a CallDescr.m_strCommand
+        using Value = rapidjson::Value;
+        jResp.AddMember(Value{CallDescr.m_strCommand, alloc}, std::move(jval), alloc);
+        // jResp[CallDescr.m_strCommand]=jval;
+      }
     }
 }
 
-void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &jReq, nlohmann::json &jResp, const CCmdCallDescr::ctype ct)
+void CJSONDispatcher::CallPrimitive(const std::string& strKey, rapidjson::Value& jReq, rapidjson::Document& jResp, rapidjson::Value& resp_root, const CCmdCallDescr::ctype ct)
 {
-    //prepare:
-    CJSONStream in(&jReq);
-    CJSONStream out(&jResp);
+  //prepare:
+    using Value = rapidjson::Value;
+    auto& alloc = jResp.GetAllocator();
+    resp_root.AddMember(Value{strKey, alloc}, Value{}, alloc);
+    resp_root = resp_root[strKey];
+    CJSONStream in(jReq, nullptr);
+    CJSONStream out(resp_root, &alloc);
     CCmdCallDescr CallDescr;
     CallDescr.m_pIn=&in;
     CallDescr.m_pOut=&out;
@@ -62,97 +66,97 @@ void CJSONDispatcher::CallPrimitive(const std::string &strKey, nlohmann::json &j
         {
             if(typeCRes::fget_not_supported==cres)
             {
-                jResp=jReq;
+              resp_root.CopyFrom(jReq, alloc, true);
             }
         }
     }
     catch(const std::exception& ex)
     {
-        cres=typeCRes::parse_err;
-
-        //form an error:
-        nlohmann::json &jerr=jResp["error"];
-        jerr["val"]=jReq;
-        jerr["edescr"]=ex.what();
+      set_error(jResp, resp_root, ex.what(), jReq);
     }
 }
 
-void CJSONDispatcher::Call(nlohmann::json &jObj, nlohmann::json &jResp, const CCmdCallDescr::ctype ct, bool bArrayMode)
+void CJSONDispatcher::Call(rapidjson::Value& jObj,
+  rapidjson::Document& jResp,
+  rapidjson::Value& resp_root,
+  const CCmdCallDescr::ctype ct)
 {
-    nlohmann::json stub=""; //stub
-    for (auto& el : jObj.items()) {
+  auto& alloc = jResp.GetAllocator();
+  const auto process = [&](const rapidjson::Value& key, rapidjson::Value& val)
+  {
+    using Value = rapidjson::Value;
 
-        nlohmann::json &val=el.value();
-        const std::string &strKey=el.key();
-
-        //is it a protocol extension?
-        typeSubMap::iterator pSubHandler=m_SubHandlersMap.find(strKey);
-        if(pSubHandler!=m_SubHandlersMap.end())
-        {
-            //exec handler:
-            typeSubHandler pHandler=pSubHandler->second;
-            //(this->*pHandler)(jObj, jResp, ct);
-            pHandler(jObj, jResp, ct);
-            return;
-        }
-
-        if(val.is_primitive())          //can resolve a call
-        {
-            if(bArrayMode)
-            {
-                if(!val.is_string())
-                {
-                    nlohmann::json &jerr=jResp[strKey]["error"];
-                    jerr["edescr"]="cannot resolve this key!";
-                    continue;
-                }
-                const std::string &strValKey=static_cast<const std::string>(val);
-                if(CCmdCallDescr::ctype::ctGet!=ct)
-                {
-                    nlohmann::json &jerr=jResp[strValKey]["error"];
-                    jerr["edescr"]="cannot resolve single key in non-get call!";
-                    continue;
-                }
-                CallPrimitive(strValKey, stub, jResp[strValKey], ct);
-            }
-            else
-            {
-                CallPrimitive(strKey, val, jResp[strKey], ct);
-            }
-        }
-        else                            //recursy
-        {
-            Call(val, jResp[strKey], ct, val.is_array());
-        }
+    if (!key.IsString()) {
+      resp_root.AddMember("unresolved", Value{}, alloc);
+      set_error(jResp, resp_root["unresolved"], "unresolved reference", key);
+      return true; // continue
     }
+    const std::string key_str = key.GetString();
+
+    //is it a protocol extension?
+    const auto pSubHandler = m_SubHandlersMap.find(key_str);
+    if (pSubHandler != m_SubHandlersMap.end()) {
+      //exec handler:
+      typeSubHandler pHandler = pSubHandler->second;
+      //(this->*pHandler)(jObj, jResp, ct);
+      pHandler(jObj, jResp, ct);
+      return false; // exit Call()
+    }
+
+    // Check the end of possible recursion.
+    if (!val.IsObject()) {
+      if (jObj.IsArray()) {
+        if (ct != CCmdCallDescr::ctype::ctGet) {
+          resp_root.AddMember(Value{key_str, alloc}, Value{}, alloc);
+          set_error(jResp, resp_root[key_str], "not a get-call");
+          return true; // continue
+        }
+        Value stub{""};
+        CallPrimitive(key_str, stub, jResp, resp_root, ct);
+      } else
+        CallPrimitive(key_str, val, jResp, resp_root, ct);
+    } else {
+      // Recursive call.
+      resp_root.AddMember(Value{key_str, alloc}, Value{rapidjson::kObjectType}, alloc);
+      Call(val, jResp, resp_root[key_str], ct);
+    }
+
+    return true; // continue
+  };
+
+  if (jObj.IsArray())
+    for (auto& val : jObj.GetArray())
+      if (!process(val, val)) return;
+  else if (jObj.IsObject())
+    for (auto& el : jObj.GetObject())
+      if (!process(el.name, el.value)) return;
 }
 
 typeCRes CJSONDispatcher::Call(CCmdCallDescr &d)
 {
-    if(IsCmdSubsysLocked())
-        return typeCRes::disabled;
-
-    //! an exception can be thrown wile working with a JSON!
+    if (IsCmdSubsysLocked()) return typeCRes::disabled;
 
     CJSONCmdLock CmdLock(*this); //lock the command sys against recursive calls
 
     std::string str;
-    nlohmann::json jresp;
-
+    rapidjson::Document jresp{rapidjson::kObjectType};
     *(d.m_pIn)>>str;
-     if(str.empty() && CCmdCallDescr::ctype::ctGet==d.m_ctype)
+     if (str.empty() && (d.m_ctype == CCmdCallDescr::ctype::ctGet))
      {
-        DumpAllSettings(d, jresp);
+       DumpAllSettings(d, jresp);
      }
      else
      {
-        if( d.m_pIn->bad())
-            return typeCRes::parse_err;
+        if (d.m_pIn->bad())
+          return typeCRes::parse_err;
 
-        auto cmd=nlohmann::json::parse(str);
-        Call(cmd, jresp, d.m_ctype, cmd.is_array());
+        rapidjson::Document cmd;
+        const rapidjson::ParseResult pr{cmd.Parse(str.data(), str.size())};
+        if (pr)
+          Call(cmd, jresp, jresp, d.m_ctype);
+        else
+          return typeCRes::parse_err;
      }
-
-     *(d.m_pOut)<<jresp.dump();
+     *(d.m_pOut)<<to_text(jresp);
      return typeCRes::OK;
 }
