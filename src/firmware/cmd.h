@@ -47,7 +47,7 @@
  * accesible by a port. By adding number of different port classes communication
  * protocols can be implemented at once.
  */
-struct CCmdCallDescr {
+struct CCmdCallDescr final {
   /// The command in a string format.
   std::string m_strCommand;
 
@@ -109,7 +109,7 @@ struct CCmdCallHandler {
 };
 
 /// A command dispatcher class.
-class  CCmdDispatcher {
+class  CCmdDispatcher final {
 protected:
   /// Dispatching table.
   using typeDispTable = std::map<std::string, std::shared_ptr<CCmdCallHandler>>;
@@ -204,7 +204,7 @@ public:
     , m_pSetter{pSetter}
   {}
 
-  virtual typeCRes Call(CCmdCallDescr &d)
+  typeCRes Call(CCmdCallDescr& d) override
   {
     if (d.m_ctype & CCmdCallDescr::ctype::ctSet) { //set
       if (m_pSetter) {
@@ -240,7 +240,7 @@ public:
  * @tparam typeArg The type of an access point.
  */
 template<typename typeArg>
-class CCmdSGHandlerF : public CCmdCallHandler {
+class CCmdSGHandlerF final : public CCmdCallHandler {
 protected:
     typeArg (*m_pGetter)(void);
     void (*m_pSetter)(typeArg val);

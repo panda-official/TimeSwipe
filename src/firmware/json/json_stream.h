@@ -22,7 +22,7 @@ Copyright (c) 2019 Panda Team
  * primitive data types (int, float, std::string, e.t.c) from/to the JSON object in the CFrmStream style:
  * by extraction(>>) and insertion (<<) operators that allows easy integration to the communication system
  */
-class CJSONStream : public CFrmStream
+class CJSONStream final : public CFrmStream
 {
 protected:
 

@@ -24,8 +24,12 @@
 #define RAPIDJSON_HAS_STDSTRING 1
 #endif
 #ifndef RAPIDJSON_NO_SIZETYPEDEFINE
-#define RAPIDJSON_NO_SIZETYPEDEFINE
+#define RAPIDJSON_NO_SIZETYPEDEFINE 1
 #endif
+#ifndef RAPIDJSON_ALLOCATOR_DEFAULT_CHUNK_CAPACITY
+#define RAPIDJSON_ALLOCATOR_DEFAULT_CHUNK_CAPACITY 128
+#endif
+
 namespace rapidjson {
 using SizeType = std::size_t;
 } // namespace rapidjson
