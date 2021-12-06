@@ -39,23 +39,24 @@ void CJSONStream::set(const void *pVar, const std::type_info &ti)
 
     if(ti==typeid(bool))
     {
-      value_.SetBool(*(static_cast<const bool*>(pVar)));
+      value_.SetBool(*static_cast<const bool*>(pVar));
     }
     else if(ti==typeid(int))
     {
-      value_.SetInt(*(static_cast<const int*>(pVar)));
+      value_.SetInt(*static_cast<const int*>(pVar));
     }
     else if(ti==typeid(unsigned int))
     {
-      value_.SetUint(*(static_cast<const unsigned int*>(pVar)));
+      value_.SetUint(*static_cast<const unsigned int*>(pVar));
     }
     else if(ti==typeid(float))
     {
-      value_.SetFloat(*(static_cast<const float*>(pVar)));
+      value_.SetFloat(*static_cast<const float*>(pVar));
     }
     else if(ti==typeid(const char *))
     {
-      value_.SetString(static_cast<const char*>(pVar), *alloc_);
+      const auto* const* const str = static_cast<const char* const*>(pVar);
+      value_.SetString(*str, *alloc_);
     }
     else if(ti==typeid(const std::string))
     {

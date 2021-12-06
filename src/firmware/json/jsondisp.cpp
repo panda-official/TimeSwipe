@@ -17,33 +17,43 @@ void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr& d, rapidjson::Documen
     CallDescr.m_ctype=CCmdCallDescr::ctype::ctGet;
     CallDescr.m_cmethod=CCmdCallDescr::cmethod::byCmdIndex;
 
+    using Value = rapidjson::Value;
     auto& alloc = jResp.GetAllocator();
     jResp.SetObject();
     for (CallDescr.m_nCmdIndex=0;; CallDescr.m_nCmdIndex++) {
-      rapidjson::Value jval;
-      CJSONStream out(jval, &alloc);
+      rapidjson::Value result;
+      CJSONStream out(result, &alloc);
       CallDescr.m_pOut=&out;
-      typeCRes cres=m_pDisp->Call(CallDescr);
-      if(CCmdCallDescr::cres::obj_not_found==cres)
-        break;  //!reached the end of the command table
-      if (CCmdCallDescr::cres::OK==cres) {
-        //!filling the jresp obj: command name will be returned in a CallDescr.m_strCommand
-        using Value = rapidjson::Value;
-        jResp.AddMember(Value{CallDescr.m_strCommand, alloc}, std::move(jval), alloc);
-        // jResp[CallDescr.m_strCommand]=jval;
+      switch (m_pDisp->Call(CallDescr)) {
+      case CCmdCallDescr::cres::OK:
+        jResp.AddMember(Value{CallDescr.m_strCommand, alloc},
+          std::move(result), alloc);
+        break;
+      case CCmdCallDescr::cres::obj_not_found:
+        return; // end of command table
       }
     }
 }
 
-void CJSONDispatcher::CallPrimitive(const std::string& strKey, rapidjson::Value& jReq, rapidjson::Document& jResp, rapidjson::Value& resp_root, const CCmdCallDescr::ctype ct)
+void CJSONDispatcher::CallPrimitive(const std::string& strKey,
+  rapidjson::Value& jReq,
+  rapidjson::Document& jResp,
+  rapidjson::Value& resp_root,
+  const CCmdCallDescr::ctype ct)
 {
   //prepare:
     using Value = rapidjson::Value;
     auto& alloc = jResp.GetAllocator();
-    resp_root.AddMember(Value{strKey, alloc}, Value{}, alloc);
-    resp_root = resp_root[strKey];
+
+    /*
+     * Add the result member only if it is not added already. Thus, for example,
+     * the result of ["Temp", "Temp"] request shall contains only 1 "Temp" value.
+     */
+    if (resp_root.FindMember(strKey) == resp_root.MemberEnd())
+      resp_root.AddMember(Value{strKey, alloc}, Value{}, alloc);
+    auto& result = resp_root[strKey];
     CJSONStream in(jReq, nullptr);
-    CJSONStream out(resp_root, &alloc);
+    CJSONStream out(result, &alloc);
     CCmdCallDescr CallDescr;
     CallDescr.m_pIn=&in;
     CallDescr.m_pOut=&out;
@@ -66,13 +76,13 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey, rapidjson::Value&
         {
             if(typeCRes::fget_not_supported==cres)
             {
-              resp_root.CopyFrom(jReq, alloc, true);
+              result.CopyFrom(jReq, alloc, true);
             }
         }
     }
     catch(const std::exception& ex)
     {
-      set_error(jResp, resp_root, ex.what(), jReq);
+      set_error(jResp, result, ex.what(), jReq);
     }
 }
 
@@ -111,10 +121,8 @@ void CJSONDispatcher::Call(rapidjson::Value& jObj,
           set_error(jResp, resp_root[key_str], "not a get-call");
           return true; // continue
         }
-        Value stub{""};
-        CallPrimitive(key_str, stub, jResp, resp_root, ct);
-      } else
-        CallPrimitive(key_str, val, jResp, resp_root, ct);
+      }
+      CallPrimitive(key_str, val, jResp, resp_root, ct);
     } else {
       // Recursive call.
       resp_root.AddMember(Value{key_str, alloc}, Value{rapidjson::kObjectType}, alloc);
@@ -124,15 +132,16 @@ void CJSONDispatcher::Call(rapidjson::Value& jObj,
     return true; // continue
   };
 
-  if (jObj.IsArray())
+  if (jObj.IsArray()) {
     for (auto& val : jObj.GetArray())
       if (!process(val, val)) return;
-  else if (jObj.IsObject())
+  } else if (jObj.IsObject()) {
     for (auto& el : jObj.GetObject())
       if (!process(el.name, el.value)) return;
+  }
 }
 
-typeCRes CJSONDispatcher::Call(CCmdCallDescr &d)
+typeCRes CJSONDispatcher::Call(CCmdCallDescr& d)
 {
     if (IsCmdSubsysLocked()) return typeCRes::disabled;
 

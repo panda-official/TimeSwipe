@@ -38,14 +38,14 @@ public:
      * \param pVar void pointer to an extracted variable
      * \param ti variable type
      */
-    virtual void get(void *pVar, const std::type_info &ti);
+    void get(void *pVar, const std::type_info &ti) override;
 
     /*!
      * \brief Insertion operator helper override for this class
      * \param pVar void pointer to an inserted variable
      * \param ti variable type
      */
-    virtual void set(const void *pVar, const std::type_info &ti);
+    void set(const void *pVar, const std::type_info &ti) override;
 
     /*!
      * \brief The class constructor
