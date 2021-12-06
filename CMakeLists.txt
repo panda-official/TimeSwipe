@@ -76,6 +76,12 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     set(sam_startup_file "same53/gcc/startup_ARMCM4_E53.S")
     set(sam_sram_linker_file "src/3rdparty/same53/gcc/gcc_E53_RAM.ld")
     set(sam_flash_linker_file "src/3rdparty/same53/gcc/gcc_E53.ld")
+    # SAME53 is too small to fit full debug info without -Og at the moment.
+    foreach(cfg DEBUG RELWITHDEBINFO)
+      foreach(lang ASM C CXX)
+        set(CMAKE_${lang}_FLAGS_${cfg} "-g -Og")
+      endforeach()
+    endforeach()
   else()
     message(FATAL_ERROR "Unsupported model of SAM - ${PANDA_TIMESWIPE_FIRMWARE_SAM}")
   endif()
@@ -130,6 +136,7 @@ endif()
 # Languages
 # ------------------------------------------------------------------------------
 
+enable_language(C)
 enable_language(CXX)
 set(CXX_STANDARD_REQUIRED On)
 set(CMAKE_CXX_STANDARD 17)
@@ -344,9 +351,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
 
   add_library(firmware STATIC ${firmware_src})
   target_compile_definitions(firmware PUBLIC
-    # Nlohmann JSON
-    NLOHMANN_JSON_CUSTOM_STDIO_FRM
-
     # sam
     ${sam_compile_definitions}
 
