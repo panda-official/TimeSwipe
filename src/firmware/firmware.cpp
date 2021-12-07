@@ -103,7 +103,7 @@ int main()
     pEEPROM_MemBuf->reserve(EEPROMsize); // reserve for EEPROM data
 
     //creating an I2C EEPROM master to operate with an external chip:
-    auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
+    auto pEEPROM_MasterBus= std::make_shared<Sam_i2c_eeprom_master>();
     pEEPROM_MasterBus->EnableIRQs(true);
 
     //request data from an external chip:
@@ -357,8 +357,8 @@ int main()
         &CCalFWbtnHandler::HasUItestBeenDone,
         &CCalFWbtnHandler::StartUItest) );
     //testing Ext EEPROM:
-    pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<CSamI2CeepromMaster, bool> >(pEEPROM_MasterBus,
-        &CSamI2CeepromMaster::GetSelfTestResult,  &CSamI2CeepromMaster::RunSelfTest) );
+    pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<Sam_i2c_eeprom_master, bool> >(pEEPROM_MasterBus,
+        &Sam_i2c_eeprom_master::GetSelfTestResult,  &Sam_i2c_eeprom_master::RunSelfTest) );
 
     pDisp->Add("CalEnable", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsCalEnabled,  &nodeControl::EnableCal) );
 

@@ -21,13 +21,16 @@
 
 #include "sercom.hpp"
 
-/*!
-* \brief An I2C master class for communication with an external EEPROM chip ( CAT2430 )
-* \details This is a fullfeatured service version,  chip read/write functions are implemented.
-* For reading the chip data, ISerial interface is used.
-* EEPROMmemory address an a count of data to read are set by method CSamI2CeepromMaster::SetDataAddrAndCountLim.
+/**
+* @brief An I2C master class for communication with an external EEPROM chip
+* (CAT2430).
+*
+* @details This is a fully featured service version: read/write functional is
+* implemented. Data is reading by using ISerial interface. The EEPROM memory
+* address and the amount of data to read are set by method
+* Sam_i2c_eeprom_master::SetDataAddrAndCountLim.
 */
-class CSamI2CeepromMaster final : public Sam_sercom {
+class Sam_i2c_eeprom_master final : public Sam_sercom {
 public:
     //! Finite State Machine used to handle I2C bus states according to communication algorithm (see CAT24C32 manual)
         enum    FSM{
@@ -86,7 +89,7 @@ public:
      * 4) turns SERCOM to I2C master
      * 5) performs final tuning and enables SERCOM I2 master
      */
-    CSamI2CeepromMaster();
+    Sam_i2c_eeprom_master();
 
     /*!
          * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)

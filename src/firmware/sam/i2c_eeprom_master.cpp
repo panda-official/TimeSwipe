@@ -27,7 +27,7 @@
 Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2CM(nSercom) &(glob_GetSercomPtr(nSercom)->I2CM) //ptr to a master section
 
-CSamI2CeepromMaster::CSamI2CeepromMaster()
+Sam_i2c_eeprom_master::Sam_i2c_eeprom_master()
   : Sam_sercom{Id::sercom6}
 {
     PORT->Group[3].DIRSET.reg=(1L<<10);
@@ -45,7 +45,7 @@ CSamI2CeepromMaster::CSamI2CeepromMaster()
 
 }
 
-void CSamI2CeepromMaster::reset_chip_logic()
+void Sam_i2c_eeprom_master::reset_chip_logic()
 {
     //! disconnecting pins from I2C bus since we cannot use its interface
 
@@ -65,7 +65,7 @@ void CSamI2CeepromMaster::reset_chip_logic()
 }
 
 #define SYNC_BUS(pBus) while(pBus->SYNCBUSY.bit.SYSOP){}
-void CSamI2CeepromMaster::setup_bus()
+void Sam_i2c_eeprom_master::setup_bus()
 {
     //SCL:
     PORT->Group[3].PMUX[4].bit.PMUXE=0x03;
@@ -112,7 +112,7 @@ void CSamI2CeepromMaster::setup_bus()
     }
 }
 
-void CSamI2CeepromMaster::check_reset()
+void Sam_i2c_eeprom_master::check_reset()
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
@@ -125,7 +125,7 @@ void CSamI2CeepromMaster::check_reset()
 
 
 
-void CSamI2CeepromMaster::SetWriteProtection(bool how)
+void Sam_i2c_eeprom_master::SetWriteProtection(bool how)
 {
     if(how)
     {
@@ -139,7 +139,7 @@ void CSamI2CeepromMaster::SetWriteProtection(bool how)
     }
 }
 
-bool CSamI2CeepromMaster::write_next_page() //since only 1 page can be written at once
+bool Sam_i2c_eeprom_master::write_next_page() //since only 1 page can be written at once
 {
     int pbl=m_nPageSize - m_nCurMemAddr%m_nPageSize;
     m_nPageBytesLeft=pbl;
@@ -159,7 +159,7 @@ bool CSamI2CeepromMaster::write_next_page() //since only 1 page can be written a
     return false;
 }
 
-bool CSamI2CeepromMaster::__send(CFIFO &msg)  //blocking call
+bool Sam_i2c_eeprom_master::__send(CFIFO &msg)  //blocking call
 {
     m_nCurMemAddr=m_nMemAddr; //rewind mem addr
     m_pBuf=&msg;
@@ -178,7 +178,7 @@ bool CSamI2CeepromMaster::__send(CFIFO &msg)  //blocking call
     m_pBuf=nullptr;
     return bPageWriteResult;
 }
-bool CSamI2CeepromMaster::__sendRB(CFIFO &msg)  //blocking call
+bool Sam_i2c_eeprom_master::__sendRB(CFIFO &msg)  //blocking call
 {
     m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
@@ -195,7 +195,7 @@ bool CSamI2CeepromMaster::__sendRB(CFIFO &msg)  //blocking call
     return (FSM::halted==m_MState);
 }
 
-bool CSamI2CeepromMaster::send(CFIFO &msg)  //blocking call
+bool Sam_i2c_eeprom_master::send(CFIFO &msg)  //blocking call
 {
     bool bPageWriteResult=false;
 SetWriteProtection(false);
@@ -218,7 +218,7 @@ SetWriteProtection(false);
 SetWriteProtection(true);
     return bPageWriteResult;
 }
-bool CSamI2CeepromMaster::receive(CFIFO &msg) //blocking call
+bool Sam_i2c_eeprom_master::receive(CFIFO &msg) //blocking call
 {
     m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
@@ -236,7 +236,7 @@ bool CSamI2CeepromMaster::receive(CFIFO &msg) //blocking call
 }
 
 //helpers:
-void CSamI2CeepromMaster::StartTranfer(bool how)
+void Sam_i2c_eeprom_master::StartTranfer(bool how)
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
@@ -251,7 +251,7 @@ void CSamI2CeepromMaster::StartTranfer(bool how)
 
 }
 
-bool CSamI2CeepromMaster::test_mem_area(CFIFO &TestPattern, int nStartAddr)
+bool Sam_i2c_eeprom_master::test_mem_area(CFIFO &TestPattern, int nStartAddr)
 {
     CFIFO ReadBuf;
 
@@ -287,7 +287,7 @@ bool CSamI2CeepromMaster::test_mem_area(CFIFO &TestPattern, int nStartAddr)
 }
 
 //fast self-test:
-bool CSamI2CeepromMaster::self_test_proc()
+bool Sam_i2c_eeprom_master::self_test_proc()
 {
     CFIFO PageTestPattern;
 
@@ -308,7 +308,7 @@ bool CSamI2CeepromMaster::self_test_proc()
 }
 
 
-void CSamI2CeepromMaster::RunSelfTest(bool bHow)
+void Sam_i2c_eeprom_master::RunSelfTest(bool bHow)
 {
 
 SetWriteProtection(false);
@@ -318,7 +318,7 @@ SetWriteProtection(true);
 }
 
 //IRQ handling:
-void CSamI2CeepromMaster::IRQhandler()
+void Sam_i2c_eeprom_master::IRQhandler()
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
@@ -427,27 +427,27 @@ void CSamI2CeepromMaster::IRQhandler()
     }
 }
 
-void CSamI2CeepromMaster::handle_irq0()
+void Sam_i2c_eeprom_master::handle_irq0()
 {
     IRQhandler();
 }
 
-void CSamI2CeepromMaster::handle_irq1()
+void Sam_i2c_eeprom_master::handle_irq1()
 {
     IRQhandler();
 }
 
-void CSamI2CeepromMaster::handle_irq2()
+void Sam_i2c_eeprom_master::handle_irq2()
 {
     IRQhandler();
 }
 
-void CSamI2CeepromMaster::handle_irq3()
+void Sam_i2c_eeprom_master::handle_irq3()
 {
     IRQhandler();
 }
 
-void CSamI2CeepromMaster::EnableIRQs(bool how)
+void Sam_i2c_eeprom_master::EnableIRQs(bool how)
 {
     //select ptr:
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
@@ -472,12 +472,12 @@ void CSamI2CeepromMaster::EnableIRQs(bool how)
 }
 
 //+++new mem int:
-void CSamI2CeepromMaster::rewindMemBuf()
+void Sam_i2c_eeprom_master::rewindMemBuf()
 {
     if(m_pBuf)
         m_pBuf->rewind();
 }
-int CSamI2CeepromMaster::readB()
+int Sam_i2c_eeprom_master::readB()
 {
     if(!m_pBuf)
         return -1;
@@ -490,7 +490,7 @@ int CSamI2CeepromMaster::readB()
     (*m_pBuf)>>ch;
     return ch;
 }
-int CSamI2CeepromMaster::writeB(int val)
+int Sam_i2c_eeprom_master::writeB(int val)
 {
     if(!m_pBuf)
         return -1;
