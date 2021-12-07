@@ -71,15 +71,6 @@ public:
    */
   Sam_i2c_eeprom_master();
 
-  /// Resets EEPROM chip logic if it hangs and makes the bus busy.
-  void reset_chip_logic();
-
-  /// Performs initial bus setup (pinout, modes, speed with an initial reset).
-  void setup_bus();
-
-  /// Checks bus state and perfoms a chip reset/bus reinit if needed.
-  void check_reset();
-
   /// Enables or disables IRQ mode.
   void enable_irq(bool enabled);
 
@@ -90,80 +81,50 @@ public:
   }
 
   /// Sets the EEPROM chip target address.
-  void SetDeviceAddr(const int addr)
+  void set_eeprom_chip_address(const int addr)
   {
-    m_nDevAddr = addr;
+    eeprom_chip_address_ = addr;
   }
 
   /// @returns A EEPROM chip address.
-  int device_address() const noexcept
+  int eeprom_chip_address() const noexcept
   {
-    return m_nDevAddr;
-  }
-
-  /**
-   * @brief Sets the EEPROM base address for reading/writing data and the
-   * maximum amount of data to read.
-   *
-   * @param base_addr An initial data address to read data from.
-   * @param limit A maximum data amount to be read.
-   */
-  void SetDataAddrAndCountLim(const int base_addr, const int limit)
-  {
-    m_nMemAddr = base_addr;
-    m_nReadDataCountLim = limit;
-  }
-
-  /// @returns A maximum amount of data to read out.
-  int max_read_amount() const noexcept
-  {
-    return m_nReadDataCountLim;
+    return eeprom_chip_address_;
   }
 
   /// Sets the EEPROM base address for reading/writing data.
-  void SetDataAddr(const int base_addr)
+  void set_eeprom_base_address(const int base_addr)
   {
-    m_nMemAddr = base_addr;
+    eeprom_base_address_ = base_addr;
   }
 
   /// @returns A EEPROM memory address.
-  int base_address() const noexcept
+  int eeprom_base_address() const noexcept
   {
-    return m_nMemAddr;
-  }
-
-  /// @returns A current reading address.
-  int current_reading_address() const noexcept
-  {
-    return m_nCurMemAddr;
+    return eeprom_base_address_;
   }
 
   /**
-   * @brief Writes data to the set address with the maximum number m_nReadDataCountLim.
+   * @brief The maximum amount of data to read out.
    *
-   * @param msg A buffer contaning the data to write.
-   *
-   * @returns `true` on success.
-   *
-   * @remarks This function blocks the current thread.
+   * @param amount A maximum data amount to be read.
    */
-  bool send(CFIFO& msg) override;
+  void set_eeprom_max_read_amount(const int amount)
+  {
+    eeprom_max_read_amount_ = amount;
+  }
 
-  /**
-   * @brief Gets data from the set address with the maximum number m_nReadDataCountLim.
-   *
-   * @param msg A buffer to receive the data.
-   *
-   * @returns `true` on success.
-   *
-   * @remarks This function blocks the current thread.
-   */
-  bool receive(CFIFO &msg) override;
+  /// @returns A maximum amount of data to read out.
+  int eeprom_max_read_amount() const noexcept
+  {
+    return eeprom_max_read_amount_;
+  }
 
   /**
    * @brief Starts chip self-test.
    *
-   * @details Write chip with an arbitrary data, then read back and compare This is a wrapper to be used with a command processor.
+   * @details Write chip with an arbitrary data, then read back and compare.
+   * This is a wrapper to be used with a command processor.
    */
   void run_self_test(bool);
 
@@ -173,28 +134,46 @@ public:
     return self_test_result_;
   }
 
-  /// @returns The current I2C bus state.
-  State state() const noexcept
-  {
-    return state_;
-  }
+  /**
+   * @brief Writes data to the set address.
+   *
+   * @details `data` size cannot be greater than eeprom_max_read_amount().
+   *
+   * @param data A buffer contaning the data to write.
+   *
+   * @returns `true` on success.
+   *
+   * @remarks This function blocks the current thread.
+   */
+  bool send(CFIFO& data) override;
 
-  /// @returns IO direction.
-  Io_direction io_direction() const noexcept
-  {
-    return io_direction_;
-  }
+  /**
+   * @brief Gets data from the set address.
+   *
+   * @details `data` size cannot be greater than eeprom_max_read_amount().
+   *
+   * @param data A buffer to receive the data.
+   *
+   * @returns `true` on success.
+   *
+   * @remarks This function blocks the current thread.
+   */
+  bool receive(CFIFO& data) override;
 
-  bool is_compare_read_mode() const noexcept
-  {
-    return m_bCmpReadMode;
-  }
+private:
+  State state_{State::halted};
+  bool is_irq_enabled_{};
+  Io_direction io_direction_{Io_direction::read};
+  bool self_test_result_{};
+  bool is_compare_read_mode_{};
+  int eeprom_chip_address_{0xA0};
+  int eeprom_base_address_{};
+  int eeprom_current_address_{};
+  int eeprom_max_read_amount_{4096};
+  int page_bytes_left_{};
 
-  /// @returns The number of EEPROM pages to write.
-  int page_count_to_write() const noexcept
-  {
-    return m_nPageBytesLeft;
-  }
+  std::shared_ptr<Sam_clock_generator> clock_generator_;
+  CFIFO* io_buffer_{};
 
   /// @returns The size of the EEPROM page.
   static constexpr int page_size() noexcept
@@ -208,20 +187,14 @@ public:
     return 500;
   }
 
-private:
-  State state_{State::halted};
-  bool is_irq_enabled_{};
-  Io_direction io_direction_{Io_direction::read};
-  bool self_test_result_{};
-  bool m_bCmpReadMode{};
-  int m_nDevAddr{0xA0};
-  int m_nMemAddr{};
-  int m_nCurMemAddr{};
-  int m_nReadDataCountLim{4096};
-  int m_nPageBytesLeft{};
+  /// Resets EEPROM chip logic if it hangs and makes the bus busy.
+  void reset_chip_logic();
 
-  std::shared_ptr<Sam_clock_generator> m_pCLK; // clock generator
-  CFIFO *m_pBuf=nullptr; // IO buffer
+  /// Performs initial bus setup (pinout, modes, speed with an initial reset).
+  void setup_bus();
+
+  /// Checks bus state and perfoms a chip reset/bus reinit if needed.
+  void check_reset();
 
   /// I2C bus IRQ handler.
   void handle_irq();
@@ -278,13 +251,13 @@ private:
    * @brief Perfoms send data to EEPROM operation without toggling write
    * protection pin (used in self-test cycle).
    *
-   * @param msg A data to be written.
+   * @param data A data to be written.
    *
    * @returns `true` on success.
    *
    * @remarks This function blocks the current thread.
    */
-  bool __send(CFIFO &msg);
+  bool __send(CFIFO& data);
 
   /**
    * @brief Compares EEPROM content with given data.

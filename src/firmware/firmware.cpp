@@ -107,8 +107,9 @@ int main()
     pEEPROM_MasterBus->enable_irq(true);
 
     //request data from an external chip:
-    pEEPROM_MasterBus->SetDataAddrAndCountLim(0, EEPROMsize);
-    pEEPROM_MasterBus->SetDeviceAddr(0xA0);
+    pEEPROM_MasterBus->set_eeprom_base_address(0);
+    pEEPROM_MasterBus->set_eeprom_max_read_amount(EEPROMsize);
+    pEEPROM_MasterBus->set_eeprom_chip_address(0xA0);
     pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
 
     //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
