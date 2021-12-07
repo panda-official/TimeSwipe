@@ -358,7 +358,7 @@ int main()
         &CCalFWbtnHandler::StartUItest) );
     //testing Ext EEPROM:
     pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<Sam_i2c_eeprom_master, bool> >(pEEPROM_MasterBus,
-        &Sam_i2c_eeprom_master::GetSelfTestResult,  &Sam_i2c_eeprom_master::run_self_test) );
+        &Sam_i2c_eeprom_master::self_test_result, &Sam_i2c_eeprom_master::run_self_test) );
 
     pDisp->Add("CalEnable", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsCalEnabled,  &nodeControl::EnableCal) );
 

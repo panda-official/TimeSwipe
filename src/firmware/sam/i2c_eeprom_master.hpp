@@ -168,7 +168,7 @@ public:
   void run_self_test(bool);
 
   /// @returns `true` if the last self-test operation was successful.
-  bool GetSelfTestResult() const noexcept
+  bool self_test_result() const noexcept
   {
     return self_test_result_;
   }
