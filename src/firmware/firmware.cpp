@@ -104,7 +104,7 @@ int main()
 
     //creating an I2C EEPROM master to operate with an external chip:
     auto pEEPROM_MasterBus= std::make_shared<Sam_i2c_eeprom_master>();
-    pEEPROM_MasterBus->EnableIRQs(true);
+    pEEPROM_MasterBus->enable_irq(true);
 
     //request data from an external chip:
     pEEPROM_MasterBus->SetDataAddrAndCountLim(0, EEPROMsize);

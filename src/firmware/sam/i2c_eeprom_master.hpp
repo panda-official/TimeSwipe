@@ -94,10 +94,13 @@ public:
    */
   bool self_test_proc();
 
+  /// Enables or disables IRQ mode.
+  void enable_irq(bool enabled);
+
   /// @returns `true` if interrupt mode (SERCOM interrupt lines) are enabled.
-  bool isIRQmode() const noexcept
+  bool is_irq_enabled() const noexcept
   {
-    return m_bIRQmode;
+    return is_irq_enabled_;
   }
 
   /// Sets the EEPROM chip target address.
@@ -148,9 +151,6 @@ public:
   {
     return m_nCurMemAddr;
   }
-
-  /// Enables or disables IRQ mode.
-  void EnableIRQs(bool enable);
 
   /**
    * @brief Writes data to the set address with the maximum number m_nReadDataCountLim.
@@ -224,7 +224,7 @@ public:
 
 private:
   State state_{State::halted};
-  bool m_bIRQmode{};
+  bool is_irq_enabled_{};
   bool m_IOdir{}; // IO direction: `true` means "writing".
   bool m_bSelfTestResult{};
   bool m_bCmpReadMode{};

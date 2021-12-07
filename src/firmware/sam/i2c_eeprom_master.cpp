@@ -95,10 +95,8 @@ void Sam_i2c_eeprom_master::setup_bus()
 
     //! if it was an IRQ mode don't forget to restart it:
 
-    if(m_bIRQmode)
-    {
-        EnableIRQs(true);
-    }
+    if (is_irq_enabled_)
+      enable_irq(true);
 
     //enable:
     pI2Cm->CTRLA.bit.ENABLE=1;
@@ -445,28 +443,23 @@ void Sam_i2c_eeprom_master::handle_irq3()
   handle_irq();
 }
 
-void Sam_i2c_eeprom_master::EnableIRQs(bool how)
+void Sam_i2c_eeprom_master::enable_irq(const bool enabled)
 {
-    //select ptr:
-    SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
+  is_irq_enabled_ = enabled;
+  SercomI2cm* const i2cm = SELECT_SAMI2CM(id());
+  PANDA_TIMESWIPE_FIRMWARE_ASSERT(i2cm);
+  if (is_irq_enabled_)
+    i2cm->INTENSET.reg =
+      SERCOM_I2CM_INTENSET_MB |   // master on bus
+      SERCOM_I2CM_INTENSET_SB |   // slave on bus
+      SERCOM_I2CM_INTENSET_ERROR; // bus error
+  else
+    // Clear all.
+    i2cm->INTENCLR.reg = SERCOM_I2CM_INTENSET_MASK;
 
-    m_bIRQmode=how;
-    if(how)
-    {
-        //master on bus, slave on bus, bus error
-        pI2Cm->INTENSET.reg=(SERCOM_I2CM_INTENSET_MB|SERCOM_I2CM_INTENSET_SB|SERCOM_I2CM_INTENSET_ERROR);
-    }
-    else
-    {
-        //clear all:
-        pI2Cm->INTENCLR.reg=SERCOM_I2CM_INTENSET_MASK;
-    }
-
-    //tune NVIC:
-    Sam_sercom::enable_irq(Irq::irq0, how);
-    Sam_sercom::enable_irq(Irq::irq1, how);
-    Sam_sercom::enable_irq(Irq::irq2, how);
-    Sam_sercom::enable_irq(Irq::irq3, how);
+  // Tune NVIC.
+  for (const auto irq : {Irq::irq0, Irq::irq1, Irq::irq2, Irq::irq3})
+    Sam_sercom::enable_irq(irq, is_irq_enabled_);
 }
 
 //+++new mem int:
