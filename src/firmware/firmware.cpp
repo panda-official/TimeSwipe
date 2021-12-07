@@ -35,7 +35,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/button.hpp"
 #include "sam/SamSPIbase.h"
 #include "sam/SamQSPI.h"
-#include "sam/SamI2CeepromMaster.h"
+#include "sam/i2c_eeprom_master.hpp"
 #include "sam/SamADCcntr.h"
 #include "sam/SamDACcntr.h"
 #include "sam/SamService.h"

@@ -7,7 +7,7 @@ Copyright (c) 2019 Panda Team
 
 #include "../error.hpp"
 #include "../os.h"
-#include "SamI2CeepromMaster.h"
+#include "i2c_eeprom_master.hpp"
 
 #include <sam.h>
 

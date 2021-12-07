@@ -290,8 +290,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SamDACcntr.h
     SamDMAC.cpp
     SamDMAC.h
-    SamI2CeepromMaster.cpp
-    SamI2CeepromMaster.h
     SamI2Cmem.cpp
     SamI2Cmem.h
     SamNVMCTRL.cpp
@@ -312,6 +310,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     cortex_handlers.cpp
     clock_generator.cpp
     clock_generator.hpp
+    i2c_eeprom_master.cpp
+    i2c_eeprom_master.hpp
     pin.cpp
     pin.hpp
     sercom.cpp
