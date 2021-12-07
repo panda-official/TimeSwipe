@@ -23,7 +23,7 @@
 
 /**
 * @brief An I2C master class for communication with an external EEPROM chip
-* (CAT2430).
+* (CAT24C32).
 *
 * @details This is a fully featured service version: read/write functional is
 * implemented. Data is reading by using ISerial interface. The EEPROM memory
@@ -32,276 +32,288 @@
 */
 class Sam_i2c_eeprom_master final : public Sam_sercom {
 public:
-    //! Finite State Machine used to handle I2C bus states according to communication algorithm (see CAT24C32 manual)
-        enum    FSM{
+  /**
+   * @brief I2C bus state according to the communication algorithm.
+   *
+   * @see CAT24C32 manual
+   */
+  enum class State {
+    /// Stopped, idle state.
+    halted,
+    /// A start/repeated start condition met.
+    start,
+    /// A high address byte written.
+    addrHb,
+    /// A low address byte written.
+    addrLb,
+    /// Continuous data read mode until the EOF.
+    read,
+    /// Continuous data write mode.
+    write,
+    /// An error occurred during transmission.
+    errTransfer,
+    /// An error occured during data comparison.
+    errCmp
+  };
 
-            halted,     //!< stopped, idle state
+  /**
+   * @brief The class constructor.
+   *
+   * @details The constructor does the following:
+   *   - calls Sam_sercom constructor;
+   *   - enables communication bus with corresponding SERCOM;
+   *   - setups corresponding PINs and its multiplexing;
+   *   - turns SERCOM to I2C master;
+   *   - performs final tuning and enables SERCOM I2 master.
+   */
+  Sam_i2c_eeprom_master();
 
-            start,      //!< A start/repeated start condition was met
-            addrHb,     //!< A high address byte was written
-            addrLb,     //!< A low address byte was written
+  /// Resets EEPROM chip logic if it hangs and makes the bus busy.
+  void reset_chip_logic();
 
-            read,       //!< Continuous data read mode until the EOF
-            write,      //!< Continuous data write mode
+  /// Performs initial bus setup (pinout, modes, speed with an initial reset).
+  void setup_bus();
 
-            errTransfer, //! An error occurred during transmission
-            errCmp      //! An error occured during data comparation
-        };
+  /// Checks bus state and perfoms a chip reset/bus reinit if needed.
+  void check_reset();
 
-    /*!
-     * \brief reset_chip_logic: reset EEPROM chip logic if it hangs and makes the bus busy
-     */
-    void reset_chip_logic();
+  /**
+   * @brief Tests selected EEPROM area.
+   *
+   * @param pattern A pattern to test with.
+   * @param offset A start address of EEPROM area.
+   *
+   * @returns `true` on success.
+   */
+  bool test_mem_area(CFIFO& pattern, int offset);
 
-    /*!
-     * \brief setup_bus: initial bus setup(pinout, modes, speed with an initial reset)
-     */
+  /**
+   * @brief Self test process.
+   *
+   * @returns `true` on success.
+   */
+  bool self_test_proc();
 
-    void setup_bus();
+  /// @returns `true` if interrupt mode (SERCOM interrupt lines) are enabled.
+  bool isIRQmode() const noexcept
+  {
+    return m_bIRQmode;
+  }
 
-    /*!
-     * \brief check_reset: check bus state and perfom a chip reset/bus reinit if needed.
-     */
+  /// Sets the EEPROM chip target address.
+  void SetDeviceAddr(const int addr)
+  {
+    m_nDevAddr = addr;
+  }
 
-    void check_reset();
+  /// @returns A EEPROM chip address.
+  int device_address() const noexcept
+  {
+    return m_nDevAddr;
+  }
 
-    /*!
-     * \brief Tests selected area of the EEPROM
-     * \param TestPattern - a pattern to test with
-     * \param nStartAddr -the start address of the EEPROM area
-     * \return true on succes, false on error
-     */
-    bool test_mem_area(CFIFO &TestPattern, int nStartAddr);
+  /**
+   * @brief Sets the EEPROM base address for reading/writing data and the
+   * maximum amount of data to read.
+   *
+   * @param base_addr An initial data address to read data from.
+   * @param limit A maximum data amount to be read.
+   */
+  void SetDataAddrAndCountLim(const int base_addr, const int limit)
+  {
+    m_nMemAddr = base_addr;
+    m_nReadDataCountLim = limit;
+  }
 
+  /// @returns A maximum amount of data to read out.
+  int max_read_amount() const noexcept
+  {
+    return m_nReadDataCountLim;
+  }
 
-    /*!
-     * \brief Self test process
-     * \return true on succes, false on error
-     */
-    bool self_test_proc();
+  /// Sets the EEPROM base address for reading/writing data.
+  void SetDataAddr(const int base_addr)
+  {
+    m_nMemAddr = base_addr;
+  }
 
-    /*!
-     * \brief The class constructor
-     * \details The constructor does the following:
-     * 1) calls Sam_sercom constructor
-     * 2) enables communication bus with corresponding SERCOM
-     * 3) setups corresponding PINs and its multiplexing
-     * 4) turns SERCOM to I2C master
-     * 5) performs final tuning and enables SERCOM I2 master
-     */
-    Sam_i2c_eeprom_master();
+  /// @returns A EEPROM memory address.
+  int base_address() const noexcept
+  {
+    return m_nMemAddr;
+  }
 
-    /*!
-         * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)
-         * \return true=interrupt mode is enabled, false=disabled
-         */
-        inline bool    isIRQmode(){return m_bIRQmode;}
+  /// @returns A current reading address.
+  int current_reading_address() const noexcept
+  {
+    return m_nCurMemAddr;
+  }
 
-        /*!
-         * \brief Sets the EEPROM chip target address
-         * \param nDevAddr
-         */
-        inline void    SetDeviceAddr(int nDevAddr){m_nDevAddr=nDevAddr; }
+  /// Enables or disables IRQ mode.
+  void EnableIRQs(bool enable);
 
-        /*!
-         * \brief Sets the EEPROM base address for reading/writing data and the maximum amount of data to read.
-         * \param nDataAddr An initial data address to read data from
-         * \param nCountLim A maximum data amount to be read
-         */
-        inline void    SetDataAddrAndCountLim(int nDataAddr, int nCountLim=4096){
-            m_nMemAddr=nDataAddr;  m_nReadDataCountLim=nCountLim;
-        }
+  /**
+   * @brief Writes data to the set address with the maximum number m_nReadDataCountLim.
+   *
+   * @param msg A buffer contaning the data to write.
+   *
+   * @returns `true` on success.
+   *
+   * @remarks This function blocks the current thread.
+   */
+  bool send(CFIFO& msg) override;
 
-        /*!
-         * \brief Sets the EEPROM base address for reading/writing data
-         * \param nDataAddr
-         */
-        inline void    SetDataAddr(int nDataAddr){
+  /**
+   * @brief Gets data from the set address with the maximum number m_nReadDataCountLim.
+   *
+   * @param msg A buffer to receive the data.
+   *
+   * @returns `true` on success.
+   *
+   * @remarks This function blocks the current thread.
+   */
+  bool receive(CFIFO &msg) override;
 
-            m_nMemAddr=nDataAddr;
-        }
+  /**
+   * @brief Starts chip self-test.
+   *
+   * @details Write chip with an arbitrary data, then read back and compare This is a wrapper to be used with a command processor.
+   */
+  void RunSelfTest(bool);
 
-        /*!
-         * \brief Enables IRQ mode
-         * \param how true=enable, false=disable
-         */
-        void EnableIRQs(bool how);
+  /// @returns `true` if the last self-test operation was successful.
+  bool GetSelfTestResult() const noexcept
+  {
+    return m_bSelfTestResult;
+  }
 
-        /*!
-         * \brief Writes data to the set address with the maximum number m_nReadDataCountLim
-         * \param msg A buffer contaning the data to write
-         * \return true if write operation was successful, otherwise - false
-         */
-        virtual bool send(CFIFO &msg);
+  /// @returns The current I2C bus state.
+  State state() const noexcept
+  {
+    return m_MState;
+  }
 
-        /*!
-         * \brief Gets data from the set address with the maximum number m_nReadDataCountLim
-         * \param msg A buffer to receive the data
-         * \return true if read operation was successful, otherwise - false
-         */
-        virtual bool receive(CFIFO &msg);
+  /// @returns `true` if IO operation direction is "writing".
+  bool is_writing() const noexcept
+  {
+    return m_IOdir;
+  }
 
+  bool is_compare_read_mode() const noexcept
+  {
+    return m_bCmpReadMode;
+  }
 
-        /*!
-         * \brief Starts chip self-test. This is a wrapper to be used with a command processor
-         * \param bHow true=start self test, false is ignored
-         */
-        void RunSelfTest(bool bHow);
+  /// @returns The number of EEPROM pages to write.
+  int page_count_to_write() const noexcept
+  {
+    return m_nPageBytesLeft;
+  }
 
+  /// @returns The size of the EEPROM page.
+  static constexpr int page_size() noexcept
+  {
+    return 16;
+  }
 
-        /*!
-         * \brief Returns the result of the last self-test operation.
-         * \return true=self test is ok, false=self the test was failed
-         */
-        bool GetSelfTestResult() const noexcept
-        {
-          return m_bSelfTestResult;
-        }
+  /// @return An operation timeout, ms.
+  static constexpr unsigned long operation_timeout() noexcept
+  {
+    return 500;
+  }
 
 private:
+  State m_MState{State::halted};
+  bool m_bIRQmode{};
+  bool m_IOdir{}; // IO direction: `true` means "writing".
+  bool m_bSelfTestResult{};
+  bool m_bCmpReadMode{};
+  int m_nDevAddr{0xA0};
+  int m_nMemAddr{};
+  int m_nCurMemAddr{};
+  int m_nReadDataCountLim{4096};
+  int m_nPageBytesLeft{};
 
-    /*!
-     *\brief holds the current finite state
-     */
-    FSM    m_MState=FSM::halted;
+  std::shared_ptr<Sam_clock_generator> m_pCLK; // clock generator
+  CFIFO *m_pBuf=nullptr; // IO buffer
 
-    /*!
-     *\brief I2C bus IRQ handler
-     */
-    void IRQhandler();
+  /// I2C bus IRQ handler.
+  void handle_irq();
 
-    /*!
-     *\brief Is the IRQ mode enabled?
-     */
-    bool m_bIRQmode=false;
+  /// @see Sam_sercom::handle_irq0();
+  void handle_irq0() override;
 
-    /*!
-     *\brief The direction of the IO operation: false -read, true write
-     */
-    bool m_IOdir=false;
+  /// @see Sam_sercom::handle_irq1();
+  void handle_irq1() override;
 
-    /*!
-     *\brief Holds the result of the latest self-test (write chip with an arbitrary data, then read back and compare)
-     */
-    bool m_bSelfTestResult=false;
+  /// @see Sam_sercom::handle_irq2();
+  void handle_irq2() override;
 
-    /*!
-     * \brief Compare reading mode
-     */
-    bool m_bCmpReadMode=false;
+  /// @see Sam_sercom::handle_irq3();
+  void handle_irq3() override;
 
+  /// Activates or deactivates write protection pin of the chip.
+  void SetWriteProtection(bool activate);
 
-    /*!
-     * \brief A EEPROM chip address
-     */
-    int  m_nDevAddr=0xA0;
+  /**
+   * @brief Initiates a transfer process.
+   *
+   * @param dir The transfer direction: `true` to write, `false` to read.
+   */
+  void StartTransfer(bool dir);
 
+  /// Rewinds internal FIFO buffer for read/write operations.
+  void rewindMemBuf();
 
-    /*!
-     * \brief A EEPROM memory address
-     */
-     int  m_nMemAddr=0;
+  /**
+   * @brief Reads a byte from the IO buffer upon of write chip operation
+   * (RAM->chip) and increments the counter.
+   *
+   * @returns A negative value on error.
+   */
+  int read_byte();
 
-     /*!
-      * \brief A current reading adddress
-      */
-     int  m_nCurMemAddr=0;
+  /**
+   * @brief Initiate data transfer to a next EEPROM page (RAM->chip).
+   *
+   * @warning Only 1 page can be written at once!
+   *
+   * @returns `true` on success.
+   */
+  bool write_next_page();
 
-     /*!
-      * \brief A maximum count of data to read out
-      */
-     int  m_nReadDataCountLim=4096;
+  /**
+   * @brief Writes a byte to the IO buffer upon of read chip operation
+   * (chip->RAM) and increments the counter.
+   *
+   * @param byte A byte to write.
+   *
+   * @returs The `byte` written, or negative value on error.
+   */
+  int writeB(int val);
 
-     /*!
-      * \brief The number of rest EEPROM pages to write
-      */
-    int  m_nPageBytesLeft;
+  /**
+   * @brief Perfoms send data to EEPROM operation without toggling write
+   * protection pin (used in self-test cycle).
+   *
+   * @param msg A data to be written.
+   *
+   * @returns `true` on success.
+   *
+   * @remarks This function blocks the current thread.
+   */
+  bool __send(CFIFO &msg);
 
-    /*!
-     * \brief The size of the EEPROM page
-     */
-    const int m_nPageSize=16;
-
-    const int m_nWriteRetries=3;
-
-    /*!
-     * \brief An operation timeout, milliseconds
-     */
-     unsigned long m_OpTmt_mS=500;
-
-     /*!
-      * \brief An associated clock generator: must be provided to perform operations
-      */
-     std::shared_ptr<Sam_clock_generator> m_pCLK;
-
-     /*!
-      * \brief A pointer to IO buffer
-      */
-      CFIFO *m_pBuf=nullptr;
-
-    /// @see Sam_sercom::handle_irq0();
-    void handle_irq0() override;
-
-    /// @see Sam_sercom::handle_irq1();
-    void handle_irq1() override;
-
-    /// @see Sam_sercom::handle_irq2();
-    void handle_irq2() override;
-
-    /// @see Sam_sercom::handle_irq3();
-    void handle_irq3() override;
-
-    /*!
-     * \brief Activates write protection pin of the chip
-     * \param how true=write protection enabled, false=write protection disabled
-     */
-    void SetWriteProtection(bool how);
-
-    /*!
-     * \brief Initiates a transfer process
-     * \param how The transfer direction: true=write, false=read
-     */
-    void StartTranfer(bool how);
-
-    /*!
-     * \brief Rewinds internal FIFO bufer set for read/write operations
-     */
-    void rewindMemBuf();
-
-    /*!
-     * \brief Reads a single byte from a memmory buffer during write chip operation (RAM->chip), increments counter
-     * \param val A byte to write
-     * \return the byte written or -1 on error.
-     */
-    int readB();
-
-    /*!
-     * \brief Initiate data transfer to the EEPROM page (RAM->chip) (since only 1 page can be written at once).
-     * \return
-     */
-    bool write_next_page();
-
-    /*!
-     * \brief Writes a single byte to a memmory buffer during read chip operation (chip->RAM), increments counter
-     * \param val A byte to write
-     * \return the byte written or -1 on error.
-     */
-    int writeB(int val);
-
-
-    /*!
-     * \brief Perfoms send data to EEPROM operation without toggling write protection pin (used in self-test cycle)
-     * \param msg - the data to be writen
-     * \return true on success, false otherwise
-     */
-    bool __send(CFIFO &msg);
-
-    /*!
-     * \brief Compares EEPROM content with given message
-     * \param msg - the data to compare
-     * \return true on success (data identical), false otherwise
-     */
-    bool __sendRB(CFIFO &msg);
+  /**
+   * @brief Compares EEPROM content with given data.
+   *
+   * @param data A data to compare.
+   *
+   * @returns `true` on success.
+   *
+   * @remarks This function blocks the current thread.
+   */
+  bool __sendRB(CFIFO& data);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_I2C_EEPROM_MASTER_HPP

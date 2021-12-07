@@ -30,19 +30,17 @@ Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 Sam_i2c_eeprom_master::Sam_i2c_eeprom_master()
   : Sam_sercom{Id::sercom6}
 {
-    PORT->Group[3].DIRSET.reg=(1L<<10);
-    SetWriteProtection(true);
+  PORT->Group[3].DIRSET.reg = (1L<<10);
+  SetWriteProtection(true);
 
-    enable_internal_bus(true);
-    m_pCLK=Sam_clock_generator::make();
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
+  enable_internal_bus(true);
+  m_pCLK = Sam_clock_generator::make();
+  PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
 
-    //connect:
-    connect_clock_generator(m_pCLK->id());
-    m_pCLK->enable(true);
+  connect_clock_generator(m_pCLK->id());
+  m_pCLK->enable(true);
 
-    setup_bus();
-
+  setup_bus();
 }
 
 void Sam_i2c_eeprom_master::reset_chip_logic()
@@ -125,9 +123,9 @@ void Sam_i2c_eeprom_master::check_reset()
 
 
 
-void Sam_i2c_eeprom_master::SetWriteProtection(bool how)
+void Sam_i2c_eeprom_master::SetWriteProtection(const bool activate)
 {
-    if(how)
+    if(activate)
     {
         PORT->Group[3].OUTSET.reg=(1L<<10);
         os::uwait(100);                      //wait till real voltage level rise of fall
@@ -141,17 +139,17 @@ void Sam_i2c_eeprom_master::SetWriteProtection(bool how)
 
 bool Sam_i2c_eeprom_master::write_next_page() //since only 1 page can be written at once
 {
-    int pbl=m_nPageSize - m_nCurMemAddr%m_nPageSize;
+    int pbl=page_size() - m_nCurMemAddr%page_size();
     m_nPageBytesLeft=pbl;
-    StartTranfer(true);
+    StartTransfer(true);
     unsigned long StartWaitTime=os::get_tick_mS();
-    while(FSM::halted!=m_MState && errTransfer!=m_MState)
+    while(State::halted!=m_MState && State::errTransfer!=m_MState)
     {
-        if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
+        if( (os::get_tick_mS()-StartWaitTime)>operation_timeout() )
             return false;
         //os::wait(1); //regulate the cpu load here
     }
-    if(FSM::halted==m_MState)
+    if(State::halted==m_MState)
     {
         m_nCurMemAddr+=pbl;
         return true;
@@ -159,7 +157,7 @@ bool Sam_i2c_eeprom_master::write_next_page() //since only 1 page can be written
     return false;
 }
 
-bool Sam_i2c_eeprom_master::__send(CFIFO &msg)  //blocking call
+bool Sam_i2c_eeprom_master::__send(CFIFO &msg)
 {
     m_nCurMemAddr=m_nMemAddr; //rewind mem addr
     m_pBuf=&msg;
@@ -174,32 +172,34 @@ bool Sam_i2c_eeprom_master::__send(CFIFO &msg)  //blocking call
         }
 
     }
-    while(msg.in_avail() && (os::get_tick_mS()-StartWaitTime)<m_OpTmt_mS);
+    while(msg.in_avail() && (os::get_tick_mS()-StartWaitTime)<operation_timeout());
     m_pBuf=nullptr;
     return bPageWriteResult;
 }
-bool Sam_i2c_eeprom_master::__sendRB(CFIFO &msg)  //blocking call
+
+bool Sam_i2c_eeprom_master::__sendRB(CFIFO &msg)
 {
     m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
     m_bCmpReadMode=true;
-    StartTranfer(false);
+    StartTransfer(false);
     unsigned long StartWaitTime=os::get_tick_mS();
-    while(FSM::halted!=m_MState && errTransfer!=m_MState)
+    while(State::halted!=m_MState && State::errTransfer!=m_MState)
     {
-        if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
+        if( (os::get_tick_mS()-StartWaitTime)>operation_timeout() )
             break;
         os::wait(1);
     }
     m_pBuf=nullptr;
-    return (FSM::halted==m_MState);
+    return (State::halted==m_MState);
 }
 
-bool Sam_i2c_eeprom_master::send(CFIFO &msg)  //blocking call
+bool Sam_i2c_eeprom_master::send(CFIFO& msg)
 {
+    constexpr int write_retries{3};
     bool bPageWriteResult=false;
 SetWriteProtection(false);
-    for(int i=0; i<m_nWriteRetries; i++){
+    for(int i{}; i < write_retries; i++){
 
         msg.rewind();
         if(__send(msg))
@@ -218,32 +218,32 @@ SetWriteProtection(false);
 SetWriteProtection(true);
     return bPageWriteResult;
 }
-bool Sam_i2c_eeprom_master::receive(CFIFO &msg) //blocking call
+bool Sam_i2c_eeprom_master::receive(CFIFO& msg)
 {
     m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
     m_bCmpReadMode=false;
-    StartTranfer(false);
+    StartTransfer(false);
     unsigned long StartWaitTime=os::get_tick_mS();
-    while(FSM::halted!=m_MState && errTransfer!=m_MState)
+    while(State::halted!=m_MState && State::errTransfer!=m_MState)
     {
-        if( (os::get_tick_mS()-StartWaitTime)>m_OpTmt_mS )
+        if( (os::get_tick_mS()-StartWaitTime)>operation_timeout() )
             break;
         os::wait(1);
     }
     m_pBuf=nullptr;
-    return (FSM::halted==m_MState);
+    return (State::halted==m_MState);
 }
 
 //helpers:
-void Sam_i2c_eeprom_master::StartTranfer(bool how)
+void Sam_i2c_eeprom_master::StartTransfer(const bool dir)
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
     check_reset(); //! check chip & bus states before transfer, reset if needed
 
-    m_IOdir=how;
-    m_MState=FSM::start;
+    m_IOdir=dir;
+    m_MState=State::start;
     SYNC_BUS(pI2Cm)
     pI2Cm->CTRLB.bit.ACKACT=0;      //sets "ACK" action
     SYNC_BUS(pI2Cm)
@@ -251,18 +251,18 @@ void Sam_i2c_eeprom_master::StartTranfer(bool how)
 
 }
 
-bool Sam_i2c_eeprom_master::test_mem_area(CFIFO &TestPattern, int nStartAddr)
+bool Sam_i2c_eeprom_master::test_mem_area(CFIFO& pattern, const int offset)
 {
     CFIFO ReadBuf;
 
-    TestPattern.rewind();
-    size_t nPatternSize=static_cast<size_t>(TestPattern.in_avail());
-    ReadBuf.reserve( nPatternSize );
+    pattern.rewind();
+    const auto pattern_size = static_cast<std::size_t>(pattern.in_avail());
+    ReadBuf.reserve(pattern_size);
 
-    int nPrevAddr=m_nMemAddr;
-    m_nMemAddr=nStartAddr;
+    const int nPrevAddr{m_nMemAddr};
+    m_nMemAddr=offset;
 
-    if(!__send(TestPattern))
+    if(!__send(pattern))
     {
         m_nMemAddr=nPrevAddr;
         return false;
@@ -278,9 +278,9 @@ bool Sam_i2c_eeprom_master::test_mem_area(CFIFO &TestPattern, int nStartAddr)
 
 
     //comare:
-    for(int k=0; k<nPatternSize; k++)
+    for(int k{}; k<pattern_size; ++k)
     {
-        if(ReadBuf[k]!=TestPattern[k])
+        if(ReadBuf[k]!=pattern[k])
             return false;
     }
     return true;
@@ -291,7 +291,7 @@ bool Sam_i2c_eeprom_master::self_test_proc()
 {
     CFIFO PageTestPattern;
 
-    for(int i=0; i<m_nPageSize; i++)
+    for(int i{}; i<page_size(); ++i)
     {
         PageTestPattern<<0xA5;
     }
@@ -301,24 +301,22 @@ bool Sam_i2c_eeprom_master::self_test_proc()
         return false;
 
     //test last page:
-    if(!test_mem_area(PageTestPattern, m_nReadDataCountLim-m_nPageSize))
+    if(!test_mem_area(PageTestPattern, m_nReadDataCountLim-page_size()))
         return false;
 
     return true;
 }
 
 
-void Sam_i2c_eeprom_master::RunSelfTest(bool bHow)
+void Sam_i2c_eeprom_master::RunSelfTest(bool)
 {
-
 SetWriteProtection(false);
     m_bSelfTestResult=self_test_proc();
 SetWriteProtection(true);
-
 }
 
 //IRQ handling:
-void Sam_i2c_eeprom_master::IRQhandler()
+void Sam_i2c_eeprom_master::handle_irq()
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
@@ -331,7 +329,7 @@ void Sam_i2c_eeprom_master::IRQhandler()
         pI2Cm->STATUS.reg=0xff; //clear status ?
         pI2Cm->INTFLAG.bit.ERROR=1;
 
-        m_MState=errTransfer; //???
+        m_MState=State::errTransfer; //???
         return;
     }
 
@@ -341,7 +339,7 @@ void Sam_i2c_eeprom_master::IRQhandler()
         if(pI2Cm->STATUS.bit.ARBLOST || pI2Cm->STATUS.bit.RXNACK)
         {
             //stop the communication:
-            m_MState=errTransfer;
+            m_MState=State::errTransfer;
             pI2Cm->CTRLB.bit.CMD=0x3; //stop
             //pI2Cm->INTFLAG.bit.MB=1;
             return;
@@ -349,51 +347,51 @@ void Sam_i2c_eeprom_master::IRQhandler()
             //"This bit is automatically cleared when writing to the ADDR register" (Manual)
         }
 
-        if(FSM::start==m_MState)
+        if(State::start==m_MState)
         {
             //set address HB:
 #ifdef EEPROM_8BIT_ADDR
-            m_MState=FSM::addrLb;
-            pI2Cm->DATA.bit.DATA=(m_nCurMemAddr/m_nPageSize);
+            m_MState=State::addrLb;
+            pI2Cm->DATA.bit.DATA=(m_nCurMemAddr/page_size());
 #else
-            m_MState=FSM::addrHb;
+            m_MState=State::addrHb;
             pI2Cm->DATA.bit.DATA=(m_nCurMemAddr>>8);
 #endif
             return;
         }
-        if(FSM::addrHb==m_MState)
+        if(State::addrHb==m_MState)
         {
-            m_MState=FSM::addrLb;
+            m_MState=State::addrLb;
             pI2Cm->DATA.bit.DATA=(m_nCurMemAddr&0xff);
             return;
         }
-        if(FSM::addrLb==m_MState)
+        if(State::addrLb==m_MState)
         {
             //after setting the addres switch the direction: R or W
             if(m_IOdir) //write
             {
                 //nothing to do, just continue writing:
-                m_MState=FSM::write;
+                m_MState=State::write;
             }
             else
             {
                 //initiating a repeated start for read:
-                m_MState=FSM::read;
+                m_MState=State::read;
                 pI2Cm->ADDR.bit.ADDR=m_nDevAddr+1;
             }
             return;
         }
-        if(FSM::write==m_MState)
+        if(State::write==m_MState)
         {
             //write data until the end
-            int val=readB();
-            if(val>=0)
+            const int val = read_byte();
+            if (val >= 0)
             {
                 pI2Cm->DATA.bit.DATA=val;
             }
             else {
                 //EOF:
-                m_MState=FSM::halted;
+                m_MState=State::halted;
                 pI2Cm->CTRLB.bit.CMD=0x3; //stop
             }
             return;
@@ -406,15 +404,15 @@ void Sam_i2c_eeprom_master::IRQhandler()
         //if data is "ended" at the slave (setting NACK)
         if(pI2Cm->STATUS.bit.RXNACK)
         {
-            m_MState=FSM::halted;
+            m_MState=State::halted;
             pI2Cm->CTRLB.bit.CMD=0x3; //stop
             return;
         }
         //read data untill the end
         if(writeB(pI2Cm->DATA.bit.DATA)<0) //EOF
         {
-            if(FSM::errCmp!=m_MState){
-                m_MState=FSM::halted;
+            if(State::errCmp!=m_MState){
+                m_MState=State::halted;
             }
             pI2Cm->CTRLB.bit.ACKACT=1; //setting "NACK" to the chip
             SYNC_BUS(pI2Cm)
@@ -429,22 +427,22 @@ void Sam_i2c_eeprom_master::IRQhandler()
 
 void Sam_i2c_eeprom_master::handle_irq0()
 {
-    IRQhandler();
+  handle_irq();
 }
 
 void Sam_i2c_eeprom_master::handle_irq1()
 {
-    IRQhandler();
+  handle_irq();
 }
 
 void Sam_i2c_eeprom_master::handle_irq2()
 {
-    IRQhandler();
+  handle_irq();
 }
 
 void Sam_i2c_eeprom_master::handle_irq3()
 {
-    IRQhandler();
+  handle_irq();
 }
 
 void Sam_i2c_eeprom_master::EnableIRQs(bool how)
@@ -477,7 +475,7 @@ void Sam_i2c_eeprom_master::rewindMemBuf()
     if(m_pBuf)
         m_pBuf->rewind();
 }
-int Sam_i2c_eeprom_master::readB()
+int Sam_i2c_eeprom_master::read_byte()
 {
     if(!m_pBuf)
         return -1;
@@ -503,7 +501,7 @@ int Sam_i2c_eeprom_master::writeB(int val)
         (*m_pBuf)>>ch;
         if(ch!=val)
         {
-            m_MState=FSM::errCmp;
+            m_MState=State::errCmp;
             return -1;
         }
     } else {
