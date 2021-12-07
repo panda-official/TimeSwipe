@@ -32,6 +32,9 @@
 */
 class Sam_i2c_eeprom_master final : public Sam_sercom {
 public:
+  /// IO direction.
+  enum class Io_direction { read, write };
+
   /**
    * @brief I2C bus state according to the communication algorithm.
    *
@@ -193,10 +196,10 @@ public:
     return state_;
   }
 
-  /// @returns `true` if IO operation direction is "writing".
-  bool is_writing() const noexcept
+  /// @returns IO direction.
+  Io_direction io_direction() const noexcept
   {
-    return m_IOdir;
+    return io_direction_;
   }
 
   bool is_compare_read_mode() const noexcept
@@ -225,7 +228,7 @@ public:
 private:
   State state_{State::halted};
   bool is_irq_enabled_{};
-  bool m_IOdir{}; // IO direction: `true` means "writing".
+  Io_direction io_direction_{Io_direction::read};
   bool m_bSelfTestResult{};
   bool m_bCmpReadMode{};
   int m_nDevAddr{0xA0};
@@ -255,12 +258,8 @@ private:
   /// Activates or deactivates write protection pin of the chip.
   void SetWriteProtection(bool activate);
 
-  /**
-   * @brief Initiates a transfer process.
-   *
-   * @param dir The transfer direction: `true` to write, `false` to read.
-   */
-  void StartTransfer(bool dir);
+  /// Initiates a transfer process.
+  void StartTransfer(Io_direction dir);
 
   /// Rewinds internal FIFO buffer for read/write operations.
   void rewindMemBuf();

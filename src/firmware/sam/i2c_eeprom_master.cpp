@@ -139,7 +139,7 @@ bool Sam_i2c_eeprom_master::write_next_page() //since only 1 page can be written
 {
     int pbl=page_size() - m_nCurMemAddr%page_size();
     m_nPageBytesLeft=pbl;
-    StartTransfer(true);
+    StartTransfer(Io_direction::write);
     unsigned long StartWaitTime=os::get_tick_mS();
     while(State::halted!=state_ && State::errTransfer!=state_)
     {
@@ -180,7 +180,7 @@ bool Sam_i2c_eeprom_master::__sendRB(CFIFO &msg)
     m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
     m_bCmpReadMode=true;
-    StartTransfer(false);
+    StartTransfer(Io_direction::read);
     unsigned long StartWaitTime=os::get_tick_mS();
     while(State::halted!=state_ && State::errTransfer!=state_)
     {
@@ -221,7 +221,7 @@ bool Sam_i2c_eeprom_master::receive(CFIFO& msg)
     m_nCurMemAddr=m_nMemAddr;
     m_pBuf=&msg;
     m_bCmpReadMode=false;
-    StartTransfer(false);
+    StartTransfer(Io_direction::read);
     unsigned long StartWaitTime=os::get_tick_mS();
     while(State::halted!=state_ && State::errTransfer!=state_)
     {
@@ -234,18 +234,18 @@ bool Sam_i2c_eeprom_master::receive(CFIFO& msg)
 }
 
 //helpers:
-void Sam_i2c_eeprom_master::StartTransfer(const bool dir)
+void Sam_i2c_eeprom_master::StartTransfer(const Io_direction dir)
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
     check_reset(); //! check chip & bus states before transfer, reset if needed
 
-    m_IOdir=dir;
-    state_=State::start;
+    io_direction_ = dir;
+    state_ = State::start;
     SYNC_BUS(pI2Cm)
-    pI2Cm->CTRLB.bit.ACKACT=0;      //sets "ACK" action
+    pI2Cm->CTRLB.bit.ACKACT = 0;      //sets "ACK" action
     SYNC_BUS(pI2Cm)
-    pI2Cm->ADDR.bit.ADDR=m_nDevAddr; //this will initiate a transfer sequence
+    pI2Cm->ADDR.bit.ADDR = m_nDevAddr; //this will initiate a transfer sequence
 
 }
 
@@ -365,9 +365,8 @@ void Sam_i2c_eeprom_master::handle_irq()
         }
         if(State::addrLb==state_)
         {
-            //after setting the addres switch the direction: R or W
-            if(m_IOdir) //write
-            {
+          // After setting the addres switch the IO direction.
+          if (io_direction_ == Io_direction::write) {
                 //nothing to do, just continue writing:
                 state_=State::write;
             }
