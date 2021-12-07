@@ -249,68 +249,67 @@ void Sam_i2c_eeprom_master::StartTransfer(const Io_direction dir)
 
 }
 
-bool Sam_i2c_eeprom_master::test_mem_area(CFIFO& pattern, const int offset)
+void Sam_i2c_eeprom_master::run_self_test(bool)
 {
-    CFIFO ReadBuf;
+  /*
+   * @brief Tests selected EEPROM area.
+   *
+   * @param pattern A pattern to test with.
+   * @param offset A start address of EEPROM area.
+   *
+   * @returns `true` on success.
+   */
+  const auto is_mem_area_ok = [this](CFIFO& pattern, const int offset)
+  {
+    CFIFO buf;
 
     pattern.rewind();
     const auto pattern_size = static_cast<std::size_t>(pattern.in_avail());
-    ReadBuf.reserve(pattern_size);
+    buf.reserve(pattern_size);
 
     const int nPrevAddr{m_nMemAddr};
     m_nMemAddr=offset;
 
-    if(!__send(pattern))
-    {
-        m_nMemAddr=nPrevAddr;
-        return false;
+    if (!__send(pattern)) {
+      m_nMemAddr = nPrevAddr;
+      return false;
     }
 
-    //some delay is required:
+    // Some delay is required.
     os::wait(10);
 
-    bool rb=receive(ReadBuf);
-    m_nMemAddr=nPrevAddr;
-    if(!rb)
-        return false;
+    const bool rb{receive(buf)};
+    m_nMemAddr = nPrevAddr;
+    if (!rb)
+      return false;
 
-
-    //comare:
-    for(int k{}; k<pattern_size; ++k)
-    {
-        if(ReadBuf[k]!=pattern[k])
-            return false;
-    }
-    return true;
-}
-
-//fast self-test:
-bool Sam_i2c_eeprom_master::self_test_proc()
-{
-    CFIFO PageTestPattern;
-
-    for(int i{}; i<page_size(); ++i)
-    {
-        PageTestPattern<<0xA5;
-    }
-
-    //test first page:
-    if(!test_mem_area(PageTestPattern, 0))
-        return false;
-
-    //test last page:
-    if(!test_mem_area(PageTestPattern, m_nReadDataCountLim-page_size()))
+    // Compare.
+    for (int k{}; k < pattern_size; ++k)
+      if (buf[k] != pattern[k])
         return false;
 
     return true;
-}
+  };
 
+  // Perform self-test.
+  SetWriteProtection(false);
+  self_test_result_ = [&]
+  {
+    CFIFO pattern;
+    for (int i{}; i < page_size(); ++i)
+      pattern << 0xA5;
 
-void Sam_i2c_eeprom_master::RunSelfTest(bool)
-{
-SetWriteProtection(false);
-    m_bSelfTestResult=self_test_proc();
-SetWriteProtection(true);
+    // Test first page.
+    if (!is_mem_area_ok(pattern, 0))
+      return false;
+
+    // Test last page.
+    if (!is_mem_area_ok(pattern, m_nReadDataCountLim - page_size()))
+      return false;
+
+    return true;
+  }();
+  SetWriteProtection(true);
 }
 
 //IRQ handling:

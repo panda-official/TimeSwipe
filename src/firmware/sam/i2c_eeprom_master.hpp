@@ -80,23 +80,6 @@ public:
   /// Checks bus state and perfoms a chip reset/bus reinit if needed.
   void check_reset();
 
-  /**
-   * @brief Tests selected EEPROM area.
-   *
-   * @param pattern A pattern to test with.
-   * @param offset A start address of EEPROM area.
-   *
-   * @returns `true` on success.
-   */
-  bool test_mem_area(CFIFO& pattern, int offset);
-
-  /**
-   * @brief Self test process.
-   *
-   * @returns `true` on success.
-   */
-  bool self_test_proc();
-
   /// Enables or disables IRQ mode.
   void enable_irq(bool enabled);
 
@@ -182,12 +165,12 @@ public:
    *
    * @details Write chip with an arbitrary data, then read back and compare This is a wrapper to be used with a command processor.
    */
-  void RunSelfTest(bool);
+  void run_self_test(bool);
 
   /// @returns `true` if the last self-test operation was successful.
   bool GetSelfTestResult() const noexcept
   {
-    return m_bSelfTestResult;
+    return self_test_result_;
   }
 
   /// @returns The current I2C bus state.
@@ -229,7 +212,7 @@ private:
   State state_{State::halted};
   bool is_irq_enabled_{};
   Io_direction io_direction_{Io_direction::read};
-  bool m_bSelfTestResult{};
+  bool self_test_result_{};
   bool m_bCmpReadMode{};
   int m_nDevAddr{0xA0};
   int m_nMemAddr{};
