@@ -23,8 +23,7 @@ Copyright (c) 2019-2020 Panda Team
 * For reading the chip data, ISerial interface is used.
 * EEPROMmemory address an a count of data to read are set by method CSamI2CeepromMaster::SetDataAddrAndCountLim.
 */
-class CSamI2CeepromMaster : public Sam_sercom
-{
+class CSamI2CeepromMaster final : public Sam_sercom {
 public:
     //! Finite State Machine used to handle I2C bus states according to communication algorithm (see CAT24C32 manual)
         enum    FSM{
@@ -42,8 +41,117 @@ public:
             errCmp      //! An error occured during data comparation
         };
 
+    /*!
+     * \brief reset_chip_logic: reset EEPROM chip logic if it hangs and makes the bus busy
+     */
+    void reset_chip_logic();
 
-protected:
+    /*!
+     * \brief setup_bus: initial bus setup(pinout, modes, speed with an initial reset)
+     */
+
+    void setup_bus();
+
+    /*!
+     * \brief check_reset: check bus state and perfom a chip reset/bus reinit if needed.
+     */
+
+    void check_reset();
+
+    /*!
+     * \brief Tests selected area of the EEPROM
+     * \param TestPattern - a pattern to test with
+     * \param nStartAddr -the start address of the EEPROM area
+     * \return true on succes, false on error
+     */
+    bool test_mem_area(CFIFO &TestPattern, int nStartAddr);
+
+
+    /*!
+     * \brief Self test process
+     * \return true on succes, false on error
+     */
+    bool self_test_proc();
+
+    /*!
+     * \brief The class constructor
+     * \details The constructor does the following:
+     * 1) calls Sam_sercom constructor
+     * 2) enables communication bus with corresponding SERCOM
+     * 3) setups corresponding PINs and its multiplexing
+     * 4) turns SERCOM to I2C master
+     * 5) performs final tuning and enables SERCOM I2 master
+     */
+    CSamI2CeepromMaster();
+
+    /*!
+         * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)
+         * \return true=interrupt mode is enabled, false=disabled
+         */
+        inline bool    isIRQmode(){return m_bIRQmode;}
+
+        /*!
+         * \brief Sets the EEPROM chip target address
+         * \param nDevAddr
+         */
+        inline void    SetDeviceAddr(int nDevAddr){m_nDevAddr=nDevAddr; }
+
+        /*!
+         * \brief Sets the EEPROM base address for reading/writing data and the maximum amount of data to read.
+         * \param nDataAddr An initial data address to read data from
+         * \param nCountLim A maximum data amount to be read
+         */
+        inline void    SetDataAddrAndCountLim(int nDataAddr, int nCountLim=4096){
+            m_nMemAddr=nDataAddr;  m_nReadDataCountLim=nCountLim;
+        }
+
+        /*!
+         * \brief Sets the EEPROM base address for reading/writing data
+         * \param nDataAddr
+         */
+        inline void    SetDataAddr(int nDataAddr){
+
+            m_nMemAddr=nDataAddr;
+        }
+
+        /*!
+         * \brief Enables IRQ mode
+         * \param how true=enable, false=disable
+         */
+        void EnableIRQs(bool how);
+
+        /*!
+         * \brief Writes data to the set address with the maximum number m_nReadDataCountLim
+         * \param msg A buffer contaning the data to write
+         * \return true if write operation was successful, otherwise - false
+         */
+        virtual bool send(CFIFO &msg);
+
+        /*!
+         * \brief Gets data from the set address with the maximum number m_nReadDataCountLim
+         * \param msg A buffer to receive the data
+         * \return true if read operation was successful, otherwise - false
+         */
+        virtual bool receive(CFIFO &msg);
+
+
+        /*!
+         * \brief Starts chip self-test. This is a wrapper to be used with a command processor
+         * \param bHow true=start self test, false is ignored
+         */
+        void RunSelfTest(bool bHow);
+
+
+        /*!
+         * \brief Returns the result of the last self-test operation.
+         * \return true=self test is ok, false=self the test was failed
+         */
+        bool GetSelfTestResult() const noexcept
+        {
+          return m_bSelfTestResult;
+        }
+
+private:
 
     /*!
      *\brief holds the current finite state
@@ -187,118 +295,4 @@ protected:
      * \return true on success (data identical), false otherwise
      */
     bool __sendRB(CFIFO &msg);
-
-public:
-
-    /*!
-     * \brief reset_chip_logic: reset EEPROM chip logic if it hangs and makes the bus busy
-     */
-    void reset_chip_logic();
-
-    /*!
-     * \brief setup_bus: initial bus setup(pinout, modes, speed with an initial reset)
-     */
-
-    void setup_bus();
-
-    /*!
-     * \brief check_reset: check bus state and perfom a chip reset/bus reinit if needed.
-     */
-
-    void check_reset();
-
-    /*!
-     * \brief Tests selected area of the EEPROM
-     * \param TestPattern - a pattern to test with
-     * \param nStartAddr -the start address of the EEPROM area
-     * \return true on succes, false on error
-     */
-    bool test_mem_area(CFIFO &TestPattern, int nStartAddr);
-
-
-    /*!
-     * \brief Self test process
-     * \return true on succes, false on error
-     */
-    bool self_test_proc();
-
-
-public:
-    /*!
-     * \brief The class constructor
-     * \details The constructor does the following:
-     * 1) calls Sam_sercom constructor
-     * 2) enables communication bus with corresponding SERCOM
-     * 3) setups corresponding PINs and its multiplexing
-     * 4) turns SERCOM to I2C master
-     * 5) performs final tuning and enables SERCOM I2 master
-     */
-    CSamI2CeepromMaster();
-
-    /*!
-         * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)
-         * \return true=interrupt mode is enabled, false=disabled
-         */
-        inline bool    isIRQmode(){return m_bIRQmode;}
-
-        /*!
-         * \brief Sets the EEPROM chip target address
-         * \param nDevAddr
-         */
-        inline void    SetDeviceAddr(int nDevAddr){m_nDevAddr=nDevAddr; }
-
-        /*!
-         * \brief Sets the EEPROM base address for reading/writing data and the maximum amount of data to read.
-         * \param nDataAddr An initial data address to read data from
-         * \param nCountLim A maximum data amount to be read
-         */
-        inline void    SetDataAddrAndCountLim(int nDataAddr, int nCountLim=4096){
-            m_nMemAddr=nDataAddr;  m_nReadDataCountLim=nCountLim;
-        }
-
-        /*!
-         * \brief Sets the EEPROM base address for reading/writing data
-         * \param nDataAddr
-         */
-        inline void    SetDataAddr(int nDataAddr){
-
-            m_nMemAddr=nDataAddr;
-        }
-
-        /*!
-         * \brief Enables IRQ mode
-         * \param how true=enable, false=disable
-         */
-        void EnableIRQs(bool how);
-
-        /*!
-         * \brief Writes data to the set address with the maximum number m_nReadDataCountLim
-         * \param msg A buffer contaning the data to write
-         * \return true if write operation was successful, otherwise - false
-         */
-        virtual bool send(CFIFO &msg);
-
-        /*!
-         * \brief Gets data from the set address with the maximum number m_nReadDataCountLim
-         * \param msg A buffer to receive the data
-         * \return true if read operation was successful, otherwise - false
-         */
-        virtual bool receive(CFIFO &msg);
-
-
-        /*!
-         * \brief Starts chip self-test. This is a wrapper to be used with a command processor
-         * \param bHow true=start self test, false is ignored
-         */
-        void RunSelfTest(bool bHow);
-
-
-        /*!
-         * \brief Returns the result of the last self-test operation.
-         * \return true=self test is ok, false=self the test was failed
-         */
-        bool GetSelfTestResult() const noexcept
-        {
-          return m_bSelfTestResult;
-        }
 };
