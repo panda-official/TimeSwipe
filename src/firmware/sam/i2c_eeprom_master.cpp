@@ -31,7 +31,7 @@ Sam_i2c_eeprom_master::Sam_i2c_eeprom_master()
   : Sam_sercom{Id::sercom6}
 {
   PORT->Group[3].DIRSET.reg = (1L<<10);
-  SetWriteProtection(true);
+  set_write_protection(true);
 
   enable_internal_bus(true);
   clock_generator_ = Sam_clock_generator::make();
@@ -121,7 +121,7 @@ void Sam_i2c_eeprom_master::check_reset()
 
 
 
-void Sam_i2c_eeprom_master::SetWriteProtection(const bool activate)
+void Sam_i2c_eeprom_master::set_write_protection(const bool activate)
 {
     if(activate)
     {
@@ -139,7 +139,7 @@ bool Sam_i2c_eeprom_master::write_next_page() //since only 1 page can be written
 {
     const int pbl{page_size() - eeprom_current_address_%page_size()};
     page_bytes_left_ = pbl;
-    StartTransfer(Io_direction::write);
+    start_transfer(Io_direction::write);
     unsigned long StartWaitTime=os::get_tick_mS();
     while(State::halted!=state_ && State::errTransfer!=state_)
     {
@@ -180,7 +180,7 @@ bool Sam_i2c_eeprom_master::__sendRB(CFIFO& data)
     eeprom_current_address_=eeprom_base_address_;
     io_buffer_=&data;
     is_compare_read_mode_=true;
-    StartTransfer(Io_direction::read);
+    start_transfer(Io_direction::read);
     unsigned long StartWaitTime=os::get_tick_mS();
     while(State::halted!=state_ && State::errTransfer!=state_)
     {
@@ -196,7 +196,7 @@ bool Sam_i2c_eeprom_master::send(CFIFO& data)
 {
     constexpr int write_retries{3};
     bool bPageWriteResult=false;
-SetWriteProtection(false);
+set_write_protection(false);
     for(int i{}; i < write_retries; i++){
 
         data.rewind();
@@ -213,7 +213,7 @@ SetWriteProtection(false);
             }
         }
      }
-SetWriteProtection(true);
+set_write_protection(true);
     return bPageWriteResult;
 }
 
@@ -222,7 +222,7 @@ bool Sam_i2c_eeprom_master::receive(CFIFO& data)
     eeprom_current_address_=eeprom_base_address_;
     io_buffer_=&data;
     is_compare_read_mode_=false;
-    StartTransfer(Io_direction::read);
+    start_transfer(Io_direction::read);
     unsigned long StartWaitTime=os::get_tick_mS();
     while(State::halted!=state_ && State::errTransfer!=state_)
     {
@@ -235,7 +235,7 @@ bool Sam_i2c_eeprom_master::receive(CFIFO& data)
 }
 
 //helpers:
-void Sam_i2c_eeprom_master::StartTransfer(const Io_direction dir)
+void Sam_i2c_eeprom_master::start_transfer(const Io_direction dir)
 {
     SercomI2cm *pI2Cm=SELECT_SAMI2CM(id());
 
@@ -293,7 +293,7 @@ void Sam_i2c_eeprom_master::run_self_test(bool)
   };
 
   // Perform self-test.
-  SetWriteProtection(false);
+  set_write_protection(false);
   self_test_result_ = [&]
   {
     CFIFO pattern;
@@ -310,7 +310,7 @@ void Sam_i2c_eeprom_master::run_self_test(bool)
 
     return true;
   }();
-  SetWriteProtection(true);
+  set_write_protection(true);
 }
 
 //IRQ handling:
@@ -406,7 +406,7 @@ void Sam_i2c_eeprom_master::handle_irq()
             return;
         }
         //read data untill the end
-        if(writeB(pI2Cm->DATA.bit.DATA)<0) //EOF
+        if(write_byte(pI2Cm->DATA.bit.DATA)<0) //EOF
         {
             if(State::errCmp!=state_){
                 state_=State::halted;
@@ -461,12 +461,6 @@ void Sam_i2c_eeprom_master::enable_irq(const bool enabled)
     Sam_sercom::enable_irq(irq, is_irq_enabled_);
 }
 
-//+++new mem int:
-void Sam_i2c_eeprom_master::rewindMemBuf()
-{
-    if(io_buffer_)
-        io_buffer_->rewind();
-}
 int Sam_i2c_eeprom_master::read_byte()
 {
     if(!io_buffer_)
@@ -480,7 +474,7 @@ int Sam_i2c_eeprom_master::read_byte()
     (*io_buffer_)>>ch;
     return ch;
 }
-int Sam_i2c_eeprom_master::writeB(int val)
+int Sam_i2c_eeprom_master::write_byte(const int byte)
 {
     if(!io_buffer_)
         return -1;
@@ -491,7 +485,7 @@ int Sam_i2c_eeprom_master::writeB(int val)
 
         Character ch;
         (*io_buffer_)>>ch;
-        if(ch!=val)
+        if(ch!=byte)
         {
             state_=State::errCmp;
             return -1;
@@ -500,7 +494,7 @@ int Sam_i2c_eeprom_master::writeB(int val)
         if(io_buffer_->size()>=eeprom_max_read_amount_) // memory protection
             return -1;
 
-        (*io_buffer_)<<val;
+        (*io_buffer_)<<byte;
     }
-    return val;
+    return byte;
 }

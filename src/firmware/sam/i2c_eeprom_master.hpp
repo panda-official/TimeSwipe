@@ -24,11 +24,6 @@
 /**
 * @brief An I2C master class for communication with an external EEPROM chip
 * (CAT24C32).
-*
-* @details This is a fully featured service version: read/write functional is
-* implemented. Data is reading by using ISerial interface. The EEPROM memory
-* address and the amount of data to read are set by method
-* Sam_i2c_eeprom_master::SetDataAddrAndCountLim.
 */
 class Sam_i2c_eeprom_master final : public Sam_sercom {
 public:
@@ -171,7 +166,6 @@ private:
   int eeprom_current_address_{};
   int eeprom_max_read_amount_{4096};
   int page_bytes_left_{};
-
   std::shared_ptr<Sam_clock_generator> clock_generator_;
   CFIFO* io_buffer_{};
 
@@ -212,13 +206,10 @@ private:
   void handle_irq3() override;
 
   /// Activates or deactivates write protection pin of the chip.
-  void SetWriteProtection(bool activate);
+  void set_write_protection(bool activate);
 
   /// Initiates a transfer process.
-  void StartTransfer(Io_direction dir);
-
-  /// Rewinds internal FIFO buffer for read/write operations.
-  void rewindMemBuf();
+  void start_transfer(Io_direction dir);
 
   /**
    * @brief Reads a byte from the IO buffer upon of write chip operation
@@ -245,7 +236,7 @@ private:
    *
    * @returs The `byte` written, or negative value on error.
    */
-  int writeB(int val);
+  int write_byte(int byte);
 
   /**
    * @brief Perfoms send data to EEPROM operation without toggling write
