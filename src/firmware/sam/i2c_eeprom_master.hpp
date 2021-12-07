@@ -190,7 +190,7 @@ public:
   /// @returns The current I2C bus state.
   State state() const noexcept
   {
-    return m_MState;
+    return state_;
   }
 
   /// @returns `true` if IO operation direction is "writing".
@@ -223,7 +223,7 @@ public:
   }
 
 private:
-  State m_MState{State::halted};
+  State state_{State::halted};
   bool m_bIRQmode{};
   bool m_IOdir{}; // IO direction: `true` means "writing".
   bool m_bSelfTestResult{};
