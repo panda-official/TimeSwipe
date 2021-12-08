@@ -50,13 +50,13 @@ public:
     const double cutoff_freq = .25)
   {
     if (target_sample_rate <= 0)
-      throw std::runtime_error{"invalid target sample rate"};
+      throw Exception{"invalid target sample rate"};
     else if (source_sample_rate <= 0)
-      throw std::runtime_error{"invalid source sample rate"};
+      throw Exception{"invalid source sample rate"};
     else if (target_sample_rate > source_sample_rate)
-      throw std::runtime_error{"filtering for upsampling doesn't supported"};
+      throw Exception{"filtering for upsampling doesn't supported"};
     else if (!(0 <= cutoff_freq && cutoff_freq <= 1))
-      throw std::runtime_error{"invalid cutoff frequency"};
+      throw Exception{"invalid cutoff frequency"};
 
     // Fill A2, B0.
     using std::pow;
