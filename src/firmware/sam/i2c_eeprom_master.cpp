@@ -57,6 +57,122 @@ Sam_i2c_eeprom_master::Sam_i2c_eeprom_master()
   setup_bus();
 }
 
+void Sam_i2c_eeprom_master::enable_irq(const bool enabled)
+{
+  SercomI2cm* const i2cm = sam_i2cm(id());
+  is_irq_enabled_ = enabled;
+  if (is_irq_enabled_)
+    i2cm->INTENSET.reg =
+      SERCOM_I2CM_INTENSET_MB |   // master on bus
+      SERCOM_I2CM_INTENSET_SB |   // slave on bus
+      SERCOM_I2CM_INTENSET_ERROR; // bus error
+  else
+    // Clear all.
+    i2cm->INTENCLR.reg = SERCOM_I2CM_INTENSET_MASK;
+
+  // Tune NVIC.
+  for (const auto irq : {Irq::irq0, Irq::irq1, Irq::irq2, Irq::irq3})
+    Sam_sercom::enable_irq(irq, is_irq_enabled_);
+}
+
+void Sam_i2c_eeprom_master::run_self_test(bool)
+{
+  /*
+   * @brief Tests selected EEPROM area.
+   *
+   * @param pattern A pattern to test with.
+   * @param offset A start address of EEPROM area.
+   *
+   * @returns `true` on success.
+   */
+  const auto is_mem_area_ok = [this](CFIFO& pattern, const int offset)
+  {
+    CFIFO buf;
+
+    pattern.rewind();
+    const auto pattern_size = static_cast<std::size_t>(pattern.in_avail());
+    buf.reserve(pattern_size);
+
+    const auto prev_addr = eeprom_base_address_;
+    eeprom_base_address_=offset;
+
+    if (!__send(pattern)) {
+      eeprom_base_address_ = prev_addr;
+      return false;
+    }
+
+    // Some delay is required.
+    os::wait(10);
+
+    const bool rb{receive(buf)};
+    eeprom_base_address_ = prev_addr;
+    if (!rb)
+      return false;
+
+    // Compare.
+    for (int k{}; k < pattern_size; ++k)
+      if (buf[k] != pattern[k])
+        return false;
+
+    return true;
+  };
+
+  // Perform self-test.
+  set_write_protection(false);
+  self_test_result_ = [&]
+  {
+    CFIFO pattern;
+    for (int i{}; i < page_size(); ++i)
+      pattern << 0xA5;
+
+    // Test first page.
+    if (!is_mem_area_ok(pattern, 0))
+      return false;
+
+    // Test last page.
+    if (!is_mem_area_ok(pattern, eeprom_max_read_amount_ - page_size()))
+      return false;
+
+    return true;
+  }();
+  set_write_protection(true);
+}
+
+bool Sam_i2c_eeprom_master::send(CFIFO& data)
+{
+  constexpr int write_retries{3};
+  bool result{};
+  set_write_protection(false);
+  for (int i{}; i < write_retries; ++i) {
+    data.rewind();
+    if (__send(data)) {
+      // Some delay required.
+      os::wait(10);
+      data.rewind();
+      if ( (result = __sendRB(data)))
+        break;
+    }
+  }
+  set_write_protection(true);
+  return result;
+}
+
+bool Sam_i2c_eeprom_master::receive(CFIFO& data)
+{
+  eeprom_current_address_ = eeprom_base_address_;
+  io_buffer_ = &data;
+  is_compare_read_mode_ = false;
+  start_transfer(Io_direction::read);
+  const auto start_time = os::get_tick_mS();
+  while (state_ != State::halted && state_ != State::errTransfer) {
+    if (os::get_tick_mS() - start_time > operation_timeout())
+      break;
+    os::wait(1);
+  }
+  io_buffer_ = nullptr;
+  return state_ == State::halted;
+}
+
 void Sam_i2c_eeprom_master::reset_chip_logic()
 {
   // Disconnect pins from I2C bus since we cannot use this interface.
@@ -138,6 +254,54 @@ void Sam_i2c_eeprom_master::set_write_protection(const bool activate)
   }
 }
 
+void Sam_i2c_eeprom_master::start_transfer(const Io_direction dir)
+{
+  SercomI2cm* const i2cm = sam_i2cm(id());
+  check_reset(); // check chip & bus states before transfer, reset if needed
+  io_direction_ = dir;
+  state_ = State::start;
+  sync_bus(i2cm);
+  i2cm->CTRLB.bit.ACKACT = 0; // sets "ACK" action
+  sync_bus(i2cm);
+  i2cm->ADDR.bit.ADDR = eeprom_chip_address_; // this will initiate a transfer sequence
+}
+
+int Sam_i2c_eeprom_master::read_byte()
+{
+  if (page_bytes_left_ <= 0 || !io_buffer_ || !io_buffer_->in_avail())
+    return -1;
+
+  Character ch;
+  *io_buffer_ >> ch;
+  --page_bytes_left_;
+  return ch;
+}
+
+int Sam_i2c_eeprom_master::write_byte(const int byte)
+{
+  if (!io_buffer_)
+    return -1;
+
+  if (is_compare_read_mode_) {
+    if (!io_buffer_->in_avail())
+      return -1;
+
+    Character ch;
+    *io_buffer_ >> ch;
+    if (ch != byte) {
+      state_ = State::errCmp;
+      return -1;
+    }
+  } else {
+    if (io_buffer_->size() >= eeprom_max_read_amount_) // memory protection
+      return -1;
+
+    *io_buffer_ << byte;
+  }
+
+  return byte;
+}
+
 bool Sam_i2c_eeprom_master::write_next_page()
 {
   const int pbl{page_size() - eeprom_current_address_ % page_size()};
@@ -184,116 +348,6 @@ bool Sam_i2c_eeprom_master::__sendRB(CFIFO& data)
   }
   io_buffer_ = nullptr;
   return state_ == State::halted;
-}
-
-bool Sam_i2c_eeprom_master::send(CFIFO& data)
-{
-  constexpr int write_retries{3};
-  bool result{};
-  set_write_protection(false);
-  for (int i{}; i < write_retries; ++i) {
-    data.rewind();
-    if (__send(data)) {
-      // Some delay required.
-      os::wait(10);
-      data.rewind();
-      if ( (result = __sendRB(data)))
-        break;
-    }
-  }
-  set_write_protection(true);
-  return result;
-}
-
-bool Sam_i2c_eeprom_master::receive(CFIFO& data)
-{
-  eeprom_current_address_ = eeprom_base_address_;
-  io_buffer_ = &data;
-  is_compare_read_mode_ = false;
-  start_transfer(Io_direction::read);
-  const auto start_time = os::get_tick_mS();
-  while (state_ != State::halted && state_ != State::errTransfer) {
-    if (os::get_tick_mS() - start_time > operation_timeout())
-      break;
-    os::wait(1);
-  }
-  io_buffer_ = nullptr;
-  return state_ == State::halted;
-}
-
-void Sam_i2c_eeprom_master::start_transfer(const Io_direction dir)
-{
-  SercomI2cm* const i2cm = sam_i2cm(id());
-  check_reset(); // check chip & bus states before transfer, reset if needed
-  io_direction_ = dir;
-  state_ = State::start;
-  sync_bus(i2cm);
-  i2cm->CTRLB.bit.ACKACT = 0; // sets "ACK" action
-  sync_bus(i2cm);
-  i2cm->ADDR.bit.ADDR = eeprom_chip_address_; // this will initiate a transfer sequence
-}
-
-void Sam_i2c_eeprom_master::run_self_test(bool)
-{
-  /*
-   * @brief Tests selected EEPROM area.
-   *
-   * @param pattern A pattern to test with.
-   * @param offset A start address of EEPROM area.
-   *
-   * @returns `true` on success.
-   */
-  const auto is_mem_area_ok = [this](CFIFO& pattern, const int offset)
-  {
-    CFIFO buf;
-
-    pattern.rewind();
-    const auto pattern_size = static_cast<std::size_t>(pattern.in_avail());
-    buf.reserve(pattern_size);
-
-    const auto prev_addr = eeprom_base_address_;
-    eeprom_base_address_=offset;
-
-    if (!__send(pattern)) {
-      eeprom_base_address_ = prev_addr;
-      return false;
-    }
-
-    // Some delay is required.
-    os::wait(10);
-
-    const bool rb{receive(buf)};
-    eeprom_base_address_ = prev_addr;
-    if (!rb)
-      return false;
-
-    // Compare.
-    for (int k{}; k < pattern_size; ++k)
-      if (buf[k] != pattern[k])
-        return false;
-
-    return true;
-  };
-
-  // Perform self-test.
-  set_write_protection(false);
-  self_test_result_ = [&]
-  {
-    CFIFO pattern;
-    for (int i{}; i < page_size(); ++i)
-      pattern << 0xA5;
-
-    // Test first page.
-    if (!is_mem_area_ok(pattern, 0))
-      return false;
-
-    // Test last page.
-    if (!is_mem_area_ok(pattern, eeprom_max_read_amount_ - page_size()))
-      return false;
-
-    return true;
-  }();
-  set_write_protection(true);
 }
 
 void Sam_i2c_eeprom_master::handle_irq()
@@ -405,58 +459,4 @@ void Sam_i2c_eeprom_master::handle_irq2()
 void Sam_i2c_eeprom_master::handle_irq3()
 {
   handle_irq();
-}
-
-void Sam_i2c_eeprom_master::enable_irq(const bool enabled)
-{
-  SercomI2cm* const i2cm = sam_i2cm(id());
-  is_irq_enabled_ = enabled;
-  if (is_irq_enabled_)
-    i2cm->INTENSET.reg =
-      SERCOM_I2CM_INTENSET_MB |   // master on bus
-      SERCOM_I2CM_INTENSET_SB |   // slave on bus
-      SERCOM_I2CM_INTENSET_ERROR; // bus error
-  else
-    // Clear all.
-    i2cm->INTENCLR.reg = SERCOM_I2CM_INTENSET_MASK;
-
-  // Tune NVIC.
-  for (const auto irq : {Irq::irq0, Irq::irq1, Irq::irq2, Irq::irq3})
-    Sam_sercom::enable_irq(irq, is_irq_enabled_);
-}
-
-int Sam_i2c_eeprom_master::read_byte()
-{
-  if (page_bytes_left_ <= 0 || !io_buffer_ || !io_buffer_->in_avail())
-    return -1;
-
-  Character ch;
-  *io_buffer_ >> ch;
-  --page_bytes_left_;
-  return ch;
-}
-
-int Sam_i2c_eeprom_master::write_byte(const int byte)
-{
-  if (!io_buffer_)
-    return -1;
-
-  if (is_compare_read_mode_) {
-    if (!io_buffer_->in_avail())
-      return -1;
-
-    Character ch;
-    *io_buffer_ >> ch;
-    if (ch != byte) {
-      state_ = State::errCmp;
-      return -1;
-    }
-  } else {
-    if (io_buffer_->size() >= eeprom_max_read_amount_) // memory protection
-      return -1;
-
-    *io_buffer_ << byte;
-  }
-
-  return byte;
 }

@@ -190,25 +190,10 @@ private:
   /// Checks bus state and perfoms a chip reset/bus reinit if needed.
   void check_reset();
 
-  /// I2C bus IRQ handler.
-  void handle_irq();
-
-  /// @see Sam_sercom::handle_irq0();
-  void handle_irq0() override;
-
-  /// @see Sam_sercom::handle_irq1();
-  void handle_irq1() override;
-
-  /// @see Sam_sercom::handle_irq2();
-  void handle_irq2() override;
-
-  /// @see Sam_sercom::handle_irq3();
-  void handle_irq3() override;
-
   /// Activates or deactivates write protection pin of the chip.
   void set_write_protection(bool activate);
 
-  /// Initiates a transfer process.
+  /// Initiates the data transfer.
   void start_transfer(Io_direction dir);
 
   /**
@@ -220,15 +205,6 @@ private:
   int read_byte();
 
   /**
-   * @brief Initiate data transfer to a next EEPROM page (RAM->chip).
-   *
-   * @warning Only 1 page can be written at once!
-   *
-   * @returns `true` on success.
-   */
-  bool write_next_page();
-
-  /**
    * @brief Writes a byte to the IO buffer upon of read chip operation
    * (chip->RAM) and increments the counter.
    *
@@ -237,6 +213,15 @@ private:
    * @returs The `byte` written, or negative value on error.
    */
   int write_byte(int byte);
+
+  /**
+   * @brief Initiate data transfer to a next EEPROM page (RAM->chip).
+   *
+   * @warning Only 1 page can be written at once!
+   *
+   * @returns `true` on success.
+   */
+  bool write_next_page();
 
   /**
    * @brief Perfoms send data to EEPROM operation without toggling write
@@ -260,6 +245,21 @@ private:
    * @remarks This function blocks the current thread.
    */
   bool __sendRB(CFIFO& data);
+
+  /// I2C bus IRQ handler.
+  void handle_irq();
+
+  /// @see Sam_sercom::handle_irq0();
+  void handle_irq0() override;
+
+  /// @see Sam_sercom::handle_irq1();
+  void handle_irq1() override;
+
+  /// @see Sam_sercom::handle_irq2();
+  void handle_irq2() override;
+
+  /// @see Sam_sercom::handle_irq3();
+  void handle_irq3() override;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_I2C_EEPROM_MASTER_HPP
