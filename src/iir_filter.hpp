@@ -97,11 +97,13 @@ public:
 
     PANDA_TIMESWIPE_ASSERT(a.size() == b0_.size());
     PANDA_TIMESWIPE_ASSERT(b0_.size() == a2_.size());
-    const double trans{1.0/std::tan(M_PI*cutoff_freq*target_sample_rate/source_sample_rate)};
+    const double trans{1.0 /
+      std::tan(M_PI*cutoff_freq*target_sample_rate/source_sample_rate)};
+    const auto b_trans_trans = b*trans*trans;
     for (int i{}; i < stage_count_; ++i) {
-      const auto abtrans = a[i]*trans + b*trans*trans;
-      b0_[i] = 1 / (1 + abtrans);
-      a2_[i] = -b0_[i] * (1 - abtrans);
+      const auto a_trans = a[i]*trans;
+      b0_[i] = 1 / (1 + a_trans + b_trans_trans);
+      a2_[i] = -b0_[i] * (1 - a_trans + b_trans_trans);
     }
 
     // Fill offsets.
