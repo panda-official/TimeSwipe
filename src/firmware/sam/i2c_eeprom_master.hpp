@@ -21,6 +21,23 @@
 
 #include "sercom.hpp"
 
+#include <cstdint>
+
+/// I2C bus state.
+enum I2c_bus_state : std::uint16_t {
+  /**
+   * State is unknown to the I2C master and will wait for a Stop condition
+   * to be detected or wait to be forced into an Idle state by software.
+   */
+  i2c_bus_unknown = 0x0,
+  /// Waiting for a transaction to be initialized.
+  i2c_bus_idle = 0x1,
+  /// The I2C master is the current owner of the bus.
+  i2c_bus_owner = 0x2,
+  /// Some other I2C master owns the bus.
+  i2c_bus_busy = 0x3
+};
+
 /**
 * @brief An I2C master class for communication with an external EEPROM chip
 * (CAT24C32).
@@ -184,7 +201,11 @@ private:
   /// Resets EEPROM chip logic if it hangs and makes the bus busy.
   void reset_chip_logic();
 
-  /// Performs initial bus setup (pinout, modes, speed with an initial reset).
+  /**
+   * @brief Performs initial bus setup (pinout, modes, speed with an initial reset).
+   *
+   * @see Registers are described in section 36.10 of the manual.
+   */
   void setup_bus();
 
   /// Checks chip & bus states and perfoms a chip reset and/or bus reinit if needed.
@@ -202,7 +223,7 @@ private:
    *
    * @returns A negative value on error.
    */
-  int read_byte();
+  int read_byte_from_io_buffer();
 
   /**
    * @brief Writes a byte to the IO buffer upon of read chip operation
@@ -212,7 +233,7 @@ private:
    *
    * @returs The `byte` written, or negative value on error.
    */
-  int write_byte(int byte);
+  int write_byte_to_io_buffer(int byte);
 
   /**
    * @brief Initiate data transfer to a next EEPROM page (RAM->chip).

@@ -202,14 +202,15 @@ void Sam_i2c_eeprom_master::setup_bus()
   /*
    * "Violating the protocol may cause the I2C to hang. If this happens it is
    * possible to recover from this state by a software Reset (CTRLA.SWRST='1').",
-   * page 1026.
+   * page 913.
    */
   SercomI2cm* const i2cm = sam_i2cm(id());
   while (i2cm->SYNCBUSY.bit.SWRST);
   i2cm->CTRLA.bit.SWRST = 1;
   while (i2cm->CTRLA.bit.SWRST);
 
-  i2cm->CTRLA.bit.MODE=0x05;
+  // Select the I2C master serial communication interface of the SERCOM.
+  i2cm->CTRLA.bit.MODE = 0x05;
 
   //setup:
   //i2cm->CTRLB.bit.SMEN=1;    //smart mode is enabled
@@ -229,14 +230,14 @@ void Sam_i2c_eeprom_master::setup_bus()
 
   while (!i2cm->STATUS.bit.BUSSTATE) {
     sync_bus(i2cm);
-    i2cm->STATUS.bit.BUSSTATE = 1;
+    i2cm->STATUS.bit.BUSSTATE = i2c_bus_idle;
   }
 }
 
 void Sam_i2c_eeprom_master::check_reset()
 {
   SercomI2cm* const i2cm = sam_i2cm(id());
-  if (i2cm->STATUS.bit.BUSSTATE == 3) {
+  if (i2cm->STATUS.bit.BUSSTATE == i2c_bus_busy) {
     // Chip is hanging.
     reset_chip_logic();
     setup_bus();
@@ -268,7 +269,7 @@ void Sam_i2c_eeprom_master::start_transfer(const Io_direction dir)
   i2cm->ADDR.bit.ADDR = eeprom_chip_address_;
 }
 
-int Sam_i2c_eeprom_master::read_byte()
+int Sam_i2c_eeprom_master::read_byte_from_io_buffer()
 {
   if (page_bytes_left_ <= 0 || !io_buffer_ || !io_buffer_->in_avail())
     return -1;
@@ -279,7 +280,7 @@ int Sam_i2c_eeprom_master::read_byte()
   return ch;
 }
 
-int Sam_i2c_eeprom_master::write_byte(const int byte)
+int Sam_i2c_eeprom_master::write_byte_to_io_buffer(const int byte)
 {
   if (!io_buffer_)
     return -1;
@@ -405,7 +406,7 @@ void Sam_i2c_eeprom_master::handle_irq()
       return;
     case State::write:
       // Write data until the end.
-      if (const int val = read_byte(); val < 0) {
+      if (const int val = read_byte_from_io_buffer(); val < 0) {
         // End reached.
         state_ = State::halted;
         i2cm->CTRLB.bit.CMD = 0x3; // stop
@@ -428,7 +429,7 @@ void Sam_i2c_eeprom_master::handle_irq()
     }
 
     // Read data until the end.
-    if (write_byte(i2cm->DATA.bit.DATA) < 0) { //EOF
+    if (write_byte_to_io_buffer(i2cm->DATA.bit.DATA) < 0) { //EOF
       if (state_ != State::errCmp)
         state_ = State::halted;
 
@@ -438,7 +439,7 @@ void Sam_i2c_eeprom_master::handle_irq()
       return;
     }
     i2cm->CTRLB.bit.CMD = 0x2;
-    i2cm->INTFLAG.bit.SB = 1;
+    i2cm->INTFLAG.bit.SB = 1; // clear the Slave on Bus flag
     return;
   }
 }
