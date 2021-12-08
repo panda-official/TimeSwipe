@@ -338,26 +338,23 @@ void Sam_i2c_eeprom_master::handle_irq()
       i2cm->DATA.bit.DATA = (eeprom_current_address_ & 0xff);
       return;
     case State::addrLb:
-      // After setting the addres switch the IO direction.
-      if (io_direction_ == Io_direction::write) {
-        //nothing to do, just continue writing:
-        state_ = State::write;
-      }
-      else {
-        //initiating a repeated start for read:
+      // After setting the address switch the IO direction.
+      if (io_direction_ == Io_direction::read) {
+        // Initiate repeated start for read.
         state_ = State::read;
         i2cm->ADDR.bit.ADDR = eeprom_chip_address_ + 1;
-      }
+      } else
+        // Continue writing.
+        state_ = State::write;
       return;
     case State::write:
-      // write data until the end
-      if (const int val = read_byte(); val >= 0) {
-        i2cm->DATA.bit.DATA = val;
-      } else {
-        // EOF:
+      // Write data until the end.
+      if (const int val = read_byte(); val < 0) {
+        // End reached.
         state_ = State::halted;
-        i2cm->CTRLB.bit.CMD = 0x3; //stop
-      }
+        i2cm->CTRLB.bit.CMD = 0x3; // stop
+      } else
+        i2cm->DATA.bit.DATA = val;
       return;
     default:
       i2cm->INTFLAG.bit.MB = 1;
