@@ -96,7 +96,7 @@ void Sam_i2c_eeprom_master::run_self_test(bool)
     const auto prev_addr = eeprom_base_address_;
     eeprom_base_address_=offset;
 
-    if (!__send(pattern)) {
+    if (!submit__(pattern)) {
       eeprom_base_address_ = prev_addr;
       return false;
     }
@@ -145,11 +145,11 @@ bool Sam_i2c_eeprom_master::send(CFIFO& data)
   set_write_protection(false);
   for (int i{}; i < write_retries; ++i) {
     data.rewind();
-    if (__send(data)) {
+    if (submit__(data)) {
       // Some delay required.
       os::wait(10);
       data.rewind();
-      if ( (result = __sendRB(data)))
+      if ( (result = read_back_and_compare__(data)))
         break;
     }
   }
@@ -257,13 +257,15 @@ void Sam_i2c_eeprom_master::set_write_protection(const bool activate)
 void Sam_i2c_eeprom_master::start_transfer(const Io_direction dir)
 {
   SercomI2cm* const i2cm = sam_i2cm(id());
-  check_reset(); // check chip & bus states before transfer, reset if needed
+  check_reset();
   io_direction_ = dir;
   state_ = State::start;
   sync_bus(i2cm);
-  i2cm->CTRLB.bit.ACKACT = 0; // sets "ACK" action
+  // Set "ACK" action.
+  i2cm->CTRLB.bit.ACKACT = 0;
   sync_bus(i2cm);
-  i2cm->ADDR.bit.ADDR = eeprom_chip_address_; // this will initiate a transfer sequence
+  // Initiate a transfer sequence.
+  i2cm->ADDR.bit.ADDR = eeprom_chip_address_;
 }
 
 int Sam_i2c_eeprom_master::read_byte()
@@ -320,7 +322,7 @@ bool Sam_i2c_eeprom_master::write_next_page()
   return false;
 }
 
-bool Sam_i2c_eeprom_master::__send(CFIFO& data)
+bool Sam_i2c_eeprom_master::submit__(CFIFO& data)
 {
   eeprom_current_address_ = eeprom_base_address_; // rewind mem addr
   io_buffer_ = &data;
@@ -334,7 +336,7 @@ bool Sam_i2c_eeprom_master::__send(CFIFO& data)
   return result;
 }
 
-bool Sam_i2c_eeprom_master::__sendRB(CFIFO& data)
+bool Sam_i2c_eeprom_master::read_back_and_compare__(CFIFO& data)
 {
   eeprom_current_address_ = eeprom_base_address_;
   io_buffer_ = &data;

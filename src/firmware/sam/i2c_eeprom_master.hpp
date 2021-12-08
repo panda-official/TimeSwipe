@@ -187,7 +187,7 @@ private:
   /// Performs initial bus setup (pinout, modes, speed with an initial reset).
   void setup_bus();
 
-  /// Checks bus state and perfoms a chip reset/bus reinit if needed.
+  /// Checks chip & bus states and perfoms a chip reset and/or bus reinit if needed.
   void check_reset();
 
   /// Activates or deactivates write protection pin of the chip.
@@ -224,8 +224,7 @@ private:
   bool write_next_page();
 
   /**
-   * @brief Perfoms send data to EEPROM operation without toggling write
-   * protection pin (used in self-test cycle).
+   * @brief Submits `data` to EEPROM without toggling write protection pin.
    *
    * @param data A data to be written.
    *
@@ -233,10 +232,10 @@ private:
    *
    * @remarks This function blocks the current thread.
    */
-  bool __send(CFIFO& data);
+  bool submit__(CFIFO& data);
 
   /**
-   * @brief Compares EEPROM content with given data.
+   * @brief Reads back and compares EEPROM content with given `data`.
    *
    * @param data A data to compare.
    *
@@ -244,7 +243,7 @@ private:
    *
    * @remarks This function blocks the current thread.
    */
-  bool __sendRB(CFIFO& data);
+  bool read_back_and_compare__(CFIFO& data);
 
   /// I2C bus IRQ handler.
   void handle_irq();
