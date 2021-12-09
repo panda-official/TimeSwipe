@@ -499,7 +499,7 @@ if(PANDA_TIMESWIPE_TESTS)
 
   # Set the test lists.
   set(driver_tests board_settings driver_settings
-    datlog driftcomp driftcompmeas kaiser measure resampler rpispi
+    driftcomp driftcompmeas kaiser measure resampler rpispi
     table)
   set(firmware_tests button_event)
 
@@ -509,7 +509,6 @@ if(PANDA_TIMESWIPE_TESTS)
   list(APPEND driver_tests_link_libraries)
 
   # Set the link libraries per test.
-  set(datlog_link_libraries pthread)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
@@ -547,12 +546,6 @@ if(PANDA_TIMESWIPE_TESTS)
   # Custom commands
   if(NOT PANDA_TIMESWIPE_FIRMWARE)
     add_custom_target(panda_copy_test_resources ALL
-      COMMAND cmake -E copy_if_different
-      "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/datlog.json"
-      "${panda_output_dir}"
-      COMMAND cmake -E copy_if_different
-      "${CMAKE_CURRENT_SOURCE_DIR}/test/driver/driftcompmeas.json"
-      "${panda_output_dir}"
       )
   endif()
 

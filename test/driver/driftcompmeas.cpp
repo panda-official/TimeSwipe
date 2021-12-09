@@ -89,17 +89,6 @@ try {
   if (dur <= ms::zero())
     throw std::invalid_argument{"invalid duration"};
 
-  // Process the config file.
-  const auto cfg_file_name{argc > 2 ? argv[2] : "driftcompmeas.json"};
-  if (std::ifstream in{cfg_file_name}) {
-    nlohmann::json config;
-    in >> config;
-    if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
-      if (!cs->empty())
-        driver.set_settings(ts::Board_settings{cs->dump()});
-    }
-  }
-
   if (!driver.drift_references()) {
     // Normally, it means the first program run.
     const auto refs = driver.calculate_drift_references();
