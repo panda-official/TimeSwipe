@@ -210,11 +210,11 @@ void Sam_i2c_eeprom_master::reset_chip_logic()
 void Sam_i2c_eeprom_master::setup_bus()
 {
   // SCL.
-  PORT->Group[eeprom_pin_group].PMUX[4].bit.PMUXE = eeprom_peripheral_function;
+  PORT->Group[eeprom_pin_group].PMUX[eeprom_pad1_pin_number>>1].bit.PMUXE = eeprom_peripheral_function;
   PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad1_pin_number].bit.PMUXEN = 1; // enable
 
   // SDA.
-  PORT->Group[eeprom_pin_group].PMUX[4].bit.PMUXO = eeprom_peripheral_function;
+  PORT->Group[eeprom_pin_group].PMUX[eeprom_pad0_pin_number>>1].bit.PMUXO = eeprom_peripheral_function;
   PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad0_pin_number].bit.PMUXEN = 1; // enable
 
   /*
