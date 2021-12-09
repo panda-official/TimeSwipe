@@ -430,8 +430,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     PRIVATE Boost::boost)
 
   target_compile_definitions(panda_timeswipe PUBLIC
-    # Nlohmann JSON
-    NLOHMANN_JSON_CUSTOM_STDIO_FRM
     )
 
   # When build natively on ARM with GCC 8+ link to atomic library explicitly if it's found.
