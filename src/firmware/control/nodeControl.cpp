@@ -29,7 +29,7 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
 
     if (m_EEPROMstorage.verify() != hat::Manager::Op_result::ok) {
       m_EEPROMstorage.reset();
-      hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "TimeSwipe"};
+      hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "Timeswipe"};
       m_EEPROMstorage.set(vinf); //storage is ready
     }
 
