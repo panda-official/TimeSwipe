@@ -1,11 +1,28 @@
-//setup system clocks + CORTEX-Mx SysTick:
+// -*- C++ -*-
+
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+// Setup system clocks + CORTEX-Mx SysTick.
+
+#include "system_clock.hpp"
 
 #include <sam.h>
 
 #define SRC_GEN 2
-
-unsigned long get_tick_mS(void);
-
 
 //----------frequency formulas---------
 //DPLL=Fsrc*(LDR + 1 + LDFRAC/32 )
@@ -14,9 +31,6 @@ unsigned long get_tick_mS(void);
 //-------------------------------------
 
 extern "C" {
-
-extern uint32_t __isr_vector;
-
 #ifndef __NO_SYSTEM_INIT
 void SystemInit()
 {
@@ -39,12 +53,11 @@ __enable_irq();
    // SysTick_Config(120000); //1mS
 }
 #endif
-}
+} // extern "C"
 
-int sys_clock_init(void){
-
+int initialize_system_clock()
+{
 #ifndef KEMU
-
     //connect source gen to DPLL0:
     GCLK->PCHCTRL[1].bit.GEN=SRC_GEN;
     GCLK->PCHCTRL[1].bit.CHEN=1;

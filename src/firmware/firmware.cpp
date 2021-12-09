@@ -1,11 +1,20 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019-2020 Panda Team
-*/
+// -*- C++ -*-
 
-//build for ADCs-DACs:
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "../error.hpp"
 #include "../hat.hpp"
@@ -33,6 +42,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "json/jsondisp.h"
 #include "led/nodeLED.h"
 #include "sam/button.hpp"
+#include "sam/system_clock.hpp"
 #include "sam/SamSPIbase.h"
 #include "sam/SamQSPI.h"
 #include "sam/i2c_eeprom_master.hpp"
@@ -41,41 +51,28 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
 
-// -----------------------------------------------------------------------------
-// volatile bool stopflag{};
-// stopflag = true;
+// #define PANDA_TIMESWIPE_FIRMWARE_DEBUG
+
+#ifdef PANDA_TIMESWIPE_FIRMWARE_DEBUG
+volatile bool stopflag{true};
 // while (stopflag) os::wait(10);
-// -----------------------------------------------------------------------------
+#endif  // PANDA_TIMESWIPE_FIRMWARE_DEBUG
 
-namespace ts = panda::timeswipe;
-using namespace std::placeholders;
-
-
-/*!
- * \brief Setups the CPU main clock frequency to 120MHz
- * \return 0=frequency tuning was successful
+/**
+ * @brief The firmware assemblage point.
+ *
+ * @details Creates all the neccesary objects and the corresponding bindings,
+ * establishing the references between of them.
  */
-int sys_clock_init(void);
-
-
-
-/*!
-*  \brief The current firmware assemblage point
-*
-*  \details Here is all neccesary firmware objects and modules are created at run-time
-*  and corresponding bindings and links are established between them
-*
-*  \todo Add or remove desired objects to change the firmware behavior,
-*  or add/remove desired functionality
-*
-*/
-
 int main()
 {
-  try {
-    namespace detail = panda::timeswipe::detail;
-    constexpr int nChannels{detail::max_channel_count};
-    constexpr std::size_t EEPROMsize{2*1024}; // 2kb for EEPROM data
+ try {
+   using namespace std::placeholders;
+   namespace ts = panda::timeswipe;
+   namespace detail = panda::timeswipe::detail;
+
+   constexpr int nChannels{detail::max_channel_count};
+   constexpr std::size_t max_eeprom_size{2*1024};
 
 #ifdef CALIBRATION_STATION
     bool bVisEnabled=false;
@@ -92,38 +89,49 @@ int main()
     auto pVersion=std::make_shared<CSemVer>(detail::version_major,
       detail::version_minor, detail::version_patch);
 
-    CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
+    // Check/setup SmartEEPROM before clock init.
+    CSamNVMCTRL::Instance();
 
-    //step 0: clock init:
-    sys_clock_init(); //->120MHz
+    // Initialize the system clock: 120 MHz.
+    initialize_system_clock();
 
-    //----------------creating I2C EEPROM-----------------------
-    //creating shared mem buf:
-    auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
-    pEEPROM_MemBuf->reserve(EEPROMsize); // reserve for EEPROM data
+    // Create the control instance.
+    auto& nc = nodeControl::Instance();
 
-    //creating an I2C EEPROM master to operate with an external chip:
-    auto pEEPROM_MasterBus= std::make_shared<Sam_i2c_eeprom_master>();
-    pEEPROM_MasterBus->enable_irq(true);
+    // -------------------------------------------------------------------------
+    // Create I2C EEPROM
+    // -------------------------------------------------------------------------
 
-    //request data from an external chip:
-    pEEPROM_MasterBus->set_eeprom_base_address(0);
-    pEEPROM_MasterBus->set_eeprom_max_read_amount(EEPROMsize);
-    pEEPROM_MasterBus->set_eeprom_chip_address(0xA0);
-    pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
+    // Create in-memory buffer for EEPROM.
+    const auto eeprom_buffer = std::make_shared<CFIFO>();
+    eeprom_buffer->reserve(max_eeprom_size);
 
-    //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
-    auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
-    pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
-    pEEPROM_HAT->EnableIRQs(true);
+    // Create I2C EEPROM master to operate with the external chip.
+    const auto i2c_eeprom_master = std::make_shared<Sam_i2c_eeprom_master>();
+    // auto* volatile eeprom_master = i2c_eeprom_master.get(); // for debugging
+    i2c_eeprom_master->enable_irq(true);
+    i2c_eeprom_master->set_eeprom_base_address(0);
+    i2c_eeprom_master->set_eeprom_max_read_amount(max_eeprom_size);
+    i2c_eeprom_master->set_eeprom_chip_address(0xA0);
+
+    // Read the data from the external EEPROM.
+    i2c_eeprom_master->receive(*eeprom_buffer);
+
+    /*
+     * Create 2 I2C slaves for read-only EEPROM data from extension plugs and
+     * attach the EEPROM buffer to them.
+     */
+    const auto eeprom_hat = std::make_shared<CSamI2CmemHAT>();
+    eeprom_hat->SetMemBuf(eeprom_buffer);
+    eeprom_hat->EnableIRQs(true);
 
     //set iface:
-    auto& nc = nodeControl::Instance();
-    nc.SetEEPROMiface(pEEPROM_MasterBus, pEEPROM_MemBuf);
-    //----------------------------------------------------------
+    nc.SetEEPROMiface(i2c_eeprom_master, eeprom_buffer);
 
+    // -------------------------------------------------------------------------
+    // Setup communication bus
+    // -------------------------------------------------------------------------
 
-    //communication bus:
     auto pSPIsc2    =std::make_shared<CSPIcomm>(Sam_sercom::Id::sercom2, Sam_pin::Id::pa12, Sam_pin::Id::pa15, Sam_pin::Id::pa13, Sam_pin::Id::pa14);
     pSPIsc2->EnableIRQs(true);
     auto pDisp=         std::make_shared<CCmdDispatcher>();
@@ -358,7 +366,7 @@ int main()
         &CCalFWbtnHandler::HasUItestBeenDone,
         &CCalFWbtnHandler::StartUItest) );
     //testing Ext EEPROM:
-    pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<Sam_i2c_eeprom_master, bool> >(pEEPROM_MasterBus,
+    pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<Sam_i2c_eeprom_master, bool> >(i2c_eeprom_master,
         &Sam_i2c_eeprom_master::self_test_result, &Sam_i2c_eeprom_master::run_self_test) );
 
     pDisp->Add("CalEnable", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsCalEnabled,  &nodeControl::EnableCal) );

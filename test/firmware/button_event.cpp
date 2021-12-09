@@ -16,6 +16,7 @@ Copyright (c) 2019-2021 Panda Team
 #include "../../src/firmware/led/nodeLED.h"
 #include "../../src/firmware/sam/button.hpp"
 #include "../../src/firmware/sam/SamService.h"
+#include "../../src/firmware/sam/system_clock.hpp"
 
 class CButtonLogic final : public CTimerEvent
                          , public Button_event
@@ -50,15 +51,6 @@ protected:
   bool is_recording_{};
 };
 
-
-/*!
- * \brief Setups the CPU main clock frequency to 120MHz
- * \return 0=frequency tuning was successful
- */
-int sys_clock_init(void);
-
-
-
 /*!
 *  \brief The current firmware assemblage point
 *
@@ -72,8 +64,7 @@ int sys_clock_init(void);
 
 int main(void)
 {
-    //step 0: clock init:
-    sys_clock_init(); //->120MHz
+    initialize_system_clock();
 
     nodeLED::init();
     auto pLED1      =std::make_shared<CLED>(typeLED::LED1);

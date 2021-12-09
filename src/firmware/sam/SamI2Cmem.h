@@ -131,7 +131,7 @@ public:
      * \brief Setups the buffer to read EEPROM data from
      * \param pFIFObuf A pointer to the buffer
      */
-    void SetMemBuf(std::shared_ptr<CFIFO> &pFIFObuf)
+    void SetMemBuf(const std::shared_ptr<CFIFO>& pFIFObuf)
     {
         m_pFIFObuf=pFIFObuf;
         obtain_membuf();

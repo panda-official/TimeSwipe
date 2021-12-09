@@ -306,7 +306,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SamTempSensor.h
     button.cpp
     button.hpp
-    clock_set_SAME54.cpp
     cortex_handlers.cpp
     clock_generator.cpp
     clock_generator.hpp
@@ -316,6 +315,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     pin.hpp
     sercom.cpp
     sercom.hpp
+    system_clock.cpp
+    system_clock.hpp
     )
 
   set(firmware_src
