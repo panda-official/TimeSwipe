@@ -71,7 +71,8 @@ public:
   /// SAME5x Sercom ID.
   enum class Id {
     sercom0, sercom1, sercom2, sercom3,
-    sercom4, sercom5, sercom6, sercom7 };
+    sercom4, sercom5, sercom6, sercom7
+  };
 
   /// SAME5x Sercom IRQ.
   enum class Irq { irq0, irq1, irq2, irq3 };

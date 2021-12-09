@@ -179,7 +179,8 @@ private:
    *
    * @returns `true` if found.
    */
-  static bool get_sercom_pad(Id id, Sam_sercom::Id sercom, Pad& pad, Peripheral_function& pf);
+  static bool get_sercom_pad(Id id, Sam_sercom::Id sercom,
+    Pad& pad, Peripheral_function& pf);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_SAM_PIN_HPP

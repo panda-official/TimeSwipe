@@ -185,6 +185,7 @@ private:
   int page_bytes_left_{};
   std::shared_ptr<Sam_clock_generator> clock_generator_;
   CFIFO* io_buffer_{};
+  bool is_irq_handled_{}; // FIXME: remove. This is for debugging.
 
   /// @returns The size of the EEPROM page.
   static constexpr int page_size() noexcept

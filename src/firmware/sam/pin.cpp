@@ -157,7 +157,7 @@ bool Sam_pin::get_sercom_pad(const Id id, const Sam_sercom::Id sercom,
   };
 
   constexpr auto tab_size = sizeof(sercom_table) / sizeof(*sercom_table);
-  for (auto sercom_idx = static_cast<std::size_t>(sercom) << 2;
+  for (auto sercom_idx = static_cast<std::size_t>(sercom)<<2;
        sercom_idx <= (tab_size - 4); sercom_idx += 32) {
     for (int i{}; i < 4; ++i) {
       const auto entry = sercom_table[sercom_idx + i];

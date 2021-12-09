@@ -19,6 +19,7 @@
 #include "../error.hpp"
 #include "../os.h"
 #include "i2c_eeprom_master.hpp"
+#include "pin.hpp"
 
 #include <sam.h>
 
@@ -27,6 +28,22 @@
 Sercom* glob_GetSercomPtr(Sam_sercom::Id);
 
 namespace {
+
+#if defined(__SAME54P20A__)
+constexpr int eeprom_pin_group = Sam_pin::Group::d;
+constexpr int eeprom_pad0_pin_number = Sam_pin::Number::p09;
+constexpr int eeprom_pad1_pin_number = Sam_pin::Number::p08;
+constexpr int eeprom_pad2_pin_number = Sam_pin::Number::p10;
+constexpr int eeprom_peripheral_function = Sam_pin::Peripheral_function::pfd;
+#elif defined(__SAME53N19A__)
+constexpr int eeprom_pin_group = Sam_pin::Group::c;
+constexpr int eeprom_pad0_pin_number = Sam_pin::Number::p16;
+constexpr int eeprom_pad1_pin_number = Sam_pin::Number::p17;
+constexpr int eeprom_pad2_pin_number = Sam_pin::Number::p18;
+constexpr int eeprom_peripheral_function = Sam_pin::Peripheral_function::pfc;
+#else
+#error Unsupported SAM
+#endif
 
 /// @returns Pointer to master section.
 inline SercomI2cm* sam_i2cm(const Sam_sercom::Id id) noexcept
@@ -44,7 +61,7 @@ inline void sync_bus(SercomI2cm* const bus) noexcept
 Sam_i2c_eeprom_master::Sam_i2c_eeprom_master()
   : Sam_sercom{Id::sercom6}
 {
-  PORT->Group[3].DIRSET.reg = (1L<<10);
+  PORT->Group[eeprom_pin_group].DIRSET.reg = (1L<<eeprom_pad2_pin_number);
   set_write_protection(true);
 
   enable_internal_bus(true);
@@ -81,11 +98,11 @@ void Sam_i2c_eeprom_master::run_self_test(bool)
    * @brief Tests selected EEPROM area.
    *
    * @param pattern A pattern to test with.
-   * @param offset A start address of EEPROM area.
+   * @param base_addr A start address of EEPROM area.
    *
    * @returns `true` on success.
    */
-  const auto is_mem_area_ok = [this](CFIFO& pattern, const int offset)
+  const auto is_mem_area_ok = [this](CFIFO& pattern, const int base_addr)
   {
     CFIFO buf;
 
@@ -94,7 +111,7 @@ void Sam_i2c_eeprom_master::run_self_test(bool)
     buf.reserve(pattern_size);
 
     const auto prev_addr = eeprom_base_address_;
-    eeprom_base_address_=offset;
+    eeprom_base_address_ = base_addr;
 
     if (!submit__(pattern)) {
       eeprom_base_address_ = prev_addr;
@@ -176,15 +193,16 @@ bool Sam_i2c_eeprom_master::receive(CFIFO& data)
 void Sam_i2c_eeprom_master::reset_chip_logic()
 {
   // Disconnect pins from I2C bus since we cannot use this interface.
-  PORT->Group[3].PINCFG[8].bit.PMUXEN = 0;
-  PORT->Group[3].PINCFG[9].bit.PMUXEN = 0;
+  PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad1_pin_number].bit.PMUXEN = 0;
+  PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad0_pin_number].bit.PMUXEN = 0;
 
   // Perform a manual 10-period clock sequence to reset the chip.
-  PORT->Group[3].OUTCLR.reg = (1L<<8);
+  constexpr auto bits = (1L<<eeprom_pad1_pin_number);
+  PORT->Group[eeprom_pin_group].OUTCLR.reg = bits;
   for (int i{}; i < 10; ++i) {
-    PORT->Group[3].DIRSET.reg = (1L<<8); // should go to 0.
+    PORT->Group[eeprom_pin_group].DIRSET.reg = bits; // should go to 0.
     os::wait(1);
-    PORT->Group[3].DIRCLR.reg = (1L<<8); // back by pull up.
+    PORT->Group[eeprom_pin_group].DIRCLR.reg = bits; // back by pull up.
     os::wait(1);
   }
 }
@@ -192,12 +210,12 @@ void Sam_i2c_eeprom_master::reset_chip_logic()
 void Sam_i2c_eeprom_master::setup_bus()
 {
   // SCL.
-  PORT->Group[3].PMUX[4].bit.PMUXE = 0x03;
-  PORT->Group[3].PINCFG[8].bit.PMUXEN = 1; // enable
+  PORT->Group[eeprom_pin_group].PMUX[4].bit.PMUXE = eeprom_peripheral_function;
+  PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad1_pin_number].bit.PMUXEN = 1; // enable
 
   // SDA.
-  PORT->Group[3].PMUX[4].bit.PMUXO = 0x03;
-  PORT->Group[3].PINCFG[9].bit.PMUXEN = 1; // enable
+  PORT->Group[eeprom_pin_group].PMUX[4].bit.PMUXO = eeprom_peripheral_function;
+  PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad0_pin_number].bit.PMUXEN = 1; // enable
 
   /*
    * "Violating the protocol may cause the I2C to hang. If this happens it is
@@ -246,12 +264,13 @@ void Sam_i2c_eeprom_master::check_reset()
 
 void Sam_i2c_eeprom_master::set_write_protection(const bool activate)
 {
+  constexpr auto bits = (1L<<eeprom_pad2_pin_number);
   if (activate) {
-    PORT->Group[3].OUTSET.reg = (1L<<10);
+    PORT->Group[eeprom_pin_group].OUTSET.reg = bits;
     os::uwait(100); // wait till real voltage level rise of fall
   } else {
     os::uwait(100); // wait till real voltage level rise of fall
-    PORT->Group[3].OUTCLR.reg = (1L<<10);
+    PORT->Group[eeprom_pin_group].OUTCLR.reg = bits;
   }
 }
 
@@ -355,6 +374,7 @@ bool Sam_i2c_eeprom_master::read_back_and_compare__(CFIFO& data)
 
 void Sam_i2c_eeprom_master::handle_irq()
 {
+  is_irq_handled_ = true;
   SercomI2cm* const i2cm = sam_i2cm(id());
 
   sync_bus(i2cm);
