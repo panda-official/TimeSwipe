@@ -208,37 +208,37 @@ private:
       }*/
   }
 
-  /// Start token used for string extraction.
-  Character m_chStartTocken=' ';
-
-  /// End token used for string extraction.
-  Character m_chEndTocken='\0';
-
   /**
-   * @brief Extract a string from the stream.
-   * @param str Filled with extracted string (IN parameter).
-   * @returns `true` on successfull extraction.
+   * @brief Extract a string from this stream.
+   *
+   * @param[out] str The result string.
+   *
+   * @returns `true` on success.
    */
   bool fetch_string(std::string& str)
   {
-    bool bProcStr=false;
-    Character Tocken=m_chStartTocken;
+    /// Start token used for string extraction.
+    constexpr Character start_token{' '};
+    /// End token used for string extraction.
+    constexpr Character end_token{'\0'};
 
+    bool is_extracted{};
+    Character token{start_token};
     str.clear();
-    while(m_pBuf->in_avail()) {
+    while (m_pBuf->in_avail()) {
       Character ch;
-      *m_pBuf>>ch;
+      *m_pBuf >> ch;
 
-      if(ch == Tocken) {
-        if(bProcStr)
-          return true;
+      if (ch == token) {
+        if (is_extracted)
+          break;
       } else {
-        Tocken=m_chEndTocken;
-        bProcStr=true;
-        str+=(char)ch;
+        token = end_token;
+        is_extracted = true;
+        str += static_cast<char>(ch);
       }
     }
-    return bProcStr;
+    return is_extracted;
   }
 
   template<typename type>
