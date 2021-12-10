@@ -13,16 +13,16 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include "../frm_stream.h"
+#include "../io_stream.hpp"
 #include "../json.hpp"
 
 /*!
  * \brief A JSON-based formatted stream
- * \details  The class derived from CFrmStream provides a mechanism for retrieving/storing
- * primitive data types (int, float, std::string, e.t.c) from/to the JSON object in the CFrmStream style:
+ * \details  The class derived from Io_stream provides a mechanism for retrieving/storing
+ * primitive data types (int, float, std::string, e.t.c) from/to the JSON object in the Io_stream style:
  * by extraction(>>) and insertion (<<) operators that allows easy integration to the communication system
  */
-class CJSONStream final : public CFrmStream
+class CJSONStream final : public Io_stream
 {
 protected:
 
@@ -52,7 +52,7 @@ public:
      * \param A pointer to a JSON object that acts as "stream buffer" here
      */
   CJSONStream(rapidjson::Value& value, rapidjson::Document::AllocatorType* const alloc)
-    : CFrmStream(nullptr)
+    : Io_stream(nullptr)
     , value_{value}
     , alloc_{alloc}
     {}

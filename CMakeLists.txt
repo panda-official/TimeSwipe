@@ -329,7 +329,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     dms_channel.cpp
     dms_channel.hpp
     error.hpp
-    frm_stream.h
+    io_stream.hpp
     json.hpp
     os.h
     pga280.cpp

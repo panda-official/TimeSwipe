@@ -24,7 +24,7 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
 
-#include "frm_stream.h"
+#include "io_stream.hpp"
 
 #include <map>
 #include <memory>
@@ -58,10 +58,10 @@ struct CCmdCallDescr final {
   unsigned int m_nCmdIndex;
 
   /// Input stream: to fetch function/methode input arguments.
-  CFrmStream    *m_pIn=nullptr;
+  Io_stream    *m_pIn=nullptr;
 
   /// Output stream: to store function/methodes output arguments or return value.
-  CFrmStream    *m_pOut=nullptr;
+  Io_stream    *m_pOut=nullptr;
 
   /// Command handler invocation result ("call result"=cres).
   enum cres {

@@ -26,7 +26,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_STD_PORT_HPP
 
 #include "cmd.h"
-#include "frm_stream.h"
+#include "io_stream.hpp"
 #include "../serial.hpp"
 
 /**
@@ -83,8 +83,8 @@ protected:
 
     if(TERM_CHAR==ch) {
       //preparing streams:
-      CFrmStream in(&m_In);
-      CFrmStream out(&m_Out);
+      Io_stream in(&m_In);
+      Io_stream out(&m_Out);
 
       try {
         if(proc_args!=m_PState)

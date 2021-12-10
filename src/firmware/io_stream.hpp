@@ -16,13 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * @file
- * Formatted stream stuff.
- */
-
-#ifndef PANDA_TIMESWIPE_FIRMWARE_FRM_STREAM_HPP
-#define PANDA_TIMESWIPE_FIRMWARE_FRM_STREAM_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP
 
 #include "../serial.hpp"
 
@@ -30,96 +25,94 @@
 #include <cstdlib>
 #include <cstring>
 
-/*!
- * \brief A formatted stream class.
- * \details Provides a mechanism for retrieving/storing
- *  primitive data types (int, float, std::string, e.t.c) from/to the stream.
- *  similar to ios::ios, but standard library is too heavy
+/**
+ * @brief An IO stream.
+ *
+ * @details Provides an API for reading and writing the data of various types.
+ *
+ * @remarks Designed as a lightweight alternative of the standard IO streams.
  */
-class CFrmStream {
+class Io_stream {
 public:
-  /**
-   * @brief Returns the status of the last parsing operation
-   * FIXME: @returns
-   */
+  /// @returns `true` if the last operation was successful.
   bool bad()
   {
     return m_bErr;
   }
 
-  CFrmStream(CFIFO* pBuf)
+  Io_stream(CFIFO* pBuf)
   {
     m_pBuf=pBuf;
   }
 
-  CFrmStream& operator<<(Character ch)
+  Io_stream& operator<<(Character ch)
   {
     frm_vset<Character>(ch);
     return *this;
   }
 
-  CFrmStream& operator>>(Character& ch)
+  Io_stream& operator>>(Character& ch)
   {
     frm_vget<Character>(ch);
     return *this;
   }
 
-  CFrmStream& operator<<(const char* ch)
+  Io_stream& operator<<(const char* ch)
   {
     frm_vset<const char*>(ch);
     return *this;
   }
 
-  CFrmStream& operator>>(char* ch)
+  Io_stream& operator>>(char* ch)
   {
     frm_vget<char*>(ch);
     return *this;
   }
 
   //03.06.2019 - string support:
-  CFrmStream& operator<<(const std::string& str)
+  Io_stream& operator<<(const std::string& str)
   {
     frm_vset<const std::string>(str);
     return *this;
   }
 
-  CFrmStream& operator>>(std::string& str)
+  Io_stream& operator>>(std::string& str)
   {
     frm_vget<std::string>(str);
     return *this;
   }
 
-  CFrmStream& operator<<(unsigned int val)
+  Io_stream& operator<<(unsigned int val)
   {
     frm_vset<unsigned int>(val);
     return *this;
   }
 
-  CFrmStream& operator>>(unsigned int& val)
+  Io_stream& operator>>(unsigned int& val)
   {
     frm_vget<unsigned int>(val);
     return *this;
   }
 
-  CFrmStream& operator<<(float val)
+  Io_stream& operator<<(float val)
   {
     frm_vset<float>(val);
     return *this;
   }
 
-  CFrmStream& operator>>(float& val)
+  Io_stream& operator>>(float& val)
   {
     frm_vget<float>(val);
     return *this;
   }
 
-  CFrmStream& operator<<(bool val)
+  Io_stream& operator<<(bool val)
   {
     frm_vset<bool>(val);
     return *this;
   }
 
-  CFrmStream& operator>>(bool& val)
+  Io_stream& operator>>(bool& val)
   {
     frm_vget<bool>(val);
     return *this;
@@ -261,4 +254,4 @@ private:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_FIRMWARE_FRM_STREAM_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP
