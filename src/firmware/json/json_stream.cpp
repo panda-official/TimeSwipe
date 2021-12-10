@@ -25,7 +25,7 @@ void CJSONStream::get(void *pVar, const std::type_info &ti)
 
 void CJSONStream::set(const void *pVar, const std::type_info &ti)
 {
-  PANDA_TIMESWIPE_FIRMWARE_ASSERT(alloc_); // read-only stream
+  PANDA_TIMESWIPE_FIRMWARE_ASSERT(alloc_);
   if (ti == typeid(bool))
     value_.SetBool(*static_cast<const bool*>(pVar));
   else if (ti == typeid(int))
