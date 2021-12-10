@@ -37,7 +37,95 @@
  *  similar to ios::ios, but standard library is too heavy
  */
 class CFrmStream {
-protected:
+public:
+  /**
+   * @brief Returns the status of the last parsing operation
+   * FIXME: @returns
+   */
+  bool bad()
+  {
+    return m_bErr;
+  }
+
+  CFrmStream(CFIFO* pBuf)
+  {
+    m_pBuf=pBuf;
+  }
+
+  CFrmStream& operator<<(Character ch)
+  {
+    frm_vset<Character>(ch);
+    return *this;
+  }
+
+  CFrmStream& operator>>(Character& ch)
+  {
+    frm_vget<Character>(ch);
+    return *this;
+  }
+
+  CFrmStream& operator<<(const char* ch)
+  {
+    frm_vset<const char*>(ch);
+    return *this;
+  }
+
+  CFrmStream& operator>>(char* ch)
+  {
+    frm_vget<char*>(ch);
+    return *this;
+  }
+
+  //03.06.2019 - string support:
+  CFrmStream& operator<<(const std::string& str)
+  {
+    frm_vset<const std::string>(str);
+    return *this;
+  }
+
+  CFrmStream& operator>>(std::string& str)
+  {
+    frm_vget<std::string>(str);
+    return *this;
+  }
+
+  CFrmStream& operator<<(unsigned int val)
+  {
+    frm_vset<unsigned int>(val);
+    return *this;
+  }
+
+  CFrmStream& operator>>(unsigned int& val)
+  {
+    frm_vget<unsigned int>(val);
+    return *this;
+  }
+
+  CFrmStream& operator<<(float val)
+  {
+    frm_vset<float>(val);
+    return *this;
+  }
+
+  CFrmStream& operator>>(float& val)
+  {
+    frm_vget<float>(val);
+    return *this;
+  }
+
+  CFrmStream& operator<<(bool val)
+  {
+    frm_vset<bool>(val);
+    return *this;
+  }
+
+  CFrmStream& operator>>(bool& val)
+  {
+    frm_vget<bool>(val);
+    return *this;
+  }
+
+private:
   /// A pointer to FIFO buffer used as stream-buffer.
   CFIFO *m_pBuf=nullptr;
 
@@ -170,94 +258,6 @@ protected:
   void frm_vset(type &var) // FIXME: ref????
   {
     set(&var, typeid(var));
-  }
-
-public:
-  /**
-   * @brief Returns the status of the last parsing operation
-   * FIXME: @returns
-   */
-  bool bad()
-  {
-    return m_bErr;
-  }
-
-  CFrmStream(CFIFO* pBuf)
-  {
-    m_pBuf=pBuf;
-  }
-
-  CFrmStream& operator<<(Character ch)
-  {
-    frm_vset<Character>(ch);
-    return *this;
-  }
-
-  CFrmStream& operator>>(Character& ch)
-  {
-    frm_vget<Character>(ch);
-    return *this;
-  }
-
-  CFrmStream& operator<<(const char* ch)
-  {
-    frm_vset<const char*>(ch);
-    return *this;
-  }
-
-  CFrmStream& operator>>(char* ch)
-  {
-    frm_vget<char*>(ch);
-    return *this;
-  }
-
-  //03.06.2019 - string support:
-  CFrmStream& operator<<(const std::string& str)
-  {
-    frm_vset<const std::string>(str);
-    return *this;
-  }
-
-  CFrmStream& operator>>(std::string& str)
-  {
-    frm_vget<std::string>(str);
-    return *this;
-  }
-
-  CFrmStream& operator<<(unsigned int val)
-  {
-    frm_vset<unsigned int>(val);
-    return *this;
-  }
-
-  CFrmStream& operator>>(unsigned int& val)
-  {
-    frm_vget<unsigned int>(val);
-    return *this;
-  }
-
-  CFrmStream& operator<<(float val)
-  {
-    frm_vset<float>(val);
-    return *this;
-  }
-
-  CFrmStream& operator>>(float& val)
-  {
-    frm_vget<float>(val);
-    return *this;
-  }
-
-  CFrmStream& operator<<(bool val)
-  {
-    frm_vset<bool>(val);
-    return *this;
-  }
-
-  CFrmStream& operator>>(bool& val)
-  {
-    frm_vget<bool>(val);
-    return *this;
   }
 };
 
