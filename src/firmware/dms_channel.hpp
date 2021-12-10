@@ -1,24 +1,23 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019-2020 Panda Team
-*/
+// -*- C++ -*-
 
-/*!
-*   \file
-*   \brief A definition file for Channel class aka CIEPEchannel
-*   CDac5715sa
-*
-*/
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-/*!
-*   \file
-*   \brief A definition file for CDMSchannel
-*/
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-#pragma once
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_FIRMWARE_DMS_CHANNEL_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_DMS_CHANNEL_HPP
 
 #include "channel.hpp"
 #include "pga280.hpp"
@@ -27,22 +26,13 @@ Copyright (c) 2019-2020 Panda Team
 /// The DMS measurement channel.
 class CDMSchannel final : public Channel {
 public:
-  bool is_iepe() const noexcept
-  {
-    return is_iepe_;
-  }
-
-  void set_iepe(const bool value) override
-  {
-    is_iepe_ = value;
-    iepe_switch_->write(value);
-  }
-
+  /// @see Channel::measurement_mode();
   Measurement_mode measurement_mode() const noexcept override
   {
     return measurement_mode_;
   }
 
+  /// @see Channel::set_measurement_mode();
   void set_measurement_mode(const Measurement_mode mode) override
   {
     measurement_mode_ = mode;
@@ -50,11 +40,26 @@ public:
     update_offsets();
   }
 
+  /// @see Channel::is_iepe();
+  bool is_iepe() const noexcept override
+  {
+    return is_iepe_;
+  }
+
+  /// @see Channel::set_iepe();
+  void set_iepe(const bool value) override
+  {
+    is_iepe_ = value;
+    iepe_switch_pin_->write(value);
+  }
+
+  /// @see Channel::amplification_gain();
   float amplification_gain() const noexcept override
   {
     return amplification_gain_;
   }
 
+  /// @see Channel::set_amplification_gain();
   void set_amplification_gain(float GainValue) override;
 
   int channel_index() const noexcept override
@@ -62,66 +67,66 @@ public:
     return channel_index_;
   }
 
+  /// @see Channel::visualization_index();
   const CDataVis& visualization_index() const noexcept override
   {
     return visualization_index_;
   }
 
+  /// @overload
   CDataVis& visualization_index() noexcept override
   {
     return visualization_index_;
   }
 
+  /// @see Channel::is_visualization_enabled();
   bool is_visualization_enabled() const noexcept override
   {
     return is_visualization_enabled_;
   }
 
+  /// @see Channel::adc();
   std::shared_ptr<const CAdc> adc() const noexcept override
   {
     return adc_;
   }
 
+  /// @overload
   std::shared_ptr<CAdc> adc() noexcept
   {
     return adc_;
   }
 
+  /// @see Channel::dac();
   std::shared_ptr<const CDac> dac() const noexcept
   {
     return dac_;
   }
 
+  /// @overload
   std::shared_ptr<CDac> dac() noexcept
   {
     return dac_;
   }
 
+  /// @see Channel::update_offsets();
   void update_offsets() override;
 
-    /*!
-     * \brief The class constructor
-     * \param pADC - the pointer to the channel's ADC
-     * \param pDAC - the pointer to channel's offset control DAC
-     * \param nCh  - the visualization index of the channel
-     * \param pIEPEswitch - the pointer to the IEPE switch pin
-     * \param pPGA - the pointer to the PGA280 amplifier control instance
-     * \param bVisEnabled - The visualisation enable flag
-     */
+  /// The constructor.
   CDMSchannel(const int channel_index,
     const std::shared_ptr<CAdc>& adc,
     const std::shared_ptr<CDac>& dac,
     const CView::vischan visualization_index,
-    const std::shared_ptr<Pin>& pIEPEswitch,
-    const std::shared_ptr<CPGA280>& pPGA,
+    const std::shared_ptr<Pin>& iepe_switch_pin,
+    const std::shared_ptr<CPGA280>& pga,
     const bool is_visualization_enabled)
     : channel_index_{channel_index}
     , visualization_index_{visualization_index}
     , is_visualization_enabled_{is_visualization_enabled}
     , adc_{adc}
     , dac_{dac}
-    , iepe_switch_{pIEPEswitch}
-    , pga_{pPGA}
+    , iepe_switch_pin_{iepe_switch_pin}
+    , pga_{pga}
     {}
 
 private:
@@ -137,9 +142,8 @@ private:
   std::shared_ptr<CAdc> adc_;
   std::shared_ptr<CDac> dac_;
 
-  /// The pointer to the IEPE switch pin.
-  std::shared_ptr<Pin> iepe_switch_;
-
-  /// The pointer to the PGA280 amplifier control instance.
+  std::shared_ptr<Pin> iepe_switch_pin_;
   std::shared_ptr<CPGA280> pga_;
 };
+
+#endif  // PANDA_TIMESWIPE_FIRMWARE_DMS_CHANNEL_HPP

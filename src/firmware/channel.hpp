@@ -1,7 +1,7 @@
 // -*- C++ -*-
 
 // PANDA Timeswipe Project
-// Copyright (C) 2021  PANDA GmbH / Dmitry Igrishin
+// Copyright (C) 2021  PANDA GmbH
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -84,13 +84,15 @@ public:
   /// @returns The color of the corresponding LED.
   typeLEDcol color() const noexcept
   {
-    return CView::Instance().GetChannel(visualization_index().GetVisChannel()).GetColor();
+    return CView::Instance()
+      .GetChannel(visualization_index().GetVisChannel()).GetColor();
   }
 
   /// Sets the color of the corresponding LED.
   void set_color(const typeLEDcol color)
   {
-    CView::Instance().GetChannel(visualization_index().GetVisChannel()).SetColor(color);
+    CView::Instance()
+      .GetChannel(visualization_index().GetVisChannel()).SetColor(color);
   }
 
   /**
