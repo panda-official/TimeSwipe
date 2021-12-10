@@ -78,6 +78,10 @@ public:
     fill(begin(translation_offsets_), end(translation_offsets_), 0);
     fill(begin(translation_slopes_), end(translation_slopes_), 1);
 
+    // Initialize default driver settings.
+    driver_settings_.set_translation_offsets(translation_offsets_);
+    driver_settings_.set_translation_slopes(translation_slopes_);
+
     // Lock PID file.
     pid_file_.lock();
 
@@ -224,22 +228,13 @@ public:
           "cannot set board IEPEs when measurement started"};
     }
 
-    Board_settings new_settings{board_settings_}; // may throw
-    new_settings.set(settings); // may throw
-    spi_.execute_set_many(settings.to_json_text()); // may throw
-    board_settings_.swap(new_settings); // noexcept
+    spi_.execute_set_many(settings.to_json_text());
     return *this;
   }
 
   const Board_settings& board_settings() const override
   {
-    return board_settings_;
-  }
-
-  /// Method is hidden for now.
-  Board_settings raw_board_settings() const
-  {
-    return Board_settings{spi_.execute_get_many("")};
+    return board_settings_ = Board_settings{spi_.execute_get_many("")};
   }
 
   iDriver& set_driver_settings(const Driver_settings& settings) override
@@ -539,7 +534,7 @@ private:
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
   hat::Calibration_map calibration_map_;
-  Board_settings board_settings_;
+  mutable Board_settings board_settings_;
   Driver_settings driver_settings_;
   std::unique_ptr<Resampler> resampler_;
 
