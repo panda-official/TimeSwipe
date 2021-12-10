@@ -35,9 +35,9 @@
 class Io_stream {
 public:
   /// @returns `true` if the last operation was successful.
-  bool bad()
+  bool is_good() const noexcept
   {
-    return m_bErr;
+    return !m_bErr;
   }
 
   Io_stream(CFIFO* pBuf)

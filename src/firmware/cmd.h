@@ -210,7 +210,7 @@ public:
       if (m_pSetter) {
         typeArg val;
         *(d.m_pIn)>>val;
-        if (d.m_pIn->bad())
+        if (!d.m_pIn->is_good())
           return typeCRes::parse_err;
 
         (m_pObj.get()->*m_pSetter)(val);
@@ -263,7 +263,7 @@ public:
       if(m_pSetter) {
         typeArg val;
         *(d.m_pIn)>>val;
-        if(d.m_pIn->bad())
+        if(!d.m_pIn->is_good())
           return typeCRes::parse_err;
 
         m_pSetter(val);

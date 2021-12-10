@@ -156,7 +156,7 @@ typeCRes CJSONDispatcher::Call(CCmdCallDescr& d)
      }
      else
      {
-        if (d.m_pIn->bad())
+        if (!d.m_pIn->is_good())
           return typeCRes::parse_err;
 
         rapidjson::Document cmd;
