@@ -96,7 +96,7 @@ int main()
     initialize_system_clock();
 
     // Create the control instance.
-    auto& nc = nodeControl::Instance();
+    const auto node_control = nodeControl::Instance().shared_from_this();
 
     // -------------------------------------------------------------------------
     // Create I2C EEPROM
@@ -126,7 +126,7 @@ int main()
     eeprom_hat->EnableIRQs(true);
 
     //set iface:
-    nc.SetEEPROMiface(i2c_eeprom_master, eeprom_buffer);
+    node_control->SetEEPROMiface(i2c_eeprom_master, eeprom_buffer);
 
     // -------------------------------------------------------------------------
     // Setup communication bus
@@ -139,7 +139,7 @@ int main()
     pSPIsc2->AdviseSink(pStdPort);
 
 
-    nc.SetBoardType(ThisBoard);
+    node_control->SetBoardType(ThisBoard);
     std::shared_ptr<Pin> pDAConPin;
     std::shared_ptr<Pin> pUB1onPin;
     std::shared_ptr<Pin> pQSPICS0Pin;
@@ -175,17 +175,17 @@ int main()
         //old IEPE gain switches:
         auto pGain0=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p15, true);
         auto pGain1=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p14, true);
-        nc.SetIEPEboardGainSwitches(pGain0, pGain1);
+        node_control->SetIEPEboardGainSwitches(pGain0, pGain1);
 
       }
     auto pEnableMesPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p13, true);
     auto pFanPin=std::make_shared<Sam_pin>(Sam_pin::Group::a, Sam_pin::Number::p09, true);
 
     //setup control:
-    nc.SetUBRpin(pUB1onPin);
-    nc.SetDAConPin(pDAConPin);
-    nc.SetEnableMesPin(pEnableMesPin);
-    nc.SetFanPin(pFanPin);
+    node_control->SetUBRpin(pUB1onPin);
+    node_control->SetDAConPin(pDAConPin);
+    node_control->SetEnableMesPin(pEnableMesPin);
+    node_control->SetFanPin(pFanPin);
 
 
     auto pSamADC0   =std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
@@ -251,7 +251,7 @@ int main()
         // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
         // #endif
         pDAC2A->SetVal(0);
-        nc.SetVoltageDAC(pDAC2A);
+        node_control->SetVoltageDAC(pDAC2A);
 
 #ifdef CALIBRATION_STATION
         //ability to control VSUP dac raw value:
@@ -268,7 +268,7 @@ int main()
             auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
             auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-            nc.AddMesChannel( std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
+            node_control->AddMesChannel( std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
 #ifdef DMS_TEST_MODE
 
             //add commands to each:
@@ -290,7 +290,7 @@ int main()
           }
       } else {
         for(int i=0; i<nChannels; i++)
-          nc.AddMesChannel(std::make_shared<CIEPEchannel>(
+          node_control->AddMesChannel(std::make_shared<CIEPEchannel>(
               i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled));
       }
 
@@ -383,8 +383,8 @@ int main()
     //channel commands:
     for (int i{}; i < nChannels; ++i) {
       char cmd[64];
-      int nInd=i+1;
-      auto pCH=nc.GetMesChannel(i);
+      const int nInd=i+1;
+      const auto pCH = node_control->GetMesChannel(i);
 
       std::sprintf(cmd, "CH%d.mode", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Measurement_mode>>(
@@ -421,48 +421,47 @@ int main()
         &CSemVer::GetVersionString));
 
     //control commands:
-    const auto pNC = nc.shared_from_this();
     pDisp->Add("Gain", std::make_shared<CCmdSGHandler<int>>(
-        pNC,
+        node_control,
         &nodeControl::GetGain,
         &nodeControl::SetGain));
     pDisp->Add("Bridge", std::make_shared<CCmdSGHandler<bool>>(
-        pNC,
+        node_control,
         &nodeControl::GetBridge,
         &nodeControl::SetBridge));
     pDisp->Add("Record", std::make_shared<CCmdSGHandler<bool>>(
-        pNC,
+        node_control,
         &nodeControl::IsRecordStarted,
         &nodeControl::StartRecord));
     pDisp->Add("Offset", std::make_shared<CCmdSGHandler<int>>(
-        pNC,
+        node_control,
         &nodeControl::GetOffsetRunSt,
         &nodeControl::SetOffset));
     pDisp->Add("EnableADmes", std::make_shared<CCmdSGHandler<bool>>(
-        pNC,
+        node_control,
         &nodeControl::IsMeasurementsEnabled,
         &nodeControl::EnableMeasurements));
     pDisp->Add("Mode", std::make_shared<CCmdSGHandler<int>>(
-        pNC,
+        node_control,
         &nodeControl::GetMode,
         &nodeControl::SetMode));
     pDisp->Add("CalStatus", std::make_shared<CCmdSGHandler<bool>>(
-        pNC,
+        node_control,
         &nodeControl::GetCalStatus));
     pDisp->Add("Voltage", std::make_shared<CCmdSGHandler<float>>(
-        pNC,
+        node_control,
         &nodeControl::GetVoltage,
         &nodeControl::SetVoltage));
     pDisp->Add("Current", std::make_shared<CCmdSGHandler<float>>(
-        pNC,
+        node_control,
         &nodeControl::GetCurrent,
         &nodeControl::SetCurrent));
     pDisp->Add("MaxCurrent", std::make_shared<CCmdSGHandler<float>>(
-        pNC,
+        node_control,
         &nodeControl::GetMaxCurrent,
         &nodeControl::SetMaxCurrent));
     // pDisp->Add("Fan", std::make_shared<CCmdSGHandler<bool>>(
-    //     pNC, &nodeControl::IsFanStarted,
+    //     node_control, &nodeControl::IsFanStarted,
     //     &nodeControl::StartFan));
 
 
@@ -479,7 +478,7 @@ int main()
         &Sam_i2c_eeprom_master::run_self_test));
 
     pDisp->Add("CalEnable", std::make_shared<CCmdSGHandler<bool>>(
-        pNC,
+        node_control,
         &nodeControl::IsCalEnabled,
         &nodeControl::EnableCal));
 #endif
@@ -488,7 +487,7 @@ int main()
     //--------------------JSON- ---------------------
     auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
     pDisp->Add("js", pJC);
-    pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*pNC), _1, _2, _3 ) );
+    pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*node_control), _1, _2, _3 ) );
 
     //#ifdef CALIBRATION_STATION
 
@@ -507,19 +506,19 @@ int main()
      * nodeControl::LoadSettings() activates the persistent
      * storage handling which is currently broken!
      */
-    // nc.LoadSettings();
-    nc.SetMode(0); //set default mode
+    // node_control->LoadSettings();
+    node_control->SetMode(0); //set default mode
 #ifndef CALIBRATION_STATION
     view.BlinkAtStart();
 #endif
 
     // Enable calibration settings.
-    nc.EnableCal(true);
+    node_control->EnableCal(true);
 
     // Loop endlessly.
     while (true) {
       button.update();
-      nc.Update();
+      node_control->Update();
       view.Update();
 
       pSPIsc2->Update();

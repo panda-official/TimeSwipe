@@ -34,7 +34,10 @@ using namespace panda::timeswipe::detail;
  * when basic board settings are changed
  */
 
-class nodeControl : public CJSONEvCP, public ISerialize, public std::enable_shared_from_this<nodeControl>{
+class nodeControl : public CJSONEvCP
+                  , public ISerialize
+                  , public std::enable_shared_from_this<nodeControl>
+{
 protected:
 
         /*!
