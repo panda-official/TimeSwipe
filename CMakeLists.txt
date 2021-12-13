@@ -267,7 +267,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     json_base.h
     json_evsys.cpp
     json_evsys.h
-    json_stream.h
+    stream.hpp
     )
 
   set(led_src

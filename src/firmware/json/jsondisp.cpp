@@ -6,7 +6,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "jsondisp.h"
-#include "json_stream.h"
+#include "stream.hpp"
 //#include "nodeControl.h"
 
 void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr& d, rapidjson::Document& jResp)
