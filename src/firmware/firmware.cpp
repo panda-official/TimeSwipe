@@ -66,12 +66,12 @@ volatile bool stopflag{true};
  */
 int main()
 {
- try {
-   namespace ts = panda::timeswipe;
-   namespace detail = panda::timeswipe::detail;
+  try {
+    namespace ts = panda::timeswipe;
+    namespace detail = panda::timeswipe::detail;
 
-   constexpr int nChannels{detail::max_channel_count};
-   constexpr std::size_t max_eeprom_size{2*1024};
+    constexpr int nChannels{detail::max_channel_count};
+    constexpr std::size_t max_eeprom_size{2*1024};
 
 #ifdef CALIBRATION_STATION
     bool bVisEnabled=false;
@@ -131,10 +131,10 @@ int main()
     // Setup communication bus
     // -------------------------------------------------------------------------
 
-    auto pSPIsc2    =std::make_shared<CSPIcomm>(Sam_sercom::Id::sercom2, Sam_pin::Id::pa12, Sam_pin::Id::pa15, Sam_pin::Id::pa13, Sam_pin::Id::pa14);
+    auto pSPIsc2 = std::make_shared<CSPIcomm>(Sam_sercom::Id::sercom2, Sam_pin::Id::pa12, Sam_pin::Id::pa15, Sam_pin::Id::pa13, Sam_pin::Id::pa14);
     pSPIsc2->EnableIRQs(true);
-    auto pDisp=         std::make_shared<CCmdDispatcher>();
-    auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
+    auto pDisp = std::make_shared<CCmdDispatcher>();
+    auto pStdPort = std::make_shared<CStdPort>(pDisp, pSPIsc2);
     pSPIsc2->AdviseSink(pStdPort);
 
 
@@ -146,37 +146,39 @@ int main()
 
 
     //1st step:
-    if(typeBoard::DMSBoard==ThisBoard)
-      {
-        pDMSsr=std::make_shared<CDMSsr>(
-          std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p05, true),
-          std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p06, true),
-          std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true));
+    if (typeBoard::DMSBoard==ThisBoard) {
+      pDMSsr=std::make_shared<CDMSsr>(
+        std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p05, true),
+        std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p06, true),
+        std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true));
 
-        pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
-        pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
+      pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
+      pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
 
-        auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->set_inverted(true);  pQSPICS0Pin=pCS0; pCS0->write(false);
+      auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0);
+      pCS0->set_inverted(true);
+      pQSPICS0Pin=pCS0;
+      pCS0->write(false);
 
 #ifdef DMS_TEST_MODE
-        pDisp->Add("SR", std::make_shared<CCmdSGHandler<unsigned>>(
-            pDMSsr,
-            &CDMSsr::GetShiftReg,
-            &CDMSsr::SetShiftReg));
+      pDisp->Add("SR", std::make_shared<CCmdSGHandler<unsigned>>(
+          pDMSsr,
+          &CDMSsr::GetShiftReg,
+          &CDMSsr::SetShiftReg));
 #endif
-      }
-    else
-      {
-        pDAConPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p04, true);
-        pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true); //pUB1onPin->set_inverted(true); pUB1onPin->Set(false);
-        pQSPICS0Pin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p11, true);
+    } else {
+      pDAConPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p04, true);
+      pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true);
+      // pUB1onPin->set_inverted(true);
+      // pUB1onPin->set(false);
+      pQSPICS0Pin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p11, true);
 
-        //old IEPE gain switches:
-        auto pGain0=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p15, true);
-        auto pGain1=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p14, true);
-        node_control->SetIEPEboardGainSwitches(pGain0, pGain1);
+      //old IEPE gain switches:
+      auto pGain0=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p15, true);
+      auto pGain1=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p14, true);
+      node_control->SetIEPEboardGainSwitches(pGain0, pGain1);
 
-      }
+    }
     auto pEnableMesPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p13, true);
     auto pFanPin=std::make_shared<Sam_pin>(Sam_pin::Group::a, Sam_pin::Number::p09, true);
 
@@ -186,39 +188,39 @@ int main()
     node_control->SetEnableMesPin(pEnableMesPin);
     node_control->SetFanPin(pFanPin);
 
-
-    auto pSamADC0   =std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
-    std::shared_ptr<CSamADCchan> pADC[]={std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none, 0.0f, 4095.0f),
+    auto pSamADC0 = std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
+    std::shared_ptr<CSamADCchan> pADC[]={
+      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none, 0.0f, 4095.0f),
       std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN3, typeSamADCmuxneg::none, 0.0f, 4095.0f),
       std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN6, typeSamADCmuxneg::none, 0.0f, 4095.0f),
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none, 0.0f, 4095.0f) };
+      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none, 0.0f, 4095.0f)};
 
     CSamQSPI objQSPI;
-    std::shared_ptr<CDac5715sa> pDAC[]={std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACA, 0.0f, 4095.0f),
+    std::shared_ptr<CDac5715sa> pDAC[]={
+      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACA, 0.0f, 4095.0f),
       std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACB, 0.0f, 4095.0f),
       std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACC, 0.0f, 4095.0f),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACD, 0.0f, 4095.0f) };
+      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACD, 0.0f, 4095.0f)};
 
-    auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
-    auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
+    auto pSamDAC0=std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
+    auto pSamDAC1=std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
     pSamDAC0->SetRawBinVal(2048);
     pSamDAC1->SetRawBinVal(2048);
 
     //add ADC/DAC commands:
-    for(int i=0; i<nChannels; i++)
-      {
-        char cmd[64];
-        int nInd=i+1;
-        std::sprintf(cmd, "ADC%d.raw", nInd);
-        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
-            pADC[i],
-            &CAdc::DirectMeasure));
-        std::sprintf(cmd, "DAC%d.raw", nInd);
-        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
-            pDAC[i],
-            &CDac::GetRawBinVal,
-            &CDac::SetRawOutput));
-      }
+    for (int i{}; i < nChannels; ++i) {
+      char cmd[64];
+      const int nInd=i+1;
+      std::sprintf(cmd, "ADC%d.raw", nInd);
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+          pADC[i],
+          &CAdc::DirectMeasure));
+      std::sprintf(cmd, "DAC%d.raw", nInd);
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+          pDAC[i],
+          &CDac::GetRawBinVal,
+          &CDac::SetRawOutput));
+    }
     pDisp->Add("AOUT3.raw", std::make_shared<CCmdSGHandler<int>>(
         pSamDAC0,
         &CDac::GetRawBinVal,
@@ -234,64 +236,65 @@ int main()
 
     //2nd step:
     if (ThisBoard == typeBoard::DMSBoard) {
-        auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->set_inverted(true);  pCS1->write(false);
+      auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1);
+      pCS1->set_inverted(true);
+      pCS1->write(false);
 
-        //create PGA280 extension bus:
-        auto pInaSpi=std::make_shared<CSamSPIbase>(true, Sam_sercom::Id::sercom5,
-          Sam_pin::Id::pb16, Sam_pin::Id::pb19, Sam_pin::Id::pb17, std::nullopt, nullptr);
+      //create PGA280 extension bus:
+      auto pInaSpi=std::make_shared<CSamSPIbase>(true, Sam_sercom::Id::sercom5,
+        Sam_pin::Id::pb16, Sam_pin::Id::pb19, Sam_pin::Id::pb17, std::nullopt, nullptr);
 
+      auto pInaSpiCSpin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p18, true);
+      pInaSpiCSpin->set_inverted(true);
+      pInaSpiCSpin->write(false);
 
-        auto pInaSpiCSpin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p18, true);
-        pInaSpiCSpin->set_inverted(true);
-        pInaSpiCSpin->write(false);
-
-        auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
-        // #ifdef CALIBRATION_STATION
-        // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
-        // #endif
-        pDAC2A->SetVal(0);
-        node_control->SetVoltageDAC(pDAC2A);
+      auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
+      // #ifdef CALIBRATION_STATION
+      // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
+      // #endif
+      pDAC2A->SetVal(0);
+      node_control->SetVoltageDAC(pDAC2A);
 
 #ifdef CALIBRATION_STATION
-        //ability to control VSUP dac raw value:
-        pDisp->Add("VSUP.raw", std::make_shared<CCmdSGHandler<int>>(
-            pDAC2A,
-            &CDac::GetRawBinVal,
-            &CDac::SetRawOutput));
+      //ability to control VSUP dac raw value:
+      pDisp->Add("VSUP.raw", std::make_shared<CCmdSGHandler<int>>(
+          pDAC2A,
+          &CDac::GetRawBinVal,
+          &CDac::SetRawOutput));
 #endif
 
-        //create 4 PGAs:
-        CDMSsr::pins IEPEpins[]={CDMSsr::pins::IEPE1_On, CDMSsr::pins::IEPE2_On, CDMSsr::pins::IEPE3_On, CDMSsr::pins::IEPE4_On};
-        for (int i{}; i<nChannels; i++) {
-            auto pPGA_CS=std::make_shared<CPGA_CS>(static_cast<CDMSsr::pga_sel>(i), pDMSsr, pInaSpiCSpin);
-            auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
-            auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
+      //create 4 PGAs:
+      CDMSsr::pins IEPEpins[]={CDMSsr::pins::IEPE1_On, CDMSsr::pins::IEPE2_On, CDMSsr::pins::IEPE3_On, CDMSsr::pins::IEPE4_On};
+      for (int i{}; i < nChannels; ++i) {
+        auto pPGA_CS=std::make_shared<CPGA_CS>(static_cast<CDMSsr::pga_sel>(i), pDMSsr, pInaSpiCSpin);
+        auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
+        auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-            node_control->AddMesChannel( std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
+        node_control->AddMesChannel(std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled));
 #ifdef DMS_TEST_MODE
 
-            //add commands to each:
-            char cmd[64];
-            int nInd=i+1;
-            //for testing only:
-            std::sprintf(cmd, "PGA%d.rsel", nInd);
-            pDisp->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
-                pPGA280,
-                &CPGA280::GetSelectedReg,
-                &CPGA280::SelectReg));
-            std::sprintf(cmd, "PGA%d.rval", nInd);
-            pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
-                pPGA280,
-                &CPGA280::ReadSelectedReg,
-                &CPGA280::WriteSelectedReg));
+        //add commands to each:
+        char cmd[64];
+        const int nInd=i+1;
+        //for testing only:
+        std::sprintf(cmd, "PGA%d.rsel", nInd);
+        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
+            pPGA280,
+            &CPGA280::GetSelectedReg,
+            &CPGA280::SelectReg));
+        std::sprintf(cmd, "PGA%d.rval", nInd);
+        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+            pPGA280,
+            &CPGA280::ReadSelectedReg,
+            &CPGA280::WriteSelectedReg));
 #endif
 
-          }
-      } else {
-        for(int i=0; i<nChannels; i++)
-          node_control->AddMesChannel(std::make_shared<CIEPEchannel>(
-              i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled));
       }
+    } else {
+      for (int i{}; i < nChannels; ++i)
+        node_control->AddMesChannel(std::make_shared<CIEPEchannel>(
+            i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled));
+    }
 
     //2 DAC PWMs:
     auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pDAConPin);
@@ -523,7 +526,6 @@ int main()
       pSamADC0->Update();
       pFanControl->Update();
     }
-  } catch (const std::exception& e) {
   } catch (...) {
   }
 
