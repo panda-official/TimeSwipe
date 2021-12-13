@@ -26,8 +26,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_STD_PORT_HPP
 
 #include "cmd.h"
-#include "io_stream.hpp"
-#include "../serial.hpp"
+#include "fifo_stream.hpp"
 
 /**
  * @brief An implementation of simple text protocol described in
@@ -83,8 +82,8 @@ protected:
 
     if(TERM_CHAR==ch) {
       //preparing streams:
-      Io_stream in(&m_In);
-      Io_stream out(&m_Out);
+      Fifo_stream in{&m_In};
+      Fifo_stream out{&m_Out};
 
       try {
         if(proc_args!=m_PState)

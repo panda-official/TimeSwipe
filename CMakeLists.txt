@@ -267,7 +267,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     json_base.h
     json_evsys.cpp
     json_evsys.h
-    json_stream.cpp
     json_stream.h
     )
 
@@ -329,6 +328,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     dms_channel.cpp
     dms_channel.hpp
     error.hpp
+    fifo_stream.hpp
     io_stream.hpp
     json.hpp
     os.h

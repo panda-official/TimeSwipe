@@ -19,239 +19,130 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP
 
-#include "../serial.hpp"
+#include "error.hpp"
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <string>
+#include <optional>
+#include <utility>
 
 /**
  * @brief An IO stream.
  *
- * @details Provides an API for reading and writing the data of various types.
+ * @details Provides an API for operating on the stream, such as reading and
+ * writing the data of the following types: `bool`, `int`, `unsigned int`,
+ * `float` and `std::string`. The support of any other type can be achieved by
+ * overloading operators `<<` and `>>`:
+ *   -# `Io_stream& operator<<(Io_stream&, const T&)` for writing values;
+ *   -# `Io_stream& operator>>(Io_stream&, T&)` for reading values;
+ *   -# `Io_stream& operator<<(Io_stream&, const std::optional<T>&)` for
+ *   writing semantically nullable values;
+ *   -# `Io_stream& operator>>(Io_stream&, std::optional<T>&)` for
+ *   reading semantically nullable values.
+ * The implementation of the last two operators doesn't required since available
+ * automatically if the first two operators are implemented.
  *
- * @remarks Designed as a lightweight alternative of the standard IO streams.
+ * @remarks Designed as a lightweight alternative to the standard IO streams.
  */
 class Io_stream {
 public:
+  /// The destructor.
+  virtual ~Io_stream() = default;
+
   /// @returns `true` if the last operation was successful.
-  bool is_good() const noexcept
-  {
-    return !m_bErr;
-  }
+  virtual bool is_good() const noexcept = 0;
 
-  Io_stream(CFIFO* pBuf)
-  {
-    m_pBuf=pBuf;
-  }
+  /// Writes null value.
+  virtual void write(std::nullopt_t) = 0;
 
-  Io_stream& operator<<(Character ch)
-  {
-    frm_vset<Character>(ch);
-    return *this;
-  }
+  /// Writes boolean value.
+  virtual void write(bool) = 0;
+  /// Reads boolean value or null.
+  virtual void read(std::optional<bool>&) = 0;
 
-  Io_stream& operator>>(Character& ch)
-  {
-    frm_vget<Character>(ch);
-    return *this;
-  }
+  /// Writes signed integer value.
+  virtual void write(int) = 0;
+  /// Reads signed integer value or null.
+  virtual void read(std::optional<int>&) = 0;
 
-  Io_stream& operator<<(const char* ch)
-  {
-    frm_vset<const char*>(ch);
-    return *this;
-  }
+  /// Writes unsigned integer value.
+  virtual void write(unsigned int) = 0;
+  /// Reads unsigned integer value or null.
+  virtual void read(std::optional<unsigned int>&) = 0;
 
-  Io_stream& operator>>(char* ch)
-  {
-    frm_vget<char*>(ch);
-    return *this;
-  }
+  /// Writes float value.
+  virtual void write(float) = 0;
+  /// Reads float value or null.
+  virtual void read(std::optional<float>&) = 0;
 
-  //03.06.2019 - string support:
-  Io_stream& operator<<(const std::string& str)
-  {
-    frm_vset<const std::string>(str);
-    return *this;
-  }
-
-  Io_stream& operator>>(std::string& str)
-  {
-    frm_vget<std::string>(str);
-    return *this;
-  }
-
-  Io_stream& operator<<(unsigned int val)
-  {
-    frm_vset<unsigned int>(val);
-    return *this;
-  }
-
-  Io_stream& operator>>(unsigned int& val)
-  {
-    frm_vget<unsigned int>(val);
-    return *this;
-  }
-
-  Io_stream& operator<<(float val)
-  {
-    frm_vset<float>(val);
-    return *this;
-  }
-
-  Io_stream& operator>>(float& val)
-  {
-    frm_vget<float>(val);
-    return *this;
-  }
-
-  Io_stream& operator<<(bool val)
-  {
-    frm_vset<bool>(val);
-    return *this;
-  }
-
-  Io_stream& operator>>(bool& val)
-  {
-    frm_vget<bool>(val);
-    return *this;
-  }
-
-private:
-  /// A pointer to FIFO buffer used as stream-buffer.
-  CFIFO *m_pBuf=nullptr;
-
-  /// Actual parsing error status (true=active).
-  bool m_bErr=false;
-
-  /**
-   * @brief Extraction operator helper.
-   * @param pVar void pointer to an extracted variable.
-   * @param ti variable type.
-   */
-  virtual void get(void* pVar, const std::type_info& ti)
-  {
-    std::string str;
-    if(!fetch_string(str)) {
-      m_bErr=true;
-      return;
-    }
-
-    bool bHexMode=false;
-    unsigned HexVal{};
-    if(str.length()>=2) {
-      if('0'==str[0] && 'x'==str[1]) {
-        bHexMode=true;
-        sscanf(str.c_str()+2, "%X", &HexVal );
-      }
-    }
-
-    if(ti==typeid(bool)) {
-      /*bool bres=std::stoi(str) ? true:false;
-       *(static_cast<bool*>(pVar))=bres;*/
-
-      bool bres=false;
-      if(str.length()>0) {
-        if(std::isdigit(str[0])) {
-          bres=str[0]-0x30;
-        } else {
-          bres=(str=="True" || str=="true");
-        }
-      }
-      *(static_cast<bool*>(pVar))=bres;
-    } else if(ti==typeid(int)) {
-      *(static_cast<int*>(pVar))=bHexMode ? HexVal : std::stoi(str);
-    }
-    else if(ti==typeid(unsigned int)) {
-      *(static_cast<unsigned int*>(pVar))=bHexMode ? HexVal : std::stoul(str);
-    }
-    else if(ti==typeid(float)) {
-      *(static_cast<float*>(pVar))=std::stof(str);
-    }
-    else if(ti==typeid(const char *)) {
-      strcpy(*((char**)pVar), str.c_str());
-    }
-    else if(ti==typeid(std::string)) {
-      (static_cast<std::string*>(pVar))->swap(str);
-    }
-  }
-
-  /**
-   * @brief Insertion operator helper.
-   * @param pVar void pointer to an inserted variable.
-   * @param ti variable type.
-   */
-  virtual void set(const void* pVar, const std::type_info& ti)
-  {
-    char tbuf[64];
-
-    const char* pStr=tbuf;
-    if(ti==typeid(bool)) {
-      sprintf(tbuf, "%d", *(static_cast<const bool*>(pVar)) ? 1:0  );
-    } else if(ti==typeid(int)) {
-      sprintf(tbuf, "%d", *(static_cast<const int*>(pVar))  );
-    } else if(ti==typeid(unsigned int)) {
-      sprintf(tbuf, "%d", *(static_cast<const unsigned int*>(pVar))  );
-    } else if(ti==typeid(float)) {
-      sprintf(tbuf, "%g", *(static_cast<const float*>(pVar))  ); //+++not working with NanoLib, use NewLib
-    } else if(ti==typeid(const char *)) {
-      pStr=*((char**)pVar);
-    } else if(ti==typeid(const std::string)) {
-      pStr=(static_cast<const std::string*>(pVar))->c_str();
-    }
-    *m_pBuf+=pStr;
-    /*while(*pStr!='\0')
-      {
-      *m_pBuf<<*pStr;
-      pStr++;
-      }*/
-  }
-
-  /**
-   * @brief Extract a string from this stream.
-   *
-   * @param[out] str The result string.
-   *
-   * @returns `true` on success.
-   */
-  bool fetch_string(std::string& str)
-  {
-    /// Start token used for string extraction.
-    constexpr Character start_token{' '};
-    /// End token used for string extraction.
-    constexpr Character end_token{'\0'};
-
-    bool is_extracted{};
-    Character token{start_token};
-    str.clear();
-    while (m_pBuf->in_avail()) {
-      Character ch;
-      *m_pBuf >> ch;
-
-      if (ch == token) {
-        if (is_extracted)
-          break;
-      } else {
-        token = end_token;
-        is_extracted = true;
-        str += static_cast<char>(ch);
-      }
-    }
-    return is_extracted;
-  }
-
-  template<typename type>
-  void frm_vget(type &var)
-  {
-    get(&var, typeid(var));
-  }
-
-  template<typename type>
-  void frm_vset(type &var) // FIXME: ref????
-  {
-    set(&var, typeid(var));
-  }
+  /// Writes string value.
+  virtual void write(const std::string&) = 0;
+  /// Reads string value or null.
+  virtual void read(std::optional<std::string>&) = 0;
 };
+
+/**
+ * Writes the `value` to the stream `os`.
+ *
+ * @returns os.
+ */
+template<typename T>
+Io_stream& operator<<(Io_stream& os, const T& value)
+{
+  os.write(value);
+  return os;
+}
+
+/// @overload
+inline Io_stream& operator<<(Io_stream& os, const char* const value)
+{
+  PANDA_TIMESWIPE_FIRMWARE_ASSERT(value);
+  os.write(std::string{value});
+  return os;
+}
+
+/**
+ * Writes the `value` or null to the stream `os`.
+ *
+ * @returns os.
+ *
+ * @remarks Calls `os << *value` if `value`.
+ */
+template<typename T>
+Io_stream& operator<<(Io_stream& os, const std::optional<T>& value)
+{
+  if (value)
+    os << *value;
+  else
+    os.write(std::nullopt);
+  return os;
+}
+
+/**
+ * Reads the `value` or null from the stream `is`.
+ *
+ * @returns is.
+ */
+template<typename T>
+Io_stream& operator>>(Io_stream& is, std::optional<T>& value)
+{
+  is.read(value);
+  return is;
+}
+
+/**
+ * Reads the `value` from the stream `is`.
+ *
+ * @returns is.
+ *
+ * @remarks Calls `operator>>(is, std::optional<T>&)`.
+ */
+template<typename T>
+Io_stream& operator>>(Io_stream& is, T& value)
+{
+  std::optional<T> val;
+  is >> val;
+  if (val) value = std::move(*val);
+  return is;
+}
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP

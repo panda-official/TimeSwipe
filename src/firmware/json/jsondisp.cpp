@@ -22,7 +22,7 @@ void CJSONDispatcher::DumpAllSettings(const CCmdCallDescr& d, rapidjson::Documen
     jResp.SetObject();
     for (CallDescr.m_nCmdIndex=0;; CallDescr.m_nCmdIndex++) {
       rapidjson::Value result;
-      CJSONStream out(result, &alloc);
+      Json_stream out{result, &alloc};
       CallDescr.m_pOut=&out;
       switch (m_pDisp->Call(CallDescr)) {
       case CCmdCallDescr::cres::OK:
@@ -52,8 +52,8 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
     if (resp_root.FindMember(strKey) == resp_root.MemberEnd())
       resp_root.AddMember(Value{strKey, alloc}, Value{}, alloc);
     auto& result = resp_root[strKey];
-    CJSONStream in(jReq, nullptr);
-    CJSONStream out(result, &alloc);
+    Json_stream in{jReq, nullptr};
+    Json_stream out{result, &alloc};
     CCmdCallDescr CallDescr;
     CallDescr.m_pIn=&in;
     CallDescr.m_pOut=&out;
