@@ -22,6 +22,8 @@
 #include "adcdac.hpp"
 #include "control/DataVis.h"
 
+#include "io_stream.hpp"
+
 #include "../basics.hpp"
 using namespace panda::timeswipe; // FIXME: remove
 
@@ -95,34 +97,6 @@ public:
       .GetChannel(visualization_index().GetVisChannel()).SetColor(color);
   }
 
-  /**
-   * @returns Measurement mode.
-   *
-   * @see CCmdSGHandler::Getter.
-   *
-   * @todo Remove.
-   */
-  unsigned CmGetMesMode() const noexcept
-  {
-    return static_cast<unsigned>(measurement_mode());
-  }
-
-  /**
-   * @brief Sets measurement mode.
-   *
-   * @see CCmdSGHandler::Setter.
-   *
-   * @todo Remove.
-   */
-  void CmSetMesMode(unsigned mode)
-  {
-    constexpr auto cur = static_cast<unsigned>(Measurement_mode::current);
-    if (mode > cur)
-      mode = cur;
-
-    set_measurement_mode(static_cast<Measurement_mode>(mode));
-  }
-
   /// @returns The pointer to the control instance containing this channel.
   nodeControl* node_control() const noexcept
   {
@@ -149,6 +123,27 @@ public:
 private:
   nodeControl* node_control_{};
 };
+
+/// Writes `mode` to the `os` stream.
+inline Io_stream& operator<<(Io_stream& os, const Measurement_mode mode)
+{
+  os << static_cast<unsigned>(mode);
+  return os;
+}
+
+/// Reads `mode` from the `is` stream.
+inline Io_stream& operator>>(Io_stream& is, Measurement_mode& mode)
+{
+  unsigned umode;
+  is >> umode;
+  if (is.is_good()) {
+    constexpr auto cur = static_cast<unsigned>(Measurement_mode::current);
+    if (umode > cur)
+      umode = cur;
+    mode = static_cast<Measurement_mode>(umode);
+  }
+  return is;
+}
 
 class CIEPEchannel final : public Channel {
 public:

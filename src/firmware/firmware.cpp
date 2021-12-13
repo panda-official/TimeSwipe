@@ -327,7 +327,7 @@ int main()
       auto pCH=nc.GetMesChannel(i);
 
       std::sprintf(cmd, "CH%d.mode", nInd);
-      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Channel, unsigned int>>(pCH, &Channel::CmGetMesMode, &Channel::CmSetMesMode));
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Channel, Measurement_mode>>(pCH, &Channel::measurement_mode, &Channel::set_measurement_mode));
       std::sprintf(cmd, "CH%d.gain", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Channel, float>>(pCH, &Channel::amplification_gain, &Channel::set_amplification_gain));
       std::sprintf(cmd, "CH%d.iepe", nInd);
