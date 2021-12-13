@@ -80,9 +80,9 @@ int main()
 #endif
 
 #ifdef DMS_BOARD
-    typeBoard ThisBoard=typeBoard::DMSBoard;
+    constexpr auto board_type = typeBoard::DMSBoard;
 #else
-    typeBoard ThisBoard=typeBoard::IEPEBoard;
+    constexpr auto board_type = typeBoard::IEPEBoard;
 #endif
 
     auto pVersion=std::make_shared<CSemVer>(detail::version_major,
@@ -138,7 +138,7 @@ int main()
     pSPIsc2->AdviseSink(pStdPort);
 
 
-    node_control->SetBoardType(ThisBoard);
+    node_control->SetBoardType(board_type);
     std::shared_ptr<Pin> pDAConPin;
     std::shared_ptr<Pin> pUB1onPin;
     std::shared_ptr<Pin> pQSPICS0Pin;
@@ -146,7 +146,7 @@ int main()
 
 
     //1st step:
-    if (typeBoard::DMSBoard==ThisBoard) {
+    if constexpr (board_type == typeBoard::DMSBoard) {
       pDMSsr=std::make_shared<CDMSsr>(
         std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p05, true),
         std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p06, true),
@@ -235,7 +235,7 @@ int main()
         &Pin::write) );
 
     //2nd step:
-    if (ThisBoard == typeBoard::DMSBoard) {
+    if constexpr (board_type == typeBoard::DMSBoard) {
       auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1);
       pCS1->set_inverted(true);
       pCS1->write(false);
