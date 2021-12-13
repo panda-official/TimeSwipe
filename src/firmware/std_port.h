@@ -87,7 +87,7 @@ protected:
 
       try {
         if(proc_args!=m_PState)
-          throw CCmdException("protocol_error!");
+          throw std::runtime_error{"protocol_error!"};
 
         //call:
         m_CallDescr.m_pIn=&in;

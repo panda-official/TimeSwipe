@@ -88,15 +88,10 @@ struct CCmdCallDescr final {
     byCmdIndex=4        //!<by a command's zero-based index (using m_nCmdIndex)
   } m_cmethod{byCmdName};
 
-  /// If true, throw an exception CCmdException instead of returning cres
+  /// If true, throw `std::runtime_error` instead of returning cres.
   bool m_bThrowExcptOnErr=false;
 };
 typedef  CCmdCallDescr::cres typeCRes;
-
-/// A command execution exception
-class CCmdException final : public std::runtime_error {
-  using runtime_error::runtime_error;
-};
 
 /// A basic class for command handler.
 struct CCmdCallHandler {
@@ -154,20 +149,21 @@ public:
    *
    * @param d Call parameters
    * @returns The result of call.
-   * @throws CCmdException on error if `CCmdCallDescr::m_bThrowExcptOnErr == true`.
+   * @throws `std::runtime_error` on error if
+   * `(CCmdCallDescr::m_bThrowExcptOnErr == true)`.
    */
   typeCRes Call(CCmdCallDescr &d)
   {
     typeCRes cres=__Call(d);
     if(d.m_bThrowExcptOnErr) {
       if(typeCRes::obj_not_found == cres)
-        throw CCmdException{"obj_not_found!"};
+        throw std::runtime_error{"obj_not_found!"};
       if(typeCRes::fget_not_supported == cres)
-        throw CCmdException{">_not_supported!"};
+        throw std::runtime_error{">_not_supported!"};
       if(typeCRes::fset_not_supported == cres)
-        throw CCmdException{"<_not_supported!"};
+        throw std::runtime_error{"<_not_supported!"};
       if(typeCRes::disabled == cres)
-        throw CCmdException{"disabled!"};
+        throw std::runtime_error{"disabled!"};
     }
     return cres;
   }
