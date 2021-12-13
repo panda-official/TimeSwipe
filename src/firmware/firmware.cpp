@@ -67,7 +67,6 @@ volatile bool stopflag{true};
 int main()
 {
  try {
-   using namespace std::placeholders;
    namespace ts = panda::timeswipe;
    namespace detail = panda::timeswipe::detail;
 
@@ -487,12 +486,11 @@ int main()
     //--------------------JSON- ---------------------
     auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
     pDisp->Add("js", pJC);
-    pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*node_control), _1, _2, _3 ) );
-
-    //#ifdef CALIBRATION_STATION
-
-    //#endif
-
+    pJC->AddSubHandler("cAtom",
+      [node_control](auto& req, auto& res, const auto ct)
+      {
+        node_control->procCAtom(req, res, ct);
+      });
 
     //------------------JSON EVENTS-------------------
     auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
