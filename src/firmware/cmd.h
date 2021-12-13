@@ -16,16 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * @file
- * Command proccessor stuff.
- */
-
 #ifndef PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
 
 #include "io_stream.hpp"
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -94,7 +90,11 @@ struct CCmdCallDescr final {
 typedef  CCmdCallDescr::cres typeCRes;
 
 /// A basic class for command handler.
-struct CCmdCallHandler {
+class CCmdCallHandler {
+public:
+  /// The destructor.
+  virtual ~CCmdCallHandler() = default;
+
   /**
    * @brief A method for handling a concrete command.
    *
@@ -104,33 +104,7 @@ struct CCmdCallHandler {
 };
 
 /// A command dispatcher class.
-class  CCmdDispatcher final {
-protected:
-  /// Dispatching table.
-  using typeDispTable = std::map<std::string, std::shared_ptr<CCmdCallHandler>>;
-
-  typeDispTable m_DispTable;
-  typeCRes __Call(CCmdCallDescr &d)
-  {
-    //by call method:
-    if(CCmdCallDescr::cmethod::byCmdName==d.m_cmethod) {
-
-      typeDispTable::const_iterator pCmd=m_DispTable.find(d.m_strCommand);
-      if(pCmd!=m_DispTable.end()) //call:
-        return pCmd->second->Call(d);
-      return typeCRes::obj_not_found;
-    }
-    if(CCmdCallDescr::cmethod::byCmdIndex==d.m_cmethod) {
-      if(d.m_nCmdIndex < static_cast<unsigned int>(m_DispTable.size())) {
-        typeDispTable::const_iterator pCmd=m_DispTable.begin();
-        std::advance(pCmd, d.m_nCmdIndex);
-        d.m_strCommand=pCmd->first;
-        return pCmd->second->Call(d);
-      }
-    }
-    return typeCRes::obj_not_found;
-  }
-
+class CCmdDispatcher final {
 public:
   /**
    * @brief Adding a new command handler to the dispatching table
@@ -138,9 +112,9 @@ public:
    * @param pCmdName Command in a string format.
    * @param pHandler A pointer to the command handler object.
    */
-  void Add(const char* pCmdName, const std::shared_ptr<CCmdCallHandler> pHandler)
+  void Add(const std::string& pCmdName, const std::shared_ptr<CCmdCallHandler>& pHandler)
   {
-    m_DispTable[pCmdName] = pHandler;
+    table_[pCmdName] = pHandler;
   }
 
   /**
@@ -152,20 +126,44 @@ public:
    * @throws `std::runtime_error` on error if
    * `(CCmdCallDescr::m_bThrowExcptOnErr == true)`.
    */
-  typeCRes Call(CCmdCallDescr &d)
+  typeCRes Call(CCmdCallDescr& d)
   {
-    typeCRes cres=__Call(d);
-    if(d.m_bThrowExcptOnErr) {
-      if(typeCRes::obj_not_found == cres)
-        throw std::runtime_error{"obj_not_found!"};
-      if(typeCRes::fget_not_supported == cres)
-        throw std::runtime_error{">_not_supported!"};
-      if(typeCRes::fset_not_supported == cres)
-        throw std::runtime_error{"<_not_supported!"};
-      if(typeCRes::disabled == cres)
-        throw std::runtime_error{"disabled!"};
+    const typeCRes cres = __Call(d);
+    if (d.m_bThrowExcptOnErr) {
+      const char* const what = [cres]() -> const char*
+      {
+        switch (cres) {
+        case typeCRes::OK: break;
+        case typeCRes::obj_not_found: return "obj_not_found!";
+        case typeCRes::fget_not_supported: return ">_not_supported!";
+        case typeCRes::fset_not_supported: return "<_not_supported!";
+        case typeCRes::parse_err: return "parse_err!";
+        case typeCRes::disabled: return "disabled!";
+        }
+        return nullptr;
+      }();
+      if (what) throw std::runtime_error{what};
     }
     return cres;
+  }
+
+private:
+  std::map<std::string, std::shared_ptr<CCmdCallHandler>> table_;
+
+  typeCRes __Call(CCmdCallDescr& d)
+  {
+    if (d.m_cmethod == CCmdCallDescr::cmethod::byCmdName) {
+      const auto cmd = table_.find(d.m_strCommand);
+      return cmd != table_.end() ? cmd->second->Call(d) : typeCRes::obj_not_found;
+    } else if (d.m_cmethod == CCmdCallDescr::cmethod::byCmdIndex) {
+      if (d.m_nCmdIndex < static_cast<unsigned int>(table_.size())) {
+        auto cmd = table_.begin();
+        std::advance(cmd, d.m_nCmdIndex);
+        d.m_strCommand = cmd->first;
+        return cmd->second->Call(d);
+      }
+    }
+    return typeCRes::obj_not_found;
   }
 };
 
@@ -174,111 +172,97 @@ public:
  * `set` requests via binding to the methods with a corresponding signature of
  * an arbitrary class.
  *
- * @tparam typeClass The type of a class.
- * @tparam typeArg The type of an access point.
+ * @tparam V A Value type.
  */
-template<typename typeClass, typename typeArg>
+template<typename V>
 class CCmdSGHandler final : public CCmdCallHandler {
-protected:
-  using Getter = typeArg(typeClass::*)()const;
-  using Setter = void(typeClass::*)(typeArg);
-
-  std::shared_ptr<typeClass> m_pObj;
-  Getter m_pGetter{};
-  Setter m_pSetter{};
 public:
+  /// An alias of V.
+  using Value = V;
+
+  /// Generic getter.
+  using Getter = std::function<V()>;
+
+  /// Generic setter.
+  using Setter = std::function<void(V)>;
+
+  /// Member getter.
+  template<typename T>
+  using Type_getter = V(T::*)()const;
+
+  /// Member setter.
+  template<typename T>
+  using Type_setter = void(T::*)(V);
+
   /**
-   * @brief The class constructor.
-   * @param pObj A pointer to binding object.
-   * @param pGetter An obligatory pointer to the class method with "get" signature.
-   * @param pSetter An optional pointer to the class method with "set" signature.
+   * @brief The default constructor.
+   *
+   * @details Constructs an instance which supports neither get nor set.
    */
-  CCmdSGHandler(const std::shared_ptr<typeClass>& pObj,
-    Getter pGetter, Setter pSetter = {})
-    : m_pObj{pObj}
-    , m_pGetter{pGetter}
-    , m_pSetter{pSetter}
+  CCmdSGHandler() = default;
+
+  /**
+   * @brief The constructor.
+   *
+   * @param get A generic getter.
+   * @param set A generic setter.
+   */
+  explicit CCmdSGHandler(Getter get, Setter set = {})
+    : get_{std::move(get)}
+    , set_{std::move(set)}
   {}
 
+  /**
+   * @brief The constructor.
+   *
+   * @param instance An instance.
+   * @param get A pointer to the class getter.
+   * @param set A pointer to the class setter.
+   */
+  template<class T, class GetterClass, class SetterClass = GetterClass>
+  CCmdSGHandler(const std::shared_ptr<T>& instance,
+    Type_getter<GetterClass> get, Type_setter<SetterClass> set = {})
+    : CCmdSGHandler{
+        // get_
+        instance && get ?
+        [instance, get]{return (instance.get()->*get)();} : Getter{},
+        // set_
+        instance && set ?
+        [instance, set](V v){(instance.get()->*set)(std::move(v));} : Setter{}}
+  {}
+
+  /**
+   * @brief A method for handling a concrete command.
+   *
+   * @param d Call descriptor in protocol-independent format.
+   */
   typeCRes Call(CCmdCallDescr& d) override
   {
-    if (d.m_ctype & CCmdCallDescr::ctype::ctSet) { //set
-      if (m_pSetter) {
-        typeArg val;
-        *(d.m_pIn)>>val;
-        if (!d.m_pIn->is_good())
+    if (d.m_ctype & CCmdCallDescr::ctype::ctSet) {
+      if (set_) {
+        V val;
+        *(d.m_pIn) >> val;
+        if (d.m_pIn->is_good()) {
+          set_(val);
+          if (get_)
+            *(d.m_pOut) << get_(); // Done.
+        } else
           return typeCRes::parse_err;
-
-        (m_pObj.get()->*m_pSetter)(val);
-
-        //14.08.2019: feedback
-        if (m_pGetter)
-          *(d.m_pOut)<<(m_pObj.get()->*m_pGetter)();
-      } else // error
+      } else
         return typeCRes::fset_not_supported;
     }
-
     if (d.m_ctype & CCmdCallDescr::ctype::ctGet) {
-      if (m_pGetter)
-        *(d.m_pOut)<<(m_pObj.get()->*m_pGetter)();
-      else // error
+      if (get_)
+        *(d.m_pOut) << get_(); // Done.
+      else
         return typeCRes::fget_not_supported;
     }
     return typeCRes::OK;
   }
-};
 
-/**
- * @brief A command dispatcher handler for handling an access point "get" and
- * "set" requests via binding to the arbitrary function with a corresponding
- * signature.
- *
- * @tparam typeArg The type of an access point.
- */
-template<typename typeArg>
-class CCmdSGHandlerF final : public CCmdCallHandler {
-protected:
-    typeArg (*m_pGetter)(void);
-    void (*m_pSetter)(typeArg val);
-
-public:
-  /**
-   * @brief A class constructor
-   * @param pGetter An obligatory pointer to the function with "get" signature
-   * @param pSetter An optional pointer to the function with "set" signature
-   */
-  CCmdSGHandlerF(typeArg (*pGetter)(void), void (*pSetter)(typeArg val) = nullptr)
-  {
-    m_pGetter=pGetter;
-    m_pSetter=pSetter;
-  }
-
-  typeCRes Call(CCmdCallDescr &d) override
-  {
-    if(d.m_ctype & CCmdCallDescr::ctype::ctSet) { //set
-      if(m_pSetter) {
-        typeArg val;
-        *(d.m_pIn)>>val;
-        if(!d.m_pIn->is_good())
-          return typeCRes::parse_err;
-
-        m_pSetter(val);
-
-        //14.08.2019: feedback
-        if(m_pGetter)
-          *(d.m_pOut)<<m_pGetter();
-      } else // error
-        return typeCRes::fset_not_supported;
-    }
-
-    if(d.m_ctype & CCmdCallDescr::ctype::ctGet) {
-      if(m_pGetter)
-        *(d.m_pOut)<<m_pGetter();
-      else //error
-        return typeCRes::fget_not_supported;
-    }
-    return typeCRes::OK;
-  }
+private:
+  Getter get_{};
+  Setter set_{};
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_CMD_HPP

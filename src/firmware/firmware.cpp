@@ -160,9 +160,11 @@ int main()
         auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->set_inverted(true);  pQSPICS0Pin=pCS0; pCS0->write(false);
 
 #ifdef DMS_TEST_MODE
-        pDisp->Add("SR", std::make_shared< CCmdSGHandler<CDMSsr, unsigned int> >(pDMSsr, &CDMSsr::GetShiftReg, &CDMSsr::SetShiftReg) );
+        pDisp->Add("SR", std::make_shared<CCmdSGHandler<unsigned>>(
+            pDMSsr,
+            &CDMSsr::GetShiftReg,
+            &CDMSsr::SetShiftReg));
 #endif
-
       }
     else
       {
@@ -209,19 +211,30 @@ int main()
         char cmd[64];
         int nInd=i+1;
         std::sprintf(cmd, "ADC%d.raw", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CAdc, int> >(pADC[i], &CAdc::DirectMeasure) );
+        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+            pADC[i],
+            &CAdc::DirectMeasure));
         std::sprintf(cmd, "DAC%d.raw", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CDac, int> >(pDAC[i], &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+            pDAC[i],
+            &CDac::GetRawBinVal,
+            &CDac::SetRawOutput));
       }
-    pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC0, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-    pDisp->Add("AOUT4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC1, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<Pin, bool> >(pDAConPin, &Pin::read_back,  &Pin::write) );
-
-
+    pDisp->Add("AOUT3.raw", std::make_shared<CCmdSGHandler<int>>(
+        pSamDAC0,
+        &CDac::GetRawBinVal,
+        &CDac::SetRawOutput));
+    pDisp->Add("AOUT4.raw", std::make_shared<CCmdSGHandler<int>>(
+        pSamDAC1,
+        &CDac::GetRawBinVal,
+        &CDac::SetRawOutput));
+    pDisp->Add("DACsw", std::make_shared<CCmdSGHandler<bool>>(
+        pDAConPin,
+        &Pin::read_back,
+        &Pin::write) );
 
     //2nd step:
-    if(typeBoard::DMSBoard==ThisBoard)
-      {
+    if (ThisBoard == typeBoard::DMSBoard) {
         auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->set_inverted(true);  pCS1->write(false);
 
         //create PGA280 extension bus:
@@ -242,13 +255,15 @@ int main()
 
 #ifdef CALIBRATION_STATION
         //ability to control VSUP dac raw value:
-        pDisp->Add("VSUP.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2A, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
+        pDisp->Add("VSUP.raw", std::make_shared<CCmdSGHandler<int>>(
+            pDAC2A,
+            &CDac::GetRawBinVal,
+            &CDac::SetRawOutput));
 #endif
 
         //create 4 PGAs:
         CDMSsr::pins IEPEpins[]={CDMSsr::pins::IEPE1_On, CDMSsr::pins::IEPE2_On, CDMSsr::pins::IEPE3_On, CDMSsr::pins::IEPE4_On};
-        for(int i=0; i<nChannels; i++)
-          {
+        for (int i{}; i<nChannels; i++) {
             auto pPGA_CS=std::make_shared<CPGA_CS>(static_cast<CDMSsr::pga_sel>(i), pDMSsr, pInaSpiCSpin);
             auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
             auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
@@ -261,42 +276,77 @@ int main()
             int nInd=i+1;
             //for testing only:
             std::sprintf(cmd, "PGA%d.rsel", nInd);
-            pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::GetSelectedReg, &CPGA280::SelectReg) );
+            pDisp->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
+                pPGA280,
+                &CPGA280::GetSelectedReg,
+                &CPGA280::SelectReg));
             std::sprintf(cmd, "PGA%d.rval", nInd);
-            pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, int> >(pPGA280, &CPGA280::ReadSelectedReg, &CPGA280::WriteSelectedReg) );
+            pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+                pPGA280,
+                &CPGA280::ReadSelectedReg,
+                &CPGA280::WriteSelectedReg));
 #endif
 
           }
-      }
-    else
-      {
+      } else {
         for(int i=0; i<nChannels; i++)
-          {
-            nc.AddMesChannel( std::make_shared<CIEPEchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled) );
-          }
+          nc.AddMesChannel(std::make_shared<CIEPEchannel>(
+              i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled));
       }
-
 
     //2 DAC PWMs:
     auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pDAConPin);
     auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pDAConPin);
 
     //PWM commands:
-    pDisp->Add("PWM1", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM1, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
-    pDisp->Add("PWM1.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
-    pDisp->Add("PWM1.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM1, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
-    pDisp->Add("PWM1.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
-    pDisp->Add("PWM1.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
-    pDisp->Add("PWM1.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
-
-
-    pDisp->Add("PWM2", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM2, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
-    pDisp->Add("PWM2.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
-    pDisp->Add("PWM2.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM2, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
-    pDisp->Add("PWM2.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
-    pDisp->Add("PWM2.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
-    pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
-
+    pDisp->Add("PWM1", std::make_shared<CCmdSGHandler<bool>>(
+        pPWM1,
+        &CDacPWMht::IsStarted,
+        &CDacPWMht::Start));
+    pDisp->Add("PWM1.repeats", std::make_shared<CCmdSGHandler<unsigned>>(
+        pPWM1,
+        &CDacPWMht::GetRepeats,
+        &CDacPWMht::SetRepeats));
+    pDisp->Add("PWM1.duty", std::make_shared<CCmdSGHandler<float>>(
+        pPWM1,
+        &CDacPWMht::GetDutyCycle,
+        &CDacPWMht::SetDutyCycle) );
+    pDisp->Add("PWM1.freq", std::make_shared<CCmdSGHandler<unsigned>>(
+        pPWM1,
+        &CDacPWMht::GetFrequency,
+        &CDacPWMht::SetFrequency));
+    pDisp->Add("PWM1.high", std::make_shared<CCmdSGHandler<int>>(
+        pPWM1,
+        &CDacPWMht::GetHighLevel,
+        &CDacPWMht::SetHighLevel));
+    pDisp->Add("PWM1.low", std::make_shared<CCmdSGHandler<int>>(
+        pPWM1,
+        &CDacPWMht::GetLowLevel,
+        &CDacPWMht::SetLowLevel));
+    pDisp->Add("PWM2", std::make_shared<CCmdSGHandler<bool>>(
+        pPWM2,
+        &CDacPWMht::IsStarted,
+        &CDacPWMht::Start));
+    pDisp->Add("PWM2.repeats", std::make_shared<CCmdSGHandler<unsigned>>(
+        pPWM2,
+        &CDacPWMht::GetRepeats,
+        &CDacPWMht::SetRepeats));
+    pDisp->Add("PWM2.duty", std::make_shared<CCmdSGHandler<float>>(
+        pPWM2,
+        &CDacPWMht::GetDutyCycle,
+        &CDacPWMht::SetDutyCycle));
+    pDisp->Add("PWM2.freq", std::make_shared<CCmdSGHandler<unsigned>>(
+        pPWM2,
+        &CDacPWMht::GetFrequency,
+        &CDacPWMht::SetFrequency));
+    pDisp->Add("PWM2.high", std::make_shared<CCmdSGHandler<int>>(
+        pPWM2,
+        &CDacPWMht::GetHighLevel,
+        &CDacPWMht::SetHighLevel));
+    pDisp->Add("PWM2.low", std::make_shared<CCmdSGHandler<int>>(
+        pPWM2,
+        &CDacPWMht::GetLowLevel,
+        &CDacPWMht::SetLowLevel));
 
     //temp sensor+ PIN PWM:
     auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
@@ -304,10 +354,20 @@ int main()
     auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
 
     //temp sens+fan control:
-    pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );
-    pDisp->Add("Fan.duty", std::make_shared< CCmdSGHandler<CPinPWM, float> >(pFanPWM, &CPinPWM::GetDutyCycle) );
-    pDisp->Add("Fan.freq", std::make_shared< CCmdSGHandler<CPinPWM, unsigned int> >(pFanPWM, &CPinPWM::GetFrequency, &CPinPWM::SetFrequency) );
-    pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CFanControl, bool> >(pFanControl, &CFanControl::GetEnabled, &CFanControl::SetEnabled) );
+    pDisp->Add("Temp", std::make_shared<CCmdSGHandler<float>>(
+        pTempSens,
+        &CSamTempSensor::GetTempCD));
+    pDisp->Add("Fan.duty", std::make_shared<CCmdSGHandler<float>>(
+        pFanPWM,
+        &CPinPWM::GetDutyCycle));
+    pDisp->Add("Fan.freq", std::make_shared<CCmdSGHandler<unsigned>>(
+        pFanPWM,
+        &CPinPWM::GetFrequency,
+        &CPinPWM::SetFrequency));
+    pDisp->Add("Fan", std::make_shared<CCmdSGHandler<bool>>(
+        pFanControl,
+        &CFanControl::GetEnabled,
+        &CFanControl::SetEnabled));
 
     //button:
 #ifdef CALIBRATION_STATION
@@ -327,50 +387,101 @@ int main()
       auto pCH=nc.GetMesChannel(i);
 
       std::sprintf(cmd, "CH%d.mode", nInd);
-      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Channel, Measurement_mode>>(pCH, &Channel::measurement_mode, &Channel::set_measurement_mode));
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Measurement_mode>>(
+          pCH,
+          &Channel::measurement_mode,
+          &Channel::set_measurement_mode));
       std::sprintf(cmd, "CH%d.gain", nInd);
-      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Channel, float>>(pCH, &Channel::amplification_gain, &Channel::set_amplification_gain));
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<float>>(
+          pCH,
+          &Channel::amplification_gain,
+          &Channel::set_amplification_gain));
       std::sprintf(cmd, "CH%d.iepe", nInd);
-      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Channel, bool>>(pCH, &Channel::is_iepe, &Channel::set_iepe));
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<bool>>(
+          pCH,
+          &Channel::is_iepe,
+          &Channel::set_iepe));
 
 #ifdef CALIBRATION_STATION
       std::sprintf(cmd, "CH%d.clr", nInd);
-      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Channel, typeLEDcol>>(pCH, &Channel::color, &Channel::set_color));
+      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<typeLEDcol>>(
+          pCH,
+          &Channel::color,
+          &Channel::set_color));
 #endif
     }
 
-
-
-    pDisp->Add("Offset.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-    pDisp->Add("ARMID", std::make_shared< CCmdSGHandlerF<std::string> >(&CSamService::GetSerialString) );
-    pDisp->Add("fwVersion", std::make_shared< CCmdSGHandler<CSemVer, std::string> >(pVersion, &CSemVer::GetVersionString) );
+    pDisp->Add("Offset.errtol", std::make_shared<CCmdSGHandler<int>>(
+        &CADpointSearch::GetTargErrTol,
+        &CADpointSearch::SetTargErrTol));
+    pDisp->Add("ARMID", std::make_shared<CCmdSGHandler<std::string>>(
+        &CSamService::GetSerialString));
+    pDisp->Add("fwVersion", std::make_shared<CCmdSGHandler<std::string>>(
+        pVersion,
+        &CSemVer::GetVersionString));
 
     //control commands:
-    const std::shared_ptr<nodeControl> &pNC=nc.shared_from_this();
-    pDisp->Add("Gain", std::make_shared< CCmdSGHandler<nodeControl, int> >(pNC, &nodeControl::GetGain, &nodeControl::SetGain) );
-    pDisp->Add("Bridge", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::GetBridge,  &nodeControl::SetBridge) );
-    pDisp->Add("Record", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
-    pDisp->Add("Offset", std::make_shared< CCmdSGHandler<nodeControl, int> >(pNC, &nodeControl::GetOffsetRunSt,  &nodeControl::SetOffset) );
-    pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::IsMeasurementsEnabled,  &nodeControl::EnableMeasurements) );
-    pDisp->Add("Mode", std::make_shared< CCmdSGHandler<nodeControl, int> >(pNC, &nodeControl::GetMode,  &nodeControl::SetMode) );
-    pDisp->Add("CalStatus", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::GetCalStatus) );
-    pDisp->Add("Voltage", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetVoltage, &nodeControl::SetVoltage) );
-    pDisp->Add("Current", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetCurrent, &nodeControl::SetCurrent) );
-    pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
-    //pDisp->Add("Fan", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsFanStarted,  &nodeControl::StartFan) );
+    const auto pNC = nc.shared_from_this();
+    pDisp->Add("Gain", std::make_shared<CCmdSGHandler<int>>(
+        pNC,
+        &nodeControl::GetGain,
+        &nodeControl::SetGain));
+    pDisp->Add("Bridge", std::make_shared<CCmdSGHandler<bool>>(
+        pNC,
+        &nodeControl::GetBridge,
+        &nodeControl::SetBridge));
+    pDisp->Add("Record", std::make_shared<CCmdSGHandler<bool>>(
+        pNC,
+        &nodeControl::IsRecordStarted,
+        &nodeControl::StartRecord));
+    pDisp->Add("Offset", std::make_shared<CCmdSGHandler<int>>(
+        pNC,
+        &nodeControl::GetOffsetRunSt,
+        &nodeControl::SetOffset));
+    pDisp->Add("EnableADmes", std::make_shared<CCmdSGHandler<bool>>(
+        pNC,
+        &nodeControl::IsMeasurementsEnabled,
+        &nodeControl::EnableMeasurements));
+    pDisp->Add("Mode", std::make_shared<CCmdSGHandler<int>>(
+        pNC,
+        &nodeControl::GetMode,
+        &nodeControl::SetMode));
+    pDisp->Add("CalStatus", std::make_shared<CCmdSGHandler<bool>>(
+        pNC,
+        &nodeControl::GetCalStatus));
+    pDisp->Add("Voltage", std::make_shared<CCmdSGHandler<float>>(
+        pNC,
+        &nodeControl::GetVoltage,
+        &nodeControl::SetVoltage));
+    pDisp->Add("Current", std::make_shared<CCmdSGHandler<float>>(
+        pNC,
+        &nodeControl::GetCurrent,
+        &nodeControl::SetCurrent));
+    pDisp->Add("MaxCurrent", std::make_shared<CCmdSGHandler<float>>(
+        pNC,
+        &nodeControl::GetMaxCurrent,
+        &nodeControl::SetMaxCurrent));
+    // pDisp->Add("Fan", std::make_shared<CCmdSGHandler<bool>>(
+    //     pNC, &nodeControl::IsFanStarted,
+    //     &nodeControl::StartFan));
 
 
     CView &view=CView::Instance();
 #ifdef CALIBRATION_STATION
-    pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
+    pDisp->Add("UItest", std::make_shared<CCmdSGHandler<bool>>(
+        pBtnHandler,
         &CCalFWbtnHandler::HasUItestBeenDone,
-        &CCalFWbtnHandler::StartUItest) );
+        &CCalFWbtnHandler::StartUItest));
     //testing Ext EEPROM:
-    pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<Sam_i2c_eeprom_master, bool> >(i2c_eeprom_master,
-        &Sam_i2c_eeprom_master::self_test_result, &Sam_i2c_eeprom_master::run_self_test) );
+    pDisp->Add("EEPROMTest", std::make_shared<CCmdSGHandler<bool>>(
+        i2c_eeprom_master,
+        &Sam_i2c_eeprom_master::self_test_result,
+        &Sam_i2c_eeprom_master::run_self_test));
 
-    pDisp->Add("CalEnable", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsCalEnabled,  &nodeControl::EnableCal) );
-
+    pDisp->Add("CalEnable", std::make_shared<CCmdSGHandler<bool>>(
+        pNC,
+        &nodeControl::IsCalEnabled,
+        &nodeControl::EnableCal));
 #endif
 
 
