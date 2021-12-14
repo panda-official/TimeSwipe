@@ -270,7 +270,7 @@ int main()
         auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
         auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-        node_control->AddMesChannel(std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled));
+        node_control->AddMesChannel(std::make_shared<Dms_channel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled));
 #ifdef DMS_TEST_MODE
 
         //add commands to each:

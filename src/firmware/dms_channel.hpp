@@ -24,7 +24,7 @@
 #include "shiftreg.hpp"
 
 /// The DMS measurement channel.
-class CDMSchannel final : public Channel {
+class Dms_channel final : public Channel {
 public:
   /// @see Channel::measurement_mode();
   Measurement_mode measurement_mode() const noexcept override
@@ -113,7 +113,7 @@ public:
   void update_offsets() override;
 
   /// The constructor.
-  CDMSchannel(const int channel_index,
+  Dms_channel(const int channel_index,
     const std::shared_ptr<CAdc>& adc,
     const std::shared_ptr<CDac>& dac,
     const CView::vischan visualization_index,

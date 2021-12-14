@@ -21,7 +21,7 @@
 #include "../gain.hpp"
 #include "../hat.hpp"
 
-void CDMSchannel::set_amplification_gain(const float value)
+void Dms_channel::set_amplification_gain(const float value)
 {
   const auto index = gain::ogain_table_index(value);
   const auto igain = static_cast<CPGA280::igain>(index / 2);
@@ -33,7 +33,7 @@ void CDMSchannel::set_amplification_gain(const float value)
   }
 }
 
-void CDMSchannel::update_offsets()
+void Dms_channel::update_offsets()
 {
   // Apply offsets iif calibration is enabled.
   if (!node_control()->IsCalEnabled()) return;
