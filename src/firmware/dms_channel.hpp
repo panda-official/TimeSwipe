@@ -44,7 +44,7 @@ public:
     {}
 
   /// @see Channel::measurement_mode();
-  Measurement_mode measurement_mode() const noexcept override
+  std::optional<Measurement_mode> measurement_mode() const noexcept override
   {
     return measurement_mode_;
   }
@@ -71,7 +71,7 @@ public:
   }
 
   /// @see Channel::amplification_gain();
-  float amplification_gain() const noexcept override
+  std::optional<float> amplification_gain() const noexcept override
   {
     return amplification_gain_;
   }
@@ -131,8 +131,8 @@ public:
 
 private:
   bool is_iepe_{};
-  Measurement_mode measurement_mode_{Measurement_mode::voltage};
-  float amplification_gain_{1};
+  std::optional<Measurement_mode> measurement_mode_;
+  std::optional<float> amplification_gain_;
   std::size_t gain_index_{};
   int channel_index_{-1};
 

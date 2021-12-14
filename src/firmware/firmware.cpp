@@ -394,12 +394,15 @@ int main()
       const auto channel = board->channel(i);
 
       std::sprintf(cmd, "CH%d.mode", nInd);
-      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Measurement_mode>>(
+      using Ch_mode_handler = CCmdSGHandler<std::optional<Measurement_mode>,
+        Measurement_mode>;
+      pDisp->Add(cmd, std::make_shared<Ch_mode_handler>(
           channel,
           &Channel::measurement_mode,
           &Channel::set_measurement_mode));
       std::sprintf(cmd, "CH%d.gain", nInd);
-      pDisp->Add(cmd, std::make_shared<CCmdSGHandler<float>>(
+      using Ch_gain_handler = CCmdSGHandler<std::optional<float>, float>;
+      pDisp->Add(cmd, std::make_shared<Ch_gain_handler>(
           channel,
           &Channel::amplification_gain,
           &Channel::set_amplification_gain));

@@ -28,6 +28,7 @@
 using namespace panda::timeswipe; // FIXME: remove
 
 #include <memory>
+#include <optional>
 
 class Board;
 
@@ -35,7 +36,7 @@ class Board;
 class Channel {
 public:
   /// @returns The measurement mode.
-  virtual Measurement_mode measurement_mode() const noexcept = 0;
+  virtual std::optional<Measurement_mode> measurement_mode() const noexcept = 0;
 
   /// Sets The measurement mode.
   virtual void set_measurement_mode(Measurement_mode mode) = 0;
@@ -47,7 +48,7 @@ public:
   virtual void set_iepe(bool enable) = 0;
 
   /// @returns The amplification gain.
-  virtual float amplification_gain() const noexcept = 0;
+  virtual std::optional<float> amplification_gain() const noexcept = 0;
 
   /// Sets the amplification gain.
   virtual void set_amplification_gain(float gain) = 0;
@@ -159,7 +160,7 @@ public:
     , dac_{dac}
   {}
 
-  Measurement_mode measurement_mode() const noexcept override
+  std::optional<Measurement_mode> measurement_mode() const noexcept override
   {
     return measurement_mode_;
   }
@@ -179,7 +180,7 @@ public:
     is_iepe_ = value;
   }
 
-  float amplification_gain() const noexcept override
+  std::optional<float> amplification_gain() const noexcept override
   {
     return amplification_gain_;
   }
@@ -234,8 +235,8 @@ public:
 
 private:
   bool is_iepe_{};
-  Measurement_mode measurement_mode_{Measurement_mode::voltage};
-  float amplification_gain_{1};
+  std::optional<Measurement_mode> measurement_mode_;
+  std::optional<float> amplification_gain_;
   int channel_index_{-1};
   CDataVis visualization_index_;
   bool is_visualization_enabled_{};

@@ -295,6 +295,12 @@ public:
   /// Enables or disables board ADC measurement.
   void enable_measurement(const bool enabled)
   {
+    // Return if there is a channel with either mode or gain unset.
+    if (enabled) {
+      for (auto& channel : channels_)
+        if (!channel->measurement_mode() || !channel->amplification_gain())
+          return;
+    }
     PANDA_TIMESWIPE_FIRMWARE_ASSERT(adc_measurement_enable_pin_);
     adc_measurement_enable_pin_->write(enabled);
     CView::Instance().SetButtonHeartbeat(enabled);
