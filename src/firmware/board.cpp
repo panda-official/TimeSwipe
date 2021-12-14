@@ -31,27 +31,27 @@ Board::Board()
 void Board::set_eeprom_handles(const std::shared_ptr<ISerial>& bus,
   const std::shared_ptr<CFIFO>& buf)
 {
-    eeprom_cache_.set_buf(buf);
-    eeprom_bus_ = bus;
+  eeprom_cache_.set_buf(buf);
+  eeprom_bus_ = bus;
 
-    if (eeprom_cache_.verify() != hat::Manager::Op_result::ok) {
-      eeprom_cache_.reset();
-      hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "Timeswipe"};
-      eeprom_cache_.set(vinf); //storage is ready
-    }
+  if (eeprom_cache_.verify() != hat::Manager::Op_result::ok) {
+    eeprom_cache_.reset();
+    hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "Timeswipe"};
+    eeprom_cache_.set(vinf); //storage is ready
+  }
 
-    //fill blank atoms with the stubs:
-    for (int i{eeprom_cache_.atom_count()}; i < 3; ++i) {
-      hat::atom::Stub stub{i};
-      eeprom_cache_.set(stub);
-    }
+  // Fill blank atoms with the stubs.
+  for (int i{eeprom_cache_.atom_count()}; i < 3; ++i) {
+    hat::atom::Stub stub{i};
+    eeprom_cache_.set(stub);
+  }
 
-    hat::Calibration_map map;
-    calibration_status_ = eeprom_cache_.get(map);
-    if (calibration_status_ == hat::Manager::Op_result::ok) {
-      std::string err;
-      apply_calibration_data(map, err);
-    }
+  hat::Calibration_map map;
+  calibration_status_ = eeprom_cache_.get(map);
+  if (calibration_status_ == hat::Manager::Op_result::ok) {
+    std::string err;
+    apply_calibration_data(map, err);
+  }
 }
 
 void Board::apply_calibration_data(const hat::Calibration_map& map, std::string& err)
@@ -184,22 +184,20 @@ void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
 
 void Board::Serialize(CStorage &st)
 {
-    offset_search_.Serialize(st);
-    if(st.IsDefaultSettingsOrder())
-    {
-        set_gain(1);
-        enable_bridge(false);
-        set_secondary_measurement_mode(0);
-    }
+  offset_search_.Serialize(st);
+  if (st.IsDefaultSettingsOrder()) {
+    set_gain(1);
+    enable_bridge(false);
+    set_secondary_measurement_mode(0);
+  }
 
-    st.ser(gain_).ser(is_bridge_enabled_).ser(secondary_);
+  st.ser(gain_).ser(is_bridge_enabled_).ser(secondary_);
 
-    if(st.IsImporting())
-    {
-        set_gain(gain_);
-        enable_bridge(is_bridge_enabled_);
-        set_secondary_measurement_mode(secondary_);
-    }
+  if (st.IsImporting()) {
+    set_gain(gain_);
+    enable_bridge(is_bridge_enabled_);
+    set_secondary_measurement_mode(secondary_);
+  }
 }
 
 void Board::update()
@@ -239,16 +237,16 @@ int Board::set_gain_out(const int val)
 
 void Board::enable_bridge(const bool enabled)
 {
-     is_bridge_enabled_ = enabled;
+  is_bridge_enabled_ = enabled;
 
-     if (board_type_ != Board_type::iepe) {
-        assert(ubr_pin_);
-        ubr_pin_->write(enabled);
-     }
+  if (board_type_ != Board_type::iepe) {
+    assert(ubr_pin_);
+    ubr_pin_->write(enabled);
+  }
 
-    // Emit the event.
-    rapidjson::Value v{enabled};
-    Fire_on_event("Bridge", v);
+  // Emit the event.
+  rapidjson::Value v{enabled};
+  Fire_on_event("Bridge", v);
 }
 
 void Board::set_measurement_mode(const int mode)
