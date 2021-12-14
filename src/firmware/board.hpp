@@ -55,10 +55,13 @@ public:
   void Serialize(CStorage& st) override;
 
   /// @returns The reference to the singleton instance.
-  static Board& instance()
+  static Board& instance() noexcept
   {
-    static std::shared_ptr<Board> pThis(new Board);
-    return *pThis;
+    if (!instance_) {
+      instance_.reset(new(std::nothrow) Board);
+      PANDA_TIMESWIPE_FIRMWARE_ASSERT(instance_);
+    }
+    return *instance_;
   }
 
   /// Non copy-constructible.
@@ -412,6 +415,7 @@ public:
   void update();
 
 private:
+  inline static std::shared_ptr<Board> instance_;
   Board_type board_type_{Board_type::iepe};
   std::shared_ptr<Pin> ubr_pin_;
   std::shared_ptr<Pin> dac_mode_pin_;
