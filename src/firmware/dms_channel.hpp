@@ -26,6 +26,23 @@
 /// The DMS measurement channel.
 class Dms_channel final : public Channel {
 public:
+  /// The constructor.
+  Dms_channel(const int channel_index,
+    const std::shared_ptr<CAdc>& adc,
+    const std::shared_ptr<CDac>& dac,
+    const CView::vischan visualization_index,
+    const std::shared_ptr<Pin>& iepe_switch_pin,
+    const std::shared_ptr<CPGA280>& pga,
+    const bool is_visualization_enabled)
+    : channel_index_{channel_index}
+    , visualization_index_{visualization_index}
+    , is_visualization_enabled_{is_visualization_enabled}
+    , adc_{adc}
+    , dac_{dac}
+    , iepe_switch_pin_{iepe_switch_pin}
+    , pga_{pga}
+    {}
+
   /// @see Channel::measurement_mode();
   Measurement_mode measurement_mode() const noexcept override
   {
@@ -111,23 +128,6 @@ public:
 
   /// @see Channel::update_offsets();
   void update_offsets() override;
-
-  /// The constructor.
-  Dms_channel(const int channel_index,
-    const std::shared_ptr<CAdc>& adc,
-    const std::shared_ptr<CDac>& dac,
-    const CView::vischan visualization_index,
-    const std::shared_ptr<Pin>& iepe_switch_pin,
-    const std::shared_ptr<CPGA280>& pga,
-    const bool is_visualization_enabled)
-    : channel_index_{channel_index}
-    , visualization_index_{visualization_index}
-    , is_visualization_enabled_{is_visualization_enabled}
-    , adc_{adc}
-    , dac_{dac}
-    , iepe_switch_pin_{iepe_switch_pin}
-    , pga_{pga}
-    {}
 
 private:
   bool is_iepe_{};
