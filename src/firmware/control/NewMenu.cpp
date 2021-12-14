@@ -16,16 +16,16 @@ CNewMenu::CNewMenu()
 
 void CNewMenu::ObtainMenuElRange()
 {
-    Board& board = Board::Instance();
+    Board& board = Board::instance();
     switch (m_MenuInd) {
         case CView::menu::Gains:
-          m_MenuEl=static_cast<unsigned int>(board.GetGain()-1);
+          m_MenuEl=static_cast<unsigned int>(board.gain() - 1);
           m_MenuElMin=0;
           m_MenuElMax=3;
         break;
 
         case CView::menu::Bridge:
-          m_MenuEl=board.GetBridge() ? 1:0;
+          m_MenuEl=board.is_bridge_enabled();
           m_MenuElMin=0;
           m_MenuElMax=1;
         break;
@@ -37,7 +37,7 @@ void CNewMenu::ObtainMenuElRange()
         break;
 
         case CView::menu::SetSecondary:
-          m_MenuEl=static_cast<unsigned int>(board.GetSecondary());
+          m_MenuEl=static_cast<unsigned int>(board.secondary_measurement_mode());
           m_MenuElMin=0;
           m_MenuElMax=1;
         break;
@@ -46,24 +46,24 @@ void CNewMenu::ObtainMenuElRange()
 
 void CNewMenu::ApplyMenuSetting()
 {
-    Board& board = Board::Instance();
+    Board& board = Board::instance();
     switch(m_MenuInd)
     {
         case CView::menu::Gains:
-            board.SetGain( static_cast<int>(m_MenuEl+1));
+            board.set_gain(static_cast<int>(m_MenuEl+1));
         break;
 
         case CView::menu::Bridge:
-            board.SetBridge(m_MenuEl);
+            board.enable_bridge(m_MenuEl);
         break;
 
         case CView::menu::Offsets:
-            board.SetOffset(m_MenuEl+1);
+            board.start_offset_search(m_MenuEl + 1);
             m_CurMode=mode::preview;
         return;
 
         case CView::menu::SetSecondary:
-            board.SetSecondary( static_cast<int>(m_MenuEl) );
+            board.set_secondary_measurement_mode(static_cast<int>(m_MenuEl));
         break;
      }
     CView::Instance().ApplyMenu();
@@ -76,7 +76,7 @@ void CNewMenu::handle_state(const Button_state state)
 
     if(Button_state::very_long_click==state)
     {
-        Board::Instance().SetDefaultSettings();
+        Board::instance().reset_settings();
         m_CurMode=mode::def;
         v.ResetSettings();
         return;
@@ -87,7 +87,7 @@ void CNewMenu::handle_state(const Button_state state)
         switch(state)
         {
             case Button_state::short_click:
-                Board::Instance().StartRecord(true);
+                Board::instance().start_record();
                 v.SetRecordMarker();
             return;
 
@@ -100,8 +100,8 @@ void CNewMenu::handle_state(const Button_state state)
         }
     }
 
-    //block buttons while calibration is running:
-    if(Board::Instance().GetOffsetRunSt())
+    // block buttons while calibration is running:
+    if (Board::instance().is_offset_search_started())
         return;
 
 

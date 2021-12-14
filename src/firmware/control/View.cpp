@@ -179,7 +179,7 @@ void CView::CalUItest()
         m_Channels[i].m_LED.SetBlinkMode(false);
     }
     SetButtonHeartbeat(false);
-    Board::Instance().StartFan(true);
+    Board::instance().enable_fan(true);
     CalUItest_stepLEDsRed();
 }
 
@@ -189,7 +189,7 @@ bool CView::CalUItest_IsBroken()
         return false;
 
     //stop fan here:
-    Board::Instance().StartFan(false);
+    Board::instance().enable_fan(false);
     Sam_button::instance().enable_led(false);
 
     //exit proc:

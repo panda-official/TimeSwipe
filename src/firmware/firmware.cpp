@@ -95,7 +95,7 @@ int main()
     initialize_system_clock();
 
     // Create the control instance.
-    const auto board = Board::Instance().shared_from_this();
+    const auto board = Board::instance().shared_from_this();
 
     // -------------------------------------------------------------------------
     // Create I2C EEPROM
@@ -124,8 +124,8 @@ int main()
     eeprom_hat->SetMemBuf(eeprom_buffer);
     eeprom_hat->EnableIRQs(true);
 
-    //set iface:
-    board->SetEEPROMiface(i2c_eeprom_master, eeprom_buffer);
+    // Set handles.
+    board->set_eeprom_handles(i2c_eeprom_master, eeprom_buffer);
 
     // -------------------------------------------------------------------------
     // Setup communication bus
@@ -138,7 +138,7 @@ int main()
     pSPIsc2->AdviseSink(pStdPort);
 
 
-    board->SetBoardType(board_type);
+    board->set_board_type(board_type);
     std::shared_ptr<Pin> pDAConPin;
     std::shared_ptr<Pin> pUB1onPin;
     std::shared_ptr<Pin> pQSPICS0Pin;
@@ -176,8 +176,7 @@ int main()
       //old IEPE gain switches:
       auto pGain0=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p15, true);
       auto pGain1=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p14, true);
-      board->SetIEPEboardGainSwitches(pGain0, pGain1);
-
+      board->set_iepe_gain_pins(pGain0, pGain1);
     }
     const auto pEnableMesPin = std::make_shared<Sam_pin>(
       Sam_pin::Group::b,
@@ -189,10 +188,10 @@ int main()
       true);
 
     //setup control:
-    board->SetUBRpin(pUB1onPin);
-    board->SetDAConPin(pDAConPin);
-    board->SetEnableMesPin(pEnableMesPin);
-    board->SetFanPin(pFanPin);
+    board->set_ubr_pin(pUB1onPin);
+    board->set_dac_mode_pin(pDAConPin);
+    board->set_adc_measurement_enable_pin(pEnableMesPin);
+    board->set_fan_pin(pFanPin);
 
     auto pSamADC0 = std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
     std::shared_ptr<CSamADCchan> pADC[]={
@@ -259,7 +258,7 @@ int main()
       // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
       // #endif
       pDAC2A->SetVal(0);
-      board->SetVoltageDAC(pDAC2A);
+      board->set_voltage_dac(pDAC2A);
 
 #ifdef CALIBRATION_STATION
       //ability to control VSUP dac raw value:
@@ -276,7 +275,7 @@ int main()
         auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
         auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
-        board->AddMesChannel(std::make_shared<Dms_channel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled));
+        board->add_channel(std::make_shared<Dms_channel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled));
 #ifdef DMS_TEST_MODE
 
         //add commands to each:
@@ -298,7 +297,7 @@ int main()
       }
     } else {
       for (int i{}; i < nChannels; ++i)
-        board->AddMesChannel(std::make_shared<CIEPEchannel>(
+        board->add_channel(std::make_shared<CIEPEchannel>(
             i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled));
     }
 
@@ -392,28 +391,28 @@ int main()
     for (int i{}; i < nChannels; ++i) {
       char cmd[64];
       const int nInd=i+1;
-      const auto pCH = board->GetMesChannel(i);
+      const auto channel = board->channel(i);
 
       std::sprintf(cmd, "CH%d.mode", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<Measurement_mode>>(
-          pCH,
+          channel,
           &Channel::measurement_mode,
           &Channel::set_measurement_mode));
       std::sprintf(cmd, "CH%d.gain", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<float>>(
-          pCH,
+          channel,
           &Channel::amplification_gain,
           &Channel::set_amplification_gain));
       std::sprintf(cmd, "CH%d.iepe", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<bool>>(
-          pCH,
+          channel,
           &Channel::is_iepe,
           &Channel::set_iepe));
 
 #ifdef CALIBRATION_STATION
       std::sprintf(cmd, "CH%d.clr", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<typeLEDcol>>(
-          pCH,
+          channel,
           &Channel::color,
           &Channel::set_color));
 #endif
@@ -431,46 +430,46 @@ int main()
     //control commands:
     pDisp->Add("Gain", std::make_shared<CCmdSGHandler<int>>(
         board,
-        &Board::GetGain,
-        &Board::SetGain));
+        &Board::gain,
+        &Board::set_gain));
     pDisp->Add("Bridge", std::make_shared<CCmdSGHandler<bool>>(
         board,
-        &Board::GetBridge,
-        &Board::SetBridge));
+        &Board::is_bridge_enabled,
+        &Board::enable_bridge));
     pDisp->Add("Record", std::make_shared<CCmdSGHandler<bool>>(
         board,
-        &Board::IsRecordStarted,
-        &Board::StartRecord));
+        &Board::is_record_started,
+        &Board::start_record));
     pDisp->Add("Offset", std::make_shared<CCmdSGHandler<int>>(
         board,
-        &Board::GetOffsetRunSt,
-        &Board::SetOffset));
+        &Board::is_offset_search_started,
+        &Board::start_offset_search));
     pDisp->Add("EnableADmes", std::make_shared<CCmdSGHandler<bool>>(
         board,
-        &Board::IsMeasurementsEnabled,
-        &Board::EnableMeasurements));
+        &Board::is_measurement_enabled,
+        &Board::enable_measurement));
     pDisp->Add("Mode", std::make_shared<CCmdSGHandler<int>>(
         board,
-        &Board::GetMode,
-        &Board::SetMode));
+        &Board::measurement_mode,
+        &Board::set_measurement_mode));
     pDisp->Add("CalStatus", std::make_shared<CCmdSGHandler<bool>>(
         board,
-        &Board::GetCalStatus));
+        &Board::is_calibrated));
     pDisp->Add("Voltage", std::make_shared<CCmdSGHandler<float>>(
         board,
-        &Board::GetVoltage,
-        &Board::SetVoltage));
+        &Board::voltage,
+        &Board::set_voltage));
     pDisp->Add("Current", std::make_shared<CCmdSGHandler<float>>(
         board,
-        &Board::GetCurrent,
-        &Board::SetCurrent));
+        &Board::current,
+        &Board::set_current));
     pDisp->Add("MaxCurrent", std::make_shared<CCmdSGHandler<float>>(
         board,
-        &Board::GetMaxCurrent,
-        &Board::SetMaxCurrent));
+        &Board::max_current,
+        &Board::set_max_current));
     // pDisp->Add("Fan", std::make_shared<CCmdSGHandler<bool>>(
-    //     board, &Board::IsFanStarted,
-    //     &Board::StartFan));
+    //     board, &Board::is_fan_enabled,
+    //     &Board::enable_fan));
 
 
     CView &view=CView::Instance();
@@ -487,8 +486,8 @@ int main()
 
     pDisp->Add("CalEnable", std::make_shared<CCmdSGHandler<bool>>(
         board,
-        &Board::IsCalEnabled,
-        &Board::EnableCal));
+        &Board::is_calibration_data_enabled,
+        &Board::enable_calibration_data));
 #endif
 
 
@@ -498,34 +497,33 @@ int main()
     pJC->AddSubHandler("cAtom",
       [board](auto& req, auto& res, const auto ct)
       {
-        board->procCAtom(req, res, ct);
+        board->handle_catom(req, res, ct);
       });
 
     //------------------JSON EVENTS-------------------
     auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
     pDisp->Add("je", pJE);
     button.CJSONEvCP::AdviseSink(pJE);
-    Board::Instance().AdviseSink(pJE);
+    Board::instance().AdviseSink(pJE);
     //--------------------------------------------------------------------------------------------------------------
 
 
     /*
-     * Board::LoadSettings() activates the persistent
+     * Board::import_settings() activates the persistent
      * storage handling which is currently broken!
      */
-    // board->LoadSettings();
-    board->SetMode(0); //set default mode
+    // board->import_settings();
+    board->set_measurement_mode(0); //set default mode
 #ifndef CALIBRATION_STATION
     view.BlinkAtStart();
 #endif
 
-    // Enable calibration settings.
-    board->EnableCal(true);
+    board->enable_calibration_data(true);
 
     // Loop endlessly.
     while (true) {
       button.update();
-      board->Update();
+      board->update();
       view.Update();
 
       pSPIsc2->Update();

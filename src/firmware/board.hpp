@@ -43,555 +43,413 @@ class Board final : public CJSONEvCP
                   , public ISerialize
                   , public std::enable_shared_from_this<Board> {
 public:
-        /*!
-         * \brief The possible values for IEPE measure modes
-         */
-        enum MesModes
-        {
-            IEPE=0,         //!<IEPE mode
-            Normsignal,     //!<Normal signal
-            Digital         //!<Digital mode
-        };
+  /// The possible values for IEPE measure modes.
+  enum MesModes {
+    IEPE,
+    Normsignal,
+    Digital
+  };
 
-        /*!
-         * \brief Provides the serialization of the object content
-         * \param st A reference to the storage from which the object content is downloading or uploading to
-         */
-         virtual void Serialize(CStorage &st);
+  /// @see ISerialize::Serialize(CStorage&).
+  void Serialize(CStorage& st) override;
 
-        /*!
-         * \brief Returns the reference to the created class object instance. (The object created only once)
-         * \return
-         */
-        static Board& Instance()
-        {
-           static std::shared_ptr<Board> pThis(new Board);
-           return *pThis;
-        }
+  /// @returns The reference to the singleton instance.
+  static Board& instance()
+  {
+    static std::shared_ptr<Board> pThis(new Board);
+    return *pThis;
+  }
 
-        /*!
-         * \brief JSON handler wrapper to store/retrieve calibration atoms. Callback for the JSON dispatcher
-         * \param jObj -input JSON object
-         * \param jResp -output JSON object
-         * \param ct - call type (get or set)
-         */
-  void procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct);
+  /// Non copy-constructible.
+  Board(const Board&) = delete;
+  /// Non copy-assignable.
+  Board& operator=(const Board&) = delete;
+  /// Non move-constructible.
+  Board(Board&&) = delete;
+  /// Non move-assignable.
+  Board& operator=(Board&&) = delete;
 
-        /*!
-         * \brief Are calibration settings enabled?
-         * \return true - yes, false - no
-         */
-        bool IsCalEnabled() const noexcept
-        {
-            return m_bCalEnabled;
-        }
+  /**
+   * @brief JSON handler wrapper to store/retrieve calibration atoms.
+   *
+   * @param req JSON request.
+   * @param res JSON response.
+   * @param ct Call type.
+   */
+  void handle_catom(rapidjson::Value& req, rapidjson::Document& res,
+    const CCmdCallDescr::ctype ct);
 
+  /// @returns `true` if the calibration data enabled.
+  bool is_calibration_data_enabled() const noexcept
+  {
+    return is_calibration_data_enabled_;
+  }
 
-        /*!
-         * \brief Enables calibration settings
-         * \param bHow -true enables calibration, forces data to the corresponding DACs
-         */
-        inline void EnableCal(bool bHow)
-        {
-            m_bCalEnabled=bHow;
-            if(bHow)
-            {
-                hat::Calibration_map cal_data;
-                m_CalStatus=m_EEPROMstorage.get(cal_data);
-                std::string err;
-                ApplyCalibrationData(cal_data, err);
-            }
-        }
+  /// Enables or disables the calibration data.
+  void enable_calibration_data(const bool enabled)
+  {
+    is_calibration_data_enabled_ = enabled;
+    if (is_calibration_data_enabled_) {
+      hat::Calibration_map data;
+      calibration_status_ = eeprom_cache_.get(data);
+      std::string err;
+      apply_calibration_data(data, err);
+    }
+  }
 
+  /// Sets the board type.
+  void set_board_type(const Board_type type)
+  {
+    board_type_ = type;
+  }
 
-        /*!
-         * \brief Sets current board type: IEPE or DMS
-         * \param BoardType - IEPE or DMS
-         */
-        inline void SetBoardType(const Board_type type){
-            m_BoardType = type;
-        }
+  /// Sets the UBR switch (bridge voltage).
+  void set_ubr_pin(const std::shared_ptr<Pin>& pin)
+  {
+    ubr_pin_ = pin;
+  }
 
+  /**
+   * @brief Sets the DAC mode switch.
+   *
+   * @details When set, both the AOUT3 and AOUT4 are enabled.
+   */
+  void set_dac_mode_pin(const std::shared_ptr<Pin>& pin)
+  {
+    dac_mode_pin_ = pin;
+  }
 
-        /*!
-         * \brief Sets pointer to the the UBR switch (bridge voltage)
-         * \param pUBRswitch - the pointer to the the UBR switch (bridge voltage)
-         */
-        inline void SetUBRpin(const std::shared_ptr<Pin> &pUBRswitch){
-            m_pUBRswitch=pUBRswitch;
-        }
+  /// Sets the ADC measurements enable switch.
+  void set_adc_measurement_enable_pin(const std::shared_ptr<Pin>& pin)
+  {
+    adc_measurement_enable_pin_ = pin;
+  }
 
-        /*!
-         * \brief Sets pointer to the DAC mode switch
-         * \param pDACon - the pointer to the DAC mode switch
-         */
-        inline void SetDAConPin(const std::shared_ptr<Pin> &pDACon){
-            m_pDACon=pDACon;
-        }
+  /// Sets the fan switch.
+  void set_fan_pin(const std::shared_ptr<Pin>& pin)
+  {
+    fan_pin_ = pin;
+  }
 
-        /*!
-         * \brief Sets pointer to the ADC measurements enable switch
-         * \param pEnableMes -the pointer to the ADC measurements enable switch
-         */
-        inline void SetEnableMesPin(const std::shared_ptr<Pin> &pEnableMes){
-            m_pEnableMes=pEnableMes;
-        }
+  /**
+   * @brief Sets the gain pins of the IEPE board
+   *
+   * @param gain0_pin The LSB gain select pin.
+   * @param gain1_pin The MSB gain select pin.
+   */
+  void set_iepe_gain_pins(const std::shared_ptr<Pin>& gain0_pin,
+    const std::shared_ptr<Pin>& gain1_pin)
+  {
+    gain0_pin_ = gain0_pin;
+    gain1_pin_ = gain1_pin;
+  }
 
-        /*!
-         * \brief Sets pointer to the fan cntrol pin
-         * \param pFanOn - the pointer to the fan cntrol pin
-         */
-        inline void SetFanPin(const std::shared_ptr<Pin> &pFanOn){
-            m_pFanOn=pFanOn;
-        }
+  /// Sets the Voltage DAC controlled by the set_voltage().
+  void set_voltage_dac(const std::shared_ptr<CDac>& dac)
+  {
+    voltage_dac_ = dac;
+  }
 
-        /*!
-         * \brief Sets pointers to the gain select pins of the IEPE board
-         * \param pGain0pin - the pointer to the LSB gain select pin
-         * \param pGain1pin - the pointer to the MSB gain select pin
-         */
-        inline void SetIEPEboardGainSwitches(const std::shared_ptr<Pin> &pGain0pin, const std::shared_ptr<Pin> &pGain1pin){
-            m_pGain0pin=pGain0pin;
-            m_pGain1pin=pGain1pin;
-        }
+  /// Adds measurement channel to the tracking list.
+  void add_channel(const std::shared_ptr<Channel>& channel)
+  {
+    channel->set_board(this);
+    channels_.emplace_back(channel);
+    offset_search_.Add(channel->adc(),
+      channel->dac(),
+      channel->visualization_index().GetVisChannel());
+  }
 
-        /*!
-         * \brief Sets pointer to the Voltage DAC controlled by the SetVoltage()
-         * \param pVoltageDAC - the pointer to the Voltage DAC
-         */
-        inline void SetVoltageDAC(const std::shared_ptr<CDac> &pVoltageDAC){
-            m_pVoltageDAC=pVoltageDAC;
-        }
+  /// @returns The measurement channel by the given index.
+  std::shared_ptr<Channel> channel(const std::size_t index) const noexcept
+  {
+    assert(index < channels_.size());
+    return channels_[index];
+  }
 
-        /*!
-         * \brief Adds Board measurement channel to the tracking list
-         * \param pChan - the pointer to the Board measurement channel
-         */
-        void AddMesChannel(const std::shared_ptr<Channel> &pChan)
-        {
-            pChan->set_board(this);
-            m_pMesChans.emplace_back(pChan);
-            m_OffsetSearch.Add(pChan->adc(), pChan->dac(),
-              pChan->visualization_index().GetVisChannel());
-        }
+  /**
+   * @brief Imports all the settings from the persist storage.
+   *
+   * @remarks Can be called only once. (At startup.)
+   */
+  void import_settings()
+  {
+    if (!is_settings_imported_) {
+      raw_bin_storage_.AddItem(this->shared_from_this());
+      raw_bin_storage_.Import();
+      is_settings_imported_ = true;
+    }
+  }
 
-        /*!
-         * \brief Returns the pointer to the Board measurement channel by its index
-         * \param nCh - the index of the channel
-         * \return the pointer to the channel on success, otherwise nullptr
-         */
-        std::shared_ptr<Channel> GetMesChannel(size_t nCh)
-        {
-            if(nCh<m_pMesChans.size())
-                return m_pMesChans[nCh];
-            else
-                return nullptr;
-        }
+  /// Resets the settings to their defaults.
+  void reset_settings()
+  {
+    raw_bin_storage_.SetDefaults();
+  }
 
+  /// Sets a random 32-bit colour value as a new record stamp.
+  void start_record(bool unused = true);
 
-        /*!
-         * \brief Imports all settings from the persist storage. Should be called once at startup
-         */
-        void ImportSettings(){
+  /**
+   * @returns The value that was set by start_record().
+   *
+   * @deprecated Kept just for compatibility with previous versions.
+   */
+  bool is_record_started() const noexcept
+  {
+    return false;
+  }
 
-            if(!m_bSettingsImported)
-            {
-                m_PersistStorage.AddItem(this->shared_from_this());
-                m_PersistStorage.Import();
-                m_bSettingsImported=true;
-            }
-        }
+  /// Sets the board's amplifier gain.
+  void set_gain(int value)
+  {
+    if (value < 1)
+      value = 1;
+    else if (value > 4)
+      value = 4;
+    set_gain_out(value);
+  }
 
+  /**
+   * @brief Increments the board's amplifier gain.
+   *
+   * @param value The increment.
+   *
+   * @returns The gain that was set
+   *
+   * @remarks Swithes to minimun value on overflow.
+   */
+  int increment_gain(int value)
+  {
+    value = gain() + value;
+    if (value > 4)
+      value = 1;
+    return set_gain_out(value);
+  }
 
-        /*!
-         * \brief Brings all settings to their factory default values
-         */
-        void SetDefaultSettings(){ m_PersistStorage.SetDefaults(); }
+  /// @returns The gain setting.
+  int gain() const noexcept
+  {
+    return gain_;
+  }
 
+  /// Enables or disables the bridge voltage mode.
+  void enable_bridge(bool enabled);
 
-        /*!
-         * \brief Sets a random 32-bit colour value as a new record stamp
-         * \param how Currently is not used. Kept just for compatibility with previous versions
-         */
-        void StartRecord(bool how);
+  /// @returns `true` if bridge mode is enabled.
+  bool is_bridge_enabled() const noexcept
+  {
+    return is_bridge_enabled_;
+  }
 
-        /*!
-         * \brief Returns the value that was set by StartRecord
-         * \return The value that was set by StartRecord
-         * \deprecated Kept just for compatibility with previous versions
-         */
-        bool IsRecordStarted() const noexcept
-        {
-            return false;
-        }
+  /**
+   * @brief Sets the secondary measurement mode.
+   *
+   * @param mode: 0 = IEPE; 1 = Normsignal.
+   */
+  void set_secondary_measurement_mode(const int mode)
+  {
+    secondary_ = mode & 1;
+  }
 
-        /*!
-         * \brief Sets the board's amplifier gain.
-         * \param val A gain to set
-         */
-        void SetGain(int val)
-        {
-            int outp=val;
-            if(outp<1)
-                outp=1;
-            if(outp>4)
-                outp=4;
-            gain_out(outp);
-        }
+  /// @returns Current secondary measurement mode: 0 = IEPE; 1 = Normsignal.
+  int secondary_measurement_mode() const noexcept
+  {
+    return secondary_;
+  }
 
-        /*!
-         * \brief Increments the board's amplifier gain. If the maximum gain is
-         * exceeded then minimum value is used.
-         * \param step An incrementation step
-         * \return The gain that was set
-         */
-        int IncGain(int step)
-        {
-            int outp=GetGain()+step;
-            if(outp>4)
-                outp=1;
+  /**
+   * @brief Sets the measurement mode.
+   *
+   * @param mode: 0 = IEPE; 1 = Normsignal.
+   */
+  void set_measurement_mode(int mode);
 
-            return gain_out(outp);
-        }
+  /// @returns Current measurement mode: 0 = IEPE; 1 = Normsignal.
+  int measurement_mode() const noexcept
+  {
+    return measurement_mode_;
+  }
 
-        /*!
-         * \brief Returns an actual gain setpoint
-         * \return An actual gain setpoint
-         */
-        int GetGain() const noexcept
-        {
-            return m_GainSetting;
-        }
+  /**
+   * @brief Starts or stops finding amplifier offsets procedure.
+   *
+   * @param how Meanings:
+   *   - 0 stop/reset;
+   *   - 1 negative offset search;
+   *   - 2 zero offset search;
+   *   - 3 positive offset search.
+   */
+  void start_offset_search(int how);
 
-        /*!
-         * \brief Sets bridge voltage
-         * \param how true=turn bridge voltage ON, false=turn OFF
-         */
-        void SetBridge(bool how);
+  /// @returns `true` if the procedure of finding amplifier offsets is started.
+  int is_offset_search_started() const noexcept
+  {
+    return offset_search_.IsStarted();
+  }
 
-        /*!
-         * \brief Returns an actual bridge voltage state
-         * \return true=bridge voltage is ON, false=bridge voltage is off
-         */
-        bool GetBridge() const noexcept;
+  /// Enables or disables board ADC measurement.
+  void enable_measurement(const bool enabled)
+  {
+    assert(adc_measurement_enable_pin_);
+    adc_measurement_enable_pin_->write(enabled);
+    CView::Instance().SetButtonHeartbeat(enabled);
+  }
 
-        /*!
-         * \brief Sets the measurement mode
-         * \param nMode: 0 = IEPE; 1 = Normsignal
-         */
-        void SetSecondary(int nMode);
+  /// @returns `true` if board ADC measurement enabled.
+  bool is_measurement_enabled() const noexcept
+  {
+    assert(adc_measurement_enable_pin_);
+    return adc_measurement_enable_pin_->read_back();
+  }
 
-        /*!
-         * \brief Gets current measurement mode
-         * \return 0 = IEPE; 1 = Normsignal
-         */
-        int GetSecondary() const noexcept;
+  /// @returns `true` if EEPROM stores a valid calibration data.
+  bool is_calibrated() const noexcept
+  {
+    return calibration_status_ == hat::Manager::Op_result::ok;
+  }
 
-        /*!
-         * \brief Sets the board opearation mode
-         * \param nMode: 0 = IEPE; 1 = Normsignal
-         */
-        void SetMode(int nMode);
+  /**
+   * @brief Sets the handles for working with external EEPROM chip.
+   *
+   * @param bus The EEPROM bus to send/receive EEPROM image.
+   * @param buf The pre-allocated RAM storage for the EEPROM image.
+   */
+  void set_eeprom_handles(const std::shared_ptr<ISerial>& bus,
+    const std::shared_ptr<CFIFO>& buf);
 
-        /*!
-         * \brief Gets current board operation mode
-         * \return 0 = IEPE; 1 = Normsignal
-         */
-        int GetMode() const noexcept;
+  /**
+   * @brief Applies the calibration data to all the board items and overwrites
+   * it in the EEPROM.
+   *
+   * @param[in] map The calibration map.
+   * @param[out] err The error message which is set if the function returns `false`.
+   *
+   * @returns `false` on error.
+   */
+  bool set_calibration_data(hat::Calibration_map& map, std::string& err);
 
-        /*!
-         * \brief Starts/stops finding amplifier offsets procedure
-         * \param nOffs 0- stop/reset, 1- negative offset search, 2- zero offset search, 3- positive offset search
-         */
-        void SetOffset(int nOffs);
+  /**
+   * @brief Gets the calibration data from the RAM cache.
+   *
+   * @param[out] map The calibration map.
+   * @param[out] err The error message which is set if the function returns `false`.
+   *
+   * @returns `false` on error.
+   */
+  bool get_calibration_data(hat::Calibration_map& map, std::string& err);
 
-        /*!
-         * \brief Enables board ADC measurements
-         * \param how true=enable,false=disable
-         */
-        void EnableMeasurements(bool bHow)
-        {
-            assert(m_pEnableMes);
-            m_pEnableMes->write(bHow);
-            CView::Instance().SetButtonHeartbeat(bHow);
-        }
+  /// Enables or disables the board cooler.
+  void enable_fan(const bool enabled)
+  {
+    assert(fan_pin_);
+    fan_pin_->write(enabled);
+  }
 
-        /*!
-         * \brief Returns board ADC measurements enabled flag
-         * \return true=enabled, false=disabled
-         */
-        bool IsMeasurementsEnabled() const noexcept
-        {
-            assert(m_pEnableMes);
-            return m_pEnableMes->read_back();
-        }
+  /// @returns `true` if the board cooler is enabled.
+  bool is_fan_enabled() const noexcept
+  {
+    assert(fan_pin_);
+    return fan_pin_->read_back();
+  }
 
+  /// Sets Voltage setting.
+  void set_voltage(const float val)
+  {
+    if (voltage_dac_)
+      voltage_dac_->SetVal(val);
+    else
+      voltage_ = val;
+  }
 
-        /*!
-         * \brief Returns current finding amplifier offsets procedure state
-         * \return true=the procedure is running, false=the procedure is finished
-         */
-        int GetOffsetRunSt() const noexcept
-        {
-            return m_OffsetSearch.IsStarted();
-        }
+  /// @returns Voltage Setting.
+  float voltage() const noexcept
+  {
+    if (voltage_dac_)
+      return voltage_dac_->GetRealVal();
+    else
+      return voltage_;
+  }
 
-        /*!
-         * \brief Returns board calibration status
-         * \return true=board's EEPROM contains valid calibration data, false=board is not calibrated
-         */
-        bool GetCalStatus() const noexcept
-        {
-          return m_CalStatus == hat::Manager::Op_result::ok;
-        }
+  /// Sets Current setting.
+  void set_current(float val)
+  {
+    if (val < 0)
+      val = 0;
+    else if (val > max_current_)
+      val = max_current_;
+    current_ = val;
+  }
 
-        /*!
-         * \brief Sets the interface for working with external EEPROM chip.
-         * \param pBus - the pointer to the EEPROM bus to send/receive EEPROM image
-         * \param pMemBuf - the pre-allocated RAM storage for the EEPROM image
-         */
-        void SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf);
+  /// @returns Current setting.
+  float current() const noexcept
+  {
+    return current_;
+  }
 
-        /*!
-         * \brief Applies the calibration data to all board items and stores the data in the EEPROM
-         * \param Data - the Calibration Atoms collection to strore
-         * \param strError - the operation error (if occurred)
-         * \return true on success, false otherwise (actual error is placed into the strError )
-         */
-        bool SetCalibrationData(hat::Calibration_map& map, std::string &strError);
+  /// Sets MaxCurrent (current limit) setting.
+  void set_max_current(float val)
+  {
+    if (val < 0)
+      val = 0;
+    max_current_ = val;
+  }
 
-        /*!
-         * \brief Retrieves the calibration data preloaded into the EEPROM image RAM storage
-         * \param Data - the Calibration Atoms collection
-         * \param strError - the operation error (if occurred)
-         * \return true on success, false otherwise (actual error is placed into the strError )
-         */
-        bool GetCalibrationData(hat::Calibration_map &Data, std::string &strError);
+  /// @returns MaxCurrent (current limit) setting.
+  float max_current() const noexcept
+  {
+    return max_current_;
+  }
 
-        /*!
-         * \brief Starts/Stops the board cooler
-         * \param bHow: true=start, false=stop
-         */
-        inline void StartFan(bool bHow)
-        {
-            assert(m_pFanOn);
-            m_pFanOn->write(bHow);
-        }
-
-        /*!
-         * \brief Checks if board's cooler is running or not
-         * \return true=running, false=stopped
-         */
-        bool IsFanStarted() const noexcept
-        {
-            assert(m_pFanOn);
-            return m_pFanOn->read_back();
-        }
-
-        /*!
-         * \brief Sets Voltage Setting
-         * \param val - the voltage to set
-         */
-        void SetVoltage(float val)
-        {
-            if(m_pVoltageDAC)
-                m_pVoltageDAC->SetVal(val);
-            else
-                m_Voltage=val;
-
-        }
-
-        /*!
-         * \brief Returns actual Voltage Setting
-         * \return the Voltage Setting
-         */
-        float GetVoltage() const noexcept
-        {
-            if(m_pVoltageDAC)
-                return m_pVoltageDAC->GetRealVal();
-            else
-                return m_Voltage;
-        }
-
-        /*!
-         * \brief Sets Current Setting
-         * \param val - the current to set
-         */
-        void SetCurrent(float val){ if(val<0) val=0; if(val>m_MaxCurrent) val=m_MaxCurrent; m_Current=val;}
-
-        /*!
-         * \brief Returns actual Current Setting
-         * \return the Current Setting
-         */
-        float GetCurrent() const noexcept { return m_Current; }
-
-        /*!
-         * \brief Sets MaxCurrent (current limiter) Setting
-         * \param val - the current value to set
-         */
-        void SetMaxCurrent(float val){if(val<0) val=0; m_MaxCurrent=val; }
-
-        /*!
-         * \brief Returns actual MaxCurrent Setting
-         * \return the MaxCurrent Setting
-         */
-        float GetMaxCurrent() const noexcept {return m_MaxCurrent; }
-
-
-        /*!
-         * \brief The object state update method
-         * \details Gets the CPU time to update internal state of the object.
-         *  Must be called from a "super loop" or from corresponding thread
-         */
-         void Update();
+  /**
+   * @brief Updates the state of the instance.
+   *
+   * @details Gets the CPU time to update internal state of the object.
+   *
+   * @remarks Must be called from a "super loop" or from corresponding thread.
+   */
+  void update();
 
 private:
-        /*!
-         * \brief Holds current board type: IEPE or DMS
-         */
-        Board_type m_BoardType{Board_type::iepe};
+  Board_type board_type_{Board_type::iepe};
+  std::shared_ptr<Pin> ubr_pin_;
+  std::shared_ptr<Pin> dac_mode_pin_;
+  std::shared_ptr<Pin> adc_measurement_enable_pin_;
+  std::shared_ptr<Pin> fan_pin_;
+  std::shared_ptr<Pin> gain0_pin_;
+  std::shared_ptr<Pin> gain1_pin_;
+  std::shared_ptr<CDac> voltage_dac_;
+  std::vector<std::shared_ptr<Channel>> channels_;
+  CCalMan offset_search_;
+  CRawBinStorage raw_bin_storage_;
+  unsigned record_count_{1};
+  hat::Manager eeprom_cache_; // EEPROM cache
+  std::shared_ptr<ISerial> eeprom_bus_; // for read/write external EEPROM
+  hat::Manager::Op_result calibration_status_;
+  bool is_settings_imported_{};
+  bool is_calibration_data_enabled_{};
+  bool is_bridge_enabled_{}; // persistent
+  int gain_{1}; // persistent
+  int secondary_{}; // persistent
+  float voltage_{}; // mockup for IEPE board
+  float current_{}; // mockup
+  float max_current_{1000}; // mockup, mA
+  MesModes measurement_mode_{Board::IEPE};
 
-        /*!
-         * \brief The pointer to the UBR switch (bridge voltage)
-         */
-        std::shared_ptr<Pin> m_pUBRswitch;
+  /// Default-constructible.
+  Board();
 
-        /*!
-         * \brief The pointer to the DAC mode switch (when true AOUT3 & AOUT4 are enabled)
-         */
-        std::shared_ptr<Pin> m_pDACon;
+  /**
+   * @brief A helper function for setting amplifier gain output.
+   *
+   * @param val The gain setpoint.
+   *
+   * @returns The gain that was set.
+   */
+  int set_gain_out(int val);
 
-        /*!
-         * \brief The pointer to the ADC measurements enable switch
-         */
-        std::shared_ptr<Pin> m_pEnableMes;
-
-        /*!
-         * \brief The pointer to the fan cntrol Pin
-         */
-        std::shared_ptr<Pin> m_pFanOn;
-
-        /*!
-         * \brief The pointer to the LSB gain select pin of the IEPE board
-         */
-        std::shared_ptr<Pin> m_pGain0pin;
-
-        /*!
-         * \brief The pointer to the MSB gain select pin of the IEPE board
-         */
-        std::shared_ptr<Pin> m_pGain1pin;
-
-        /*!
-         * \brief The pointer to the Voltage DAC controlled by the SetVoltage()
-         */
-        std::shared_ptr<CDac> m_pVoltageDAC;
-
-        /*!
-         * \brief Control of the offset search
-         */
-        CCalMan m_OffsetSearch;
-
-        /*!
-         * \brief The list of board channels to work with
-         */
-        std::vector<std::shared_ptr<Channel>>  m_pMesChans;
-
-        /*!
-         * \brief The persistent storage controller
-         */
-        CRawBinStorage m_PersistStorage;
-
-        /*!
-         * \brief The external EEPROM storage manager
-         */
-        hat::Manager    m_EEPROMstorage;
-
-        /*!
-         * \brief The serial bus used to read/write EEPROM binary image placed in CFIFO
-         */
-        std::shared_ptr<ISerial> m_pEEPROMbus;
-
-        /*!
-         * \brief The board calibration status
-         */
-        hat::Manager::Op_result m_CalStatus;
-
-        /*!
-         * \brief true when settings are first loaded from the persist storage
-         */
-        bool  m_bSettingsImported=false;
-
-
-        /*!
-         * \brief true if the calibration data enabled, false otherwise
-         */
-        bool  m_bCalEnabled;
-
-
-        /*!
-         * \brief Board Bridge persistent setting
-         */
-        bool m_BridgeSetting=false;
-
-        /*!
-         * \brief Board Gain persistent setting
-         */
-        int m_GainSetting=1;
-
-        /*!
-         * \brief Board Secondary persistent setting
-         */
-        int  m_SecondarySetting=0;
-
-        /*!
-         * \brief Holds Voltage Setting (mockup for IEPE board)
-         */
-        float m_Voltage=0;
-
-        /*!
-         * \brief Holds Current Setting (mockup)
-         */
-        float m_Current=0;
-
-        /*!
-         * \brief Holds MaxCurrent Setting (mockup)
-         */
-        float m_MaxCurrent=1000.0f;  //mA
-
-        /*!
-         * \brief The current measurement mode of the Board
-         */
-        MesModes m_OpMode=Board::IEPE;
-
-        /*!
-         * \brief A helper function for setting amplifier gain output
-         * \param val The gain setpoint
-         * \return The gain that was set
-         */
-        int gain_out(int val);
-
-        //! Forbid creating other instances of the class object
-        Board();
-
-        //! Forbid copy constructor
-        Board(const Board&)=delete;
-
-        //! Forbid copying
-        Board& operator=(const Board&)=delete;
-
-        /*!
-         * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
-         * \param Data
-         */
-  void ApplyCalibrationData(const hat::Calibration_map& map, std::string& err);
-
-        /*!
-         * \brief JSON handler to store/retrieve calibration atoms.
-         * \param jObj -input JSON object
-         * \param jResp -output JSON object
-         * \param ct - call type (get or set)
-         */
-  bool _procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError);
+  /// Applies the given calibration map to board ADCs/DACs.
+  void apply_calibration_data(const hat::Calibration_map& map, std::string& err);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP

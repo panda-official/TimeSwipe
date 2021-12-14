@@ -21,76 +21,74 @@
 #include "sam/SamService.h"
 
 Board::Board()
-{
-    m_pMesChans.reserve(4);
-
-#ifdef CALIBRATION_STATION
-    m_bCalEnabled=false;
-#else
-    m_bCalEnabled=true;
+#ifndef CALIBRATION_STATION
+  : is_calibration_data_enabled_{true};
 #endif
-
+{
+  channels_.reserve(4);
 }
 
-void Board::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf)
+void Board::set_eeprom_handles(const std::shared_ptr<ISerial>& bus,
+  const std::shared_ptr<CFIFO>& buf)
 {
-    m_EEPROMstorage.set_buf(pMemBuf);
-    m_pEEPROMbus=pBus;
+    eeprom_cache_.set_buf(buf);
+    eeprom_bus_ = bus;
 
-    if (m_EEPROMstorage.verify() != hat::Manager::Op_result::ok) {
-      m_EEPROMstorage.reset();
+    if (eeprom_cache_.verify() != hat::Manager::Op_result::ok) {
+      eeprom_cache_.reset();
       hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "Timeswipe"};
-      m_EEPROMstorage.set(vinf); //storage is ready
+      eeprom_cache_.set(vinf); //storage is ready
     }
 
     //fill blank atoms with the stubs:
-    for (int i = m_EEPROMstorage.atom_count(); i < 3; ++i) {
+    for (int i{eeprom_cache_.atom_count()}; i < 3; ++i) {
       hat::atom::Stub stub{i};
-      m_EEPROMstorage.set(stub);
+      eeprom_cache_.set(stub);
     }
 
     hat::Calibration_map map;
-    m_CalStatus = m_EEPROMstorage.get(map);
-    if (m_CalStatus == hat::Manager::Op_result::ok) {
+    calibration_status_ = eeprom_cache_.get(map);
+    if (calibration_status_ == hat::Manager::Op_result::ok) {
       std::string err;
-      ApplyCalibrationData(map, err);
+      apply_calibration_data(map, err);
     }
 }
 
-void Board::ApplyCalibrationData(const hat::Calibration_map& map, std::string& err)
+void Board::apply_calibration_data(const hat::Calibration_map& map, std::string& err)
 {
-  if (!m_bCalEnabled) {
+  if (!is_calibration_data_enabled_) {
     err = "calibration settings are disabled";
     return;
   }
 
-  if (m_pVoltageDAC) {
+  if (voltage_dac_) {
     const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
     if (atom.entry_count() != 1) { // exactly 1 entry per specification
       err = "invalid v_supply calibration atom";
       return;
     }
     const auto& entry = atom.entry(0);
-    m_pVoltageDAC->SetLinearFactors(entry.slope(), entry.offset());
-    m_pVoltageDAC->SetVal();
+    voltage_dac_->SetLinearFactors(entry.slope(), entry.offset());
+    voltage_dac_->SetVal();
   }
 
   // Update channels.
-  for (auto& el : m_pMesChans) el->update_offsets();
+  for (auto& channel : channels_)
+    channel->update_offsets();
 }
 
-bool Board::SetCalibrationData(hat::Calibration_map& map, std::string& err)
+bool Board::set_calibration_data(hat::Calibration_map& map, std::string& err)
 {
-  m_CalStatus = m_EEPROMstorage.set(map);
-  if (m_CalStatus != hat::Manager::Op_result::ok) {
+  calibration_status_ = eeprom_cache_.set(map);
+  if (calibration_status_ != hat::Manager::Op_result::ok) {
     err = "invalid calibration map";
     return false;
   }
 
-  ApplyCalibrationData(map, err);
+  apply_calibration_data(map, err);
   if (!err.empty()) return false;
 
-  if (!m_pEEPROMbus->send(*m_EEPROMstorage.buf())) {
+  if (!eeprom_bus_->send(*eeprom_cache_.buf())) {
     err = "failed to write EEPROM";
     return false;
   }
@@ -98,44 +96,46 @@ bool Board::SetCalibrationData(hat::Calibration_map& map, std::string& err)
   return true;
 }
 
-bool Board::GetCalibrationData(hat::Calibration_map& data, std::string& strError)
+bool Board::get_calibration_data(hat::Calibration_map& data, std::string& err)
 {
   using Op_result = hat::Manager::Op_result;
-  if (const auto r = m_EEPROMstorage.get(data);
-    r == Op_result::ok || r == Op_result::atom_not_found)
+  const auto r = eeprom_cache_.get(data);
+  if (r == Op_result::ok || r == Op_result::atom_not_found)
     return true;
 
-  strError = "EEPROM image is corrupted";
+  err = "EEPROM image is corrupted";
   return false;
 }
 
-bool Board::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError)
+void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
+  const CCmdCallDescr::ctype ct)
 {
+  const auto handle = [this](auto& req, auto& res, const auto ct, auto& err)
+  {
     hat::Calibration_map map;
 
     //load existing atom
-    auto& board = Board::Instance();
-    if (!board.GetCalibrationData(map, strError))
+    auto& board = Board::instance();
+    if (!board.get_calibration_data(map, err))
       return false;
 
-    const auto catom = jObj["cAtom"].GetUint();
-    const auto type = hat::atom::Calibration::to_type(catom, strError);
-    if (!strError.empty()) return false;
+    const auto catom = req["cAtom"].GetUint();
+    const auto type = hat::atom::Calibration::to_type(catom, err);
+    if (!err.empty()) return false;
 
     const auto cal_entry_count = map.atom(type).entry_count();
 
-    //if call type=set
     if(CCmdCallDescr::ctype::ctSet==ct)
-    {
+      {
 #ifndef CALIBRATION_STATION
-        strError="calibration setting is prohibited!";
+        err="calibration setting is prohibited!";
         return false;
 #endif
 
-        auto& data = jObj["data"];
+        auto& data = req["data"];
         const auto data_size = data.Size();
         if (data_size > cal_entry_count) {
-          strError = "wrong data count";
+          err = "wrong data count";
           return false;
         }
 
@@ -150,11 +150,11 @@ bool Board::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const
         }
 
         // Save the calibration map.
-        if (!board.SetCalibrationData(map, strError)) return false;
-    }
+        if (!board.set_calibration_data(map, err)) return false;
+      }
 
     // Generate data member of the response.
-    auto& alloc = jResp.GetAllocator();
+    auto& alloc = res.GetAllocator();
     rapidjson::Value data{rapidjson::kArrayType};
     data.Reserve(cal_entry_count, alloc);
     for (std::size_t i{}; i < cal_entry_count; ++i) {
@@ -167,166 +167,133 @@ bool Board::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const
     }
 
     // Fill the response.
-    jResp.RemoveAllMembers();
-    jResp.AddMember("cAtom", catom, alloc);
-    jResp.AddMember("data", std::move(data), alloc);
+    res.RemoveAllMembers();
+    res.AddMember("cAtom", catom, alloc);
+    res.AddMember("data", std::move(data), alloc);
 
     return true;
-}
+  };
 
-void Board::procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp,
-  const CCmdCallDescr::ctype ct)
-{
   std::string err;
-  if (!_procCAtom(jObj, jResp, ct, err)) {
+  if (!handle(req, res, ct, err)) {
     using Value = rapidjson::Value;
-    auto& alloc = jResp.GetAllocator();
-    jResp.AddMember("cAtom", Value{}, alloc);
-    set_error(jResp, jResp["cAtom"], err);
+    auto& alloc = res.GetAllocator();
+    res.AddMember("cAtom", Value{}, alloc);
+    set_error(res, res["cAtom"], err);
   }
 }
 
 void Board::Serialize(CStorage &st)
 {
-    m_OffsetSearch.Serialize(st);
+    offset_search_.Serialize(st);
     if(st.IsDefaultSettingsOrder())
     {
-        SetGain(1);
-        SetBridge(false);
-        SetSecondary(0);
+        set_gain(1);
+        enable_bridge(false);
+        set_secondary_measurement_mode(0);
     }
 
-    st.ser(m_GainSetting).ser(m_BridgeSetting).ser(m_SecondarySetting);
+    st.ser(gain_).ser(is_bridge_enabled_).ser(secondary_);
 
     if(st.IsImporting())
     {
-        SetGain(m_GainSetting);
-        SetBridge(m_BridgeSetting);
-        SetSecondary(m_SecondarySetting);
+        set_gain(gain_);
+        enable_bridge(is_bridge_enabled_);
+        set_secondary_measurement_mode(secondary_);
     }
 }
 
-void Board::Update()
+void Board::update()
 {
-    for(auto& el : m_pMesChans) el->update();
-
-    m_PersistStorage.Update();
-    m_OffsetSearch.Update();
-}
-void Board::StartRecord(bool how)
-{
-    //make a stamp:
-    static unsigned long count_mark=0;
-    count_mark++;
-
-    //generate an event:
-    rapidjson::Value v{std::uint64_t{count_mark}};
-    Instance().Fire_on_event("Record", v);
+  for (auto& channel : channels_)
+    channel->update();
+  raw_bin_storage_.Update();
+  offset_search_.Update();
 }
 
-int Board::gain_out(int val)
+void Board::start_record(bool)
 {
-    //update channels gain setting:
-    float gval=val;
-    m_GainSetting=val;
-    for(auto& el : m_pMesChans) el->set_amplification_gain(gval);
+  rapidjson::Value v{record_count_++};
+  instance().Fire_on_event("Record", v);
+}
 
+int Board::set_gain_out(const int val)
+{
+  // Update gains for all channels.
+  gain_ = val;
+  for (auto& channel : channels_)
+    channel->set_amplification_gain(val);
 
-     //set old IEPE gain:
-     if (m_BoardType == Board_type::iepe) {
-         int gset=val-1;
-         m_pGain1pin->write(gset>>1);
-         m_pGain0pin->write(gset&1);
+  // Set old IEPE gain.
+  if (board_type_ == Board_type::iepe) {
+    const int gset{val - 1};
+    gain1_pin_->write(gset>>1);
+    gain0_pin_->write(gset&1);
+  }
+
+  // Emit the event.
+  rapidjson::Value v{val};
+  instance().Fire_on_event("Gain", v);
+
+  return val;
+}
+
+void Board::enable_bridge(const bool enabled)
+{
+     is_bridge_enabled_ = enabled;
+
+     if (board_type_ != Board_type::iepe) {
+        assert(ubr_pin_);
+        ubr_pin_->write(enabled);
      }
 
-
-     //generate an event:
-     rapidjson::Value v{val};
-     Instance().Fire_on_event("Gain", v);
-
-     return val;
-}
-bool Board::GetBridge() const noexcept
-{
-    return m_BridgeSetting;
-}
-void Board::SetBridge(bool how)
-{
-     m_BridgeSetting=how;
-
-     if (m_BoardType != Board_type::iepe) {
-        assert(m_pUBRswitch);
-        m_pUBRswitch->write(how);
-     }
-
-    //generate an event:
-    rapidjson::Value v{how};
-    Instance().Fire_on_event("Bridge", v);
+    // Emit the event.
+    rapidjson::Value v{enabled};
+    instance().Fire_on_event("Bridge", v);
 }
 
-void Board::SetSecondary(int nMode)
+void Board::set_measurement_mode(const int mode)
 {
-    nMode&=1; //fit the value
+  measurement_mode_ = static_cast<MesModes>(mode);
+  if (measurement_mode_ < MesModes::IEPE)
+    measurement_mode_ = MesModes::IEPE;
+  else if (measurement_mode_ > MesModes::Normsignal)
+    measurement_mode_ = MesModes::Normsignal;
 
-    m_SecondarySetting=nMode;
-}
-int Board::GetSecondary() const noexcept
-{
-    return m_SecondarySetting;
-}
+  if (board_type_ == Board_type::iepe) { // old IEPE board setting
+    //enable_bridge(measurement_mode_);
+    assert(ubr_pin_);
+    ubr_pin_->write(measurement_mode_ == MesModes::IEPE);
+  }
 
+  // Switch all channels to IEPE.
+  for (auto& channel : channels_)
+    channel->set_iepe(measurement_mode_ == MesModes::IEPE);
 
-void Board::SetMode(int nMode)
-{
-    m_OpMode=static_cast<MesModes>(nMode);
-    if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
-    if(m_OpMode>MesModes::Normsignal){ m_OpMode=MesModes::Normsignal; }
+  set_secondary_measurement_mode(measurement_mode_);
 
-
-    if (m_BoardType == Board_type::iepe) { // old IEPE board setting
-        //SetBridge(m_OpMode);
-        assert(m_pUBRswitch);
-        m_pUBRswitch->write(MesModes::IEPE==m_OpMode ? true:false);
-    }
-
-    //switch all channels to IEPE:
-    for(auto& el : m_pMesChans) el->set_iepe(MesModes::IEPE==m_OpMode);
-
-    SetSecondary(m_OpMode);
-
-    //generate an event:
-
-    rapidjson::Value v{nMode};
-    Instance().Fire_on_event("Mode", v);
-}
-int Board::GetMode() const noexcept
-{
-    return m_OpMode;
+  // Emit the event.
+  rapidjson::Value v{mode};
+  instance().Fire_on_event("Mode", v);
 }
 
-
-void Board::SetOffset(int nOffs)
+void Board::start_offset_search(int how)
 {
-    switch(nOffs)
-    {
-        case 1: //negative
-            m_OffsetSearch.Start(4000);
-        break;
-
-        case 2: //zero
-            m_OffsetSearch.Start();
-        break;
-
-        case 3: //positive
-            m_OffsetSearch.Start(100);
-        break;
-
-        default:
-            nOffs=0;
-            m_OffsetSearch.StopReset();
-        return;
-    }
-
-    rapidjson::Value v{nOffs};
-    Instance().Fire_on_event("Offset", v);
+  switch (how) {
+  case 1: // negative
+    offset_search_.Start(4000);
+    break;
+  case 2: // zero
+    offset_search_.Start();
+    break;
+  case 3: // positive
+    offset_search_.Start(100);
+    break;
+  default:
+    how = 0;
+    offset_search_.StopReset();
+    return;
+  }
+  rapidjson::Value v{how};
+  instance().Fire_on_event("Offset", v);
 }
