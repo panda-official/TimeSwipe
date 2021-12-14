@@ -22,6 +22,7 @@
 #include "../hat.hpp"
 #include "basics.hpp"
 #include "channel.hpp"
+#include "error.hpp"
 #include "pin.hpp"
 #include "json.hpp"
 #include "base/RawBinStorage.h"
@@ -163,7 +164,7 @@ public:
   /// @returns The measurement channel by the given index.
   std::shared_ptr<Channel> channel(const std::size_t index) const noexcept
   {
-    assert(index < channels_.size());
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(index < channels_.size());
     return channels_[index];
   }
 
@@ -291,7 +292,7 @@ public:
   /// Enables or disables board ADC measurement.
   void enable_measurement(const bool enabled)
   {
-    assert(adc_measurement_enable_pin_);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(adc_measurement_enable_pin_);
     adc_measurement_enable_pin_->write(enabled);
     CView::Instance().SetButtonHeartbeat(enabled);
   }
@@ -299,7 +300,7 @@ public:
   /// @returns `true` if board ADC measurement enabled.
   bool is_measurement_enabled() const noexcept
   {
-    assert(adc_measurement_enable_pin_);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(adc_measurement_enable_pin_);
     return adc_measurement_enable_pin_->read_back();
   }
 
@@ -342,14 +343,14 @@ public:
   /// Enables or disables the board cooler.
   void enable_fan(const bool enabled)
   {
-    assert(fan_pin_);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(fan_pin_);
     fan_pin_->write(enabled);
   }
 
   /// @returns `true` if the board cooler is enabled.
   bool is_fan_enabled() const noexcept
   {
-    assert(fan_pin_);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(fan_pin_);
     return fan_pin_->read_back();
   }
 

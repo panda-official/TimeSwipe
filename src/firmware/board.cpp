@@ -240,7 +240,7 @@ void Board::enable_bridge(const bool enabled)
   is_bridge_enabled_ = enabled;
 
   if (board_type_ != Board_type::iepe) {
-    assert(ubr_pin_);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(ubr_pin_);
     ubr_pin_->write(enabled);
   }
 
@@ -259,7 +259,7 @@ void Board::set_measurement_mode(const int mode)
 
   if (board_type_ == Board_type::iepe) { // old IEPE board setting
     //enable_bridge(measurement_mode_);
-    assert(ubr_pin_);
+    PANDA_TIMESWIPE_FIRMWARE_ASSERT(ubr_pin_);
     ubr_pin_->write(measurement_mode_ == MesModes::IEPE);
   }
 
