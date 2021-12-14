@@ -46,7 +46,10 @@ struct Board_settings::Rep final {
     if (doc_.IsNull()) doc_.SetObject();
 
     // Check measurement modes.
-    channel_measurement_modes();
+    if (const auto modes = channel_measurement_modes()) {
+      for (std::decay_t<decltype(mcc_)> i{}; i < mcc_; ++i)
+        check_channel_measurement_mode((*modes)[i]);
+    }
 
     // Check channel gains settings.
     if (const auto gains = channel_gains()) {
@@ -252,6 +255,12 @@ private:
   // ---------------------------------------------------------------------------
   // Checkers
   // ---------------------------------------------------------------------------
+
+  static void check_channel_measurement_mode(const Measurement_mode mode)
+  {
+    if (!to_literal(mode))
+      throw Exception{Errc::board_settings_invalid, "invalid measurement mode"};
+  }
 
   static void check_channel_gain(const float value)
   {
