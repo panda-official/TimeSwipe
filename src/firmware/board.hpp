@@ -39,133 +39,20 @@ using namespace panda::timeswipe::detail;
  * @details This class follows the Singleton design pattern. Emits JSON event
  * on each change of the board settings and receives such events from others.
  */
-class Board : public CJSONEvCP
+class Board final : public CJSONEvCP
                   , public ISerialize
-                  , public std::enable_shared_from_this<Board>
-{
-protected:
-
-        /*!
-         * \brief Holds current board type: IEPE or DMS
-         */
-        Board_type m_BoardType{Board_type::iepe};
-
-        /*!
-         * \brief The pointer to the UBR switch (bridge voltage)
-         */
-        std::shared_ptr<Pin> m_pUBRswitch;
-
-        /*!
-         * \brief The pointer to the DAC mode switch (when true AOUT3 & AOUT4 are enabled)
-         */
-        std::shared_ptr<Pin> m_pDACon;
-
-        /*!
-         * \brief The pointer to the ADC measurements enable switch
-         */
-        std::shared_ptr<Pin> m_pEnableMes;
-
-        /*!
-         * \brief The pointer to the fan cntrol Pin
-         */
-        std::shared_ptr<Pin> m_pFanOn;
-
-        /*!
-         * \brief The pointer to the LSB gain select pin of the IEPE board
-         */
-        std::shared_ptr<Pin> m_pGain0pin;
-
-        /*!
-         * \brief The pointer to the MSB gain select pin of the IEPE board
-         */
-        std::shared_ptr<Pin> m_pGain1pin;
-
-        /*!
-         * \brief The pointer to the Voltage DAC controlled by the SetVoltage()
-         */
-        std::shared_ptr<CDac> m_pVoltageDAC;
-
-        /*!
-         * \brief Control of the offset search
-         */
-        CCalMan m_OffsetSearch;
-
-        /*!
-         * \brief The list of board channels to work with
-         */
-        std::vector<std::shared_ptr<Channel>>  m_pMesChans;
-
-        /*!
-         * \brief The persistent storage controller
-         */
-        CRawBinStorage m_PersistStorage;
-
-        /*!
-         * \brief The external EEPROM storage manager
-         */
-        hat::Manager    m_EEPROMstorage;
-
-        /*!
-         * \brief The serial bus used to read/write EEPROM binary image placed in CFIFO
-         */
-        std::shared_ptr<ISerial> m_pEEPROMbus;
-
-        /*!
-         * \brief The board calibration status
-         */
-        hat::Manager::Op_result m_CalStatus;
-
-        /*!
-         * \brief true when settings are first loaded from the persist storage
-         */
-        bool  m_bSettingsImported=false;
-
-
-        /*!
-         * \brief true if the calibration data enabled, false otherwise
-         */
-        bool  m_bCalEnabled;
-
-
-        /*!
-         * \brief Board Bridge persistent setting
-         */
-        bool m_BridgeSetting=false;
-
-        /*!
-         * \brief Board Gain persistent setting
-         */
-        int m_GainSetting=1;
-
-        /*!
-         * \brief Board Secondary persistent setting
-         */
-        int  m_SecondarySetting=0;
-
-        /*!
-         * \brief Holds Voltage Setting (mockup for IEPE board)
-         */
-        float m_Voltage=0;
-
-        /*!
-         * \brief Holds Current Setting (mockup)
-         */
-        float m_Current=0;
-
-        /*!
-         * \brief Holds MaxCurrent Setting (mockup)
-         */
-        float m_MaxCurrent=1000.0f;  //mA
-
-
-        /*!
-         * \brief A helper function for setting amplifier gain output
-         * \param val The gain setpoint
-         * \return The gain that was set
-         */
-        int gain_out(int val);
-
+                  , public std::enable_shared_from_this<Board> {
 public:
+        /*!
+         * \brief The possible values for IEPE measure modes
+         */
+        enum MesModes
+        {
+            IEPE=0,         //!<IEPE mode
+            Normsignal,     //!<Normal signal
+            Digital         //!<Digital mode
+        };
+
         /*!
          * \brief Provides the serialization of the object content
          * \param st A reference to the storage from which the object content is downloading or uploading to
@@ -181,49 +68,7 @@ public:
            static std::shared_ptr<Board> pThis(new Board);
            return *pThis;
         }
-private:
-        //! Forbid creating other instances of the class object
-        Board();
 
-        //! Forbid copy constructor
-        Board(const Board&)=delete;
-
-        //! Forbid copying
-        Board& operator=(const Board&)=delete;
-
-public:
-        /*!
-         * \brief The possible values for IEPE measure modes
-         */
-        enum MesModes
-        {
-            IEPE=0,         //!<IEPE mode
-            Normsignal,     //!<Normal signal
-            Digital         //!<Digital mode
-        };
-protected:
-
-        /*!
-         * \brief The current measurement mode of the Board
-         */
-        MesModes m_OpMode=Board::IEPE;
-
-
-        /*!
-         * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
-         * \param Data
-         */
-  void ApplyCalibrationData(const hat::Calibration_map& map, std::string& err);
-
-        /*!
-         * \brief JSON handler to store/retrieve calibration atoms.
-         * \param jObj -input JSON object
-         * \param jResp -output JSON object
-         * \param ct - call type (get or set)
-         */
-  bool _procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError);
-
-public:
         /*!
          * \brief JSON handler wrapper to store/retrieve calibration atoms. Callback for the JSON dispatcher
          * \param jObj -input JSON object
@@ -232,8 +77,6 @@ public:
          */
   void procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct);
 
-
-public:
         /*!
          * \brief Are calibration settings enabled?
          * \return true - yes, false - no
@@ -600,7 +443,155 @@ public:
          * \details Gets the CPU time to update internal state of the object.
          *  Must be called from a "super loop" or from corresponding thread
          */
-        void Update();
+         void Update();
+
+private:
+        /*!
+         * \brief Holds current board type: IEPE or DMS
+         */
+        Board_type m_BoardType{Board_type::iepe};
+
+        /*!
+         * \brief The pointer to the UBR switch (bridge voltage)
+         */
+        std::shared_ptr<Pin> m_pUBRswitch;
+
+        /*!
+         * \brief The pointer to the DAC mode switch (when true AOUT3 & AOUT4 are enabled)
+         */
+        std::shared_ptr<Pin> m_pDACon;
+
+        /*!
+         * \brief The pointer to the ADC measurements enable switch
+         */
+        std::shared_ptr<Pin> m_pEnableMes;
+
+        /*!
+         * \brief The pointer to the fan cntrol Pin
+         */
+        std::shared_ptr<Pin> m_pFanOn;
+
+        /*!
+         * \brief The pointer to the LSB gain select pin of the IEPE board
+         */
+        std::shared_ptr<Pin> m_pGain0pin;
+
+        /*!
+         * \brief The pointer to the MSB gain select pin of the IEPE board
+         */
+        std::shared_ptr<Pin> m_pGain1pin;
+
+        /*!
+         * \brief The pointer to the Voltage DAC controlled by the SetVoltage()
+         */
+        std::shared_ptr<CDac> m_pVoltageDAC;
+
+        /*!
+         * \brief Control of the offset search
+         */
+        CCalMan m_OffsetSearch;
+
+        /*!
+         * \brief The list of board channels to work with
+         */
+        std::vector<std::shared_ptr<Channel>>  m_pMesChans;
+
+        /*!
+         * \brief The persistent storage controller
+         */
+        CRawBinStorage m_PersistStorage;
+
+        /*!
+         * \brief The external EEPROM storage manager
+         */
+        hat::Manager    m_EEPROMstorage;
+
+        /*!
+         * \brief The serial bus used to read/write EEPROM binary image placed in CFIFO
+         */
+        std::shared_ptr<ISerial> m_pEEPROMbus;
+
+        /*!
+         * \brief The board calibration status
+         */
+        hat::Manager::Op_result m_CalStatus;
+
+        /*!
+         * \brief true when settings are first loaded from the persist storage
+         */
+        bool  m_bSettingsImported=false;
+
+
+        /*!
+         * \brief true if the calibration data enabled, false otherwise
+         */
+        bool  m_bCalEnabled;
+
+
+        /*!
+         * \brief Board Bridge persistent setting
+         */
+        bool m_BridgeSetting=false;
+
+        /*!
+         * \brief Board Gain persistent setting
+         */
+        int m_GainSetting=1;
+
+        /*!
+         * \brief Board Secondary persistent setting
+         */
+        int  m_SecondarySetting=0;
+
+        /*!
+         * \brief Holds Voltage Setting (mockup for IEPE board)
+         */
+        float m_Voltage=0;
+
+        /*!
+         * \brief Holds Current Setting (mockup)
+         */
+        float m_Current=0;
+
+        /*!
+         * \brief Holds MaxCurrent Setting (mockup)
+         */
+        float m_MaxCurrent=1000.0f;  //mA
+
+        /*!
+         * \brief The current measurement mode of the Board
+         */
+        MesModes m_OpMode=Board::IEPE;
+
+        /*!
+         * \brief A helper function for setting amplifier gain output
+         * \param val The gain setpoint
+         * \return The gain that was set
+         */
+        int gain_out(int val);
+
+        //! Forbid creating other instances of the class object
+        Board();
+
+        //! Forbid copy constructor
+        Board(const Board&)=delete;
+
+        //! Forbid copying
+        Board& operator=(const Board&)=delete;
+
+        /*!
+         * \brief Applyies calibration data received from the external EEPROM to board ADCs/DACs
+         * \param Data
+         */
+  void ApplyCalibrationData(const hat::Calibration_map& map, std::string& err);
+
+        /*!
+         * \brief JSON handler to store/retrieve calibration atoms.
+         * \param jObj -input JSON object
+         * \param jResp -output JSON object
+         * \param ct - call type (get or set)
+         */
+  bool _procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError);
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP
