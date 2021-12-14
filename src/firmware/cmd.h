@@ -172,27 +172,31 @@ private:
  * `set` requests via binding to the methods with a corresponding signature of
  * an arbitrary class.
  *
- * @tparam V A Value type.
+ * @tparam GetterValue A type of value returned by getter.
+ * @tparam SetterValue A type of argument of setter.
  */
-template<typename V>
+template<typename GetterValue, typename SetterValue = GetterValue>
 class CCmdSGHandler final : public CCmdCallHandler {
 public:
-  /// An alias of V.
-  using Value = V;
+  /// A type of value returned by getter.
+  using Getter_value = GetterValue;
+
+  /// A type of argument of setter.
+  using Setter_value = SetterValue;
 
   /// Generic getter.
-  using Getter = std::function<V()>;
+  using Getter = std::function<Getter_value()>;
 
   /// Generic setter.
-  using Setter = std::function<void(V)>;
+  using Setter = std::function<void(Setter_value)>;
 
   /// Member getter.
   template<typename T>
-  using Type_getter = V(T::*)()const;
+  using Type_getter = Getter_value(T::*)()const;
 
   /// Member setter.
   template<typename T>
-  using Type_setter = void(T::*)(V);
+  using Type_setter = void(T::*)(Setter_value);
 
   /**
    * @brief The default constructor.
@@ -228,7 +232,10 @@ public:
         [instance, get]{return (instance.get()->*get)();} : Getter{},
         // set_
         instance && set ?
-        [instance, set](V v){(instance.get()->*set)(std::move(v));} : Setter{}}
+        [instance, set](Setter_value v)
+        {
+          (instance.get()->*set)(std::move(v));
+        } : Setter{}}
   {}
 
   /**
@@ -240,7 +247,7 @@ public:
   {
     if (d.m_ctype & CCmdCallDescr::ctype::ctSet) {
       if (set_) {
-        V val;
+        Setter_value val;
         *(d.m_pIn) >> val;
         if (d.m_pIn->is_good()) {
           set_(val);
