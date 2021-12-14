@@ -16,46 +16,54 @@ CNewMenu::CNewMenu()
 
 void CNewMenu::ObtainMenuElRange()
 {
-    nodeControl &nc=nodeControl::Instance();
-    switch(m_MenuInd)
-    {
+    Board& board = Board::Instance();
+    switch (m_MenuInd) {
         case CView::menu::Gains:
-            m_MenuEl=static_cast<unsigned int>(nc.GetGain()-1); m_MenuElMin=0; m_MenuElMax=3;
+          m_MenuEl=static_cast<unsigned int>(board.GetGain()-1);
+          m_MenuElMin=0;
+          m_MenuElMax=3;
         break;
 
         case CView::menu::Bridge:
-            m_MenuEl=nc.GetBridge() ? 1:0; m_MenuElMin=0; m_MenuElMax=1;
+          m_MenuEl=board.GetBridge() ? 1:0;
+          m_MenuElMin=0;
+          m_MenuElMax=1;
         break;
 
         case CView::menu::Offsets:
-            m_MenuEl=0; m_MenuElMin=0; m_MenuElMax=2;
+          m_MenuEl=0;
+          m_MenuElMin=0;
+          m_MenuElMax=2;
         break;
 
         case CView::menu::SetSecondary:
-            m_MenuEl=static_cast<unsigned int>(nc.GetSecondary()); m_MenuElMin=0; m_MenuElMax=1;
+          m_MenuEl=static_cast<unsigned int>(board.GetSecondary());
+          m_MenuElMin=0;
+          m_MenuElMax=1;
         break;
     }
 }
+
 void CNewMenu::ApplyMenuSetting()
 {
-    nodeControl &nc=nodeControl::Instance();
+    Board& board = Board::Instance();
     switch(m_MenuInd)
     {
         case CView::menu::Gains:
-            nc.SetGain( static_cast<int>(m_MenuEl+1) );
+            board.SetGain( static_cast<int>(m_MenuEl+1));
         break;
 
         case CView::menu::Bridge:
-            nc.SetBridge(m_MenuEl);
+            board.SetBridge(m_MenuEl);
         break;
 
         case CView::menu::Offsets:
-            nc.SetOffset(m_MenuEl+1);
+            board.SetOffset(m_MenuEl+1);
             m_CurMode=mode::preview;
         return;
 
         case CView::menu::SetSecondary:
-            nc.SetSecondary( static_cast<int>(m_MenuEl) );
+            board.SetSecondary( static_cast<int>(m_MenuEl) );
         break;
      }
     CView::Instance().ApplyMenu();
@@ -68,7 +76,7 @@ void CNewMenu::handle_state(const Button_state state)
 
     if(Button_state::very_long_click==state)
     {
-        nodeControl::Instance().SetDefaultSettings();
+        Board::Instance().SetDefaultSettings();
         m_CurMode=mode::def;
         v.ResetSettings();
         return;
@@ -79,7 +87,7 @@ void CNewMenu::handle_state(const Button_state state)
         switch(state)
         {
             case Button_state::short_click:
-                nodeControl::Instance().StartRecord(true);
+                Board::Instance().StartRecord(true);
                 v.SetRecordMarker();
             return;
 
@@ -93,7 +101,7 @@ void CNewMenu::handle_state(const Button_state state)
     }
 
     //block buttons while calibration is running:
-    if(nodeControl::Instance().GetOffsetRunSt())
+    if(Board::Instance().GetOffsetRunSt())
         return;
 
 

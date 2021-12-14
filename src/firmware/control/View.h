@@ -347,7 +347,7 @@ public:
     /*!
      * \brief Sets the current board type
      * \param nBrd The board type
-     * \todo should be placed to nodeControl or some super-control class
+     * \todo should be placed to Board or some super-control class
      */
     void SetupBoardType(typeBoard nBrd)
     {

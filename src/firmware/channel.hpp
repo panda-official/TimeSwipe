@@ -29,7 +29,7 @@ using namespace panda::timeswipe; // FIXME: remove
 
 #include <memory>
 
-class nodeControl;
+class Board;
 
 /// A board measurement channel.
 class Channel {
@@ -97,16 +97,16 @@ public:
       .GetChannel(visualization_index().GetVisChannel()).SetColor(color);
   }
 
-  /// @returns The pointer to the control instance containing this channel.
-  nodeControl* node_control() const noexcept
+  /// @returns The board which controls this channel.
+  Board* board() const noexcept
   {
-    return node_control_;
+    return board_;
   }
 
-  /// Associates the control instance with this channel.
-  void set_node_control(nodeControl* const node_control)
+  /// Associates the board with this channel.
+  void set_board(Board* const board)
   {
-    node_control_ = node_control;
+    board_ = board;
   }
 
   /**
@@ -121,7 +121,7 @@ public:
   }
 
 private:
-  nodeControl* node_control_{};
+  Board* board_{};
 };
 
 /// Writes `mode` to the `os` stream.

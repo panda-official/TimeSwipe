@@ -10,7 +10,7 @@ Copyright (c) 2019 Panda Team
 #include "sam/SamService.h"
 
 
-nodeControl::nodeControl()
+Board::Board()
 {
     m_pMesChans.reserve(4);
 
@@ -22,7 +22,7 @@ nodeControl::nodeControl()
 
 }
 
-void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf)
+void Board::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std::shared_ptr<CFIFO> &pMemBuf)
 {
     m_EEPROMstorage.set_buf(pMemBuf);
     m_pEEPROMbus=pBus;
@@ -47,7 +47,7 @@ void nodeControl::SetEEPROMiface(const std::shared_ptr<ISerial> &pBus, const std
     }
 }
 
-void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map, std::string& err)
+void Board::ApplyCalibrationData(const hat::Calibration_map& map, std::string& err)
 {
   if (!m_bCalEnabled) {
     err = "calibration settings are disabled";
@@ -69,7 +69,7 @@ void nodeControl::ApplyCalibrationData(const hat::Calibration_map& map, std::str
   for (auto& el : m_pMesChans) el->update_offsets();
 }
 
-bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& err)
+bool Board::SetCalibrationData(hat::Calibration_map& map, std::string& err)
 {
   m_CalStatus = m_EEPROMstorage.set(map);
   if (m_CalStatus != hat::Manager::Op_result::ok) {
@@ -88,7 +88,7 @@ bool nodeControl::SetCalibrationData(hat::Calibration_map& map, std::string& err
   return true;
 }
 
-bool nodeControl::GetCalibrationData(hat::Calibration_map& data, std::string& strError)
+bool Board::GetCalibrationData(hat::Calibration_map& data, std::string& strError)
 {
   using Op_result = hat::Manager::Op_result;
   if (const auto r = m_EEPROMstorage.get(data);
@@ -99,13 +99,13 @@ bool nodeControl::GetCalibrationData(hat::Calibration_map& data, std::string& st
   return false;
 }
 
-bool nodeControl::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError)
+bool Board::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp, const CCmdCallDescr::ctype ct, std::string &strError)
 {
     hat::Calibration_map map;
 
     //load existing atom
-    auto& nc = nodeControl::Instance();
-    if (!nc.GetCalibrationData(map, strError))
+    auto& board = Board::Instance();
+    if (!board.GetCalibrationData(map, strError))
       return false;
 
     const auto catom = jObj["cAtom"].GetUint();
@@ -140,7 +140,7 @@ bool nodeControl::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp,
         }
 
         // Save the calibration map.
-        if (!nc.SetCalibrationData(map, strError)) return false;
+        if (!board.SetCalibrationData(map, strError)) return false;
     }
 
     // Generate data member of the response.
@@ -164,7 +164,7 @@ bool nodeControl::_procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp,
     return true;
 }
 
-void nodeControl::procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp,
+void Board::procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp,
   const CCmdCallDescr::ctype ct)
 {
   std::string err;
@@ -176,7 +176,7 @@ void nodeControl::procCAtom(rapidjson::Value& jObj, rapidjson::Document& jResp,
   }
 }
 
-void nodeControl::Serialize(CStorage &st)
+void Board::Serialize(CStorage &st)
 {
     m_OffsetSearch.Serialize(st);
     if(st.IsDefaultSettingsOrder())
@@ -196,14 +196,14 @@ void nodeControl::Serialize(CStorage &st)
     }
 }
 
-void nodeControl::Update()
+void Board::Update()
 {
     for(auto& el : m_pMesChans) el->update();
 
     m_PersistStorage.Update();
     m_OffsetSearch.Update();
 }
-void nodeControl::StartRecord(bool how)
+void Board::StartRecord(bool how)
 {
     //make a stamp:
     static unsigned long count_mark=0;
@@ -214,7 +214,7 @@ void nodeControl::StartRecord(bool how)
     Instance().Fire_on_event("Record", v);
 }
 
-int nodeControl::gain_out(int val)
+int Board::gain_out(int val)
 {
     //update channels gain setting:
     float gval=val;
@@ -237,11 +237,11 @@ int nodeControl::gain_out(int val)
 
      return val;
 }
-bool nodeControl::GetBridge() const noexcept
+bool Board::GetBridge() const noexcept
 {
     return m_BridgeSetting;
 }
-void nodeControl::SetBridge(bool how)
+void Board::SetBridge(bool how)
 {
      m_BridgeSetting=how;
 
@@ -257,19 +257,19 @@ void nodeControl::SetBridge(bool how)
     Instance().Fire_on_event("Bridge", v);
 }
 
-void nodeControl::SetSecondary(int nMode)
+void Board::SetSecondary(int nMode)
 {
     nMode&=1; //fit the value
 
     m_SecondarySetting=nMode;
 }
-int nodeControl::GetSecondary() const noexcept
+int Board::GetSecondary() const noexcept
 {
     return m_SecondarySetting;
 }
 
 
-void nodeControl::SetMode(int nMode)
+void Board::SetMode(int nMode)
 {
     m_OpMode=static_cast<MesModes>(nMode);
     if(m_OpMode<MesModes::IEPE) { m_OpMode=MesModes::IEPE; }
@@ -293,13 +293,13 @@ void nodeControl::SetMode(int nMode)
     rapidjson::Value v{nMode};
     Instance().Fire_on_event("Mode", v);
 }
-int nodeControl::GetMode() const noexcept
+int Board::GetMode() const noexcept
 {
     return m_OpMode;
 }
 
 
-void nodeControl::SetOffset(int nOffs)
+void Board::SetOffset(int nOffs)
 {
     switch(nOffs)
     {

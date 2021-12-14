@@ -36,11 +36,11 @@ void Dms_channel::set_amplification_gain(const float value)
 void Dms_channel::update_offsets()
 {
   // Apply offsets iif calibration is enabled.
-  if (!node_control()->IsCalEnabled()) return;
+  if (!board()->IsCalEnabled()) return;
 
   std::string strError;
   hat::Calibration_map cmap;
-  node_control()->GetCalibrationData(cmap, strError);
+  board()->GetCalibrationData(cmap, strError);
 
   using Type = hat::atom::Calibration::Type;
   const auto atom = Measurement_mode::voltage == measurement_mode() ?

@@ -1,17 +1,23 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
 
-#pragma once
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-/*!
-*   \file
-*   \brief A definition file for
-*   nodeControl
-*/
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP
 
 #include "zerocal_man.h"
 #include "../channel.hpp"
@@ -26,17 +32,15 @@ Copyright (c) 2019 Panda Team
 /// FIXME: remove after placing the entire code base in the namespace
 using namespace panda::timeswipe::detail;
 
-/*!
- * \brief Provides the basic functionality of the board
- * \details The class can be considered as somewhat usually called "controller"
- * The only one controller object can exist. This is a "singleton" class
- * The class object has an ability for receiving JSON events from other objects and generate own JSON events
- * when basic board settings are changed
+/**
+ * @brief Controls the basic behavior of the board.
+ *
+ * @details This class follows the Singleton design pattern. Emits JSON event
+ * on each change of the board settings and receives such events from others.
  */
-
-class nodeControl : public CJSONEvCP
+class Board : public CJSONEvCP
                   , public ISerialize
-                  , public std::enable_shared_from_this<nodeControl>
+                  , public std::enable_shared_from_this<Board>
 {
 protected:
 
@@ -171,20 +175,20 @@ public:
          * \brief Returns the reference to the created class object instance. (The object created only once)
          * \return
          */
-        static nodeControl& Instance()
+        static Board& Instance()
         {
-           static std::shared_ptr<nodeControl> pThis(new nodeControl);
+           static std::shared_ptr<Board> pThis(new Board);
            return *pThis;
         }
 private:
         //! Forbid creating other instances of the class object
-        nodeControl();
+        Board();
 
         //! Forbid copy constructor
-        nodeControl(const nodeControl&)=delete;
+        Board(const Board&)=delete;
 
         //! Forbid copying
-        nodeControl& operator=(const nodeControl&)=delete;
+        Board& operator=(const Board&)=delete;
 
 public:
         /*!
@@ -201,7 +205,7 @@ protected:
         /*!
          * \brief The current measurement mode of the Board
          */
-        MesModes m_OpMode=nodeControl::IEPE;
+        MesModes m_OpMode=Board::IEPE;
 
 
         /*!
@@ -321,7 +325,7 @@ public:
          */
         void AddMesChannel(const std::shared_ptr<Channel> &pChan)
         {
-            pChan->set_node_control(this);
+            pChan->set_board(this);
             m_pMesChans.emplace_back(pChan);
             m_OffsetSearch.Add(pChan->adc(), pChan->dac(),
               pChan->visualization_index().GetVisChannel());
@@ -597,3 +601,5 @@ public:
          */
         void Update();
 };
+
+#endif  // PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP
