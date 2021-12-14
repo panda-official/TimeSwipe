@@ -327,7 +327,7 @@ public:
    *
    * @returns `false` on error.
    */
-  bool set_calibration_data(hat::Calibration_map& map, std::string& err);
+  bool set_calibration_data(const hat::Calibration_map& map, std::string& err);
 
   /**
    * @brief Gets the calibration data from the RAM cache.
@@ -337,7 +337,7 @@ public:
    *
    * @returns `false` on error.
    */
-  bool get_calibration_data(hat::Calibration_map& map, std::string& err);
+  bool get_calibration_data(hat::Calibration_map& map, std::string& err) const;
 
   /// Enables or disables the board cooler.
   void enable_fan(const bool enabled)

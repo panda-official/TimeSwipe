@@ -77,7 +77,7 @@ void Board::apply_calibration_data(const hat::Calibration_map& map, std::string&
     channel->update_offsets();
 }
 
-bool Board::set_calibration_data(hat::Calibration_map& map, std::string& err)
+bool Board::set_calibration_data(const hat::Calibration_map& map, std::string& err)
 {
   calibration_status_ = eeprom_cache_.set(map);
   if (calibration_status_ != hat::Manager::Op_result::ok) {
@@ -96,7 +96,7 @@ bool Board::set_calibration_data(hat::Calibration_map& map, std::string& err)
   return true;
 }
 
-bool Board::get_calibration_data(hat::Calibration_map& data, std::string& err)
+bool Board::get_calibration_data(hat::Calibration_map& data, std::string& err) const
 {
   using Op_result = hat::Manager::Op_result;
   const auto r = eeprom_cache_.get(data);
