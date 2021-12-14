@@ -115,8 +115,7 @@ void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
     hat::Calibration_map map;
 
     //load existing atom
-    auto& board = Board::instance();
-    if (!board.get_calibration_data(map, err))
+    if (!get_calibration_data(map, err))
       return false;
 
     const auto catom = req["cAtom"].GetUint();
@@ -150,7 +149,7 @@ void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
         }
 
         // Save the calibration map.
-        if (!board.set_calibration_data(map, err)) return false;
+        if (!set_calibration_data(map, err)) return false;
       }
 
     // Generate data member of the response.
@@ -214,7 +213,7 @@ void Board::update()
 void Board::start_record(bool)
 {
   rapidjson::Value v{record_count_++};
-  instance().Fire_on_event("Record", v);
+  Fire_on_event("Record", v);
 }
 
 int Board::set_gain_out(const int val)
@@ -233,7 +232,7 @@ int Board::set_gain_out(const int val)
 
   // Emit the event.
   rapidjson::Value v{val};
-  instance().Fire_on_event("Gain", v);
+  Fire_on_event("Gain", v);
 
   return val;
 }
@@ -249,7 +248,7 @@ void Board::enable_bridge(const bool enabled)
 
     // Emit the event.
     rapidjson::Value v{enabled};
-    instance().Fire_on_event("Bridge", v);
+    Fire_on_event("Bridge", v);
 }
 
 void Board::set_measurement_mode(const int mode)
@@ -274,7 +273,7 @@ void Board::set_measurement_mode(const int mode)
 
   // Emit the event.
   rapidjson::Value v{mode};
-  instance().Fire_on_event("Mode", v);
+  Fire_on_event("Mode", v);
 }
 
 void Board::start_offset_search(int how)
@@ -295,5 +294,5 @@ void Board::start_offset_search(int how)
     return;
   }
   rapidjson::Value v{how};
-  instance().Fire_on_event("Offset", v);
+  Fire_on_event("Offset", v);
 }
