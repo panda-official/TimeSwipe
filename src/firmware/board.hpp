@@ -19,13 +19,14 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP
 
-#include "zerocal_man.h"
-#include "../channel.hpp"
-#include "../pin.hpp"
-#include "../base/RawBinStorage.h"
-#include "../json/json_evsys.h"
-#include "../../hat.hpp"
-#include "../json.hpp"
+#include "../hat.hpp"
+#include "basics.hpp"
+#include "channel.hpp"
+#include "pin.hpp"
+#include "json.hpp"
+#include "base/RawBinStorage.h"
+#include "control/zerocal_man.h"
+#include "json/json_evsys.h"
 
 #include <memory>
 
@@ -47,7 +48,7 @@ protected:
         /*!
          * \brief Holds current board type: IEPE or DMS
          */
-        typeBoard m_BoardType=typeBoard::IEPEBoard;
+        Board_type m_BoardType{Board_type::iepe};
 
         /*!
          * \brief The pointer to the UBR switch (bridge voltage)
@@ -264,8 +265,8 @@ public:
          * \brief Sets current board type: IEPE or DMS
          * \param BoardType - IEPE or DMS
          */
-        inline void SetBoardType(typeBoard BoardType){
-            m_BoardType=BoardType;
+        inline void SetBoardType(const Board_type type){
+            m_BoardType = type;
         }
 
 

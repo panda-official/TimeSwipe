@@ -5,9 +5,9 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
+#include "../board.hpp"
 #include "NewMenu.h"
 #include "View.h"
-#include "nodeControl.h"
 
 CNewMenu::CNewMenu()
 {

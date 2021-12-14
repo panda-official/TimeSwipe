@@ -20,6 +20,7 @@
 #include "../hat.hpp"
 #include "../limits.hpp"
 #include "../version.hpp"
+#include "board.hpp"
 #include "cmd.h"
 #include "os.h"
 #include "std_port.h"
@@ -36,7 +37,6 @@
 #include "control/NewMenu.h"
 #include "control/CalFWbtnHandler.h"
 #include "control/View.h"
-#include "control/nodeControl.h"
 #include "control/zerocal_man.h"
 #include "control/SemVer.h"
 #include "json/jsondisp.h"
@@ -80,9 +80,9 @@ int main()
 #endif
 
 #ifdef DMS_BOARD
-    constexpr auto board_type = typeBoard::DMSBoard;
+    constexpr auto board_type = Board_type::dms;
 #else
-    constexpr auto board_type = typeBoard::IEPEBoard;
+    constexpr auto board_type = Board_type::iepe;
 #endif
 
     auto pVersion=std::make_shared<CSemVer>(detail::version_major,
@@ -146,7 +146,7 @@ int main()
 
 
     //1st step:
-    if constexpr (board_type == typeBoard::DMSBoard) {
+    if constexpr (board_type == Board_type::dms) {
       pDMSsr=std::make_shared<CDMSsr>(
         std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p05, true),
         std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p06, true),
@@ -241,7 +241,7 @@ int main()
         &Pin::write) );
 
     //2nd step:
-    if constexpr (board_type == typeBoard::DMSBoard) {
+    if constexpr (board_type == Board_type::dms) {
       auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1);
       pCS1->set_inverted(true);
       pCS1->write(false);

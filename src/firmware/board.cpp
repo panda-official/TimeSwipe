@@ -1,14 +1,24 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019 Panda Team
-*/
+// -*- C++ -*-
 
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include "board.hpp"
 #include "control/DataVis.h"
-#include "control/nodeControl.h"
 #include "sam/SamService.h"
-
 
 Board::Board()
 {
@@ -223,8 +233,7 @@ int Board::gain_out(int val)
 
 
      //set old IEPE gain:
-     if(typeBoard::IEPEBoard==m_BoardType)
-     {
+     if (m_BoardType == Board_type::iepe) {
          int gset=val-1;
          m_pGain1pin->write(gset>>1);
          m_pGain0pin->write(gset&1);
@@ -245,12 +254,10 @@ void Board::SetBridge(bool how)
 {
      m_BridgeSetting=how;
 
-     if(typeBoard::IEPEBoard!=m_BoardType)
-     {
+     if (m_BoardType != Board_type::iepe) {
         assert(m_pUBRswitch);
         m_pUBRswitch->write(how);
      }
-
 
     //generate an event:
     rapidjson::Value v{how};
@@ -276,8 +283,7 @@ void Board::SetMode(int nMode)
     if(m_OpMode>MesModes::Normsignal){ m_OpMode=MesModes::Normsignal; }
 
 
-    if(typeBoard::IEPEBoard==m_BoardType) //old IEPE board setting
-    {
+    if (m_BoardType == Board_type::iepe) { // old IEPE board setting
         //SetBridge(m_OpMode);
         assert(m_pUBRswitch);
         m_pUBRswitch->write(MesModes::IEPE==m_OpMode ? true:false);

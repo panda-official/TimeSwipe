@@ -6,10 +6,10 @@ Copyright (c) 2019 Panda Team
 */
 
 
-#include "board_type.h"
+#include "../board.hpp"
+#include "../os.h"
 #include "DataVis.h"
 #include "View.h"
-#include "../os.h"
 
 #include <cmath>
 

@@ -13,11 +13,13 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "board_type.h"
-#include "rgbacol.h"
-#include "../sam/button.hpp"
-#include "../led/nodeLED.h"
+#include "../basics.hpp"
+using namespace panda::timeswipe::firmware; // FIXME: remove
+
 #include "../os.h"
+#include "../led/nodeLED.h"
+#include "../sam/button.hpp"
+#include "rgbacol.h"
 
 #include <vector>
 
@@ -349,9 +351,9 @@ public:
      * \param nBrd The board type
      * \todo should be placed to Board or some super-control class
      */
-    void SetupBoardType(typeBoard nBrd)
+    void SetupBoardType(const Board_type type)
     {
-        m_BasicBoardCol=typeBoard::DMSBoard==nBrd ? DMS_COLOR : IEPE_COLOR;
+      m_BasicBoardCol = (type == Board_type::dms) ? DMS_COLOR : IEPE_COLOR;
     }
 
     /*!
@@ -474,7 +476,7 @@ private:
 
             m_bCalUItestDone=false;
 
-            SetupBoardType(typeBoard::IEPEBoard);
+            SetupBoardType(Board_type::iepe);
 
             nodeLED::init();
             m_Channels.reserve(4);

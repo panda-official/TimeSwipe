@@ -16,10 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "control/nodeControl.h"
-#include "dms_channel.hpp"
 #include "../gain.hpp"
 #include "../hat.hpp"
+#include "board.hpp"
+#include "dms_channel.hpp"
 
 void Dms_channel::set_amplification_gain(const float value)
 {

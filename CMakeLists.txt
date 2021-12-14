@@ -254,9 +254,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     SemVer.h
     View.cpp
     View.h
-    board_type.h
-    nodeControl.h
-    nodeControl.cpp
     rgbacol.h
     )
 
@@ -322,6 +319,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     PWM.h
     Storage.h
     adcdac.hpp
+    basics.hpp
+    board.cpp
+    board.hpp
     button.hpp
     channel.hpp
     cmd.h
