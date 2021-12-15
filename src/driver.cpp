@@ -342,8 +342,8 @@ public:
 
     try {
       is_measurement_enabled_ = true;
-      threads_.emplace_back(&iDriver::fetcher_loop, this);
-      threads_.emplace_back(&iDriver::poller_loop, this, std::move(handler));
+      threads_.emplace_back(&iDriver::data_reading, this);
+      threads_.emplace_back(&iDriver::data_processing, this, std::move(handler));
     } catch (...) {
       calibration_slopes_.swap(new_calibration_slopes); // noexcept
       throw;
@@ -884,10 +884,10 @@ private:
   }
 
   // ---------------------------------------------------------------------------
-  // Thread loops
+  // Threads
   // ---------------------------------------------------------------------------
 
-  void fetcher_loop()
+  void data_reading()
   {
     while (is_measurement_enabled_) {
       if (const auto data = read_data(); !record_queue_.push(data))
@@ -895,7 +895,7 @@ private:
     }
   }
 
-  void poller_loop(Data_handler&& handler)
+  void data_processing(Data_handler&& handler)
   {
     PANDA_TIMESWIPE_ASSERT(handler);
     while (is_measurement_enabled_) {
