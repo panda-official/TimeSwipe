@@ -33,7 +33,6 @@
 
 #include <boost/lockfree/spsc_queue.hpp>
 
-#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -41,8 +40,6 @@
 #include <fstream>
 #include <mutex>
 #include <numeric>
-#include <sstream>
-#include <stdexcept>
 #include <thread>
 #include <type_traits>
 
@@ -60,8 +57,9 @@ public:
 
   ~iDriver()
   {
-    disable_measurement();
-    join_threads();
+    try {
+      disable_measurement();
+    } catch (...){}
   }
 
   iDriver()
@@ -304,14 +302,13 @@ public:
       throw Exception{Errc::driver_settings_insufficient,
         "cannot enable measurement with unspecified sample rate"};
 
-    join_threads(); // may throw
-
     // Pick up the calibration slopes depending on both the gain and measurement mode.
     const auto mcc = max_channel_count();
     PANDA_TIMESWIPE_ASSERT(gains && modes &&
       (gains->size() == modes->size()) &&
       (gains->size() >= mcc));
-    decltype(calibration_slopes_) new_calibration_slopes{calibration_slopes_}; // may throw
+    // may throw
+    decltype(calibration_slopes_) new_calibration_slopes{calibration_slopes_};
     for (std::decay_t<decltype(mcc)> i{}; i < mcc; ++i) {
       const auto gain = gains->at(i);
       const auto mode = modes->at(i);
@@ -341,13 +338,16 @@ public:
     }
 
     try {
-      is_measurement_enabled_ = true;
+      is_threads_running_ = true;
       threads_.emplace_back(&iDriver::data_reading, this);
       threads_.emplace_back(&iDriver::data_processing, this, std::move(handler));
     } catch (...) {
       calibration_slopes_.swap(new_calibration_slopes); // noexcept
       throw;
     }
+
+    // Done.
+    is_measurement_enabled_ = true;
   }
 
   bool is_measurement_enabled() const noexcept override
@@ -359,8 +359,7 @@ public:
   {
     if (!is_measurement_enabled_) return;
 
-    // Stop threads and reset state they using.
-    is_measurement_enabled_ = false;
+    // Wait threads and reset state they are using.
     join_threads();
     while (record_queue_.pop());
     read_skip_count_ = initial_invalid_datasets_count;
@@ -373,6 +372,9 @@ public:
       // Stop Measurement
       spi_set_enable_ad_mes(false); // may throw
     }
+
+    // Done.
+    is_measurement_enabled_ = false;
   }
 
   std::vector<float> calculate_drift_references() override
@@ -524,6 +526,7 @@ private:
   std::atomic_bool is_initialized_{};
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_measurement_enabled_{};
+  std::atomic_bool is_threads_running_{};
 
   // ---------------------------------------------------------------------------
   // Measurement data
@@ -889,7 +892,7 @@ private:
 
   void data_reading()
   {
-    while (is_measurement_enabled_) {
+    while (is_threads_running_) {
       if (const auto data = read_data(); !record_queue_.push(data))
         ++record_error_count_;
     }
@@ -898,7 +901,7 @@ private:
   void data_processing(Data_handler&& handler)
   {
     PANDA_TIMESWIPE_ASSERT(handler);
-    while (is_measurement_enabled_) {
+    while (is_threads_running_) {
       Data records[10];
       const auto num = record_queue_.pop(records);
       const auto errors = record_error_count_.fetch_and(0);
@@ -1008,6 +1011,7 @@ private:
 
   void join_threads()
   {
+    is_threads_running_ = false;
     for (auto it = threads_.begin(); it != threads_.end();) {
       if (it->get_id() == std::this_thread::get_id()) {
         ++it;
