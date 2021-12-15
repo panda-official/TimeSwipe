@@ -46,8 +46,11 @@
 #include <thread>
 #include <type_traits>
 
+namespace chrono = std::chrono;
 namespace rajson = dmitigr::rajson;
 namespace ts = panda::timeswipe;
+using chrono::milliseconds;
+using chrono::microseconds;
 
 namespace panda::timeswipe {
 namespace detail {
@@ -122,7 +125,7 @@ public:
       set_gpio_high(gpio_reset);
 
       // Some delay required to get SPI communication work.
-      std::this_thread::sleep_for(std::chrono::milliseconds{100});
+      std::this_thread::sleep_for(milliseconds{100});
 
       is_gpio_inited_ = true;
     }
@@ -333,7 +336,7 @@ public:
      */
     {
       PANDA_TIMESWIPE_ASSERT(is_gpio_inited_);
-      std::this_thread::sleep_for(std::chrono::milliseconds{1});
+      std::this_thread::sleep_for(milliseconds{1});
       spi_set_enable_ad_mes(true);
     }
 
@@ -506,7 +509,7 @@ private:
   // ---------------------------------------------------------------------------
 
   // "Switching oscillation" completely (according to PSpice) decays after 1.5ms.
-  static constexpr std::chrono::microseconds switching_oscillation_period{1500};
+  static constexpr microseconds switching_oscillation_period{1500};
 
   // Only 5ms of raw data is needed. (5ms * 48kHz = 240 values.)
   static constexpr std::size_t drift_samples_count{5*48000/1000};
@@ -839,7 +842,7 @@ private:
     static const auto wait_for_pi_ok = []
     {
       // Matches 12 MHz Quartz.
-      std::this_thread::sleep_for(std::chrono::microseconds{700});
+      std::this_thread::sleep_for(microseconds{700});
     };
 
     // Skip data sets if needed. (First 32 data sets are always invalid.)
@@ -901,7 +904,7 @@ private:
       const auto errors = record_error_count_.fetch_and(0);
 
       if (!num) {
-        std::this_thread::sleep_for(std::chrono::milliseconds{1});
+        std::this_thread::sleep_for(milliseconds{1});
         continue;
       }
 
