@@ -57,7 +57,7 @@ public:
 
   ~iDriver()
   {
-    stop_measurement();
+    disable_measurement();
     join_threads();
   }
 
@@ -210,22 +210,22 @@ public:
       throw Exception{Errc::driver_not_initialized,
         "cannot set board settings while driver is not initialized"};
 
-    // Some settings cannot be applied if the measurement started.
-    if (is_measurement_started()) {
+    // Some settings cannot be applied if the measurement is enabled.
+    if (is_measurement_enabled()) {
       // Check if channel measurement modes setting presents.
       if (settings.channel_measurement_modes())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board measurement modes when measurement started"};
+        throw Exception{Errc::board_measurement_enabled,
+          "cannot set board measurement modes when measurement enabled"};
 
       // Check if channel gains setting presents.
       if (settings.channel_gains())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board gains when measurement started"};
+        throw Exception{Errc::board_measurement_enabled,
+          "cannot set board gains when measurement enabled"};
 
       // Check if channel IEPEs setting presents.
       if (settings.channel_iepes())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board IEPEs when measurement started"};
+        throw Exception{Errc::board_measurement_enabled,
+          "cannot set board IEPEs when measurement enabled"};
     }
 
     spi_.execute_set_many(settings.to_json_text());
@@ -247,13 +247,13 @@ public:
   void set_driver_settings(const Driver_settings& settings,
     std::unique_ptr<Resampler> resampler)
   {
-    if (is_measurement_started())
+    if (is_measurement_enabled())
       /*
        * Currently, there are no driver settings which can be applied when
        * measurement in progress.
        */
-      throw Exception{Errc::board_measurement_started,
-        "cannot set driver settings when measurement started"};
+      throw Exception{Errc::board_measurement_enabled,
+        "cannot set driver settings when measurement enabled"};
 
     const auto bbs = settings.burst_buffer_size();
     const auto freq = settings.frequency();
@@ -277,29 +277,29 @@ public:
     return driver_settings_;
   }
 
-  void start_measurement(Data_handler handler) override
+  void enable_measurement(Data_handler handler) override
   {
     if (!is_initialized())
       throw Exception{Errc::driver_not_initialized,
-        "cannot start measurement while driver isn't initialized"};
+        "cannot enable measurement while driver isn't initialized"};
 
     const auto gains = board_settings().channel_gains();
     const auto modes = board_settings().channel_measurement_modes();
     const auto srate = driver_settings().sample_rate();
     if (!handler)
-      throw Exception{"cannot start measurement with invalid data handler"};
-    else if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started,
-        "cannot start measurement because it's already started"};
+      throw Exception{"cannot enable measurement with invalid data handler"};
+    else if (is_measurement_enabled())
+      throw Exception{Errc::board_measurement_enabled,
+        "cannot enable measurement because it's already enabled"};
     else if (!gains)
       throw Exception{Errc::board_settings_insufficient,
-        "cannot start measurement with unspecified channel gains"};
+        "cannot enable measurement with unspecified channel gains"};
     else if (!modes)
       throw Exception{Errc::board_settings_insufficient,
-        "cannot start measurement with unspecified channel measurement modes"};
+        "cannot enable measurement with unspecified channel measurement modes"};
     else if (!srate)
       throw Exception{Errc::driver_settings_insufficient,
-        "cannot start measurement with unspecified sample rate"};
+        "cannot enable measurement with unspecified sample rate"};
 
     join_threads(); // may throw
 
@@ -328,7 +328,7 @@ public:
     set_resampler(*srate, {}); // strong guarantee
 
     /*
-     * Send the command to the firmware to start the measurement.
+     * Send the command to the firmware to enable the measurement mode.
      * Effects: the reader does receive the data from the board.
      */
     {
@@ -338,7 +338,7 @@ public:
     }
 
     try {
-      is_measurement_started_ = true;
+      is_measurement_enabled_ = true;
       threads_.emplace_back(&iDriver::fetcher_loop, this);
       threads_.emplace_back(&iDriver::poller_loop, this, std::move(handler));
     } catch (...) {
@@ -347,22 +347,22 @@ public:
     }
   }
 
-  bool is_measurement_started() const noexcept override
+  bool is_measurement_enabled() const noexcept override
   {
-    return is_measurement_started_;
+    return is_measurement_enabled_;
   }
 
-  void stop_measurement() override
+  void disable_measurement() override
   {
-    if (!is_measurement_started_) return;
+    if (!is_measurement_enabled_) return;
 
     // Stop threads and reset state they using.
-    is_measurement_started_ = false;
+    is_measurement_enabled_ = false;
     join_threads();
     while (record_queue_.pop());
     read_skip_count_ = initial_invalid_datasets_count;
 
-    // Sends the command to the firmware to stop the measurement.
+    // Send the command to the firmware to disable the measurement mode.
     {
       // Reset Clock
       set_gpio_low(gpio_clock);
@@ -406,9 +406,9 @@ public:
 
   void clear_drift_references() override
   {
-    if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started,
-        "cannot clear drift compensation references when measurement is started"};
+    if (is_measurement_enabled())
+      throw Exception{Errc::board_measurement_enabled,
+        "cannot clear drift compensation references when measurement is enabled"};
 
     std::filesystem::remove(tmp_dir()/"drift_references");
     drift_references_.reset();
@@ -449,9 +449,9 @@ public:
 
   void clear_drift_deltas() override
   {
-    if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started,
-        "cannot clear drift compensation deltas when measurement is started"};
+    if (is_measurement_enabled())
+      throw Exception{Errc::board_measurement_enabled,
+        "cannot clear drift compensation deltas when measurement is enabled"};
 
     drift_deltas_.reset();
   }
@@ -520,7 +520,7 @@ private:
   mutable detail::Bcm_spi spi_;
   std::atomic_bool is_initialized_{};
   std::atomic_bool is_gpio_inited_{};
-  std::atomic_bool is_measurement_started_{};
+  std::atomic_bool is_measurement_enabled_{};
 
   // ---------------------------------------------------------------------------
   // Measurement data
@@ -886,7 +886,7 @@ private:
 
   void fetcher_loop()
   {
-    while (is_measurement_started_) {
+    while (is_measurement_enabled_) {
       if (const auto data = read_data(); !record_queue_.push(data))
         ++record_error_count_;
     }
@@ -895,7 +895,7 @@ private:
   void poller_loop(Data_handler&& handler)
   {
     PANDA_TIMESWIPE_ASSERT(handler);
-    while (is_measurement_started_) {
+    while (is_measurement_enabled_) {
       Data records[10];
       const auto num = record_queue_.pop(records);
       const auto errors = record_error_count_.fetch_and(0);
@@ -971,7 +971,7 @@ private:
   {
     const auto max_rate = max_sample_rate();
     PANDA_TIMESWIPE_ASSERT(1 <= rate && rate <= max_rate);
-    PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
+    PANDA_TIMESWIPE_ASSERT(!is_measurement_enabled());
     auto result = std::move(resampler_);
     try {
       if (rate != max_rate) {
@@ -1028,9 +1028,9 @@ private:
   template<typename F>
   Data collect_channels_data(const std::size_t samples_count, const F& state_guard)
   {
-    if (is_measurement_started())
-      throw Exception{Errc::board_measurement_started,
-        "cannot collect channels data because measurment is started"};
+    if (is_measurement_enabled())
+      throw Exception{Errc::board_measurement_enabled,
+        "cannot collect channels data because measurment is enabled"};
 
     const auto guard{state_guard()};
 
@@ -1038,7 +1038,7 @@ private:
     std::atomic_bool done{};
     Data result;
     std::condition_variable update;
-    start_measurement([this, samples_count,
+    enable_measurement([this, samples_count,
       &errc, &done, &result, &update](const Data data, const int)
     {
       if (errc || done)
@@ -1064,7 +1064,7 @@ private:
       update.wait(lock, [&done]{ return done.load(); });
     }
     PANDA_TIMESWIPE_ASSERT(done);
-    stop_measurement();
+    disable_measurement();
 
     // Throw away if the data collection failed.
     if (errc)

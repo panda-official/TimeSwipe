@@ -53,16 +53,16 @@ public:
    *   - positive value indicates the number of data losts;
    *   - negative value indicates the negated error code (some value of
    *   panda::timeswipe::Errc with the minus sign) in case of fatal
-   *   error when the measurement process is about to stop.
+   *   error when the measurement mode is about to disable.
    *
-   * @see start_measurement().
+   * @see enable_measurement().
    */
   using Data_handler = std::function<void(Data data, int error_marker)>;
 
   /**
-   * @brief The destructor. Calls stop_measurement().
+   * @brief The destructor. Calls disable_measurement().
    *
-   * @see stop_measurement().
+   * @see disable_measurement().
    */
   virtual ~Driver() = default;
 
@@ -135,7 +135,7 @@ public:
    * @returns `*this`.
    *
    * @warning Some of the board-level settings can be applied only when
-   * `!is_measurement_started()` as explained in the documentation of
+   * `!is_measurement_enabled()` as explained in the documentation of
    * Board_settings class.
    *
    * @par Requires
@@ -170,7 +170,7 @@ public:
    * @returns `*this`.
    *
    * @warning Some of the driver-level settings can be applied only when
-   * `!is_measurement_started()` as explained in the documentation of
+   * `!is_measurement_enabled()` as explained in the documentation of
    * Driver_settings class.
    *
    * @par Exception safety guarantee
@@ -200,7 +200,7 @@ public:
   /// @{
 
   /**
-   * @brief Initiates the start of measurement.
+   * @brief Enabled the measurement mode.
    *
    * @details Repeatedly calls the `handler` with frequency (Hz) that depends on
    * the burst buffer size, specified in the driver settings: the greater it's
@@ -218,23 +218,23 @@ public:
    * @par Requires
    * `(handler &&
    *   is_initialized() &&
-   *   !is_measurement_started() &&
+   *   !is_measurement_enabled() &&
    *   board_settings().channel_measurement_modes() &&
    *   board_settings().channel_gains() &&
    *   driver_settings().sample_rate())`.
    *
    * @par Effects
-   * `is_measurement_started()`.
+   * `is_measurement_enabled()`.
    *
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see set_measurement_options(), set_state(), stop_measurement().
+   * @see set_measurement_options(), set_state(), disable_measurement().
    */
-  virtual void start_measurement(Data_handler handler) = 0;
+  virtual void enable_measurement(Data_handler handler) = 0;
 
   /**
-   * @returns `true` if the measurement in progress.
+   * @returns `true` if the measurement mode is enabled.
    *
    * @remarks Implies is_initialized().
    *
@@ -242,22 +242,22 @@ public:
    * Thread-safe.
    *
    * @see calculate_drift_references(), calculate_drift_deltas(),
-   * start_measurement().
+   * enable_measurement().
    */
-  virtual bool is_measurement_started() const noexcept = 0;
+  virtual bool is_measurement_enabled() const noexcept = 0;
 
   /**
-   * @brief Stops the measurement.
+   * @brief Disables the measurement mode.
    *
    * @par Effects
-   * `!is_measurement_started()`.
+   * `!is_measurement_enabled()`.
    *
    * @par Exception safety guarantee
    * Strong.
    *
-   * @see start_measurement().
+   * @see enable_measurement().
    */
-  virtual void stop_measurement() = 0;
+  virtual void disable_measurement() = 0;
 
   /// @}
 
@@ -274,11 +274,11 @@ public:
   /// can be useful in cases like power failures. The deltas can only be
   /// calculated if there are references available, otherwise and exception
   /// will be thrown. Unlike the references, the deltas are not saved to a file.
-  /// Either the references or the deltas can be recalculated an arbitrary number
-  /// of times. It's also possible to clear either the references or the deltas
-  /// in order to stop correcting the input values and pass them to the user
-  /// read callback unmodified. Please note, that in order to calculate or clear
-  /// either the references or deltas the measurement must not be in progress.
+  /// Either the references or the deltas can be recalculated an unlimited number
+  /// of times. Clearing of either the references or the deltas would disable
+  /// the drift compensation feature.
+  /// Please note, that in order to calculate or clear either the references or
+  /// deltas the measurement mode must be disabled.
   ///
   /// @{
 
@@ -290,10 +290,10 @@ public:
    * either it deleted directly or by calling clear_drift_references().
    *
    * @par Requires
-   * `is_initialized() && !is_measurement_started()`.
+   * `is_initialized() && !is_measurement_enabled()`.
    *
    * @par Effects
-   * `!is_measurement_started() && drift_references()`.
+   * `!is_measurement_enabled() && drift_references()`.
    *
    * @par Exception safety guarantee
    * Strong.
@@ -308,7 +308,7 @@ public:
    * @brief Clears drift references if any.
    *
    * @par Requires
-   * `!is_measurement_started()`.
+   * `!is_measurement_enabled()`.
    *
    * @par Effects
    * `!drift_references() && !drift_deltas()`. Removes the file
@@ -325,11 +325,11 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Requires
-   * `is_initialized() && drift_references() && !is_measurement_started()`.
+   * `is_initialized() && drift_references() && !is_measurement_enabled()`.
    *
    * @par Effects
-   * `!is_measurement_started() && drift_deltas()`.
-   * After calling the `start_measurement()`, calculated deltas will be
+   * `!is_measurement_enabled() && drift_deltas()`.
+   * After calling the `enable_measurement()`, calculated deltas will be
    * substracted from each input value of the corresponding channel.
    *
    * @par Exception safety guarantee
@@ -337,7 +337,7 @@ public:
    *
    * @remarks Blocks the current thread for a while (~5ms).
    *
-   * @see drift_deltas(), calculate_drift_references(), start_measurement().
+   * @see drift_deltas(), calculate_drift_references(), enable_measurement().
    */
   virtual std::vector<float> calculate_drift_deltas() = 0;
 
@@ -345,7 +345,7 @@ public:
    * @brief Clears drift deltas if any.
    *
    * @par Requires
-   * `!is_measurement_started()`.
+   * `!is_measurement_enabled()`.
    *
    * @par Effects
    * Input values of the corresponding channel will not be affected by deltas.

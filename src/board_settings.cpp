@@ -178,7 +178,7 @@ struct Board_settings::Rep final {
 
   void set_pwms(const std::vector<bool>& values)
   {
-    set_pwm_values(values, "", "start flags", [](auto){return true;});
+    set_pwm_values(values, "", "enable flags", [](auto){return true;});
   }
 
   std::optional<std::vector<bool>> pwms() const

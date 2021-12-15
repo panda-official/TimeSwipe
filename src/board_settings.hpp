@@ -103,7 +103,7 @@ public:
    * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @warning This setting can be applied with Driver::set_board_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_enabled()`.
    *
    * @see channel_measurement_modes().
    */
@@ -125,7 +125,7 @@ public:
    * `values` must be in range `[Driver::instance().min_channel_gain(), Driver::instance().max_channel_gain()]`.
    *
    * @warning This setting can be applied with Driver::set_board_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_enabled()`.
    *
    * @see channel_gains().
    */
@@ -146,7 +146,7 @@ public:
    * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @warning This setting can be applied with Driver::set_board_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_enabled()`.
    *
    * @see channel_iepes().
    */
@@ -171,7 +171,7 @@ public:
   /// @{
 
   /**
-   * @brief Sets start-flags for all PWM generators.
+   * @brief Sets enable-flags for all PWM generators.
    *
    * @details PWM generator `i` will run for
    * `(pwm_repeat_counts()[i] / pwm_frequencies()[i])` seconds and then stop.
@@ -184,7 +184,7 @@ public:
   Board_settings& set_pwms(const std::vector<bool>& values);
 
   /**
-   * @returns Start-flag of all PWMs, or `std::nullopt` if it's
+   * @returns Enable-flag of all PWMs, or `std::nullopt` if it's
    * not available for at least one PWM.
    *
    * @see set_pwms().
