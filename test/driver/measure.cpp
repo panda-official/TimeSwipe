@@ -85,7 +85,7 @@ try {
     std::ofstream log_file;
     std::ofstream elog_file;
 
-    driver.enable_measurement([
+    driver.start_measurement([
         logs_ready = false, &log_file, &elog_file,
         i = 0u, count,
         d = Dur{}, delta = duration_cast<Dur>(seconds{1}) / frequency, duration = duration_cast<Dur>(duration),
@@ -137,7 +137,7 @@ try {
 
     std::unique_lock lk{finished_mutex};
     finish.wait(lk, [&finished]{ return finished; });
-    driver.disable_measurement();
+    driver.stop_measurement();
   }
 
   // Cleanup.

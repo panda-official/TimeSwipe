@@ -103,7 +103,7 @@ public:
    * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @warning This setting can be applied with Driver::set_board_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see channel_measurement_modes().
    */
@@ -125,7 +125,7 @@ public:
    * `values` must be in range `[Driver::instance().min_channel_gain(), Driver::instance().max_channel_gain()]`.
    *
    * @warning This setting can be applied with Driver::set_board_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see channel_gains().
    */
@@ -146,7 +146,7 @@ public:
    * `(values.size() == Driver::instance().max_channel_count())`.
    *
    * @warning This setting can be applied with Driver::set_board_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see channel_iepes().
    */
@@ -171,7 +171,7 @@ public:
   /// @{
 
   /**
-   * @brief Sets enable-flags for all PWM generators.
+   * @brief Sets start-flags for all PWM generators.
    *
    * @details PWM generator `i` will run for
    * `(pwm_repeat_counts()[i] / pwm_frequencies()[i])` seconds and then stop.

@@ -45,8 +45,8 @@ enum class Errc {
   board_settings_invalid = 10011,
   /// At least one of the board settings insufficient.
   board_settings_insufficient = 10021,
-  /// Board measurement mode is enabled.
-  board_measurement_enabled = 10111,
+  /// Board measurement mode is started.
+  board_measurement_started = 10111,
 
   /// Driver doesn't initialized.
   driver_not_initialized = 20011,
@@ -89,8 +89,8 @@ constexpr const char* to_literal(const Errc errc) noexcept
     return "board_settings_invalid";
   case Errc::board_settings_insufficient:
     return "board_settings_insufficient";
-  case Errc::board_measurement_enabled:
-    return "board_measurement_enabled";
+  case Errc::board_measurement_started:
+    return "board_measurement_started";
 
   case Errc::driver_not_initialized:
     return "driver_not_initialized";

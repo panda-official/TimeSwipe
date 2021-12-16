@@ -102,7 +102,7 @@ public:
    * performance of the resampling.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see sample_rate(), Driver::min_sample_rate(), Driver::max_sample_rate().
    */
@@ -130,7 +130,7 @@ public:
    * Driver::Data_handler.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see burst_buffer_size().
    */
@@ -157,7 +157,7 @@ public:
    * Driver::Data_handler.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see frequency().
    */
@@ -195,7 +195,7 @@ public:
    * @returns The reference to this instance.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see translation_offsets().
    */
@@ -217,7 +217,7 @@ public:
    * @returns The reference to this instance.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_enabled()`.
+   * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see translation_slopes().
    */
