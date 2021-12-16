@@ -41,7 +41,7 @@ public:
   /**
    * @brief Sets the raw value (native for the ADC/DAC chip or board).
    *
-   * @details If the `value` is out of range `[0, max_raw_]` it will
+   * @details If the `value` is out of range `[min_raw_, max_raw_]` it will
    * be narrowed by the edge of that range.
    */
   void SetRawBinVal(const int value) noexcept

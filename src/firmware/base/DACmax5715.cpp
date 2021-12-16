@@ -15,7 +15,9 @@ CDac5715sa::CDac5715sa(CSPI *pBus, std::shared_ptr<Pin> pCS, typeDac5715chan nCh
     m_pCS=pCS;
     m_chan=nChan;
 
-    //! setup the raw-binary range and user defined user range
+    /*
+     * Note: in fact, the defined raw range is [0, 4095] (per datasheet).
+     */
     set_raw_range(120, 3904); // 120 - 24V, 3904 - 2.5V
     SetRawOutput(3904); // 2.5V by default
 }
