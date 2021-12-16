@@ -64,13 +64,11 @@ public:
     /*!
      * \brief The class constructor
      * \param nChan The channel ID(index) of SAME54 DAC
-     * \param RangeMin Minimum range in the real units (V, A, etc)
-     * \param RangeMax Maximum range in the real measurement units (V, A, etc)
      * \details The constructor does the following:
      * 1) setups corresponding PINs and its multiplexing
      * 2) enables communication bus with SAME54 DACs
      * 3) connects available clock generator via CSom CLK service
      * 4) performs final tuning and enables the DAC
      */
-    CSamDACcntr(typeSamDAC nChan, float RangeMin, float RangeMax);
+    explicit CSamDACcntr(typeSamDAC nChan);
 };

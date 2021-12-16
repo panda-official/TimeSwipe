@@ -28,136 +28,80 @@
  * example, `[-10, +10]` Volts.
  */
 class CADchan {
-protected:
-  /// Proportional convertion factor k: Raw = Real*k + b.
-  float m_k{};
-
-  /// Zero offset: Raw = Real*k + b.
-  float m_b{};
-
-  /// The range of the chip in discrets(raw-binary fromat).
-  int m_IntRange{}; // ADCrange
-
-  /// The minimum range of the channel in real units (V, a, mA...).
-  float m_RangeMin{};
-
-  /// The maximum range of the channel in real units (V, a, mA...).
-  float m_RangeMax{};
-
-  /// An actual value of the channel in the raw-binary format (native chip format).
-  int m_Raw{};
-
-  /// @returns A valid raw value in range `[0, m_IntRange]`.
-  int ValidRaw(const int value) const noexcept
-  {
-    return value < 0 ? 0 : value > m_IntRange ? m_IntRange : value;
-  }
-
-  /// @returns A valid real value in range `[m_RangeMin, m_RangeMax]`.
-  float ValidReal(const float value) const noexcept
-  {
-    return value < m_RangeMin ? m_RangeMin : value > m_RangeMax ? m_RangeMax : value;
-  }
-
-  /**
-   * @brief Conversion from raw value (native for the ADC/DAC chip or
-   * board) to real units value.
-   *
-   * @param value The value in a raw-binary format.
-   *
-   * @return Real value in defined units.
-   */
-  float RawToReal(const int value) const noexcept
-  {
-    return (ValidRaw(value) - m_b) / m_k;
-  }
-
-  /**
-   * @brief Conversion from real value to raw value (native for the
-   * ADC/DAC chip or board).
-   *
-   * @param value The value in a real units.
-   *
-   * @return Raw-binary value.
-   */
-  int RealToRaw(const float value) const noexcept
-  {
-    return ValidReal(value) * m_k + m_b;
-  }
-
 public:
   /// The destructor.
   virtual ~CADchan() = default;
 
-  /// The default constructor.
-  CADchan() noexcept
-  {
-    SetRange(0, 1);
-  }
-
-  /// @returns An actual measured/controlled value in real units.
-  float GetRealVal() const noexcept
-  {
-    return RawToReal(m_Raw);
-  }
-
-  /// @returns A value measured by the channel's ADC in raw binary format.
+  /// @returns The raw value.
   int GetRawBinVal() const noexcept
   {
-    return m_Raw;
+    return raw_;
   }
 
   /**
-   * Sets the actual measured/controlled `value` in real units. If the `value`
-   * is not in range `[m_RangeMin, m_RangeMax]` it will be adjusted to the
-   * nearest border of that range.
+   * @brief Sets the raw value (native for the ADC/DAC chip or board).
+   *
+   * @details If the `value` is out of range `[0, max_raw_]` it will
+   * be narrowed by the edge of that range.
+   */
+  void SetRawBinVal(const int value) noexcept
+  {
+    raw_ = valid_raw(value);
+  }
+
+  /// @returns The result of conversion from GetRawBinVal() to a value in real units.
+  float GetRealVal() const noexcept
+  {
+    return (raw_ - b_) / k_;
+  }
+
+  /**
+   * @brief Sets the `value` in real units.
+   *
+   * @details `raw = value*k + b`.
    */
   void SetRealVal(const float value) noexcept
   {
-    m_Raw = RealToRaw(ValidReal(value));
-  }
-
-  /// Sets the actual measured/controlled value in raw-binary format.
-  void SetRawBinVal(const int value) noexcept
-  {
-    m_Raw = ValidRaw(value);
-  }
-
-  /**
-   * @brief Gets the real value range.
-   *
-   * @param min Minimum range.
-   * @param max Maximum range.
-   */
-  void GetRange(float& min, float& max) noexcept
-  {
-    min = m_RangeMin;
-    max = m_RangeMax;
-  }
-
-  /**
-   * @brief Sets the real value range.
-   *
-   * @param min Minimum range.
-   * @param max Maximum range.
-   */
-  void SetRange(const float min, const float max) noexcept
-  {
-    const auto old_real{GetRealVal()};
-    m_RangeMin = min;
-    m_RangeMax = max;
-    // Update the stored value according to new range.
-    SetRealVal(old_real);
+    SetRawBinVal(value * k_ + b_);
   }
 
   /// Sets the conversion factors directly.
   void SetLinearFactors(const float k, const float b) noexcept
   {
-    const auto old_real{GetRealVal()};
-    m_k = k;
-    m_b = b;
-    // Update the stored value according to new coefs.
-    SetRealVal(old_real);
+    const auto real = GetRealVal();
+    k_ = k;
+    b_ = b;
+    // Update the raw value by using current real and the new coefs.
+    SetRealVal(real);
+  }
+
+protected:
+  void set_raw_range(const int min_raw, const int max_raw)
+  {
+    min_raw_ = min_raw;
+    max_raw_ = max_raw;
+  }
+
+private:
+  /// Proportional convertion factor.
+  float k_{1};
+
+  /// Zero offset.
+  float b_{};
+
+  /// An actual value of the channel in the raw-binary format (native chip format).
+  int raw_{};
+
+  /// The minumum raw value of the chip in discrets (raw-binary fromat).
+  int min_raw_{};
+
+  /// The maximum raw value of the chip in discrets (raw-binary fromat).
+  int max_raw_{};
+
+  /// @returns A valid raw value in range `[0, max_raw_]`.
+  int valid_raw(const int value) const noexcept
+  {
+    return value < min_raw_ ? min_raw_ : value > max_raw_ ? max_raw_ : value;
   }
 };
 

@@ -104,11 +104,9 @@ public:
      * \param pCont A pointer to the ADC board (channel container)
      * \param posIN A positive input for this channel
      * \param negIN A negative input for this channel (can be none=only positive mode)
-     * \param RangeMin Minimum range in the real measurement units (V, A, etc)
-     * \param RangeMax Maximum range in the real measurement units (V, A, etc)
      * \param AutoUpd auto updation flag: true=channel will be updated(measured) by the container Update function, false=channel is responsible for its updation
      */
-    CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax, bool bAutoUpd=true);
+    CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, bool bAutoUpd=true);
 
     /*!
      * \brief The class virtual destructor

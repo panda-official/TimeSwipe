@@ -17,12 +17,10 @@ Copyright (c) 2019 Panda Team
 
 bool   CSamDACcntr::m_bInitialized=false;
 
-CSamDACcntr::CSamDACcntr(typeSamDAC nChan, float RangeMin, float RangeMax)
+CSamDACcntr::CSamDACcntr(typeSamDAC nChan)
 {
     m_chan=nChan;
-    m_IntRange=4095;
-    SetRange(RangeMin, RangeMax);
-
+    set_raw_range(0, 4095);
     common_init();
 }
 

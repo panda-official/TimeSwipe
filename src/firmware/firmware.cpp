@@ -195,20 +195,20 @@ int main()
 
     auto pSamADC0 = std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
     std::shared_ptr<CSamADCchan> pADC[]={
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none, 0.0f, 4095.0f),
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN3, typeSamADCmuxneg::none, 0.0f, 4095.0f),
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN6, typeSamADCmuxneg::none, 0.0f, 4095.0f),
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none, 0.0f, 4095.0f)};
+      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none),
+      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN3, typeSamADCmuxneg::none),
+      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN6, typeSamADCmuxneg::none),
+      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none)};
 
     CSamQSPI objQSPI;
     std::shared_ptr<CDac5715sa> pDAC[]={
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACA, 0.0f, 4095.0f),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACB, 0.0f, 4095.0f),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACC, 0.0f, 4095.0f),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACD, 0.0f, 4095.0f)};
+      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACA),
+      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACB),
+      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACC),
+      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACD)};
 
-    auto pSamDAC0=std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
-    auto pSamDAC1=std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
+    auto pSamDAC0=std::make_shared<CSamDACcntr>(typeSamDAC::Dac0);
+    auto pSamDAC1=std::make_shared<CSamDACcntr>(typeSamDAC::Dac1);
     pSamDAC0->SetRawBinVal(2048);
     pSamDAC1->SetRawBinVal(2048);
 
@@ -237,9 +237,10 @@ int main()
     pDisp->Add("DACsw", std::make_shared<CCmdSGHandler<bool>>(
         pDAConPin,
         &Pin::read_back,
-        &Pin::write) );
+        &Pin::write));
 
     //2nd step:
+    std::shared_ptr<CDac5715sa> voltage_dac;
     if constexpr (board_type == Board_type::dms) {
       auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1);
       pCS1->set_inverted(true);
@@ -253,17 +254,15 @@ int main()
       pInaSpiCSpin->set_inverted(true);
       pInaSpiCSpin->write(false);
 
-      auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
-      // #ifdef CALIBRATION_STATION
-      // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
-      // #endif
-      pDAC2A->SetVal(0);
-      board->set_voltage_dac(pDAC2A);
+      voltage_dac = std::make_shared<CDac5715sa>(&objQSPI,
+        pCS1,
+        typeDac5715chan::DACA);
+      board->set_voltage_dac(voltage_dac);
 
 #ifdef CALIBRATION_STATION
       //ability to control VSUP dac raw value:
       pDisp->Add("VSUP.raw", std::make_shared<CCmdSGHandler<int>>(
-          pDAC2A,
+          voltage_dac,
           &CDac::GetRawBinVal,
           &CDac::SetRawOutput));
 #endif

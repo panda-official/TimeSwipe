@@ -18,13 +18,12 @@ Copyright (c) 2019 Panda Team
 #define GCLK_ADC1   41
 
 
-CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax, bool bAutoUpd)
+CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, bool bAutoUpd)
 {
     m_pCont=pCont;
     m_posIN=posIN;
     m_negIN=negIN;
-    m_IntRange=4095;
-    SetRange(RangeMin, RangeMax);
+    set_raw_range(0, 4095);
 
     if(bAutoUpd)
     {

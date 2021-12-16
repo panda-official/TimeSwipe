@@ -28,7 +28,7 @@ enum class typeDac5715chan : int
 
 #include "../../spi.hpp"
 #include "../pin.hpp"
-#include "adcdac.hpp"
+#include "../adcdac.hpp"
 
 /*!
  * \brief The CDac5715sa class implements MAX5715 DAC's channel functionality
@@ -74,9 +74,6 @@ public:
      * \brief CDac5715sa class constructor
      * \param pBus      -a pointer to a SPI bus
      * \param nChan     -a DAC channel to control
-     * \param RangeMin  -a channel range minimum value in user defined units (Volts, Amperes, e.t.c)
-     * \param RangeMax  -a channel range maximum value in user defined units (Volts, Amperes, e.t.c)
      */
-    CDac5715sa(CSPI *pBus, std::shared_ptr<Pin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax);
-     //   virtual ~CDac5715sa(){} //just to keep polymorphic behaviour, should be never called
+    CDac5715sa(CSPI *pBus, std::shared_ptr<Pin> pCS, typeDac5715chan nChan);
 };

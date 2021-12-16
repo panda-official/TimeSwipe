@@ -12,8 +12,8 @@ Copyright (c) 2019-2020 Panda Team
 #include <sam.h>
 
 CSamTempSensor::CSamTempSensor(std::shared_ptr<CSamADCcntr> &pCont) :
-    m_VTP(pCont, typeSamADCmuxpos::PTAT, typeSamADCmuxneg::none, 0.0f, 2.5f, false),
-    m_VTC(pCont, typeSamADCmuxpos::CTAT, typeSamADCmuxneg::none, 0.0f, 2.5f, false)
+    m_VTP(pCont, typeSamADCmuxpos::PTAT, typeSamADCmuxneg::none, false),
+    m_VTC(pCont, typeSamADCmuxpos::CTAT, typeSamADCmuxneg::none, false)
 {
     //get data from NVM Software Calibration Area and cash them:
     struct NVMscpage *pNVMpage=(NVMscpage *)NVMCTRL_SW0; //addr

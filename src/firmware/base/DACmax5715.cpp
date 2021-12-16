@@ -9,19 +9,19 @@ Copyright (c) 2019 Panda Team
 #include "../os.h"
 #include "DACmax5715.h"
 
-CDac5715sa::CDac5715sa(CSPI *pBus, std::shared_ptr<Pin> pCS, typeDac5715chan nChan, float RangeMin, float RangeMax)
+CDac5715sa::CDac5715sa(CSPI *pBus, std::shared_ptr<Pin> pCS, typeDac5715chan nChan)
 {
     m_pBus=pBus;
     m_pCS=pCS;
     m_chan=nChan;
 
     //! setup the raw-binary range and user defined user range
-    m_IntRange=4095;
-    SetRange(RangeMin, RangeMax);
+    set_raw_range(120, 3904); // 120 - 24V, 3904 - 2.5V
+    SetRawOutput(3904); // 2.5V by default
 }
 
 //driver function:
-void CDac5715sa::DriverSetVal(float val, int out_bin)
+void CDac5715sa::DriverSetVal(float, const int out_bin)
 {
     /*!
      * m_pBus->set_phpol(false, true);
