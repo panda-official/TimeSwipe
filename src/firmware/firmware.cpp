@@ -515,7 +515,7 @@ int main()
      * storage handling which is currently broken!
      */
     // board->import_settings();
-    board->set_measurement_mode(0); //set default mode
+    // board->set_measurement_mode(0); FIXME: remove. This is obsolete.
 #ifndef CALIBRATION_STATION
     view.BlinkAtStart();
 #endif
