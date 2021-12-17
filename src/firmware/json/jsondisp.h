@@ -74,14 +74,13 @@ public:
      * \brief The class constructor
      * \param pDisp A pointer to a command dispatcher
      */
-    CJSONDispatcher(const std::shared_ptr<CCmdDispatcher> &pDisp){
-        m_pDisp=pDisp;
-
-        //m_SubHandlersMap.emplace("cAtom", &CJSONDispatcher::procCAtom);
+    CJSONDispatcher(const std::shared_ptr<CCmdDispatcher>& pDisp)
+    {
+      m_pDisp=pDisp;
     }
 
-    void AddSubHandler(std::string strName, typeSubHandler SubHandler){
-
-        m_SubHandlersMap.emplace(strName, SubHandler);
+    void AddSubHandler(std::string strName, typeSubHandler SubHandler)
+    {
+      m_SubHandlersMap.emplace(strName, SubHandler);
     }
 };

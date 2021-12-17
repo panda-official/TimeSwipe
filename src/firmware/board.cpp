@@ -115,42 +115,54 @@ void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
     hat::Calibration_map map;
 
     //load existing atom
-    if (!get_calibration_data(map, err))
+    if (!get_calibration_data(map, err)) {
+      err = "cannot read current calibration data";
       return false;
+    }
+
+    if (!req.IsObject() || req.FindMember("cAtom") == req.MemberEnd()) {
+      err = "request is not cAtom object";
+      return false;
+    }
 
     const auto catom = req["cAtom"].GetUint();
     const auto type = hat::atom::Calibration::to_type(catom, err);
-    if (!err.empty()) return false;
+    if (!err.empty())
+      return false;
 
     const auto cal_entry_count = map.atom(type).entry_count();
 
-    if(CCmdCallDescr::ctype::ctSet==ct)
-      {
+    if (ct == CCmdCallDescr::ctype::ctSet) {
 #ifndef CALIBRATION_STATION
-        err="calibration setting is prohibited!";
-        return false;
+      err = "calibration setting is prohibited";
+      return false;
 #endif
 
-        auto& data = req["data"];
-        const auto data_size = data.Size();
-        if (data_size > cal_entry_count) {
-          err = "wrong data count";
-          return false;
-        }
-
-        for (std::size_t i{}; i < data_size; ++i) {
-          const auto& el = data[i];
-          auto entry = map.atom(type).entry(i);
-          if (const auto it = el.FindMember("m"); it != el.MemberEnd())
-            entry.set_slope(it->value.GetFloat());
-          if (const auto it = el.FindMember("b"); it != el.MemberEnd())
-            entry.set_offset(it->value.GetInt());
-          map.atom(type).set_entry(i, std::move(entry));
-        }
-
-        // Save the calibration map.
-        if (!set_calibration_data(map, err)) return false;
+      if (req.FindMember("data") == req.MemberEnd()) {
+        err = "cAtom object doesn't contains the data member";
+        return false;
       }
+
+      auto& data = req["data"];
+      const auto data_size = data.Size();
+      if (data_size > cal_entry_count) {
+        err = "wrong data count in request";
+        return false;
+      }
+
+      for (std::size_t i{}; i < data_size; ++i) {
+        const auto& el = data[i];
+        auto entry = map.atom(type).entry(i);
+        if (const auto it = el.FindMember("m"); it != el.MemberEnd())
+          entry.set_slope(it->value.GetFloat());
+        if (const auto it = el.FindMember("b"); it != el.MemberEnd())
+          entry.set_offset(it->value.GetInt());
+        map.atom(type).set_entry(i, std::move(entry));
+      }
+
+      // Save the calibration map.
+      if (!set_calibration_data(map, err)) return false;
+    }
 
     // Generate data member of the response.
     auto& alloc = res.GetAllocator();
