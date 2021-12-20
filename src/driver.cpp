@@ -233,9 +233,9 @@ public:
     return *this;
   }
 
-  const Board_settings& board_settings() const override
+  Board_settings board_settings() const override
   {
-    return board_settings_ = Board_settings{spi_.execute_get_many("")};
+    return Board_settings{spi_.execute_get_many("")};
   }
 
   iDriver& set_driver_settings(const Driver_settings& settings) override
@@ -540,7 +540,6 @@ private:
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
   hat::Calibration_map calibration_map_;
-  mutable Board_settings board_settings_;
   Driver_settings driver_settings_;
   std::unique_ptr<Resampler> resampler_;
 

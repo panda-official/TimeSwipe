@@ -159,7 +159,7 @@ public:
    *
    * @see set_board_settings().
    */
-  virtual const Board_settings& board_settings() const = 0;
+  virtual Board_settings board_settings() const = 0;
 
   /**
    * @brief Sets the driver-level settings.
