@@ -24,10 +24,10 @@ This access point is used for setting offset on the input signal for each channe
 by controlling the input signal amplifier. The access point consists of two domain
 names.
 
-|Domain|Description                                            |Valid values  |Access|
-|:-----|:------------------------------------------------------|:-------------|:-----|
-|root  |Can be used only with `.raw`.                          |              |      |
-|.raw  |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |
+|Domain|Description                                            |Valid values  |Access|Default|
+|:-----|:------------------------------------------------------|:-------------|:-----|:------|
+|root  |Can be used only with `.raw`.                          |              |      |       |
+|.raw  |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |2048   |
 
 #### Synopsis
 
@@ -42,10 +42,10 @@ The mode is activated by setting `DACsw` to `1`. Amplifier outputs `#3` and `#4`
 be disconnected and replaced by internal 2-channel DAC output. To control analog output
 values `#3` and `#4` in this mode additional access points are presented.
 
-|Domain|Description                                            |Valid values  |Access|
-|:-----|:------------------------------------------------------|:-------------|:-----|
-|root  |Can be used only with `.raw`                           |              |      |
-|.raw  |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |
+|Domain|Description                                            |Valid values  |Access|Default|
+|:-----|:------------------------------------------------------|:-------------|:-----|:------|
+|root  |Can be used only with `.raw`.                          |              |      |       |
+|.raw  |Holds an analog output setpoint in a raw binary format.|int `[0,4095]`|r/w   |2048   |
 
 #### Synopsis
 
@@ -55,10 +55,10 @@ values `#3` and `#4` in this mode additional access points are presented.
 
 This access point is used to control board's ADCs and consists of two domain names.
 
-|Domain|Description                                        |Valid values  |Access|
-|:-----|:--------------------------------------------------|:-------------|:-----|
-|root  |Can be used only with `.raw`.                      |              |      |
-|.raw  |Holds an ADC measured value in a raw binary format.|int `[0,4095]`|r     |
+|Domain|Description                                        |Valid values  |Access|Default|
+|:-----|:--------------------------------------------------|:-------------|:-----|:------|
+|root  |Can be used only with `.raw`.                      |              |      |       |
+|.raw  |Holds an ADC measured value in a raw binary format.|int `[0,4095]`|r     |       |
 
 #### Synopsis
 
@@ -68,14 +68,14 @@ This access point is used to control board's ADCs and consists of two domain nam
 
 This access point is used to control board's `AOUT3` and `AOUT4` PWMs.
 
-|Domain  |Description                            |Valid values                           |Access|
-|:-------|:--------------------------------------|:--------------------------------------|:-----|
-|root    |Holds the PWMx ON/OFF state.           |bool                                   |r/w   |
-|.repeats|Holds a number of periods to generate. |unsigned `[0,0xffffffff]`, `0`=Infinite|r/w   |
-|.duty   |Holds the PWM duty cycle (pulse width).|float `[0.001,0.999]`                  |r/w   |
-|.freq   |Holds a frequency to generate.         |unsigned `[1,1000]`                    |r/w   |
-|.high   |Holds the high PWM output level.       |unsigned `[0,4095]`                    |r/w   |
-|.low    |Holds the low PWM output level.        |unsigned `[0,4095]`                    |r/w   |
+|Domain  |Description                            |Valid values                           |Access|Default|
+|:-------|:--------------------------------------|:--------------------------------------|:-----|:------|
+|root    |Holds the PWMx ON/OFF state.           |bool                                   |r/w   |`false`|
+|.repeats|Holds a number of periods to generate. |unsigned `[0,0xffffffff]`, `0`=Infinite|r/w   |`0`    |
+|.duty   |Holds the PWM duty cycle (pulse width).|float `[0.001,0.999]`                  |r/w   |`0.5`  |
+|.freq   |Holds a frequency to generate.         |unsigned `[1,1000]`                    |r/w   |`50`   |
+|.high   |Holds the high PWM output level.       |unsigned `[0,4095]`                    |r/w   |`3072` |
+|.low    |Holds the low PWM output level.        |unsigned `[0,4095]`                    |r/w   |`2048` |
 
 #### Synopsis
 
@@ -88,12 +88,12 @@ where `<i>` - is a PWN index in range `[1, 2]`.
 
 This access point is used to control board's channel.
 
-|Domain|Description                                   |Valid values                               |Access|
-|:-----|:---------------------------------------------|:------------------------------------------|:-----|
-|root  |Can be used only with a sub-domain.           |bool                                       |r/w   |
-|.mode |Holds current measurement mode of the channel.|unsigned `0`=Voltage mode, `1`=Current mode|r/w   |
-|.gain |Holds current Gain setting of the channel.    |float `[1/8, 128*1.375]`                   |r/w   |
-|.iepe |Holds the state of IEPE switch of the channel.|bool                                       |r/w   |
+|Domain|Description                                   |Valid values                               |Access|Default|
+|:-----|:---------------------------------------------|:------------------------------------------|:-----|:------|
+|root  |Can be used only with a sub-domain.           |                                           |      |       |
+|.mode |Holds current measurement mode of the channel.|`0`=Voltage mode, `1`=Current mode         |r/w   |`0`    |
+|.gain |Holds current Gain setting of the channel.    |float `[1/8, 128*1.375]`                   |r/w   |`1`    |
+|.iepe |Holds the state of IEPE switch of the channel.|bool                                       |r/w   |`false`|
 
 #### Synopsis
 
@@ -103,11 +103,11 @@ This access point is used to control board's channel.
 
 This access point is used to control board's Fan output.
 
-|Domain|Description                                |Valid values                               |Access|
-|:-----|:------------------------------------------|:------------------------------------------|:-----|
-|root  |Enables or disables Fan globally.          |bool                                       |r/w   |
-|.duty |Holds the Fan PWM duty cycle (pulse width).|float `[.001,.999]`                        |r     |
-|.freq |Holds the Fan PWM frequency.               |unsigned `[1,20000]`                       |r/w   |
+|Domain|Description                                |Valid values                               |Access|Default|
+|:-----|:------------------------------------------|:------------------------------------------|:-----|:------|
+|root  |Enables or disables Fan globally.          |bool                                       |r/w   |`true` |
+|.duty |Holds the Fan PWM duty cycle (pulse width).|float `[.001,.999]`                        |r     |       |
+|.freq |Holds the Fan PWM frequency.               |unsigned `[1,20000]`                       |r/w   |`100`  |
 
 #### Synopsis
 
@@ -115,23 +115,23 @@ This access point is used to control board's Fan output.
 
 ### Access points with only root domain
 
-|Access point |Description |Valid values|Access|
-|:------------|:-----------|:-----------|:-----|
-|Gain         |Holds Gain value.|int `[1,4]`|r/w|
-|Bridge       |Holds Bridge Switch state (ON or OFF).|bool|r/w|
-|Record       |Writing "1" to this variable initiates/restarts a record process.|bool|r/w|
-|Mode         |Sets working mode of the board.|int, `0`=IEPE, `1`=Normal Signal, `2`=Digital|r/w|
-|Offset       |Starts/stops offset searching process.|int, `0`=Stop, `1`=Negative offset, `2`=Zero offset, `3`=Positive offset|r/w|
-|Offset.errtol|Holds a calibration process error tolerance value.|int|r/w|
-|EnableADmes  |Holds an ADC enabled state (ON or OFF).|bool|r/w|
-|DACsw        |Determines the mode of controlling analog outputs `#3`, `#4`.|int, `0`=default (amplified input signal), `1`=manual via `AOUT3`, `AOUT4`|r/w|
-|Temp         |Holds the current core temperature of `SAME54` in degrees Celsius.|float|r|
-|ARMID		  |Holds Hardware Chip ID.|string|r|
-|fwVersion	  |Holds firmware Version in the SemVer format.|string|r|
-|CalStatus    |Holds board calibration status.|bool|r|
-|Voltage      |Holds Output Voltage value (mockup).|float|r/w|
-|Current      |Holds Current Setting (mockup).|float, `0`=MaxCurrent|r/w|
-|MaxCurrent   |Holds MaxCurrent Setting (Current max range, mockup).|float|r/w|
+|Access point       |Description                                                       |Valid values                                                              |Access|Default|
+|:------------------|:-----------------------------------------------------------------|:-------------------------------------------------------------------------|:-----|:------|
+|Gain (deprecated)  |Holds Gain value.                                                 |int `[1,4]`                                                               |r/w   |`1`    |
+|Bridge             |Enable/Disable Output Voltage.                                    |bool                                                                      |r/w   |`false`|
+|Record             |Writing "1" to this variable initiates/restarts a record process. |bool                                                                      |r/w   |`false`|
+|Mode (deprecated)  |Sets working mode of the board.                                   |int, `0`=IEPE, `1`=Normal Signal, `2`=Digital                             |r/w   |`0`    |
+|Offset             |Starts/stops offset searching process.                            |int, `0`=Stop, `1`=Negative offset, `2`=Zero offset, `3`=Positive offset  |r/w   |`0`    |
+|Offset.errtol      |Holds a calibration process error tolerance value.                |int                                                                       |r/w   |`25`   |
+|EnableADmes        |Holds an ADC enabled state.                                       |bool                                                                      |r/w   |`false`|
+|DACsw              |Determines the mode of controlling analog outputs `#3`, `#4`.     |int, `0`=default (amplified input signal), `1`=manual via `AOUT3`, `AOUT4`|r/w   |`0`    |
+|Temp               |Holds the current core temperature of ARM chip in degrees Celsius.|float                                                                     |r     |       |
+|ARMID		          |Holds ARM Chip UUID.                                              |string                                                                    |r     |       |
+|fwVersion	        |Holds firmware Version in the SemVer format.                      |string                                                                    |r     |       |
+|CalStatus          |Holds board calibration status.                                   |bool                                                                      |r     |`false`|
+|Voltage            |Holds Output Voltage value.                                       |float `[2.5,24]`                                                          |r/w   |`2.5`  |
+|Current (mockup)   |Holds Current Setting.                                            |float, `0`=MaxCurrent                                                     |r/w   |       |
+|MaxCurrent(mockup) |Holds MaxCurrent Setting.                                         |float                                                                     |r/w   |       |
 
 ### JSON controlled access points
 
