@@ -22,7 +22,7 @@
 
 Board::Board()
 #ifndef CALIBRATION_STATION
-  : is_calibration_data_enabled_{true};
+  : is_calibration_data_enabled_{true}
 #endif
 {
   channels_.reserve(4);

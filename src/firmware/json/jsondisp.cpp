@@ -95,6 +95,7 @@ void CJSONDispatcher::Call(rapidjson::Value& jObj,
   {
     using Value = rapidjson::Value;
 
+    // Get key string.
     if (!key.IsString()) {
       resp_root.AddMember("unresolved", Value{}, alloc);
       set_error(jResp, resp_root["unresolved"], "unresolved reference", key);
@@ -102,14 +103,12 @@ void CJSONDispatcher::Call(rapidjson::Value& jObj,
     }
     const std::string key_str = key.GetString();
 
-    //is it a protocol extension?
+    // If the key references a subhandler, then call it.
     const auto pSubHandler = m_SubHandlersMap.find(key_str);
     if (pSubHandler != m_SubHandlersMap.end()) {
-      //exec handler:
       typeSubHandler pHandler = pSubHandler->second;
-      //(this->*pHandler)(jObj, jResp, ct);
       pHandler(jObj, jResp, ct);
-      return false; // exit Call()
+      return false; // done
     }
 
     // Check the end of possible recursion.
