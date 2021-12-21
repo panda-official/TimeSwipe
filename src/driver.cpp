@@ -130,41 +130,6 @@ public:
       is_gpio_inited_ = true;
     }
 
-    // Get the calibration data.
-    calibration_map_ = [this]
-    {
-      using Ct = hat::atom::Calibration::Type;
-      hat::Calibration_map result;
-      for (const auto ct :
-             {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
-              Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4}) {
-        const auto settings_request = R"({"cAtom":)" +
-          std::to_string(static_cast<int>(ct)) + R"(})";
-        const auto json_obj = spi_.execute_get_many(settings_request);
-        const auto doc = rajson::to_document(json_obj);
-        const rajson::Value_view doc_view{doc};
-        const auto doc_cal_entries = doc_view.mandatory("data");
-        if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
-          auto& atom = result.atom(ct);
-          const auto cal_entries = v.GetArray();
-          const auto cal_entries_size = cal_entries.Size();
-          for (std::decay_t<decltype(cal_entries_size)> i{}; i < cal_entries_size; ++i) {
-            const rajson::Value_view cal_entry{cal_entries[i]};
-            if (!cal_entry.value().IsObject())
-              throw Exception{Errc::board_settings_calibration_data_invalid,
-                "cannot use invalid calibration atom entry"};
-            const auto slope = cal_entry.mandatory<float>("m");
-            const auto offset = cal_entry.mandatory<std::int16_t>("b");
-            const hat::atom::Calibration::Entry entry{slope, offset};
-            atom.set_entry(i, entry);
-          }
-        } else
-          throw Exception{Errc::board_settings_calibration_data_invalid,
-            "cannot use invalid calibration data"};
-      }
-      return result;
-    }();
-
     is_initialized_ = true;
     return *this;
   }
@@ -254,10 +219,10 @@ public:
           throw_exception("cannot use calibration atom: not JSON object");
 
         if (const auto ctype = catom.FindMember("cAtom"); ctype != catom.MemberEnd()) {
-          using detail::hat::atom::Calibration;
+          using hat::atom::Calibration;
           if (!ctype->value.IsUint())
             throw_exception("cannot use invalid \"cAtom\" member of calibration atom");
-          else if (!Calibration::to_literal(
+          else if (!to_literal(
               Calibration::Type{static_cast<std::uint16_t>(ctype->value.GetUint())}))
             throw_exception("cannot use invalid \"cAtom\" member of calibration atom");
         } else
@@ -307,7 +272,9 @@ public:
     /// @returns RapidJSON object with basic settings.
     const auto basic_settings = [this]
     {
-      return rajson::to_document(spi_.execute_get_many(""));
+      auto result = rajson::to_document(spi_.execute_get_many(""));
+      PANDA_TIMESWIPE_ASSERT(result.IsObject());
+      return result;
     };
 
     /// @returns RapidJSON array with calibration map.
@@ -321,26 +288,11 @@ public:
 
       rapidjson::Value result{rapidjson::kArrayType};
       result.Reserve(atom_types.size(), alloc);
-      auto result_array = result.GetArray();
       for (const auto ct : atom_types) {
         const auto settings_request = R"({"cAtom":)" +
           std::to_string(static_cast<int>(ct)) + R"(})";
         const auto json_obj = spi_.execute_get_many(settings_request);
-        auto doc = rajson::to_document(json_obj);
-        const rajson::Value_view doc_view{doc};
-        const auto doc_cal_entries = doc_view.mandatory("data");
-        if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
-          const auto cal_entries = v.GetArray();
-          const auto cal_entries_size = cal_entries.Size();
-          for (std::decay_t<decltype(cal_entries_size)> i{}; i < cal_entries_size; ++i) {
-            const rajson::Value_view cal_entry{cal_entries[i]};
-            if (!cal_entry.value().IsObject())
-              throw Exception{Errc::board_settings_calibration_data_invalid,
-                "invalid calibration atom entry"};
-          }
-        } else
-          throw Exception{Errc::board_settings_calibration_data_invalid,
-            "invalid calibration data"};
+        const auto doc = rajson::to_document(json_obj);
         result.PushBack(rapidjson::Value{doc, alloc}, alloc);
       }
       return result;
@@ -349,10 +301,7 @@ public:
     if (criteria.empty() || criteria == "all") {
       auto result = basic_settings();
       auto& alloc = result.GetAllocator();
-      PANDA_TIMESWIPE_ASSERT(result.IsObject());
-      auto calib = calibration_settings(alloc);
-      PANDA_TIMESWIPE_ASSERT(calib.IsArray());
-      result.AddMember("calibration", std::move(calib), alloc);
+      result.AddMember("calibration", calibration_settings(alloc), alloc);
       return Board_settings{rajson::to_text(result)};
     } else if (criteria == "calibration") {
       rapidjson::Document result{rapidjson::kObjectType};
@@ -412,7 +361,58 @@ public:
       throw Exception{Errc::driver_not_initialized,
         "cannot start measurement while driver isn't initialized"};
 
+    /// @returns The calibration map from board settings.
+    static const auto calibration_map = [](const Board_settings& bs)
+    {
+      using hat::atom::Calibration;
+      hat::Calibration_map result;
+      const auto& doc = bs.rep_->doc();
+      const auto calib = doc.FindMember("calibration");
+      PANDA_TIMESWIPE_ASSERT(calib != doc.MemberEnd());
+      try {
+        for (const auto& catom : calib->value.GetArray()) {
+          rajson::Value_view catom_view{catom};
+
+          // Get the calibration atom type.
+          const auto ctype = catom_view.mandatory<Calibration::Type>("cAtom");
+
+          // Check that data member is array.
+          const auto& catom_data_view = catom_view.mandatory("data");
+          if (!catom_data_view.value().IsArray())
+            throw Exception{"data member is not array"};
+
+          // Get the data array and ensure it has a proper size.
+          const auto& catom_data = catom_data_view.value().GetArray();
+          const auto catom_data_size = catom_data.Size();
+          if (catom_data_size != result.atom_count())
+            throw Exception{"invalid data member size"};
+
+          // Extract each entry with slope and offset from the data array.
+          for (std::decay_t<decltype(catom_data_size)> i{}; i < catom_data_size; ++i) {
+            const auto& catom_data_entry = catom_data[i];
+            if (!catom_data_entry.IsObject())
+              throw Exception{"data entry is not object"};
+
+            rajson::Value_view catom_data_entry_view{catom_data_entry};
+            const auto slope = catom_data_entry_view.mandatory<float>("m");
+            const auto offset = catom_data_entry_view.mandatory<std::int16_t>("b");
+            const Calibration::Entry entry{slope, offset};
+            result.atom(ctype).set_entry(i, entry);
+          }
+        }
+      } catch (const std::exception& e) {
+        throw Exception{Errc::board_settings_calibration_data_invalid,
+            std::string{"cannot use calibration data: "}.append(e.what())};
+      } catch (...) {
+        throw Exception{Errc::board_settings_calibration_data_invalid,
+            "cannot use calibration data: unknown error"};
+      }
+
+      return result;
+    };
+
     const auto bs = board_settings();
+    const auto calib = calibration_map(bs);
     const auto gains = bs.channel_gains();
     const auto modes = bs.channel_measurement_modes();
     const auto srate = driver_settings().sample_rate();
@@ -446,7 +446,7 @@ public:
       constexpr Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
       constexpr Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
       const auto& types = (mode == Measurement_mode::voltage) ? v_types : c_types;
-      const auto& atom = calibration_map_.atom(types[i]);
+      const auto& atom = calib.atom(types[i]);
       const auto ogain_index = gain::ogain_table_index(gain);
       PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
       new_calibration_slopes[i] = atom.entry(ogain_index).slope();
@@ -668,7 +668,6 @@ private:
   std::vector<float> calibration_slopes_;
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
-  hat::Calibration_map calibration_map_;
   Driver_settings driver_settings_;
   std::unique_ptr<Resampler> resampler_;
 

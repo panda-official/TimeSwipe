@@ -334,6 +334,48 @@ private:
   }
 };
 
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Calibration atom type.
+ *
+ * @warning Must be std::uint16_t.
+ */
+enum class Calibration_type : std::uint16_t {
+  v_in1    = 0x0001,
+  v_in2    = 0x0002,
+  v_in3    = 0x0003,
+  v_in4    = 0x0004,
+  v_supply = 0x0005,
+  c_in1    = 0x0006,
+  c_in2    = 0x0007,
+  c_in3    = 0x0008,
+  c_in4    = 0x0009,
+  ana_out  = 0x000A
+};
+
+/**
+ * @returns A literal that represents the `value`, or `nullptr` if `value`
+ * doesn't matches to any member of enum.
+ */
+constexpr const char* to_literal(const Calibration_type value)
+{
+  using Type = Calibration_type;
+  switch (value) {
+  case Type::v_in1: return "v_in1";
+  case Type::v_in2: return "v_in2";
+  case Type::v_in3: return "v_in3";
+  case Type::v_in4: return "v_in4";
+  case Type::v_supply: return "v_supply";
+  case Type::c_in1: return "c_in1";
+  case Type::c_in2: return "c_in2";
+  case Type::c_in3: return "c_in3";
+  case Type::c_in4: return "c_in4";
+  case Type::ana_out: return "ana_out";
+  }
+  return nullptr;
+}
+
 /// Calibration atom.
 class Calibration final {
 public:
@@ -418,44 +460,8 @@ public:
     std::int16_t offset_{};
   };
 
-  /**
-   * @brief Calibration atom type.
-   *
-   * @warning Must be std::uint16_t.
-   */
-  enum class Type : std::uint16_t {
-    v_in1    = 0x0001,
-    v_in2    = 0x0002,
-    v_in3    = 0x0003,
-    v_in4    = 0x0004,
-    v_supply = 0x0005,
-    c_in1    = 0x0006,
-    c_in2    = 0x0007,
-    c_in3    = 0x0008,
-    c_in4    = 0x0009,
-    ana_out  = 0x000A
-  };
-
-  /**
-   * @returns A literal that represents the `value`, or `nullptr` if `value`
-   * doesn't matches to any member of enum.
-   */
-  static constexpr const char* to_literal(const Type value)
-  {
-    switch (value) {
-    case Type::v_in1: return "v_in1";
-    case Type::v_in2: return "v_in2";
-    case Type::v_in3: return "v_in3";
-    case Type::v_in4: return "v_in4";
-    case Type::v_supply: return "v_supply";
-    case Type::c_in1: return "c_in1";
-    case Type::c_in2: return "c_in2";
-    case Type::c_in3: return "c_in3";
-    case Type::c_in4: return "c_in4";
-    case Type::ana_out: return "ana_out";
-    }
-    return nullptr;
-  }
+  /// Alias of Calibration_type.
+  using Type = Calibration_type;
 
   /**
    * @returns A value of enum type converted from `value`. The returned value
@@ -602,6 +608,12 @@ public:
   atom::Calibration& atom(const atom::Calibration::Type type) noexcept
   {
     return const_cast<atom::Calibration&>(static_cast<const Calibration_map*>(this)->atom(type));
+  }
+
+  /// @returns The number of atoms in this map.
+  std::size_t atom_count() const noexcept
+  {
+    return atoms_.size();
   }
 
 private:

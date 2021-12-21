@@ -21,6 +21,7 @@
 
 #include "basics.hpp"
 #include "error.hpp"
+#include "hat.hpp"
 
 #include "3rdparty/dmitigr/rajson.hpp"
 
@@ -37,6 +38,14 @@ template<> struct Enum_traits<Measurement_mode> final {
   static constexpr const char* singular_name() noexcept
   {
     return "measurement mode";
+  }
+};
+
+/// Full specialization for Measurement_mode.
+template<> struct Enum_traits<hat::atom::Calibration::Type> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "calibration atom type";
   }
 };
 
@@ -71,6 +80,12 @@ namespace dmitigr::rajson {
 template<>
 struct Conversions<panda::timeswipe::Measurement_mode> final :
   panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Measurement_mode>{};
+
+/// Full specialization for `panda::timeswipe::detail::hat::atom::Calibration::Type`.
+template<>
+struct Conversions<panda::timeswipe::detail::hat::atom::Calibration::Type> final :
+  panda::timeswipe::detail::Enum_conversions<
+    panda::timeswipe::detail::hat::atom::Calibration::Type>{};
 
 } // dmitigr::rajson
 
