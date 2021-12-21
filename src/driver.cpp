@@ -35,6 +35,7 @@
 
 #include <boost/lockfree/spsc_queue.hpp>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -70,6 +71,7 @@ public:
     , translation_offsets_(max_channel_count())
     , translation_slopes_(max_channel_count())
     , burst_buffer_(max_channel_count())
+    , allowed_board_settings_(allowed_board_settings())
   {}
 
   iDriver& initialize() override
@@ -198,17 +200,33 @@ public:
           "cannot set board IEPEs when measurement started"};
     }
 
-    const auto throw_exception = [](const char* const msg)
+    const auto throw_exception = [](const std::string& msg)
     {
-      if (msg) throw Exception{Errc::board_settings_invalid, msg};
+      throw Exception{Errc::board_settings_invalid, msg};
     };
+
+    // Copy settings for possible modifications.
+    rapidjson::Document doc;
+    doc.CopyFrom(settings.rep_->doc(), doc.GetAllocator());
+
+    /*
+     * Direct application of some settings (e.g. EnableADmes) are prohibited.
+     * Thus, check that `settings` contains only allowed members.
+     */
+    for (const auto& setting : doc.GetObject()) {
+      const std::string_view name{setting.name.GetString(),
+        setting.name.GetStringLength()};
+      if (none_of(cbegin(allowed_board_settings_), cend(allowed_board_settings_),
+          [name](const auto& allowed){ return allowed == name; }))
+        throw_exception(std::string{"cannot set disallowed board setting"}
+          .append(name));
+    }
 
     /*
      * Set the calibration settings. (It's would be nice to move the following
-     * code to the firmware.)
+     * code to the firmware. dmitigr::rajson isn't used in this code for more
+     * easy movement it to the firmware where exceptions should be avoided.)
      */
-    rapidjson::Document doc;
-    doc.CopyFrom(settings.rep_->doc(), doc.GetAllocator());
     if (const auto calib = doc.FindMember("calibration"); calib != doc.MemberEnd()) {
       if (!calib->value.IsArray())
         throw_exception("cannot set invalid calibration data: not JSON array");
@@ -216,21 +234,21 @@ public:
       // Check array elements (serialized atoms).
       for (const auto& catom : calib->value.GetArray()) {
         if (!catom.IsObject())
-          throw_exception("cannot use calibration atom: not JSON object");
+          throw_exception("cannot set calibration atom: not JSON object");
 
         if (const auto ctype = catom.FindMember("cAtom"); ctype != catom.MemberEnd()) {
           using hat::atom::Calibration;
           if (!ctype->value.IsUint())
-            throw_exception("cannot use invalid \"cAtom\" member of calibration atom");
+            throw_exception("cannot set invalid \"cAtom\" member of calibration atom");
           else if (!to_literal(
               Calibration::Type{static_cast<std::uint16_t>(ctype->value.GetUint())}))
-            throw_exception("cannot use invalid \"cAtom\" member of calibration atom");
+            throw_exception("cannot set invalid \"cAtom\" member of calibration atom");
         } else
           throw_exception("cannot find \"cAtom\" member of calibration atom");
 
         if (const auto data = catom.FindMember("data"); data != catom.MemberEnd()) {
           if (!data->value.IsArray())
-            throw_exception("cannot use \"data\" member of calibration atom: "
+            throw_exception("cannot set \"data\" member of calibration atom: "
               "not JSON array");
 
           for (const auto& entry : data->value.GetArray()) {
@@ -238,13 +256,13 @@ public:
             if (slope == entry.MemberEnd())
               throw_exception("cannot find slope of calibration entry");
             else if (!slope->value.IsFloat() || !slope->value.IsLosslessFloat())
-              throw_exception("cannot use calibration entry: invalid slope");
+              throw_exception("cannot set calibration data entry: invalid slope");
 
             const auto offset = entry.FindMember("b");
             if (offset == entry.MemberEnd())
               throw_exception("cannot find offset of calibration data entry");
             else if (!offset->value.IsInt())
-              throw_exception("cannot use calibration data entry: invalid offset");
+              throw_exception("cannot set calibration data entry: invalid offset");
           }
         } else
           throw_exception("cannot find \"data\" member of calibration data");
@@ -669,6 +687,7 @@ private:
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
   Driver_settings driver_settings_;
+  const std::vector<std::string> allowed_board_settings_;
   std::unique_ptr<Resampler> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
@@ -1130,12 +1149,6 @@ private:
     return result;
   }
 
-  static std::filesystem::path tmp_dir()
-  {
-    const auto cwd = std::filesystem::current_path();
-    return cwd/".panda"/"timeswipe";
-  }
-
   void join_threads()
   {
     is_threads_running_ = false;
@@ -1205,6 +1218,32 @@ private:
       throw Exception{errc, "cannot collect channels data"};
 
     return result;
+  }
+
+  /// @returns The vector of allowed board settings.
+  std::vector<std::string> allowed_board_settings() const
+  {
+    return {"ADC1.raw","ADC2.raw","ADC3.raw","ADC4.raw",
+      "AOUT3.raw","AOUT4.raw",
+      "DAC1.raw","DAC2.raw","DAC3.raw","DAC4.raw","DACsw",
+      "CH1.clr","CH1.gain","CH1.iepe","CH1.mode",
+      "CH2.clr","CH2.gain","CH2.iepe","CH2.mode",
+      "CH3.clr","CH3.gain","CH3.iepe","CH3.mode",
+      "CH4.clr","CH4.gain","CH4.iepe","CH4.mode",
+      "PWM1","PWM1.duty","PWM1.freq","PWM1.high","PWM1.low","PWM1.repeats",
+      "PWM2","PWM2.duty","PWM2.freq","PWM2.high","PWM2.low","PWM2.repeats",
+      "Fan","Fan.duty","Fan.freq",
+      "CalEnable","Current","MaxCurrent",
+      "Bridge","Gain","Mode","Offset","Offset.errtol","Record",
+      "VSUP.raw", "Voltage",
+      "EEPROMTest","UItest"};
+  }
+
+  /// @returns Path to directory for temporary files.
+  static std::filesystem::path tmp_dir()
+  {
+    const auto cwd = std::filesystem::current_path();
+    return cwd/".panda"/"timeswipe";
   }
 };
 } // namespace detail
