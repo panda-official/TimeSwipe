@@ -30,6 +30,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace panda::timeswipe {
@@ -155,11 +156,16 @@ public:
   }
 
   /**
+   * @param criteria One of the following:
+   *   - empty or `all` - all the board settings;
+   *   - `basic` - only basic settings;
+   *   - `calibration` - only calibration settings.
+   *
    * @returns The board-level settings.
    *
    * @see set_board_settings().
    */
-  virtual Board_settings board_settings() const = 0;
+  virtual Board_settings board_settings(std::string_view criteria={}) const = 0;
 
   /**
    * @brief Sets the driver-level settings.

@@ -274,6 +274,8 @@ public:
   /// @}
 
 private:
+  friend detail::iDriver;
+
   struct Rep;
   std::unique_ptr<Rep> rep_;
 };

@@ -26,6 +26,8 @@
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "version.hpp"
+#include "board_settings.cpp"
+#include "driver_settings.cpp"
 
 #include "3rdparty/dmitigr/filesystem.hpp"
 #include "3rdparty/dmitigr/math.hpp"
@@ -149,14 +151,16 @@ public:
           for (std::decay_t<decltype(cal_entries_size)> i{}; i < cal_entries_size; ++i) {
             const rajson::Value_view cal_entry{cal_entries[i]};
             if (!cal_entry.value().IsObject())
-              throw Exception{Errc::calib_data_invalid, "invalid calibration atom entry"};
+              throw Exception{Errc::board_settings_calibration_data_invalid,
+                "cannot use invalid calibration atom entry"};
             const auto slope = cal_entry.mandatory<float>("m");
             const auto offset = cal_entry.mandatory<std::int16_t>("b");
             const hat::atom::Calibration::Entry entry{slope, offset};
             atom.set_entry(i, entry);
           }
         } else
-          throw Exception{Errc::calib_data_invalid, "invalid calibration data"};
+          throw Exception{Errc::board_settings_calibration_data_invalid,
+            "cannot use invalid calibration data"};
       }
       return result;
     }();
@@ -229,13 +233,135 @@ public:
           "cannot set board IEPEs when measurement started"};
     }
 
-    spi_.execute_set_many(settings.to_json_text());
+    const auto throw_exception = [](const char* const msg)
+    {
+      if (msg) throw Exception{Errc::board_settings_invalid, msg};
+    };
+
+    /*
+     * Set the calibration settings. (It's would be nice to move the following
+     * code to the firmware.)
+     */
+    rapidjson::Document doc;
+    doc.CopyFrom(settings.rep_->doc(), doc.GetAllocator());
+    if (const auto calib = doc.FindMember("calibration"); calib != doc.MemberEnd()) {
+      if (!calib->value.IsArray())
+        throw_exception("cannot set invalid calibration data: not JSON array");
+
+      // Check array elements (serialized atoms).
+      for (const auto& catom : calib->value.GetArray()) {
+        if (!catom.IsObject())
+          throw_exception("cannot use calibration atom: not JSON object");
+
+        if (const auto ctype = catom.FindMember("cAtom"); ctype != catom.MemberEnd()) {
+          using detail::hat::atom::Calibration;
+          if (!ctype->value.IsUint())
+            throw_exception("cannot use invalid \"cAtom\" member of calibration atom");
+          else if (!Calibration::to_literal(
+              Calibration::Type{static_cast<std::uint16_t>(ctype->value.GetUint())}))
+            throw_exception("cannot use invalid \"cAtom\" member of calibration atom");
+        } else
+          throw_exception("cannot find \"cAtom\" member of calibration atom");
+
+        if (const auto data = catom.FindMember("data"); data != catom.MemberEnd()) {
+          if (!data->value.IsArray())
+            throw_exception("cannot use \"data\" member of calibration atom: "
+              "not JSON array");
+
+          for (const auto& entry : data->value.GetArray()) {
+            const auto slope = entry.FindMember("m");
+            if (slope == entry.MemberEnd())
+              throw_exception("cannot find slope of calibration entry");
+            else if (!slope->value.IsFloat() || !slope->value.IsLosslessFloat())
+              throw_exception("cannot use calibration entry: invalid slope");
+
+            const auto offset = entry.FindMember("b");
+            if (offset == entry.MemberEnd())
+              throw_exception("cannot find offset of calibration data entry");
+            else if (!offset->value.IsInt())
+              throw_exception("cannot use calibration data entry: invalid offset");
+          }
+        } else
+          throw_exception("cannot find \"data\" member of calibration data");
+      }
+
+      // Set the calibration settings.
+      for (const auto& catom : calib->value.GetArray())
+        spi_.execute_set_many(rajson::to_text(catom));
+
+      /*
+       * Clear calibration settings. (Would not need if this code will be moved
+       * to firmware.)
+       */
+      while (doc.FindMember("calibration") != doc.MemberEnd())
+        doc.RemoveMember("calibration");
+    }
+
+    // Set the basic settings.
+    spi_.execute_set_many(rajson::to_text(doc));
     return *this;
   }
 
-  Board_settings board_settings() const override
+  Board_settings board_settings(const std::string_view criteria={}) const override
   {
-    return Board_settings{spi_.execute_get_many("")};
+    /// @returns RapidJSON object with basic settings.
+    const auto basic_settings = [this]
+    {
+      return rajson::to_document(spi_.execute_get_many(""));
+    };
+
+    /// @returns RapidJSON array with calibration map.
+    const auto calibration_settings = [this](rapidjson::Document::AllocatorType& alloc)
+    {
+      using Ct = hat::atom::Calibration::Type;
+      constexpr auto atom_types = {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
+        Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
+
+      rapidjson::Value result{rapidjson::kArrayType};
+      result.Reserve(atom_types.size(), alloc);
+      auto result_array = result.GetArray();
+      for (const auto ct : atom_types) {
+        const auto settings_request = R"({"cAtom":)" +
+          std::to_string(static_cast<int>(ct)) + R"(})";
+        const auto json_obj = spi_.execute_get_many(settings_request);
+        auto doc = rajson::to_document(json_obj);
+        const rajson::Value_view doc_view{doc};
+        const auto doc_cal_entries = doc_view.mandatory("data");
+        if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
+          const auto cal_entries = v.GetArray();
+          const auto cal_entries_size = cal_entries.Size();
+          for (std::decay_t<decltype(cal_entries_size)> i{}; i < cal_entries_size; ++i) {
+            const rajson::Value_view cal_entry{cal_entries[i]};
+            if (!cal_entry.value().IsObject())
+              throw Exception{Errc::board_settings_calibration_data_invalid,
+                "invalid calibration atom entry"};
+          }
+        } else
+          throw Exception{Errc::board_settings_calibration_data_invalid,
+            "invalid calibration data"};
+        result.PushBack(rapidjson::Value{doc, alloc}, alloc);
+      }
+      return result;
+    };
+
+    if (criteria.empty() || criteria == "all") {
+      auto result = basic_settings();
+      auto& alloc = result.GetAllocator();
+      PANDA_TIMESWIPE_ASSERT(result.IsObject());
+      auto calib = calibration_settings(alloc);
+      PANDA_TIMESWIPE_ASSERT(calib.IsArray());
+      result.AddMember("calibration", std::move(calib), alloc);
+      return Board_settings{rajson::to_text(result)};
+    } else if (criteria == "calibration") {
+      rapidjson::Document result{rapidjson::kObjectType};
+      auto& alloc = result.GetAllocator();
+      result.AddMember("calibration", calibration_settings(alloc), alloc);
+      return Board_settings{rajson::to_text(result)};
+    } else if (criteria == "basic")
+      return Board_settings{rajson::to_text(basic_settings())};
+    else
+      throw Exception{Errc::board_settings_invalid,
+        "cannot get board settings using invalid criteria"};
   }
 
   iDriver& set_driver_settings(const Driver_settings& settings) override
@@ -284,8 +410,9 @@ public:
       throw Exception{Errc::driver_not_initialized,
         "cannot start measurement while driver isn't initialized"};
 
-    const auto gains = board_settings().channel_gains();
-    const auto modes = board_settings().channel_measurement_modes();
+    const auto bs = board_settings();
+    const auto gains = bs.channel_gains();
+    const auto modes = bs.channel_measurement_modes();
     const auto srate = driver_settings().sample_rate();
     if (!handler)
       throw Exception{"cannot start measurement with invalid data handler"};
@@ -589,7 +716,7 @@ private:
       : driver_{driver}
       , resampler_{std::move(driver_.resampler_)} // store
       , driver_settings_{std::move(driver_.driver_settings_)} // settings
-      , chmm_{driver_.board_settings().channel_measurement_modes()} // store
+      , chmm_{driver_.board_settings("basic").channel_measurement_modes()} // store
     {
       /*
        * Change input modes to `current`.

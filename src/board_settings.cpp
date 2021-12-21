@@ -247,6 +247,16 @@ struct Board_settings::Rep final {
     return pwm_values<float>("duty");
   }
 
+  const rapidjson::Document& doc() const noexcept
+  {
+    return doc_;
+  }
+
+  rapidjson::Document& doc() noexcept
+  {
+    return doc_;
+  }
+
 private:
   inline static const unsigned mcc_{Driver::instance().max_channel_count()};
   inline static const unsigned mpc_{Driver::instance().max_pwm_count()};

@@ -43,8 +43,10 @@ enum class Errc {
 
   /// At least one of the board settings invalid.
   board_settings_invalid = 10011,
+  /// Calibration data is invalid.
+  board_settings_calibration_data_invalid = 10021,
   /// At least one of the board settings insufficient.
-  board_settings_insufficient = 10021,
+  board_settings_insufficient = 10031,
   /// Board measurement mode is started.
   board_measurement_started = 10111,
 
@@ -64,15 +66,12 @@ enum class Errc {
   /// Drift compensation references not available.
   drift_comp_refs_not_available = 30031,
 
-  /// Calibration data is invalid.
-  calib_data_invalid = 40011,
-
   /// Attempt to send SPI request failed.
-  spi_send_failed = 50011,
+  spi_send_failed = 40011,
   /// Attempt to receive SPI request failed.
-  spi_receive_failed = 50111,
+  spi_receive_failed = 40111,
   /// Attempt to execute SPI command failed.
-  spi_command_failed = 50211
+  spi_command_failed = 40211
 };
 
 /**
@@ -87,6 +86,8 @@ constexpr const char* to_literal(const Errc errc) noexcept
 
   case Errc::board_settings_invalid:
     return "board_settings_invalid";
+  case Errc::board_settings_calibration_data_invalid:
+    return "board_settings_calibration_data_invalid";
   case Errc::board_settings_insufficient:
     return "board_settings_insufficient";
   case Errc::board_measurement_started:
@@ -107,9 +108,6 @@ constexpr const char* to_literal(const Errc errc) noexcept
     return "drift_comp_refs_not_found";
   case Errc::drift_comp_refs_not_available:
     return "drift_comp_refs_not_available";
-
-  case Errc::calib_data_invalid:
-    return "calib_data_invalid";
 
   case Errc::spi_send_failed:
     return "spi_send_failed";
