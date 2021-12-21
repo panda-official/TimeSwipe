@@ -43,7 +43,13 @@ struct Board_settings::Rep final {
     : doc_{rajson::to_document(json_text)}
   {
     // Convert to object if NULL passed.
-    if (doc_.IsNull()) doc_.SetObject();
+    if (doc_.IsNull())
+      doc_.SetObject();
+    else if (!doc_.IsObject())
+      throw Exception{Errc::board_settings_invalid, "not a JSON object"};
+
+    // Assert invariant.
+    PANDA_TIMESWIPE_ASSERT(doc_.IsObject());
 
     // Check measurement modes.
     if (const auto modes = channel_measurement_modes()) {
