@@ -314,7 +314,9 @@ public:
     const auto calibration_settings = [this](rapidjson::Document::AllocatorType& alloc)
     {
       using Ct = hat::atom::Calibration::Type;
-      constexpr auto atom_types = {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
+      constexpr auto atom_types = {
+        Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
+        Ct::v_supply,
         Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
 
       rapidjson::Value result{rapidjson::kArrayType};
