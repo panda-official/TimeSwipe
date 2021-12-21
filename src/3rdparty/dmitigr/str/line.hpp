@@ -48,7 +48,7 @@ inline auto
 line_number_by_position(const std::string& str, const std::string::size_type pos)
 {
   if (!(pos < str.size()))
-    throw Generic_exception{"cannot get line number by invalid position"};
+    throw Exception{"cannot get line number by invalid position"};
 
   using Diff = decltype(cbegin(str))::difference_type;
   return std::count(cbegin(str), cbegin(str) + static_cast<Diff>(pos), '\n');
@@ -65,7 +65,7 @@ inline std::pair<std::size_t, std::size_t>
 line_column_numbers_by_position(const std::string& str, const std::string::size_type pos)
 {
   if (!(pos < str.size()))
-    throw Generic_exception{"cannot get line and column numbers by invalid position"};
+    throw Exception{"cannot get line and column numbers by invalid position"};
 
   std::size_t line{};
   std::size_t column{};

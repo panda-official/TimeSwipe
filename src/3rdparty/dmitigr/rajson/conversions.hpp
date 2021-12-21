@@ -48,7 +48,7 @@ template<typename, typename = void> struct Conversions;
 /**
  * @returns The result of conversion of `value` to a JSON text. (Aka serialization.)
  *
- * @throws Generic_exception on error.
+ * @throws Exception on error.
  */
 template<class Encoding, class Allocator>
 std::string to_text(const rapidjson::GenericValue<Encoding, Allocator>& value)
@@ -56,7 +56,7 @@ std::string to_text(const rapidjson::GenericValue<Encoding, Allocator>& value)
   rapidjson::StringBuffer buf;
   rapidjson::Writer<decltype(buf)> writer{buf}; // decltype() required for GCC 7
   if (!value.Accept(writer))
-    throw Generic_exception{"cannot convert JSON value to text representation"};
+    throw Exception{"cannot convert JSON value to text representation"};
   return std::string{buf.GetString(), buf.GetSize()};
 }
 
@@ -132,7 +132,7 @@ struct Conversions<bool> final : Arithmetic_generic_conversions {
     if (value.IsBool())
       return value.GetBool();
 
-    throw Generic_exception{"cannot convert JSON value to bool"};
+    throw Exception{"cannot convert JSON value to bool"};
   }
 };
 
@@ -147,7 +147,7 @@ struct Conversions<std::uint8_t> final : Arithmetic_generic_conversions {
       if (result <= std::numeric_limits<std::uint8_t>::max())
         return static_cast<std::uint8_t>(result);
     }
-    throw Generic_exception{"cannot convert JSON value to std::uint8_t"};
+    throw Exception{"cannot convert JSON value to std::uint8_t"};
   }
 };
 
@@ -162,7 +162,7 @@ struct Conversions<std::uint16_t> final : Arithmetic_generic_conversions {
       if (result <= std::numeric_limits<std::uint16_t>::max())
         return static_cast<std::uint16_t>(result);
     }
-    throw Generic_exception{"cannot convert JSON value to std::uint16_t"};
+    throw Exception{"cannot convert JSON value to std::uint16_t"};
   }
 };
 
@@ -177,7 +177,7 @@ struct Conversions<std::uint32_t> final : Arithmetic_generic_conversions {
       if (result <= std::numeric_limits<std::uint32_t>::max())
         return static_cast<std::uint32_t>(result);
     }
-    throw Generic_exception{"cannot convert JSON value to std::uint32_t"};
+    throw Exception{"cannot convert JSON value to std::uint32_t"};
   }
 };
 
@@ -190,7 +190,7 @@ struct Conversions<std::uint64_t> final : Arithmetic_generic_conversions {
     if (value.IsUint64())
       return static_cast<std::uint64_t>(value.GetUint64());
 
-    throw Generic_exception{"cannot convert JSON value to std::uint64_t"};
+    throw Exception{"cannot convert JSON value to std::uint64_t"};
   }
 };
 
@@ -206,7 +206,7 @@ struct Conversions<std::int8_t> final : Arithmetic_generic_conversions {
         result <= std::numeric_limits<std::int8_t>::max())
         return static_cast<std::int8_t>(result);
     }
-    throw Generic_exception{"cannot convert JSON value to std::int8_t"};
+    throw Exception{"cannot convert JSON value to std::int8_t"};
   }
 };
 
@@ -222,7 +222,7 @@ struct Conversions<std::int16_t> final : Arithmetic_generic_conversions {
         result <= std::numeric_limits<std::int16_t>::max())
         return static_cast<std::int16_t>(result);
     }
-    throw Generic_exception{"cannot convert JSON value to std::int16_t"};
+    throw Exception{"cannot convert JSON value to std::int16_t"};
   }
 };
 
@@ -238,7 +238,7 @@ struct Conversions<std::int32_t> final : Arithmetic_generic_conversions {
         result <= std::numeric_limits<std::int32_t>::max())
         return static_cast<std::int32_t>(result);
     }
-    throw Generic_exception{"cannot convert JSON value to std::int32_t"};
+    throw Exception{"cannot convert JSON value to std::int32_t"};
   }
 };
 
@@ -251,7 +251,7 @@ struct Conversions<std::int64_t> final : Arithmetic_generic_conversions {
     if (value.IsInt64())
       return static_cast<std::int64_t>(value.GetInt64());
 
-    throw Generic_exception{"cannot convert JSON value to std::int64_t"};
+    throw Exception{"cannot convert JSON value to std::int64_t"};
   }
 };
 
@@ -264,7 +264,7 @@ struct Conversions<float> final : Arithmetic_generic_conversions {
     if (value.IsFloat() || value.IsLosslessFloat())
       return value.GetFloat();
 
-    throw Generic_exception{"cannot convert JSON value to float"};
+    throw Exception{"cannot convert JSON value to float"};
   }
 };
 
@@ -277,7 +277,7 @@ struct Conversions<double> final : Arithmetic_generic_conversions {
     if (value.IsDouble() || value.IsLosslessDouble())
       return value.GetDouble();
 
-    throw Generic_exception{"cannot convert JSON value to double"};
+    throw Exception{"cannot convert JSON value to double"};
   }
 };
 
@@ -290,7 +290,7 @@ struct Conversions<std::string> final {
     if (value.IsString())
       return std::string{value.GetString(), value.GetStringLength()};
 
-    throw Generic_exception{"cannot convert JSON value to std::string"};
+    throw Exception{"cannot convert JSON value to std::string"};
   }
 
   template<class Encoding, class Allocator>
@@ -310,7 +310,7 @@ struct Conversions<std::string_view> final {
     if (value.IsString())
       return std::string_view{value.GetString(), value.GetStringLength()};
 
-    throw Generic_exception{"cannot convert JSON value to std::string_view"};
+    throw Exception{"cannot convert JSON value to std::string_view"};
   }
 
   template<class Encoding, class Allocator>
@@ -360,13 +360,13 @@ struct Conversions<std::vector<T>> final {
       result.reserve(arr.Size());
       for (const auto& val : arr) {
         if (val.IsNull())
-          throw Generic_exception{"cannot emplace NULL value to std::vector<T>"};
+          throw Exception{"cannot emplace NULL value to std::vector<T>"};
         result.emplace_back(to<T>(val));
       }
       return result;
     }
 
-    throw Generic_exception{"cannot convert JSON value to std::vector<T>"};
+    throw Exception{"cannot convert JSON value to std::vector<T>"};
   }
 
   template<class Encoding, class Allocator>
@@ -395,7 +395,7 @@ struct Conversions<std::vector<std::optional<T>>> final {
       return result;
     }
 
-    throw Generic_exception{"cannot convert JSON value to std::vector<std::optional<T>>"};
+    throw Exception{"cannot convert JSON value to std::vector<std::optional<T>>"};
   }
 
   template<class Encoding, class Allocator>
@@ -413,16 +413,68 @@ struct Conversions<std::vector<std::optional<T>>> final {
 /// Partial specialization for `rapidjson::GenericValue`.
 template<class Encoding, class Allocator>
 struct Conversions<rapidjson::GenericValue<Encoding, Allocator>> final {
-  static auto to_type(const rapidjson::GenericValue<Encoding, Allocator>& value)
+  using Type = rapidjson::GenericValue<Encoding, Allocator>;
+
+  template<class E, class A>
+  static auto to_type(Type&& value)
   {
-    rapidjson::GenericValue<Encoding, Allocator> result;
+    static_assert(std::is_same_v<E, Encoding> && std::is_same_v<A, Allocator>);
+    return std::move(value);
+  }
+
+  template<class E, class A>
+  static auto to_type(const Type& value)
+  {
+    static_assert(std::is_same_v<E, Encoding> && std::is_same_v<A, Allocator>);
+    Type result;
     result.CopyFrom(value, result.GetAllocator(), true);
     return result;
   }
 
-  static auto to_value(const rapidjson::GenericValue<Encoding, Allocator>& value, Allocator&)
+  template<class E, class A>
+  static auto to_value(Type&& value, Allocator&)
   {
+    static_assert(std::is_same_v<E, Encoding> && std::is_same_v<A, Allocator>);
+    return std::move(value);
+  }
+
+  template<class E, class A>
+  static auto to_value(const Type& value, Allocator&)
+  {
+    static_assert(std::is_same_v<E, Encoding> && std::is_same_v<A, Allocator>);
     return to_type(value);
+  }
+};
+
+/// Partial specialization for `rapidjson::GenericDocument`.
+template<class Encoding, class Allocator, class StackAllocator>
+struct Conversions<rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>> final {
+  using Type = rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>;
+  using Value_type = rapidjson::GenericValue<Encoding, Allocator>;
+
+  template<class E, class A>
+  static auto to_type(Type&& value)
+  {
+    static_assert(std::is_same_v<E, Encoding> && std::is_same_v<A, Allocator>);
+    return std::move(value);
+  }
+
+  template<class E, class A>
+  static auto to_type(const Type& value)
+  {
+    static_assert(std::is_same_v<E, Encoding> && std::is_same_v<A, Allocator>);
+    Type result;
+    result.CopyFrom(value, result.GetAllocator(), true);
+    return result;
+  }
+
+  template<class E, class A>
+  static auto to_value(const Type& value, Allocator& alloc)
+  {
+    static_assert(std::is_same_v<E, Encoding> && std::is_same_v<A, Allocator>);
+    Value_type result;
+    result.CopyFrom(value, alloc, true);
+    return result;
   }
 };
 

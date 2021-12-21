@@ -37,21 +37,10 @@ namespace dmitigr::rajson {
 /**
  * @ingroup errors
  *
- * The base exception class.
+ * @brief The generic exception class.
  */
-class Exception : public dmitigr::Exception {};
-
-// -----------------------------------------------------------------------------
-// Generic_exception
-// -----------------------------------------------------------------------------
-
-/**
- * @ingroup errors
- *
- * The generic exception class.
- */
-class Generic_exception final : public Basic_generic_exception<Exception> {
-  using Basic_generic_exception::Basic_generic_exception;
+class Exception : public dmitigr::Exception {
+  using dmitigr::Exception::Exception;
 };
 
 // -----------------------------------------------------------------------------
@@ -61,27 +50,15 @@ class Generic_exception final : public Basic_generic_exception<Exception> {
 /**
  * @ingroup errors
  *
- * The exception denotes parse error.
+ * @brief The exception denotes parse error.
  */
 class Parse_exception final : public Exception {
 public:
   /// The constructor.
   explicit Parse_exception(const rapidjson::ParseResult pr)
-    : pr_{pr}
-    , what_holder_{rapidjson::GetParseError_En(pr.Code())}
+    : Exception{make_error_condition(pr.Code()), rapidjson::GetParseError_En(pr.Code())}
+    , pr_{pr}
   {}
-
-  /// @see Exception::what().
-  const char* what() const noexcept override
-  {
-    return what_holder_.what();
-  }
-
-  /// @see Exception::condition().
-  std::error_condition condition() const noexcept override
-  {
-    return make_error_condition(pr_.Code());
-  }
 
   /// @returns A parse result.
   const rapidjson::ParseResult& parse_result() const noexcept
@@ -91,7 +68,6 @@ public:
 
 private:
   rapidjson::ParseResult pr_;
-  std::runtime_error what_holder_;
 };
 
 } // namespace dmitigr::rajson

@@ -27,28 +27,13 @@
 
 namespace dmitigr::math {
 
-// -----------------------------------------------------------------------------
-// Exception
-// -----------------------------------------------------------------------------
-
 /**
  * @ingroup errors
  *
- * The base exception class.
+ * @brief The generic exception class.
  */
-class Exception : public dmitigr::Exception {};
-
-// -----------------------------------------------------------------------------
-// Generic_exception
-// -----------------------------------------------------------------------------
-
-/**
- * @ingroup errors
- *
- * The generic exception class.
- */
-class Generic_exception final : public Basic_generic_exception<Exception> {
-  using Basic_generic_exception::Basic_generic_exception;
+class Exception final : public dmitigr::Exception {
+  using dmitigr::Exception::Exception;
 };
 
 } // namespace dmitigr::math

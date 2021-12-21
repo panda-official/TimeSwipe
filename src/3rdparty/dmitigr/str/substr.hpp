@@ -50,7 +50,7 @@ position_of_non_space(const std::string_view str, const std::string_view::size_t
   const std::locale& loc = {})
 {
   if (!(pos <= str.size()))
-    throw Generic_exception{"cannot get position of non space by using invalid offset"};
+    throw Exception{"cannot get position of non space by using invalid offset"};
 
   const auto b = cbegin(str);
   const auto e = cend(str);
@@ -75,7 +75,7 @@ substring_if(const std::string& str, const Pred& pred, std::string::size_type po
   const std::locale& loc = {})
 {
   if (!(pos <= str.size()))
-    throw Generic_exception{"cannot get substring by using invalid offset"};
+    throw Exception{"cannot get substring by using invalid offset"};
 
   std::pair<std::string, std::string::size_type> result;
   const auto input_size = str.size();
@@ -102,7 +102,7 @@ substring_if_simple_identifier(const std::string& str, const std::string::size_t
   const std::locale& loc = {})
 {
   if (!(pos <= str.size()))
-    throw Generic_exception{"cannot get substring by using invalid offset"};
+    throw Exception{"cannot get substring by using invalid offset"};
 
   return std::isalpha(str[pos], loc) ?
     substring_if(str, is_simple_identifier_character, pos) :
@@ -136,7 +136,7 @@ unquoted_substring(const std::string& str, std::string::size_type pos,
   const std::locale& loc = {})
 {
   if (!(pos <= str.size()))
-    throw Generic_exception{"cannot get unquoted substring by using invalid offset"};
+    throw Exception{"cannot get unquoted substring by using invalid offset"};
 
   if (pos == str.size())
     return {std::string{}, pos};
@@ -170,7 +170,7 @@ unquoted_substring(const std::string& str, std::string::size_type pos,
 
   finish:
     if ((pos == input_size && str.back() != quote_char) || (pos < input_size && str[pos] != quote_char))
-      throw Generic_exception{"cannot get unquoted substring because no trailing quote found"};
+      throw Exception{"cannot get unquoted substring because no trailing quote found"};
     else
       result.second = pos + 1; // discarding the trailing quote
   } else

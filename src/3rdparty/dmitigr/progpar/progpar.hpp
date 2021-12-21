@@ -43,7 +43,7 @@ namespace dmitigr::progpar {
 /**
  * @brief Program parameters.
  *
- * Stores the parsed program parameters like the following:
+ * @details Stores the parsed program parameters like the following:
  *   prog [--opt1 --opt2=val] [--] [arg1 arg2]
  *
  * Each option may have a value specified after the "=" character. The sequence
@@ -62,7 +62,7 @@ public:
   using Argument_vector = std::vector<std::string>;
 
   /**
-   * An option reference.
+   * @brief An option reference.
    *
    * @warning The lifetime of the instances of this class is limited by
    * the lifetime of the corresponding instances of type Program_parameters.
@@ -167,10 +167,13 @@ public:
       return val;
     }
 
-    /// @returns `value().value_or(std::move(val))`.
+    /**
+     * @returns `value().value_or(std::move(val))` if `is_valid()`, or
+     * `std::move(val)` otherwise.
+     */
     std::string value_or(std::string val) const
     {
-      return value().value_or(std::move(val));
+      return value_.value_or(std::move(val));
     }
 
   private:
@@ -200,10 +203,10 @@ public:
       DMITIGR_ASSERT(is_valid());
     }
 
-    /// @throws `Generic_exception`.
+    /// @throws `Exception`.
     [[noreturn]] void throw_requirement(const std::string_view requirement) const
     {
-      throw Generic_exception{std::string{"option --"}
+      throw Exception{std::string{"option --"}
         .append(name_).append(" ").append(requirement)};
     }
   };
@@ -220,13 +223,13 @@ public:
   Program_parameters(const int argc, const char* const* argv)
   {
     if (!(argc > 0))
-      throw Generic_exception{"invalid count of program parameters (argc)"};
+      throw Exception{"invalid count of program parameters (argc)"};
     else if (!argv)
-      throw Generic_exception{"invalid vector of program parameters (argv)"};
+      throw Exception{"invalid vector of program parameters (argv)"};
 
     path_ = argv[0];
     if (path_.empty())
-      throw Generic_exception{"invalid program name (argv[0])"};
+      throw Exception{"invalid program name (argv[0])"};
 
     static const auto opt = [](const std::string_view arg)
       -> std::optional<std::pair<std::string, std::optional<std::string>>>
@@ -289,7 +292,7 @@ public:
     , arguments_{std::move(arguments)}
   {
     if (path_.empty())
-      throw Generic_exception{"invalid program name (argv[0])"};
+      throw Exception{"invalid program name (argv[0])"};
     DMITIGR_ASSERT(is_valid());
   }
 
@@ -332,6 +335,21 @@ public:
     return std::make_tuple(option(std::forward<Types>(names))...);
   }
 
+  /**
+   * @returns options(names).
+   *
+   * @throw Exception if there is an option which doesn't present in `names`.
+   */
+  template<class ... Types>
+  auto options_strict(Types&& ... names) const
+  {
+    const std::vector<std::string_view> opts{std::forward<Types>(names)...};
+    for (const auto& kv : options_)
+      if (find(cbegin(opts), cend(opts), kv.first) == cend(opts))
+        throw Exception{std::string{"unexpected option --"}.append(kv.first)};
+    return options(std::forward<Types>(names)...);
+  }
+
   /// @returns `option(option_name)`.
   Optref operator[](const std::string& option_name) const noexcept
   {
@@ -347,7 +365,7 @@ public:
   const std::string& operator[](const std::size_t argument_index) const
   {
     if (!(argument_index < arguments_.size()))
-      throw Generic_exception{"invalid program argument index"};
+      throw Exception{"invalid program argument index"};
     return arguments_[argument_index];
   }
 

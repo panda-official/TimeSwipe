@@ -33,19 +33,19 @@
 namespace dmitigr::str {
 
 /**
- * A phrase The "simple phrase" - an unquoted expression without spaces, or
+ * @brief A "simple phrase" - an unquoted expression without spaces, or
  * quoted expression (which can include any characters).
  */
 class Simple_phrase final {
 public:
-  /// A phrase status.
+  /// @brief A phrase status.
   enum class Status {
     ok = 0,
     stream_error = 1,
     invalid_input = 2
   };
 
-  /// Default-constructible.
+  /// @brief Default-constructible.
   Simple_phrase() = default;
 
   /**

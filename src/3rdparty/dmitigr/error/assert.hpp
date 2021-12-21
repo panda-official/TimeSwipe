@@ -37,12 +37,20 @@ constexpr bool is_debug{false};
 
 } // namespace dmitigr
 
-/// Checks `a` always, regardless of `is_debug` (or `NDEBUG`).
+#ifndef DMITIGR_ASSERT
+/**
+ * @brief Checks the assertion `a`.
+ *
+ * @details Always active regardless of `is_debug` (or `NDEBUG`).
+ *
+ * @par Effects Terminates the process if `!a`.
+ */
 #define DMITIGR_ASSERT(a) do {                                          \
     if (!(a)) {                                                         \
       std::cerr<<"assertion ("<<#a<<") failed at "<<__FILE__<<":"<<__LINE__<<"\n"; \
       std::terminate();                                                 \
     }                                                                   \
   } while (false)
+#endif
 
 #endif  // DMITIGR_ERROR_ASSERT_HPP

@@ -49,14 +49,14 @@ public:
    * @returns The string that describes the error condition denoted by `ev`.
    *
    * @par Requires
-   * `ev` must corresponds to the value of Generic_errc.
+   * `ev` must corresponds to the value of Errc.
    *
    * @remarks The caller should not rely on the return value as it is a
    * subject to change.
    */
   std::string message(const int ev) const override
   {
-    const char* const desc{to_literal_anyway(static_cast<Generic_errc>(ev))};
+    const char* const desc{to_literal_anyway(static_cast<Errc>(ev))};
     constexpr const char* const sep{": "};
     std::string result;
     result.reserve(std::strlen(name()) + std::strlen(sep) + std::strlen(desc));
@@ -80,7 +80,7 @@ inline const Generic_error_category& generic_error_category() noexcept
  *
  * @returns `std::error_condition(int(errc), generic_error_category())`.
  */
-inline std::error_condition make_error_condition(const Generic_errc errc) noexcept
+inline std::error_condition make_error_condition(const Errc errc) noexcept
 {
   return {static_cast<int>(errc), generic_error_category()};
 }

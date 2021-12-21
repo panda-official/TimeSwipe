@@ -26,7 +26,6 @@
 #include "exceptions.hpp"
 #include "version.hpp"
 #include "../error/assert.hpp"
-#include "../error/errc.hpp"
 
 #include <utility>
 
@@ -58,7 +57,7 @@ public:
   Interval() noexcept = default;
 
   /**
-   * Constructs closed [min, max] interval.
+   * @brief Constructs closed [min, max] interval.
    *
    * @par Requires
    * `min <= max`.
@@ -69,11 +68,11 @@ public:
     , max_{std::move(max)}
   {
     if (!(min_ <= max_))
-      throw Generic_exception{"interval is invalid (min > max)"};
+      throw Exception{"interval is invalid (min > max)"};
   }
 
   /**
-   * Constructs the interval of the specified type.
+   * @brief Constructs the interval of the specified type.
    *
    * @par Requires
    * `(type == Type::closed && min <= max) || (type != Type::closed && min < max)`.
@@ -86,7 +85,7 @@ public:
     const bool requirement = (type_ == Type::closed && min_ <= max_) ||
       (type_ != Type::closed && min_ < max_);
     if (!requirement)
-      throw Generic_exception{"interval is invalid (min > max or min >= max)"};
+      throw Exception{"interval is invalid (min > max or min >= max)"};
   }
 
   /// @returns [min, max] interval.
@@ -224,9 +223,9 @@ template<typename T>
 constexpr auto padding(const T value, const T alignment)
 {
   if (!(value >= 0))
-    throw Generic_exception{"cannot calculate padding for a negative value"};
+    throw Exception{"cannot calculate padding for a negative value"};
   else if (!is_power_of_two(alignment))
-    throw Generic_exception{"cannot calculate padding with alignment that is not power of 2"};
+    throw Exception{"cannot calculate padding with alignment that is not power of 2"};
   return (static_cast<T>(0) - value) & static_cast<T>(alignment - 1);
 }
 
@@ -240,9 +239,9 @@ template<typename T>
 constexpr T aligned(const T value, const T alignment)
 {
   if (!(value >= 0))
-    throw Generic_exception{"cannot align a negative value"};
+    throw Exception{"cannot align a negative value"};
   else if (!is_power_of_two(alignment))
-    throw Generic_exception{"cannot align a value with alignment that is not power of 2"};
+    throw Exception{"cannot align a value with alignment that is not power of 2"};
   return (value + (alignment - 1)) & -alignment;
 }
 

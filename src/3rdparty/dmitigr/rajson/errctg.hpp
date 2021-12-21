@@ -36,7 +36,7 @@ namespace dmitigr::rajson {
 /**
  * @ingroup errors
  *
- * The parse error category.
+ * @brief The parse error category.
  *
  * @see Parse_exception.
  */

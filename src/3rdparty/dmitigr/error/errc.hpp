@@ -30,9 +30,9 @@ namespace dmitigr {
 /**
  * @ingroup errors
  *
- * Generic error codes (or conditions).
+ * @brief Generic error codes (or conditions).
  */
-enum class Generic_errc {
+enum class Errc {
   /// Generic error.
   generic = 1,
 };
@@ -41,12 +41,12 @@ enum class Generic_errc {
  * @ingroup errors
  *
  * @returns The literal representation of the `errc`, or `nullptr`
- * if `errc` does not corresponds to any value defined by Generic_errc.
+ * if `errc` does not corresponds to any value defined by Errc.
  */
-constexpr const char* to_literal(const Generic_errc errc) noexcept
+constexpr const char* to_literal(const Errc errc) noexcept
 {
   switch (errc) {
-  case Generic_errc::generic: return "generic";
+  case Errc::generic: return "generic";
   }
   return nullptr;
 }
@@ -57,7 +57,7 @@ constexpr const char* to_literal(const Generic_errc errc) noexcept
  * @returns The literal returned by `to_literal(errc)`, or literal
  * "unknown error" if `to_literal(errc)` returned `nullptr`.
  */
-constexpr const char* to_literal_anyway(const Generic_errc errc) noexcept
+constexpr const char* to_literal_anyway(const Errc errc) noexcept
 {
   constexpr const char* unknown{"unknown error"};
   const char* const literal{to_literal(errc)};
@@ -74,7 +74,7 @@ namespace std {
  * @brief The full specialization for integration with `<system_error>`.
  */
 template<>
-struct is_error_condition_enum<dmitigr::Generic_errc> final : true_type {};
+struct is_error_condition_enum<dmitigr::Errc> final : true_type {};
 
 } // namespace std
 
