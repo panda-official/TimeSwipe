@@ -32,6 +32,7 @@
 #include "3rdparty/dmitigr/filesystem.hpp"
 #include "3rdparty/dmitigr/math.hpp"
 #include "3rdparty/dmitigr/rajson.hpp"
+#include "3rdparty/dmitigr/str/transform.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 
@@ -214,12 +215,15 @@ public:
      * Thus, check that `settings` contains only allowed members.
      */
     for (const auto& setting : doc.GetObject()) {
-      const std::string_view name{setting.name.GetString(),
+      const std::string name{setting.name.GetString(),
         setting.name.GetStringLength()};
       if (none_of(cbegin(allowed_modifiable_board_settings_),
           cend(allowed_modifiable_board_settings_),
-          [name](const auto& allowed){ return allowed == name; }))
-        throw_exception(std::string{"cannot set disallowed board setting"}
+          [name = dmitigr::str::to_lowercase(name)](const auto& allowed)
+          {
+            return allowed == name;
+          }))
+        throw_exception(std::string{"cannot set disallowed board setting: "}
           .append(name));
     }
 
@@ -403,7 +407,7 @@ public:
           // Get the data array and ensure it has a proper size.
           const auto& catom_data = catom_data_view.value().GetArray();
           const auto catom_data_size = catom_data.Size();
-          if (catom_data_size != result.atom_count())
+          if (catom_data_size != result.atom(ctype).entry_count())
             throw Exception{"invalid data member size"};
 
           // Extract each entry with slope and offset from the data array.
@@ -1224,20 +1228,20 @@ private:
   /// @returns The vector of allowed modifiable board settings.
   std::vector<std::string> allowed_modifiable_board_settings() const
   {
-    return {"ADC1.raw","ADC2.raw","ADC3.raw","ADC4.raw",
-      "AOUT3.raw","AOUT4.raw",
-      "DAC1.raw","DAC2.raw","DAC3.raw","DAC4.raw","DACsw",
-      "CH1.clr","CH1.gain","CH1.iepe","CH1.mode",
-      "CH2.clr","CH2.gain","CH2.iepe","CH2.mode",
-      "CH3.clr","CH3.gain","CH3.iepe","CH3.mode",
-      "CH4.clr","CH4.gain","CH4.iepe","CH4.mode",
-      "PWM1","PWM1.duty","PWM1.freq","PWM1.high","PWM1.low","PWM1.repeats",
-      "PWM2","PWM2.duty","PWM2.freq","PWM2.high","PWM2.low","PWM2.repeats",
-      "Fan","Fan.duty","Fan.freq",
-      "CalEnable","Current","MaxCurrent",
-      "Bridge","Gain","Mode","Offset","Offset.errtol","Record",
-      "VSUP.raw", "Voltage",
-      "EEPROMTest","UItest"};
+    return {"adc1.raw","adc2.raw","adc3.raw","adc4.raw",
+      "aout3.raw","aout4.raw",
+      "dac1.raw","dac2.raw","dac3.raw","dac4.raw","dacsw",
+      "ch1.clr","ch1.gain","ch1.iepe","ch1.mode",
+      "ch2.clr","ch2.gain","ch2.iepe","ch2.mode",
+      "ch3.clr","ch3.gain","ch3.iepe","ch3.mode",
+      "ch4.clr","ch4.gain","ch4.iepe","ch4.mode",
+      "pwm1","pwm1.duty","pwm1.freq","pwm1.high","pwm1.low","pwm1.repeats",
+      "pwm2","pwm2.duty","pwm2.freq","pwm2.high","pwm2.low","pwm2.repeats",
+      "fan","fan.duty","fan.freq",
+      "calenable","current","maxcurrent",
+      "bridge","gain","mode","offset","offset.errtol","record",
+      "vsup.raw", "voltage",
+      "eepromtest","uitest"};
   }
 
   /// @returns Path to directory for temporary files.
