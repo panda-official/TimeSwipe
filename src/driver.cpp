@@ -71,7 +71,7 @@ public:
     , translation_offsets_(max_channel_count())
     , translation_slopes_(max_channel_count())
     , burst_buffer_(max_channel_count())
-    , allowed_board_settings_(allowed_board_settings())
+    , allowed_modifiable_board_settings_(allowed_modifiable_board_settings())
   {}
 
   iDriver& initialize() override
@@ -216,7 +216,8 @@ public:
     for (const auto& setting : doc.GetObject()) {
       const std::string_view name{setting.name.GetString(),
         setting.name.GetStringLength()};
-      if (none_of(cbegin(allowed_board_settings_), cend(allowed_board_settings_),
+      if (none_of(cbegin(allowed_modifiable_board_settings_),
+          cend(allowed_modifiable_board_settings_),
           [name](const auto& allowed){ return allowed == name; }))
         throw_exception(std::string{"cannot set disallowed board setting"}
           .append(name));
@@ -687,7 +688,7 @@ private:
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
   Driver_settings driver_settings_;
-  const std::vector<std::string> allowed_board_settings_;
+  const std::vector<std::string> allowed_modifiable_board_settings_;
   std::unique_ptr<Resampler> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
@@ -1220,8 +1221,8 @@ private:
     return result;
   }
 
-  /// @returns The vector of allowed board settings.
-  std::vector<std::string> allowed_board_settings() const
+  /// @returns The vector of allowed modifiable board settings.
+  std::vector<std::string> allowed_modifiable_board_settings() const
   {
     return {"ADC1.raw","ADC2.raw","ADC3.raw","ADC4.raw",
       "AOUT3.raw","AOUT4.raw",
