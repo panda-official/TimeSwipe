@@ -19,193 +19,13 @@
 #ifndef PANDA_TIMESWIPE_ERROR_HPP
 #define PANDA_TIMESWIPE_ERROR_HPP
 
-#include <cstring> // std::strlen
-#include <exception>
+#include "errc.hpp"
+
+#include <exception> // std::terminate
 #include <iostream>
 #include <stdexcept>
-#include <string>
-#include <system_error>
 
 namespace panda::timeswipe {
-
-// -----------------------------------------------------------------------------
-// Errc
-// -----------------------------------------------------------------------------
-
-/**
- * @ingroup errors
- *
- * @brief Generic error conditions.
- */
-enum class Errc {
-  /// Generic error.
-  generic = 1,
-
-  /// At least one of the board settings invalid.
-  board_settings_invalid = 10011,
-  /// Calibration data is invalid.
-  board_settings_calibration_data_invalid = 10021,
-  /// At least one of the board settings insufficient.
-  board_settings_insufficient = 10031,
-  /// Board measurement mode is started.
-  board_measurement_started = 10111,
-
-  /// Driver doesn't initialized.
-  driver_not_initialized = 20011,
-  /// At least one of the driver settings invalid.
-  driver_settings_invalid = 20111,
-  /// At least one of the driver settings insufficient.
-  driver_settings_insufficient = 20121,
-  /// Attempt to use PID file as a lock indicator failed.
-  driver_pid_file_lock_failed = 20211,
-
-  /// Drift compensation references invalid.
-  drift_comp_refs_invalid = 30011,
-  /// Drift compensation references not found.
-  drift_comp_refs_not_found = 30021,
-  /// Drift compensation references not available.
-  drift_comp_refs_not_available = 30031,
-
-  /// Attempt to send SPI request failed.
-  spi_send_failed = 40011,
-  /// Attempt to receive SPI request failed.
-  spi_receive_failed = 40111,
-  /// Attempt to execute SPI command failed.
-  spi_command_failed = 40211
-};
-
-/**
- * @returns The literal representation of the `errc`, or `nullptr`
- * if `errc` does not corresponds to any value defined by Errc.
- */
-constexpr const char* to_literal(const Errc errc) noexcept
-{
-  switch (errc) {
-  case Errc::generic:
-    return "generic";
-
-  case Errc::board_settings_invalid:
-    return "board_settings_invalid";
-  case Errc::board_settings_calibration_data_invalid:
-    return "board_settings_calibration_data_invalid";
-  case Errc::board_settings_insufficient:
-    return "board_settings_insufficient";
-  case Errc::board_measurement_started:
-    return "board_measurement_started";
-
-  case Errc::driver_not_initialized:
-    return "driver_not_initialized";
-  case Errc::driver_settings_invalid:
-    return "driver_settings_invalid";
-  case Errc::driver_settings_insufficient:
-    return "driver_settings_insufficient";
-  case Errc::driver_pid_file_lock_failed:
-    return "driver_pid_file_lock_failed";
-
-  case Errc::drift_comp_refs_invalid:
-    return "drift_comp_refs_invalid";
-  case Errc::drift_comp_refs_not_found:
-    return "drift_comp_refs_not_found";
-  case Errc::drift_comp_refs_not_available:
-    return "drift_comp_refs_not_available";
-
-  case Errc::spi_send_failed:
-    return "spi_send_failed";
-  case Errc::spi_receive_failed:
-    return "spi_receive_failed";
-  case Errc::spi_command_failed:
-    return "spi_command_failed";
-  }
-  return nullptr;
-}
-
-/**
- * @returns The literal returned by `to_literal(errc)`, or literal
- * `unknown error` if `to_literal(errc)` returned `nullptr`.
- */
-constexpr const char* to_literal_anyway(const Errc errc) noexcept
-{
-  constexpr const char* unknown{"unknown error"};
-  const char* const literal{to_literal(errc)};
-  return literal ? literal : unknown;
-}
-
-} // namespace panda::timeswipe
-
-// -----------------------------------------------------------------------------
-// Integration with std::system_error
-// -----------------------------------------------------------------------------
-
-namespace std {
-
-/**
- * @ingroup errors
- *
- * @brief Full specialization for integration with `<system_error>`.
- */
-template<>
-struct is_error_condition_enum<panda::timeswipe::Errc> final : true_type {};
-
-} // namespace std
-
-namespace panda::timeswipe {
-
-// -----------------------------------------------------------------------------
-// Generic_error_category
-// -----------------------------------------------------------------------------
-
-/**
- * @ingroup errors
- *
- * @brief A generic category of errors.
- */
-class Generic_error_category final : public std::error_category {
-public:
-  /// @returns The literal `panda_timeswipe_generic_error`.
-  const char* name() const noexcept override
-  {
-    return "panda_timeswipe_generic_error";
-  }
-
-  /**
-   * @returns The string that describes the error condition denoted by `ev`.
-   *
-   * @par Requires
-   * `ev` must corresponds to the value of Errc.
-   *
-   * @remarks The caller should not rely on the return value as it is a
-   * subject to change.
-   */
-  std::string message(const int ev) const override
-  {
-    const char* const desc{to_literal_anyway(static_cast<Errc>(ev))};
-    constexpr const char* const sep{": "};
-    std::string result;
-    result.reserve(std::strlen(name()) + std::strlen(sep) + std::strlen(desc));
-    return result.append(name()).append(sep).append(desc);
-  }
-};
-
-/**
- * @ingroup errors
- *
- * @returns The reference to the instance of type Generic_error_category.
- */
-inline const Generic_error_category& generic_error_category() noexcept
-{
-  static const Generic_error_category instance;
-  return instance;
-}
-
-/**
- * @ingroup errors
- *
- * @returns `std::error_condition(int(errc), generic_error_category())`.
- */
-inline std::error_condition make_error_condition(const Errc errc) noexcept
-{
-  return {static_cast<int>(errc), generic_error_category()};
-}
 
 // -----------------------------------------------------------------------------
 // Exception
@@ -272,6 +92,8 @@ public:
   {}
 };
 
+} // namespace panda::timeswipe
+
 // -----------------------------------------------------------------------------
 // Macros
 // -----------------------------------------------------------------------------
@@ -290,7 +112,5 @@ public:
       std::terminate();                                                 \
     }                                                                   \
   } while (false)
-
-} // namespace panda::timeswipe
 
 #endif  // PANDA_TIMESWIPE_ERROR_HPP
