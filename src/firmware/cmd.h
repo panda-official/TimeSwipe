@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 /**
  * @brief An uniform command request descriptor.
@@ -193,18 +194,22 @@ public:
   using Setter_value = SetterValue;
 
   /// Generic getter.
-  using Getter = std::function<Getter_value()>;
+  using Getter = std::function<std::pair<Error, Getter_value>()>;
 
   /// Generic setter.
   using Setter = std::function<Error(Setter_value)>;
+
+  /// Basic getter.
+  template<typename R>
+  using Basic_getter = std::function<R()>;
 
   /// Basic setter.
   template<typename R>
   using Basic_setter = std::function<R(Setter_value)>;
 
   /// Member getter.
-  template<typename T>
-  using Member_getter = Getter_value(T::*)()const;
+  template<typename T, typename R>
+  using Member_getter = R(T::*)()const;
 
   /// Member setter.
   template<typename T, typename R>
@@ -223,13 +228,28 @@ public:
    * @param get A generic getter.
    * @param set A generic setter.
    */
-  template<typename R = void>
-  explicit CCmdSGHandler(Getter get, Basic_setter<R> set = {})
-    : get_{std::move(get)}
+  template<typename GetterResult, typename SetterResult = void>
+  explicit CCmdSGHandler(Basic_getter<GetterResult> get,
+    Basic_setter<SetterResult> set = {})
+    : get_{
+        [get = std::move(get)]
+        {
+          using std::is_same_v;
+          static_assert(is_same_v<GetterResult, Getter_value> ||
+            is_same_v<GetterResult, std::pair<Error, Getter_value>>);
+          if constexpr (is_same_v<GetterResult, Getter_value>)
+            return std::pair{Error{}, get()};
+          else
+            return get();
+        }
+      }
     , set_{
         [set = std::move(set)](auto value)
         {
-          if constexpr (std::is_same_v<R, void>) {
+          using std::is_same_v;
+          static_assert(is_same_v<SetterResult, void> ||
+            is_same_v<SetterResult, Error>);
+          if constexpr (is_same_v<SetterResult, void>) {
             set(std::forward<decltype(value)>(value));
             return Error{};
           } else
@@ -239,9 +259,9 @@ public:
   {}
 
   /// @overload
-  template<typename R = void>
-  explicit CCmdSGHandler(Getter_value(*get)(), R(*set)(Setter_value) = {})
-    : CCmdSGHandler{Getter{get}, Basic_setter<R>{set}}
+  template<typename GetterResult, typename SetterResult = void>
+  explicit CCmdSGHandler(GetterResult(*get)(), SetterResult(*set)(Setter_value) = {})
+    : CCmdSGHandler{Basic_getter<GetterResult>{get}, Basic_setter<SetterResult>{set}}
   {}
 
   /**
@@ -251,18 +271,32 @@ public:
    * @param get A pointer to the class getter.
    * @param set A pointer to the class setter.
    */
-  template<class T, class GetterClass, class SetterClass = GetterClass, class R = void>
+  template<class T, class GetterClass, class GetterResult,
+    class SetterClass = GetterClass, class SetterResult = void>
   CCmdSGHandler(const std::shared_ptr<T>& instance,
-    Member_getter<GetterClass> get, Member_setter<SetterClass, R> set = {})
+    Member_getter<GetterClass, GetterResult> get,
+    Member_setter<SetterClass, SetterResult> set = {})
     : CCmdSGHandler{
         // get_
         instance && get ?
-        [instance, get]{return (instance.get()->*get)();} : Getter{},
+        [instance, get]
+        {
+          using std::is_same_v;
+          static_assert(is_same_v<GetterResult, Getter_value> ||
+            is_same_v<GetterResult, std::pair<Error, Getter_value>>);
+          if constexpr (is_same_v<GetterResult, Getter_value>)
+            return std::pair{Error{}, (instance.get()->*get)()};
+          else
+            return (instance.get()->*get)();
+        } : Getter{},
         // set_
         instance && set ?
         [instance, set](Setter_value v)
         {
-          if constexpr (std::is_same_v<R, void>) {
+          using std::is_same_v;
+          static_assert(is_same_v<SetterResult, void> ||
+            is_same_v<SetterResult, Error>);
+          if constexpr (is_same_v<SetterResult, void>) {
             (instance.get()->*set)(std::move(v));
             return Error{};
           } else
@@ -275,6 +309,8 @@ public:
    * @brief A method for handling a concrete command.
    *
    * @param d Call descriptor in protocol-independent format.
+   *
+   * @todo: FIXME: return Errc
    */
   typeCRes Call(CCmdCallDescr& d) override
   {
@@ -284,8 +320,12 @@ public:
         *d.m_pIn >> val;
         if (d.m_pIn->is_good()) {
           if (set_(val)) {
-            if (get_)
-              *d.m_pOut << get_(); // Done.
+            if (get_) {
+              if (const auto [err, res] = get_(); err)
+                return typeCRes::generic; // FIXME: return err
+              else
+                *d.m_pOut << res; // Done.
+            }
           } else
             return typeCRes::generic;
         } else
@@ -294,9 +334,12 @@ public:
         return typeCRes::fset_not_supported;
     }
     if (d.m_ctype & CCmdCallDescr::ctype::ctGet) {
-      if (get_)
-        *d.m_pOut << get_(); // Done.
-      else
+      if (get_) {
+        if (const auto [err, res] = get_(); err)
+          return typeCRes::generic; // FIXME: return err
+        else
+          *d.m_pOut << res; // Done.
+      } else
         return typeCRes::fget_not_supported;
     }
     return typeCRes::OK;
