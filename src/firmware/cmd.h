@@ -19,6 +19,7 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_CMD_HPP
 
+#include "error.hpp"
 #include "io_stream.hpp"
 
 #include <functional>
@@ -26,6 +27,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 /**
  * @brief An uniform command request descriptor.
@@ -59,9 +61,14 @@ struct CCmdCallDescr final {
   /// Output stream: to store function/methodes output arguments or return value.
   Io_stream    *m_pOut=nullptr;
 
-  /// Command handler invocation result ("call result"=cres).
+  /**
+   * @brief Command handler invocation result ("call result"=cres).
+   *
+   * @todo FIXME: remove this enum by merging some of it's members into Errc.
+   */
   enum cres {
     OK=0,               //!<successful invocation
+    generic,            //!<generic error (temporary until merging into Errc)
     obj_not_found,      //!<requested command(object) was not found
     fget_not_supported, //!<"get" property is not supported by a handler
     fset_not_supported, //!<"set" property is not supported by a handler
@@ -134,6 +141,7 @@ public:
       {
         switch (cres) {
         case typeCRes::OK: break;
+        case typeCRes::generic: return "generic!";
         case typeCRes::obj_not_found: return "obj_not_found!";
         case typeCRes::fget_not_supported: return ">_not_supported!";
         case typeCRes::fset_not_supported: return "<_not_supported!";
@@ -188,15 +196,19 @@ public:
   using Getter = std::function<Getter_value()>;
 
   /// Generic setter.
-  using Setter = std::function<void(Setter_value)>;
+  using Setter = std::function<Error(Setter_value)>;
+
+  /// Basic setter.
+  template<typename R>
+  using Basic_setter = std::function<R(Setter_value)>;
 
   /// Member getter.
   template<typename T>
-  using Type_getter = Getter_value(T::*)()const;
+  using Member_getter = Getter_value(T::*)()const;
 
   /// Member setter.
-  template<typename T>
-  using Type_setter = void(T::*)(Setter_value);
+  template<typename T, typename R>
+  using Member_setter = R(T::*)(Setter_value);
 
   /**
    * @brief The default constructor.
@@ -211,9 +223,25 @@ public:
    * @param get A generic getter.
    * @param set A generic setter.
    */
-  explicit CCmdSGHandler(Getter get, Setter set = {})
+  template<typename R = void>
+  explicit CCmdSGHandler(Getter get, Basic_setter<R> set = {})
     : get_{std::move(get)}
-    , set_{std::move(set)}
+    , set_{
+        [set = std::move(set)](auto value)
+        {
+          if constexpr (std::is_same_v<R, void>) {
+            set(std::forward<decltype(value)>(value));
+            return Error{};
+          } else
+            return set(std::forward<decltype(value)>(value));
+        }
+      }
+  {}
+
+  /// @overload
+  template<typename R = void>
+  explicit CCmdSGHandler(Getter_value(*get)(), R(*set)(Setter_value) = {})
+    : CCmdSGHandler{Getter{get}, Basic_setter<R>{set}}
   {}
 
   /**
@@ -223,9 +251,9 @@ public:
    * @param get A pointer to the class getter.
    * @param set A pointer to the class setter.
    */
-  template<class T, class GetterClass, class SetterClass = GetterClass>
+  template<class T, class GetterClass, class SetterClass = GetterClass, class R = void>
   CCmdSGHandler(const std::shared_ptr<T>& instance,
-    Type_getter<GetterClass> get, Type_setter<SetterClass> set = {})
+    Member_getter<GetterClass> get, Member_setter<SetterClass, R> set = {})
     : CCmdSGHandler{
         // get_
         instance && get ?
@@ -234,8 +262,13 @@ public:
         instance && set ?
         [instance, set](Setter_value v)
         {
-          (instance.get()->*set)(std::move(v));
-        } : Setter{}}
+          if constexpr (std::is_same_v<R, void>) {
+            (instance.get()->*set)(std::move(v));
+            return Error{};
+          } else
+            return (instance.get()->*set)(std::move(v));
+        } : Setter{}
+      }
   {}
 
   /**
@@ -247,12 +280,14 @@ public:
   {
     if (d.m_ctype & CCmdCallDescr::ctype::ctSet) {
       if (set_) {
-        Setter_value val;
-        *(d.m_pIn) >> val;
+        Setter_value val{};
+        *d.m_pIn >> val;
         if (d.m_pIn->is_good()) {
-          set_(val);
-          if (get_)
-            *(d.m_pOut) << get_(); // Done.
+          if (set_(val)) {
+            if (get_)
+              *d.m_pOut << get_(); // Done.
+          } else
+            return typeCRes::generic;
         } else
           return typeCRes::parse_err;
       } else
@@ -260,7 +295,7 @@ public:
     }
     if (d.m_ctype & CCmdCallDescr::ctype::ctGet) {
       if (get_)
-        *(d.m_pOut) << get_(); // Done.
+        *d.m_pOut << get_(); // Done.
       else
         return typeCRes::fget_not_supported;
     }
