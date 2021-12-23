@@ -52,7 +52,7 @@ CPGA280::CPGA280(std::shared_ptr<CSPI> pSPIbus, std::shared_ptr<Pin> pCS)
     SetOGain(ogain::og1);
 }
 
-bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue)
+bool CPGA280::ReadRegister(reg nReg, uint8_t &RegValue) const noexcept
 {
     m_CmdBuf.reset();
     m_CmdBuf.m_cmd.emplace_back(CPGA280cmd::cmd::read, nReg, 0);

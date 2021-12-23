@@ -459,7 +459,7 @@ public:
      * \brief Reads register value previously selected by SelectIng(). This is a wrapper to be used with a command processor
      * \return Actual register value on success, -1 on error
      */
-    int ReadSelectedReg()
+    int ReadSelectedReg() const noexcept
     {
         uint8_t rv;
         return ReadRegister(m_SelReg, rv) ? rv : -1;
@@ -495,7 +495,7 @@ private:
     /*!
      * \brief m_CmdBuf - the buffer for storing a command sequence for a current transfer operation
      */
-    CPGA280cmdBuf m_CmdBuf;
+    mutable CPGA280cmdBuf m_CmdBuf;
 
     /*!
      * \brief m_SelReg - the currently selected register
@@ -518,7 +518,7 @@ private:
      * \param RegValue - the register value will be received
      * \return true on success, false on any error
      */
-    bool ReadRegister(reg nReg, uint8_t &RegValue);
+    bool ReadRegister(reg nReg, uint8_t &RegValue) const noexcept;
 
     /**
      * @brief Sets the value of PGA280 register.
