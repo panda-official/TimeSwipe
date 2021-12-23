@@ -159,13 +159,6 @@ int main()
       pCS0->set_inverted(true);
       pQSPICS0Pin=pCS0;
       pCS0->write(false);
-
-#ifdef DMS_TEST_MODE
-      pDisp->Add("SR", std::make_shared<CCmdSGHandler<unsigned>>(
-          pDMSsr,
-          &CDMSsr::GetShiftReg,
-          &CDMSsr::SetShiftReg));
-#endif
     } else {
       pDAConPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p04, true);
       pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true);
@@ -275,24 +268,6 @@ int main()
         auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
 
         board->add_channel(std::make_shared<Dms_channel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled));
-#ifdef DMS_TEST_MODE
-
-        //add commands to each:
-        char cmd[64];
-        const int nInd=i+1;
-        //for testing only:
-        std::sprintf(cmd, "PGA%d.rsel", nInd);
-        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
-            pPGA280,
-            &CPGA280::GetSelectedReg,
-            &CPGA280::SelectReg));
-        std::sprintf(cmd, "PGA%d.rval", nInd);
-        pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
-            pPGA280,
-            &CPGA280::ReadSelectedReg,
-            &CPGA280::WriteSelectedReg));
-#endif
-
       }
     } else {
       for (int i{}; i < nChannels; ++i)
