@@ -81,13 +81,19 @@ public:
      * \brief A getter for m_TargErrTolerance
      * \return m_TargErrTolerance value
      */
-    static int  GetTargErrTol() {return m_TargErrTolerance; }
+    static int GetTargErrTol() noexcept
+    {
+      return m_TargErrTolerance;
+    }
 
     /*!
      * \brief A setter for m_TargErrTolerance
      * \param val A value to be set for m_TargErrTolerance
      */
-    static void SetTargErrTol(int val){ if(val<1) val=1; m_TargErrTolerance=val;}
+    static void SetTargErrTol(const int val) noexcept
+    {
+      m_TargErrTolerance = (val >= 1) ? val : 1;
+    }
 
     /*!
      * \brief Returns the  algorithm state
