@@ -59,6 +59,7 @@ inline std::string to_text(const rapidjson::Value& value)
 {
   rapidjson::StringBuffer buf;
   rapidjson::Writer writer{buf};
+  writer.SetMaxDecimalPlaces(3);
   return value.Accept(writer) ? std::string{buf.GetString(), buf.GetSize()} :
     std::string{};
 }
