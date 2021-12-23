@@ -1228,8 +1228,7 @@ private:
   /// @returns The vector of allowed modifiable board settings.
   std::vector<std::string> allowed_modifiable_board_settings() const
   {
-    return {"adc1.raw","adc2.raw","adc3.raw","adc4.raw",
-      "aout3.raw","aout4.raw",
+    return {"aout3.raw","aout4.raw",
       "dac1.raw","dac2.raw","dac3.raw","dac4.raw","dacsw",
       "ch1.clr","ch1.gain","ch1.iepe","ch1.mode",
       "ch2.clr","ch2.gain","ch2.iepe","ch2.mode",
@@ -1237,9 +1236,9 @@ private:
       "ch4.clr","ch4.gain","ch4.iepe","ch4.mode",
       "pwm1","pwm1.duty","pwm1.freq","pwm1.high","pwm1.low","pwm1.repeats",
       "pwm2","pwm2.duty","pwm2.freq","pwm2.high","pwm2.low","pwm2.repeats",
-      "fan","fan.duty","fan.freq",
+      "fan","fan.freq",
       "calenable","current","maxcurrent",
-      "bridge","gain","mode","offset","offset.errtol","record",
+      "bridge","offset","offset.errtol",
       "vsup.raw", "voltage",
       "eepromtest","uitest"};
   }
