@@ -77,12 +77,16 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     set(sam_startup_file "same54/gcc/startup_ARMCM4_E54.S")
     set(sam_sram_linker_file "src/3rdparty/same54/gcc/gcc_E54_RAM.ld")
     set(sam_flash_linker_file "src/3rdparty/same54/gcc/gcc_E54.ld")
+    set(sam_max_flash_size 1048576)
+    set(sam_max_ram_size 262144)
   elseif(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E53N19A")
     set(sam_compile_definitions __SAME53N19A__)
     set(sam_include_directories src/3rdparty/same53/include)
     set(sam_startup_file "same53/gcc/startup_ARMCM4_E53.S")
     set(sam_sram_linker_file "src/3rdparty/same53/gcc/gcc_E53_RAM.ld")
     set(sam_flash_linker_file "src/3rdparty/same53/gcc/gcc_E53.ld")
+    set(sam_max_flash_size 524288)
+    set(sam_max_ram_size 196608)
   else()
     message(FATAL_ERROR "Unsupported model of SAM - ${PANDA_TIMESWIPE_FIRMWARE_SAM}")
   endif()
@@ -156,9 +160,9 @@ dmitigr_get_version(${CMAKE_CXX_COMPILER_VERSION}
 # is used.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-if (WIN32)
+if(WIN32)
   set(panda_output_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>")
-elseif (UNIX)
+else()
   set(panda_output_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 endif()
 
@@ -389,6 +393,11 @@ if(PANDA_TIMESWIPE_FIRMWARE)
 
   add_executable(${target_name} ${firmware_elf_src})
   target_link_libraries(${target_name} PRIVATE firmware)
+  add_custom_target(firmware_print_size ALL
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tool/firmware-size.sh
+    ${panda_output_dir}/${target_name} ${sam_max_flash_size} ${sam_max_ram_size}
+    )
+  add_dependencies(firmware_print_size ${target_name})
 
   message(CHECK_PASS "Ready to build the ${firmware_subtype} firmware.")
 else()
