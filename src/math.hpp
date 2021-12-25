@@ -10,7 +10,8 @@
 #ifndef PANDA_TIMESWIPE_MATH_HPP
 #define PANDA_TIMESWIPE_MATH_HPP
 
-#include "error.hpp"
+#include "debug.hpp"
+#include "exceptions.hpp"
 
 #include <algorithm>
 #include <chrono>

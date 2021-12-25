@@ -18,8 +18,9 @@
 
 #include "basics.hpp"
 #include "board_settings.hpp"
+#include "debug.hpp"
 #include "driver.hpp"
-#include "error.hpp"
+#include "exceptions.hpp"
 #include "rajson.hpp"
 
 #include <algorithm>

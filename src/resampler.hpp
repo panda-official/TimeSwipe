@@ -19,7 +19,8 @@
 #ifndef PANDA_TIMESWIPE_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_RESAMPLER_HPP
 
-#include "error.hpp"
+#include "debug.hpp"
+#include "exceptions.hpp"
 #include "fir_resampler.hpp"
 #include "math.hpp"
 #include "table.hpp"

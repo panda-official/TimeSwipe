@@ -36,6 +36,8 @@ template<typename> class Table;
 /// Implementation details.
 namespace detail {
 class iDriver;
+class Error;
+template<typename> struct Error_or;
 } // namespace detail
 } // namespace panda::timeswipe
 

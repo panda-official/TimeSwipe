@@ -7,8 +7,8 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
+#include "../../src/debug.hpp"
 #include "../../src/table.hpp"
-#include "../../src/error.hpp"
 
 #include <iostream>
 #include <vector>

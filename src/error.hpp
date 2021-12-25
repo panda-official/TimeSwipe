@@ -21,96 +21,89 @@
 
 #include "errc.hpp"
 
-#include <exception> // std::terminate
-#include <iostream>
-#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
 
-namespace panda::timeswipe {
+namespace panda::timeswipe::detail {
 
 // -----------------------------------------------------------------------------
-// Exception
+// Error
 // -----------------------------------------------------------------------------
 
-/**
- * @ingroup errors
- *
- * @brief The generic exception class.
- */
-class Exception : public std::exception {
+/// An error.
+class Error final {
 public:
-  /**
-   * @brief The constructor.
-   *
-   * @param errc The error condition.
-   * @param what The what-string.
-   */
-  Exception(const std::error_condition& errc, const std::string& what)
-    : what_{what}
-    , condition_{errc}
+  /// Constructs not an error.
+  Error() noexcept = default;
+
+  /// The constructor.
+  Error(const Errc errc, std::string what = {}) noexcept
+    : condition_{errc}
+    , what_{std::move(what)}
   {}
 
-  /**
-   * @brief Constructs an instance associated with Errc::generic.
-   *
-   * @param what The what-string.
-   */
-  explicit Exception(const std::string& what)
-    : Exception{Errc::generic, what}
-  {}
-
-  /// @returns The what-string.
-  const char* what() const noexcept override
+  /// @returns `true` if the instance represents an error.
+  explicit operator bool() const noexcept
   {
-    return what_.what();
+    return static_cast<bool>(condition_);
   }
 
-  /// @returns The error condition.
-  std::error_condition condition() const noexcept
+  /// @returns The error condition as Errc.
+  Errc errc() const noexcept
   {
     return condition_;
   }
 
+  /// @returns The what-string.
+  const std::string& what() const noexcept
+  {
+    return what_;
+  }
+
 private:
-  std::runtime_error what_;
-  std::error_condition condition_;
+  Errc condition_{};
+  std::string what_;
 };
 
 // -----------------------------------------------------------------------------
-// Sys_exception
+// Error_or
 // -----------------------------------------------------------------------------
 
 /**
- * @ingroup errors
+ * @brief A pair of Error and T.
  *
- * @brief An exception thrown on system error.
+ * @details This template struct is designed for using as a return type of
+ * functions which must not throw exceptions.
  */
-class Sys_exception final : public Exception {
-public:
-  /// The constructor.
-  Sys_exception(const int ev, const std::string& what)
-    : Exception{std::system_category().default_error_condition(ev), what}
+template<typename T>
+struct Error_or final : std::pair<Error, T> {
+  static_assert(!std::is_same_v<T, void> &&
+    !std::is_convertible_v<T, Errc> &&
+    !std::is_convertible_v<T, Error>);
+
+  /// An alias of the base class.
+  using Base = std::pair<Error, T>;
+
+  /// Constructs to hold a default value.
+  constexpr Error_or() noexcept = default;
+
+  /// Constructs to hold an error.
+  constexpr Error_or(Error error) noexcept
+    : Base{std::move(error), T{}}
+  {}
+
+  /// @overload
+  constexpr Error_or(const Errc errc) noexcept
+    : Error_or{Error{errc}}
+  {}
+
+  /// Constructs to hold a value.
+  constexpr Error_or(T value) noexcept
+    : Base{Error{}, std::move(value)}
   {}
 };
 
-} // namespace panda::timeswipe
-
-// -----------------------------------------------------------------------------
-// Macros
-// -----------------------------------------------------------------------------
-
-/**
- * @brief Checks the assertion `a`.
- *
- * @details Always active regardless of `NDEBUG`.
- *
- * @par Effects
- * Terminates the process if `!a`.
- */
-#define PANDA_TIMESWIPE_ASSERT(a) do {                                  \
-    if (!(a)) {                                                         \
-      std::cerr<<"assertion ("<<#a<<") failed at "<<__FILE__<<":"<<__LINE__<<"\n"; \
-      std::terminate();                                                 \
-    }                                                                   \
-  } while (false)
+} // namespace panda::timeswipe::detail
 
 #endif  // PANDA_TIMESWIPE_ERROR_HPP

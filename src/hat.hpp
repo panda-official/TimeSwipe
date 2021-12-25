@@ -16,11 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * @file
- * HAT data stuff.
- */
-
 #ifndef PANDA_TIMESWIPE_HAT_HPP
 #define PANDA_TIMESWIPE_HAT_HPP
 
@@ -463,16 +458,13 @@ public:
   /// Alias of Calibration_type.
   using Type = Calibration_type;
 
-  /**
-   * @returns A value of enum type converted from `value`. The returned value
-   * is invalid if `err` is not empty after return.
-   */
-  static Type to_type(const std::uint16_t value, std::string& err)
+  /// @returns A value of enum type converted from `value`.
+  static Error_or<Type> to_type(const std::uint16_t value) noexcept
   {
-    const Type result{value};
-    if (!to_literal(result))
-      err = timeswipe::to_literal(Errc::board_settings_calibration_data_invalid);
-    return result;
+    if (const Type result{value}; to_literal(result))
+      return result;
+    else
+      return Errc::board_settings_calibration_data_invalid;
   }
 
   /// The constructor.

@@ -18,8 +18,9 @@
 
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
+#include "debug.hpp"
 #include "driver.hpp"
-#include "error.hpp"
+#include "exceptions.hpp"
 #include "gain.hpp"
 #include "hat.hpp"
 #include "limits.hpp"

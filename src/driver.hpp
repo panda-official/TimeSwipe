@@ -23,7 +23,8 @@
 #include "basics.hpp"
 #include "board_settings.hpp"
 #include "driver_settings.hpp"
-#include "error.hpp"
+#include "errc.hpp"
+#include "exceptions.hpp"
 #include "table.hpp"
 #include "types_fwd.hpp"
 

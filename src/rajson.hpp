@@ -20,7 +20,7 @@
 #define PANDA_TIMESWIPE_RAJSON_HPP
 
 #include "basics.hpp"
-#include "error.hpp"
+#include "exceptions.hpp"
 #include "hat.hpp"
 
 #include "3rdparty/dmitigr/rajson.hpp"

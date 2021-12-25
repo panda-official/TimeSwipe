@@ -19,15 +19,7 @@
 #ifndef PANDA_TIMESWIPE_ERRC_HPP
 #define PANDA_TIMESWIPE_ERRC_HPP
 
-#include <cstring> // std::strlen
-#include <string>
-#include <system_error>
-
 namespace panda::timeswipe {
-
-// -----------------------------------------------------------------------------
-// Errc
-// -----------------------------------------------------------------------------
 
 /**
  * @ingroup errors
@@ -125,83 +117,6 @@ constexpr const char* to_literal_anyway(const Errc errc) noexcept
   constexpr const char* unknown{"unknown error"};
   const char* const literal{to_literal(errc)};
   return literal ? literal : unknown;
-}
-
-} // namespace panda::timeswipe
-
-// -----------------------------------------------------------------------------
-// Integration with std::system_error
-// -----------------------------------------------------------------------------
-
-namespace std {
-
-/**
- * @ingroup errors
- *
- * @brief Full specialization for integration with `<system_error>`.
- */
-template<>
-struct is_error_condition_enum<panda::timeswipe::Errc> final : true_type {};
-
-} // namespace std
-
-namespace panda::timeswipe {
-
-// -----------------------------------------------------------------------------
-// Generic_error_category
-// -----------------------------------------------------------------------------
-
-/**
- * @ingroup errors
- *
- * @brief A generic category of errors.
- */
-class Generic_error_category final : public std::error_category {
-public:
-  /// @returns The literal `panda_timeswipe_generic_error`.
-  const char* name() const noexcept override
-  {
-    return "panda_timeswipe_generic_error";
-  }
-
-  /**
-   * @returns The string that describes the error condition denoted by `ev`.
-   *
-   * @par Requires
-   * `ev` must corresponds to the value of Errc.
-   *
-   * @remarks The caller should not rely on the return value as it is a
-   * subject to change.
-   */
-  std::string message(const int ev) const override
-  {
-    const char* const desc{to_literal_anyway(static_cast<Errc>(ev))};
-    constexpr const char* const sep{": "};
-    std::string result;
-    result.reserve(std::strlen(name()) + std::strlen(sep) + std::strlen(desc));
-    return result.append(name()).append(sep).append(desc);
-  }
-};
-
-/**
- * @ingroup errors
- *
- * @returns The reference to the instance of type Generic_error_category.
- */
-inline const Generic_error_category& generic_error_category() noexcept
-{
-  static const Generic_error_category instance;
-  return instance;
-}
-
-/**
- * @ingroup errors
- *
- * @returns `std::error_condition(int(errc), generic_error_category())`.
- */
-inline std::error_condition make_error_condition(const Errc errc) noexcept
-{
-  return {static_cast<int>(errc), generic_error_category()};
 }
 
 } // namespace panda::timeswipe

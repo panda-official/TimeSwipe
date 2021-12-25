@@ -7,8 +7,8 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/error.hpp"
 #include "../../src/board_settings.hpp"
+#include "../../src/debug.hpp"
 
 #include <iostream>
 

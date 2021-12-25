@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_TABLE_HPP
 #define PANDA_TIMESWIPE_TABLE_HPP
 
-#include "error.hpp"
+#include "exceptions.hpp"
 
 #include <algorithm>
 #include <limits>

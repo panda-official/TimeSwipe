@@ -10,7 +10,8 @@
 #ifndef PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
 #define PANDA_TIMESWIPE_FIR_RESAMPLER_HPP
 
-#include "error.hpp"
+#include "debug.hpp"
+#include "exceptions.hpp"
 
 #include <algorithm>
 #include <cmath>

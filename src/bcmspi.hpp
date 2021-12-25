@@ -19,7 +19,8 @@
 #ifndef PANDA_TIMESWIPE_BCMSPI_HPP
 #define PANDA_TIMESWIPE_BCMSPI_HPP
 
-#include "error.hpp"
+#include "debug.hpp"
+#include "exceptions.hpp"
 #include "spi.hpp"
 #include "synccom.hpp"
 #include "3rdparty/bcm/bcm2835.h"
