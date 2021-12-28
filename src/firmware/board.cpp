@@ -50,23 +50,18 @@ Error Board::apply_calibration_data() noexcept
 {
   // Update voltage DAC.
   if (voltage_dac_) {
+    using Ct = hat::atom::Calibration::Type;
+    hat::atom::Calibration atom{Ct::v_supply, 1};
     if (is_calibration_data_enabled_) {
-      const auto [err, map] = calibration_data();
-      if (err)
+      if (const auto [err, map] = calibration_data(); err)
         return err;
-
-      const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
-      if (atom.entry_count() != 1) // exactly 1 entry per specification
-        return Errc::hat_eeprom_data_corrupted;
-
-      const auto& entry = atom.entry(0);
-      voltage_dac_->SetLinearFactors(entry.slope(), entry.offset());
-    } else {
-      constexpr float default_slope{-176};
-      constexpr float default_offset{4344};
-      voltage_dac_->SetLinearFactors(default_slope, default_offset);
+      else
+        atom = map.atom(Ct::v_supply);
     }
-
+    if (atom.entry_count() != 1) // exactly 1 entry per specification
+      return Errc::hat_eeprom_data_corrupted;
+    const auto& entry = atom.entry(0);
+    voltage_dac_->SetLinearFactors(entry.slope(), entry.offset());
     voltage_dac_->SetVal();
   }
 

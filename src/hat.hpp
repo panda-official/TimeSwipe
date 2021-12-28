@@ -472,7 +472,31 @@ public:
   Calibration(const Type type, const std::uint16_t count)
     : header_{type, count, count * sizeof(Entry)}
     , entries_(count)
-  {}
+  {
+    switch (type) {
+    case Type::v_in1: [[fallthrough]];
+    case Type::v_in2: [[fallthrough]];
+    case Type::v_in3: [[fallthrough]];
+    case Type::v_in4: [[fallthrough]];
+    case Type::c_in1: [[fallthrough]];
+    case Type::c_in2: [[fallthrough]];
+    case Type::c_in3: [[fallthrough]];
+    case Type::c_in4:
+      for (auto& entry : entries_) {
+        entry.slope_ = 1;
+        entry.offset_ = 2048;
+      }
+      break;
+    case Type::v_supply:
+      for (auto& entry : entries_) {
+        entry.slope_ = -176;
+        entry.offset_ = 4344;
+      }
+      break;
+    case Type::ana_out:
+      break;
+    }
+  }
 
   /// @returns The size in bytes.
   constexpr std::size_t size_in_bytes() const noexcept
