@@ -52,7 +52,7 @@ public:
   /// @returns The result of conversion from GetRawBinVal() to a value in real units.
   float GetRealVal() const noexcept
   {
-    return (raw_ - b_) / k_;
+    return (raw_ - offset_) / slope_;
   }
 
   /**
@@ -62,15 +62,15 @@ public:
    */
   void SetRealVal(const float value) noexcept
   {
-    SetRawBinVal(value * k_ + b_);
+    SetRawBinVal(value * slope_ + offset_);
   }
 
   /// Sets the conversion factors directly.
-  void SetLinearFactors(const float k, const float b) noexcept
+  void SetLinearFactors(const float slope, const float offset) noexcept
   {
     const auto real = GetRealVal();
-    k_ = k;
-    b_ = b;
+    slope_ = slope;
+    offset_ = offset;
     // Update the raw value by using current real and the new coefs.
     SetRealVal(real);
   }
@@ -84,10 +84,10 @@ protected:
 
 private:
   /// Proportional convertion factor.
-  float k_{1};
+  float slope_{1};
 
   /// Zero offset.
-  float b_{};
+  float offset_{};
 
   /// An actual value of the channel in the raw-binary format (native chip format).
   int raw_{};
@@ -137,21 +137,6 @@ public:
  * @remarks Uses only DAC functionality of CADchan.
  */
 class CDac : public CADchan {
-protected:
-  /**
-   * @brief Sets the output value to the real DAC device
-   *
-   * The function is used to transfer a control value from the abstract DAC
-   * channel to the real DAC device and must be overriden in a real device
-   * control class.
-   *
-   * @param val A value to set in a real-unit format for devices that can accept
-   * it (some PCI boards for example).
-   * @param out_bin A value to set in a raw-binary format - most common format
-   * for DAC devices.
-   */
-  virtual void DriverSetVal(float val, int out_bin) = 0;
-
 public:
   /// Set the current control value for this channel.
   void SetVal() noexcept
@@ -180,6 +165,21 @@ public:
     SetRawBinVal(value);
     DriverSetVal(GetRealVal(), GetRawBinVal());
   }
+
+private:
+  /**
+   * @brief Sets the output value to the real DAC device.
+   *
+   * The function is used to transfer a control value from the abstract DAC
+   * channel to the real DAC device and must be overriden in a real device
+   * control class.
+   *
+   * @param val A value to set in a real-unit format for devices that can accept
+   * it (some PCI boards for example).
+   * @param out_bin A value to set in a raw-binary format - most common format
+   * for DAC devices.
+   */
+  virtual void DriverSetVal(float val, int out_bin) = 0;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_ADCDAC_HPP
