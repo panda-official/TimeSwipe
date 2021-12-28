@@ -59,7 +59,7 @@ public:
   {
     if (!instance_) {
       instance_.reset(new(std::nothrow) Board);
-      PANDA_TIMESWIPE_FIRMWARE_ASSERT(instance_);
+      PANDA_TIMESWIPE_ASSERT(instance_);
     }
     return *instance_;
   }
@@ -80,8 +80,8 @@ public:
    * @param res JSON response.
    * @param ct Call type.
    */
-  void handle_catom(rapidjson::Value& req, rapidjson::Document& res,
-    const CCmdCallDescr::ctype ct);
+  Error handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
+    const CCmdCallDescr::ctype ct) noexcept;
 
   /// @returns `true` if the calibration data enabled.
   bool is_calibration_data_enabled() const noexcept
@@ -89,16 +89,16 @@ public:
     return is_calibration_data_enabled_;
   }
 
-  /// Enables or disables the calibration data.
-  void enable_calibration_data(const bool enabled)
+  /**
+   * @brief Enables or disables the calibration data.
+   *
+   * @par Effects
+   * `is_calibration_data_enabled()` on success.
+   */
+  Error enable_calibration_data(const bool enabled) noexcept
   {
     is_calibration_data_enabled_ = enabled;
-    if (is_calibration_data_enabled_) {
-      hat::Calibration_map data;
-      calibration_status_ = eeprom_cache_.get(data);
-      std::string err;
-      apply_calibration_data(data, err);
-    }
+    return apply_calibration_data();
   }
 
   /// Sets the board type.
@@ -167,7 +167,7 @@ public:
   /// @returns The measurement channel by the given index.
   std::shared_ptr<Channel> channel(const std::size_t index) const noexcept
   {
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(index < channels_.size());
+    PANDA_TIMESWIPE_ASSERT(index < channels_.size());
     return channels_[index];
   }
 
@@ -301,7 +301,7 @@ public:
         if (!channel->measurement_mode() || !channel->amplification_gain())
           return;
     }
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(adc_measurement_enable_pin_);
+    PANDA_TIMESWIPE_ASSERT(adc_measurement_enable_pin_);
     adc_measurement_enable_pin_->write(enabled);
     CView::Instance().SetButtonHeartbeat(enabled);
   }
@@ -309,14 +309,14 @@ public:
   /// @returns `true` if board ADC measurement enabled.
   bool is_measurement_enabled() const noexcept
   {
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(adc_measurement_enable_pin_);
+    PANDA_TIMESWIPE_ASSERT(adc_measurement_enable_pin_);
     return adc_measurement_enable_pin_->read_back();
   }
 
-  /// @returns `true` if EEPROM stores a valid calibration data.
-  bool is_calibrated() const noexcept
+  /// @returns `true` if the cached calibration data is valid.
+  bool is_calibration_data_valid() const noexcept
   {
-    return calibration_status_ == hat::Manager::Op_result::ok;
+    return !calibration_data().error;
   }
 
   /**
@@ -329,37 +329,27 @@ public:
     const std::shared_ptr<CFIFO>& buf);
 
   /**
-   * @brief Applies the calibration data to all the board items and overwrites
-   * it in the EEPROM.
+   * @brief Updates the both cache and persistent storage of EEPROM.
    *
-   * @param[in] map The calibration map.
-   * @param[out] err The error message which is set if the function returns `false`.
-   *
-   * @returns `false` on error.
+   * @par Effects
+   * Updates the state of all objects that depend on the calibration data.
    */
-  bool set_calibration_data(const hat::Calibration_map& map, std::string& err);
+  Error set_calibration_data(const hat::Calibration_map& map) noexcept;
 
-  /**
-   * @brief Gets the calibration data from the RAM cache.
-   *
-   * @param[out] map The calibration map.
-   * @param[out] err The error message which is set if the function returns `false`.
-   *
-   * @returns `false` on error.
-   */
-  bool get_calibration_data(hat::Calibration_map& map, std::string& err) const;
+  /// @returns The RAM-cached calibration data.
+  Error_or<hat::Calibration_map> calibration_data() const noexcept;
 
   /// Enables or disables the board cooler.
   void enable_fan(const bool enabled)
   {
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(fan_pin_);
+    PANDA_TIMESWIPE_ASSERT(fan_pin_);
     fan_pin_->write(enabled);
   }
 
   /// @returns `true` if the board cooler is enabled.
   bool is_fan_enabled() const noexcept
   {
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(fan_pin_);
+    PANDA_TIMESWIPE_ASSERT(fan_pin_);
     return fan_pin_->read_back();
   }
 
@@ -436,7 +426,6 @@ private:
   unsigned record_count_{1};
   hat::Manager eeprom_cache_; // EEPROM cache
   std::shared_ptr<ISerial> eeprom_bus_; // for read/write external EEPROM
-  hat::Manager::Op_result calibration_status_;
   bool is_settings_imported_{};
   bool is_calibration_data_enabled_{};
   bool is_bridge_enabled_{}; // persistent
@@ -459,8 +448,15 @@ private:
    */
   int set_gain_out(int val);
 
-  /// Applies the given calibration map to board ADCs/DACs.
-  void apply_calibration_data(const hat::Calibration_map& map, std::string& err);
+  /// Applies the current calibration map to board ADCs/DACs.
+  Error apply_calibration_data() noexcept;
+
+  /// Update channels.
+  void update_channels() noexcept
+  {
+    for (auto& channel : channels_)
+      channel->update_offsets();
+  }
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP

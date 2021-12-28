@@ -19,6 +19,7 @@
 #ifndef PANDA_TIMESWIPE_HAT_HPP
 #define PANDA_TIMESWIPE_HAT_HPP
 
+#include "debug.hpp"
 #include "error.hpp"
 #include "serial.hpp"
 #include "3rdparty/dmitigr/crc.hpp"
@@ -679,162 +680,94 @@ private:
   }
 };
 
-/// A manager class for working with HATs-EEPROM binary image
+/// A manager class for working with HATs-EEPROM binary image.
 class Manager final {
 public:
-  /// Represents the result of the operation.
-  enum class Op_result {
-    ok,
-    atom_not_found,
-    atom_corrupted,
-    storage_corrupted,
-    storage_unverified
-  };
-
   /**
-   * @brief The constructor.
+   * @brief Constructs invalid instance.
    *
-   * @param fifo_buf The buffer with EEPROM binary image.
+   * @details Either set_buf() or reset() must be called to make the instance
+   * valid.
+   *
+   * @see set_buf(), reset().
    */
-  explicit Manager(std::shared_ptr<CFIFO> fifo_buf = {})
-    : fifo_buf_{std::move(fifo_buf)}
-  {}
+  Manager() noexcept = default;
 
-  /**
-   * @brief Gets atom's raw binary data.
-   *
-   * @param pos Atom position (zero-based).
-   * @param[out] type Atom type.
-   * @param[out] Output data buffer.
-   *
-   * @return Operation result.
-   */
-  Op_result get_atom(const unsigned pos, atom::Type& type, CFIFO& output) const
+  /// @return `true` if this instance is valid.
+  bool is_valid() const noexcept
   {
-    if (storage_state_ != Op_result::ok)
-      return storage_state_;
-
-    // Get the atom.
-    Atom_header* atom{};
-    if (const auto r = get_atom_header(pos, &atom); r != Op_result::ok)
-      return r;
-
-    // Set helpers.
-    const auto* const header_bytes = reinterpret_cast<const char*>(atom);
-    const auto* const data_bytes = header_bytes + sizeof(Atom_header);
-    const auto dlen = atom->dlen - 2; // real dlen without CRC
-
-    // Check the CRC of the atom.
-    {
-      const std::uint16_t calc_crc{dmitigr::crc::crc16(header_bytes, dlen + sizeof(Atom_header))};
-      const auto* const crc = reinterpret_cast<const std::uint16_t*>(data_bytes + dlen);
-      if (calc_crc != *crc)
-        return Op_result::atom_corrupted;
-    }
-
-    // Fill the output variables.
-    type = static_cast<atom::Type>(atom->type);
-    for (int i{}; i < dlen; ++i)
-      output << data_bytes[i];
-
-    return Op_result::ok;
+    return static_cast<bool>(fifo_buf_);
   }
 
   /**
-   * @brief Resets the atom of given type from the image.
+   * @brief Sets the EEPROM image buffer.
    *
-   * @returns `Op_result::ok` on success.
+   * @param fifo_buf The memory area to set. If `nullptr` the effect is the same
+   * as if the method `reset()` is called.
+   *
+   * @par Effects
+   * `is_valid()` if the `fifo_buf` is valid EEPROM data copy or `nullptr`.
+   *
+   * @returns Error if the given `fifo_buf` is not valid.
+   *
+   * @see reset().
    */
-  template <typename A>
-  Op_result get(A& atom) const
+  Error set_buf(std::shared_ptr<CFIFO> fifo_buf) noexcept
   {
-    atom::Type type;
-    CFIFO buf;
-    const auto r = get_atom(atom.index_, type, buf);
-    return (r == Op_result::ok) && (atom.type_ != type || !atom.reset(buf)) ?
-      Op_result::atom_corrupted : r;
-  }
+    // Verify.
+    if (fifo_buf) {
+      // Verify size.
+      const auto* const mem_buf = fifo_buf->data();
+      const auto mem_buf_size = fifo_buf->size();
+      if (mem_buf_size < sizeof(Eeprom_header))
+        return Errc::hat_eeprom_data_corrupted;
 
-  /**
-   * @brief Set atom from the `input` buffer to the specified position.
-   *
-   * @param pos Atom position (zero-based).
-   * @param type Atom type.
-   * @param input Input data buffer.
-   *
-   * @return Operation result.
-   */
-  Op_result set_atom(const unsigned pos, const atom::Type type, const CFIFO& input)
-  {
-    if (storage_state_ != Op_result::ok)
-      return storage_state_;
+      // Verify header.
+      const auto* const header = reinterpret_cast<const Eeprom_header*>(mem_buf);
+      const auto* const mem_buf_end = mem_buf + mem_buf_size;
+      if (header->signature != signature_ || header->ver != version_
+        || header->res || header->eeplen > mem_buf_size)
+        return Errc::hat_eeprom_data_corrupted;
 
-    const auto acount = atom_count();
-    if (pos > acount)
-      return Op_result::atom_not_found;
-    const bool is_adding{pos == acount};
+      // Verify all the atoms.
+      const char* atom_bytes = mem_buf + sizeof(Eeprom_header);
+      for (std::uint16_t i{}; i < header->numatoms; ++i) {
+        const auto* const atom = reinterpret_cast<const Atom_header*>(atom_bytes);
+        if (const auto err = atom->error())
+          return err;
+        atom_bytes += sizeof(Atom_header) + atom->dlen;
+        if (atom_bytes > mem_buf_end)
+          return Errc::hat_eeprom_data_corrupted;
+      }
+    } else
+      return reset();
 
-    Atom_header* atom{};
-    if (const auto r = get_atom_header(pos, &atom); is_adding) {
-      if (r != Op_result::atom_not_found) return r;
-    } else if (r != Op_result::ok) return r;
-
-    // FIXME: check the whole storage for corruption before continuing here.
-    // assert: storage is not corrupted.
-
-    const auto input_size = input.size();
-    const int mem_adjust_size = is_adding ?
-      input_size + sizeof(Atom_header) + 2 : input_size - atom->dlen + 2;
-    if (is_adding)
-      adjust_memory_buffer(reinterpret_cast<const char*>(atom), mem_adjust_size);
-    else
-      adjust_memory_buffer(reinterpret_cast<const char*>(atom) + sizeof(Atom_header), mem_adjust_size); // keep header
-
-    // adjust_memory_buffer() reallocates memory and invalidates `atom`! Update it.
-    get_atom_header(pos, &atom);
-
-    // Emplace the atom to the reserved by adjust_memory_buffer() space.
-    atom->type = static_cast<std::uint16_t>(type);
-    atom->count = pos;
-    atom->dlen = input_size + 2;
-    auto* const atom_bytes = reinterpret_cast<char*>(atom);
-    auto* const atom_data_bytes = atom_bytes + sizeof(Atom_header);
-    for (std::size_t i{}; i < input_size; ++i)
-      atom_data_bytes[i] = input[i];
-
-    // Set CRC stamp of the atom.
-    *reinterpret_cast<std::uint16_t*>(atom_data_bytes + input_size) =
-      dmitigr::crc::crc16(atom_bytes, input_size + sizeof(Atom_header));
-
-    // Update the EEPROM header if needed.
-    if (is_adding) {
-      auto* const header = reinterpret_cast<Eeprom_header*>(memory_buffer());
-      header->eeplen += mem_adjust_size;
-      header->numatoms = acount + 1;
-    }
-
-    return Op_result::ok;
-  }
-
-  /**
-   * @brief Stores the atom of given type to the image.
-   *
-   * @returns `Op_result::ok` on success.
-   */
-  template <typename A>
-  Op_result set(const A& atom)
-  {
-    if (storage_state_ != Op_result::ok)
-      return storage_state_;
-    CFIFO buf;
-    atom.dump(buf);
-    return set_atom(atom.index_, atom.type_, buf);
-  }
-
-  /// Sets the EEPROM image buffer.
-  void set_buf(std::shared_ptr<CFIFO> fifo_buf)
-  {
     fifo_buf_ = std::move(fifo_buf);
+    return {};
+  }
+
+  /**
+   * @brief Resets all the image data to the default state (zero atom count).
+   *
+   * @details Must be called when start working on empty image.
+   *
+   * @see set_buf().
+   */
+  Error reset() noexcept
+  {
+    if (!fifo_buf_)
+      fifo_buf_ = std::make_shared<CFIFO>();
+    fifo_buf_->resize(sizeof(Eeprom_header));
+    if (fifo_buf_->size() < sizeof(Eeprom_header))
+      return Errc::out_of_memory;
+
+    auto* const header = reinterpret_cast<Eeprom_header*>(fifo_buf_->data());
+    header->signature = signature_;
+    header->ver = version_;
+    header->res = 0;
+    header->numatoms = 0;
+    header->eeplen = sizeof(Eeprom_header);
+    return {};
   }
 
   /// @returns EEPROM image buffer.
@@ -846,77 +779,109 @@ public:
   /// @returns Total atom count.
   std::uint16_t atom_count() const noexcept
   {
-    return reinterpret_cast<const Eeprom_header*>(memory_buffer())->numatoms;
+    return is_valid() ? reinterpret_cast<const Eeprom_header*>(
+      fifo_buf_->data())->numatoms : 0;
   }
 
   /**
-   * @brief Checks the image data integrity.
+   * @brief Resets the atom of given type from the image.
    *
-   * @details The method must be called before performing any operations on the
-   * binary image. It checks all headers and atoms validity and sets
-   * `storage_state_` to `Op_result::ok` on success. If the image is empty then
-   * reset() must be called instead.
-   *
-   * @returns `Op_result::ok` on success.
+   * @par Requires
+   * `is_valid()`.
    */
-  Op_result verify() const
+  template <typename A>
+  Error get(A& atom) const noexcept
   {
-    return storage_state_ = verify_storage();
+    atom::Type type;
+    CFIFO buf;
+    if (const auto err = get_atom(atom.index_, type, buf))
+      return err;
+    else if (atom.type_ != type || !atom.reset(buf))
+      return Errc::hat_eeprom_atom_corrupted;
+
+    return {};
   }
 
   /**
-   * @brief Resets all the image data to the default state (zero atom count).
+   * @brief Sets the atom of the given type in this instance.
    *
-   * @details Must be called when start working on empty image.
+   * @par Requires
+   * `is_valid()`.
    */
-  void reset()
+  template <typename A>
+  Error set(const A& atom)
   {
-    fifo_buf_->resize(sizeof(Eeprom_header));
-    storage_state_ = reset_storage();
+    CFIFO buf;
+    atom.dump(buf);
+    return set_atom(atom.index_, atom.type_, buf);
   }
 
 private:
   struct Atom_header final {
-    std::uint16_t type{};
+    /// @returns Error if the atom is invalid.
+    Error error() const noexcept
+    {
+      const auto dlen_no_crc = dlen - 2;
+      const auto* const atom_offset = reinterpret_cast<const char*>(this);
+      const auto* const data_offset = atom_offset + sizeof(*this);
+      const auto* const crc_offset = data_offset + dlen_no_crc;
+
+      // Check the CRC.
+      using dmitigr::crc::crc16;
+      const auto crc = *reinterpret_cast<const std::uint16_t*>(crc_offset);
+      const auto calc_crc = crc16(atom_offset, dlen_no_crc + sizeof(*this));
+      if (crc != calc_crc)
+        return Errc::hat_eeprom_atom_corrupted;
+
+      return {};
+    };
+
+    /// @returns The pointer to the atom data.
+    const char* data() const noexcept
+    {
+      const auto* const atom_offset = reinterpret_cast<const char*>(this);
+      return atom_offset + sizeof(*this);
+    }
+
+    /// @overload
+    char* data() noexcept
+    {
+      return const_cast<char*>(static_cast<const Atom_header*>(this)->data());
+    }
+
+    /// Copies the atom data to the `result`.
+    void get_data(CFIFO& result) const
+    {
+      const auto* const data_bytes = data();
+      const auto dlen_no_crc = dlen - 2;
+      for (int i{}; i < dlen_no_crc; ++i)
+        result << data_bytes[i];
+    }
+
+    /// Sets the `input` as the atom data.
+    void set_data(const CFIFO& input)
+    {
+      // Set the data.
+      auto* const data_bytes = data();
+      const auto dlen_no_crc = input.size();
+      for (std::size_t i{}; i < dlen_no_crc; ++i)
+        data_bytes[i] = input[i];
+
+      // Set the data CRC.
+      auto* const crc = reinterpret_cast<std::uint16_t*>(data() + dlen_no_crc);
+      *crc = dmitigr::crc::crc16(reinterpret_cast<const char*>(this),
+        dlen_no_crc + sizeof(*this));
+    }
+
+    atom::Type type{}; // std::uint16_t
     std::uint16_t count{};
     std::uint32_t dlen{};
     // char data_bytes;
   };
 
-  static constexpr std::uint32_t signature{0x69502d52};
-  static constexpr std::uint8_t version{1};
-  mutable Op_result storage_state_{Op_result::storage_unverified};
+  static constexpr std::uint32_t signature_{0x69502d52};
+  static constexpr std::uint8_t version_{1};
   std::shared_ptr<CFIFO> fifo_buf_;
-
-  /// @name Memory control
-  /// @{
-
-  /// @returns Raw pointer to the EEPROM image buffer.
-  char* memory_buffer() const noexcept
-  {
-    return fifo_buf_->data();
-  }
-
-  /// @returns The size of the EEPROM image buffer.
-  std::size_t memory_buffer_size() const noexcept
-  {
-    return fifo_buf_->size();
-  }
-
-  /// Reallocates EEPROM image buffer according to the given `adjustment`.
-  void adjust_memory_buffer(const char* const offset, const int adjustment)
-  {
-    const auto position = offset - fifo_buf_->data();
-    if (adjustment > 0)
-      fifo_buf_->insert(position, adjustment, 0);
-    else if (adjustment < 0)
-      fifo_buf_->erase(position, -adjustment);
-  }
-
-  /// @}
-
-  /// @name Atom stuff
-  /// @{
 
   /**
    * @brief Searchs for the atom with the given `pos` in EEPROM buffer.
@@ -924,19 +889,22 @@ private:
    * @param pos The position of the atom to find.
    * @param[out] header The result.
    *
-   * @returns `Op_result::ok` on success.
+   * @par Requires
+   * `is_valid()`.
    */
-  Op_result get_atom_header(unsigned pos, Atom_header** const header) const
+  Error get_atom_header(unsigned pos, Atom_header** const header) const noexcept
   {
-    Op_result result{Op_result::ok};
-    auto* const mem_buf = memory_buffer();
-    auto* const mem_buf_end = mem_buf + memory_buffer_size();
+    PANDA_TIMESWIPE_ASSERT(is_valid());
+
+    Error result;
+    auto* const mem_buf = fifo_buf_->data();
+    auto* const mem_buf_end = mem_buf + fifo_buf_->size();
     const auto* const eeprom_header = reinterpret_cast<const Eeprom_header*>(mem_buf);
 
     // Check `pos` and correct if needed.
     if (pos >= eeprom_header->numatoms) {
       pos = eeprom_header->numatoms;
-      result = Op_result::atom_not_found;
+      result = Errc::hat_eeprom_atom_missed;
     }
 
     // Find atom.
@@ -944,7 +912,7 @@ private:
     for (unsigned i{}; i < pos; ++i) {
       atom += sizeof(Atom_header) + reinterpret_cast<const Atom_header*>(atom)->dlen;
       if (atom > mem_buf_end)
-        return Op_result::storage_corrupted;
+        return Errc::hat_eeprom_data_corrupted;
     }
     *header = reinterpret_cast<Atom_header*>(atom);
 
@@ -952,82 +920,97 @@ private:
   }
 
   /**
-   * @brief Checks the atom.
+   * @brief Gets atom's raw binary data.
    *
-   * @returns `Op_result::ok` on success.
+   * @param pos Atom position (zero-based).
+   * @param[out] type Atom type.
+   * @param[out] Output data buffer.
+   *
+   * @par Requires
+   * `is_valid()`.
    */
-  Op_result verify_atom(const Atom_header* const atom) const
+  Error get_atom(const unsigned pos, atom::Type& type, CFIFO& output) const noexcept
   {
-    // Check the CRC.
-    const auto dlen = atom->dlen - 2; // dlen without CRC
-    const auto* const atom_offset = reinterpret_cast<const char*>(atom);
-    const auto* const data_offset = atom_offset + sizeof(Atom_header);
-    const auto* const crc_offset = data_offset + dlen;
+    // Pre-conditions are checked in get_atom_header().
 
-    const auto crc = *reinterpret_cast<const std::uint16_t*>(crc_offset);
-    const auto calc_crc = dmitigr::crc::crc16(atom_offset, dlen + sizeof(Atom_header));
-    if (crc != calc_crc)
-      return Op_result::atom_corrupted;
+    // Get the atom.
+    Atom_header* atom{};
+    if (const auto err = get_atom_header(pos, &atom))
+      return err;
 
-    return Op_result::ok;
+    // Check the atom.
+    if (const auto err = atom->error())
+      return err;
+
+    // Set the result.
+    type = atom->type;
+    atom->get_data(output);
+
+    return {};
   }
-
-  /// @}
-
-  /// @name Storage control
-  /// @{
 
   /**
-   * @brief Verifies EEPROM buffer.
+   * @brief Set atom from the `input` buffer to the specified position.
    *
-   * @return `Op_result::ok` on success.
+   * @param pos Atom position (zero-based).
+   * @param type Atom type.
+   * @param input Input data buffer.
+   *
+   * @par Requires
+   * `is_valid()`.
    */
-  Op_result verify_storage() const
+  Error set_atom(const unsigned pos, const atom::Type type, const CFIFO& input)
   {
-    const auto* const mem_buf = memory_buffer();
-    const auto mem_buf_size = memory_buffer_size();
-    if (mem_buf_size < sizeof(Eeprom_header))
-      return Op_result::storage_corrupted;
+    // Pre-conditions are checked in get_atom_header().
 
-    const auto* const header = reinterpret_cast<const Eeprom_header*>(mem_buf);
-    const auto* const mem_buf_end = mem_buf + mem_buf_size;
+    const auto acount = atom_count();
+    const bool is_adding{pos == acount};
+    Atom_header* atom{};
+    if (const auto err = get_atom_header(pos, &atom); is_adding) {
+      if (err && err != Errc::hat_eeprom_atom_missed)
+        return err;
+    } else if (err)
+      return err;
 
-    if (header->signature != signature || header->ver != version
-      || header->res || header->eeplen > mem_buf_size)
-      return Op_result::storage_corrupted;
+    const auto input_size = input.size();
+    const auto atom_old_size = (atom->dlen + 2) * !is_adding;
+    const auto atom_new_size = input_size + 2 + sizeof(Atom_header) * is_adding;
+    const auto atom_offset = reinterpret_cast<const char*>(atom) +
+      sizeof(Atom_header) * !is_adding; // keep header when updating
 
-    // Verify all the atoms.
-    const char* atom = mem_buf + sizeof(Eeprom_header);
-    for (std::uint16_t i{}; i < header->numatoms; ++i) {
-      const auto* const atom_hdr = reinterpret_cast<const Atom_header*>(atom);
-      if (const auto r = verify_atom(atom_hdr); r != Op_result::ok)
-        return r;
-      atom += sizeof(Atom_header) + atom_hdr->dlen;
-      if (atom > mem_buf_end)
-        return Op_result::storage_corrupted;
-    }
-    return Op_result::ok;
+    // resize_fifo_buf() reallocates memory and invalidates `atom`!
+    resize_fifo_buf(atom_offset, atom_old_size, atom_new_size);
+    // Refresh the `atom` after memory reallocation!
+    get_atom_header(pos, &atom);
+
+    // Set the atom.
+    atom->type = type;
+    atom->count = pos;
+    atom->dlen = input_size + 2;
+    atom->set_data(input);
+
+    // Update the EEPROM header.
+    auto* const header = reinterpret_cast<Eeprom_header*>(fifo_buf_->data());
+    header->numatoms = acount + is_adding;
+    if (atom_new_size > atom_old_size)
+      header->eeplen += atom_new_size - atom_old_size;
+    else if (atom_new_size < atom_old_size)
+      header->eeplen -= atom_old_size - atom_new_size;
+
+    return atom->error();
   }
 
-  /// Invalidates the EEPROM buffer.
-  Op_result reset_storage()
+  /// Resizes the memory area according to the given sizes.
+  void resize_fifo_buf(const char* const offset, const std::size_t old_size,
+    const std::size_t new_size)
   {
-    char* const mem_buf = memory_buffer();
-    const std::size_t mem_buf_size = memory_buffer_size();
-
-    if (mem_buf_size < sizeof(Eeprom_header))
-      return Op_result::storage_corrupted;
-
-    auto* const header = reinterpret_cast<Eeprom_header*>(mem_buf);
-    header->signature = signature;
-    header->ver = version;
-    header->res = 0;
-    header->numatoms = 0;
-    header->eeplen = sizeof(Eeprom_header);
-    return Op_result::ok;
+    PANDA_TIMESWIPE_ASSERT(is_valid() && old_size <= fifo_buf_->size());
+    const auto position = offset - fifo_buf_->data();
+    if (new_size > old_size)
+      fifo_buf_->insert(position, new_size - old_size, 0);
+    else if (new_size < old_size)
+      fifo_buf_->erase(position, old_size - new_size);
   }
-
-  /// @}
 };
 
 } // namespace panda::timeswipe::detail::hat

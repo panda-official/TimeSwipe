@@ -66,6 +66,18 @@ private:
   std::string what_;
 };
 
+/// @returns `true` if `lhs` is equals to `rhs`.
+inline bool operator==(const Error& lhs, const Error& rhs) noexcept
+{
+  return lhs.errc() == rhs.errc();
+}
+
+/// @returns `true` if `lhs` is not equals to `rhs`.
+inline bool operator!=(const Error& lhs, const Error& rhs) noexcept
+{
+  return !(lhs == rhs);
+}
+
 // -----------------------------------------------------------------------------
 // Error_or
 // -----------------------------------------------------------------------------
@@ -77,20 +89,17 @@ private:
  * functions which must not throw exceptions.
  */
 template<typename T>
-struct Error_or final : std::pair<Error, T> {
+struct Error_or final {
   static_assert(!std::is_same_v<T, void> &&
     !std::is_convertible_v<T, Errc> &&
     !std::is_convertible_v<T, Error>);
 
-  /// An alias of the base class.
-  using Base = std::pair<Error, T>;
-
-  /// Constructs to hold a default value.
+  /// Constructs to hold not an error and a default value.
   constexpr Error_or() noexcept = default;
 
-  /// Constructs to hold an error.
-  constexpr Error_or(Error error) noexcept
-    : Base{std::move(error), T{}}
+  /// Constructs to hold an error and a default value.
+  constexpr Error_or(Error err) noexcept
+    : error{std::move(err)}
   {}
 
   /// @overload
@@ -98,10 +107,25 @@ struct Error_or final : std::pair<Error, T> {
     : Error_or{Error{errc}}
   {}
 
-  /// Constructs to hold a value.
-  constexpr Error_or(T value) noexcept
-    : Base{Error{}, std::move(value)}
+  /// Constructs to hold not an error and `value`.
+  constexpr Error_or(T val) noexcept
+    : value{std::move(val)}
   {}
+
+  /**
+   * @brief Constructs to hold the both error and `value`.
+   *
+   * @details This constructor could be useful is rare cases to return partially
+   * valid value with an error in assumption that the caller could know how to
+   * handle it.
+   */
+  constexpr Error_or(Errc errc, T val) noexcept
+    : error{Error{errc}}
+    , value{std::move(value)}
+  {}
+
+  Error error;
+  T value{};
 };
 
 } // namespace panda::timeswipe::detail

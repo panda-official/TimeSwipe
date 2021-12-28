@@ -35,22 +35,15 @@ void Dms_channel::set_amplification_gain(const float value)
 
 void Dms_channel::update_offsets()
 {
-  // Apply offsets iif calibration is enabled.
-  if (!board()->is_calibration_data_enabled()) {
-    dac()->SetRawOutput(2048);
-    return;
+  int raw{2048};
+  if (board()->is_calibration_data_enabled()) {
+    if (const auto [err, map] = board()->calibration_data(); !err) {
+      using Ct = hat::atom::Calibration::Type;
+      const auto atom = Measurement_mode::voltage == measurement_mode() ?
+        Ct::v_in1 : Ct::c_in1;
+      const auto type = static_cast<Ct>(static_cast<int>(atom) + channel_index());
+      raw = map.atom(type).entry(gain_index_).offset();
+    }
   }
-
-  std::string err;
-  hat::Calibration_map map;
-  board()->get_calibration_data(map, err);
-  if (err.empty()) {
-    using Type = hat::atom::Calibration::Type;
-    const auto atom = Measurement_mode::voltage == measurement_mode() ?
-      Type::v_in1 : Type::c_in1;
-    const auto type = static_cast<Type>(static_cast<int>(atom) + channel_index());
-    const auto& entry = map.atom(type).entry(gain_index_);
-    dac()->SetRawOutput(entry.offset());
-  } else
-    dac()->SetRawOutput(2048);
+  dac()->SetRawOutput(raw);
 }

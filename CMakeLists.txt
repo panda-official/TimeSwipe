@@ -357,6 +357,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
 
   add_library(firmware STATIC ${firmware_src})
   target_compile_definitions(firmware PUBLIC
+    PANDA_TIMESWIPE_FIRMWARE
+
     # sam
     ${sam_compile_definitions}
 

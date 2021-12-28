@@ -194,7 +194,7 @@ public:
   using Setter_value = SetterValue;
 
   /// Generic getter.
-  using Getter = std::function<std::pair<Error, Getter_value>()>;
+  using Getter = std::function<Error_or<Getter_value>()>;
 
   /// Generic setter.
   using Setter = std::function<Error(Setter_value)>;
@@ -231,18 +231,7 @@ public:
   template<typename GetterResult, typename SetterResult = void>
   explicit CCmdSGHandler(Basic_getter<GetterResult> get,
     Basic_setter<SetterResult> set = {})
-    : get_{
-        [get = std::move(get)]
-        {
-          using std::is_same_v;
-          static_assert(is_same_v<GetterResult, Getter_value> ||
-            is_same_v<GetterResult, std::pair<Error, Getter_value>>);
-          if constexpr (is_same_v<GetterResult, Getter_value>)
-            return std::pair{Error{}, get()};
-          else
-            return get();
-        }
-      }
+    : get_{std::move(get)}
     , set_{
         [set = std::move(set)](auto value)
         {
@@ -281,13 +270,7 @@ public:
         instance && get ?
         [instance, get]
         {
-          using std::is_same_v;
-          static_assert(is_same_v<GetterResult, Getter_value> ||
-            is_same_v<GetterResult, std::pair<Error, Getter_value>>);
-          if constexpr (is_same_v<GetterResult, Getter_value>)
-            return std::pair{Error{}, (instance.get()->*get)()};
-          else
-            return (instance.get()->*get)();
+          return (instance.get()->*get)();
         } : Getter{},
         // set_
         instance && set ?

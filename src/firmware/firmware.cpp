@@ -431,7 +431,7 @@ int main()
         &Board::set_measurement_mode));
     pDisp->Add("CalStatus", std::make_shared<CCmdSGHandler<bool>>(
         board,
-        &Board::is_calibrated));
+        &Board::is_calibration_data_valid));
     pDisp->Add("Voltage", std::make_shared<CCmdSGHandler<float>>(
         board,
         &Board::voltage,

@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "../error.hpp"
+#include "../../debug.hpp"
 #include "../os.h"
 #include "i2c_eeprom_master.hpp"
 #include "pin.hpp"
@@ -66,7 +66,7 @@ Sam_i2c_eeprom_master::Sam_i2c_eeprom_master()
 
   enable_internal_bus(true);
   clock_generator_ = Sam_clock_generator::make();
-  PANDA_TIMESWIPE_FIRMWARE_ASSERT(clock_generator_);
+  PANDA_TIMESWIPE_ASSERT(clock_generator_);
 
   connect_clock_generator(clock_generator_->id());
   clock_generator_->enable(true);

@@ -5,7 +5,7 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "../error.hpp"
+#include "../../debug.hpp"
 #include "PINPWM.h"
 
 #include <sam.h>
@@ -23,7 +23,7 @@ CPinPWM::CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin) : CSamTC(typeSamTC
     CSamTC::EnableAPBbus(static_cast<typeSamTC>(static_cast<int>(m_nTC)+1), true);
 
     m_pCLK=Sam_clock_generator::make();
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
+    PANDA_TIMESWIPE_ASSERT(m_pCLK);
     CSamTC::ConnectGCLK(m_pCLK->id());
     m_pCLK->enable(true);
 

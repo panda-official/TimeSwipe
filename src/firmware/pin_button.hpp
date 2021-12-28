@@ -19,8 +19,8 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_PIN_BUTTON_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_PIN_BUTTON_HPP
 
+#include "../debug.hpp"
 #include "button.hpp"
-#include "error.hpp"
 #include "os.h"
 
 /**
@@ -49,7 +49,7 @@ public:
   {
     // Fixate the call time.
     const auto call_time = os::get_tick_mS();
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(call_time >= last_update_time_);
+    PANDA_TIMESWIPE_ASSERT(call_time >= last_update_time_);
 
     /*
      * If min update interval reached, get the signal level and apply 1-order

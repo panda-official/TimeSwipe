@@ -19,7 +19,7 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_IO_STREAM_HPP
 
-#include "error.hpp"
+#include "../debug.hpp"
 
 #include <string>
 #include <optional>
@@ -95,7 +95,7 @@ Io_stream& operator<<(Io_stream& os, const T& value)
 /// @overload
 inline Io_stream& operator<<(Io_stream& os, const char* const value)
 {
-  PANDA_TIMESWIPE_FIRMWARE_ASSERT(value);
+  PANDA_TIMESWIPE_ASSERT(value);
   os.write(std::string{value});
   return os;
 }

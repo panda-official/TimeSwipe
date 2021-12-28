@@ -113,7 +113,7 @@ public:
   /// @see Io_stream::write(const std::string&).
   void write(const std::string& value) override
   {
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(alloc_);
+    PANDA_TIMESWIPE_ASSERT(alloc_);
     value_.SetString(value, *alloc_);
     is_error_ = false;
   }

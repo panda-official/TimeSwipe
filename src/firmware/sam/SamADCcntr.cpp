@@ -5,7 +5,7 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-#include "../error.hpp"
+#include "../../debug.hpp"
 #include "SamADCcntr.h"
 #include "NVMpage.h"
 
@@ -172,7 +172,7 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
 
     //----------------------connect default gen--------------------------
     m_pCLK = Sam_clock_generator::make();
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(m_pCLK);
+    PANDA_TIMESWIPE_ASSERT(m_pCLK);
 
     int pchind=typeSamADC::Adc0==m_nADC ? GCLK_ADC0:GCLK_ADC1;
     GCLK->PCHCTRL[pchind].bit.GEN=static_cast<uint32_t>(m_pCLK->id());

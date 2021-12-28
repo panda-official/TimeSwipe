@@ -25,17 +25,27 @@ namespace panda::timeswipe {
  * @ingroup errors
  *
  * @brief Generic error conditions.
+ *
+ * @see to_literal(Errc).
  */
 enum class Errc {
+  /// Not an error.
+  ok = 0,
+
   /// Generic error.
   generic = 1,
 
+  /// Out of memory.
+  out_of_memory = 111,
+
   /// At least one of the board settings invalid.
   board_settings_invalid = 10011,
-  /// Calibration data is invalid.
-  board_settings_calibration_data_invalid = 10021,
+  /// Calibration data provided is invalid.
+  board_settings_calibration_data_invalid = 10031,
+  /// Calibration procedure is not permitted.
+  board_settings_calibration_not_permitted = 10041,
   /// At least one of the board settings insufficient.
-  board_settings_insufficient = 10031,
+  board_settings_insufficient = 10051,
   /// Board measurement mode is started.
   board_measurement_started = 10111,
 
@@ -60,23 +70,44 @@ enum class Errc {
   /// Attempt to receive SPI request failed.
   spi_receive_failed = 40111,
   /// Attempt to execute SPI command failed.
-  spi_command_failed = 40211
+  spi_command_failed = 40211,
+  /// SPI request is invalid.
+  spi_request_invalid = 40311,
+
+  /// EEPROM is not available (neither read nor write are possible).
+  hat_eeprom_unavailable = 50011,
+  /// Whole EEPROM data is corrupted.
+  hat_eeprom_data_corrupted = 50111,
+  /// Some atom of EEPROM data is corrupted.
+  hat_eeprom_atom_corrupted = 50211,
+  /// Requested atom is not presents in EEPROM.
+  hat_eeprom_atom_missed = 50221
 };
 
 /**
  * @returns The literal representation of the `errc`, or `nullptr`
  * if `errc` does not corresponds to any value defined by Errc.
+ *
+ * @see Errc, to_literal_anyway(Errc).
  */
 constexpr const char* to_literal(const Errc errc) noexcept
 {
   switch (errc) {
+  case Errc::ok:
+    return "ok";
+
   case Errc::generic:
     return "generic";
+
+  case Errc::out_of_memory:
+    return "out_of_memory";
 
   case Errc::board_settings_invalid:
     return "board_settings_invalid";
   case Errc::board_settings_calibration_data_invalid:
     return "board_settings_calibration_data_invalid";
+  case Errc::board_settings_calibration_not_permitted:
+    return "board_settings_calibration_not_permitted";
   case Errc::board_settings_insufficient:
     return "board_settings_insufficient";
   case Errc::board_measurement_started:
@@ -104,6 +135,17 @@ constexpr const char* to_literal(const Errc errc) noexcept
     return "spi_receive_failed";
   case Errc::spi_command_failed:
     return "spi_command_failed";
+  case Errc::spi_request_invalid:
+    return "spi_request_invalid";
+
+  case Errc::hat_eeprom_unavailable:
+    return "hat_eeprom_unavailable";
+  case Errc::hat_eeprom_data_corrupted:
+    return "hat_eeprom_data_corrupted";
+  case Errc::hat_eeprom_atom_corrupted:
+    return "hat_eeprom_atom_corrupted";
+  case Errc::hat_eeprom_atom_missed:
+    return "hat_eeprom_atom_missed";
   }
   return nullptr;
 }
@@ -111,6 +153,8 @@ constexpr const char* to_literal(const Errc errc) noexcept
 /**
  * @returns The literal returned by `to_literal(errc)`, or literal
  * `unknown error` if `to_literal(errc)` returned `nullptr`.
+ *
+ * @see to_literal(Errc).
  */
 constexpr const char* to_literal_anyway(const Errc errc) noexcept
 {

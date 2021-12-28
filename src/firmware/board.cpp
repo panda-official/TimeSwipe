@@ -21,9 +21,6 @@
 #include "sam/SamService.h"
 
 Board::Board()
-#ifndef CALIBRATION_STATION
-  : is_calibration_data_enabled_{true}
-#endif
 {
   channels_.reserve(4);
 }
@@ -31,124 +28,112 @@ Board::Board()
 void Board::set_eeprom_handles(const std::shared_ptr<ISerial>& bus,
   const std::shared_ptr<CFIFO>& buf)
 {
-  eeprom_cache_.set_buf(buf);
+  // Initialize EEPROM cache.
+  auto err = eeprom_cache_.set_buf(buf);
+  if (err && buf)
+    err = eeprom_cache_.reset();
+  PANDA_TIMESWIPE_ASSERT(!err);
+
+  // Initialize bus.
   eeprom_bus_ = bus;
 
-  if (eeprom_cache_.verify() != hat::Manager::Op_result::ok) {
-    eeprom_cache_.reset();
-    hat::atom::Vendor_info vinf{CSamService::GetSerial(), 0, 2, "Panda", "Timeswipe"};
-    eeprom_cache_.set(vinf); //storage is ready
-  }
+  // Add or overwrite vendor info.
+  eeprom_cache_.set(hat::atom::Vendor_info{
+    CSamService::GetSerial(), 0, 2, "Panda", "Timeswipe"});
 
-  // Fill blank atoms with the stubs.
-  for (int i{eeprom_cache_.atom_count()}; i < 3; ++i) {
-    hat::atom::Stub stub{i};
-    eeprom_cache_.set(stub);
-  }
-
-  hat::Calibration_map map;
-  calibration_status_ = eeprom_cache_.get(map);
-  if (calibration_status_ == hat::Manager::Op_result::ok) {
-    std::string err;
-    apply_calibration_data(map, err);
-  }
+  // Add or overwrite the stubs.
+  for (int i{eeprom_cache_.atom_count()}; i < 3; ++i)
+    eeprom_cache_.set(hat::atom::Stub{i});
 }
 
-void Board::apply_calibration_data(const hat::Calibration_map& map, std::string& err)
+Error Board::apply_calibration_data() noexcept
 {
-  if (!is_calibration_data_enabled_) {
-    err = "calibration settings are disabled";
-    return;
-  }
-
+  // Update voltage DAC.
   if (voltage_dac_) {
-    const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
-    if (atom.entry_count() != 1) { // exactly 1 entry per specification
-      err = "invalid v_supply calibration atom";
-      return;
+    if (is_calibration_data_enabled_) {
+      const auto [err, map] = calibration_data();
+      if (err)
+        return err;
+
+      const auto& atom = map.atom(hat::atom::Calibration::Type::v_supply);
+      if (atom.entry_count() != 1) // exactly 1 entry per specification
+        return Errc::hat_eeprom_data_corrupted;
+
+      const auto& entry = atom.entry(0);
+      voltage_dac_->SetLinearFactors(entry.slope(), entry.offset());
+    } else {
+      constexpr float default_slope{-176};
+      constexpr float default_offset{4344};
+      voltage_dac_->SetLinearFactors(default_slope, default_offset);
     }
-    const auto& entry = atom.entry(0);
-    voltage_dac_->SetLinearFactors(entry.slope(), entry.offset());
+
     voltage_dac_->SetVal();
   }
 
   // Update channels.
-  for (auto& channel : channels_)
-    channel->update_offsets();
+  update_channels();
+
+  return {};
 }
 
-bool Board::set_calibration_data(const hat::Calibration_map& map, std::string& err)
+Error Board::set_calibration_data(const hat::Calibration_map& map) noexcept
 {
-  calibration_status_ = eeprom_cache_.set(map);
-  if (calibration_status_ != hat::Manager::Op_result::ok) {
-    err = "invalid calibration map";
-    return false;
-  }
+  // Update the cache.
+  if (const auto err = eeprom_cache_.set(map))
+    return err;
 
-  apply_calibration_data(map, err);
-  if (!err.empty()) return false;
+  // Update the state of all dependent objects.
+  if (const auto err = apply_calibration_data(); err)
+    return err;
 
-  if (!eeprom_bus_->send(*eeprom_cache_.buf())) {
-    err = "failed to write EEPROM";
-    return false;
-  }
+  // Update EEPROM.
+  if (!eeprom_bus_->send(*eeprom_cache_.buf()))
+    return Errc::hat_eeprom_unavailable;
 
-  return true;
+  return {};
 }
 
-bool Board::get_calibration_data(hat::Calibration_map& data, std::string& err) const
+Error_or<hat::Calibration_map> Board::calibration_data() const noexcept
 {
-  using Op_result = hat::Manager::Op_result;
-  const auto r = eeprom_cache_.get(data);
-  if (r == Op_result::ok || r == Op_result::atom_not_found)
-    return true;
-
-  err = "EEPROM image is corrupted";
-  return false;
+  hat::Calibration_map result;
+  if (const auto err = eeprom_cache_.get(result))
+    return err;
+  return result;
 }
 
-void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
-  const CCmdCallDescr::ctype ct)
+Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
+  const CCmdCallDescr::ctype ct) noexcept
 {
-  const auto handle = [this](auto& req, auto& res, const auto ct, auto& err)
+  using Value = rapidjson::Value;
+
+  const auto handle = [this](auto& req, auto& res, const auto ct) noexcept -> Error
   {
-    hat::Calibration_map map;
+    auto [err1, map] = calibration_data();
+    if (err1 && err1 != Errc::hat_eeprom_atom_missed)
+      return err1;
 
-    //load existing atom
-    if (!get_calibration_data(map, err)) {
-      err = "cannot read current calibration data";
-      return false;
-    }
-
-    if (!req.IsObject() || req.FindMember("cAtom") == req.MemberEnd()) {
-      err = "request is not cAtom object";
-      return false;
-    }
+    if (!req.IsObject() || req.FindMember("cAtom") == req.MemberEnd())
+      return Error{Errc::spi_request_invalid};
 
     const auto catom = req["cAtom"].GetUint();
-    const auto type = hat::atom::Calibration::to_type(catom, err);
-    if (!err.empty())
-      return false;
+    const auto [err2, type] = hat::atom::Calibration::to_type(catom);
+    if (err2)
+      return err2;
 
     const auto cal_entry_count = map.atom(type).entry_count();
 
     if (ct == CCmdCallDescr::ctype::ctSet) {
 #ifndef CALIBRATION_STATION
-      err = "calibration setting is prohibited";
-      return false;
+      return Error{Errc::board_settings_calibration_not_permitted};
 #endif
 
-      if (req.FindMember("data") == req.MemberEnd()) {
-        err = "cAtom object doesn't contains the data member";
-        return false;
-      }
+      if (req.FindMember("data") == req.MemberEnd())
+        return Error{Errc::spi_request_invalid};
 
       auto& data = req["data"];
       const auto data_size = data.Size();
-      if (data_size > cal_entry_count) {
-        err = "wrong data count in request";
-        return false;
-      }
+      if (data_size > cal_entry_count)
+        return Error{Errc::spi_request_invalid};
 
       for (std::size_t i{}; i < data_size; ++i) {
         const auto& el = data[i];
@@ -160,8 +145,9 @@ void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
         map.atom(type).set_entry(i, std::move(entry));
       }
 
-      // Save the calibration map.
-      if (!set_calibration_data(map, err)) return false;
+      // Update objects.
+      if (const auto err = set_calibration_data(map); err)
+        return err;
     }
 
     // Generate data member of the response.
@@ -172,7 +158,8 @@ void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
       const auto& entry = map.atom(type).entry(i);
       const auto m = entry.slope();
       const auto b = entry.offset();
-      data.PushBack(std::move(rapidjson::Value{rapidjson::kObjectType}
+      data.PushBack(
+        std::move(Value{rapidjson::kObjectType}
           .AddMember("m", m, alloc)
           .AddMember("b", b, alloc)), alloc);
     }
@@ -182,16 +169,16 @@ void Board::handle_catom(rapidjson::Value& req, rapidjson::Document& res,
     res.AddMember("cAtom", catom, alloc);
     res.AddMember("data", std::move(data), alloc);
 
-    return true;
+    return {};
   };
 
-  std::string err;
-  if (!handle(req, res, ct, err)) {
-    using Value = rapidjson::Value;
+  const auto err = handle(req, res, ct);
+  if (err) {
     auto& alloc = res.GetAllocator();
     res.AddMember("cAtom", Value{}, alloc);
-    set_error(res, res["cAtom"], err);
+    set_error(res, res["cAtom"], to_literal_anyway(err.errc()));
   }
+  return err;
 }
 
 void Board::Serialize(CStorage &st)
@@ -252,7 +239,7 @@ void Board::enable_bridge(const bool enabled)
   is_bridge_enabled_ = enabled;
 
   if (board_type_ != Board_type::iepe) {
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(ubr_pin_);
+    PANDA_TIMESWIPE_ASSERT(ubr_pin_);
     ubr_pin_->write(enabled);
   }
 
@@ -271,7 +258,7 @@ void Board::set_measurement_mode(const int mode)
 
   if (board_type_ == Board_type::iepe) { // old IEPE board setting
     //enable_bridge(measurement_mode_);
-    PANDA_TIMESWIPE_FIRMWARE_ASSERT(ubr_pin_);
+    PANDA_TIMESWIPE_ASSERT(ubr_pin_);
     ubr_pin_->write(measurement_mode_ == MesModes::IEPE);
   }
 
