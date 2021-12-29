@@ -41,7 +41,7 @@ void CSamADCchan::SetRawBinVal(int RawVal)
     m_FilteredRawVal+=((float)RawVal - m_FilteredRawVal ) * ( (float)data_age() ) / m_filter_t_mSec;
     m_MesTStamp=os::get_tick_mS();
 
-    CADchan::SetRawBinVal(m_FilteredRawVal);
+    Adcdac_channel::SetRawBinVal(m_FilteredRawVal);
 }
 
 

@@ -22,15 +22,14 @@
 /**
  * @brief Analog-to-Digital or Digital-to-Analog measurement/control channel.
  *
- * `ADC` and `DAC` devices usually contain a number of measurement/controlling
- * units called channels. Measured/control values are stored in real units, such
- * as *Volts*, *A/mA* etc. The range of the channel is also in real units, for
- * example, `[-10, +10]` Volts.
+ * @details `ADC` and `DAC` devices usually contains various measurement/controlling
+ * units called channels. Measured/control values are interpreted as real units, such
+ * as *Volts*, *A/mA* etc.
  */
-class CADchan {
+class Adcdac_channel {
 public:
   /// The destructor.
-  virtual ~CADchan() = default;
+  virtual ~Adcdac_channel() = default;
 
   /// @returns The raw value.
   int GetRawBinVal() const noexcept
@@ -106,15 +105,15 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// Class CAdc
+// Adc_channel
 // -----------------------------------------------------------------------------
 
 /**
  * @brief An ADC (Analog-to-Digital-Converter) channel.
  *
- * @remarks Uses only ADC functionality from CADchan.
+ * @remarks Uses only ADC part of Adcdac_channel.
  */
-class CAdc : public CADchan {
+class Adc_channel : public Adcdac_channel {
 public:
   /**
    * @brief Force direct measurement for this channel on ADC device without queuing.
@@ -128,15 +127,15 @@ public:
 };
 
 // -----------------------------------------------------------------------------
-// Class CDac
+// Dac_channel
 // -----------------------------------------------------------------------------
 
 /**
  * @brief A DAC (Digital-to-Analog-Converter) channel.
  *
- * @remarks Uses only DAC functionality of CADchan.
+ * @remarks Uses only DAC part of Adcdac_channel.
  */
-class CDac : public CADchan {
+class Dac_channel : public Adcdac_channel {
 public:
   /// Set the current control value for this channel.
   void SetVal() noexcept

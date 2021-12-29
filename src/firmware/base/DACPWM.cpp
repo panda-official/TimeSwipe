@@ -7,7 +7,7 @@ Copyright (c) 2019-2020 Panda Team
 
 #include "DACPWM.h"
 
-CDacPWM::CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<Pin> &pDACsw)
+CDacPWM::CDacPWM(const std::shared_ptr<Dac_channel> &pDAC, const std::shared_ptr<Pin> &pDACsw)
 {
     m_pDAC=pDAC;
     m_pDACsw=pDACsw;

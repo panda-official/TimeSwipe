@@ -24,9 +24,9 @@ enum class typeSamDAC{Dac0, Dac1};
 /*!
  * \brief The class implements a single SAME54 DAC channel
  * \details The control functionality of a channel is implemented directly via
- *  overridden CDac::DriverSetVal().
+ *  overridden Dac_channel::DriverSetVal().
  */
-class CSamDACcntr : public CDac
+class CSamDACcntr : public Dac_channel
 {
 protected:
 
@@ -54,7 +54,7 @@ protected:
     void common_init();
 
     /*!
-     * \brief Override of CDac::DriverSetVal(...) for the class
+     * \brief Override of Dac_channel::DriverSetVal(...) for the class
      * \param val Ignored
      * \param out_bin A value to set in a raw-binary format
      */

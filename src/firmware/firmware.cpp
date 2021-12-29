@@ -212,21 +212,21 @@ int main()
       std::sprintf(cmd, "ADC%d.raw", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pADC[i],
-          &CAdc::DirectMeasure));
+          &Adc_channel::DirectMeasure));
       std::sprintf(cmd, "DAC%d.raw", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pDAC[i],
-          &CDac::GetRawBinVal,
-          &CDac::SetRawOutput));
+          &Dac_channel::GetRawBinVal,
+          &Dac_channel::SetRawOutput));
     }
     pDisp->Add("AOUT3.raw", std::make_shared<CCmdSGHandler<int>>(
         pSamDAC0,
-        &CDac::GetRawBinVal,
-        &CDac::SetRawOutput));
+        &Dac_channel::GetRawBinVal,
+        &Dac_channel::SetRawOutput));
     pDisp->Add("AOUT4.raw", std::make_shared<CCmdSGHandler<int>>(
         pSamDAC1,
-        &CDac::GetRawBinVal,
-        &CDac::SetRawOutput));
+        &Dac_channel::GetRawBinVal,
+        &Dac_channel::SetRawOutput));
     pDisp->Add("DACsw", std::make_shared<CCmdSGHandler<bool>>(
         pDAConPin,
         &Pin::read_back,
@@ -256,8 +256,8 @@ int main()
       //ability to control VSUP dac raw value:
       pDisp->Add("VSUP.raw", std::make_shared<CCmdSGHandler<int>>(
           voltage_dac,
-          &CDac::GetRawBinVal,
-          &CDac::SetRawOutput));
+          &Dac_channel::GetRawBinVal,
+          &Dac_channel::SetRawOutput));
 #endif
 
       //create 4 PGAs:

@@ -32,7 +32,7 @@ protected:
     /*!
      * \brief The pointer to the controlling DAC
      */
-    std::shared_ptr<CDac>    m_pDAC;
+    std::shared_ptr<Dac_channel>    m_pDAC;
 
     /*!
      * \brief The pointer to the DAC mode switcher
@@ -61,5 +61,5 @@ public:
      * \param pDAC The pointer to the output controlling DAC
      * \param pMUX The pointer to the DAC mode switcher
      */
-    CDacPWM(const std::shared_ptr<CDac> &pDAC, const std::shared_ptr<Pin> &pDACsw);
+    CDacPWM(const std::shared_ptr<Dac_channel> &pDAC, const std::shared_ptr<Pin> &pDACsw);
 };

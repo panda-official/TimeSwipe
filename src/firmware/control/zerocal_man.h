@@ -86,7 +86,7 @@ public:
      * \param pDAC A control signal
      * \param pLED A LED indicator to bind
      */
-    void Add(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC, CView::vischan nCh)
+    void Add(const std::shared_ptr<Adc_channel> &pADC, const std::shared_ptr<Dac_channel> &pDAC, CView::vischan nCh)
     {
         m_ChanCal.emplace_back(pADC, pDAC);
         m_VisChan.emplace_back(nCh);

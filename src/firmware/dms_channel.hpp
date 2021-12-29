@@ -28,8 +28,8 @@ class Dms_channel final : public Channel {
 public:
   /// The constructor.
   Dms_channel(const int channel_index,
-    const std::shared_ptr<CAdc>& adc,
-    const std::shared_ptr<CDac>& dac,
+    const std::shared_ptr<Adc_channel>& adc,
+    const std::shared_ptr<Dac_channel>& dac,
     const CView::vischan visualization_index,
     const std::shared_ptr<Pin>& iepe_switch_pin,
     const std::shared_ptr<CPGA280>& pga,
@@ -103,25 +103,25 @@ public:
   }
 
   /// @see Channel::adc();
-  std::shared_ptr<const CAdc> adc() const noexcept override
+  std::shared_ptr<const Adc_channel> adc() const noexcept override
   {
     return adc_;
   }
 
   /// @overload
-  std::shared_ptr<CAdc> adc() noexcept
+  std::shared_ptr<Adc_channel> adc() noexcept
   {
     return adc_;
   }
 
   /// @see Channel::dac();
-  std::shared_ptr<const CDac> dac() const noexcept
+  std::shared_ptr<const Dac_channel> dac() const noexcept
   {
     return dac_;
   }
 
   /// @overload
-  std::shared_ptr<CDac> dac() noexcept
+  std::shared_ptr<Dac_channel> dac() noexcept
   {
     return dac_;
   }
@@ -139,8 +139,8 @@ private:
   CDataVis visualization_index_;
   bool is_visualization_enabled_{};
 
-  std::shared_ptr<CAdc> adc_;
-  std::shared_ptr<CDac> dac_;
+  std::shared_ptr<Adc_channel> adc_;
+  std::shared_ptr<Dac_channel> dac_;
 
   std::shared_ptr<Pin> iepe_switch_pin_;
   std::shared_ptr<CPGA280> pga_;

@@ -70,16 +70,16 @@ public:
   virtual bool is_visualization_enabled() const noexcept = 0;
 
   /// @returns The pointer to the channel's ADC.
-  virtual std::shared_ptr<const CAdc> adc() const noexcept = 0;
+  virtual std::shared_ptr<const Adc_channel> adc() const noexcept = 0;
 
   /// @overload
-  virtual std::shared_ptr<CAdc> adc() noexcept = 0;
+  virtual std::shared_ptr<Adc_channel> adc() noexcept = 0;
 
   /// @returns The pointer to the channel's DAC.
-  virtual std::shared_ptr<const CDac> dac() const noexcept = 0;
+  virtual std::shared_ptr<const Dac_channel> dac() const noexcept = 0;
 
   /// @overload
-  virtual std::shared_ptr<CDac> dac() noexcept = 0;
+  virtual std::shared_ptr<Dac_channel> dac() noexcept = 0;
 
   /// Update channel offset values.
   virtual void update_offsets() = 0;
@@ -149,8 +149,8 @@ inline Io_stream& operator>>(Io_stream& is, Measurement_mode& mode)
 class CIEPEchannel final : public Channel {
 public:
   CIEPEchannel(const int channel_index,
-    const std::shared_ptr<CAdc>& adc,
-    const std::shared_ptr<CDac>& dac,
+    const std::shared_ptr<Adc_channel>& adc,
+    const std::shared_ptr<Dac_channel>& dac,
     const CView::vischan visualization_index,
     const bool is_visualization_enabled)
     : channel_index_{channel_index}
@@ -210,22 +210,22 @@ public:
     return is_visualization_enabled_;
   }
 
-  std::shared_ptr<const CAdc> adc() const noexcept override
+  std::shared_ptr<const Adc_channel> adc() const noexcept override
   {
     return adc_;
   }
 
-  std::shared_ptr<CAdc> adc() noexcept
+  std::shared_ptr<Adc_channel> adc() noexcept
   {
     return adc_;
   }
 
-  std::shared_ptr<const CDac> dac() const noexcept
+  std::shared_ptr<const Dac_channel> dac() const noexcept
   {
     return dac_;
   }
 
-  std::shared_ptr<CDac> dac() noexcept
+  std::shared_ptr<Dac_channel> dac() noexcept
   {
     return dac_;
   }
@@ -240,8 +240,8 @@ private:
   int channel_index_{-1};
   CDataVis visualization_index_;
   bool is_visualization_enabled_{};
-  std::shared_ptr<CAdc> adc_;
-  std::shared_ptr<CDac> dac_;
+  std::shared_ptr<Adc_channel> adc_;
+  std::shared_ptr<Dac_channel> dac_;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_CHANNEL_HPP

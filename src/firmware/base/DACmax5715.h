@@ -44,7 +44,7 @@ enum class typeDac5715chan : int
  *
  */
 
-class CDac5715sa : public CDac //dac chan 5715 stand-alone version
+class CDac5715sa : public Dac_channel //dac chan 5715 stand-alone version
 {
 protected:
 
@@ -62,7 +62,7 @@ protected:
 
     /*!
      * \brief DriverSetVal the main driver function to set DAC channel output value.
-     * The function should be overridden in each CDac derived class to implement functionality of current DAC chip (currently MAX5715)
+     * The function should be overridden in each Dac_channel derived class to implement functionality of current DAC chip (currently MAX5715)
      * \param val channel output value in user defined units (Volts, Amperes, e.t.c) for models that can handle
      *  the format(some PCI boards for example, currently not used)
      * \param out_bin output value in raw binary format - used directly by MAX5715

@@ -149,7 +149,7 @@ public:
   }
 
   /// Sets the Voltage DAC controlled by the set_voltage().
-  void set_voltage_dac(const std::shared_ptr<CDac>& dac)
+  void set_voltage_dac(const std::shared_ptr<Dac_channel>& dac)
   {
     voltage_dac_ = dac;
   }
@@ -419,7 +419,7 @@ private:
   std::shared_ptr<Pin> fan_pin_;
   std::shared_ptr<Pin> gain0_pin_;
   std::shared_ptr<Pin> gain1_pin_;
-  std::shared_ptr<CDac> voltage_dac_;
+  std::shared_ptr<Dac_channel> voltage_dac_;
   std::vector<std::shared_ptr<Channel>> channels_;
   CCalMan offset_search_;
   CRawBinStorage raw_bin_storage_;

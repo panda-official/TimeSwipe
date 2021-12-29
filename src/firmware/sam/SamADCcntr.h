@@ -45,7 +45,7 @@ class CSamADCcntr;
  * \details The class object should be used in conjunction with CSamADCcntr - an ADC "board" virtual device
  *  that holds a collection of channels and can poll them in a queue
  */
-class CSamADCchan : public CAdc
+class CSamADCchan : public Adc_channel
 {
 friend class CSamADCcntr;
 protected:

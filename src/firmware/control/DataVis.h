@@ -81,7 +81,7 @@ protected:
     /*!
      * \brief The pointer to input data source
      */
-   // std::shared_ptr<CAdc> m_pADC;
+   // std::shared_ptr<Adc_channel> m_pADC;
 
     /*!
      * \brief The pointer to visualization LED to display processed data

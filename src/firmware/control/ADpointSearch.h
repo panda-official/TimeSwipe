@@ -69,12 +69,12 @@ protected:
     /*!
      * \brief A signal source to be controlled
      */
-    std::shared_ptr<CAdc> m_pADC;
+    std::shared_ptr<Adc_channel> m_pADC;
 
     /*!
      * \brief A control signal
      */
-    std::shared_ptr<CDac> m_pDAC;
+    std::shared_ptr<Dac_channel> m_pDAC;
 
 public:
     /*!
@@ -106,7 +106,7 @@ public:
      * \param pADC A signal source to be controlled
      * \param pDAC A control signal
      */
-    CADpointSearch(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC)
+    CADpointSearch(const std::shared_ptr<Adc_channel> &pADC, const std::shared_ptr<Dac_channel> &pDAC)
     {
         m_State=typePTsrcState::idle;
 
