@@ -173,8 +173,8 @@ private:
    * channel to the real DAC device and must be overriden in a real device
    * control class.
    *
-   * @param val A value to set in a real-unit format for devices that can accept
-   * it (some PCI boards for example).
+   * @param val A value to set in a real units (Volts, Amperes etc) for devices
+   * that can handle it.
    * @param out_bin A value to set in a raw-binary format - most common format
    * for DAC devices.
    */

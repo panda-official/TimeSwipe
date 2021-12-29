@@ -194,11 +194,11 @@ int main()
       std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none)};
 
     CSamQSPI objQSPI;
-    std::shared_ptr<CDac5715sa> pDAC[]={
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACA),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACB),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACC),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACD)};
+    std::shared_ptr<Dac_max5715> pDAC[]={
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::a),
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::b),
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::c),
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::d)};
 
     auto pSamDAC0=std::make_shared<CSamDACcntr>(typeSamDAC::Dac0);
     auto pSamDAC1=std::make_shared<CSamDACcntr>(typeSamDAC::Dac1);
@@ -233,7 +233,7 @@ int main()
         &Pin::write));
 
     //2nd step:
-    std::shared_ptr<CDac5715sa> voltage_dac;
+    std::shared_ptr<Dac_max5715> voltage_dac;
     if constexpr (board_type == Board_type::dms) {
       auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1);
       pCS1->set_inverted(true);
@@ -247,9 +247,9 @@ int main()
       pInaSpiCSpin->set_inverted(true);
       pInaSpiCSpin->write(false);
 
-      voltage_dac = std::make_shared<CDac5715sa>(&objQSPI,
+      voltage_dac = std::make_shared<Dac_max5715>(&objQSPI,
         pCS1,
-        typeDac5715chan::DACA);
+        Dac_max5715::Channel::a);
       board->set_voltage_dac(voltage_dac);
 
 #ifdef CALIBRATION_STATION
