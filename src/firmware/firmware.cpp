@@ -30,7 +30,7 @@
 #include "shiftreg.hpp"
 #include "base/I2CmemHAT.h"
 #include "base/I2Cmem8Pin.h"
-#include "base/DACmax5715.h"
+#include "base/dac_max5715.hpp"
 #include "base/DACPWMht.h"
 #include "base/RawBinStorage.h"
 #include "base/FanControl.h"

@@ -18,7 +18,7 @@
 
 #include "../../debug.hpp"
 // #include "../os.h"
-#include "DACmax5715.h"
+#include "dac_max5715.hpp"
 
 Dac_max5715::Dac_max5715(CSPI* const spi_bus, std::shared_ptr<Pin> pin,
   const Channel channel)

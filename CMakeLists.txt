@@ -224,8 +224,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     DACPWM.h
     DACPWMht.cpp
     DACPWMht.h
-    DACmax5715.cpp
-    DACmax5715.h
     FanControl.cpp
     FanControl.h
     FanControlSimple.cpp
@@ -241,6 +239,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     RawBinStorage.h
     SPIcomm.cpp
     SPIcomm.h
+    dac_max5715.cpp
+    dac_max5715.hpp
     )
 
   set(control_src
