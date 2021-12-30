@@ -302,7 +302,7 @@ public:
         Setter_value val{};
         *d.m_pIn >> val;
         if (d.m_pIn->is_good()) {
-          if (set_(val)) {
+          if (const auto err = set_(val); !err) {
             if (get_) {
               if (const auto [err, res] = get_(); err)
                 return typeCRes::generic; // FIXME: return err
