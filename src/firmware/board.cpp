@@ -46,16 +46,17 @@ void Board::set_eeprom_handles(const std::shared_ptr<ISerial>& bus,
     eeprom_cache_.set(hat::atom::Stub{i});
 }
 
-Error Board::apply_calibration_data() noexcept
+Error Board::apply_calibration_data(const bool is_fallback) noexcept
 {
   // Update voltage DAC.
   if (voltage_dac_) {
     using Ct = hat::atom::Calibration::Type;
     hat::atom::Calibration atom{Ct::v_supply, 1};
     if (is_calibration_data_enabled_) {
-      if (const auto [err, map] = calibration_data(); err)
-        return err;
-      else
+      if (const auto [err, map] = calibration_data(); err) {
+        if (!is_fallback)
+          return err;
+      } else
         atom = map.atom(Ct::v_supply);
     }
     if (atom.entry_count() != 1) // exactly 1 entry per specification
@@ -65,7 +66,8 @@ Error Board::apply_calibration_data() noexcept
   }
 
   // Update channels.
-  update_channels();
+  for (auto& channel : channels_)
+    channel->update_offsets(); // is_fallback is always `true` here
 
   return {};
 }
@@ -77,7 +79,7 @@ Error Board::set_calibration_data(const hat::Calibration_map& map) noexcept
     return err;
 
   // Update the state of all dependent objects.
-  if (const auto err = apply_calibration_data(); err)
+  if (const auto err = apply_calibration_data(false); err)
     return err;
 
   // Update EEPROM.

@@ -263,8 +263,8 @@ int main()
       //ability to control VSUP dac raw value:
       pDisp->Add("VSUP.raw", std::make_shared<CCmdSGHandler<int>>(
           voltage_dac,
-          &Dac_channel::GetRawBinVal,
-          &Dac_channel::set_raw));
+          &Calibratable_dac::GetRawBinVal,
+          &Calibratable_dac::set_raw));
 #endif
 
       //create 4 PGAs:

@@ -98,7 +98,7 @@ public:
   Error enable_calibration_data(const bool enabled) noexcept
   {
     is_calibration_data_enabled_ = enabled;
-    return apply_calibration_data();
+    return apply_calibration_data(true);
   }
 
   /// Sets the board type.
@@ -152,6 +152,7 @@ public:
   void set_voltage_dac(const std::shared_ptr<Calibratable_dac>& dac)
   {
     voltage_dac_ = dac;
+    apply_calibration_data(true);
   }
 
   /// Adds measurement channel to the tracking list.
@@ -448,15 +449,14 @@ private:
    */
   int set_gain_out(int val);
 
-  /// Applies the current calibration map to board ADCs/DACs.
-  Error apply_calibration_data() noexcept;
-
-  /// Update channels.
-  void update_channels() noexcept
-  {
-    for (auto& channel : channels_)
-      channel->update_offsets();
-  }
+  /**
+   * @brief Applies the current calibration map to board ADCs/DACs.
+   *
+   * @param is_fallback If `true` then when `!is_calibration_data_valid()` the
+   * hardcoded default calibration data will be applied instead of returning
+   * an Error.
+   */
+  Error apply_calibration_data(bool is_fallback) noexcept;
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_BOARD_HPP
