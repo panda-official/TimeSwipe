@@ -20,28 +20,28 @@ bool   CSamDACcntr::m_bInitialized=false;
 CSamDACcntr::CSamDACcntr(typeSamDAC nChan)
 {
     m_chan=nChan;
-    set_raw_range(0, 4095);
     common_init();
 }
 
-//driver function:
-void CSamDACcntr::DriverSetVal(float val, int out_bin)
+void CSamDACcntr::SetRawBinVal(const int raw)
 {
     //1: wait while DAC is ready:
     if(typeSamDAC::Dac0==m_chan)
     {
         while(0==DAC->STATUS.bit.READY0){}
         while(DAC->SYNCBUSY.bit.DATA0){}
-        DAC->DATA[0].bit.DATA=out_bin;
+        DAC->DATA[0].bit.DATA=raw;
         while(0==DAC->STATUS.bit.EOC0){}
     }
     else
     {
          while(0==DAC->STATUS.bit.READY1){}
          while(DAC->SYNCBUSY.bit.DATA1){}
-         DAC->DATA[1].bit.DATA=out_bin;
+         DAC->DATA[1].bit.DATA=raw;
          while(0==DAC->STATUS.bit.EOC1){}
     }
+
+    raw_ = raw;
 }
 void CSamDACcntr::common_init() //common settings for both dacs
 {

@@ -61,8 +61,7 @@ Error Board::apply_calibration_data() noexcept
     if (atom.entry_count() != 1) // exactly 1 entry per specification
       return Errc::hat_eeprom_data_corrupted;
     const auto& entry = atom.entry(0);
-    voltage_dac_->SetLinearFactors(entry.slope(), entry.offset());
-    voltage_dac_->SetVal();
+    voltage_dac_->set_linear_factors(entry.slope(), entry.offset());
   }
 
   // Update channels.

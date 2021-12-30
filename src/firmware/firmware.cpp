@@ -195,15 +195,21 @@ int main()
 
     CSamQSPI objQSPI;
     std::shared_ptr<Dac_max5715> pDAC[]={
-      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::a),
-      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::b),
-      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::c),
-      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::d)};
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::a,
+        50, 4045),
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::b,
+        50, 4045),
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::c,
+        50, 4045),
+      std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::d,
+        50, 4045)};
+    for (const auto& dac : pDAC)
+      dac->set_raw(dac->raw_range().second);
 
     auto pSamDAC0=std::make_shared<CSamDACcntr>(typeSamDAC::Dac0);
     auto pSamDAC1=std::make_shared<CSamDACcntr>(typeSamDAC::Dac1);
-    pSamDAC0->SetRawBinVal(2048);
-    pSamDAC1->SetRawBinVal(2048);
+    pSamDAC0->set_raw(2048);
+    pSamDAC1->set_raw(2048);
 
     //add ADC/DAC commands:
     for (int i{}; i < nChannels; ++i) {
@@ -212,28 +218,28 @@ int main()
       std::sprintf(cmd, "ADC%d.raw", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pADC[i],
-          &Adc_channel::DirectMeasure));
+          &Adc_channel::GetRawBinVal));
       std::sprintf(cmd, "DAC%d.raw", nInd);
       pDisp->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pDAC[i],
           &Dac_channel::GetRawBinVal,
-          &Dac_channel::SetRawOutput));
+          &Dac_channel::set_raw));
     }
     pDisp->Add("AOUT3.raw", std::make_shared<CCmdSGHandler<int>>(
         pSamDAC0,
         &Dac_channel::GetRawBinVal,
-        &Dac_channel::SetRawOutput));
+        &Dac_channel::set_raw));
     pDisp->Add("AOUT4.raw", std::make_shared<CCmdSGHandler<int>>(
         pSamDAC1,
         &Dac_channel::GetRawBinVal,
-        &Dac_channel::SetRawOutput));
+        &Dac_channel::set_raw));
     pDisp->Add("DACsw", std::make_shared<CCmdSGHandler<bool>>(
         pDAConPin,
         &Pin::read_back,
         &Pin::write));
 
     //2nd step:
-    std::shared_ptr<Dac_max5715> voltage_dac;
+    std::shared_ptr<Calibratable_dac> voltage_dac;
     if constexpr (board_type == Board_type::dms) {
       auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1);
       pCS1->set_inverted(true);
@@ -247,9 +253,10 @@ int main()
       pInaSpiCSpin->set_inverted(true);
       pInaSpiCSpin->write(false);
 
-      voltage_dac = std::make_shared<Dac_max5715>(&objQSPI,
-        pCS1,
-        Dac_max5715::Channel::a);
+      voltage_dac = std::make_shared<Calibratable_dac>(
+        std::make_shared<Dac_max5715>(&objQSPI, pCS1, Dac_max5715::Channel::a,
+          120, 3904), 2.5, 24);
+      voltage_dac->set_value(voltage_dac->value_range().first);
       board->set_voltage_dac(voltage_dac);
 
 #ifdef CALIBRATION_STATION
@@ -257,7 +264,7 @@ int main()
       pDisp->Add("VSUP.raw", std::make_shared<CCmdSGHandler<int>>(
           voltage_dac,
           &Dac_channel::GetRawBinVal,
-          &Dac_channel::SetRawOutput));
+          &Dac_channel::set_raw));
 #endif
 
       //create 4 PGAs:

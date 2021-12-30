@@ -126,7 +126,7 @@ public:
         m_TargPoint=val;
         m_State=typePTsrcState::searching;
         m_ProcBits=12;
-        m_pDAC->SetRawBinVal(0);
+        m_pDAC->set_raw(0);
 
         return m_State;
     }

@@ -23,7 +23,6 @@ CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos p
     m_pCont=pCont;
     m_posIN=posIN;
     m_negIN=negIN;
-    set_raw_range(0, 4095);
 
     if(bAutoUpd)
     {
@@ -35,17 +34,15 @@ CSamADCchan::~CSamADCchan()
     m_pCont->m_Chans.remove(this);
 }
 
-void CSamADCchan::SetRawBinVal(int RawVal)
+void CSamADCchan::handle_measurement(const short)
 {
-    m_UnfilteredRawVal=RawVal;
-    m_FilteredRawVal+=((float)RawVal - m_FilteredRawVal ) * ( (float)data_age() ) / m_filter_t_mSec;
+    // m_UnfilteredRawVal=RawVal;
+    // m_FilteredRawVal+=((float)RawVal - m_FilteredRawVal ) * ( (float)data_age() ) / m_filter_t_mSec;
     m_MesTStamp=os::get_tick_mS();
-
-    Adcdac_channel::SetRawBinVal(m_FilteredRawVal);
 }
 
 
- int CSamADCchan::DirectMeasure(int nMesCnt, float alpha)
+ int CSamADCchan::DirectMeasure(int nMesCnt, float alpha) const noexcept
  {
      //select one chanel and no switching beetwen mes:
      m_pCont->SelectInput(m_posIN, m_negIN);
@@ -59,21 +56,16 @@ void CSamADCchan::SetRawBinVal(int RawVal)
      return (int)val;
  }
 
-
-//updation with single conv:
 bool CSamADCcntr::Update()
 {
-    for(const auto pCh: m_Chans)
-    {
-        if(pCh->data_age()>=1){
-
-        SelectInput(pCh->m_posIN, pCh->m_negIN);
-        short mes=SingleConv();
-        pCh->CSamADCchan::SetRawBinVal(mes);
-
-        }
+  for (auto* const pCh: m_Chans) {
+    if (pCh->data_age() >= 1) {
+      SelectInput(pCh->m_posIN, pCh->m_negIN);
+      const short mes{SingleConv()};
+      pCh->handle_measurement(mes);
     }
-    return true;
+  }
+  return true;
 }
 
 void CSamADCcntr::SelectInput(typeSamADCmuxpos nPos, typeSamADCmuxneg nNeg)

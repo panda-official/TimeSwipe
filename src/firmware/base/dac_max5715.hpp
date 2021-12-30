@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_FIRMWARE_BASE_DACMAX5715_HPP
-#define PANDA_TIMESWIPE_FIRMWARE_BASE_DACMAX5715_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_BASE_DAC_MAX5715_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_BASE_DAC_MAX5715_HPP
 
 #include "../../spi.hpp"
 #include "../adcdac.hpp"
@@ -38,16 +38,39 @@ public:
     d
   };
 
-  /// The constructor.
-  Dac_max5715(CSPI* spi_bus, std::shared_ptr<Pin> pin, Channel channel);
+  /**
+   * @brief The constructor.
+   * @param min_raw The value in range `[0, 4095]` (per datasheet).
+   * @param max_raw The value in range `[0, 4095]` (per datasheet).
+   *
+   * @par Requires
+   * `(min_raw <= max_raw)`.
+   */
+  Dac_max5715(CSPI* spi_bus, std::shared_ptr<Pin> pin, Channel channel,
+    const int min_raw, const int max_raw);
 
-  /// @see Adcdac::DriverSetVal().
-  virtual void DriverSetVal(float val, int out_bin);
+  /// @see Adcdac_channel::GetRawBinVal().
+  int GetRawBinVal() const noexcept override
+  {
+    return raw_;
+  }
+
+  /// @see Dac_channel::SetRawBinVal().
+  void SetRawBinVal(int raw) override;
+
+  /// @see Dac_channel::raw_range().
+  std::pair<int, int> raw_range() const noexcept override
+  {
+    return {min_raw_, max_raw_};
+  }
 
 private:
-  CSPI* spi_bus_;
+  CSPI* spi_bus_{};
   std::shared_ptr<Pin> pin_;
-  Channel channel_;
+  Channel channel_{};
+  const int min_raw_{};
+  const int max_raw_{};
+  int raw_{};
 };
 
-#endif  // PANDA_TIMESWIPE_FIRMWARE_BASE_DACMAX5715_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_BASE_DAC_MAX5715_HPP

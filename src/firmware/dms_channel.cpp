@@ -45,5 +45,5 @@ void Dms_channel::update_offsets()
       raw = map.atom(type).entry(gain_index_).offset();
     }
   }
-  dac()->SetRawOutput(raw);
+  dac()->set_raw(raw);
 }

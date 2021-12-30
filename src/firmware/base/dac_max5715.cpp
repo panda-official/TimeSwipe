@@ -21,21 +21,21 @@
 #include "dac_max5715.hpp"
 
 Dac_max5715::Dac_max5715(CSPI* const spi_bus, std::shared_ptr<Pin> pin,
-  const Channel channel)
+  const Channel channel,
+  const int min_raw, const int max_raw)
   : spi_bus_{spi_bus}
   , pin_{std::move(pin)}
   , channel_{channel}
+  , min_raw_{min_raw}
+  , max_raw_{max_raw}
 {
-  PANDA_TIMESWIPE_ASSERT(spi_bus_ && pin_);
-
-  /*
-   * Note: in fact, the defined raw range is [0, 4095] (per datasheet).
-   */
-  set_raw_range(120, 3904); // 120 - 24V, 3904 - 2.5V
-  SetRawOutput(3904); // 2.5V by default
+  PANDA_TIMESWIPE_ASSERT(spi_bus_ && pin_ &&
+    min_raw_ <= max_raw_ &&
+    0 <= min_raw_ && min_raw <= 4095 &&
+    0 <= max_raw_ && max_raw_ <= 4095);
 }
 
-void Dac_max5715::DriverSetVal(float, const int out_bin)
+void Dac_max5715::SetRawBinVal(const int raw)
 {
   /*
    * Setup phase & polarity: phase = 0 (not shifted),
@@ -60,10 +60,10 @@ void Dac_max5715::DriverSetVal(float, const int out_bin)
    * See MAX5715 manual, page 18.
    */
   const unsigned char command = 0x30 + static_cast<int>(channel_);
-  const unsigned int u_out_bin = out_bin;
-  static_assert(sizeof(u_out_bin) >= 2);
-  const unsigned char data8 = (u_out_bin >> 4) & 0xff; // left 8 bits
-  const unsigned char data4 = (u_out_bin << 4) & 0xff; // right 4 bits
+  const unsigned int u_raw = raw;
+  static_assert(sizeof(u_raw) >= 2);
+  const unsigned char data8 = (u_raw >> 4) & 0xff; // left 8 bits
+  const unsigned char data4 = (u_raw << 4) & 0xff; // right 4 bits
   CFIFO cmd;
   cmd << command; // byte 1
   cmd << data8;   // byte 2
@@ -74,4 +74,6 @@ void Dac_max5715::DriverSetVal(float, const int out_bin)
   spi_bus_->send(cmd);
   pin_->write(false);
   // os::uwait(80);
+
+  raw_ = raw;
 }

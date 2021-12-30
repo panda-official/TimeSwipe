@@ -19,7 +19,7 @@ void CCalMan::Serialize(CStorage &st)
         st.ser( (ch.m_PrmOffset) );
         if(bSet)
         {
-            ch.m_pDAC->SetRawOutput(ch.m_PrmOffset);
+            ch.m_pDAC->set_raw(ch.m_PrmOffset);
         }
     }
 }

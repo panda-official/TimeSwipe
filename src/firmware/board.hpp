@@ -149,7 +149,7 @@ public:
   }
 
   /// Sets the Voltage DAC controlled by the set_voltage().
-  void set_voltage_dac(const std::shared_ptr<Dac_channel>& dac)
+  void set_voltage_dac(const std::shared_ptr<Calibratable_dac>& dac)
   {
     voltage_dac_ = dac;
   }
@@ -354,19 +354,19 @@ public:
   }
 
   /// Sets Voltage setting.
-  void set_voltage(const float val)
+  void set_voltage(const float value)
   {
     if (voltage_dac_)
-      voltage_dac_->SetVal(val);
+      voltage_dac_->set_value(value);
     else
-      voltage_ = val;
+      voltage_ = value;
   }
 
   /// @returns Voltage Setting.
   float voltage() const noexcept
   {
     if (voltage_dac_)
-      return voltage_dac_->GetRealVal();
+      return voltage_dac_->value();
     else
       return voltage_;
   }
@@ -419,7 +419,7 @@ private:
   std::shared_ptr<Pin> fan_pin_;
   std::shared_ptr<Pin> gain0_pin_;
   std::shared_ptr<Pin> gain1_pin_;
-  std::shared_ptr<Dac_channel> voltage_dac_;
+  std::shared_ptr<Calibratable_dac> voltage_dac_;
   std::vector<std::shared_ptr<Channel>> channels_;
   CCalMan offset_search_;
   CRawBinStorage raw_bin_storage_;

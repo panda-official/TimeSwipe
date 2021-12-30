@@ -45,10 +45,10 @@ class CSamADCcntr;
  * \details The class object should be used in conjunction with CSamADCcntr - an ADC "board" virtual device
  *  that holds a collection of channels and can poll them in a queue
  */
-class CSamADCchan : public Adc_channel
+class CSamADCchan final : public Adc_channel
 {
 friend class CSamADCcntr;
-protected:
+private:
 
     /*!
      * \brief A pointer to the ADC board (channel container)
@@ -73,12 +73,12 @@ protected:
     /*!
      * \brief A filtered raw binary value of last ADC convertion
      */
-    float         m_FilteredRawVal=0;
+    // float         m_FilteredRawVal=0;
 
     /*!
      * \brief Unfiltered raw binary value of last ADC conversion
      */
-    int           m_UnfilteredRawVal=0;
+    // int           m_UnfilteredRawVal=0;
 
     /*!
      * \brief A 1st order digital filter time constant, milliseconds
@@ -91,12 +91,7 @@ protected:
      */
     unsigned long data_age(){ return (os::get_tick_mS()-m_MesTStamp); }
 
-    /*!
-     * \brief Overrides the method ADchan::SetRawBinVal(...)
-     * \param A conversion result to be set
-     */
-    void SetRawBinVal(int RawVal);
-
+    void handle_measurement(short value);
 
 public:
     /*!
@@ -113,13 +108,10 @@ public:
      */
     virtual ~CSamADCchan();
 
-    /*!
-     * \brief Override "DirectMeasure" methode
-     * \return
-     */
-    virtual int DirectMeasure()
+    /// @see Adcdac_channel::GetRawBinVal().
+    int GetRawBinVal() const noexcept override
     {
-        return CSamADCchan::DirectMeasure(50, 0.8f);
+        return DirectMeasure(50, 0.8f);
     }
 
     /*!
@@ -129,7 +121,7 @@ public:
      * \return An averaged ADC raw binary conversion result.
      * \details The averaging method used for the methode is: Result=alpha*Result +(1.0f-alpha)*ADC_conversion_result
      */
-    int DirectMeasure(int nMesCnt, float alpha);
+    int DirectMeasure(int nMesCnt, float alpha) const noexcept;
 };
 
 /*!

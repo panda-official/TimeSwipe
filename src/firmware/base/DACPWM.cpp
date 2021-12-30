@@ -17,19 +17,17 @@ void CDacPWM::on_obtain_half_periods()
 {
 
 }
-void CDacPWM::impl_Start(bool bHow)
+
+void CDacPWM::impl_Start(const bool bHow)
 {
-    if(bHow)
-    {
-        m_pDACsw->write(true);
-        m_pDAC->SetRawOutput(m_prmHighLevel);
-    }
-    else
-    {
-        m_pDAC->SetRawOutput(0); //DAC off
-    }
+  if (bHow) {
+    m_pDACsw->write(true);
+    m_pDAC->set_raw(m_prmHighLevel);
+  } else
+    m_pDAC->set_raw(0); //DAC off
 }
+
 void CDacPWM::impl_LoadNextHalfPeriod()
 {
-    m_pDAC->SetRawOutput( m_CurHalfPeriodIndex ? m_prmLowLevel:m_prmHighLevel );
+    m_pDAC->set_raw(m_CurHalfPeriodIndex ? m_prmLowLevel : m_prmHighLevel);
 }
