@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -156,8 +156,7 @@ private:
   template<typename R, class ValueView>
   static std::optional<R> optional__(ValueView& view, const std::string_view name)
   {
-    auto result = optional__(view, name);
-    if (result)
+    if (auto result = optional__(view, name))
       return rajson::to<R>(std::move(result->value()));
     else
       return std::nullopt;

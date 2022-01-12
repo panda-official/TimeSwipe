@@ -30,8 +30,8 @@
 #include "board_settings.cpp"
 #include "driver_settings.cpp"
 
-#include "3rdparty/dmitigr/filesystem.hpp"
-#include "3rdparty/dmitigr/math.hpp"
+#include "3rdparty/dmitigr/fs/filesystem.hpp"
+#include "3rdparty/dmitigr/math/stat.hpp"
 #include "3rdparty/dmitigr/rajson.hpp"
 #include "3rdparty/dmitigr/str/transform.hpp"
 

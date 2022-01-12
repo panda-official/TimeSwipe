@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,17 +20,13 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_FILESYSTEM_FILESYSTEM_HPP
-#define DMITIGR_FILESYSTEM_FILESYSTEM_HPP
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#if (defined(__clang__) && (__clang_major__ < 7)) || \
-    (defined(__GNUG__)  && (__GNUC__ < 8) && !defined (__clang__))
-  #include <experimental/filesystem>
-  namespace std {
-  namespace filesystem = experimental::filesystem;
-  } // namespace std
-#else
-  #include <filesystem>
-#endif
+#ifndef DMITIGR_BASE_HPP
+#define DMITIGR_BASE_HPP
 
-#endif // DMITIGR_FILESYSTEM_FILESYSTEM_HPP
+#include "base/base.hpp"
+
+#endif  // DMITIGR_BASE_HPP

@@ -1,30 +1,9 @@
-Very thin RapidJSON wrapper in C++ {#mainpage}
-==============================================
+# Thin RapidJSON wrapper in C++
 
-Dmitigr Rajson (hereinafter referred to as Rajson) - is a very thin wrapper
-around [RapidJSON]. Rajson is a part of the [Dmitigr Cefeika][dmitigr_cefeika]
-project.
+`dmitigr::rajson` - is a thin wrapper around [RapidJSON].
 
-**ATTENTION, this software is "beta" quality, and the API is a subject to change!**
-
-Documentation
-=============
-
-The [Doxygen]-generated documentation is located [here][dmitigr_rajson_doc].
-
-Features
-========
+## Features
 
 - Convenient conversions stuff.
 
-Copyright
-=========
-
-Copyright (C) [Dmitry Igrishin][dmitigr_mail]
-
-[dmitigr_mail]: mailto:dmitigr@gmail.com
-[dmitigr_cefeika]: https://github.com/dmitigr/cefeika.git
-[dmitigr_rajson_doc]: http://dmitigr.ru/en/cefeika/rajson/doc/
-
-[Doxygen]: http://doxygen.org/
 [RapidJSON]: http://rapidjson.org/

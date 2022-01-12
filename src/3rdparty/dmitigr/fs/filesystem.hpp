@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,28 +20,17 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit version.hpp.in instead!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_FS_FILESYSTEM_HPP
+#define DMITIGR_FS_FILESYSTEM_HPP
 
-#ifndef DMITIGR_CRC_VERSION_HPP
-#define DMITIGR_CRC_VERSION_HPP
+#if (defined(__clang__) && (__clang_major__ < 7)) || \
+    (defined(__GNUG__)  && (__GNUC__ < 8) && !defined (__clang__))
+  #include <experimental/filesystem>
+  namespace std {
+  namespace filesystem = experimental::filesystem;
+  } // namespace std
+#else
+  #include <filesystem>
+#endif
 
-#include <cstdint>
-
-namespace dmitigr::crc {
-
-/// @returns The library version.
-constexpr std::int_fast32_t version() noexcept
-{
-  // Actual values are set in CMakeLists.txt.
-  constexpr std::int_least32_t major = 0;
-  constexpr std::int_least32_t minor = 1;
-
-  // 11.234 -> 11 * 1000 + 234 = 11234
-  return major*1000 + minor;
-}
-
-} // namespace dmitigr::crc
-
-#endif  // DMITIGR_CRC_VERSION_HPP
+#endif // DMITIGR_FS_FILESYSTEM_HPP

@@ -9,7 +9,7 @@
 
 #include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
-#include "../../src/3rdparty/dmitigr/filesystem.hpp"
+#include "../../src/3rdparty/dmitigr/fs/filesystem.hpp"
 
 #include <algorithm>
 #include <chrono>

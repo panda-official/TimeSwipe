@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,13 +20,25 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_ERROR_ERRCTG_HPP
-#define DMITIGR_ERROR_ERRCTG_HPP
+#ifndef DMITIGR_BASE_ERRCTG_HPP
+#define DMITIGR_BASE_ERRCTG_HPP
 
 #include "errc.hpp"
 
 #include <cstring> // std::strlen
 #include <system_error>
+
+namespace std {
+
+/**
+ * @ingroup errors
+ *
+ * @brief The full specialization for integration with `<system_error>`.
+ */
+template<>
+struct is_error_condition_enum<dmitigr::Errc> final : true_type {};
+
+} // namespace std
 
 namespace dmitigr {
 
@@ -87,4 +99,4 @@ inline std::error_condition make_error_condition(const Errc errc) noexcept
 
 } // namespace dmitigr
 
-#endif  // DMITIGR_ERROR_ERRCTG_HPP
+#endif  // DMITIGR_BASE_ERRCTG_HPP

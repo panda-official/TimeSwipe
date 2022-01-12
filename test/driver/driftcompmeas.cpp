@@ -10,7 +10,7 @@
 #include "../../src/firmware/json.hpp"
 #include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
-#include "../../src/3rdparty/dmitigr/math.hpp"
+#include "../../src/3rdparty/dmitigr/math/stat.hpp"
 
 #include <chrono>
 #include <cmath>

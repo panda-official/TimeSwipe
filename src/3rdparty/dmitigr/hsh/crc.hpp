@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,14 +20,12 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_CRC_CRC_HPP
-#define DMITIGR_CRC_CRC_HPP
-
-#include "version.hpp"
+#ifndef DMITIGR_HSH_CRC_HPP
+#define DMITIGR_HSH_CRC_HPP
 
 #include <cstdint>
 
-namespace dmitigr::crc {
+namespace dmitigr::hsh {
 
 /**
  * @returns CRC-16 calculated from the given data, or `0` if `(!data || !size)`.
@@ -76,9 +74,10 @@ constexpr std::uint16_t crc16(const char* const data,
   return result;
 }
 static_assert(!crc16(nullptr, 0));
+static_assert(!crc16(nullptr, 7));
 static_assert(!crc16("dmitigr", 0));
 static_assert(crc16("dmitigr", 7) == 35600);
 
-} // namespace dmitigr::crc
+} // namespace dmitigr::hsh
 
-#endif  // DMITIGR_CRC_CRC_HPP
+#endif  // DMITIGR_HSH_CRC_HPP

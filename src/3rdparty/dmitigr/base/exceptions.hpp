@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,8 +20,8 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_ERROR_EXCEPTIONS_HPP
-#define DMITIGR_ERROR_EXCEPTIONS_HPP
+#ifndef DMITIGR_BASE_EXCEPTIONS_HPP
+#define DMITIGR_BASE_EXCEPTIONS_HPP
 
 #include "errctg.hpp"
 
@@ -77,4 +77,4 @@ private:
 
 } // namespace dmitigr
 
-#endif  // DMITIGR_ERROR_EXCEPTIONS_HPP
+#endif  // DMITIGR_BASE_EXCEPTIONS_HPP

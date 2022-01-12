@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,37 +20,48 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_ERROR_ASSERT_HPP
-#define DMITIGR_ERROR_ASSERT_HPP
-
-#include <exception> // std::terminate
-#include <iostream>
+#ifndef DMITIGR_BASE_ERRC_HPP
+#define DMITIGR_BASE_ERRC_HPP
 
 namespace dmitigr {
 
-/// The debug mode indicator.
-#ifndef NDEBUG
-constexpr bool is_debug{true};
-#else
-constexpr bool is_debug{false};
-#endif
+/**
+ * @ingroup errors
+ *
+ * @brief Generic error codes (or conditions).
+ */
+enum class Errc {
+  /// Generic error.
+  generic = 1,
+};
+
+/**
+ * @ingroup errors
+ *
+ * @returns The literal representation of the `errc`, or `nullptr`
+ * if `errc` does not corresponds to any value defined by Errc.
+ */
+constexpr const char* to_literal(const Errc errc) noexcept
+{
+  switch (errc) {
+  case Errc::generic: return "generic";
+  }
+  return nullptr;
+}
+
+/**
+ * @ingroup errors
+ *
+ * @returns The literal returned by `to_literal(errc)`, or literal
+ * "unknown error" if `to_literal(errc)` returned `nullptr`.
+ */
+constexpr const char* to_literal_anyway(const Errc errc) noexcept
+{
+  constexpr const char* unknown{"unknown error"};
+  const char* const literal{to_literal(errc)};
+  return literal ? literal : unknown;
+}
 
 } // namespace dmitigr
 
-#ifndef DMITIGR_ASSERT
-/**
- * @brief Checks the assertion `a`.
- *
- * @details Always active regardless of `is_debug` (or `NDEBUG`).
- *
- * @par Effects Terminates the process if `!a`.
- */
-#define DMITIGR_ASSERT(a) do {                                          \
-    if (!(a)) {                                                         \
-      std::cerr<<"assertion ("<<#a<<") failed at "<<__FILE__<<":"<<__LINE__<<"\n"; \
-      std::terminate();                                                 \
-    }                                                                   \
-  } while (false)
-#endif
-
-#endif  // DMITIGR_ERROR_ASSERT_HPP
+#endif  // DMITIGR_BASE_ERRC_HPP

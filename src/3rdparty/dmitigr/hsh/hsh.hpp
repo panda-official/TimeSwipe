@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,13 +20,9 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_HSH_HSH_HPP
+#define DMITIGR_HSH_HSH_HPP
 
-#ifndef DMITIGR_ERROR_HPP
-#define DMITIGR_ERROR_HPP
+#include "crc.hpp"
 
-#include "error/error.hpp"
-
-#endif  // DMITIGR_ERROR_HPP
+#endif  // DMITIGR_HSH_HSH_HPP

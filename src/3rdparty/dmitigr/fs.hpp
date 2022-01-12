@@ -24,9 +24,9 @@
 // This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifndef DMITIGR_PROGPAR_HPP
-#define DMITIGR_PROGPAR_HPP
+#ifndef DMITIGR_FS_HPP
+#define DMITIGR_FS_HPP
 
-#include "progpar/progpar.hpp"
+#include "fs/fs.hpp"
 
-#endif  // DMITIGR_PROGPAR_HPP
+#endif  // DMITIGR_FS_HPP

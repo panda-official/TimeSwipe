@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,13 +20,12 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_BASE_BASE_HPP
+#define DMITIGR_BASE_BASE_HPP
 
-#ifndef DMITIGR_CRC_HPP
-#define DMITIGR_CRC_HPP
+#include "assert.hpp"
+#include "errc.hpp"
+#include "errctg.hpp"
+#include "exceptions.hpp"
 
-#include "crc/crc.hpp"
-
-#endif  // DMITIGR_CRC_HPP
+#endif  // DMITIGR_BASE_BASE_HPP

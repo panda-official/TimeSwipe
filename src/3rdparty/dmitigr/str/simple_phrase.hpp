@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 #define DMITIGR_STR_SIMPLE_PHRASE_HPP
 
 #include "version.hpp"
-#include "../error/assert.hpp"
+#include "../base/assert.hpp"
 
 #include <istream>
 #include <locale>

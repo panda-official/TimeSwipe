@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #ifndef DMITIGR_MATH_EXCEPTIONS_HPP
 #define DMITIGR_MATH_EXCEPTIONS_HPP
 
-#include "../error/exceptions.hpp"
+#include "../base/exceptions.hpp"
 
 namespace dmitigr::math {
 

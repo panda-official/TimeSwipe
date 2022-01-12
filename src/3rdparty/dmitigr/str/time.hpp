@@ -20,53 +20,53 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_STR_SEQUENCE_HPP
-#define DMITIGR_STR_SEQUENCE_HPP
+#ifndef DMITIGR_STR_TIME_HPP
+#define DMITIGR_STR_TIME_HPP
 
+#include "exceptions.hpp"
 #include "version.hpp"
 
+#include <chrono>
+#include <ctime>
 #include <string>
-#include <utility>
 
 namespace dmitigr::str {
 
 // -----------------------------------------------------------------------------
-// Sequence conversions
+// Time
 // -----------------------------------------------------------------------------
 
-/// @returns The string with stringified elements of the sequence in range `[b, e)`.
-template<class InputIterator, typename Function>
-std::string to_string(const InputIterator b, const InputIterator e,
-  const std::string& sep, const Function& to_str)
+/**
+ * @returns The human-readable string representation of the given timepoint
+ * with microseconds or empty string on error.
+ */
+template<class Clock, class Duration>
+std::string to_string(const std::chrono::time_point<Clock, Duration> tp)
 {
+  namespace chrono = std::chrono;
+  const auto tp_time_t = Clock::to_time_t(tp);
+  const auto tse = tp.time_since_epoch();
+  const auto sec = chrono::duration_cast<chrono::seconds>(tse);
+  const auto rest_us = chrono::duration_cast<chrono::microseconds>(tse - sec);
+  char buf[32];
   std::string result;
-  if (b != e) {
-    auto i = b;
-    for (; i != e; ++i) {
-      result.append(to_str(*i));
-      result.append(sep);
-    }
-    const auto sep_size = sep.size();
-    for (std::string::size_type j = 0; j < sep_size; ++j)
-      result.pop_back();
+  if (const auto count = std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S",
+      std::localtime(&tp_time_t))) {
+    const auto us = std::to_string(rest_us.count());
+    result.reserve(count + 1 + us.size());
+    result.assign(buf, count);
+    result.append(".").append(us);
   }
   return result;
 }
 
-/// @returns The string with stringified elements of the `Container`.
-template<class Container, typename Function>
-std::string to_string(const Container& cont, const std::string& sep, const Function& to_str)
+/// @retruns `to_string(Clock::now())`.
+template<class Clock = std::chrono::system_clock>
+inline std::string now_string()
 {
-  return to_string(cbegin(cont), cend(cont), sep, to_str);
-}
-
-/// @returns The string with stringified elements of the `Container`.
-template<class Container>
-std::string to_string(const Container& cont, const std::string& sep)
-{
-  return to_string(cont, sep, [](const std::string& e)->const auto&{return e;});
+  return to_string(Clock::now());
 }
 
 } // namespace dmitigr::str
 
-#endif  // DMITIGR_STR_SEQUENCE_HPP
+#endif  // DMITIGR_STR_TIME_HPP

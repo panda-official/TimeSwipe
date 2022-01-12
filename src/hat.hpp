@@ -22,7 +22,7 @@
 #include "debug.hpp"
 #include "error.hpp"
 #include "serial.hpp"
-#include "3rdparty/dmitigr/crc.hpp"
+#include "3rdparty/dmitigr/hsh/crc.hpp"
 
 #include <array>
 #include <cstdint>
@@ -839,7 +839,7 @@ private:
       const auto* const crc_offset = data_offset + dlen_no_crc;
 
       // Check the CRC.
-      using dmitigr::crc::crc16;
+      using dmitigr::hsh::crc16;
       const auto crc = *reinterpret_cast<const std::uint16_t*>(crc_offset);
       const auto calc_crc = crc16(atom_offset, dlen_no_crc + sizeof(*this));
       if (crc != calc_crc)
@@ -881,7 +881,7 @@ private:
 
       // Set the data CRC.
       auto* const crc = reinterpret_cast<std::uint16_t*>(data() + dlen_no_crc);
-      *crc = dmitigr::crc::crc16(reinterpret_cast<const char*>(this),
+      *crc = dmitigr::hsh::crc16(reinterpret_cast<const char*>(this),
         dlen_no_crc + sizeof(*this));
     }
 
