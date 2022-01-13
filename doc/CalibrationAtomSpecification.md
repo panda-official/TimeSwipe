@@ -102,8 +102,8 @@ The resulting value is in the unit mV and not digit anymore.
 
 ```
   Bytes   Field
-  4       m        slope (32bit float)
-  2       b        zero offset (16bit signed int)
+  4       slope        slope (32bit float)
+  2       offset       zero offset (16bit signed int)
 ```
 This atom is therefore (4+2)*22 = 132 bytes large.
 
@@ -116,8 +116,8 @@ This data is used solely by the firmware and shall not be used by the driver.
 
 ```
   Bytes   Field
-  4       m        slope (32bit float)
-  2       b        zero offset (16bit signed int -32678..32767)
+  4       slope        slope (32bit float)
+  2       offset       zero offset (16bit signed int -32678..32767)
 ```
 This atom is therefore (4+2)*1 = 6 bytes large.
 
@@ -130,8 +130,8 @@ The resulting value is in the unit mV and not digit anymore.
 
 ```
   Bytes   Field
-  4       m        slope (32bit float)
-  2       b        zero offset (16bit signed int)
+  4       slope        slope (32bit float)
+  2       offset       zero offset (16bit signed int)
 ```
 This atom is therefore (4+2)*22 = 132 bytes large.
 
@@ -140,9 +140,9 @@ This atom is therefore (4+2)*22 = 132 bytes large.
 The JSON command to read/write calibration data to the EEPROM is implemented r/w in the calibration firmware and readonly in release firmware.
 
 Write the array transmitted in "data" into the cAtom 2 (V_supply).
-The array will consist of an array of objects (dictionaries) of the data as defined above. e.g. for V_In, it will be [{"m":1.032,"b":2077}].
+The array will consist of an array of objects (dictionaries) of the data as defined above. e.g. for V_In, it will be [{"slope":1.032,"offset":2077}].
 For other cAtoms there are multiple objects in the array in the order of the gain list.
 Request/Response              |  Command
 ----------------------------- | -------------------------------------------------------------------------------------------------------------------------
-request message:              |   js<{ "cAtom" : 2, "data" : [{"m": 1.23, "b": 12000},{...},...]}\n
-successive response message:  |       {"cAtom" : 2, "data" : [{"m": 1.23, "b": 12000},{...},...]}\n
+request message:              |   js<{ "cAtom" : 2, "data" : [{"slope": 1.23, "offset": 12000},{...},...]}\n
+successive response message:  |       {"cAtom" : 2, "data" : [{"slope": 1.23, "offset": 12000},{...},...]}\n

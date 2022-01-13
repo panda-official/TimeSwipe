@@ -134,9 +134,9 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
       for (std::size_t i{}; i < data_size; ++i) {
         const auto& el = data[i];
         auto entry = map.atom(type).entry(i);
-        if (const auto it = el.FindMember("m"); it != el.MemberEnd())
+        if (const auto it = el.FindMember("slope"); it != el.MemberEnd())
           entry.set_slope(it->value.GetFloat());
-        if (const auto it = el.FindMember("b"); it != el.MemberEnd())
+        if (const auto it = el.FindMember("offset"); it != el.MemberEnd())
           entry.set_offset(it->value.GetInt());
         map.atom(type).set_entry(i, std::move(entry));
       }
@@ -152,12 +152,12 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
     data.Reserve(cal_entry_count, alloc);
     for (std::size_t i{}; i < cal_entry_count; ++i) {
       const auto& entry = map.atom(type).entry(i);
-      const auto m = entry.slope();
-      const auto b = entry.offset();
+      const auto slope = entry.slope();
+      const auto offset = entry.offset();
       data.PushBack(
         std::move(Value{rapidjson::kObjectType}
-          .AddMember("m", m, alloc)
-          .AddMember("b", b, alloc)), alloc);
+          .AddMember("slope", slope, alloc)
+          .AddMember("offset", offset, alloc)), alloc);
     }
 
     // Fill the response.
