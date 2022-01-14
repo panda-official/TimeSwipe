@@ -84,7 +84,7 @@ protected:
     std::shared_ptr<CSamDMAChannel> m_pLLevDMAch;
 
     /*!
-     * \brief The PWM periods counter. Used to stop generation if "repeats"!=0
+     * \brief The PWM periods counter. Used to stop generation if "repeat count"!=0
      */
     CSamTC m_PeriodsCounter;
 

@@ -59,17 +59,18 @@ public:
    * @brief The constructor.
    *
    * @details Parses the JSON input. Possible JSON members are:
-   *   - `CHi.mode` - an integer (see channel_measurement_modes());
-   *   - `CHi.gain` - a float (see channel_gains());
-   *   - `CHi.iepe` - a boolean (see channel_iepes());
-   *   - `PWMj` - a boolean (see pwms()));
-   *   - `PWMj.freq` - an integer (see pwm_frequencies());
-   *   - `PWMj.low`, `PWMi.high` - integers (see pwm_signal_levels());
-   *   - `PWMj.repeats` - an integer (see pwm_repeat_counts());
-   *   - `PWMj.duty` - a float (see pwm_duty_cycles()).
-   * Suffix `i` of the members listed above is an integer in range
+   *   - `channel[i]Mode` - an integer (see channel_measurement_modes());
+   *   - `channel[i]Gain` - a float (see channel_gains());
+   *   - `channel[i]Iepe` - a boolean (see channel_iepes());
+   *   - `pwm[j]Enabled` - a boolean (see pwm_enabled()));
+   *   - `pwm[j]Frequency` - an integer (see pwm_frequencies());
+   *   - `pwm[j]LowBoundary` - an integer (see pwm_boundaries());
+   *   - `pwm[i]HighBoundary` - an integer (see pwm_boundaries());
+   *   - `pwm[j]RepeatCount` - an integer (see pwm_repeat_counts());
+   *   - `pwm[j]DutyCycle` - a float (see pwm_duty_cycles()).
+   * Suffix `[i]` of the members listed above is an integer in range
    * `[1, Driver::instance().max_channel_count()]`.
-   * Suffix `j` of the members listed above is an integer in range
+   * Suffix `[j]` of the members listed above is an integer in range
    * `[1, Driver::instance().max_pwm_count()]`.
    *
    * @see to_json_text().
@@ -171,7 +172,7 @@ public:
   /// @{
 
   /**
-   * @brief Sets start-flags for all PWM generators.
+   * @brief Sets enable-flags for all PWM generators.
    *
    * @details PWM generator `i` will run for
    * `(pwm_repeat_counts()[i] / pwm_frequencies()[i])` seconds and then stop.
@@ -179,17 +180,17 @@ public:
    * @par Requires
    * `(values.size() == Driver::instance().max_pwm_count())`.
    *
-   * @see pwms().
+   * @see pwm_enabled().
    */
-  Board_settings& set_pwms(const std::vector<bool>& values);
+  Board_settings& set_pwm_enabled(const std::vector<bool>& values);
 
   /**
    * @returns Enable-flag of all PWMs, or `std::nullopt` if it's
    * not available for at least one PWM.
    *
-   * @see set_pwms().
+   * @see set_pwm_enabled().
    */
-  std::optional<std::vector<bool>> pwms() const;
+  std::optional<std::vector<bool>> pwm_enabled() const;
 
   /**
    * @brief Sets frequencies for all PWMs.
@@ -211,24 +212,24 @@ public:
   std::optional<std::vector<int>> pwm_frequencies() const;
 
   /**
-   * @brief Sets signal levels for all PWMs.
+   * @brief Sets boundaries for all PWMs.
    *
    * @par Requires
    * `(values.size() == Driver::instance().max_pwm_count())`.
    * `values` must be in range `[0, 4095]`.
    * Truth of `(values[i].first <= values[i].second)` for PWM `i`.
    *
-   * @see pwm_signal_levels().
+   * @see pwm_boundaries().
    */
-  Board_settings& set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values);
+  Board_settings& set_pwm_boundaries(const std::vector<std::pair<int, int>>& values);
 
   /**
-   * @returns Signal levels of all PWMs, or `std::nullopt` if it's
-   * not available for at least one PWM.
+   * @returns Boundaries of all PWMs, or `std::nullopt` if it's not available
+   * for at least one PWM.
    *
-   * @see set_pwm_signal_levels().
+   * @see set_pwm_boundaries().
    */
-  std::optional<std::vector<std::pair<int, int>>> pwm_signal_levels() const;
+  std::optional<std::vector<std::pair<int, int>>> pwm_boundaries() const;
 
   /**
    * @brief Sets the number of repeat periods for all PWMs.
@@ -252,7 +253,7 @@ public:
   std::optional<std::vector<int>> pwm_repeat_counts() const;
 
   /**
-   * @brief Sets the length of the period when signal is in high state for
+   * @brief Sets the length of the period when signal is in the high state for
    * all PWMs.
    *
    * @par Requires

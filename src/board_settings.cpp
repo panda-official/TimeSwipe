@@ -68,7 +68,7 @@ struct Board_settings::Rep final {
     channel_iepes();
 
     // Check PWM-related settings.
-    pwms();
+    pwm_enabled();
     {
       static const auto apply = [](const auto& checker, const auto& values)
       {
@@ -80,7 +80,7 @@ struct Board_settings::Rep final {
         }
       };
       apply(check_pwm_frequency, pwm_frequencies());
-      apply(check_pwm_signal_level, pwm_signal_levels());
+      apply(check_pwm_boundary, pwm_boundaries());
       apply(check_pwm_repeat_count, pwm_repeat_counts());
       apply(check_pwm_duty_cycle, pwm_duty_cycles());
     }
@@ -124,9 +124,9 @@ struct Board_settings::Rep final {
     apply(&Rep::set_channel_measurement_modes, other.channel_measurement_modes());
     apply(&Rep::set_channel_gains, other.channel_gains());
     apply(&Rep::set_channel_iepes, other.channel_iepes());
-    apply(&Rep::set_pwms, other.pwms());
+    apply(&Rep::set_pwm_enabled, other.pwm_enabled());
     apply(&Rep::set_pwm_frequencies, other.pwm_frequencies());
-    apply(&Rep::set_pwm_signal_levels, other.pwm_signal_levels());
+    apply(&Rep::set_pwm_boundaries, other.pwm_boundaries());
     apply(&Rep::set_pwm_repeat_counts, other.pwm_repeat_counts());
     apply(&Rep::set_pwm_duty_cycles, other.pwm_duty_cycles());
   }
@@ -142,9 +142,9 @@ struct Board_settings::Rep final {
       !(channel_measurement_modes() ||
         channel_gains() ||
         channel_iepes() ||
-        pwms() ||
+        pwm_enabled() ||
         pwm_frequencies() ||
-        pwm_signal_levels() ||
+        pwm_boundaries() ||
         pwm_repeat_counts() ||
         pwm_duty_cycles());
   }
@@ -153,80 +153,80 @@ struct Board_settings::Rep final {
 
   void set_channel_measurement_modes(const std::vector<Measurement_mode>& values)
   {
-    set_channel_values(values, "mode", "measurement modes", [](auto){return true;});
+    set_channel_values(values, "Mode", "measurement modes", [](auto){return true;});
   }
 
   std::optional<std::vector<Measurement_mode>> channel_measurement_modes() const
   {
-    return channel_values<Measurement_mode>("mode");
+    return channel_values<Measurement_mode>("Mode");
   }
 
   void set_channel_gains(const std::vector<float>& values)
   {
-    set_channel_values(values, "gain", "gains", [](auto){return true;});
+    set_channel_values(values, "Gain", "gains", [](auto){return true;});
   }
 
   std::optional<std::vector<float>> channel_gains() const
   {
-    return channel_values<float>("gain");
+    return channel_values<float>("Gain");
   }
 
   void set_channel_iepes(const std::vector<bool>& values)
   {
-    set_channel_values(values, "iepe", "IEPEs", [](auto){return true;});
+    set_channel_values(values, "Iepe", "IEPEs", [](auto){return true;});
   }
 
   std::optional<std::vector<bool>> channel_iepes() const
   {
-    return channel_values<bool>("iepe");
+    return channel_values<bool>("Iepe");
   }
 
   // ---------------------------------------------------------------------------
 
-  void set_pwms(const std::vector<bool>& values)
+  void set_pwm_enabled(const std::vector<bool>& values)
   {
-    set_pwm_values(values, "", "start flags", [](auto){return true;});
+    set_pwm_values(values, "", "enable flags", [](auto){return true;});
   }
 
-  std::optional<std::vector<bool>> pwms() const
+  std::optional<std::vector<bool>> pwm_enabled() const
   {
     return pwm_values<bool>("");
   }
 
   void set_pwm_frequencies(const std::vector<int>& values)
   {
-    set_pwm_values(values, "freq", "frequencies", check_pwm_frequency);
+    set_pwm_values(values, "Frequency", "frequencies", check_pwm_frequency);
   }
 
   std::optional<std::vector<int>> pwm_frequencies() const
   {
-    return pwm_values<int>("freq");
+    return pwm_values<int>("Frequency");
   }
 
-  void set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values)
+  void set_pwm_boundaries(const std::vector<std::pair<int, int>>& values)
   {
     if (!(values.size() == mpc_))
-      throw Exception{"invalid number of PWM signal levels"};
+      throw Exception{"invalid number of PWM boundaries"};
 
     // Ensure all the values are ok before applying them.
     for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i)
-      check_pwm_signal_level(values[i]);
+      check_pwm_boundary(values[i]);
 
     // Apply the values.
     for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i) {
-      set_member("PWM", i + 1, "low", values[i].first);
-      set_member("PWM", i + 1, "high", values[i].second);
+      set_member("pwm", i + 1, "LowBoundary", values[i].first);
+      set_member("pwm", i + 1, "HighBoundary", values[i].second);
     }
   }
 
-  std::optional<std::vector<std::pair<int, int>>> pwm_signal_levels() const
+  std::optional<std::vector<std::pair<int, int>>> pwm_boundaries() const
   {
     std::vector<std::pair<int, int>> result;
     result.reserve(mpc_);
     for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i) {
-      const auto low = member<int>("PWM", i + 1, "low");
+      const auto low = member<int>("pwm", i + 1, "LowBoundary");
       if (!low) return std::nullopt;
-      const auto high = member<int>("PWM", i + 1, "high");
+      const auto high = member<int>("pwm", i + 1, "HighBoundary");
       if (!high) return std::nullopt;
 
       result.emplace_back(*low, *high);
@@ -236,22 +236,22 @@ struct Board_settings::Rep final {
 
   void set_pwm_repeat_counts(const std::vector<int>& values)
   {
-    set_pwm_values(values, "repeats", "repeat counts", check_pwm_repeat_count);
+    set_pwm_values(values, "RepeatCount", "repeat counts", check_pwm_repeat_count);
   }
 
   std::optional<std::vector<int>> pwm_repeat_counts() const
   {
-    return pwm_values<int>("repeats");
+    return pwm_values<int>("RepeatCount");
   }
 
   void set_pwm_duty_cycles(const std::vector<float>& values)
   {
-    set_pwm_values(values, "duty", "duty cycles", check_pwm_duty_cycle);
+    set_pwm_values(values, "DutyCycle", "duty cycles", check_pwm_duty_cycle);
   }
 
   std::optional<std::vector<float>> pwm_duty_cycles() const
   {
-    return pwm_values<float>("duty");
+    return pwm_values<float>("DutyCycle");
   }
 
   const rapidjson::Document& doc() const noexcept
@@ -292,19 +292,19 @@ private:
       throw Exception{Errc::board_settings_invalid, "invalid PWM frequency"};
   }
 
-  static void check_pwm_signal_level(const std::pair<int, int>& value)
+  static void check_pwm_boundary(const std::pair<int, int>& value)
   {
     static const auto check_value = [](const int value)
     {
       if (!(0 <= value && value <= 4095))
-        throw Exception{Errc::board_settings_invalid, "invalid PWM signal level"};
+        throw Exception{Errc::board_settings_invalid, "invalid PWM boundary"};
     };
     const auto low = value.first;
     const auto high = value.second;
     check_value(low);
     check_value(high);
     if (!(low <= high))
-      throw Exception{Errc::board_settings_invalid, "invalid range of PWM signal level"};
+      throw Exception{Errc::board_settings_invalid, "invalid range of PWM boundaries"};
   }
 
   static void check_pwm_repeat_count(const int value)
@@ -363,14 +363,14 @@ private:
     const std::string_view sub_name, const std::string_view plural,
     const F& check_value)
   {
-    set_values(values, mcc_, "CH", sub_name,
+    set_values(values, mcc_, "channel", sub_name,
       std::string{"channel "}.append(plural), check_value);
   }
 
   template<typename T>
   std::optional<std::vector<T>> channel_values(const std::string_view sub_name) const
   {
-    return values<T>("CH", sub_name, mcc_);
+    return values<T>("channel", sub_name, mcc_);
   }
 
   template<typename T, typename F>
@@ -378,14 +378,14 @@ private:
     const std::string_view sub_name, const std::string_view plural,
     const F& check_value)
   {
-    set_values(values, mpc_, "PWM", sub_name,
+    set_values(values, mpc_, "pwm", sub_name,
       std::string{"PWM "}.append(plural), check_value);
   }
 
   template<typename T>
   std::optional<std::vector<T>> pwm_values(const std::string_view sub_name) const
   {
-    return values<T>("PWM", sub_name, mpc_);
+    return values<T>("pwm", sub_name, mpc_);
   }
 
   // ---------------------------------------------------------------------------
@@ -410,7 +410,7 @@ private:
     const std::string_view sub_name) const
   {
     return sub_name.empty() ? member_name(root_name, index) :
-      root_name.append(std::to_string(index)).append(".").append(sub_name);
+      root_name.append(std::to_string(index)).append(sub_name);
   }
 
   /// Sets `root_name` variable with index `index` to `value`.
@@ -548,15 +548,15 @@ std::optional<std::vector<bool>> Board_settings::channel_iepes() const
 
 // -----------------------------------------------------------------------------
 
-Board_settings& Board_settings::set_pwms(const std::vector<bool>& values)
+Board_settings& Board_settings::set_pwm_enabled(const std::vector<bool>& values)
 {
-  rep_->set_pwms(values);
+  rep_->set_pwm_enabled(values);
   return *this;
 }
 
-std::optional<std::vector<bool>> Board_settings::pwms() const
+std::optional<std::vector<bool>> Board_settings::pwm_enabled() const
 {
-  return rep_->pwms();
+  return rep_->pwm_enabled();
 }
 
 Board_settings& Board_settings::set_pwm_frequencies(const std::vector<int>& values)
@@ -570,15 +570,16 @@ std::optional<std::vector<int>> Board_settings::pwm_frequencies() const
   return rep_->pwm_frequencies();
 }
 
-Board_settings& Board_settings::set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values)
+Board_settings&
+Board_settings::set_pwm_boundaries(const std::vector<std::pair<int, int>>& values)
 {
-  rep_->set_pwm_signal_levels(values);
+  rep_->set_pwm_boundaries(values);
   return *this;
 }
 
-std::optional<std::vector<std::pair<int, int>>> Board_settings::pwm_signal_levels() const
+std::optional<std::vector<std::pair<int, int>>> Board_settings::pwm_boundaries() const
 {
-  return rep_->pwm_signal_levels();
+  return rep_->pwm_boundaries();
 }
 
 Board_settings& Board_settings::set_pwm_repeat_counts(const std::vector<int>& values)

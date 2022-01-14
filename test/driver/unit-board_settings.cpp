@@ -16,14 +16,15 @@
 
 constexpr std::string_view json_text{R"(
 {
-"CH1.mode": 0, "CH2.mode": 0, "CH3.mode": 1, "CH4.mode": 1,
-"CH1.gain": 1.1, "CH2.gain": 2.2, "CH3.gain": 3.3, "CH4.gain": 4.4,
-"CH1.iepe": true, "CH2.iepe": false, "CH3.iepe": false, "CH4.iepe": true,
-"PWM1": false, "PWM2": true,
-"PWM1.freq": 1, "PWM2.freq": 10,
-"PWM1.low": 11, "PWM1.high": 22, "PWM2.low": 33, "PWM2.high": 44,
-"PWM1.repeats": 0, "PWM2.repeats": 11,
-"PWM1.duty": 0.11, "PWM2.duty": 0.22
+"channel1Mode": 0, "channel2Mode": 0, "channel3Mode": 1, "channel4Mode": 1,
+"channel1.gain": 1.1, "channel2Gain": 2.2, "channel3Gain": 3.3, "channel4Gain": 4.4,
+"channel1Iepe": true, "channel2Iepe": false, "channel3Iepe": false, "channel4Iepe": true,
+"pwm1Enabled": false, "pwm2Enabled": true,
+"pwm1Frequency": 1, "pwm2Frequency": 10,
+"pwm1LowBoundary": 11, "pwm1HighBoundary": 22,
+"pwm2LowBoundary": 33, "pwm2HighBoundary": 44,
+"pwm1RepeatCount": 0, "pwm2RepeatCount": 11,
+"pwm1DutyCycle": 0.11, "pwm2DutyCycle": 0.22
 }
   )"
 };
@@ -53,10 +54,10 @@ try {
     ASSERT(bs.channel_iepes() == expected);
   }
 
-  // PWMs.
+  // PWM enabled.
   {
     const std::vector<bool> expected{false,true};
-    ASSERT(bs.pwms() == expected);
+    ASSERT(bs.pwm_enabled() == expected);
   }
 
   // PWM frequencies.
@@ -65,10 +66,10 @@ try {
     ASSERT(bs.pwm_frequencies() == expected);
   }
 
-  // PWM signal levels.
+  // PWM boundaries.
   {
     const std::vector<std::pair<int,int>> expected{{11,22},{33,44}};
-    ASSERT(bs.pwm_signal_levels() == expected);
+    ASSERT(bs.pwm_boundaries() == expected);
   }
 
   // PWM repeat counts.

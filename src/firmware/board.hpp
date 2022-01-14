@@ -354,7 +354,7 @@ public:
     return fan_pin_->read_back();
   }
 
-  /// Sets Voltage setting.
+  /// Sets `voltageOutValue` setting.
   void set_voltage(const float value)
   {
     if (voltage_dac_)
@@ -363,7 +363,7 @@ public:
       voltage_ = value;
   }
 
-  /// @returns Voltage Setting.
+  /// @returns `voltageOutValue` Setting.
   float voltage() const noexcept
   {
     if (voltage_dac_)

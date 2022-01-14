@@ -241,7 +241,7 @@ void Board::enable_bridge(const bool enabled)
 
   // Emit the event.
   rapidjson::Value v{enabled};
-  Fire_on_event("Bridge", v);
+  Fire_on_event("voltageOutEnabled", v);
 }
 
 void Board::set_measurement_mode(const int mode)

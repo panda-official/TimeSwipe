@@ -46,7 +46,8 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
 
     /*
      * Add the result member only if it is not added already. Thus, for example,
-     * the result of ["Temp", "Temp"] request shall contains only 1 "Temp" value.
+     * the result of ["temperature", "temperature"] request shall contains only 1
+     * "temperature" value.
      */
     if (resp_root.FindMember(strKey) == resp_root.MemberEnd())
       resp_root.AddMember(Value{strKey, alloc}, Value{}, alloc);

@@ -212,7 +212,7 @@ public:
     doc.CopyFrom(settings.rep_->doc(), doc.GetAllocator());
 
     /*
-     * Direct application of some settings (e.g. EnableADmes) are prohibited.
+     * Direct application of some settings (e.g. measurementStarted) are prohibited.
      * Thus, check that `settings` contains only allowed members.
      */
     for (const auto& setting : doc.GetObject()) {
@@ -487,7 +487,7 @@ public:
     {
       PANDA_TIMESWIPE_ASSERT(is_gpio_inited_);
       std::this_thread::sleep_for(milliseconds{1});
-      spi_set_enable_ad_mes(true);
+      spi_set_channels_adc_enabled(true);
     }
 
     try {
@@ -523,7 +523,7 @@ public:
       set_gpio_low(gpio_clock);
 
       // Stop measurement.
-      spi_set_enable_ad_mes(false); // may throw
+      spi_set_channels_adc_enabled(false); // may throw
     }
 
     // Done.
@@ -982,9 +982,9 @@ private:
   // SPI stuff
   // ---------------------------------------------------------------------------
 
-  void spi_set_enable_ad_mes(const bool value)
+  void spi_set_channels_adc_enabled(const bool value)
   {
-    spi_.execute_set_one("EnableADmes", std::to_string(value));
+    spi_.execute_set_one("channelsAdcEnabled", std::to_string(value));
   }
 
   // -----------------------------------------------------------------------------
