@@ -192,21 +192,21 @@ public:
     raw_bin_storage_.SetDefaults();
   }
 
-  /// Sets a random 32-bit colour value as a new record stamp.
-  void start_record(bool unused = true);
+  /// Sets a random 32-bit color value as a new record stamp.
+  [[deprecated]] void start_record(bool unused = true);
 
   /**
    * @returns The value that was set by start_record().
    *
    * @deprecated Kept just for compatibility with previous versions.
    */
-  bool is_record_started() const noexcept
+  [[deprecated]] bool is_record_started() const noexcept
   {
     return false;
   }
 
   /// Sets the board's amplifier gain.
-  void set_gain(int value)
+  [[deprecated]] void set_gain(int value)
   {
     if (value < 1)
       value = 1;
@@ -224,7 +224,7 @@ public:
    *
    * @remarks Swithes to minimun value on overflow.
    */
-  int increment_gain(int value)
+  [[deprecated]] int increment_gain(int value)
   {
     value = gain() + value;
     if (value > 4)
@@ -233,7 +233,7 @@ public:
   }
 
   /// @returns The gain setting.
-  int gain() const noexcept
+  [[deprecated]] int gain() const noexcept
   {
     return gain_;
   }
@@ -252,13 +252,13 @@ public:
    *
    * @param mode: 0 = IEPE; 1 = Normsignal.
    */
-  void set_secondary_measurement_mode(const int mode)
+  [[deprecated]] void set_secondary_measurement_mode(const int mode)
   {
     secondary_ = mode & 1;
   }
 
   /// @returns Current secondary measurement mode: 0 = IEPE; 1 = Normsignal.
-  int secondary_measurement_mode() const noexcept
+  [[deprecated]] int secondary_measurement_mode() const noexcept
   {
     return secondary_;
   }
@@ -268,10 +268,10 @@ public:
    *
    * @param mode: 0 = IEPE; 1 = Normsignal.
    */
-  void set_measurement_mode(int mode);
+  [[deprecated]] void set_measurement_mode(int mode);
 
   /// @returns Current measurement mode: 0 = IEPE; 1 = Normsignal.
-  int measurement_mode() const noexcept
+  [[deprecated]] int measurement_mode() const noexcept
   {
     return measurement_mode_;
   }
@@ -285,10 +285,10 @@ public:
    *   - 2 zero offset search;
    *   - 3 positive offset search.
    */
-  void start_offset_search(int how);
+  [[deprecated]] void start_offset_search(int how);
 
   /// @returns `true` if the procedure of finding amplifier offsets is started.
-  int is_offset_search_started() const noexcept
+  [[deprecated]] int is_offset_search_started() const noexcept
   {
     return offset_search_.IsStarted();
   }
@@ -341,14 +341,14 @@ public:
   Error_or<hat::Calibration_map> calibration_data() const noexcept;
 
   /// Enables or disables the board cooler.
-  void enable_fan(const bool enabled)
+  [[deprecated]] void enable_fan(const bool enabled)
   {
     PANDA_TIMESWIPE_ASSERT(fan_pin_);
     fan_pin_->write(enabled);
   }
 
   /// @returns `true` if the board cooler is enabled.
-  bool is_fan_enabled() const noexcept
+  [[deprecated]] bool is_fan_enabled() const noexcept
   {
     PANDA_TIMESWIPE_ASSERT(fan_pin_);
     return fan_pin_->read_back();
@@ -373,7 +373,7 @@ public:
   }
 
   /// Sets Current setting.
-  void set_current(float val)
+  [[deprecated]] void set_current(float val)
   {
     if (val < 0)
       val = 0;
@@ -383,13 +383,13 @@ public:
   }
 
   /// @returns Current setting.
-  float current() const noexcept
+  [[deprecated]] float current() const noexcept
   {
     return current_;
   }
 
   /// Sets MaxCurrent (current limit) setting.
-  void set_max_current(float val)
+  [[deprecated]] void set_max_current(float val)
   {
     if (val < 0)
       val = 0;
@@ -397,7 +397,7 @@ public:
   }
 
   /// @returns MaxCurrent (current limit) setting.
-  float max_current() const noexcept
+  [[deprecated]] float max_current() const noexcept
   {
     return max_current_;
   }

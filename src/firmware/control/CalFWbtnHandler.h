@@ -34,7 +34,7 @@ public:
     /*!
      * \brief Starts Calibration UI test
      */
-    void StartUItest(bool bHow)
+    [[deprecated]] void StartUItest(bool bHow)
     {
         CView &v=CView::Instance();
         if(bHow)
@@ -46,7 +46,7 @@ public:
     /*!
      * \brief Shows whether Calibration UI test has been done(true) or not (false)
      */
-    bool HasUItestBeenDone() const noexcept
+    [[deprecated]] bool HasUItestBeenDone() const noexcept
     {
         return CView::Instance().HasCalUItestBeenDone();
     }

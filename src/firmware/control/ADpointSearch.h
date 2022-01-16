@@ -81,7 +81,7 @@ public:
      * \brief A getter for m_TargErrTolerance
      * \return m_TargErrTolerance value
      */
-    static int GetTargErrTol() noexcept
+    [[deprecated]] static int GetTargErrTol() noexcept
     {
       return m_TargErrTolerance;
     }
@@ -90,7 +90,7 @@ public:
      * \brief A setter for m_TargErrTolerance
      * \param val A value to be set for m_TargErrTolerance
      */
-    static void SetTargErrTol(const int val) noexcept
+    [[deprecated]] static void SetTargErrTol(const int val) noexcept
     {
       m_TargErrTolerance = (val >= 1) ? val : 1;
     }

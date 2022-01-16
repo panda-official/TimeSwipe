@@ -386,9 +386,38 @@ int main()
 #endif
     }
 
-    cmd_dispatcher->Add("Offset.errtol", std::make_shared<CCmdSGHandler<int>>(
-        &CADpointSearch::GetTargErrTol,
-        &CADpointSearch::SetTargErrTol));
+    // [[deprecated]]
+    // cmd_dispatcher->Add("fanEnabled", std::make_shared<CCmdSGHandler<bool>>(
+    //     board,
+    //     &Board::is_fan_enabled,
+    //     &Board::enable_fan));
+    // cmd_dispatcher->Add("Offset", std::make_shared<CCmdSGHandler<int>>(
+    //     board,
+    //     &Board::is_offset_search_started,
+    //     &Board::start_offset_search));
+    // cmd_dispatcher->Add("Offset.errtol", std::make_shared<CCmdSGHandler<int>>(
+    //     &CADpointSearch::GetTargErrTol,
+    //     &CADpointSearch::SetTargErrTol));
+    // cmd_dispatcher->Add("Gain", std::make_shared<CCmdSGHandler<int>>(
+    //     board,
+    //     &Board::gain,
+    //     &Board::set_gain));
+    // cmd_dispatcher->Add("Mode", std::make_shared<CCmdSGHandler<int>>(
+    //     board,
+    //     &Board::measurement_mode,
+    //     &Board::set_measurement_mode));
+    // cmd_dispatcher->Add("Record", std::make_shared<CCmdSGHandler<bool>>(
+    //     board,
+    //     &Board::is_record_started,
+    //     &Board::start_record));
+    // cmd_dispatcher->Add("Current", std::make_shared<CCmdSGHandler<float>>(
+    //     board,
+    //     &Board::current,
+    //     &Board::set_current));
+    // cmd_dispatcher->Add("MaxCurrent", std::make_shared<CCmdSGHandler<float>>(
+    //     board,
+    //     &Board::max_current,
+    //     &Board::set_max_current));
     cmd_dispatcher->Add("armId", std::make_shared<CCmdSGHandler<std::string>>(
         &CSamService::GetSerialString));
 
@@ -399,30 +428,14 @@ int main()
         &CSemVer::GetVersionString));
 
     //control commands:
-    cmd_dispatcher->Add("Gain", std::make_shared<CCmdSGHandler<int>>(
-        board,
-        &Board::gain,
-        &Board::set_gain));
     cmd_dispatcher->Add("voltageOutEnabled", std::make_shared<CCmdSGHandler<bool>>(
         board,
         &Board::is_bridge_enabled,
         &Board::enable_bridge));
-    cmd_dispatcher->Add("Record", std::make_shared<CCmdSGHandler<bool>>(
-        board,
-        &Board::is_record_started,
-        &Board::start_record));
-    cmd_dispatcher->Add("Offset", std::make_shared<CCmdSGHandler<int>>(
-        board,
-        &Board::is_offset_search_started,
-        &Board::start_offset_search));
     cmd_dispatcher->Add("channelsAdcEnabled", std::make_shared<CCmdSGHandler<bool>>(
         board,
         &Board::is_measurement_enabled,
         &Board::enable_measurement));
-    cmd_dispatcher->Add("Mode", std::make_shared<CCmdSGHandler<int>>(
-        board,
-        &Board::measurement_mode,
-        &Board::set_measurement_mode));
     cmd_dispatcher->Add("channelsCalibrationValid", std::make_shared<CCmdSGHandler<bool>>(
         board,
         &Board::is_calibration_data_valid));
@@ -430,25 +443,15 @@ int main()
         board,
         &Board::voltage,
         &Board::set_voltage));
-    cmd_dispatcher->Add("Current", std::make_shared<CCmdSGHandler<float>>(
-        board,
-        &Board::current,
-        &Board::set_current));
-    cmd_dispatcher->Add("MaxCurrent", std::make_shared<CCmdSGHandler<float>>(
-        board,
-        &Board::max_current,
-        &Board::set_max_current));
-    // cmd_dispatcher->Add("fanEnabled", std::make_shared<CCmdSGHandler<bool>>(
-    //     board, &Board::is_fan_enabled,
-    //     &Board::enable_fan));
-
 
     CView &view=CView::Instance();
 #ifdef CALIBRATION_STATION
-    cmd_dispatcher->Add("UItest", std::make_shared<CCmdSGHandler<bool>>(
-        pBtnHandler,
-        &CCalFWbtnHandler::HasUItestBeenDone,
-        &CCalFWbtnHandler::StartUItest));
+    // [[deprecated]]
+    // cmd_dispatcher->Add("UItest", std::make_shared<CCmdSGHandler<bool>>(
+    //     pBtnHandler,
+    //     &CCalFWbtnHandler::HasUItestBeenDone,
+    //     &CCalFWbtnHandler::StartUItest));
+
     //testing Ext EEPROM:
     cmd_dispatcher->Add("eepromTest", std::make_shared<CCmdSGHandler<bool>>(
         i2c_eeprom_master,
