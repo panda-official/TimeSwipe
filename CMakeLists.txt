@@ -340,9 +340,9 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     pga280.hpp
     pin.hpp
     pin_button.hpp
+    setting_parser.hpp
     shiftreg.cpp
     shiftreg.hpp
-    std_port.h
     timer.h)
   list(TRANSFORM firmware_src PREPEND src/firmware/)
   foreach(dep base control json led misc sam)

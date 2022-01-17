@@ -23,7 +23,7 @@
 #include "board.hpp"
 #include "cmd.h"
 #include "os.h"
-#include "std_port.h"
+#include "setting_parser.hpp"
 #include "base/SPIcomm.h"
 #include "dms_channel.hpp"
 #include "pga280.hpp"
@@ -135,8 +135,9 @@ int main()
       Sam_pin::Id::pa14);
     sercom2_spi->EnableIRQs(true);
     const auto cmd_dispatcher = std::make_shared<CCmdDispatcher>();
-    const auto std_port = std::make_shared<CStdPort>(cmd_dispatcher, sercom2_spi);
-    sercom2_spi->AdviseSink(std_port);
+    const auto setting_parser = std::make_shared<Setting_parser>(cmd_dispatcher,
+      sercom2_spi);
+    sercom2_spi->AdviseSink(setting_parser);
 
     board->set_board_type(board_type);
     std::shared_ptr<Pin> pDAConPin;

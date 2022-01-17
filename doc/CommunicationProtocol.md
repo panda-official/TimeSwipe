@@ -142,7 +142,7 @@ setting operator value\n
 
 where
 
-- `setting` - is a setting name;
+- `setting` - a setting name;
 - `operator` - `>` (read) or `<` (write);
 - `value` - a JSON value.
 

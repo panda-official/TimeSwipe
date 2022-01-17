@@ -221,47 +221,27 @@ protected:
 
 };
 
-/*!
- * \brief A callback interface used to notify the derived class that an event happened
- *  at the serial device.
+/**
+ * @brief A callback interface used to notify the derived classes about some
+ * event emitted by a serial device.
  */
-struct ISerialEvent
-{
-        /*!
-         * \brief "a new character has been received in a FIFO buffer of a serial device"
-         * \param ch a character value that has been received
-         */
-        virtual void on_rec_char(Character ch)=0;
+class Serial_event_handler {
+public:
+  /// The destructor.
+  virtual ~Serial_event_handler() = default;
 
-        //! default constructor
-        ISerialEvent()=default;
-
-        /*!
-         * \brief remove copy constructor
-         * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-         *  that is unacceptable)
-         */
-        ISerialEvent(const ISerialEvent&) = delete;
-
-        /*!
-         * \brief remove copy operator
-         * \return
-         * \details forbid copying by referencing only to this interface (by default it will be copied only this class part
-         *  that is unacceptable)
-         */
-        ISerialEvent& operator=(const ISerialEvent&) = delete;
-
-protected:
-        //! virtual destructor
-        virtual ~ISerialEvent()=default;
-
+  /**
+   * @brief Callback that is called when a character `ch` has been received in
+   * a FIFO buffer of a serial device.
+   */
+  virtual void handle_receive(Character ch) = 0;
 };
 
 
 /*!
  * \brief   A basic class for all serial devices
  * \details This is a template for deriving all serial devices.
- *  It implements a connection point for ISerialEvent inside. All objects that realize ISerialEvent can be advised
+ *  It implements a connection point for Serial_event_handler inside. All objects that realize Serial_event_handler can be advised
  *  to this serial device by AdviseSink and receive corresponding notifications
  *
  */
@@ -270,36 +250,34 @@ class CSerial : public virtual ISerial
 protected:
 
         /*!
-         * \brief A list of connection points for ISerialEvent
+         * \brief A list of connection points for Serial_event_handler
          */
-        std::vector< std::weak_ptr<ISerialEvent> > m_EvSinks;
+        std::vector<std::weak_ptr<Serial_event_handler>> m_EvSinks;
 
         /*!
          * \brief Notify all connected objects with
          *  "a new character has been received in a FIFO buffer of a serial device" event
          * \param ch a character that has been recived
          */
-        void Fire_on_rec_char(Character ch)
-        {
-            for(std::vector< std::weak_ptr<ISerialEvent> >::const_iterator i=m_EvSinks.begin(); i!=m_EvSinks.end(); i++)
-            {
-                if(i->expired())
-                {
-                   m_EvSinks.erase(i);
-                }
-                else
-                {
-                    i->lock()->on_rec_char(ch);
-                }
-            }
-        }
+         void Fire_on_rec_char(const Character ch)
+         {
+           for (auto i = cbegin(m_EvSinks), e = cend(m_EvSinks); i != e;) {
+             if (i->expired()) {
+               i = m_EvSinks.erase(i);
+               e = cend(m_EvSinks);
+             } else {
+               i->lock()->handle_receive(ch);
+               ++i;
+             }
+           }
+         }
 public:
 
         /*!
          * \brief Subscribe a new listener to serial device events
          * \param A sink to an object to subscribe
          */
-        void AdviseSink(const std::shared_ptr<ISerialEvent> &sink)
+        void AdviseSink(const std::shared_ptr<Serial_event_handler> &sink)
         {
             m_EvSinks.emplace_back(sink);
         }

@@ -8,7 +8,7 @@ Copyright (c) 2019-2021 Panda Team
 #include "../../src/firmware/button.hpp"
 #include "../../src/firmware/cmd.h"
 #include "../../src/firmware/os.h"
-#include "../../src/firmware/std_port.h"
+#include "../../src/firmware/setting_parser.hpp"
 #include "../../src/firmware/timer.h"
 #include "../../src/firmware/base/SPIcomm.h"
 #include "../../src/firmware/json/jsondisp.h"
@@ -76,7 +76,7 @@ int main(void)
     auto pSPIsc2    =std::make_shared<CSPIcomm>(Sam_sercom::Id::sercom2, Sam_pin::Id::pa12, Sam_pin::Id::pa15, Sam_pin::Id::pa13, Sam_pin::Id::pa14);
     pSPIsc2->EnableIRQs(true);
     auto pDisp=         std::make_shared<CCmdDispatcher>();
-    auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
+    auto pStdPort=      std::make_shared<Setting_parser>(pDisp, pSPIsc2);
     pSPIsc2->AdviseSink(pStdPort);
 
     //example command:
