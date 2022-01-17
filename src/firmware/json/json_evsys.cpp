@@ -21,7 +21,7 @@ typeCRes CJSONEvDispatcher::handle(Setting_descriptor &d)
     if(IsCmdSubsysLocked())
         return typeCRes::disabled;
 
-    if(d.m_ctype == Setting_descriptor::ctype::ctSet)
+    if(d.access_type == Setting_access_type::write)
     {
        return typeCRes::fset_not_supported;
     }

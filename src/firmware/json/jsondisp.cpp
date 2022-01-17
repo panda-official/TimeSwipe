@@ -13,7 +13,7 @@ void CJSONDispatcher::DumpAllSettings(const Setting_descriptor& d, rapidjson::Do
     //! here we use cmethod::byCmdIndex to enumerate all possible "get" handlers:
     Setting_descriptor descriptor; //! the exception mode is set to false
     descriptor.in_value_stream = d.in_value_stream;
-    descriptor.m_ctype=Setting_descriptor::ctype::ctGet;
+    descriptor.access_type = Setting_access_type::read;
     descriptor.m_cmethod=Setting_descriptor::cmethod::byCmdIndex;
 
     using Value = rapidjson::Value;
@@ -38,7 +38,7 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
   rapidjson::Value& jReq,
   rapidjson::Document& jResp,
   rapidjson::Value& resp_root,
-  const Setting_descriptor::ctype ct)
+  const Setting_access_type ct)
 {
   //prepare:
     using Value = rapidjson::Value;
@@ -58,21 +58,21 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
     descriptor.in_value_stream = &in;
     descriptor.out_value_stream = &out;
     descriptor.name=strKey;
-    descriptor.m_ctype=ct;
+    descriptor.access_type=ct;
     descriptor.m_bThrowExcptOnErr=true;
     typeCRes cres;
 
     try{
 
-        if(Setting_descriptor::ctype::ctSet==ct)
+        if(Setting_access_type::write==ct)
         {
             cres=m_pDisp->handle(descriptor); //set
             descriptor.m_bThrowExcptOnErr=false; //test can we read back a value...
         }
         //and get back:
-        descriptor.m_ctype=Setting_descriptor::ctype::ctGet;
+        descriptor.access_type=Setting_access_type::read;
         cres=m_pDisp->handle(descriptor);
-        if(Setting_descriptor::ctype::ctSet==ct)
+        if(Setting_access_type::write==ct)
         {
             if(typeCRes::fget_not_supported==cres)
             {
@@ -89,7 +89,7 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
 void CJSONDispatcher::Call(rapidjson::Value& jObj,
   rapidjson::Document& jResp,
   rapidjson::Value& resp_root,
-  const Setting_descriptor::ctype ct)
+  const Setting_access_type ct)
 {
   auto& alloc = jResp.GetAllocator();
   const auto process = [&](const rapidjson::Value& key, rapidjson::Value& val)
@@ -115,7 +115,7 @@ void CJSONDispatcher::Call(rapidjson::Value& jObj,
     // Check the end of possible recursion.
     if (!val.IsObject()) {
       if (jObj.IsArray()) {
-        if (ct != Setting_descriptor::ctype::ctGet) {
+        if (ct != Setting_access_type::read) {
           resp_root.AddMember(Value{key_str, alloc}, Value{}, alloc);
           set_error(jResp, resp_root[key_str], "not a get-call");
           return true; // continue
@@ -149,7 +149,7 @@ typeCRes CJSONDispatcher::handle(Setting_descriptor& d)
     std::string str;
     rapidjson::Document jresp{rapidjson::kObjectType};
     *(d.in_value_stream) >> str;
-     if (str.empty() && (d.m_ctype == Setting_descriptor::ctype::ctGet))
+     if (str.empty() && (d.access_type == Setting_access_type::read))
      {
        DumpAllSettings(d, jresp);
      }
@@ -161,7 +161,7 @@ typeCRes CJSONDispatcher::handle(Setting_descriptor& d)
         rapidjson::Document cmd;
         const rapidjson::ParseResult pr{cmd.Parse(str.data(), str.size())};
         if (pr)
-          Call(cmd, jresp, jresp, d.m_ctype);
+          Call(cmd, jresp, jresp, d.access_type);
         else
           return typeCRes::parse_err;
      }

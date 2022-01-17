@@ -98,7 +98,7 @@ Error_or<hat::Calibration_map> Board::calibration_data() const noexcept
 }
 
 Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
-  const Setting_descriptor::ctype ct) noexcept
+  const Setting_access_type ct) noexcept
 {
   using Value = rapidjson::Value;
 
@@ -118,7 +118,7 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
 
     const auto cal_entry_count = map.atom(type).entry_count();
 
-    if (ct == Setting_descriptor::ctype::ctSet) {
+    if (ct == Setting_access_type::write) {
 #ifndef CALIBRATION_STATION
       return Error{Errc::board_settings_calibration_not_permitted};
 #endif

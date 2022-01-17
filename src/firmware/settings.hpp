@@ -35,6 +35,14 @@
 // Setting_descriptor
 // -----------------------------------------------------------------------------
 
+/// Setting access type.
+enum class Setting_access_type {
+  /// Read access.
+  read,
+  /// Write access.
+  write
+};
+
 /**
  * @brief Setting access descriptor.
  *
@@ -56,14 +64,6 @@ struct Setting_descriptor final {
     disabled            //!<handler is disabled for some reasons
   };
 
-  /// Invocation type ("call type"=ctype).
-  enum ctype {
-    /// "get" setting.
-    ctGet,
-    /// "set" setting.
-    ctSet
-  };
-
   /// Dispatch invocation method.
   enum cmethod {
     byCmdName,        //!<by a command in a string format (using m_strCommand)
@@ -82,7 +82,7 @@ struct Setting_descriptor final {
   /// Output value stream.
   Io_stream* out_value_stream{};
 
-  ctype m_ctype{ctGet};
+  Setting_access_type access_type{Setting_access_type::read};
   cmethod m_cmethod{byCmdName};
 
   /// If true, throw `std::runtime_error` instead of returning cres.
@@ -302,7 +302,7 @@ public:
    */
   typeCRes handle(Setting_descriptor& d) override
   {
-    if (d.m_ctype == Setting_descriptor::ctype::ctSet) {
+    if (d.access_type == Setting_access_type::write) {
       if (set_) {
         Setter_value val{};
         *d.in_value_stream >> val;
@@ -320,7 +320,7 @@ public:
           return typeCRes::parse_err;
       } else
         return typeCRes::fset_not_supported;
-    } else if (d.m_ctype == Setting_descriptor::ctype::ctGet) {
+    } else if (d.access_type == Setting_access_type::read) {
       if (get_) {
         if (const auto [err, res] = get_(); err)
           return typeCRes::generic; // FIXME: return err
@@ -416,11 +416,11 @@ public:
       break;
     case Input_state::oper:
       if (ch == '>') {
-        setting_descriptor_.m_ctype = Setting_descriptor::ctype::ctGet;
+        setting_descriptor_.access_type = Setting_access_type::read;
         in_state_ = Input_state::value;
         is_trimming_ = true;
       } else if (ch == '<') {
-        setting_descriptor_.m_ctype = Setting_descriptor::ctype::ctSet;
+        setting_descriptor_.access_type = Setting_access_type::write;
         in_state_ = Input_state::value;
         is_trimming_ = true;
       } else

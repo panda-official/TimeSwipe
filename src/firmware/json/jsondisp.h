@@ -29,7 +29,7 @@ protected:
     std::shared_ptr<Setting_dispatcher> m_pDisp;
 
     using typeSubHandler = std::function<void(rapidjson::Value& jObj,
-      rapidjson::Document& jResp, const Setting_descriptor::ctype ct)>;
+      rapidjson::Document& jResp, const Setting_access_type ct)>;
 
     using typeSubMap = std::map<std::string, typeSubHandler>;
 
@@ -50,7 +50,7 @@ protected:
      * \param jResp An output object (responce)
      * \param ct A call type: "get" or "set"
      */
-  void CallPrimitive(const std::string &strKey, rapidjson::Value& ReqVal, rapidjson::Document& jResp, rapidjson::Value& resp_root, const Setting_descriptor::ctype ct);
+  void CallPrimitive(const std::string &strKey, rapidjson::Value& ReqVal, rapidjson::Document& jResp, rapidjson::Value& resp_root, const Setting_access_type ct);
 
 public:
 
@@ -61,7 +61,7 @@ public:
      * \param jResp A responce object
      * \param ct A call type: "get" or "set"
      */
-  void Call(rapidjson::Value &jObj, rapidjson::Document& jResp, rapidjson::Value& resp_root, const Setting_descriptor::ctype ct);
+  void Call(rapidjson::Value &jObj, rapidjson::Document& jResp, rapidjson::Value& resp_root, const Setting_access_type ct);
 
     /*!
      * \brief A command dispatcher handler override for this class
