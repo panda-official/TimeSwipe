@@ -13,7 +13,7 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include "../cmd.h"
+#include "../settings.hpp"
 #include "json_base.h"
 
 #include <memory>

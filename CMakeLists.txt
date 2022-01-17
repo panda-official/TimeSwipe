@@ -328,7 +328,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     board.hpp
     button.hpp
     channel.hpp
-    cmd.h
     dms_channel.cpp
     dms_channel.hpp
     error.hpp

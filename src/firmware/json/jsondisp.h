@@ -14,7 +14,7 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include "json_base.h"
-#include "../cmd.h"
+#include "../settings.hpp"
 
 #include <functional>
 #include <map>
