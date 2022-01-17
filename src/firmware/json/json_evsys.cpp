@@ -16,12 +16,12 @@ void CJSONEvDispatcher::on_event(const char* key, rapidjson::Value& val)
     m_event.AddMember(Value{std::string{key}, alloc}, Value{}, alloc);
   m_event[key].CopyFrom(val, alloc, true);
 }
-typeCRes CJSONEvDispatcher::Call(CCmdCallDescr &d)
+typeCRes CJSONEvDispatcher::Call(Setting_descriptor &d)
 {
     if(IsCmdSubsysLocked())
         return typeCRes::disabled;
 
-    if(d.m_ctype & CCmdCallDescr::ctype::ctSet)
+    if(d.m_ctype == Setting_descriptor::ctype::ctSet)
     {
        return typeCRes::fset_not_supported;
     }

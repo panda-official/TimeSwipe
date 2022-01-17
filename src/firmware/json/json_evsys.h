@@ -132,7 +132,7 @@ public:
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    typeCRes Call(CCmdCallDescr &d) override;
+    typeCRes Call(Setting_descriptor &d) override;
 
     /*!
      * \brief The class constructor

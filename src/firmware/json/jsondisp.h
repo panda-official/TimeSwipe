@@ -29,7 +29,7 @@ protected:
     std::shared_ptr<CCmdDispatcher> m_pDisp;
 
     using typeSubHandler = std::function<void(rapidjson::Value& jObj,
-      rapidjson::Document& jResp, const CCmdCallDescr::ctype ct)>;
+      rapidjson::Document& jResp, const Setting_descriptor::ctype ct)>;
 
     using typeSubMap = std::map<std::string, typeSubHandler>;
 
@@ -41,7 +41,7 @@ protected:
      *  \param jResp - a JSON object to fill with the settings
      *
      */
-  void DumpAllSettings(const CCmdCallDescr &d, rapidjson::Document& jResp);
+  void DumpAllSettings(const Setting_descriptor &d, rapidjson::Document& jResp);
 
     /*!
      * \brief Handles an elementary JSON object that represents a primitive type - this is an endpoint in recursive CJSONDispatcher::Call(...)
@@ -50,7 +50,7 @@ protected:
      * \param jResp An output object (responce)
      * \param ct A call type: "get" or "set"
      */
-  void CallPrimitive(const std::string &strKey, rapidjson::Value& ReqVal, rapidjson::Document& jResp, rapidjson::Value& resp_root, const CCmdCallDescr::ctype ct);
+  void CallPrimitive(const std::string &strKey, rapidjson::Value& ReqVal, rapidjson::Document& jResp, rapidjson::Value& resp_root, const Setting_descriptor::ctype ct);
 
 public:
 
@@ -61,14 +61,14 @@ public:
      * \param jResp A responce object
      * \param ct A call type: "get" or "set"
      */
-  void Call(rapidjson::Value &jObj, rapidjson::Document& jResp, rapidjson::Value& resp_root, const CCmdCallDescr::ctype ct);
+  void Call(rapidjson::Value &jObj, rapidjson::Document& jResp, rapidjson::Value& resp_root, const Setting_descriptor::ctype ct);
 
     /*!
      * \brief A command dispatcher handler override for this class
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    typeCRes Call(CCmdCallDescr &d) override;
+    typeCRes Call(Setting_descriptor &d) override;
 
     /*!
      * \brief The class constructor

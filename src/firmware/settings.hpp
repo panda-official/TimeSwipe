@@ -36,7 +36,7 @@
  *
  * @see Setting_parser.
  */
-struct CCmdCallDescr final {
+struct Setting_descriptor final {
   /// The command in a string format.
   std::string m_strCommand;
 
@@ -82,7 +82,7 @@ struct CCmdCallDescr final {
   bool m_bThrowExcptOnErr=false;
 };
 
-typedef  CCmdCallDescr::cres typeCRes;
+typedef  Setting_descriptor::cres typeCRes;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -98,7 +98,7 @@ public:
    *
    * @param d Call descriptor in protocol-independent format.
    */
-  virtual typeCRes Call(CCmdCallDescr& d) = 0;
+  virtual typeCRes Call(Setting_descriptor& d) = 0;
 };
 
 // -----------------------------------------------------------------------------
@@ -129,9 +129,9 @@ public:
    * @param d Call parameters
    * @returns The result of call.
    * @throws `std::runtime_error` on error if
-   * `(CCmdCallDescr::m_bThrowExcptOnErr == true)`.
+   * `(Setting_descriptor::m_bThrowExcptOnErr == true)`.
    */
-  typeCRes Call(CCmdCallDescr& d)
+  typeCRes Call(Setting_descriptor& d)
   {
     const typeCRes cres = __Call(d);
     if (d.m_bThrowExcptOnErr) {
@@ -156,12 +156,12 @@ public:
 private:
   std::map<std::string, std::shared_ptr<CCmdCallHandler>> table_;
 
-  typeCRes __Call(CCmdCallDescr& d)
+  typeCRes __Call(Setting_descriptor& d)
   {
-    if (d.m_cmethod == CCmdCallDescr::cmethod::byCmdName) {
+    if (d.m_cmethod == Setting_descriptor::cmethod::byCmdName) {
       const auto cmd = table_.find(d.m_strCommand);
       return cmd != table_.end() ? cmd->second->Call(d) : typeCRes::obj_not_found;
-    } else if (d.m_cmethod == CCmdCallDescr::cmethod::byCmdIndex) {
+    } else if (d.m_cmethod == Setting_descriptor::cmethod::byCmdIndex) {
       if (d.m_nCmdIndex < static_cast<unsigned int>(table_.size())) {
         auto cmd = table_.begin();
         std::advance(cmd, d.m_nCmdIndex);
@@ -295,9 +295,9 @@ public:
    *
    * @todo: FIXME: return Errc
    */
-  typeCRes Call(CCmdCallDescr& d) override
+  typeCRes Call(Setting_descriptor& d) override
   {
-    if (d.m_ctype & CCmdCallDescr::ctype::ctSet) {
+    if (d.m_ctype == Setting_descriptor::ctype::ctSet) {
       if (set_) {
         Setter_value val{};
         *d.m_pIn >> val;
@@ -315,8 +315,7 @@ public:
           return typeCRes::parse_err;
       } else
         return typeCRes::fset_not_supported;
-    }
-    if (d.m_ctype & CCmdCallDescr::ctype::ctGet) {
+    } else if (d.m_ctype == Setting_descriptor::ctype::ctGet) {
       if (get_) {
         if (const auto [err, res] = get_(); err)
           return typeCRes::generic; // FIXME: return err
@@ -341,7 +340,7 @@ private:
  * @brief Parser of simple text protocol described in CommunicationProtocol.md.
  *
  * @details This class is responsible to parse the setting access requests to
- * the instances of class CCmdCallDescr and to pass them to an instance of
+ * the instances of class Setting_descriptor and to pass them to an instance of
  * CCmdDispatcher.
  * All the settings and their's values are represented in text format. Each
  * request and response are always terminated with the `\n` character.
@@ -412,11 +411,11 @@ public:
       break;
     case Input_state::oper:
       if (ch == '>') {
-        setting_descriptor_.m_ctype = CCmdCallDescr::ctype::ctGet;
+        setting_descriptor_.m_ctype = Setting_descriptor::ctype::ctGet;
         in_state_ = Input_state::value;
         is_trimming_ = true;
       } else if (ch == '<') {
-        setting_descriptor_.m_ctype = CCmdCallDescr::ctype::ctSet;
+        setting_descriptor_.m_ctype = Setting_descriptor::ctype::ctSet;
         in_state_ = Input_state::value;
         is_trimming_ = true;
       } else
@@ -445,7 +444,7 @@ private:
 
   std::shared_ptr<CSerial> serial_bus_;
   std::shared_ptr<CCmdDispatcher> setting_dispatcher_;
-  CCmdCallDescr setting_descriptor_;
+  Setting_descriptor setting_descriptor_;
   CFIFO in_fifo_;
   CFIFO out_fifo_;
   bool is_trimming_{true}; // for automatic spaces skipping
