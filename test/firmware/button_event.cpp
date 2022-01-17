@@ -79,7 +79,7 @@ int main(void)
     pSPIsc2->AdviseSink(pStdPort);
 
     //example command:
-    pDisp->Add("ARMID", std::make_shared<CCmdSGHandler<std::string>>(
+    pDisp->Add("ARMID", std::make_shared<Setting_generic_handler<std::string>>(
         &CSamService::GetSerialString));
 
     //----------------menu+button----------------

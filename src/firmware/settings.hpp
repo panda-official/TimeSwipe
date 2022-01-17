@@ -174,6 +174,7 @@ private:
 };
 
 // -----------------------------------------------------------------------------
+// Setting_generic_handler
 // -----------------------------------------------------------------------------
 
 /**
@@ -185,7 +186,7 @@ private:
  * @tparam SetterValue A type of argument of setter.
  */
 template<typename GetterValue, typename SetterValue = GetterValue>
-class CCmdSGHandler final : public Setting_handler {
+class Setting_generic_handler final : public Setting_handler {
 public:
   /// A type of value returned by getter.
   using Getter_value = GetterValue;
@@ -220,7 +221,7 @@ public:
    *
    * @details Constructs an instance which supports neither get nor set.
    */
-  CCmdSGHandler() = default;
+  Setting_generic_handler() = default;
 
   /**
    * @brief The constructor.
@@ -229,7 +230,7 @@ public:
    * @param set A generic setter.
    */
   template<typename GetterResult, typename SetterResult = void>
-  explicit CCmdSGHandler(Basic_getter<GetterResult> get,
+  explicit Setting_generic_handler(Basic_getter<GetterResult> get,
     Basic_setter<SetterResult> set = {})
     : get_{std::move(get)}
     , set_{
@@ -249,8 +250,8 @@ public:
 
   /// @overload
   template<typename GetterResult, typename SetterResult = void>
-  explicit CCmdSGHandler(GetterResult(*get)(), SetterResult(*set)(Setter_value) = {})
-    : CCmdSGHandler{Basic_getter<GetterResult>{get}, Basic_setter<SetterResult>{set}}
+  explicit Setting_generic_handler(GetterResult(*get)(), SetterResult(*set)(Setter_value) = {})
+    : Setting_generic_handler{Basic_getter<GetterResult>{get}, Basic_setter<SetterResult>{set}}
   {}
 
   /**
@@ -262,10 +263,10 @@ public:
    */
   template<class T, class GetterClass, class GetterResult,
     class SetterClass = GetterClass, class SetterResult = void>
-  CCmdSGHandler(const std::shared_ptr<T>& instance,
+  Setting_generic_handler(const std::shared_ptr<T>& instance,
     Member_getter<GetterClass, GetterResult> get,
     Member_setter<SetterClass, SetterResult> set = {})
-    : CCmdSGHandler{
+    : Setting_generic_handler{
         // get_
         instance && get ?
         [instance, get]
