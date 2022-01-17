@@ -26,7 +26,7 @@ Copyright (c) 2019 Panda Team
 class CJSONDispatcher : public CJSONbase, public Setting_handler
 {
 protected:
-    std::shared_ptr<CCmdDispatcher> m_pDisp;
+    std::shared_ptr<Setting_dispatcher> m_pDisp;
 
     using typeSubHandler = std::function<void(rapidjson::Value& jObj,
       rapidjson::Document& jResp, const Setting_descriptor::ctype ct)>;
@@ -74,7 +74,7 @@ public:
      * \brief The class constructor
      * \param pDisp A pointer to a command dispatcher
      */
-    CJSONDispatcher(const std::shared_ptr<CCmdDispatcher>& pDisp)
+    CJSONDispatcher(const std::shared_ptr<Setting_dispatcher>& pDisp)
     {
       m_pDisp=pDisp;
     }

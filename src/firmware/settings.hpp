@@ -103,12 +103,11 @@ public:
 };
 
 // -----------------------------------------------------------------------------
+// Setting_dispatcher
 // -----------------------------------------------------------------------------
 
-/**
- * @brief The dispatcher of all the setting accesses.
- */
-class CCmdDispatcher final {
+/// The dispatcher of all the setting accesses.
+class Setting_dispatcher final {
 public:
   /**
    * @brief Adding a new command handler to the dispatching table
@@ -342,7 +341,7 @@ private:
  *
  * @details This class is responsible to parse the setting access requests to
  * the instances of class Setting_descriptor and to pass them to an instance of
- * CCmdDispatcher.
+ * Setting_dispatcher.
  * All the settings and their's values are represented in text format. Each
  * request and response are always terminated with the `\n` character.
  */
@@ -355,7 +354,7 @@ public:
    * @param serial_bus A serial device that is used for communication: provides
    * the ways to send responses and to listen incoming data.
    */
-  Setting_parser(const std::shared_ptr<CCmdDispatcher>& setting_dispatcher,
+  Setting_parser(const std::shared_ptr<Setting_dispatcher>& setting_dispatcher,
     const std::shared_ptr<CSerial>& serial_bus)
     : serial_bus_{serial_bus}
     , setting_dispatcher_{setting_dispatcher}
@@ -444,7 +443,7 @@ private:
   };
 
   std::shared_ptr<CSerial> serial_bus_;
-  std::shared_ptr<CCmdDispatcher> setting_dispatcher_;
+  std::shared_ptr<Setting_dispatcher> setting_dispatcher_;
   Setting_descriptor setting_descriptor_;
   CFIFO in_fifo_;
   CFIFO out_fifo_;

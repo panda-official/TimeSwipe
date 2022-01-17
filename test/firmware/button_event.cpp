@@ -74,7 +74,7 @@ int main(void)
     //communication bus:
     auto pSPIsc2    =std::make_shared<CSPIcomm>(Sam_sercom::Id::sercom2, Sam_pin::Id::pa12, Sam_pin::Id::pa15, Sam_pin::Id::pa13, Sam_pin::Id::pa14);
     pSPIsc2->EnableIRQs(true);
-    auto pDisp=         std::make_shared<CCmdDispatcher>();
+    auto pDisp=         std::make_shared<Setting_dispatcher>();
     auto pStdPort=      std::make_shared<Setting_parser>(pDisp, pSPIsc2);
     pSPIsc2->AdviseSink(pStdPort);
 

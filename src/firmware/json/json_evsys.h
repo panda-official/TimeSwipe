@@ -117,7 +117,7 @@ protected:
     /*!
      * \brief A pointer to a command dispatcher
      */
-    std::shared_ptr<CCmdDispatcher> m_pDisp;
+    std::shared_ptr<Setting_dispatcher> m_pDisp;
 
 public:
     /*!
@@ -138,7 +138,7 @@ public:
      * \brief The class constructor
      * \param pDisp A pointer to a command dispatcher
      */
-    CJSONEvDispatcher(const std::shared_ptr<CCmdDispatcher> &pDisp)
+    CJSONEvDispatcher(const std::shared_ptr<Setting_dispatcher> &pDisp)
     {
         m_pDisp=pDisp;
     }

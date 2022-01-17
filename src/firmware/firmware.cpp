@@ -133,8 +133,8 @@ int main()
       Sam_pin::Id::pa13,
       Sam_pin::Id::pa14);
     sercom2_spi->EnableIRQs(true);
-    const auto cmd_dispatcher = std::make_shared<CCmdDispatcher>();
-    const auto setting_parser = std::make_shared<Setting_parser>(cmd_dispatcher,
+    const auto setting_dispatcher = std::make_shared<Setting_dispatcher>();
+    const auto setting_parser = std::make_shared<Setting_parser>(setting_dispatcher,
       sercom2_spi);
     sercom2_spi->AdviseSink(setting_parser);
 
@@ -215,11 +215,11 @@ int main()
       char cmd[64];
       const int nInd=i+1;
       std::sprintf(cmd, "channel%dAdcRaw", nInd);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pADC[i],
           &Adc_channel::GetRawBinVal));
       std::sprintf(cmd, "channel%dDacRaw", nInd);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pDAC[i],
           &Dac_channel::GetRawBinVal,
           &Dac_channel::set_raw));
@@ -227,12 +227,12 @@ int main()
     for (int i{3}; i <= 4; ++i) {
       char cmd[64];
       std::sprintf(cmd, "analogOut%dDacRaw", i);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pSamDAC0,
           &Dac_channel::GetRawBinVal,
           &Dac_channel::set_raw));
     }
-    cmd_dispatcher->Add("analogOutsDacEnabled", std::make_shared<CCmdSGHandler<bool>>(
+    setting_dispatcher->Add("analogOutsDacEnabled", std::make_shared<CCmdSGHandler<bool>>(
         pDAConPin,
         &Pin::read_back,
         &Pin::write));
@@ -260,7 +260,7 @@ int main()
 
 #ifdef CALIBRATION_STATION
       //ability to control Voltage DAC's raw value:
-      cmd_dispatcher->Add("voltageOutRaw", std::make_shared<CCmdSGHandler<int>>(
+      setting_dispatcher->Add("voltageOutRaw", std::make_shared<CCmdSGHandler<int>>(
           voltage_dac,
           &Calibratable_dac::GetRawBinVal,
           &Calibratable_dac::set_raw));
@@ -289,32 +289,32 @@ int main()
     for (int i{1}; i <= 2; ++i) {
       char cmd[64];
       std::sprintf(cmd, "pwm%dEnabled", i);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<bool>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<bool>>(
           pPWM1,
           &CDacPWMht::IsStarted,
           &CDacPWMht::Start));
       std::sprintf(cmd, "pwm%dRepeatCount", i);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
           pPWM1,
           &CDacPWMht::GetRepeats,
           &CDacPWMht::SetRepeats));
       std::sprintf(cmd, "pwm%dDutyCycle", i);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<float>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<float>>(
           pPWM1,
           &CDacPWMht::GetDutyCycle,
           &CDacPWMht::SetDutyCycle));
       std::sprintf(cmd, "pwm%dFrequency", i);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<unsigned>>(
           pPWM1,
           &CDacPWMht::GetFrequency,
           &CDacPWMht::SetFrequency));
       std::sprintf(cmd, "pwm%dHighBoundary", i);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pPWM1,
           &CDacPWMht::GetHighLevel,
           &CDacPWMht::SetHighLevel));
       std::sprintf(cmd, "pwm%dLowBoundary", i);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<int>>(
           pPWM1,
           &CDacPWMht::GetLowLevel,
           &CDacPWMht::SetLowLevel));
@@ -326,17 +326,17 @@ int main()
     auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
 
     //temp sens+fan control:
-    cmd_dispatcher->Add("temperature", std::make_shared<CCmdSGHandler<float>>(
+    setting_dispatcher->Add("temperature", std::make_shared<CCmdSGHandler<float>>(
         pTempSens,
         &CSamTempSensor::GetTempCD));
-    cmd_dispatcher->Add("fanDutyCycle", std::make_shared<CCmdSGHandler<float>>(
+    setting_dispatcher->Add("fanDutyCycle", std::make_shared<CCmdSGHandler<float>>(
         pFanPWM,
         &CPinPWM::GetDutyCycle));
-    cmd_dispatcher->Add("fanFrequency", std::make_shared<CCmdSGHandler<unsigned>>(
+    setting_dispatcher->Add("fanFrequency", std::make_shared<CCmdSGHandler<unsigned>>(
         pFanPWM,
         &CPinPWM::GetFrequency,
         &CPinPWM::SetFrequency));
-    cmd_dispatcher->Add("fanEnabled", std::make_shared<CCmdSGHandler<bool>>(
+    setting_dispatcher->Add("fanEnabled", std::make_shared<CCmdSGHandler<bool>>(
         pFanControl,
         &CFanControl::GetEnabled,
         &CFanControl::SetEnabled));
@@ -361,25 +361,25 @@ int main()
       std::sprintf(cmd, "channel%dMode", nInd);
       using Ch_mode_handler = CCmdSGHandler<std::optional<Measurement_mode>,
         Measurement_mode>;
-      cmd_dispatcher->Add(cmd, std::make_shared<Ch_mode_handler>(
+      setting_dispatcher->Add(cmd, std::make_shared<Ch_mode_handler>(
           channel,
           &Channel::measurement_mode,
           &Channel::set_measurement_mode));
       std::sprintf(cmd, "channel%dGain", nInd);
       using Ch_gain_handler = CCmdSGHandler<std::optional<float>, float>;
-      cmd_dispatcher->Add(cmd, std::make_shared<Ch_gain_handler>(
+      setting_dispatcher->Add(cmd, std::make_shared<Ch_gain_handler>(
           channel,
           &Channel::amplification_gain,
           &Channel::set_amplification_gain));
       std::sprintf(cmd, "channel%dIepe", nInd);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<bool>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<bool>>(
           channel,
           &Channel::is_iepe,
           &Channel::set_iepe));
 
 #ifdef CALIBRATION_STATION
       std::sprintf(cmd, "channel%dColor", nInd);
-      cmd_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<typeLEDcol>>(
+      setting_dispatcher->Add(cmd, std::make_shared<CCmdSGHandler<typeLEDcol>>(
           channel,
           &Channel::color,
           &Channel::set_color));
@@ -387,59 +387,59 @@ int main()
     }
 
     // [[deprecated]]
-    // cmd_dispatcher->Add("fanEnabled", std::make_shared<CCmdSGHandler<bool>>(
+    // setting_dispatcher->Add("fanEnabled", std::make_shared<CCmdSGHandler<bool>>(
     //     board,
     //     &Board::is_fan_enabled,
     //     &Board::enable_fan));
-    // cmd_dispatcher->Add("Offset", std::make_shared<CCmdSGHandler<int>>(
+    // setting_dispatcher->Add("Offset", std::make_shared<CCmdSGHandler<int>>(
     //     board,
     //     &Board::is_offset_search_started,
     //     &Board::start_offset_search));
-    // cmd_dispatcher->Add("Offset.errtol", std::make_shared<CCmdSGHandler<int>>(
+    // setting_dispatcher->Add("Offset.errtol", std::make_shared<CCmdSGHandler<int>>(
     //     &CADpointSearch::GetTargErrTol,
     //     &CADpointSearch::SetTargErrTol));
-    // cmd_dispatcher->Add("Gain", std::make_shared<CCmdSGHandler<int>>(
+    // setting_dispatcher->Add("Gain", std::make_shared<CCmdSGHandler<int>>(
     //     board,
     //     &Board::gain,
     //     &Board::set_gain));
-    // cmd_dispatcher->Add("Mode", std::make_shared<CCmdSGHandler<int>>(
+    // setting_dispatcher->Add("Mode", std::make_shared<CCmdSGHandler<int>>(
     //     board,
     //     &Board::measurement_mode,
     //     &Board::set_measurement_mode));
-    // cmd_dispatcher->Add("Record", std::make_shared<CCmdSGHandler<bool>>(
+    // setting_dispatcher->Add("Record", std::make_shared<CCmdSGHandler<bool>>(
     //     board,
     //     &Board::is_record_started,
     //     &Board::start_record));
-    // cmd_dispatcher->Add("Current", std::make_shared<CCmdSGHandler<float>>(
+    // setting_dispatcher->Add("Current", std::make_shared<CCmdSGHandler<float>>(
     //     board,
     //     &Board::current,
     //     &Board::set_current));
-    // cmd_dispatcher->Add("MaxCurrent", std::make_shared<CCmdSGHandler<float>>(
+    // setting_dispatcher->Add("MaxCurrent", std::make_shared<CCmdSGHandler<float>>(
     //     board,
     //     &Board::max_current,
     //     &Board::set_max_current));
-    cmd_dispatcher->Add("armId", std::make_shared<CCmdSGHandler<std::string>>(
+    setting_dispatcher->Add("armId", std::make_shared<CCmdSGHandler<std::string>>(
         &CSamService::GetSerialString));
 
     const auto version = std::make_shared<CSemVer>(detail::version_major,
       detail::version_minor, detail::version_patch);
-    cmd_dispatcher->Add("firmwareVersion", std::make_shared<CCmdSGHandler<std::string>>(
+    setting_dispatcher->Add("firmwareVersion", std::make_shared<CCmdSGHandler<std::string>>(
         version,
         &CSemVer::GetVersionString));
 
     //control commands:
-    cmd_dispatcher->Add("voltageOutEnabled", std::make_shared<CCmdSGHandler<bool>>(
+    setting_dispatcher->Add("voltageOutEnabled", std::make_shared<CCmdSGHandler<bool>>(
         board,
         &Board::is_bridge_enabled,
         &Board::enable_bridge));
-    cmd_dispatcher->Add("channelsAdcEnabled", std::make_shared<CCmdSGHandler<bool>>(
+    setting_dispatcher->Add("channelsAdcEnabled", std::make_shared<CCmdSGHandler<bool>>(
         board,
         &Board::is_measurement_enabled,
         &Board::enable_measurement));
-    cmd_dispatcher->Add("channelsCalibrationValid", std::make_shared<CCmdSGHandler<bool>>(
+    setting_dispatcher->Add("channelsCalibrationValid", std::make_shared<CCmdSGHandler<bool>>(
         board,
         &Board::is_calibration_data_valid));
-    cmd_dispatcher->Add("voltageOutValue", std::make_shared<CCmdSGHandler<float>>(
+    setting_dispatcher->Add("voltageOutValue", std::make_shared<CCmdSGHandler<float>>(
         board,
         &Board::voltage,
         &Board::set_voltage));
@@ -447,18 +447,18 @@ int main()
     CView &view=CView::Instance();
 #ifdef CALIBRATION_STATION
     // [[deprecated]]
-    // cmd_dispatcher->Add("UItest", std::make_shared<CCmdSGHandler<bool>>(
+    // setting_dispatcher->Add("UItest", std::make_shared<CCmdSGHandler<bool>>(
     //     pBtnHandler,
     //     &CCalFWbtnHandler::HasUItestBeenDone,
     //     &CCalFWbtnHandler::StartUItest));
 
     //testing Ext EEPROM:
-    cmd_dispatcher->Add("eepromTest", std::make_shared<CCmdSGHandler<bool>>(
+    setting_dispatcher->Add("eepromTest", std::make_shared<CCmdSGHandler<bool>>(
         i2c_eeprom_master,
         &Sam_i2c_eeprom_master::self_test_result,
         &Sam_i2c_eeprom_master::run_self_test));
 
-    cmd_dispatcher->Add("channelsCalibrationEnabled",
+    setting_dispatcher->Add("channelsCalibrationEnabled",
       std::make_shared<CCmdSGHandler<bool>>(
         board,
         &Board::is_calibration_data_enabled,
@@ -467,8 +467,8 @@ int main()
 
 
     //--------------------JSON- ---------------------
-    auto pJC=std::make_shared<CJSONDispatcher>(cmd_dispatcher);
-    cmd_dispatcher->Add("js", pJC);
+    auto pJC=std::make_shared<CJSONDispatcher>(setting_dispatcher);
+    setting_dispatcher->Add("js", pJC);
     pJC->AddSubHandler("cAtom",
       [board](auto& req, auto& res, const auto ct)
       {
@@ -476,8 +476,8 @@ int main()
       });
 
     //------------------JSON EVENTS-------------------
-    auto pJE=std::make_shared<CJSONEvDispatcher>(cmd_dispatcher);
-    cmd_dispatcher->Add("je", pJE);
+    auto pJE=std::make_shared<CJSONEvDispatcher>(setting_dispatcher);
+    setting_dispatcher->Add("je", pJE);
     button.CJSONEvCP::AdviseSink(pJE);
     Board::instance().AdviseSink(pJE);
     //--------------------------------------------------------------------------------------------------------------
