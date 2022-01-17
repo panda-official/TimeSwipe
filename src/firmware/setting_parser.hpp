@@ -52,81 +52,63 @@ public:
   /// @see Serial_event_handler::handle_receive().
   void handle_receive(const Character ch) override
   {
-    if(is_trimming_) {
-      if(' '==ch)
+    if (is_trimming_) {
+      if (ch == ' ')
         return;
 
-      is_trimming_=false;
+      is_trimming_ = false;
     }
 
-    if(term_char==ch) {
-      //preparing streams:
+    if (ch == term_char) {
       Fifo_stream in{&in_fifo_};
       Fifo_stream out{&out_fifo_};
 
       try {
-        if(Input_state::value!=in_state_)
+        if (in_state_ != Input_state::value)
           throw std::runtime_error{"protocol_error!"};
 
-        //call:
-        setting_descriptor_.m_pIn=&in;
-        setting_descriptor_.m_pOut=&out;
-        setting_descriptor_.m_bThrowExcptOnErr=true;
+        // Invoke setting handler.
+        setting_descriptor_.m_pIn = &in;
+        setting_descriptor_.m_pOut = &out;
+        setting_descriptor_.m_bThrowExcptOnErr = true;
         setting_dispatcher_->Call(setting_descriptor_);
-
       } catch(const std::exception& ex) {
-        out<<"!"<<ex.what();
+        out << "!" << ex.what();
       }
 
-      //send data:
-      /*if(typeCRes::OK!=cres) switch(cres){
-
-        case typeCRes::parse_err:           out<<"!parse_err!";       break;
-        case typeCRes::obj_not_found:       out<<"!obj_not_found!";   break;
-        case typeCRes::fget_not_supported:  out<<"!>_not_supported!";  break;
-        case typeCRes::fset_not_supported:  out<<"!<_not_supported!";  break;
-        }*/
-      out_fifo_<<term_char;
+      out_fifo_ << term_char;
       serial_bus_->send(out_fifo_);
 
-      //reset:
       reset();
-      return; //!!!!
+      return; // done
     }
 
-    switch(in_state_) {
+    switch (in_state_) {
     case Input_state::setting:
-      if(' '==ch || '<'==ch || '>'==ch) {
+      if (ch == ' ' || ch == '<' || ch == '>') {
         in_state_ = Input_state::oper;
-        is_trimming_=true;
+        is_trimming_ = true;
         handle_receive(ch);
-        return;
-      }
-      setting_descriptor_.m_strCommand+=ch;
-      return;
-
+      } else
+        setting_descriptor_.m_strCommand += ch;
+      break;
     case Input_state::oper:
-      if('>'==ch) { //get
-        setting_descriptor_.m_ctype=CCmdCallDescr::ctype::ctGet;
+      if (ch == '>') {
+        setting_descriptor_.m_ctype = CCmdCallDescr::ctype::ctGet;
         in_state_ = Input_state::value;
-        is_trimming_=true;
-      } else if('<'==ch) { //set
-        setting_descriptor_.m_ctype=CCmdCallDescr::ctype::ctSet;
+        is_trimming_ = true;
+      } else if (ch == '<') {
+        setting_descriptor_.m_ctype = CCmdCallDescr::ctype::ctSet;
         in_state_ = Input_state::value;
-        is_trimming_=true;
-      } else {
-        //format error: no function
-        //handle_receive(term_char);
+        is_trimming_ = true;
+      } else
         in_state_ = Input_state::error;
-      }
-      return;
-
+      break;
     case Input_state::value:
-      in_fifo_<<ch;
-      return;
-
+      in_fifo_ << ch;
+      break;
     case Input_state::error:
-      return;
+      break;
     }
   }
 
