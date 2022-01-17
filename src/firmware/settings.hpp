@@ -31,6 +31,10 @@
 #include <type_traits>
 #include <utility>
 
+// -----------------------------------------------------------------------------
+// Setting_descriptor
+// -----------------------------------------------------------------------------
+
 /**
  * @brief Setting access descriptor.
  *
@@ -72,7 +76,7 @@ struct Setting_descriptor final {
     ctSet
   } m_ctype{ctGet};
 
-  /// How to dispatch an invocation? by a command in a string format, its hash value or index?
+  /// Dispatch invocation method.
   enum cmethod {
     byCmdName,        //!<by a command in a string format (using m_strCommand)
     byCmdIndex        //!<by a command's zero-based index (using m_nCmdIndex)
@@ -85,20 +89,17 @@ struct Setting_descriptor final {
 typedef  Setting_descriptor::cres typeCRes;
 
 // -----------------------------------------------------------------------------
+// Setting_handler
 // -----------------------------------------------------------------------------
 
-/// A basic class for command handler.
-class CCmdCallHandler {
+/// A setting access handler.
+class Setting_handler {
 public:
   /// The destructor.
-  virtual ~CCmdCallHandler() = default;
+  virtual ~Setting_handler() = default;
 
-  /**
-   * @brief A method for handling a concrete command.
-   *
-   * @param d Call descriptor in protocol-independent format.
-   */
-  virtual typeCRes Call(Setting_descriptor& d) = 0;
+  /// Handles the setting access request.
+  virtual typeCRes handle(Setting_descriptor& d) = 0;
 };
 
 // -----------------------------------------------------------------------------
@@ -115,7 +116,7 @@ public:
    * @param pCmdName Command in a string format.
    * @param pHandler A pointer to the command handler object.
    */
-  void Add(const std::string& pCmdName, const std::shared_ptr<CCmdCallHandler>& pHandler)
+  void Add(const std::string& pCmdName, const std::shared_ptr<Setting_handler>& pHandler)
   {
     table_[pCmdName] = pHandler;
   }
@@ -131,7 +132,7 @@ public:
    * @throws `std::runtime_error` on error if
    * `(Setting_descriptor::m_bThrowExcptOnErr == true)`.
    */
-  typeCRes Call(Setting_descriptor& d)
+  typeCRes handle(Setting_descriptor& d)
   {
     const typeCRes cres = __Call(d);
     if (d.m_bThrowExcptOnErr) {
@@ -154,19 +155,19 @@ public:
   }
 
 private:
-  std::map<std::string, std::shared_ptr<CCmdCallHandler>> table_;
+  std::map<std::string, std::shared_ptr<Setting_handler>> table_;
 
   typeCRes __Call(Setting_descriptor& d)
   {
     if (d.m_cmethod == Setting_descriptor::cmethod::byCmdName) {
       const auto cmd = table_.find(d.m_strCommand);
-      return cmd != table_.end() ? cmd->second->Call(d) : typeCRes::obj_not_found;
+      return cmd != table_.end() ? cmd->second->handle(d) : typeCRes::obj_not_found;
     } else if (d.m_cmethod == Setting_descriptor::cmethod::byCmdIndex) {
       if (d.m_nCmdIndex < static_cast<unsigned int>(table_.size())) {
         auto cmd = table_.begin();
         std::advance(cmd, d.m_nCmdIndex);
         d.m_strCommand = cmd->first;
-        return cmd->second->Call(d);
+        return cmd->second->handle(d);
       }
     }
     return typeCRes::obj_not_found;
@@ -185,7 +186,7 @@ private:
  * @tparam SetterValue A type of argument of setter.
  */
 template<typename GetterValue, typename SetterValue = GetterValue>
-class CCmdSGHandler final : public CCmdCallHandler {
+class CCmdSGHandler final : public Setting_handler {
 public:
   /// A type of value returned by getter.
   using Getter_value = GetterValue;
@@ -295,7 +296,7 @@ public:
    *
    * @todo: FIXME: return Errc
    */
-  typeCRes Call(Setting_descriptor& d) override
+  typeCRes handle(Setting_descriptor& d) override
   {
     if (d.m_ctype == Setting_descriptor::ctype::ctSet) {
       if (set_) {
@@ -388,7 +389,7 @@ public:
         setting_descriptor_.m_pIn = &in;
         setting_descriptor_.m_pOut = &out;
         setting_descriptor_.m_bThrowExcptOnErr = true;
-        setting_dispatcher_->Call(setting_descriptor_);
+        setting_dispatcher_->handle(setting_descriptor_);
       } catch(const std::exception& ex) {
         out << "!" << ex.what();
       }

@@ -16,7 +16,7 @@ void CJSONEvDispatcher::on_event(const char* key, rapidjson::Value& val)
     m_event.AddMember(Value{std::string{key}, alloc}, Value{}, alloc);
   m_event[key].CopyFrom(val, alloc, true);
 }
-typeCRes CJSONEvDispatcher::Call(Setting_descriptor &d)
+typeCRes CJSONEvDispatcher::handle(Setting_descriptor &d)
 {
     if(IsCmdSubsysLocked())
         return typeCRes::disabled;

@@ -23,7 +23,7 @@ void CJSONDispatcher::DumpAllSettings(const Setting_descriptor& d, rapidjson::Do
       rapidjson::Value result;
       Json_stream out{result, &alloc};
       descriptor.m_pOut=&out;
-      switch (m_pDisp->Call(descriptor)) {
+      switch (m_pDisp->handle(descriptor)) {
       case Setting_descriptor::cres::OK:
         jResp.AddMember(Value{descriptor.m_strCommand, alloc},
           std::move(result), alloc);
@@ -66,12 +66,12 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
 
         if(Setting_descriptor::ctype::ctSet==ct)
         {
-            cres=m_pDisp->Call(descriptor); //set
+            cres=m_pDisp->handle(descriptor); //set
             descriptor.m_bThrowExcptOnErr=false; //test can we read back a value...
         }
         //and get back:
         descriptor.m_ctype=Setting_descriptor::ctype::ctGet;
-        cres=m_pDisp->Call(descriptor);
+        cres=m_pDisp->handle(descriptor);
         if(Setting_descriptor::ctype::ctSet==ct)
         {
             if(typeCRes::fget_not_supported==cres)
@@ -140,7 +140,7 @@ void CJSONDispatcher::Call(rapidjson::Value& jObj,
   }
 }
 
-typeCRes CJSONDispatcher::Call(Setting_descriptor& d)
+typeCRes CJSONDispatcher::handle(Setting_descriptor& d)
 {
     if (IsCmdSubsysLocked()) return typeCRes::disabled;
 

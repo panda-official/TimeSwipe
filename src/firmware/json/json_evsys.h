@@ -105,7 +105,7 @@ private:
  * in m_event until they being readout by "je" command. The m_event is cleared after handling "je" command.
  *
  */
-class CJSONEvDispatcher : public IJSONEvent, public CJSONbase, public CCmdCallHandler
+class CJSONEvDispatcher : public IJSONEvent, public CJSONbase, public Setting_handler
 {
 protected:
 
@@ -132,7 +132,7 @@ public:
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    typeCRes Call(Setting_descriptor &d) override;
+    typeCRes handle(Setting_descriptor &d) override;
 
     /*!
      * \brief The class constructor

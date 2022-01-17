@@ -23,7 +23,7 @@ Copyright (c) 2019 Panda Team
  * \brief The "js" command dispatcher
  * \details Please, see CommunicationProtocol.md and EventSysytem.md for details.
  */
-class CJSONDispatcher : public CJSONbase, public CCmdCallHandler
+class CJSONDispatcher : public CJSONbase, public Setting_handler
 {
 protected:
     std::shared_ptr<CCmdDispatcher> m_pDisp;
@@ -68,7 +68,7 @@ public:
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    typeCRes Call(Setting_descriptor &d) override;
+    typeCRes handle(Setting_descriptor &d) override;
 
     /*!
      * \brief The class constructor
