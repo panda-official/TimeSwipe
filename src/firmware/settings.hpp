@@ -46,6 +46,9 @@ enum class Setting_access_type {
 /**
  * @brief Setting access descriptor.
  *
+ * @remarks If both `name` and `index` are set the `name` is higher priority
+ * than `index`.
+ *
  * @see Setting_parser.
  */
 struct Setting_descriptor final {
@@ -64,17 +67,11 @@ struct Setting_descriptor final {
     disabled            //!<handler is disabled for some reasons
   };
 
-  /// Dispatch invocation method.
-  enum cmethod {
-    byCmdName,        //!<by a command in a string format (using m_strCommand)
-    byCmdIndex        //!<by a command's zero-based index (using m_nCmdIndex)
-  };
-
-  /// The setting name.
+  /// The setting name. (Higher priority than `index`.)
   std::string name;
 
-  /// A zero based index of the command.
-  unsigned index{};
+  /// A zero based index of the setting. (Lower priority than `name`.)
+  int index{-1};
 
   /// Input value stream.
   Io_stream* in_value_stream{};
@@ -82,8 +79,8 @@ struct Setting_descriptor final {
   /// Output value stream.
   Io_stream* out_value_stream{};
 
+  /// Access type.
   Setting_access_type access_type{Setting_access_type::read};
-  cmethod m_cmethod{byCmdName};
 
   /// If true, throw `std::runtime_error` instead of returning cres.
   /// FIXME: remove.
@@ -162,11 +159,11 @@ private:
 
   typeCRes __Call(Setting_descriptor& d)
   {
-    if (d.m_cmethod == Setting_descriptor::cmethod::byCmdName) {
+    if (!d.name.empty()) {
       const auto cmd = table_.find(d.name);
       return cmd != table_.end() ? cmd->second->handle(d) : typeCRes::obj_not_found;
-    } else if (d.m_cmethod == Setting_descriptor::cmethod::byCmdIndex) {
-      if (d.index < table_.size()) {
+    } else if (d.index >= 0) {
+      if (static_cast<unsigned>(d.index) < table_.size()) {
         auto cmd = table_.begin();
         std::advance(cmd, d.index);
         d.name = cmd->first;

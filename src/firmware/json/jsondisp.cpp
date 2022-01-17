@@ -11,22 +11,20 @@ Copyright (c) 2019 Panda Team
 void CJSONDispatcher::DumpAllSettings(const Setting_descriptor& d, rapidjson::Document& jResp)
 {
     //! here we use cmethod::byCmdIndex to enumerate all possible "get" handlers:
+    auto& alloc = jResp.GetAllocator();
+    jResp.SetObject();
     Setting_descriptor descriptor; //! the exception mode is set to false
     descriptor.in_value_stream = d.in_value_stream;
     descriptor.access_type = Setting_access_type::read;
-    descriptor.m_cmethod=Setting_descriptor::cmethod::byCmdIndex;
-
-    using Value = rapidjson::Value;
-    auto& alloc = jResp.GetAllocator();
-    jResp.SetObject();
-    for (descriptor.index = 0;; ++descriptor.index) {
-      rapidjson::Value result;
+    descriptor.index = 0;
+    for (;; ++descriptor.index) {
+      using Value = rapidjson::Value;
+      Value result;
       Json_stream out{result, &alloc};
       descriptor.out_value_stream = &out;
       switch (m_pDisp->handle(descriptor)) {
       case Setting_descriptor::cres::OK:
-        jResp.AddMember(Value{descriptor.name, alloc},
-          std::move(result), alloc);
+        jResp.AddMember(Value{descriptor.name, alloc}, std::move(result), alloc);
         break;
       case Setting_descriptor::cres::obj_not_found:
         return; // end of command table
