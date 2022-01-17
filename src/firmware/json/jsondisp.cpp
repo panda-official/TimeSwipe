@@ -12,20 +12,20 @@ void CJSONDispatcher::DumpAllSettings(const Setting_descriptor& d, rapidjson::Do
 {
     //! here we use cmethod::byCmdIndex to enumerate all possible "get" handlers:
     Setting_descriptor descriptor; //! the exception mode is set to false
-    descriptor.m_pIn=d.m_pIn; //-!!!
+    descriptor.in_value_stream = d.in_value_stream;
     descriptor.m_ctype=Setting_descriptor::ctype::ctGet;
     descriptor.m_cmethod=Setting_descriptor::cmethod::byCmdIndex;
 
     using Value = rapidjson::Value;
     auto& alloc = jResp.GetAllocator();
     jResp.SetObject();
-    for (descriptor.m_nCmdIndex=0;; descriptor.m_nCmdIndex++) {
+    for (descriptor.index = 0;; ++descriptor.index) {
       rapidjson::Value result;
       Json_stream out{result, &alloc};
-      descriptor.m_pOut=&out;
+      descriptor.out_value_stream = &out;
       switch (m_pDisp->handle(descriptor)) {
       case Setting_descriptor::cres::OK:
-        jResp.AddMember(Value{descriptor.m_strCommand, alloc},
+        jResp.AddMember(Value{descriptor.name, alloc},
           std::move(result), alloc);
         break;
       case Setting_descriptor::cres::obj_not_found:
@@ -55,9 +55,9 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
     Json_stream in{jReq, nullptr};
     Json_stream out{result, &alloc};
     Setting_descriptor descriptor;
-    descriptor.m_pIn=&in;
-    descriptor.m_pOut=&out;
-    descriptor.m_strCommand=strKey;
+    descriptor.in_value_stream = &in;
+    descriptor.out_value_stream = &out;
+    descriptor.name=strKey;
     descriptor.m_ctype=ct;
     descriptor.m_bThrowExcptOnErr=true;
     typeCRes cres;
@@ -148,14 +148,14 @@ typeCRes CJSONDispatcher::handle(Setting_descriptor& d)
 
     std::string str;
     rapidjson::Document jresp{rapidjson::kObjectType};
-    *(d.m_pIn)>>str;
+    *(d.in_value_stream) >> str;
      if (str.empty() && (d.m_ctype == Setting_descriptor::ctype::ctGet))
      {
        DumpAllSettings(d, jresp);
      }
      else
      {
-        if (!d.m_pIn->is_good())
+        if (!d.in_value_stream->is_good())
           return typeCRes::parse_err;
 
         rapidjson::Document cmd;
@@ -165,6 +165,6 @@ typeCRes CJSONDispatcher::handle(Setting_descriptor& d)
         else
           return typeCRes::parse_err;
      }
-     *(d.m_pOut)<<to_text(jresp);
+     *d.out_value_stream << to_text(jresp);
      return typeCRes::OK;
 }

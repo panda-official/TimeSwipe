@@ -41,18 +41,6 @@
  * @see Setting_parser.
  */
 struct Setting_descriptor final {
-  /// The command in a string format.
-  std::string m_strCommand;
-
-  /// A zero based index of the command.
-  unsigned int m_nCmdIndex{};
-
-  /// Input stream: to fetch function/methode input arguments.
-  Io_stream* m_pIn{};
-
-  /// Output stream: to store function/methodes output arguments or return value.
-  Io_stream* m_pOut{};
-
   /**
    * @brief Command handler invocation result ("call result"=cres).
    *
@@ -74,15 +62,31 @@ struct Setting_descriptor final {
     ctGet,
     /// "set" setting.
     ctSet
-  } m_ctype{ctGet};
+  };
 
   /// Dispatch invocation method.
   enum cmethod {
     byCmdName,        //!<by a command in a string format (using m_strCommand)
     byCmdIndex        //!<by a command's zero-based index (using m_nCmdIndex)
-  } m_cmethod{byCmdName};
+  };
+
+  /// The setting name.
+  std::string name;
+
+  /// A zero based index of the command.
+  unsigned index{};
+
+  /// Input value stream.
+  Io_stream* in_value_stream{};
+
+  /// Output value stream.
+  Io_stream* out_value_stream{};
+
+  ctype m_ctype{ctGet};
+  cmethod m_cmethod{byCmdName};
 
   /// If true, throw `std::runtime_error` instead of returning cres.
+  /// FIXME: remove.
   bool m_bThrowExcptOnErr=false;
 };
 
@@ -159,13 +163,13 @@ private:
   typeCRes __Call(Setting_descriptor& d)
   {
     if (d.m_cmethod == Setting_descriptor::cmethod::byCmdName) {
-      const auto cmd = table_.find(d.m_strCommand);
+      const auto cmd = table_.find(d.name);
       return cmd != table_.end() ? cmd->second->handle(d) : typeCRes::obj_not_found;
     } else if (d.m_cmethod == Setting_descriptor::cmethod::byCmdIndex) {
-      if (d.m_nCmdIndex < static_cast<unsigned int>(table_.size())) {
+      if (d.index < table_.size()) {
         auto cmd = table_.begin();
-        std::advance(cmd, d.m_nCmdIndex);
-        d.m_strCommand = cmd->first;
+        std::advance(cmd, d.index);
+        d.name = cmd->first;
         return cmd->second->handle(d);
       }
     }
@@ -301,14 +305,14 @@ public:
     if (d.m_ctype == Setting_descriptor::ctype::ctSet) {
       if (set_) {
         Setter_value val{};
-        *d.m_pIn >> val;
-        if (d.m_pIn->is_good()) {
+        *d.in_value_stream >> val;
+        if (d.in_value_stream->is_good()) {
           if (const auto err = set_(val); !err) {
             if (get_) {
               if (const auto [err, res] = get_(); err)
                 return typeCRes::generic; // FIXME: return err
               else
-                *d.m_pOut << res; // Done.
+                *d.out_value_stream << res; // Done.
             }
           } else
             return typeCRes::generic;
@@ -321,7 +325,7 @@ public:
         if (const auto [err, res] = get_(); err)
           return typeCRes::generic; // FIXME: return err
         else
-          *d.m_pOut << res; // Done.
+          *d.out_value_stream << res; // Done.
       } else
         return typeCRes::fget_not_supported;
     }
@@ -386,8 +390,8 @@ public:
           throw std::runtime_error{"protocol_error!"};
 
         // Invoke setting handler.
-        setting_descriptor_.m_pIn = &in;
-        setting_descriptor_.m_pOut = &out;
+        setting_descriptor_.in_value_stream = &in;
+        setting_descriptor_.out_value_stream = &out;
         setting_descriptor_.m_bThrowExcptOnErr = true;
         setting_dispatcher_->handle(setting_descriptor_);
       } catch(const std::exception& ex) {
@@ -408,7 +412,7 @@ public:
         is_trimming_ = true;
         handle_receive(ch);
       } else
-        setting_descriptor_.m_strCommand += ch;
+        setting_descriptor_.name += ch;
       break;
     case Input_state::oper:
       if (ch == '>') {
@@ -456,7 +460,7 @@ private:
   {
     is_trimming_ = true;
     in_state_ = Input_state::setting;
-    setting_descriptor_.m_strCommand.clear();
+    setting_descriptor_.name.clear();
     in_fifo_.reset();
     out_fifo_.reset();
   }

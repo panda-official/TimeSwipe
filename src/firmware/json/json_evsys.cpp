@@ -29,7 +29,7 @@ typeCRes CJSONEvDispatcher::handle(Setting_descriptor &d)
     //don't send if there is nothing to send
     if (!m_event.ObjectEmpty())
     {
-        *(d.m_pOut) << to_text(m_event);
+        *(d.out_value_stream) << to_text(m_event);
         m_event.RemoveAllMembers();
     }
     return typeCRes::OK;
