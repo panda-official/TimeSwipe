@@ -40,17 +40,14 @@ struct CCmdCallDescr final {
   /// The command in a string format.
   std::string m_strCommand;
 
-  /// A hash value of the command string.
-  int m_hashCommand;
-
   /// A zero based index of the command.
   unsigned int m_nCmdIndex{};
 
   /// Input stream: to fetch function/methode input arguments.
-  Io_stream *m_pIn{};
+  Io_stream* m_pIn{};
 
   /// Output stream: to store function/methodes output arguments or return value.
-  Io_stream *m_pOut{};
+  Io_stream* m_pOut{};
 
   /**
    * @brief Command handler invocation result ("call result"=cres).
@@ -58,7 +55,7 @@ struct CCmdCallDescr final {
    * @todo FIXME: remove this enum by merging some of it's members into Errc.
    */
   enum cres {
-    OK=0,               //!<successful invocation
+    OK,                 //!<successful invocation
     generic,            //!<generic error (temporary until merging into Errc)
     obj_not_found,      //!<requested command(object) was not found
     fget_not_supported, //!<"get" property is not supported by a handler
@@ -69,17 +66,16 @@ struct CCmdCallDescr final {
 
   /// Invocation type ("call type"=ctype).
   enum ctype {
-    /// "get" property
-    ctGet = 1,
-    /// "set" property
-    ctSet = 2
+    /// "get" setting.
+    ctGet,
+    /// "set" setting.
+    ctSet
   } m_ctype{ctGet};
 
   /// How to dispatch an invocation? by a command in a string format, its hash value or index?
   enum cmethod {
-    byCmdName=1,        //!<by a command in a string format (using m_strCommand)
-    byCmdHash=2,        //!<by a command's hash value  (using m_hashCommand)
-    byCmdIndex=4        //!<by a command's zero-based index (using m_nCmdIndex)
+    byCmdName,        //!<by a command in a string format (using m_strCommand)
+    byCmdIndex        //!<by a command's zero-based index (using m_nCmdIndex)
   } m_cmethod{byCmdName};
 
   /// If true, throw `std::runtime_error` instead of returning cres.
