@@ -6,9 +6,8 @@ Copyright (c) 2019-2021 Panda Team
 */
 
 #include "../../src/firmware/button.hpp"
-#include "../../src/firmware/cmd.h"
 #include "../../src/firmware/os.h"
-#include "../../src/firmware/setting_parser.hpp"
+#include "../../src/firmware/settings.hpp"
 #include "../../src/firmware/timer.h"
 #include "../../src/firmware/base/SPIcomm.h"
 #include "../../src/firmware/json/jsondisp.h"

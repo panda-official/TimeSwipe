@@ -340,7 +340,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     pga280.hpp
     pin.hpp
     pin_button.hpp
-    setting_parser.hpp
+    settings.hpp
     shiftreg.cpp
     shiftreg.hpp
     timer.h)

@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PANDA_TIMESWIPE_FIRMWARE_SETTING_PARSER_HPP
-#define PANDA_TIMESWIPE_FIRMWARE_SETTING_PARSER_HPP
+#ifndef PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
+#define PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
 
 #include "cmd.h"
 #include "fifo_stream.hpp"
@@ -144,4 +144,4 @@ private:
   }
 };
 
-#endif  // PANDA_TIMESWIPE_FIRMWARE_SETTING_PARSER_HPP
+#endif  // PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
