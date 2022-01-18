@@ -68,7 +68,7 @@ public:
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    typeCRes handle(Setting_descriptor &d) override;
+  Error handle(Setting_descriptor &d) override;
 
     /*!
      * \brief The class constructor

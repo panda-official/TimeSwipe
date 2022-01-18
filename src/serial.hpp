@@ -48,6 +48,14 @@ protected:
         int m_ReadInd=0;
 
 public:
+    /// The default constructor.
+    CFIFO() = default;
+
+    /// The constructor.
+    explicit CFIFO(std::string input) noexcept
+      : std::string{std::move(input)}
+    {}
+
         /*!
          * \brief insertion operator
          * \param b a simbol to be inserted according to FIFO order

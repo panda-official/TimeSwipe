@@ -20,8 +20,10 @@
 #define PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
 
 #include "error.hpp"
+using namespace panda::timeswipe; // FIXME: REMOVEME
 #include "fifo_stream.hpp"
 #include "io_stream.hpp"
+#include "json/stream.hpp"
 
 #include <functional>
 #include <map>
@@ -52,21 +54,6 @@ enum class Setting_access_type {
  * @see Setting_parser.
  */
 struct Setting_descriptor final {
-  /**
-   * @brief Command handler invocation result ("call result"=cres).
-   *
-   * @todo FIXME: remove this enum by merging some of it's members into Errc.
-   */
-  enum cres {
-    OK,                 //!<successful invocation
-    generic,            //!<generic error (temporary until merging into Errc)
-    obj_not_found,      //!<requested command(object) was not found
-    fget_not_supported, //!<"get" property is not supported by a handler
-    fset_not_supported, //!<"set" property is not supported by a handler
-    parse_err,          //!<an error occurred while parsing arguments from the input stream
-    disabled            //!<handler is disabled for some reasons
-  };
-
   /// The setting name. (Higher priority than `index`.)
   std::string name;
 
@@ -82,12 +69,15 @@ struct Setting_descriptor final {
   /// Access type.
   Setting_access_type access_type{Setting_access_type::read};
 
-  /// If true, throw `std::runtime_error` instead of returning cres.
-  /// FIXME: remove.
-  bool m_bThrowExcptOnErr=false;
+  void reset()
+  {
+    name.clear();
+    index = -1;
+    in_value_stream = nullptr;
+    out_value_stream = nullptr;
+    access_type = Setting_access_type::read;
+  }
 };
-
-typedef  Setting_descriptor::cres typeCRes;
 
 // -----------------------------------------------------------------------------
 // Setting_handler
@@ -99,8 +89,13 @@ public:
   /// The destructor.
   virtual ~Setting_handler() = default;
 
-  /// Handles the setting access request.
-  virtual typeCRes handle(Setting_descriptor& d) = 0;
+  /**
+   * @brief Handles the setting access request.
+   *
+   * @param[in,out] descriptor The descriptor with the input value and to hold
+   * the result value of the successful operation.
+   */
+  virtual Error handle(Setting_descriptor& descriptor) = 0;
 };
 
 // -----------------------------------------------------------------------------
@@ -110,68 +105,41 @@ public:
 /// The dispatcher of all the setting accesses.
 class Setting_dispatcher final {
 public:
-  /**
-   * @brief Adding a new command handler to the dispatching table
-   *
-   * @param pCmdName Command in a string format.
-   * @param pHandler A pointer to the command handler object.
-   */
-  void Add(const std::string& pCmdName, const std::shared_ptr<Setting_handler>& pHandler)
+  /// Registers a new handler.
+  void add(const std::string& name, const std::shared_ptr<Setting_handler>& handler)
   {
-    table_[pCmdName] = pHandler;
+    table_[name] = handler;
   }
 
   /**
    * @brief Finds an associated handler by the given descriptor and invokes it
    * if found.
    *
-   * @details The result of call is stored to the given descriptor.
+   * @details The result of call is stored into the given descriptor.
    *
-   * @param d Call parameters
-   * @returns The result of call.
-   * @throws `std::runtime_error` on error if
-   * `(Setting_descriptor::m_bThrowExcptOnErr == true)`.
+   * @param[in,out] descriptor The descriptor to find an associated handler and
+   * to hold the result value of the successful operation.
    */
-  typeCRes handle(Setting_descriptor& d)
+  Error handle(Setting_descriptor& descriptor)
   {
-    const typeCRes cres = __Call(d);
-    if (d.m_bThrowExcptOnErr) {
-      const char* const what = [cres]() -> const char*
-      {
-        switch (cres) {
-        case typeCRes::OK: break;
-        case typeCRes::generic: return "generic!";
-        case typeCRes::obj_not_found: return "obj_not_found!";
-        case typeCRes::fget_not_supported: return ">_not_supported!";
-        case typeCRes::fset_not_supported: return "<_not_supported!";
-        case typeCRes::parse_err: return "parse_err!";
-        case typeCRes::disabled: return "disabled!";
-        }
-        return nullptr;
-      }();
-      if (what) throw std::runtime_error{what};
+    auto handler = table_.end();
+    if (!descriptor.name.empty()) {
+      handler = table_.find(descriptor.name);
+    } else if (descriptor.index >= 0) {
+      if (static_cast<unsigned>(descriptor.index) < table_.size()) {
+        handler = table_.begin();
+        std::advance(handler, descriptor.index);
+        descriptor.name = handler->first;
+      }
     }
-    return cres;
+    if (handler != table_.end())
+      return handler->second->handle(descriptor);
+    else
+      return Errc::board_settings_unknown;
   }
 
 private:
   std::map<std::string, std::shared_ptr<Setting_handler>> table_;
-
-  typeCRes __Call(Setting_descriptor& d)
-  {
-    if (!d.name.empty()) {
-      const auto cmd = table_.find(d.name);
-      return cmd != table_.end() ? cmd->second->handle(d) : typeCRes::obj_not_found;
-    } else if (d.index >= 0) {
-      if (static_cast<unsigned>(d.index) < table_.size()) {
-        auto cmd = table_.begin();
-        std::advance(cmd, d.index);
-        d.name = cmd->first;
-        return cmd->second->handle(d);
-      }
-    }
-    return typeCRes::obj_not_found;
-  }
 };
 
 // -----------------------------------------------------------------------------
@@ -179,9 +147,7 @@ private:
 // -----------------------------------------------------------------------------
 
 /**
- * @brief A command dispatcher handler for handling an access point `get` and
- * `set` requests via binding to the methods with a corresponding signature of
- * an arbitrary class.
+ * @brief A setting generic handler for handling either read or write requests.
  *
  * @tparam GetterValue A type of value returned by getter.
  * @tparam SetterValue A type of argument of setter.
@@ -251,8 +217,10 @@ public:
 
   /// @overload
   template<typename GetterResult, typename SetterResult = void>
-  explicit Setting_generic_handler(GetterResult(*get)(), SetterResult(*set)(Setter_value) = {})
-    : Setting_generic_handler{Basic_getter<GetterResult>{get}, Basic_setter<SetterResult>{set}}
+  explicit Setting_generic_handler(GetterResult(*get)(),
+    SetterResult(*set)(Setter_value) = {})
+    : Setting_generic_handler{Basic_getter<GetterResult>{get},
+      Basic_setter<SetterResult>{set}}
   {}
 
   /**
@@ -291,42 +259,40 @@ public:
   {}
 
   /**
-   * @brief A method for handling a concrete command.
+   * @brief Handles a request.
    *
-   * @param d Call descriptor in protocol-independent format.
-   *
-   * @todo: FIXME: return Errc
+   * @param descriptor Call descriptor in protocol-independent format.
    */
-  typeCRes handle(Setting_descriptor& d) override
+  Error handle(Setting_descriptor& descriptor) override
   {
-    if (d.access_type == Setting_access_type::write) {
+    if (descriptor.access_type == Setting_access_type::write) {
       if (set_) {
         Setter_value val{};
-        *d.in_value_stream >> val;
-        if (d.in_value_stream->is_good()) {
+        *descriptor.in_value_stream >> val;
+        if (descriptor.in_value_stream->is_good()) {
           if (const auto err = set_(val); !err) {
-            if (get_) {
+            if (get_) { // read back
               if (const auto [err, res] = get_(); err)
-                return typeCRes::generic; // FIXME: return err
+                return err;
               else
-                *d.out_value_stream << res; // Done.
+                *descriptor.out_value_stream << res; // Done.
             }
           } else
-            return typeCRes::generic;
+            return err;
         } else
-          return typeCRes::parse_err;
+          return Errc::board_settings_invalid;
       } else
-        return typeCRes::fset_not_supported;
-    } else if (d.access_type == Setting_access_type::read) {
+        return Errc::board_settings_write_forbidden;
+    } else if (descriptor.access_type == Setting_access_type::read) {
       if (get_) {
         if (const auto [err, res] = get_(); err)
-          return typeCRes::generic; // FIXME: return err
+          return err;
         else
-          *d.out_value_stream << res; // Done.
+          *descriptor.out_value_stream << res; // Done.
       } else
-        return typeCRes::fget_not_supported;
+        return Errc::board_settings_read_forbidden;
     }
-    return typeCRes::OK;
+    return Errc::ok;
   }
 
 private:
@@ -362,7 +328,6 @@ public:
     , setting_dispatcher_{setting_dispatcher}
   {
     in_fifo_.reserve(1024);
-    out_fifo_.reserve(1024);
   }
 
   /// Termination character used (default is `\n`).
@@ -379,27 +344,32 @@ public:
     }
 
     if (ch == term_char) {
+      // Input.
       Fifo_stream in{&in_fifo_};
-      Fifo_stream out{&out_fifo_};
 
-      try {
-        if (in_state_ != Input_state::value)
-          throw std::runtime_error{"protocol_error!"};
+      // Output.
+      rapidjson::Document resp{rapidjson::kObjectType};
+      auto& alloc = resp.GetAllocator();
+      rapidjson::Value value;
+      Json_stream out{value, &alloc};
 
-        // Invoke setting handler.
+      // Invoke setting handler.
+      if (in_state_ == Input_state::value) {
         setting_descriptor_.in_value_stream = &in;
         setting_descriptor_.out_value_stream = &out;
-        setting_descriptor_.m_bThrowExcptOnErr = true;
-        setting_dispatcher_->handle(setting_descriptor_);
-      } catch(const std::exception& ex) {
-        out << "!" << ex.what();
-      }
+        if (const auto err = setting_dispatcher_->handle(setting_descriptor_))
+          set_error(resp, resp, err);
+        else
+          set_result(resp, resp, std::move(value));
+      } else
+        set_error(resp, resp, Errc::board_settings_invalid);
 
-      out_fifo_ << term_char;
-      serial_bus_->send(out_fifo_);
-
+      // Done. Send the result and return.
+      CFIFO output{to_text(resp)};
+      output << term_char;
+      serial_bus_->send(output);
       reset();
-      return; // done
+      return;
     }
 
     switch (in_state_) {
@@ -448,7 +418,6 @@ private:
   std::shared_ptr<Setting_dispatcher> setting_dispatcher_;
   Setting_descriptor setting_descriptor_;
   CFIFO in_fifo_;
-  CFIFO out_fifo_;
   bool is_trimming_{true}; // for automatic spaces skipping
   Input_state in_state_{Input_state::setting};
 
@@ -457,9 +426,8 @@ private:
   {
     is_trimming_ = true;
     in_state_ = Input_state::setting;
-    setting_descriptor_.name.clear();
+    setting_descriptor_.reset();
     in_fifo_.reset();
-    out_fifo_.reset();
   }
 };
 

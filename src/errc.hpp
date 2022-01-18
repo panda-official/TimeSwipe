@@ -46,12 +46,18 @@ enum class Errc {
 
   /// At least one of the board settings invalid.
   board_settings_invalid = 10011,
+  /// At least one of the board settings unknown.
+  board_settings_unknown = 10021,
+  /// Read for at least one of the board settings is forbidden.
+  board_settings_read_forbidden = 10031,
+  /// Write for at least one of the board settings is forbidden.
+  board_settings_write_forbidden = 10041,
   /// Calibration data provided is invalid.
-  board_settings_calibration_data_invalid = 10031,
+  board_settings_calibration_data_invalid = 10051,
   /// Calibration procedure is not permitted.
-  board_settings_calibration_not_permitted = 10041,
+  board_settings_calibration_forbidden = 10061,
   /// At least one of the board settings insufficient.
-  board_settings_insufficient = 10051,
+  board_settings_insufficient = 10071,
   /// Board measurement mode is started.
   board_measurement_started = 10111,
 
@@ -77,8 +83,6 @@ enum class Errc {
   spi_receive_failed = 40111,
   /// Attempt to execute SPI command failed.
   spi_command_failed = 40211,
-  /// SPI request is invalid.
-  spi_request_invalid = 40311,
 
   /// EEPROM is not available (neither read nor write are possible).
   hat_eeprom_unavailable = 50011,
@@ -110,10 +114,16 @@ constexpr const char* to_literal(const Errc errc) noexcept
 
   case Errc::board_settings_invalid:
     return "board_settings_invalid";
+  case Errc::board_settings_unknown:
+    return "board_settings_unknown";
+  case Errc::board_settings_read_forbidden:
+    return "board_settings_read_forbidden";
+  case Errc::board_settings_write_forbidden:
+    return "board_settings_write_forbidden";
   case Errc::board_settings_calibration_data_invalid:
     return "board_settings_calibration_data_invalid";
-  case Errc::board_settings_calibration_not_permitted:
-    return "board_settings_calibration_not_permitted";
+  case Errc::board_settings_calibration_forbidden:
+    return "board_settings_calibration_forbidden";
   case Errc::board_settings_insufficient:
     return "board_settings_insufficient";
   case Errc::board_measurement_started:
@@ -141,8 +151,6 @@ constexpr const char* to_literal(const Errc errc) noexcept
     return "spi_receive_failed";
   case Errc::spi_command_failed:
     return "spi_command_failed";
-  case Errc::spi_request_invalid:
-    return "spi_request_invalid";
 
   case Errc::hat_eeprom_unavailable:
     return "hat_eeprom_unavailable";

@@ -38,21 +38,25 @@ using SizeType = std::size_t;
 #include "../3rdparty/dmitigr/3rdparty/rapidjson/stringbuffer.h"
 #include "../3rdparty/dmitigr/3rdparty/rapidjson/writer.h"
 
+#include "error.hpp"
+
 #include <string>
 
+inline void set_result(rapidjson::Document& resp,
+  rapidjson::Value& root, rapidjson::Value&& value) noexcept
+{
+  root.SetObject();
+  root.AddMember("result", std::move(value), resp.GetAllocator());
+}
+
 inline void set_error(rapidjson::Document& resp,
-  rapidjson::Value& root,
-  std::string edescr,
-  const rapidjson::Value& val = {})
+  rapidjson::Value& root, const Error& error) noexcept
 {
   using Value = rapidjson::Value;
   auto& alloc = resp.GetAllocator();
   root.SetObject();
-  root.AddMember("error", Value{rapidjson::kObjectType}, alloc);
-  auto& error = root["error"];
-  error.AddMember("edescr", std::move(edescr), alloc);
-  if (!val.IsNull())
-    error.AddMember("val", std::move(Value{}.CopyFrom(val, alloc, true)), alloc);
+  root.AddMember("error", Value{static_cast<int>(error.errc())}, alloc);
+  root.AddMember("what", Value{error.what(), alloc}, alloc);
 }
 
 inline std::string to_text(const rapidjson::Value& value)

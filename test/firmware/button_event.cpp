@@ -79,7 +79,7 @@ int main(void)
     pSPIsc2->AdviseSink(pStdPort);
 
     //example command:
-    pDisp->Add("ARMID", std::make_shared<Setting_generic_handler<std::string>>(
+    pDisp->add("ARMID", std::make_shared<Setting_generic_handler<std::string>>(
         &CSamService::GetSerialString));
 
     //----------------menu+button----------------
@@ -88,11 +88,11 @@ int main(void)
 
     //------------------JSON---------------------
     auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
-    pDisp->Add("js", pJC);
+    pDisp->add("js", pJC);
 
     //------------------EVENTS-------------------
     auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
-    pDisp->Add("je", pJE);
+    pDisp->add("je", pJE);
     pMenu->AdviseSink(pJE);
     //--------------------------------------------------------------------------------------------------------------
 

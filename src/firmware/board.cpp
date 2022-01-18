@@ -109,7 +109,7 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
       return err1;
 
     if (!req.IsObject() || req.FindMember("cAtom") == req.MemberEnd())
-      return Error{Errc::spi_request_invalid};
+      return Error{Errc::board_settings_invalid};
 
     const auto catom = req["cAtom"].GetUint();
     const auto [err2, type] = hat::atom::Calibration::to_type(catom);
@@ -124,12 +124,12 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
 #endif
 
       if (req.FindMember("data") == req.MemberEnd())
-        return Error{Errc::spi_request_invalid};
+        return Error{Errc::board_settings_invalid};
 
       auto& data = req["data"];
       const auto data_size = data.Size();
       if (data_size > cal_entry_count)
-        return Error{Errc::spi_request_invalid};
+        return Error{Errc::board_settings_invalid};
 
       for (std::size_t i{}; i < data_size; ++i) {
         const auto& el = data[i];
@@ -172,7 +172,7 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
   if (err) {
     auto& alloc = res.GetAllocator();
     res.AddMember("cAtom", Value{}, alloc);
-    set_error(res, res["cAtom"], to_literal_anyway(err.errc()));
+    set_error(res, res["cAtom"], err);
   }
   return err;
 }

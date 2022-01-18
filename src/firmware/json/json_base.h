@@ -21,7 +21,7 @@ Copyright (c) 2019 Panda Team
  * by calling a CJSONbase::LockCmdSubsys(...)
  */
 
-class CJSONbase
+[[deperated]] class CJSONbase
 {
 protected:
 
@@ -57,7 +57,7 @@ public:
  *  Must be used inside try{} catch(..) blocks to prevent "locked forever" state
  */
 
-class CJSONCmdLock
+[[deprecated]] class CJSONCmdLock
 {
 protected:
 

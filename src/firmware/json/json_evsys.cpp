@@ -16,21 +16,18 @@ void CJSONEvDispatcher::on_event(const char* key, rapidjson::Value& val)
     m_event.AddMember(Value{std::string{key}, alloc}, Value{}, alloc);
   m_event[key].CopyFrom(val, alloc, true);
 }
-typeCRes CJSONEvDispatcher::handle(Setting_descriptor &d)
+
+Error CJSONEvDispatcher::handle(Setting_descriptor& d)
 {
-    if(IsCmdSubsysLocked())
-        return typeCRes::disabled;
+  if (IsCmdSubsysLocked()) // FIXME: REMOVEME
+    return Errc::generic;
+  else if (d.access_type == Setting_access_type::write)
+    return Errc::board_settings_write_forbidden;
 
-    if(d.access_type == Setting_access_type::write)
-    {
-       return typeCRes::fset_not_supported;
-    }
+  if (!m_event.ObjectEmpty()) {
+    *d.out_value_stream << to_text(m_event);
+    m_event.RemoveAllMembers();
+  }
 
-    //don't send if there is nothing to send
-    if (!m_event.ObjectEmpty())
-    {
-        *(d.out_value_stream) << to_text(m_event);
-        m_event.RemoveAllMembers();
-    }
-    return typeCRes::OK;
+  return {};
 }
