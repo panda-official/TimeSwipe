@@ -19,11 +19,10 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
 
+#include "../serial.hpp"
 #include "error.hpp"
+#include "json.hpp"
 using namespace panda::timeswipe; // FIXME: REMOVEME
-#include "fifo_stream.hpp"
-#include "io_stream.hpp"
-#include "json/stream.hpp"
 
 #include <functional>
 #include <map>
@@ -37,7 +36,7 @@ using namespace panda::timeswipe; // FIXME: REMOVEME
 // Setting_descriptor
 // -----------------------------------------------------------------------------
 
-/// Setting access type.
+/// Setting request type.
 enum class Setting_access_type {
   /// Read access.
   read,
@@ -46,7 +45,7 @@ enum class Setting_access_type {
 };
 
 /**
- * @brief Setting access descriptor.
+ * @brief Setting request descriptor.
  *
  * @remarks If both `name` and `index` are set the `name` is higher priority
  * than `index`.
@@ -60,11 +59,11 @@ struct Setting_descriptor final {
   /// A zero based index of the setting. (Lower priority than `name`.)
   int index{-1};
 
-  /// Input value stream.
-  Io_stream* in_value_stream{};
+  /// Input value view. (For both read and write requests.)
+  Json_value_view in_value;
 
-  /// Output value stream.
-  Io_stream* out_value_stream{};
+  /// Output value view. (For either read or write requests.)
+  Json_value_view out_value;
 
   /// Access type.
   Setting_access_type access_type{Setting_access_type::read};
@@ -73,8 +72,8 @@ struct Setting_descriptor final {
   {
     name.clear();
     index = -1;
-    in_value_stream = nullptr;
-    out_value_stream = nullptr;
+    in_value = {};
+    out_value = {};
     access_type = Setting_access_type::read;
   }
 };
@@ -268,19 +267,19 @@ public:
     if (descriptor.access_type == Setting_access_type::write) {
       if (set_) {
         Setter_value val{};
-        *descriptor.in_value_stream >> val;
-        if (descriptor.in_value_stream->is_good()) {
+        const auto err = get(descriptor.in_value, val);
+        if (!err) {
           if (const auto err = set_(val); !err) {
             if (get_) { // read back
               if (const auto [err, res] = get_(); err)
                 return err;
               else
-                *descriptor.out_value_stream << res; // Done.
+                return set(descriptor.out_value, res); // Done.
             }
           } else
             return err;
         } else
-          return Errc::board_settings_invalid;
+          return Error{Errc::board_settings_invalid, err.what()};
       } else
         return Errc::board_settings_write_forbidden;
     } else if (descriptor.access_type == Setting_access_type::read) {
@@ -288,11 +287,11 @@ public:
         if (const auto [err, res] = get_(); err)
           return err;
         else
-          *descriptor.out_value_stream << res; // Done.
+          return set(descriptor.out_value, res); // Done.
       } else
         return Errc::board_settings_read_forbidden;
     }
-    return Errc::ok;
+    return Errc::bug;
   }
 
 private:
@@ -327,7 +326,7 @@ public:
     : serial_bus_{serial_bus}
     , setting_dispatcher_{setting_dispatcher}
   {
-    in_fifo_.reserve(1024);
+    input_value_string_.reserve(1024);
   }
 
   /// Termination character used (default is `\n`).
@@ -344,28 +343,32 @@ public:
     }
 
     if (ch == term_char) {
-      // Input.
-      Fifo_stream in{&in_fifo_};
-
-      // Output.
-      rapidjson::Document resp{rapidjson::kObjectType};
-      auto& alloc = resp.GetAllocator();
-      rapidjson::Value value;
-      Json_stream out{value, &alloc};
+      // Always respond in JSON.
+      rapidjson::Document response{rapidjson::kObjectType};
 
       // Invoke setting handler.
       if (in_state_ == Input_state::value) {
-        setting_descriptor_.in_value_stream = &in;
-        setting_descriptor_.out_value_stream = &out;
-        if (const auto err = setting_dispatcher_->handle(setting_descriptor_))
-          set_error(resp, resp, err);
-        else
-          set_result(resp, resp, std::move(value));
+        rapidjson::Document in_value;
+        const rapidjson::ParseResult pr{in_value.Parse(input_value_string_.data(),
+            input_value_string_.size())};
+        if (pr) {
+          const Json_value_view in_view{&in_value};
+          rapidjson::Value out_value;
+          auto& alloc = response.GetAllocator();
+          Json_value_view out_view{&out_value, &alloc};
+          setting_descriptor_.in_value = in_view;
+          setting_descriptor_.out_value = out_view;
+          if (const auto err = setting_dispatcher_->handle(setting_descriptor_))
+            set_error(response, response, err);
+          else
+            set_result(response, response, std::move(out_value));
+        } else
+          set_error(response, response, Errc::board_settings_invalid);
       } else
-        set_error(resp, resp, Errc::board_settings_invalid);
+        set_error(response, response, Errc::board_settings_invalid);
 
-      // Done. Send the result and return.
-      CFIFO output{to_text(resp)};
+      // Respond and return.
+      CFIFO output{to_text(response)};
       output << term_char;
       serial_bus_->send(output);
       reset();
@@ -394,7 +397,7 @@ public:
         in_state_ = Input_state::error;
       break;
     case Input_state::value:
-      in_fifo_ << ch;
+      input_value_string_ += ch;
       break;
     case Input_state::error:
       break;
@@ -417,7 +420,7 @@ private:
   std::shared_ptr<CSerial> serial_bus_;
   std::shared_ptr<Setting_dispatcher> setting_dispatcher_;
   Setting_descriptor setting_descriptor_;
-  CFIFO in_fifo_;
+  std::string input_value_string_;
   bool is_trimming_{true}; // for automatic spaces skipping
   Input_state in_state_{Input_state::setting};
 
@@ -427,7 +430,7 @@ private:
     is_trimming_ = true;
     in_state_ = Input_state::setting;
     setting_descriptor_.reset();
-    in_fifo_.reset();
+    input_value_string_.clear();
   }
 };
 

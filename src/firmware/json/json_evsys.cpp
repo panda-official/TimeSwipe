@@ -25,7 +25,7 @@ Error CJSONEvDispatcher::handle(Setting_descriptor& d)
     return Errc::board_settings_write_forbidden;
 
   if (!m_event.ObjectEmpty()) {
-    *d.out_value_stream << to_text(m_event);
+    set(d.out_value, to_text(m_event));
     m_event.RemoveAllMembers();
   }
 

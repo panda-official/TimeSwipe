@@ -6,7 +6,7 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "jsondisp.h"
-#include "stream.hpp"
+#include "../json.hpp"
 
 void CJSONDispatcher::DumpAllSettings(const Setting_descriptor& d,
   rapidjson::Document& jResp)
@@ -17,12 +17,12 @@ void CJSONDispatcher::DumpAllSettings(const Setting_descriptor& d,
     for (int i{} ; ; ++i) {
       using Value = rapidjson::Value;
       Value result;
-      Json_stream out{result, &alloc};
+      Json_value_view out{&result, &alloc};
       Setting_descriptor descriptor;
-      descriptor.in_value_stream = d.in_value_stream;
+      descriptor.in_value = d.in_value;
+      descriptor.out_value = out;
       descriptor.access_type = Setting_access_type::read;
       descriptor.index = i;
-      descriptor.out_value_stream = &out;
       if (const auto err = m_pDisp->handle(descriptor)) {
         if (err == Errc::board_settings_unknown)
           return; // end of command table
@@ -47,11 +47,11 @@ void CJSONDispatcher::CallPrimitive(const std::string& strKey,
   if (resp_root.FindMember(strKey) == resp_root.MemberEnd())
     resp_root.AddMember(Value{strKey, alloc}, Value{}, alloc);
   auto& result = resp_root[strKey];
-  Json_stream in{jReq, nullptr};
-  Json_stream out{result, &alloc};
+  const Json_value_view in{&jReq, nullptr};
+  Json_value_view out{&result, &alloc};
   Setting_descriptor descriptor;
-  descriptor.in_value_stream = &in;
-  descriptor.out_value_stream = &out;
+  descriptor.in_value = in;
+  descriptor.out_value = out;
   descriptor.name = strKey;
   descriptor.access_type = access_type;
   if (const auto err = m_pDisp->handle(descriptor))
@@ -123,16 +123,16 @@ Error CJSONDispatcher::handle(Setting_descriptor& d)
 
     std::string str;
     rapidjson::Document jresp{rapidjson::kObjectType};
-    *(d.in_value_stream) >> str;
+    const auto err = get(d.in_value, str);
+    if (err)
+      return Errc::board_settings_invalid;
+
      if (str.empty() && (d.access_type == Setting_access_type::read))
      {
        DumpAllSettings(d, jresp);
      }
      else
      {
-        if (!d.in_value_stream->is_good())
-          return Errc::board_settings_invalid;
-
         rapidjson::Document cmd;
         const rapidjson::ParseResult pr{cmd.Parse(str.data(), str.size())};
         if (pr)
@@ -140,6 +140,6 @@ Error CJSONDispatcher::handle(Setting_descriptor& d)
         else
           return Errc::board_settings_invalid;
      }
-     *d.out_value_stream << to_text(jresp);
+     set(d.out_value, to_text(jresp));
      return Errc::ok;
 }

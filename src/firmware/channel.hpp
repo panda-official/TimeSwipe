@@ -22,8 +22,6 @@
 #include "adcdac.hpp"
 #include "control/DataVis.h"
 
-#include "io_stream.hpp"
-
 #include "../basics.hpp"
 using namespace panda::timeswipe; // FIXME: remove
 
@@ -125,25 +123,24 @@ private:
   Board* board_{};
 };
 
-/// Writes `mode` to the `os` stream.
-inline Io_stream& operator<<(Io_stream& os, const Measurement_mode mode)
+/// Sets `mode` to the `view`.
+inline Error set(Json_value_view& view, const Measurement_mode mode)
 {
-  os << static_cast<unsigned>(mode);
-  return os;
+  return set(view, static_cast<unsigned>(mode));
 }
 
-/// Reads `mode` from the `is` stream.
-inline Io_stream& operator>>(Io_stream& is, Measurement_mode& mode)
+/// Gets `mode` from the `view`.
+inline Error get(const Json_value_view& view, Measurement_mode& mode)
 {
   unsigned umode;
-  is >> umode;
-  if (is.is_good()) {
+  const auto err = get(view, umode);
+  if (!err) {
     constexpr auto cur = static_cast<unsigned>(Measurement_mode::current);
     if (umode > cur)
       umode = cur;
     mode = static_cast<Measurement_mode>(umode);
   }
-  return is;
+  return err;
 }
 
 class CIEPEchannel final : public Channel {

@@ -41,6 +41,9 @@ enum class Errc {
   /// Generic error.
   generic = 1,
 
+  /// Bug. (Unexpected case.)
+  bug = 11,
+
   /// Out of memory.
   out_of_memory = 111,
 
@@ -108,6 +111,8 @@ constexpr const char* to_literal(const Errc errc) noexcept
 
   case Errc::generic:
     return "generic";
+  case Errc::bug:
+    return "bug";
 
   case Errc::out_of_memory:
     return "out_of_memory";
