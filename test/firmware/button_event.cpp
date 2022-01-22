@@ -10,7 +10,6 @@ Copyright (c) 2019-2021 Panda Team
 #include "../../src/firmware/settings.hpp"
 #include "../../src/firmware/timer.h"
 #include "../../src/firmware/base/SPIcomm.h"
-#include "../../src/firmware/json/jsondisp.h"
 #include "../../src/firmware/json/json_evsys.h"
 #include "../../src/firmware/led/nodeLED.h"
 #include "../../src/firmware/sam/button.hpp"
@@ -85,10 +84,6 @@ int main(void)
     //----------------menu+button----------------
     auto pMenu=std::make_shared<CButtonLogic>();
     Sam_button::instance().AdviseSink(pMenu);
-
-    //------------------JSON---------------------
-    auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
-    pDisp->add("js", pJC);
 
     //------------------EVENTS-------------------
     auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);

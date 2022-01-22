@@ -53,11 +53,11 @@ using namespace panda::timeswipe; // FIXME: REMOVE
  * @par Requires
  * `root` must be owned by `resp`.
  */
-inline void set_result(rapidjson::Document& resp,
-  rapidjson::Value& root, rapidjson::Value&& value) noexcept
+inline void set_result(rapidjson::Value& root,
+  rapidjson::Value&& value, rapidjson::Document::AllocatorType& alloc) noexcept
 {
   root.SetObject();
-  root.AddMember("result", std::move(value), resp.GetAllocator());
+  root.AddMember("result", std::move(value), alloc);
 }
 
 /**
@@ -67,11 +67,10 @@ inline void set_result(rapidjson::Document& resp,
  * @par Requires
  * `root` must be owned by `resp`.
  */
-inline void set_error(rapidjson::Document& resp,
-  rapidjson::Value& root, const Error& error) noexcept
+inline void set_error(rapidjson::Value& root, const Error& error,
+  rapidjson::Document::AllocatorType& alloc) noexcept
 {
   using Value = rapidjson::Value;
-  auto& alloc = resp.GetAllocator();
   root.SetObject();
   root.AddMember("error", Value{static_cast<int>(error.errc())}, alloc);
   root.AddMember("what", Value{error.what(), alloc}, alloc);
@@ -107,13 +106,44 @@ public:
   rapidjson::Value* value() noexcept
   {
     return const_cast<rapidjson::Value*>(
-      static_cast<const decltype(this)>(this)->value());
+      static_cast<const Json_value_view*>(this)->value());
+  }
+
+  /**
+   * @returns The underlying value.
+   *
+   * @par Requires
+   * `value()`.
+   */
+  const rapidjson::Value& value_ref() const noexcept
+  {
+    PANDA_TIMESWIPE_ASSERT(value_);
+    return *value();
+  }
+
+  /// @overload
+  rapidjson::Value& value_ref() noexcept
+  {
+    return const_cast<rapidjson::Value&>(
+      static_cast<const Json_value_view*>(this)->value_ref());
   }
 
   /// @returns The underlying allocator.
   rapidjson::Document::AllocatorType* alloc() const noexcept
   {
     return alloc_;
+  }
+
+  /**
+   * @returns The underlying allocator.
+   *
+   * @par Requires
+   * `alloc()`.
+   */
+  rapidjson::Document::AllocatorType& alloc_ref() const noexcept
+  {
+    PANDA_TIMESWIPE_ASSERT(alloc_);
+    return *alloc();
   }
 
   /// @returns `true` if `T` is a supported type.
@@ -126,7 +156,7 @@ public:
   }
 
 private:
-  rapidjson::Value* value_;
+  rapidjson::Value* value_{};
   rapidjson::Document::AllocatorType* alloc_{};
 };
 

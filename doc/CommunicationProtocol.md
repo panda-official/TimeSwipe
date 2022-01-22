@@ -111,43 +111,58 @@ These settings are used to control board voltage output.
 
 ### Special settings
 
-#### Special setting `js`
+#### Special setting `all`
 
-Writing a JSON object to this setting affects multiple settings specified in
-JSON object. The result of both writing or reading of this settings - is a JSON
-object with actual settings.
+The special setting `all` provides a way to read or write multiple settings at
+once.
 
-The structure of the JSON object can be arbitrary but must follow the following
-semantic rules:
-  - when writing a setting the format of JSON object entry should be:
-  `{"setting" : value}`;
-  - when reading a setting it's name should be inserted to a JSON array:
-  `["setting", ...]` (preferable);
-  - when reading a setting the format of JSON object entry should be:
-  `{"setting" : "?"}` (alternative).
+##### Request format
 
-**Note, that special settings are not allowed in the JSON object!**
+To read multiple (all) settings at once no additional input required.
+
+To write multiple settings at once they must be specified in a JSON object,
+obviously, as: `{"setting":value, ...}`, where `setting` must not be a name of
+any special setting.
+
+#### Special setting `basic`
+
+The special setting `basic` - is a subset of `all` settings that doesn't include
+the `calibrationData` setting.
+
+##### Response format
+
+The response will contain all the settings which were read or written.
 
 #### Special setting `je`
 
-The result of reading this setting - is a JSON object with latest events.
+The result of reading this setting - is a JSON object with the latest events.
 
-## Communication protocols
+## Communication protocol
 
-The syntax of the SPI request is the following:
+### Setting request
+
+The syntax of the setting request is the following (note, the real request must
+not contain spaces inbetween `setting`, `type` and `value`):
 
 ```
-setting operator value\n
+name type input\n
 ```
 
 where
 
-- `setting` - a setting name;
-- `operator` - `>` (read) or `<` (write);
-- `value` - a JSON value.
+- `name` - a setting name. Must be alpha-numeric identifier;
+- `type` - a request type. Must be `>` (read) or `<` (write);
+- `input` - (optional) - must be a valid JSON value.
 
-The SPI response is a readback value in case of success, or an error
-message started with the `!` character.
+### Setting response
+
+There are two types of responses:
+
+- result of successful request - is a JSON object of the following structure:
+`{"result": value}`, where `value` may be an any JSON value;
+- result of failed request - is a JSON object of the following structure:
+`{"error": code, "what": "message"}`, where `code` - is a positive integer,
+`message` - is a JSON string with the error explanation string.
 
 ### Examples
 
@@ -162,7 +177,7 @@ channel1DacRaw<2048\n
 ##### Response
 
 ```
-2048\n
+{"result":2048}\n
 ```
 
 #### 2. Preset a value for analog output 3 to 2048 discrets to be controlled
@@ -177,7 +192,7 @@ analogOut3Raw<2048\n
 ##### Response
 
 ```
-2048\n
+{"result":2048}\n
 ```
 
 #### 3. Activate the manual control over for analog outputs 3 and 4
@@ -196,7 +211,7 @@ analogOutsDacEnabled<true\n
 ##### Response
 
 ```
-true\n
+{"result":true}\n
 ```
 
 #### 4. Control the analog output 4 manually
@@ -214,7 +229,7 @@ analogOut4Raw<3000\n
 ##### Response
 
 ```
-3000\n
+{"result":3000}\n
 ```
 
 #### 5. Reading actual adc2Raw value
@@ -228,7 +243,7 @@ adc2Raw>\n
 ##### Response
 
 ```
-2048\n
+{"result":2048}\n
 ```
 
 #### 6. Update settings via `js` special command

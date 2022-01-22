@@ -19,11 +19,13 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_SETTINGS_HPP
 
+#include "../debug.hpp"
 #include "../serial.hpp"
 #include "error.hpp"
 #include "json.hpp"
 using namespace panda::timeswipe; // FIXME: REMOVEME
 
+#include <cctype>
 #include <functional>
 #include <map>
 #include <memory>
@@ -33,11 +35,11 @@ using namespace panda::timeswipe; // FIXME: REMOVEME
 #include <utility>
 
 // -----------------------------------------------------------------------------
-// Setting_descriptor
+// Setting_request
 // -----------------------------------------------------------------------------
 
 /// Setting request type.
-enum class Setting_access_type {
+enum class Setting_request_type {
   /// Read access.
   read,
   /// Write access.
@@ -45,37 +47,22 @@ enum class Setting_access_type {
 };
 
 /**
- * @brief Setting request descriptor.
- *
- * @remarks If both `name` and `index` are set the `name` is higher priority
- * than `index`.
+ * @brief Setting request.
  *
  * @see Setting_parser.
  */
-struct Setting_descriptor final {
-  /// The setting name. (Higher priority than `index`.)
-  std::string name;
-
-  /// A zero based index of the setting. (Lower priority than `name`.)
-  int index{-1};
-
-  /// Input value view. (For both read and write requests.)
-  Json_value_view in_value;
-
-  /// Output value view. (For either read or write requests.)
-  Json_value_view out_value;
+struct Setting_request final {
+  /// The setting name.
+  const std::string& name;
 
   /// Access type.
-  Setting_access_type access_type{Setting_access_type::read};
+  const Setting_request_type type{Setting_request_type::read};
 
-  void reset()
-  {
-    name.clear();
-    index = -1;
-    in_value = {};
-    out_value = {};
-    access_type = Setting_access_type::read;
-  }
+  /// Input value view.
+  const Json_value_view input;
+
+  /// Output value view.
+  Json_value_view output;
 };
 
 // -----------------------------------------------------------------------------
@@ -89,52 +76,105 @@ public:
   virtual ~Setting_handler() = default;
 
   /**
-   * @brief Handles the setting access request.
+   * @brief Handles the setting request.
    *
-   * @param[in,out] descriptor The descriptor with the input value and to hold
-   * the result value of the successful operation.
+   * @param[in,out] request The request.
    */
-  virtual Error handle(Setting_descriptor& descriptor) = 0;
+  virtual Error handle(Setting_request& request) = 0;
 };
 
 // -----------------------------------------------------------------------------
 // Setting_dispatcher
 // -----------------------------------------------------------------------------
 
-/// The dispatcher of all the setting accesses.
+/// The setting requests dispatcher.
 class Setting_dispatcher final {
 public:
-  /// Registers a new handler.
+  /// @returns `true` if `name` is a special setting name.
+  static constexpr bool is_name_special(const std::string_view name) noexcept
+  {
+    return name == "all" || name == "basic";
+  }
+
+  /**
+   * @brief Registers a new request handler.
+   *
+   * @par Requires
+   * `!is_name_reserved(name) && handler`.
+   */
   void add(const std::string& name, const std::shared_ptr<Setting_handler>& handler)
   {
+    PANDA_TIMESWIPE_ASSERT(!is_name_special(name) && handler);
     table_[name] = handler;
   }
 
   /**
-   * @brief Finds an associated handler by the given descriptor and invokes it
+   * @brief Searches an associated handler by the given request and invokes it
    * if found.
    *
-   * @details The result of call is stored into the given descriptor.
-   *
-   * @param[in,out] descriptor The descriptor to find an associated handler and
-   * to hold the result value of the successful operation.
+   * @param[in,out] request The request.
    */
-  Error handle(Setting_descriptor& descriptor)
+  Error handle(Setting_request& request)
   {
-    auto handler = table_.end();
-    if (!descriptor.name.empty()) {
-      handler = table_.find(descriptor.name);
-    } else if (descriptor.index >= 0) {
-      if (static_cast<unsigned>(descriptor.index) < table_.size()) {
-        handler = table_.begin();
-        std::advance(handler, descriptor.index);
-        descriptor.name = handler->first;
+    if (request.name == "all" || request.name == "basic") {
+      const auto is_should_be_skipped = [is_basic = request.name == "basic"]
+        (const std::string& name) noexcept
+      {
+        return is_basic && name == "calibrationData";
+      };
+
+      using rapidjson::Value;
+      auto& result = request.output.value_ref();
+      auto& alloc = request.output.alloc_ref();
+      result.SetObject();
+      switch (request.type) {
+      case Setting_request_type::read:
+        for (const auto& handler : table_) {
+          if (is_should_be_skipped(handler.first))
+            continue;
+
+          Value res;
+          Setting_request req{handler.first, Setting_request_type::read,
+            request.input, {&res, &alloc}};
+          if (const auto err = handler.second->handle(req))
+            set_error(res, err, alloc);
+          result.AddMember(Value{req.name, alloc}, std::move(res), alloc);
+        }
+        break;
+      case Setting_request_type::write: {
+        auto& input = request.input.value_ref();
+        if (!input.IsObject())
+          return Error{Errc::board_settings_invalid, "value is not object"};
+        for (const auto& member : input.GetObject()) {
+          const std::string name{member.name.GetString(), member.name.GetStringLength()};
+          if (is_should_be_skipped(name))
+            continue;
+
+          Value res;
+          if (!is_name_special(name)) {
+            Value in;
+            in.CopyFrom(member.value, alloc, true);
+            Setting_request req{name, Setting_request_type::write,
+              {&in}, {&res, &alloc}};
+            if (const auto err = handle(req))
+              set_error(res, err, alloc);
+          } else
+            set_error(res, Error{Errc::board_settings_invalid, "special name"}, alloc);
+          result.AddMember(Value{name, alloc}, std::move(res), alloc);
+        }
+        break;
       }
-    }
-    if (handler != table_.end())
-      return handler->second->handle(descriptor);
-    else
-      return Errc::board_settings_unknown;
+      }
+    } else if (!request.name.empty()) {
+      const auto handler = table_.find(request.name);
+      if (handler != table_.end())
+        return handler->second->handle(request);
+      else
+        return Errc::board_settings_unknown;
+    } else
+      return Errc::bug;
+
+    return Errc::ok;
   }
 
 private:
@@ -200,7 +240,7 @@ public:
     Basic_setter<SetterResult> set = {})
     : get_{std::move(get)}
     , set_{
-        [set = std::move(set)](auto value)
+        set ? [set = std::move(set)](auto value)
         {
           using std::is_same_v;
           static_assert(is_same_v<SetterResult, void> ||
@@ -210,7 +250,7 @@ public:
             return Error{};
           } else
             return set(std::forward<decltype(value)>(value));
-        }
+        } : Setter{}
       }
   {}
 
@@ -260,21 +300,21 @@ public:
   /**
    * @brief Handles a request.
    *
-   * @param descriptor Call descriptor in protocol-independent format.
+   * @param request[in,out] The request.
    */
-  Error handle(Setting_descriptor& descriptor) override
+  Error handle(Setting_request& request) override
   {
-    if (descriptor.access_type == Setting_access_type::write) {
+    if (request.type == Setting_request_type::write) {
       if (set_) {
         Setter_value val{};
-        const auto err = get(descriptor.in_value, val);
+        const auto err = get(request.input, val);
         if (!err) {
           if (const auto err = set_(val); !err) {
             if (get_) { // read back
               if (const auto [err, res] = get_(); err)
                 return err;
               else
-                return set(descriptor.out_value, res); // Done.
+                return set(request.output, res); // Done.
             }
           } else
             return err;
@@ -282,12 +322,12 @@ public:
           return Error{Errc::board_settings_invalid, err.what()};
       } else
         return Errc::board_settings_write_forbidden;
-    } else if (descriptor.access_type == Setting_access_type::read) {
+    } else if (request.type == Setting_request_type::read) {
       if (get_) {
         if (const auto [err, res] = get_(); err)
           return err;
         else
-          return set(descriptor.out_value, res); // Done.
+          return set(request.output, res); // Done.
       } else
         return Errc::board_settings_read_forbidden;
     }
@@ -306,11 +346,11 @@ private:
 /**
  * @brief Parser of simple text protocol described in CommunicationProtocol.md.
  *
- * @details This class is responsible to parse the setting access requests to
- * the instances of class Setting_descriptor and to pass them to an instance of
- * Setting_dispatcher.
- * All the settings and their's values are represented in text format. Each
- * request and response are always terminated with the `\n` character.
+ * @details This class is responsible to parse the setting requests and to pass
+ * them to a Setting_dispatcher. The syntax of requests is described in
+ * CommunicationProtocol.md.
+ *
+ * @see Setting_dispatcher.
  */
 class Setting_parser final : public Serial_event_handler {
 public:
@@ -325,112 +365,102 @@ public:
     const std::shared_ptr<CSerial>& serial_bus)
     : serial_bus_{serial_bus}
     , setting_dispatcher_{setting_dispatcher}
-  {
-    input_value_string_.reserve(1024);
-  }
-
-  /// Termination character used (default is `\n`).
-  static constexpr Character term_char{'\n'};
+  {}
 
   /// @see Serial_event_handler::handle_receive().
   void handle_receive(const Character ch) override
   {
-    if (is_trimming_) {
-      if (ch == ' ')
-        return;
+    constexpr const Character term_char{'\n'};
 
-      is_trimming_ = false;
-    }
-
+    // Process the request if terminal character has been received.
     if (ch == term_char) {
       // Always respond in JSON.
       rapidjson::Document response{rapidjson::kObjectType};
+      auto& alloc = response.GetAllocator();
 
       // Invoke setting handler.
-      if (in_state_ == Input_state::value) {
-        rapidjson::Document in_value;
-        const rapidjson::ParseResult pr{in_value.Parse(input_value_string_.data(),
-            input_value_string_.size())};
+      if (state_ == State::input) {
+        rapidjson::Document input;
+        rapidjson::ParseResult pr;
+        if (!request_input_.empty())
+          pr = input.Parse(request_input_.data(), request_input_.size());
         if (pr) {
-          const Json_value_view in_view{&in_value};
-          rapidjson::Value out_value;
-          auto& alloc = response.GetAllocator();
-          Json_value_view out_view{&out_value, &alloc};
-          setting_descriptor_.in_value = in_view;
-          setting_descriptor_.out_value = out_view;
-          if (const auto err = setting_dispatcher_->handle(setting_descriptor_))
-            set_error(response, response, err);
+          rapidjson::Value result;
+          Setting_request request{request_name_, request_type_,
+            {&input}, {&result, &alloc}};
+          if (const auto err = setting_dispatcher_->handle(request))
+            set_error(response, err, alloc);
           else
-            set_result(response, response, std::move(out_value));
+            set_result(response, std::move(request.output.value_ref()), alloc);
         } else
-          set_error(response, response, Errc::board_settings_invalid);
+          set_error(response, Errc::board_settings_invalid, alloc);
       } else
-        set_error(response, response, Errc::board_settings_invalid);
+        set_error(response, Errc::board_settings_invalid, alloc);
 
       // Respond and return.
-      CFIFO output{to_text(response)};
-      output << term_char;
-      serial_bus_->send(output);
+      CFIFO response_fifo{to_text(response)};
+      response_fifo << term_char;
+      serial_bus_->send(response_fifo);
       reset();
       return;
     }
 
-    switch (in_state_) {
-    case Input_state::setting:
-      if (ch == ' ' || ch == '<' || ch == '>') {
-        in_state_ = Input_state::oper;
-        is_trimming_ = true;
-        handle_receive(ch);
-      } else
-        setting_descriptor_.name += ch;
+  parse:
+    switch (state_) {
+    case State::name:
+      if (ch == '<' || ch == '>') {
+        state_ = State::type;
+        goto parse;
+      } else if (std::isalnum(ch))
+        request_name_ += ch;
+      else
+        state_ = State::error;
       break;
-    case Input_state::oper:
+    case State::type:
       if (ch == '>') {
-        setting_descriptor_.access_type = Setting_access_type::read;
-        in_state_ = Input_state::value;
-        is_trimming_ = true;
+        request_type_ = Setting_request_type::read;
+        state_ = State::input;
       } else if (ch == '<') {
-        setting_descriptor_.access_type = Setting_access_type::write;
-        in_state_ = Input_state::value;
-        is_trimming_ = true;
+        request_type_ = Setting_request_type::write;
+        state_ = State::input;
       } else
-        in_state_ = Input_state::error;
+        state_ = State::error;
       break;
-    case Input_state::value:
-      input_value_string_ += ch;
+    case State::input:
+      request_input_ += ch;
       break;
-    case Input_state::error:
+    case State::error:
       break;
     }
   }
 
 private:
-  /// Input parsing state.
-  enum class Input_state {
+  /// Setting request parser state.
+  enum class State {
     /// Processing a setting name.
-    setting,
-    /// Processing operator: `<` - *set*, `>` - *get*.
-    oper,
-    /// Processing a setting value (JSON).
-    value,
+    name,
+    /// Processing a request type.
+    type,
+    /// Processing a request input.
+    input,
     /// Protocol error.
     error
   };
 
   std::shared_ptr<CSerial> serial_bus_;
   std::shared_ptr<Setting_dispatcher> setting_dispatcher_;
-  Setting_descriptor setting_descriptor_;
-  std::string input_value_string_;
-  bool is_trimming_{true}; // for automatic spaces skipping
-  Input_state in_state_{Input_state::setting};
+  State state_{State::name};
+  std::string request_name_;
+  Setting_request_type request_type_;
+  std::string request_input_;
 
   /// Resets the state.
   void reset()
   {
-    is_trimming_ = true;
-    in_state_ = Input_state::setting;
-    setting_descriptor_.reset();
-    input_value_string_.clear();
+    state_ = State::name;
+    request_name_.clear();
+    request_type_ = Setting_request_type::read;
+    request_input_.clear();
   }
 };
 

@@ -17,15 +17,15 @@ void CJSONEvDispatcher::on_event(const char* key, rapidjson::Value& val)
   m_event[key].CopyFrom(val, alloc, true);
 }
 
-Error CJSONEvDispatcher::handle(Setting_descriptor& d)
+Error CJSONEvDispatcher::handle(Setting_request& request)
 {
   if (IsCmdSubsysLocked()) // FIXME: REMOVEME
     return Errc::generic;
-  else if (d.access_type == Setting_access_type::write)
+  else if (request.type == Setting_request_type::write)
     return Errc::board_settings_write_forbidden;
 
   if (!m_event.ObjectEmpty()) {
-    set(d.out_value, to_text(m_event));
+    set(request.output, to_text(m_event));
     m_event.RemoveAllMembers();
   }
 

@@ -262,13 +262,10 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     )
 
   set(json_src
-    jsondisp.cpp
-    jsondisp.h
     json_base.cpp
     json_base.h
     json_evsys.cpp
     json_evsys.h
-    stream.hpp
     )
 
   set(led_src
@@ -331,8 +328,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     dms_channel.cpp
     dms_channel.hpp
     error.hpp
-    fifo_stream.hpp
-    io_stream.hpp
     json.hpp
     os.h
     pga280.cpp

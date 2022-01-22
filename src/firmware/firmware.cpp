@@ -38,7 +38,6 @@
 #include "control/View.h"
 #include "control/zerocal_man.h"
 #include "control/SemVer.h"
-#include "json/jsondisp.h"
 #include "led/nodeLED.h"
 #include "sam/button.hpp"
 #include "sam/system_clock.hpp"
@@ -463,16 +462,6 @@ int main()
       &Board::is_calibration_data_enabled,
       &Board::enable_calibration_data));
 #endif
-
-
-  //--------------------JSON- ---------------------
-  auto pJC=std::make_shared<CJSONDispatcher>(setting_dispatcher);
-  setting_dispatcher->add("js", pJC);
-  pJC->AddSubHandler("cAtom",
-    [board](auto& req, auto& res, const auto ct)
-    {
-      board->handle_catom(req, res, ct);
-    });
 
   //------------------JSON EVENTS-------------------
   auto pJE=std::make_shared<CJSONEvDispatcher>(setting_dispatcher);

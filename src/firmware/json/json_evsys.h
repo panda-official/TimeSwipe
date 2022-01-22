@@ -132,7 +132,7 @@ public:
      * \param d An uniform command request descriptor.
      * \return The operation result
      */
-    Error handle(Setting_descriptor &d) override;
+    Error handle(Setting_request& request) override;
 
     /*!
      * \brief The class constructor

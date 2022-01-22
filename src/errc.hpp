@@ -57,7 +57,7 @@ enum class Errc {
   board_settings_write_forbidden = 10041,
   /// Calibration data provided is invalid.
   board_settings_calibration_data_invalid = 10051,
-  /// Calibration procedure is not permitted.
+  /// Calibration procedure is forbidden.
   board_settings_calibration_forbidden = 10061,
   /// At least one of the board settings insufficient.
   board_settings_insufficient = 10071,

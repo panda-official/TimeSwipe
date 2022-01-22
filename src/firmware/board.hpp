@@ -81,7 +81,7 @@ public:
    * @param ct Call type.
    */
   Error handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
-    const Setting_access_type ct) noexcept;
+    const Setting_request_type ct) noexcept;
 
   /// @returns `true` if the calibration data enabled.
   bool is_calibration_data_enabled() const noexcept
