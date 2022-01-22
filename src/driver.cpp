@@ -296,7 +296,7 @@ public:
     /// @returns RapidJSON object with basic settings.
     const auto basic_settings = [this]
     {
-      auto result = rajson::to_document(spi_.execute_get_many(""));
+      auto result = spi_.execute_get_many("");
       PANDA_TIMESWIPE_ASSERT(result.IsObject());
       return result;
     };
@@ -315,8 +315,7 @@ public:
       for (const auto ct : atom_types) {
         const auto settings_request = R"({"cAtom":)" +
           std::to_string(static_cast<int>(ct)) + R"(})";
-        const auto json_obj = spi_.execute_get_many(settings_request);
-        const auto doc = rajson::to_document(json_obj);
+        const auto doc = spi_.execute_get_many(settings_request);
         result.PushBack(rapidjson::Value{doc, alloc}, alloc);
       }
       return result;

@@ -21,8 +21,10 @@
 
 #include "debug.hpp"
 #include "exceptions.hpp"
+#include "rajson.hpp"
 #include "spi.hpp"
 #include "synccom.hpp"
+
 #include "3rdparty/bcm/bcm2835.h"
 
 #include <atomic>
@@ -105,7 +107,7 @@ public:
    * @throws An instance of Exception with either `Errc::spi_send_failed`
    * or `Errc::spi_receive_failed`.
    */
-  std::string execute(const std::string& request)
+  rapidjson::Document execute(const std::string& request)
   {
     send_throw(request);
     return receive_throw();
@@ -116,7 +118,7 @@ public:
    *
    * @throws See execute().
    */
-  std::string execute_set_one(const std::string& name, const std::string& value)
+  rapidjson::Document execute_set_one(const std::string& name, const std::string& value)
   {
     return execute(name + "<" + value + "\n");
   }
@@ -126,7 +128,7 @@ public:
    *
    * @throws See execute().
    */
-  std::string execute_get_one(const std::string& name)
+  rapidjson::Document execute_get_one(const std::string& name)
   {
     return execute(name + ">\n");
   }
@@ -136,9 +138,9 @@ public:
    *
    * @throws See execute().
    */
-  std::string execute_set_many(const std::string& json_object)
+  rapidjson::Document execute_set_many(const std::string& json_object)
   {
-    return execute("js<" + json_object + "\n");
+    return execute("all<" + json_object + "\n");
   }
 
   /**
@@ -146,9 +148,9 @@ public:
    *
    * @throws See execute().
    */
-  std::string execute_get_many(const std::string& json_object)
+  rapidjson::Document execute_get_many(const std::string& json_object)
   {
-    return execute("js>" + json_object + "\n");
+    return execute("all>" + json_object + "\n");
   }
 
   // ---------------------------------------------------------------------------
@@ -237,7 +239,7 @@ public:
    */
   void send_set_many(const std::string& json_object)
   {
-    send_throw("js<" + json_object + "\n");
+    send_throw("all<" + json_object + "\n");
   }
 
   /**
@@ -247,7 +249,7 @@ public:
    */
   void send_get_many(const std::string& json_array)
   {
-    send_throw("js>" + json_array + "\n");
+    send_throw("all>" + json_array + "\n");
   }
 
   /**
@@ -271,24 +273,57 @@ public:
    * @throws An Exception with either Errc::spi_receive_failed or
    * Errc::spi_command_failed.
    */
-  std::string receive_throw()
+  rapidjson::Document receive_throw()
   {
-    std::string result;
+    namespace rajson = dmitigr::rajson;
+
+    // Define helper.
+    static const auto throw_invalid_json_in_spi_response = []() [[noreturn]]
+    {
+      throw Exception{Errc::bug, "invalid JSON in SPI response"};
+    };
+
+    // Receive.
     CFIFO fifo;
-    if (receive(fifo)) {
-      result = fifo;
-      // If error returned throw exception.
-      if (!result.empty() && result[0] == '!')
-        throw Exception{Errc::spi_command_failed,
-          std::string{"SPI command failed ("}.append(result).append(")")};
+    if (!receive(fifo))
+      throw Exception{Errc::spi_receive_failed, "cannot receive SPI response"};
 
-      // Strip result.
-      if (!result.empty() && result.back() == '\n')
-        result.pop_back();
+    // Check on emptiness.
+    std::string_view result_str = fifo;
+    if (result_str.empty())
+      throw Exception{Errc::bug, "received empty SPI response"};
 
-      return result;
-    }
-    throw Exception{Errc::spi_receive_failed, "cannot receive SPI response"};
+    // Strip.
+    if (result_str.back() == '\n')
+      result_str = {result_str.data(), result_str.size() - 1};
+
+    // Parse.
+    auto result = [result_str]
+    {
+      try {
+        return dmitigr::rajson::to_document(result_str);
+      } catch (const rajson::Parse_exception&) {
+        throw_invalid_json_in_spi_response();
+      }
+    }();
+
+    // Analyze.
+    if (!result.IsObject())
+      throw_invalid_json_in_spi_response();
+    const auto end = result.MemberEnd();
+    if (const auto code = result.FindMember("error"); code != end) {
+      const auto what = result.FindMember("what");
+      if (what == end || result.MemberCount() != 2 ||
+        !code->value.IsInt() || !what->value.IsString())
+        throw_invalid_json_in_spi_response();
+      using rajson::to;
+      throw Exception{to<Errc>(code->value), to<std::string>(what->value)}; // error
+    } else if (const auto res = result.FindMember("result"); res != end) {
+      if (result.MemberCount() != 1)
+        throw_invalid_json_in_spi_response();
+      return result; // result
+    } else
+      throw_invalid_json_in_spi_response();
   }
 
 private:

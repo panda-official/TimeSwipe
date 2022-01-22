@@ -33,6 +33,14 @@ namespace panda::timeswipe::detail {
 /// Traits structure for enumerations.
 template<class> struct Enum_traits;
 
+/// Full specialization for Errc.
+template<> struct Enum_traits<Errc> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "error condition";
+  }
+};
+
 /// Full specialization for Measurement_mode.
 template<> struct Enum_traits<Measurement_mode> final {
   static constexpr const char* singular_name() noexcept
@@ -75,6 +83,11 @@ struct Enum_conversions {
 } // namespace panda::timeswipe::detail
 
 namespace dmitigr::rajson {
+
+/// Full specialization for `panda::timeswipe::Measurement_mode`.
+template<>
+struct Conversions<panda::timeswipe::Errc> final :
+  panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Errc>{};
 
 /// Full specialization for `panda::timeswipe::Measurement_mode`.
 template<>

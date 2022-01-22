@@ -84,8 +84,6 @@ enum class Errc {
   spi_send_failed = 40011,
   /// Attempt to receive SPI request failed.
   spi_receive_failed = 40111,
-  /// Attempt to execute SPI command failed.
-  spi_command_failed = 40211,
 
   /// EEPROM is not available (neither read nor write are possible).
   hat_eeprom_unavailable = 50011,
@@ -154,8 +152,6 @@ constexpr const char* to_literal(const Errc errc) noexcept
     return "spi_send_failed";
   case Errc::spi_receive_failed:
     return "spi_receive_failed";
-  case Errc::spi_command_failed:
-    return "spi_command_failed";
 
   case Errc::hat_eeprom_unavailable:
     return "hat_eeprom_unavailable";
