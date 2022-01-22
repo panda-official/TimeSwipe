@@ -187,6 +187,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   endif()
 
   add_compile_options(
+    -fno-exceptions
     -ffunction-sections
     -fdata-sections
     -mthumb
