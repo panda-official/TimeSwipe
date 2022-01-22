@@ -293,22 +293,23 @@ public:
     return offset_search_.IsStarted();
   }
 
-  /// Enables or disables board ADC measurement.
-  void enable_measurement(const bool enabled)
+  /// Enables or disables channels ADC measurement.
+  Error enable_channels_adc(const bool enabled)
   {
     // Return if there is a channel with either mode or gain unset.
     if (enabled) {
       for (auto& channel : channels_)
         if (!channel->measurement_mode() || !channel->amplification_gain())
-          return;
+          return Errc::board_settings_insufficient;
     }
     PANDA_TIMESWIPE_ASSERT(adc_measurement_enable_pin_);
     adc_measurement_enable_pin_->write(enabled);
     CView::Instance().SetButtonHeartbeat(enabled);
+    return {};
   }
 
   /// @returns `true` if board ADC measurement enabled.
-  bool is_measurement_enabled() const noexcept
+  bool is_channels_adc_enabled() const noexcept
   {
     PANDA_TIMESWIPE_ASSERT(adc_measurement_enable_pin_);
     return adc_measurement_enable_pin_->read_back();

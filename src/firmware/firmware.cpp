@@ -432,8 +432,8 @@ int main()
       &Board::enable_bridge));
   setting_dispatcher->add("channelsAdcEnabled", std::make_shared<Setting_generic_handler<bool>>(
       board,
-      &Board::is_measurement_enabled,
-      &Board::enable_measurement));
+      &Board::is_channels_adc_enabled,
+      &Board::enable_channels_adc));
   setting_dispatcher->add("channelsCalibrationValid", std::make_shared<Setting_generic_handler<bool>>(
       board,
       &Board::is_calibration_data_valid));
