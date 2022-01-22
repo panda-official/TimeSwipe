@@ -120,7 +120,7 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
 
     if (ct == Setting_request_type::write) {
 #ifndef CALIBRATION_STATION
-      return Error{Errc::board_settings_calibration_not_permitted};
+      return Error{Errc::board_settings_calibration_forbidden};
 #endif
 
       if (req.FindMember("data") == req.MemberEnd())
@@ -171,8 +171,9 @@ Error Board::handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
   const auto err = handle(req, res, ct);
   if (err) {
     auto& alloc = res.GetAllocator();
-    res.AddMember("cAtom", Value{}, alloc);
-    set_error(res["cAtom"], err, alloc);
+    Value catom{};
+    set_error(catom, err, alloc);
+    res.AddMember("cAtom", std::move(catom), alloc);
   }
   return err;
 }
