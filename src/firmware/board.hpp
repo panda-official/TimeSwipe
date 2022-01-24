@@ -23,8 +23,8 @@
 #include "basics.hpp"
 #include "channel.hpp"
 #include "error.hpp"
-#include "pin.hpp"
 #include "json.hpp"
+#include "pin.hpp"
 #include "base/RawBinStorage.h"
 #include "control/zerocal_man.h"
 #include "json/json_evsys.h"
@@ -72,16 +72,6 @@ public:
   Board(Board&&) = delete;
   /// Non move-assignable.
   Board& operator=(Board&&) = delete;
-
-  /**
-   * @brief JSON handler wrapper to store/retrieve calibration atoms.
-   *
-   * @param req JSON request.
-   * @param res JSON response.
-   * @param ct Call type.
-   */
-  Error handle_catom(const rapidjson::Value& req, rapidjson::Document& res,
-    const Setting_request_type ct) noexcept;
 
   /// @returns `true` if the calibration data enabled.
   bool is_calibration_data_enabled() const noexcept

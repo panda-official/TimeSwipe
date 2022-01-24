@@ -47,7 +47,7 @@ enum class Errc {
   /// Out of memory.
   out_of_memory = 111,
 
-  /// At least one of the board settings invalid.
+  /// At least one of the board settings invalid. (Or setting request is invalid.)
   board_settings_invalid = 10011,
   /// At least one of the board settings unknown.
   board_settings_unknown = 10021,
@@ -55,12 +55,8 @@ enum class Errc {
   board_settings_read_forbidden = 10031,
   /// Write for at least one of the board settings is forbidden.
   board_settings_write_forbidden = 10041,
-  /// Calibration data provided is invalid.
-  board_settings_calibration_data_invalid = 10051,
-  /// Calibration procedure is forbidden.
-  board_settings_calibration_forbidden = 10061,
   /// At least one of the board settings insufficient.
-  board_settings_insufficient = 10071,
+  board_settings_insufficient = 10051,
   /// Board measurement mode is started.
   board_measurement_started = 10111,
 
@@ -123,10 +119,6 @@ constexpr const char* to_literal(const Errc errc) noexcept
     return "board_settings_read_forbidden";
   case Errc::board_settings_write_forbidden:
     return "board_settings_write_forbidden";
-  case Errc::board_settings_calibration_data_invalid:
-    return "board_settings_calibration_data_invalid";
-  case Errc::board_settings_calibration_forbidden:
-    return "board_settings_calibration_forbidden";
   case Errc::board_settings_insufficient:
     return "board_settings_insufficient";
   case Errc::board_measurement_started:

@@ -133,15 +133,3 @@ The resulting value is in the unit mV and not digit anymore.
   2       offset       zero offset (16bit signed int)
 ```
 This atom is therefore (4+2)*22 = 132 bytes large.
-
-## Calibration JSON Command
-
-The JSON command to read/write calibration data to the EEPROM is implemented r/w in the calibration firmware and readonly in release firmware.
-
-Write the array transmitted in "data" into the cAtom 2 (V_supply).
-The array will consist of an array of objects (dictionaries) of the data as defined above. e.g. for V_In, it will be [{"slope":1.032,"offset":2077}].
-For other cAtoms there are multiple objects in the array in the order of the gain list.
-Request/Response              |  Command
------------------------------ | -------------------------------------------------------------------------------------------------------------------------
-request message:              |   js<{ "cAtom" : 2, "data" : [{"slope": 1.23, "offset": 12000},{...},...]}\n
-successive response message:  |       {"cAtom" : 2, "data" : [{"slope": 1.23, "offset": 12000},{...},...]}\n

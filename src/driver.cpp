@@ -366,11 +366,11 @@ public:
           }
         }
       } catch (const std::exception& e) {
-        throw Exception{Errc::board_settings_calibration_data_invalid,
-            std::string{"cannot use calibration data: "}.append(e.what())};
+        throw Exception{Errc::board_settings_invalid,
+          std::string{"cannot use calibration data: "}.append(e.what())};
       } catch (...) {
-        throw Exception{Errc::board_settings_calibration_data_invalid,
-            "cannot use calibration data: unknown error"};
+        throw Exception{Errc::board_settings_invalid,
+          "cannot use calibration data: unknown error"};
       }
 
       return result;

@@ -336,6 +336,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     pin.hpp
     pin_button.hpp
     settings.hpp
+    setting_handlers.hpp
     shiftreg.cpp
     shiftreg.hpp
     timer.h)

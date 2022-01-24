@@ -29,20 +29,39 @@ to control these analog outputs via `analogOut%DacRaw` settings.
 - `analogOutsDacEnabled` range: `false` - disabled (amplified input signal),
 `true` - enabled and controllable via `analogOut%DacRaw`.
 
+### Settings group `calibrationData`
+
+These settings are used to control the board calibration data.
+
+|Name                  |Description              |Range|Access|Default|
+|:---------------------|:------------------------|:----|:-----|:------|
+|calibrationData       |Calibration data         |JSON |rw    |       |
+|calibrationDataEnabled|Calibration data enabled?|bool |rw    |false  |
+|calibrationDataValid  |Calibration data valid?  |bool |r     |       |
+
+#### Details
+
+- `calibrationData` range:
+  - for read access: empty, positive integer or array of positive integers;
+  - for write access: JSON array of the following layout:
+  ```
+  [{"type":%, "data":[{"slope":%, "offset":%},...]},...]
+  ```
+  where `type` value is a calibration atom type, `slope` value is a float,
+  `offset` is a signed integer.
+
 ### Settings group `channel`
 
 These settings are used to control board channels.
 
-|Name          |Description                |Range            |Access|Default|
-|:-------------|:--------------------------|:----------------|:-----|:------|
-|channel%AdcRaw|ADC measured value.        |[0,4095]         |r     |       |
-|channel%DacRaw|Offset on the input signal.|[0,4095]         |rw    |2048   |
-|channel%Mode  |Measurement mode.          |[0,1]            |rw    |0      |
-|channel%Gain  |Gain value.                |[1, 1408]        |rw    |1      |
-|channel%Iepe  |IEPE?                      |bool             |rw    |false  |
-|channelsAdcEnabled|ADC measurement enabled?|bool            |rw    |false  |
-|channelsCalibrationValid|Calibration data valid?|bool       |r     |       |
-|channelsCalibrationEnabled|Calibration data enabled?|bool   |rw    |false  |
+|Name              |Description                 |Range    |Access|Default|
+|:-----------------|:---------------------------|:--------|:-----|:------|
+|channel%AdcRaw    |ADC measured value.         |[0,4095] |r     |       |
+|channel%DacRaw    |Offset on the input signal. |[0,4095] |rw    |2048   |
+|channel%Mode      |Measurement mode.           |[0,1]    |rw    |0      |
+|channel%Gain      |Gain value.                 |[1, 1408]|rw    |1      |
+|channel%Iepe      |IEPE?                       |bool     |rw    |false  |
+|channelsAdcEnabled|ADC measurement enabled?    |bool     |rw    |false  |
 
 #### Details
 
@@ -246,121 +265,30 @@ adc2Raw>\n
 {"result":2048}\n
 ```
 
-#### 6. Update settings via `js` special command
+#### 6. Update settings via `all` special command
 
 ##### Request
 
 ```
-js<{"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
+all<{"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
 ```
 
 ##### Response
 
 ```
-{"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
+{"result": {"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}}\n
 ```
 
-#### 7. Read back board settings via a JSON command (preferable way)
+#### 7. Read all available settings (except specials)
 
 ##### Request
 
 ```
-js>["Gain","voltageOutEnabled","channel1DacRaw","channel2DacRaw","channel3DacRaw","channel4DacRaw"]\n
+all>\n
 ```
 
 ##### Response
 
 ```
-{"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
-```
-
-#### 8. Read back board settings via a JSON command (alternative way)
-
-##### Request
-
-```
-js>{"Gain":"?","voltageOutEnabled":"?","channel1DacRaw":"?","channel2DacRaw":"?","channel3DacRaw":"?","channel4DacRaw":"?"}\n
-```
-
-##### Response
-
-```
-{"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
-```
-
-Note: when reading settings with `js>` command the question marks ("?") must be
-used instead of values of "key:value" pairs.
-
-#### 9. Dump all available settings via a single JSON command
-
-##### Request
-
-```
-js>\n
-```
-
-##### Response
-
-```
-{<all the settings>}\n
-```
-
-#### 10. Polling the latest board events via a JSON command
-
-##### Request
-
-```
-je>\n
-```
-
-##### Response
-
-```
-{"Button":true, "ButtonStateCnt":3}
-```
-
-Indicates the board's button was pressed and shows its state counter:
-  - odd value means the button is pressed;
-  - even value means it is released.
-
-Note: the event response message can vary depending on the current events active
-(please, see [the Event System documentation](EventSystem.md)).
-
-### SPI errors
-
-|Error message    |Description|
-|:----------------|:----------|
-|!Line_err!       |Communication bus error.|
-|!Timeout_err!    |The board is not responding during specified timeout.|
-|!obj_not_found!  |A requested access point is not found.|
-|!>_not_supported!|Read operation is not supported.|
-|!<_not_supported!|Write operation is not supported.|
-|!disabled!       |The access point is disabled.|
-|!protocol_error! |Request message does not fit to protocol format. (E.g. missing access point name, access operator or value.)|
-|!stoi            |String to integer value conversion error.|
-|!stof            |String to floating point conversion error.|
-
-#### `js` setting errors
-
-Upon processing a JSON request an error can be generated while processing each
-entry. The error information is placed to the output JSON object in the following
-form:
-
-```
-{"setting" : {"edescr":"message","val":"value"}}
-```
-
-where:
-  - `setting` - a name of a setting;
-  - `edescr` - "edescr" literaly,
-  - `message` - text of the *Error message* column of the table above,
-  without preceding "!", or specific syntax error generated by a JSON parser;
-  - `value` - the value set in the incoming request.
-
-Example:
-
-```
-js>["adc1Raw", "adc2Raw", "js"]
-
-{"adc1Raw":2107,"adc2Raw":2041,"js":{"error":{"edescr":"disabled!","val":""}}}
+{"result": {<all the settings>}}\n
 ```

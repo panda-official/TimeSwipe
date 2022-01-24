@@ -465,7 +465,7 @@ public:
     if (const Type result{value}; to_literal(result))
       return result;
     else
-      return Errc::board_settings_calibration_data_invalid;
+      return Errc::board_settings_invalid;
   }
 
   /// The constructor.
@@ -484,6 +484,12 @@ public:
       init_entries(-176, 4344);
     else if (type != Type::ana_out)
       init_entries(1, 2048);
+  }
+
+  /// @returns The type of this atom.
+  Type type() const noexcept
+  {
+    return header_.type;
   }
 
   /// @returns The size in bytes.
@@ -615,10 +621,10 @@ public:
     return const_cast<atom::Calibration&>(static_cast<const Calibration_map*>(this)->atom(type));
   }
 
-  /// @returns The number of atoms in this map.
-  std::size_t atom_count() const noexcept
+  /// @returns The vector of atoms.
+  const std::vector<atom::Calibration>& atoms() const noexcept
   {
-    return atoms_.size();
+    return atoms_;
   }
 
 private:

@@ -21,12 +21,13 @@
 #include "../limits.hpp"
 #include "../version.hpp"
 #include "board.hpp"
-#include "os.h"
-#include "settings.hpp"
-#include "base/SPIcomm.h"
 #include "dms_channel.hpp"
+#include "os.h"
 #include "pga280.hpp"
+#include "settings.hpp"
+#include "setting_handlers.hpp"
 #include "shiftreg.hpp"
+#include "base/SPIcomm.h"
 #include "base/I2CmemHAT.h"
 #include "base/I2Cmem8Pin.h"
 #include "base/dac_max5715.hpp"
@@ -434,7 +435,10 @@ int main()
       board,
       &Board::is_channels_adc_enabled,
       &Board::enable_channels_adc));
-  setting_dispatcher->add("channelsCalibrationValid", std::make_shared<Setting_generic_handler<bool>>(
+  setting_dispatcher->add("calibrationData",
+    std::make_shared<Calibration_data_handler>());
+  setting_dispatcher->add("calibrationDataValid",
+    std::make_shared<Setting_generic_handler<bool>>(
       board,
       &Board::is_calibration_data_valid));
   setting_dispatcher->add("voltageOutValue", std::make_shared<Setting_generic_handler<float>>(
@@ -456,7 +460,7 @@ int main()
       &Sam_i2c_eeprom_master::self_test_result,
       &Sam_i2c_eeprom_master::run_self_test));
 
-  setting_dispatcher->add("channelsCalibrationEnabled",
+  setting_dispatcher->add("calibrationDataEnabled",
     std::make_shared<Setting_generic_handler<bool>>(
       board,
       &Board::is_calibration_data_enabled,
