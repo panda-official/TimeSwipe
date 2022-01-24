@@ -202,18 +202,18 @@ public:
           "cannot set board IEPEs when measurement started"};
     }
 
-    const auto throw_exception = [](const std::string& msg)
+    // Define helper.
+    static const auto throw_exception = [](const std::string& msg)
     {
       throw Exception{Errc::board_settings_invalid, msg};
     };
 
-    // Copy settings for possible modifications.
-    rapidjson::Document doc;
-    doc.CopyFrom(settings.rep_->doc(), doc.GetAllocator());
+    // Get the document.
+    const auto& doc = settings.rep_->doc();
 
     /*
-     * Direct application of some settings (e.g. measurementStarted) are prohibited.
-     * Thus, check that `settings` contains only allowed members.
+     * Direct application of some settings (e.g. channelsAdcEnabled) are
+     * prohibited. Thus, check that `settings` contains only allowed members.
      */
     for (const auto& setting : doc.GetObject()) {
       const std::string name{setting.name.GetString(),
@@ -224,66 +224,8 @@ public:
           {
             return allowed == name;
           }))
-        throw_exception(std::string{"cannot set disallowed board setting: "}
-          .append(name));
-    }
-
-    /*
-     * Set the calibration settings. (It's would be nice to move the following
-     * code to the firmware. dmitigr::rajson isn't used in this code for more
-     * easy movement it to the firmware where exceptions should be avoided.)
-     */
-    if (const auto calib = doc.FindMember("calibration"); calib != doc.MemberEnd()) {
-      if (!calib->value.IsArray())
-        throw_exception("cannot set invalid calibration data: not JSON array");
-
-      // Check array elements (serialized atoms).
-      for (const auto& catom : calib->value.GetArray()) {
-        if (!catom.IsObject())
-          throw_exception("cannot set calibration atom: not JSON object");
-
-        if (const auto ctype = catom.FindMember("cAtom"); ctype != catom.MemberEnd()) {
-          using hat::atom::Calibration;
-          if (!ctype->value.IsUint())
-            throw_exception("cannot set invalid \"cAtom\" member of calibration atom");
-          else if (!to_literal(
-              Calibration::Type{static_cast<std::uint16_t>(ctype->value.GetUint())}))
-            throw_exception("cannot set invalid \"cAtom\" member of calibration atom");
-        } else
-          throw_exception("cannot find \"cAtom\" member of calibration atom");
-
-        if (const auto data = catom.FindMember("data"); data != catom.MemberEnd()) {
-          if (!data->value.IsArray())
-            throw_exception("cannot set \"data\" member of calibration atom: "
-              "not JSON array");
-
-          for (const auto& entry : data->value.GetArray()) {
-            const auto slope = entry.FindMember("m");
-            if (slope == entry.MemberEnd())
-              throw_exception("cannot find slope of calibration entry");
-            else if (!slope->value.IsFloat() || !slope->value.IsLosslessFloat())
-              throw_exception("cannot set calibration data entry: invalid slope");
-
-            const auto offset = entry.FindMember("b");
-            if (offset == entry.MemberEnd())
-              throw_exception("cannot find offset of calibration data entry");
-            else if (!offset->value.IsInt())
-              throw_exception("cannot set calibration data entry: invalid offset");
-          }
-        } else
-          throw_exception("cannot find \"data\" member of calibration data");
-      }
-
-      // Set the calibration settings.
-      for (const auto& catom : calib->value.GetArray())
-        spi_.execute_set_many(rajson::to_text(catom));
-
-      /*
-       * Clear calibration settings. (Would not need if this code will be moved
-       * to firmware.)
-       */
-      while (doc.FindMember("calibration") != doc.MemberEnd())
-        doc.RemoveMember("calibration");
+        throw_exception(std::string{"modification of "}.append(name)
+          .append(" board setting is prohibited"));
     }
 
     // Set the basic settings.
@@ -305,13 +247,13 @@ public:
     const auto calibration_settings = [this](rapidjson::Document::AllocatorType& alloc)
     {
       using Ct = hat::atom::Calibration::Type;
-      constexpr auto atom_types = {
+      constexpr Ct atom_types[] = {
         Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
         Ct::v_supply,
         Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
 
       rapidjson::Value result{rapidjson::kArrayType};
-      result.Reserve(atom_types.size(), alloc);
+      result.Reserve(sizeof(atom_types) / sizeof(*atom_types), alloc);
       for (const auto ct : atom_types) {
         const auto settings_request = R"({"cAtom":)" +
           std::to_string(static_cast<int>(ct)) + R"(})";

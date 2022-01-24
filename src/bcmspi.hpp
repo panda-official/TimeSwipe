@@ -277,12 +277,6 @@ public:
   {
     namespace rajson = dmitigr::rajson;
 
-    // Define helper.
-    static const auto throw_invalid_json_in_spi_response = []() [[noreturn]]
-    {
-      throw Exception{Errc::bug, "invalid JSON in SPI response"};
-    };
-
     // Receive.
     CFIFO fifo;
     if (!receive(fifo))
@@ -388,6 +382,11 @@ private:
     else
       bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
   }
+
+  [[noreturn]] static void throw_invalid_json_in_spi_response()
+  {
+    throw Exception{Errc::bug, "invalid JSON in SPI response"};
+  };
 };
 
 } // namespace panda::timeswipe::detail
