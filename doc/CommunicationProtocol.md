@@ -38,7 +38,7 @@ These settings are used to control board channels.
 |channel%AdcRaw|ADC measured value.        |[0,4095]         |r     |       |
 |channel%DacRaw|Offset on the input signal.|[0,4095]         |rw    |2048   |
 |channel%Mode  |Measurement mode.          |[0,1]            |rw    |0      |
-|channel%Gain  |Gain value.                |[.125, 128*1.375]|rw    |1      |
+|channel%Gain  |Gain value.                |[1, 1408]        |rw    |1      |
 |channel%Iepe  |IEPE?                      |bool             |rw    |false  |
 |channelsAdcEnabled|ADC measurement enabled?|bool            |rw    |false  |
 |channelsCalibrationValid|Calibration data valid?|bool       |r     |       |
