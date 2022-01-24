@@ -80,7 +80,7 @@ inline void set_error(rapidjson::Value& root, const Error& error,
 inline std::string to_text(const rapidjson::Value& value)
 {
   rapidjson::StringBuffer buf;
-  rapidjson::Writer writer{buf};
+  rapidjson::Writer<decltype(buf)> writer{buf}; // decltype() is a workaround for GCC 7
   writer.SetMaxDecimalPlaces(3);
   return value.Accept(writer) ? std::string{buf.GetString(), buf.GetSize()} :
     std::string{};
