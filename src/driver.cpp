@@ -145,7 +145,7 @@ public:
 
   int version() const override
   {
-    return detail::version;
+    return detail::driver_version;
   }
 
   int min_sample_rate() const override

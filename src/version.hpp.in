@@ -21,20 +21,43 @@
 
 namespace panda::timeswipe::detail {
 
-/// Current major version.
-constexpr int version_major{@PROJECT_VERSION_MAJOR@};
-static_assert(0 <= version_major && version_major <= 99);
+/// Current major driver version.
+constexpr int driver_version_major{@driver_version_major@};
+static_assert(0 <= driver_version_major && driver_version_major <= 99);
 
-/// Current minor version.
-constexpr int version_minor{@PROJECT_VERSION_MINOR@};
-static_assert(0 <= version_minor && version_minor <= 99);
+/// Current minor driver version.
+constexpr int driver_version_minor{@driver_version_minor@};
+static_assert(0 <= driver_version_minor && driver_version_minor <= 99);
 
-/// Current patch version.
-constexpr int version_patch{@PROJECT_VERSION_PATCH@};
-static_assert(0 <= version_patch && version_patch <= 99);
+/// Current patch driver version.
+constexpr int driver_version_patch{@driver_version_patch@};
+static_assert(0 <= driver_version_patch && driver_version_patch <= 99);
 
-/// Current version.
-constexpr int version{version_major*10000 + version_minor*100 + version_patch};
+/// Current driver version.
+constexpr int driver_version{driver_version_major*10000 +
+  driver_version_minor*100 + driver_version_patch};
+
+// -----------------------------------------------------------------------------
+
+/// Current major firmware version.
+constexpr int firmware_version_major{@firmware_version_major@};
+static_assert(0 <= firmware_version_major && firmware_version_major <= 99);
+
+/// Current minor firmware version.
+constexpr int firmware_version_minor{@firmware_version_minor@};
+static_assert(0 <= firmware_version_minor && firmware_version_minor <= 99);
+
+/// Current patch firmware version.
+constexpr int firmware_version_patch{@firmware_version_patch@};
+static_assert(0 <= firmware_version_patch && firmware_version_patch <= 99);
+
+/// Current firmware version.
+constexpr int firmware_version{firmware_version_major*10000 +
+  firmware_version_minor*100 + firmware_version_patch};
+
+// -----------------------------------------------------------------------------
+
+static_assert(driver_version_major == firmware_version_major);
 
 } // namespace panda::timeswipe::detail
 

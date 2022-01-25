@@ -1,8 +1,8 @@
 Package: panda-timeswipe-driver
-Version: @PROJECT_VERSION@
+Version: @driver_version@
 Section: base
 Priority: optional
 Architecture: all
 Depends:
 Maintainer: Dmitry Igrishin <dmitigr@gmail.com>
-Description: Panda GmbH TimeSwipe Driver
+Description: Panda Timeswipe Driver

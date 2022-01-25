@@ -420,9 +420,10 @@ int main()
   setting_dispatcher->add("armId", std::make_shared<Setting_generic_handler<std::string>>(
       &CSamService::GetSerialString));
 
-  const auto version = std::make_shared<CSemVer>(detail::version_major,
-    detail::version_minor, detail::version_patch);
-  setting_dispatcher->add("firmwareVersion", std::make_shared<Setting_generic_handler<std::string>>(
+  const auto version = std::make_shared<CSemVer>(detail::firmware_version_major,
+    detail::firmware_version_minor, detail::firmware_version_patch);
+  setting_dispatcher->add("firmwareVersion",
+    std::make_shared<Setting_generic_handler<std::string>>(
       version,
       &CSemVer::GetVersionString));
 

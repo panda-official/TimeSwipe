@@ -107,8 +107,17 @@ set(CMAKE_TOOLCHAIN_FILE "cmake/arm.cmake" CACHE PATH
 # Project
 # ------------------------------------------------------------------------------
 
-file(STRINGS .version version
+# Read software versions.
+file(STRINGS .driver_version driver_version
   LENGTH_MINIMUM 5 LENGTH_MAXIMUM 8 LIMIT_COUNT 1) # ab.cd.ef
+file(STRINGS .firmware_version firmware_version
+  LENGTH_MINIMUM 5 LENGTH_MAXIMUM 8 LIMIT_COUNT 1) # ab.cd.ef
+
+# Parse software versions.
+foreach(software driver firmware)
+  dmitigr_get_version(${${software}_version}
+    ${software}_version_major ${software}_version_minor ${software}_version_patch)
+endforeach()
 
 # The `software` variable is a helper for substitution/interpolation.
 if(PANDA_TIMESWIPE_FIRMWARE)
@@ -128,9 +137,9 @@ else()
 endif()
 
 project(panda_timeswipe
-  DESCRIPTION "Timeswipe driver"
+  DESCRIPTION "Panda Timeswipe"
   HOMEPAGE_URL https://github.com/panda-official/TimeSwipe
-  VERSION ${version}
+  VERSION ${${software}_version_major} # Only major version sensible here.
 )
 
 if(CMAKE_CROSSCOMPILING)
@@ -169,6 +178,11 @@ endif()
 # ------------------------------------------------------------------------------
 # Targets
 # ------------------------------------------------------------------------------
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp"
+  @ONLY
+  NEWLINE_STYLE UNIX)
 
 if(PANDA_TIMESWIPE_FIRMWARE)
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
@@ -415,11 +429,6 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   # ----------------
   # timeswipe target
   # ----------------
-
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp"
-    @ONLY
-    NEWLINE_STYLE UNIX)
 
   set(timeswipe_src
     src/driver.cpp

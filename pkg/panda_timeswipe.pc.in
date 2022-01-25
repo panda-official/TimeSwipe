@@ -4,8 +4,8 @@ libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: panda-timeswipe-driver
-Description: Panda GmbH TimeSwipe Driver
-Version: @PROJECT_VERSION@
+Description: Panda Timeswipe Driver
+Version: @driver_version@
 
 Requires:
 Libs: -L${libdir} -ltimeswipe -lpthread -latomic
