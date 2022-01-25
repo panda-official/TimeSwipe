@@ -77,6 +77,12 @@ public:
    */
   explicit Board_settings(std::string_view json_text);
 
+  /// @returns The vector of setting names.
+  std::vector<std::string> names() const;
+
+  /// @returns The vector of setting names which cannot be applied directly.
+  std::vector<std::string> inapplicable_names() const;
+
   /// Swaps this instance with the `other` one.
   void swap(Board_settings& other) noexcept;
 
@@ -278,6 +284,9 @@ private:
   friend detail::iDriver;
 
   struct Rep;
+
+  explicit Board_settings(std::unique_ptr<Rep> rep);
+
   std::unique_ptr<Rep> rep_;
 };
 

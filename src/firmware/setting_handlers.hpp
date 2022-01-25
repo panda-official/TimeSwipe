@@ -58,7 +58,10 @@ public:
       if (!input_v.IsArray() || input_v.Empty())
         return error("invalid calibration data");
 
-      // Check the input calibration data and copy it to the `map`.
+      /*
+       * Check the input calibration data and copy it to the `map`.
+       * "calibrationData":[{"type":%, "data":[{"slope":%, "offset":%},...]},...]
+       */
       for (const auto& catom_v : input_v.GetArray()) {
         if (!catom_v.IsObject())
           return error("invalid calibration atom");

@@ -158,9 +158,9 @@ public:
 
   /**
    * @param criteria One of the following:
-   *   - empty or `all` - all the board settings;
-   *   - `basic` - only basic settings;
-   *   - `calibration` - only calibration settings.
+   *   - `all` (or empty) - all the board settings;
+   *   - `basic` - subset of `all`, excluding `calibrationData`;
+   *   - any setting name, such as `calibrationData`.
    *
    * @returns The board-level settings.
    *

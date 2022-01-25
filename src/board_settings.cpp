@@ -40,8 +40,8 @@ struct Board_settings::Rep final {
   Rep()
   {}
 
-  explicit Rep(const std::string_view json_text) try
-    : doc_{rajson::to_document(json_text)}
+  explicit Rep(rapidjson::Document doc) try
+    : doc_{std::move(doc)}
   {
     // Convert to object if NULL passed.
     if (doc_.IsNull())
@@ -84,14 +84,19 @@ struct Board_settings::Rep final {
       apply(check_pwm_repeat_count, pwm_repeat_counts());
       apply(check_pwm_duty_cycle, pwm_duty_cycles());
     }
+  } catch (const std::exception& e) {
+    throw Exception{Errc::board_settings_invalid,
+      std::string{"invalid board settings: "}.append(e.what())};
+  }
+
+  explicit Rep(const std::string_view json_text) try
+    : Rep{rajson::to_document(json_text)}
+  {
   } catch (const rajson::Parse_exception& e) {
     throw Exception{Errc::board_settings_invalid,
       std::string{"cannot parse board settings: error near position "}
         .append(std::to_string(e.parse_result().Offset())).append(": ")
         .append(e.what())};
-  } catch (const std::exception& e) {
-    throw Exception{Errc::board_settings_invalid,
-      std::string{"invalid board settings: "}.append(e.what())};
   }
 
   Rep(const Rep& rhs)
@@ -109,6 +114,56 @@ struct Board_settings::Rep final {
   Rep(Rep&&) = default;
 
   Rep& operator=(Rep&&) = default;
+
+  std::vector<std::string> names() const
+  {
+    std::vector<std::string> result;
+    using std::to_string;
+
+    // analogOut
+    for (int i{3}; i <= 4; ++i)
+      result.push_back(std::string{"analogOut"}.append(to_string(i)).append("DacRaw"));
+    result.push_back("analogOutsDacEnabled");
+
+    // calibration
+    for (const char* const name : {"Data", "DataEnabled", "DataValid"})
+      result.push_back(std::string{"calibration"}.append(name));
+
+    // channel
+    for (const char* const name : {"AdcRaw", "DacRaw", "Gain", "Iepe", "Mode",
+        "Color"}) {
+      for (int i{1}; i <= mcc_; ++i)
+        result.push_back(std::string{"channel"}.append(to_string(i)).append(name));
+    }
+    result.push_back("channelsAdcEnabled");
+
+    // fan
+    for (const char* const name : {"Enabled", "DutyCycle", "Frequency"})
+      result.push_back(std::string{"fan"}.append(name));
+
+    // pwm
+    for (const char* const name : {"Enabled", "DutyCycle", "Frequency",
+        "HighBoundary", "LowBoundary", "RepeatCount"}) {
+      for (int i{1}; i <= mpc_; ++i)
+        result.push_back(std::string{"pwm"}.append(to_string(i)).append(name));
+    }
+
+    // voltageOut
+    for (const char* const name : {"Raw", "Value", "Enabled"})
+      result.push_back(std::string{"voltageOut"}.append(name));
+
+    // misc
+    for (const char* const name : {"armId", "eepromTest", "firmwareVersion",
+        "temperature"})
+      result.push_back(name);
+
+    return result;
+  }
+
+  std::vector<std::string> inapplicable_names() const
+  {
+    return {"channelsAdcEnabled"};
+  }
 
   void swap(Rep& rhs) noexcept
   {
@@ -481,6 +536,12 @@ Board_settings& Board_settings::operator=(Board_settings&& rhs)
   return *this;
 }
 
+Board_settings::Board_settings(std::unique_ptr<Rep> rep)
+  : rep_{std::move(rep)}
+{
+  PANDA_TIMESWIPE_ASSERT(rep_);
+}
+
 Board_settings::Board_settings()
   : rep_{std::make_unique<Rep>()}
 {}
@@ -488,6 +549,16 @@ Board_settings::Board_settings()
 Board_settings::Board_settings(const std::string_view stringified_json)
   : rep_{std::make_unique<Rep>(stringified_json)}
 {}
+
+std::vector<std::string> Board_settings::names() const
+{
+  return rep_->names();
+}
+
+std::vector<std::string> Board_settings::inapplicable_names() const
+{
+  return rep_->inapplicable_names();
+}
 
 void Board_settings::swap(Board_settings& other) noexcept
 {

@@ -107,7 +107,7 @@ public:
    * @throws An instance of Exception with either `Errc::spi_send_failed`
    * or `Errc::spi_receive_failed`.
    */
-  rapidjson::Document execute(const std::string& request)
+  rapidjson::Document execute(const std::string_view request)
   {
     send_throw(request);
     return receive_throw();
@@ -118,9 +118,10 @@ public:
    *
    * @throws See execute().
    */
-  rapidjson::Document execute_set_one(const std::string& name, const std::string& value)
+  rapidjson::Document execute_set(const std::string_view name,
+    const std::string_view json)
   {
-    return execute(name + "<" + value + "\n");
+    return execute(std::string{name}.append("<").append(json).append("\n"));
   }
 
   /**
@@ -128,29 +129,9 @@ public:
    *
    * @throws See execute().
    */
-  rapidjson::Document execute_get_one(const std::string& name)
+  rapidjson::Document execute_get(const std::string_view name)
   {
-    return execute(name + ">\n");
-  }
-
-  /**
-   * @brief Executes the SPI "set many" request.
-   *
-   * @throws See execute().
-   */
-  rapidjson::Document execute_set_many(const std::string& json_object)
-  {
-    return execute("all<" + json_object + "\n");
-  }
-
-  /**
-   * @brief Executes the SPI "get many" request.
-   *
-   * @throws See execute().
-   */
-  rapidjson::Document execute_get_many(const std::string& json_object)
-  {
-    return execute("all>" + json_object + "\n");
+    return execute(std::string{name}.append(">\n"));
   }
 
   // ---------------------------------------------------------------------------
@@ -213,51 +194,11 @@ public:
   }
 
   /**
-   * @brief Sends the SPI "set one" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_set_one(const std::string& name, const std::string& value)
-  {
-    send_throw(name + "<" + value + "\n");
-  }
-
-  /**
-   * @brief Sends the SPI "get one" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_get_one(const std::string& name)
-  {
-    send_throw(name + ">\n");
-  }
-
-  /**
-   * @brief Sends the SPI "set many" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_set_many(const std::string& json_object)
-  {
-    send_throw("all<" + json_object + "\n");
-  }
-
-  /**
-   * @brief Sends the SPI "get many" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_get_many(const std::string& json_array)
-  {
-    send_throw("all>" + json_array + "\n");
-  }
-
-  /**
    * @brief Sends the SPI `request`.
    *
    * @throws An Exception with Errc::spi_send_failed.
    */
-  void send_throw(const std::string& request)
+  void send_throw(const std::string_view request)
   {
     CFIFO fifo;
     fifo += request;

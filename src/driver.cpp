@@ -73,7 +73,6 @@ public:
     , translation_offsets_(max_channel_count())
     , translation_slopes_(max_channel_count())
     , burst_buffer_(max_channel_count())
-    , allowed_modifiable_board_settings_(allowed_modifiable_board_settings())
   {}
 
   iDriver& initialize() override
@@ -211,73 +210,31 @@ public:
     // Get the document.
     const auto& doc = settings.rep_->doc();
 
-    /*
-     * Direct application of some settings (e.g. channelsAdcEnabled) are
-     * prohibited. Thus, check that `settings` contains only allowed members.
-     */
+    // Direct application of some settings are prohibited.
+    const auto prohibited = settings.inapplicable_names();
     for (const auto& setting : doc.GetObject()) {
       const std::string name{setting.name.GetString(),
         setting.name.GetStringLength()};
-      if (none_of(cbegin(allowed_modifiable_board_settings_),
-          cend(allowed_modifiable_board_settings_),
-          [name = dmitigr::str::to_lowercase(name)](const auto& allowed)
+      if (any_of(cbegin(prohibited), cend(prohibited),
+          [name](const auto& prohibited_name)
           {
-            return allowed == name;
+            return name == prohibited_name;
           }))
-        throw_exception(std::string{"modification of "}.append(name)
+        throw_exception(std::string{"direct application of "}.append(name)
           .append(" board setting is prohibited"));
     }
 
-    // Set the basic settings.
-    spi_.execute_set_many(rajson::to_text(doc));
+    // Attempt to apply.
+    spi_.execute_set("all", rajson::to_text(doc));
     return *this;
   }
 
-  Board_settings board_settings(const std::string_view criteria={}) const override
+  Board_settings board_settings(std::string_view criteria={}) const override
   {
-    /// @returns RapidJSON object with basic settings.
-    const auto basic_settings = [this]
-    {
-      auto result = spi_.execute_get_many("");
-      PANDA_TIMESWIPE_ASSERT(result.IsObject());
-      return result;
-    };
-
-    /// @returns RapidJSON array with calibration map.
-    const auto calibration_settings = [this](rapidjson::Document::AllocatorType& alloc)
-    {
-      using Ct = hat::atom::Calibration::Type;
-      constexpr Ct atom_types[] = {
-        Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
-        Ct::v_supply,
-        Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
-
-      rapidjson::Value result{rapidjson::kArrayType};
-      result.Reserve(sizeof(atom_types) / sizeof(*atom_types), alloc);
-      for (const auto ct : atom_types) {
-        const auto settings_request = R"({"cAtom":)" +
-          std::to_string(static_cast<int>(ct)) + R"(})";
-        const auto doc = spi_.execute_get_many(settings_request);
-        result.PushBack(rapidjson::Value{doc, alloc}, alloc);
-      }
-      return result;
-    };
-
-    if (criteria.empty() || criteria == "all") {
-      auto result = basic_settings();
-      auto& alloc = result.GetAllocator();
-      result.AddMember("calibration", calibration_settings(alloc), alloc);
-      return Board_settings{rajson::to_text(result)};
-    } else if (criteria == "calibration") {
-      rapidjson::Document result{rapidjson::kObjectType};
-      auto& alloc = result.GetAllocator();
-      result.AddMember("calibration", calibration_settings(alloc), alloc);
-      return Board_settings{rajson::to_text(result)};
-    } else if (criteria == "basic")
-      return Board_settings{rajson::to_text(basic_settings())};
-    else
-      throw Exception{Errc::board_settings_invalid,
-        "cannot get board settings using invalid criteria"};
+    if (criteria.empty())
+      criteria = "all";
+    auto doc = spi_.execute_get(criteria);
+    return Board_settings{std::make_unique<Board_settings::Rep>(std::move(doc))};
   }
 
   iDriver& set_driver_settings(const Driver_settings& settings) override
@@ -332,24 +289,25 @@ public:
       using hat::atom::Calibration;
       hat::Calibration_map result;
       const auto& doc = bs.rep_->doc();
-      const auto calib = doc.FindMember("calibration");
+      const auto calib = doc.FindMember("calibrationData");
       PANDA_TIMESWIPE_ASSERT(calib != doc.MemberEnd());
       try {
-        for (const auto& catom : calib->value.GetArray()) {
-          rajson::Value_view catom_view{catom};
+        // "calibrationData":[{"type":%, "data":[{"slope":%, "offset":%},...]},...]
+        for (const auto& catom_v : calib->value.GetArray()) {
+          rajson::Value_view catom_view{catom_v};
 
           // Get the calibration atom type.
-          const auto ctype = catom_view.mandatory<Calibration::Type>("cAtom");
+          const auto type = catom_view.mandatory<Calibration::Type>("type");
 
           // Check that data member is array.
           const auto& catom_data_view = catom_view.mandatory("data");
           if (!catom_data_view.value().IsArray())
             throw Exception{"data member is not array"};
 
-          // Get the data array and ensure it has a proper size.
+          // Get the data array and ensure it has the proper size.
           const auto& catom_data = catom_data_view.value().GetArray();
           const auto catom_data_size = catom_data.Size();
-          if (catom_data_size != result.atom(ctype).entry_count())
+          if (catom_data_size != result.atom(type).entry_count())
             throw Exception{"invalid data member size"};
 
           // Extract each entry with slope and offset from the data array.
@@ -359,10 +317,10 @@ public:
               throw Exception{"data entry is not object"};
 
             rajson::Value_view catom_data_entry_view{catom_data_entry};
-            const auto slope = catom_data_entry_view.mandatory<float>("m");
-            const auto offset = catom_data_entry_view.mandatory<std::int16_t>("b");
+            const auto slope = catom_data_entry_view.mandatory<float>("slope");
+            const auto offset = catom_data_entry_view.mandatory<std::int16_t>("offset");
             const Calibration::Entry entry{slope, offset};
-            result.atom(ctype).set_entry(i, entry);
+            result.atom(type).set_entry(i, entry);
           }
         }
       } catch (const std::exception& e) {
@@ -634,7 +592,6 @@ private:
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
   Driver_settings driver_settings_;
-  const std::vector<std::string> allowed_modifiable_board_settings_;
   std::unique_ptr<Resampler> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
@@ -925,7 +882,7 @@ private:
 
   void spi_set_channels_adc_enabled(const bool value)
   {
-    spi_.execute_set_one("channelsAdcEnabled", std::to_string(value));
+    spi_.execute_set("channelsAdcEnabled", std::to_string(value));
   }
 
   // -----------------------------------------------------------------------------
@@ -1165,24 +1122,6 @@ private:
       throw Exception{errc, "cannot collect channels data"};
 
     return result;
-  }
-
-  /// @returns The vector of allowed modifiable board settings.
-  std::vector<std::string> allowed_modifiable_board_settings() const
-  {
-    return {"aout3.raw","aout4.raw",
-      "dac1.raw","dac2.raw","dac3.raw","dac4.raw","dacsw",
-      "ch1.clr","ch1.gain","ch1.iepe","ch1.mode",
-      "ch2.clr","ch2.gain","ch2.iepe","ch2.mode",
-      "ch3.clr","ch3.gain","ch3.iepe","ch3.mode",
-      "ch4.clr","ch4.gain","ch4.iepe","ch4.mode",
-      "pwm1","pwm1.duty","pwm1.freq","pwm1.high","pwm1.low","pwm1.repeats",
-      "pwm2","pwm2.duty","pwm2.freq","pwm2.high","pwm2.low","pwm2.repeats",
-      "fan","fan.freq",
-      "calenable","current","maxcurrent",
-      "bridge","offset","offset.errtol",
-      "vsup.raw", "voltage",
-      "eepromtest","uitest"};
   }
 
   /// @returns Path to directory for temporary files.
