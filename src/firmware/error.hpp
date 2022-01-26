@@ -23,7 +23,6 @@
 #define PANDA_TIMESWIPE_FIRMWARE_ERROR_HPP
 
 #include "../error.hpp"
-using panda::timeswipe::detail::Error; // FIXME: remove
-using panda::timeswipe::detail::Error_or; // FIXME: remove
+using namespace panda::timeswipe::detail; // FIXME: remove
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_ERROR_HPP

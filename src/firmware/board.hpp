@@ -290,10 +290,16 @@ public:
     return adc_measurement_enable_pin_->read_back();
   }
 
-  /// @returns `true` if the cached calibration data is valid.
-  bool is_calibration_data_valid() const noexcept
+  /// @returns The error of last application of a calibration data.
+  Error_result calibration_data_apply_error() const noexcept
   {
-    return !calibration_data().error;
+    return Error_result{calibration_data_apply_error_};
+  }
+
+  /// @returns The error of last interaction with EEPROM.
+  Error_result calibration_data_eeprom_error() const noexcept
+  {
+    return Error_result{calibration_data_eeprom_error_};
   }
 
   /**
@@ -405,6 +411,8 @@ private:
   std::shared_ptr<ISerial> eeprom_bus_; // for read/write external EEPROM
   bool is_settings_imported_{};
   bool is_calibration_data_enabled_{};
+  Error calibration_data_apply_error_;
+  Error calibration_data_eeprom_error_;
   bool is_bridge_enabled_{}; // persistent
   int gain_{1}; // persistent
   int secondary_{}; // persistent
@@ -428,9 +436,8 @@ private:
   /**
    * @brief Applies the current calibration map to board ADCs/DACs.
    *
-   * @param is_fallback If `true` then when `!is_calibration_data_valid()` the
-   * hardcoded default calibration data will be applied instead of returning
-   * an Error.
+   * @param is_fallback If `true` then when `!calibration_data()`, the hardcoded
+   * default calibration data will be applied instead of returning an Error.
    */
   Error apply_calibration_data(bool is_fallback) noexcept;
 };

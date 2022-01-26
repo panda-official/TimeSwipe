@@ -86,6 +86,10 @@ inline std::string to_text(const rapidjson::Value& value)
     std::string{};
 }
 
+// -----------------------------------------------------------------------------
+// Json_value_view
+// -----------------------------------------------------------------------------
+
 /// A JSON value view.
 class Json_value_view final {
 public:
@@ -280,6 +284,23 @@ Error set(Json_value_view& view, const std::optional<T>& value)
     return set(view, *value);
   else
     return set(view, std::nullopt);
+}
+
+// -----------------------------------------------------------------------------
+// Conversions for Error_result
+// -----------------------------------------------------------------------------
+
+/// Gets `mode` from the `view`.
+inline Error get(const Json_value_view& view, Error_result& error)
+{
+  return Errc::not_implemented;
+}
+
+/// Sets `error` to the `view`.
+inline Error set(Json_value_view& view, const Error_result& error)
+{
+  set_error(view.value_ref(), error, view.alloc_ref());
+  return {};
 }
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_JSON_HPP

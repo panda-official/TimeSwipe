@@ -438,10 +438,14 @@ int main()
       &Board::enable_channels_adc));
   setting_dispatcher->add("calibrationData",
     std::make_shared<Calibration_data_handler>());
-  setting_dispatcher->add("calibrationDataValid",
-    std::make_shared<Setting_generic_handler<bool>>(
+  setting_dispatcher->add("calibrationDataApplyError",
+    std::make_shared<Setting_generic_handler<Error_result>>(
       board,
-      &Board::is_calibration_data_valid));
+      &Board::calibration_data_apply_error));
+  setting_dispatcher->add("calibrationDataEepromError",
+    std::make_shared<Setting_generic_handler<Error_result>>(
+      board,
+      &Board::calibration_data_eeprom_error));
   setting_dispatcher->add("voltageOutValue", std::make_shared<Setting_generic_handler<float>>(
       board,
       &Board::voltage,

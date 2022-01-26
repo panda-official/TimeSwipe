@@ -29,10 +29,11 @@ void Board::set_eeprom_handles(const std::shared_ptr<ISerial>& bus,
   const std::shared_ptr<CFIFO>& buf)
 {
   // Initialize EEPROM cache.
-  auto err = eeprom_cache_.set_buf(buf);
-  if (err && buf)
-    err = eeprom_cache_.reset();
-  PANDA_TIMESWIPE_ASSERT(!err);
+  calibration_data_eeprom_error_ = eeprom_cache_.set_buf(buf);
+  if (calibration_data_eeprom_error_ && buf) {
+    const auto err = eeprom_cache_.reset();
+    PANDA_TIMESWIPE_ASSERT(!err);
+  }
 
   // Initialize bus.
   eeprom_bus_ = bus;
@@ -54,13 +55,14 @@ Error Board::apply_calibration_data(const bool is_fallback) noexcept
     hat::atom::Calibration atom{Ct::v_supply, 1};
     if (is_calibration_data_enabled_) {
       if (const auto [err, map] = calibration_data(); err) {
+        calibration_data_apply_error_ = err;
         if (!is_fallback)
           return err;
       } else
         atom = map.atom(Ct::v_supply);
     }
     if (atom.entry_count() != 1) // exactly 1 entry per specification
-      return Errc::hat_eeprom_data_corrupted;
+      return calibration_data_apply_error_ = Errc::hat_eeprom_data_corrupted;
     const auto& entry = atom.entry(0);
     voltage_dac_->set_linear_factors(entry.slope(), entry.offset());
   }
@@ -69,7 +71,7 @@ Error Board::apply_calibration_data(const bool is_fallback) noexcept
   for (auto& channel : channels_)
     channel->update_offsets(); // is_fallback is always `true` here
 
-  return {};
+  return calibration_data_apply_error_ = {};
 }
 
 Error Board::set_calibration_data(const hat::Calibration_map& map) noexcept
@@ -84,9 +86,9 @@ Error Board::set_calibration_data(const hat::Calibration_map& map) noexcept
 
   // Update EEPROM.
   if (!eeprom_bus_->send(*eeprom_cache_.buf()))
-    return Errc::hat_eeprom_unavailable;
+    return calibration_data_eeprom_error_ = Errc::hat_eeprom_unavailable;
 
-  return {};
+  return calibration_data_eeprom_error_ = {};
 }
 
 Error_or<hat::Calibration_map> Board::calibration_data() const noexcept

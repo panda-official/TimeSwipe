@@ -33,11 +33,12 @@ to control these analog outputs via `analogOut%DacRaw` settings.
 
 These settings are used to control the board calibration data.
 
-|Name                  |Description              |Range|Access|Default|
-|:---------------------|:------------------------|:----|:-----|:------|
-|calibrationData       |Calibration data         |JSON |rw    |       |
-|calibrationDataEnabled|Calibration data enabled?|bool |rw    |false  |
-|calibrationDataValid  |Calibration data valid?  |bool |r     |       |
+|Name                      |Description                       |Range|Access|Default|
+|:-------------------------|:---------------------------------|:----|:-----|:------|
+|calibrationData           |Calibration data                  |JSON |rw    |       |
+|calibrationDataEnabled    |Calibration data enabled?         |bool |rw    |false  |
+|calibrationDataApplyError |Calibration data last apply error |JSON |r     |       |
+|calibrationDataEepromError|Calibration data last EEPROM error|JSON |r     |       |
 
 #### Details
 
