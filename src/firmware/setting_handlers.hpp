@@ -52,7 +52,8 @@ public:
     switch (request.type) {
     case Setting_request_type::write:
 #ifndef CALIBRATION_STATION
-      return Error{board_settings_write_forbidden, "device is not calibration station"};
+      return Error{Errc::board_settings_write_forbidden,
+        "device is not calibration station"};
 #endif
       // Precheck the input calibration data.
       if (!input_v.IsArray() || input_v.Empty())
