@@ -276,13 +276,6 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     rgbacol.h
     )
 
-  set(json_src
-    json_base.cpp
-    json_base.h
-    json_evsys.cpp
-    json_evsys.h
-    )
-
   set(led_src
     Adafruit_NeoPixel_stub.cpp
     nodeLED.cpp
@@ -355,7 +348,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     shiftreg.hpp
     timer.h)
   list(TRANSFORM firmware_src PREPEND src/firmware/)
-  foreach(dep base control json led misc sam)
+  foreach(dep base control led misc sam)
     list(TRANSFORM ${dep}_src PREPEND src/firmware/${dep}/)
     list(APPEND firmware_src ${${dep}_src})
   endforeach()

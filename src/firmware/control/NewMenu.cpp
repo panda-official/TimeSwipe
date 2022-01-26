@@ -87,7 +87,6 @@ void CNewMenu::handle_state(const Button_state state)
         switch(state)
         {
             case Button_state::short_click:
-                Board::instance().start_record();
                 v.SetRecordMarker();
             return;
 

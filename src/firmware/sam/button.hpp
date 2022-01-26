@@ -20,7 +20,8 @@
 #define PANDA_TIMESWIPE_FIRMWARE_SAM_BUTTON_HPP
 
 #include "../pin_button.hpp"
-#include "../json/json_evsys.h"
+
+#include <memory>
 
 /**
  * @brief Panda board button.
@@ -28,7 +29,7 @@
  * @details This class follows the Singleton design pattern. Emits JSON event
  * according to the button state.
  */
-class Sam_button final : public Pin_button<Sam_button>, public CJSONEvCP {
+class Sam_button final : public Pin_button<Sam_button> {
 public:
   /// Non copy-constructible.
   Sam_button(const Sam_button&) = delete;

@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_CHANNEL_HPP
 
 #include "adcdac.hpp"
+#include "json.hpp"
 #include "control/DataVis.h"
 
 #include "../basics.hpp"

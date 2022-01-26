@@ -468,14 +468,6 @@ int main()
       &Board::enable_calibration_data));
 #endif
 
-  //------------------JSON EVENTS-------------------
-  auto pJE=std::make_shared<CJSONEvDispatcher>(setting_dispatcher);
-  setting_dispatcher->add("je", pJE);
-  button.CJSONEvCP::AdviseSink(pJE);
-  Board::instance().AdviseSink(pJE);
-  //--------------------------------------------------------------------------------------------------------------
-
-
   /*
    * Board::import_settings() activates the persistent
    * storage handling which is currently broken!

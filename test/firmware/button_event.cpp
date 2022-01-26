@@ -10,16 +10,13 @@ Copyright (c) 2019-2021 Panda Team
 #include "../../src/firmware/settings.hpp"
 #include "../../src/firmware/timer.h"
 #include "../../src/firmware/base/SPIcomm.h"
-#include "../../src/firmware/json/json_evsys.h"
 #include "../../src/firmware/led/nodeLED.h"
 #include "../../src/firmware/sam/button.hpp"
 #include "../../src/firmware/sam/SamService.h"
 #include "../../src/firmware/sam/system_clock.hpp"
 
 class CButtonLogic final : public CTimerEvent
-                         , public Button_event
-                         , public IJSONEvent
-                         , public CJSONEvCP {
+                         , public Button_event {
 public:
   static constexpr typeLEDcol MAIN_COLOR = LEDrgb(0x32, 0x97, 0xF7);
   static constexpr typeLEDcol RECORDING_COLOR = LEDrgb(0xFF, 0x40, 0x81);
@@ -39,9 +36,6 @@ public:
   }
 
   void OnTimer(int) override
-  {}
-
-  void on_event(const char*, rapidjson::Value&) override
   {}
 
 protected:
@@ -80,17 +74,6 @@ int main(void)
     //example command:
     pDisp->add("ARMID", std::make_shared<Setting_generic_handler<std::string>>(
         &CSamService::GetSerialString));
-
-    //----------------menu+button----------------
-    auto pMenu=std::make_shared<CButtonLogic>();
-    Sam_button::instance().AdviseSink(pMenu);
-
-    //------------------EVENTS-------------------
-    auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
-    pDisp->add("je", pJE);
-    pMenu->AdviseSink(pJE);
-    //--------------------------------------------------------------------------------------------------------------
-
 
     while(1) //endless loop
       {

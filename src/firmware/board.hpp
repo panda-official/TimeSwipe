@@ -27,7 +27,6 @@
 #include "pin.hpp"
 #include "base/RawBinStorage.h"
 #include "control/zerocal_man.h"
-#include "json/json_evsys.h"
 
 #include <memory>
 
@@ -40,8 +39,7 @@ using namespace panda::timeswipe::detail;
  * @details This class follows the Singleton design pattern. Emits JSON event
  * on each change of the board settings and receives such events from others.
  */
-class Board final : public CJSONEvCP
-                  , public ISerialize
+class Board final : public ISerialize
                   , public std::enable_shared_from_this<Board> {
 public:
   /// The possible values for IEPE measure modes.
@@ -180,19 +178,6 @@ public:
   void reset_settings()
   {
     raw_bin_storage_.SetDefaults();
-  }
-
-  /// Sets a random 32-bit color value as a new record stamp.
-  [[deprecated]] void start_record(bool unused = true);
-
-  /**
-   * @returns The value that was set by start_record().
-   *
-   * @deprecated Kept just for compatibility with previous versions.
-   */
-  [[deprecated]] bool is_record_started() const noexcept
-  {
-    return false;
   }
 
   /// Sets the board's amplifier gain.

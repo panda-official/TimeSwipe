@@ -123,12 +123,6 @@ void Board::update()
   offset_search_.Update();
 }
 
-void Board::start_record(bool)
-{
-  rapidjson::Value v{record_count_++};
-  Fire_on_event("Record", v);
-}
-
 int Board::set_gain_out(const int val)
 {
   // Update gains for all channels.
@@ -143,10 +137,6 @@ int Board::set_gain_out(const int val)
     gain0_pin_->write(gset&1);
   }
 
-  // Emit the event.
-  rapidjson::Value v{val};
-  Fire_on_event("Gain", v);
-
   return val;
 }
 
@@ -158,10 +148,6 @@ void Board::enable_bridge(const bool enabled)
     PANDA_TIMESWIPE_ASSERT(ubr_pin_);
     ubr_pin_->write(enabled);
   }
-
-  // Emit the event.
-  rapidjson::Value v{enabled};
-  Fire_on_event("voltageOutEnabled", v);
 }
 
 void Board::set_measurement_mode(const int mode)
@@ -183,10 +169,6 @@ void Board::set_measurement_mode(const int mode)
     channel->set_iepe(measurement_mode_ == MesModes::IEPE);
 
   set_secondary_measurement_mode(measurement_mode_);
-
-  // Emit the event.
-  rapidjson::Value v{mode};
-  Fire_on_event("Mode", v);
 }
 
 void Board::start_offset_search(int how)
@@ -206,6 +188,4 @@ void Board::start_offset_search(int how)
     offset_search_.StopReset();
     return;
   }
-  rapidjson::Value v{how};
-  Fire_on_event("Offset", v);
 }

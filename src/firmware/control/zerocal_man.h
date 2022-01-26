@@ -14,7 +14,6 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include "../adcdac.hpp"
-#include "../json/json_evsys.h"
 #include "ADpointSearch.h"
 #include "../Storage.h"
 #include "View.h"

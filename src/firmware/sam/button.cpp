@@ -67,11 +67,6 @@ void Sam_button::do_on_state_changed(const Button_state state)
   if (extra_handler_)
     extra_handler_->handle_state(state);
 
-  if (state == Button_state::pressed || state == Button_state::released) {
+  if (state == Button_state::pressed || state == Button_state::released)
     ++total_state_count_;
-    rapidjson::Value v{Button_state::pressed == state};
-    rapidjson::Value stcnt{std::uint64_t{total_state_count_}};
-    Fire_on_event("Button", v);
-    Fire_on_event("ButtonStateCnt", stcnt);
-  }
 }

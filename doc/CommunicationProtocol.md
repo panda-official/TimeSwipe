@@ -152,10 +152,6 @@ the `calibrationData` setting.
 
 The response will contain all the settings which were read or written.
 
-#### Special setting `je`
-
-The result of reading this setting - is a JSON object with the latest events.
-
 ## Communication protocol
 
 ### Setting request
