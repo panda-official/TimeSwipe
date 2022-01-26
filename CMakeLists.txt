@@ -53,6 +53,9 @@ set(PANDA_TIMESWIPE_FIRMWARE_DMS On CACHE BOOL
 set(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE Off CACHE BOOL
   "Build firmware as RAM image?")
 
+set(PANDA_TIMESWIPE_FIRMWARE_OPTIMIZE_DEBUG Off CACHE BOOL
+  "Optimize debugging experience?")
+
 set(PANDA_TIMESWIPE_TESTS On CACHE BOOL
   "Build tests (including examples)?")
 
@@ -64,12 +67,14 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   set(PANDA_ARM On)
   set(PANDA_ARM_BARE_METAL On)
 
-  # Some chips (like SAME53) are too small to fit debug info without -Og.
-  foreach(cfg RELWITHDEBINFO)
-    foreach(lang ASM C CXX)
-      set(CMAKE_${lang}_FLAGS_${cfg} "-g -Og")
+  # Some chips (like SAME53) might be too small to fit debug info without -Og.
+  if(PANDA_TIMESWIPE_FIRMWARE_OPTIMIZE_DEBUG)
+    foreach(cfg DEBUG RELWITHDEBINFO)
+      foreach(lang ASM C CXX)
+        set(CMAKE_${lang}_FLAGS_${cfg} "-g -Og")
+      endforeach()
     endforeach()
-  endforeach()
+  endif()
 
   if(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E54P20A")
     set(sam_compile_definitions __SAME54P20A__)
