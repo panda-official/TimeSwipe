@@ -24,6 +24,10 @@
 
 #include <limits>
 
+// -----------------------------------------------------------------------------
+// Calibration_data_handler
+// -----------------------------------------------------------------------------
+
 class Calibration_data_handler final : public Setting_handler {
 public:
   Error handle(Setting_request& request) override
