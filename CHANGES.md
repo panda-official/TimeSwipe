@@ -2,11 +2,16 @@
 
 ## [Unreleased]
 
-## [Changes][0.1.1] in v0.1.1 relative to v0.1.0
+## [Changes][1.2.1] in version 1.2.1 relative to version 0.1.1
+
+  - Code improvements;
+  - New function driver::version().
+
+## [Changes][0.1.1] in version 0.1.1 relative to version 0.1.0
 
   - Bugfix of firmware
 
-## [Changes][0.1.0] in v0.1.0 relative to v0.0.16
+## [Changes][0.1.0] in version 0.1.0 relative to version 0.0.16
 
  - The voltage range calculation is simplifed to
  `(32768 Digits / 11.1 V) * Gain = XX Digits / V`;
@@ -33,7 +38,8 @@
  configuration at start;
  - New API to set mode, gain and IEPE for each channel.
 
-[Unreleased]: https://github.com/panda-official/timeswipe/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/panda-official/timeswipe/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/panda-official/timeswipe/compare/v0.1.1...v1.2.1
 [0.1.1]: https://github.com/panda-official/timeswipe/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/panda-official/timeswipe/compare/v0.0.16...v0.1.0
 [GNUPlot]: http://www.gnuplot.info
