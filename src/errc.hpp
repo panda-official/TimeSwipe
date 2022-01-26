@@ -42,10 +42,13 @@ enum class Errc {
   generic = 1,
 
   /// Bug. (Unexpected case.)
-  bug = 11,
+  bug = 111,
+
+  /// Feature is not implemented.
+  not_implemented = 211,
 
   /// Out of memory.
-  out_of_memory = 111,
+  out_of_memory = 311,
 
   /// At least one of the board settings invalid. (Or setting request is invalid.)
   board_settings_invalid = 10011,
@@ -107,6 +110,8 @@ constexpr const char* to_literal(const Errc errc) noexcept
     return "generic";
   case Errc::bug:
     return "bug";
+  case Errc::not_implemented:
+    return "not_implemented";
 
   case Errc::out_of_memory:
     return "out_of_memory";
