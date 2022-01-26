@@ -882,7 +882,7 @@ private:
 
   void spi_set_channels_adc_enabled(const bool value)
   {
-    spi_.execute_set("channelsAdcEnabled", std::to_string(value));
+    spi_.execute_set("channelsAdcEnabled", value ? "true" : "false");
   }
 
   // -----------------------------------------------------------------------------

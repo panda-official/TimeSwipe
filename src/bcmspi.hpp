@@ -256,7 +256,9 @@ public:
     } else if (const auto res = result.FindMember("result"); res != end) {
       if (result.MemberCount() != 1)
         throw_invalid_json_in_spi_response();
-      return result; // result
+      rapidjson::Document doc;
+      doc.CopyFrom(res->value, doc.GetAllocator(), true);
+      return doc; // result
     } else
       throw_invalid_json_in_spi_response();
   }
