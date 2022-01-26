@@ -32,7 +32,7 @@ namespace panda::timeswipe::detail {
 // -----------------------------------------------------------------------------
 
 /// An error.
-class Error final {
+class Error {
 public:
   /// Constructs not an error.
   Error() noexcept = default;
@@ -66,6 +66,18 @@ private:
   std::string what_;
 };
 
+/// For using when Error represents a normal result.
+class Error_result final : public Error {
+public:
+  /// The default constructor.
+  Error_result() noexcept = default;
+
+  /// The constructor.
+  explicit Error_result(Error error) noexcept
+    : Error{std::move(error)}
+  {}
+};
+
 /// @returns `true` if `lhs` is equals to `rhs`.
 inline bool operator==(const Error& lhs, const Error& rhs) noexcept
 {
@@ -92,7 +104,7 @@ template<typename T>
 struct Error_or final {
   static_assert(!std::is_same_v<T, void> &&
     !std::is_convertible_v<T, Errc> &&
-    !std::is_convertible_v<T, Error>);
+    !std::is_same_v<T, Error>);
 
   /// Constructs to hold not an error and a default value.
   constexpr Error_or() noexcept = default;
