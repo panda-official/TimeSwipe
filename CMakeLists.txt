@@ -138,6 +138,11 @@ endif()
 # Targets
 # ------------------------------------------------------------------------------
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.hpp.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.hpp"
+  @ONLY
+  NEWLINE_STYLE UNIX)
+
 if(PANDA_TIMESWIPE_FIRMWARE_EMU)
   add_compile_definitions(PANDA_TIMESWIPE_FIRMWARE_EMU)
 endif()

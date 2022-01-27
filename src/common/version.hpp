@@ -11,8 +11,8 @@
 #define PANDA_TIMESWIPE_COMMON_VERSION_HPP
 
 namespace panda::timeswipe::version {
-constexpr int major{0};
-constexpr int minor{1};
+constexpr int major{1};
+constexpr int minor{2};
 constexpr int patch{1};
 } // namespace panda::timeswipe::version
 
