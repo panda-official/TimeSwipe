@@ -6,7 +6,8 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "SamPORT.h"
-#include "sam.h"
+
+#include <sam.h>
 
 std::shared_ptr<CSamPin> CSamPORT::FactoryPin(const CSamPORT::group nGroup,
   const CSamPORT::pin nPin, const bool bOutput)
@@ -87,9 +88,17 @@ bool CSamPORT::FindSercomPad(const pxy nPin, const typeSamSercoms nSercom,
         {CSamPORT::pxy::PB18, CSamPORT::muxf::fC},  //sc5p2
         {CSamPORT::pxy::PB19, CSamPORT::muxf::fC},  //sc5p3
 
+#if defined(__SAME54P20A__)
         {CSamPORT::pxy::PD09, CSamPORT::muxf::fD},  //sc6p0
         {CSamPORT::pxy::PD08, CSamPORT::muxf::fD},  //sc6p1
         {CSamPORT::pxy::PD10, CSamPORT::muxf::fD},  //sc6p2
+#elif defined(__SAME53N19A__)
+        {CSamPORT::pxy::PC16, CSamPORT::muxf::fC},  //sc6p0
+        {CSamPORT::pxy::PC17, CSamPORT::muxf::fC},  //sc6p1
+        {CSamPORT::pxy::PC18, CSamPORT::muxf::fC},  //sc6p2
+#else
+#error Unsupported SAM
+#endif
         {CSamPORT::pxy::PD11, CSamPORT::muxf::fD},  //sc6p3
 
         {CSamPORT::pxy::PD08, CSamPORT::muxf::fC},  //sc7p0

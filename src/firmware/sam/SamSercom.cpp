@@ -102,7 +102,7 @@ void SERCOM3_2_Handler(void)
 }
 void SERCOM3_3_Handler(void)
 {
-     glob_pSC[2]->OnIRQ3();
+     glob_pSC[3]->OnIRQ3();
 }
 
 void SERCOM4_0_Handler(void)

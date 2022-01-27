@@ -16,10 +16,29 @@ Copyright (c) 2019 Panda Team
 Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
 #define SELECT_SAMI2CM(nSercom) &(glob_GetSercomPtr(nSercom)->I2CM) //ptr to a master section
 
+namespace {
+
+#if defined(__SAME54P20A__)
+constexpr int eeprom_pin_group = 3; // Group D.
+constexpr int eeprom_pad0_pin_number = 9; // Number 9.
+constexpr int eeprom_pad1_pin_number = 8; // Number 8.
+constexpr int eeprom_pad2_pin_number = 10; // Number 10.
+constexpr int eeprom_peripheral_function = 3; // pfd
+#elif defined(__SAME53N19A__)
+constexpr int eeprom_pin_group = 2; // Group C.
+constexpr int eeprom_pad0_pin_number = 16; // Number 16.
+constexpr int eeprom_pad1_pin_number = 17; // Number 17.
+constexpr int eeprom_pad2_pin_number = 18; // Number 18.
+constexpr int eeprom_peripheral_function = 2; // pfc;
+#else
+#error Unsupported SAM
+#endif
+
+} // namespace
 
 CSamI2CeepromMaster::CSamI2CeepromMaster() : CSamSercom(typeSamSercoms::Sercom6)
 {
-    PORT->Group[3].DIRSET.reg=(1L<<10);
+    PORT->Group[eeprom_pin_group].DIRSET.reg = (1L<<eeprom_pad2_pin_number);
     SetWriteProtection(true);
 
     CSamSercom::EnableSercomBus(m_nSercom, true);
@@ -37,31 +56,31 @@ void CSamI2CeepromMaster::reset_chip_logic()
 {
     //! disconnecting pins from I2C bus since we cannot use its interface
 
-    PORT->Group[3].PINCFG[8].bit.PMUXEN=0;
-    PORT->Group[3].PINCFG[9].bit.PMUXEN=0;
+    PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad1_pin_number].bit.PMUXEN = 0;
+    PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad0_pin_number].bit.PMUXEN = 0;
 
     //! performing a manual 10-period clock sequence - this will reset the chip
 
-    PORT->Group[3].OUTCLR.reg=(1L<<8);
-    for(int i=0; i<10; i++)
-    {
-        PORT->Group[3].DIRSET.reg=(1L<<8); //should go to 0
-        os::wait(1);
-        PORT->Group[3].DIRCLR.reg=(1L<<8); //back by pull up...
-        os::wait(1);
+    constexpr auto bits = (1L<<eeprom_pad1_pin_number);
+    PORT->Group[eeprom_pin_group].OUTCLR.reg = bits;
+    for (int i{}; i < 10; ++i) {
+      PORT->Group[eeprom_pin_group].DIRSET.reg = bits; // should go to 0.
+      os::wait(1);
+      PORT->Group[eeprom_pin_group].DIRCLR.reg = bits; // back by pull up.
+      os::wait(1);
     }
 }
 
 #define SYNC_BUS(pBus) while(pBus->SYNCBUSY.bit.SYSOP){}
 void CSamI2CeepromMaster::setup_bus()
 {
-    //SCL:
-    PORT->Group[3].PMUX[4].bit.PMUXE=0x03;
-    PORT->Group[3].PINCFG[8].bit.PMUXEN=1; //enable
+    // SCL.
+    PORT->Group[eeprom_pin_group].PMUX[eeprom_pad1_pin_number>>1].bit.PMUXE = eeprom_peripheral_function;
+    PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad1_pin_number].bit.PMUXEN = 1; // enable
 
-    //SDA:
-    PORT->Group[3].PMUX[4].bit.PMUXO=0x03;
-    PORT->Group[3].PINCFG[9].bit.PMUXEN=1; //enable
+    // SDA.
+    PORT->Group[eeprom_pin_group].PMUX[eeprom_pad0_pin_number>>1].bit.PMUXO = eeprom_peripheral_function;
+    PORT->Group[eeprom_pin_group].PINCFG[eeprom_pad0_pin_number].bit.PMUXEN = 1; // enable
 
     /*! "Violating the protocol may cause the I2C to hang. If this happens it is possible to recover from this
     *   state by a software Reset (CTRLA.SWRST='1')." page 1026
@@ -115,15 +134,13 @@ void CSamI2CeepromMaster::check_reset()
 
 void CSamI2CeepromMaster::SetWriteProtection(bool how)
 {
-    if(how)
-    {
-        PORT->Group[3].OUTSET.reg=(1L<<10);
-        os::uwait(100);                      //wait till real voltage level rise of fall
-    }
-    else
-    {
-        os::uwait(100);                      //wait till real voltage level rise of fall
-        PORT->Group[3].OUTCLR.reg=(1L<<10);
+    constexpr auto bits = (1L<<eeprom_pad2_pin_number);
+    if (how) {
+        PORT->Group[eeprom_pin_group].OUTSET.reg = bits;
+        os::uwait(100); // wait till real voltage level rise of fall
+    } else {
+        os::uwait(100); // wait till real voltage level rise of fall
+        PORT->Group[eeprom_pin_group].OUTCLR.reg = bits;
     }
 }
 

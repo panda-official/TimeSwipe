@@ -6,48 +6,49 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "SAMbutton.h"
-#include "sam.h"
 
-//#define TIME_SWIPE_BRD_V0
+#include <sam.h>
+
+namespace {
+constexpr int button_led_pin_group = 2; // Group C
+#if defined(__SAME54P20A__)
+// Pin PC16
+constexpr int button_led_pin_number = 16; // Number 16
+#elif defined(__SAME53N19A__)
+// Pin PC19
+constexpr int button_led_pin_number = 19; // Number 19
+#else
+#error Unsupported SAM
+#endif
+
+constexpr int button_pin_group = 0; // Group A
+constexpr int button_pin_number = 16; // Number 16
+} // namespace
+
 
 SAMButton::SAMButton()
 {
- #ifdef TIME_SWIPE_BRD_V0
-    PORT->Group[0].PINCFG[16].bit.INEN=1;
- #else
-    PORT->Group[0].PINCFG[18].bit.INEN=1;
- #endif
-
-    //enable button LED (PC16):
-    PORT->Group[2].DIRSET.reg=(1L<<16);
-    PORT->Group[2].OUTSET.reg=(1L<<16);
-
+    PORT->Group[button_pin_group].PINCFG[button_pin_number].bit.INEN=1;
+    // Enable Button LED
+    PORT->Group[button_led_pin_group].DIRSET.reg = (1L<<button_led_pin_number);
+    PORT->Group[button_led_pin_group].OUTSET.reg = (1L<<button_led_pin_number);
 }
 void SAMButton::TurnButtonLED(bool how)
 {
     if(how)
-        PORT->Group[2].OUTCLR.reg=(1L<<16);
+        PORT->Group[button_led_pin_group].OUTCLR.reg=(1L<<button_led_pin_number);
     else
-        PORT->Group[2].OUTSET.reg=(1L<<16);
+        PORT->Group[button_led_pin_group].OUTSET.reg=(1L<<button_led_pin_number);
 }
 bool SAMButton::IsButtonLEDon()
 {
-    return ( PORT->Group[2].OUT.reg & (1L<<16) ) ? true:false;
+    return ( PORT->Group[button_led_pin_group].OUT.reg & (1L<<button_led_pin_number) ) ? true:false;
 }
 
 
-bool SAMButton::impl_get_signal(void){
-
-#ifdef PANDA_TIMESWIPE_FIRMWARE_EMU
-        return is_key_pressed();
-#else
-    #ifdef TIME_SWIPE_BRD_V0
-         return ( (PORT->Group[0].IN.reg) & (1L<<16) ) ? false:true; //this is the right one for the PandaBoard! 24.04.2019
-    #else
-         return ( (PORT->Group[0].IN.reg) & (1L<<18) ) ? false:true;
-    #endif
-#endif
-
+bool SAMButton::impl_get_signal(void)
+{
+  return ( (PORT->Group[button_pin_group].IN.reg) & (1L<<button_pin_number) ) ? false:true;
 }
 
 void SAMButton::impl_on_state_changed(typeButtonState nState)

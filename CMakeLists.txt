@@ -41,6 +41,9 @@ set(PANDA_ARM64 Off CACHE BOOL
 set(PANDA_TIMESWIPE_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
+set(PANDA_TIMESWIPE_FIRMWARE_SAM "E54P20A" CACHE STRING
+  "Model of Atmel SAM controller to build firmware for.")
+
 set(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE Off CACHE BOOL
   "Build calibration firmware? (Disables driver build.)")
 
@@ -63,6 +66,29 @@ endif()
 if(PANDA_TIMESWIPE_FIRMWARE)
   set(PANDA_ARM On)
   set(PANDA_ARM_BARE_METAL On)
+
+  # Some chips (like SAME53) are too small to fit debug info without -Og.
+  foreach(cfg RELWITHDEBINFO)
+    foreach(lang ASM C CXX)
+      set(CMAKE_${lang}_FLAGS_${cfg} "-g -Og")
+    endforeach()
+  endforeach()
+
+  if(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E54P20A")
+    set(sam_compile_definitions __SAME54P20A__)
+    set(sam_include_directories src/3rdparty/same54/include)
+    set(sam_startup_file "same54/gcc/startup_ARMCM4_E54.S")
+    set(sam_sram_linker_file "src/3rdparty/same54/gcc/gcc_E54_RAM.ld")
+    set(sam_flash_linker_file "src/3rdparty/same54/gcc/gcc_E54.ld")
+  elseif(PANDA_TIMESWIPE_FIRMWARE_SAM STREQUAL "E53N19A")
+    set(sam_compile_definitions __SAME53N19A__)
+    set(sam_include_directories src/3rdparty/same53/include)
+    set(sam_startup_file "same53/gcc/startup_ARMCM4_E53.S")
+    set(sam_sram_linker_file "src/3rdparty/same53/gcc/gcc_E53_RAM.ld")
+    set(sam_flash_linker_file "src/3rdparty/same53/gcc/gcc_E53.ld")
+  else()
+    message(FATAL_ERROR "Unsupported model of SAM - ${PANDA_TIMESWIPE_FIRMWARE_SAM}")
+  endif()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -119,6 +145,10 @@ set(CXX_STANDARD_REQUIRED On)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS Off)
 
+# Parse C++ compiler version.
+dmitigr_get_version(${CMAKE_CXX_COMPILER_VERSION}
+  cxx_version_major cxx_version_minor cxx_version_patch)
+
 # ------------------------------------------------------------------------------
 # Output settings
 # ------------------------------------------------------------------------------
@@ -153,14 +183,14 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   else()
     set(firmware_subtype "normal")
   endif()
-  message(CHECK_START "Configuring the ${firmware_subtype} firmware build.")
+  message(CHECK_START "Configuring the ${firmware_subtype} firmware build for SAM${PANDA_TIMESWIPE_FIRMWARE_SAM}")
 
   enable_language(ASM)
 
   if(PANDA_TIMESWIPE_FIRMWARE_RAM_IMAGE)
-    set(linker_script "src/3rdparty/prj_templ/Custom/gcc_RAM.ld")
+    set(linker_script ${sam_sram_linker_file})
   else()
-    set(linker_script "src/3rdparty/prj_templ/Custom/gcc.ld")
+    set(linker_script ${sam_flash_linker_file})
   endif()
 
   add_compile_options(
@@ -330,11 +360,11 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     # Nlohmann JSON
     NLOHMANN_JSON_CUSTOM_STDIO_FRM
 
-    # prj_templ
-    __SAME54P20A__
+    # sam
+    ${sam_compile_definitions}
 
-    # Adafruit_NeoPixel
-    SAM_BRM __arm__  __SAMD51__  __SAME54P20A__
+    # Adafruit NeoPixel
+    SAM_BRM __arm__  __SAMD51__
     )
   if(PANDA_TIMESWIPE_CALIBRATION_FIRMWARE)
     target_compile_definitions(firmware PUBLIC CALIBRATION_STATION)
@@ -343,9 +373,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     target_compile_definitions(firmware PUBLIC DMS_BOARD)
   endif()
   target_include_directories(firmware PUBLIC src/firmware
-    PRIVATE
-    src/3rdparty/prj_templ/include
-    src/3rdparty/prj_templ/CMSIS/Include
+    PRIVATE src/3rdparty/cmsis ${sam_include_directories}
     )
 
   # -------------------
@@ -362,9 +390,7 @@ if(PANDA_TIMESWIPE_FIRMWARE)
   list(TRANSFORM firmware_elf_src PREPEND src/firmware/)
 
   # Third-party firmware.elf sources
-  list(APPEND firmware_elf_3rdparty_src
-    prj_templ/Custom/startup_ARMCM4.S
-    )
+  list(APPEND firmware_elf_3rdparty_src ${sam_startup_file})
   list(TRANSFORM firmware_elf_3rdparty_src PREPEND src/3rdparty/)
   list(APPEND firmware_elf_src ${firmware_elf_3rdparty_src})
 
@@ -417,7 +443,8 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
   if(NOT CMAKE_CROSSCOMPILING)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
-        find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS /usr/lib/gcc/arm-linux-gnueabihf/8)
+        set(atomic_lib_path "/usr/lib/gcc/arm-linux-gnueabihf/${cxx_version_major}")
+        find_library(atomic_lib atomic NO_DEFAULT_PATH PATHS ${atomic_lib_path})
         if(atomic_lib)
           message("Explicit Linking with atomic library.")
           target_link_libraries(panda_timeswipe PUBLIC ${atomic_lib})
@@ -488,7 +515,7 @@ if(PANDA_TIMESWIPE_TESTS)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
-  set(button_event_extra_sources src/3rdparty/prj_templ/Custom/startup_ARMCM4.S)
+  set(button_event_extra_sources src/3rdparty/${sam_startup_file})
 
   # Configure the tests from the lists above.
   function(panda_configure_test test)
