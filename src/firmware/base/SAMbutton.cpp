@@ -22,7 +22,7 @@ constexpr int button_led_pin_number = 19; // Number 19
 #endif
 
 constexpr int button_pin_group = 0; // Group A
-constexpr int button_pin_number = 16; // Number 16
+constexpr int button_pin_number = 18; // Number 18
 } // namespace
 
 
