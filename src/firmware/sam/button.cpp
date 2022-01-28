@@ -32,7 +32,7 @@ constexpr int button_led_pin_number = Sam_pin::Number::p19;
 #endif
 
 constexpr int button_pin_group = Sam_pin::Group::a;
-constexpr int button_pin_number = Sam_pin::Number::p16;
+constexpr int button_pin_number = Sam_pin::Number::p18;
 } // namespace
 
 Sam_button::Sam_button()
