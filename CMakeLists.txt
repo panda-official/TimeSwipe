@@ -502,7 +502,7 @@ if(PANDA_TIMESWIPE_TESTS)
   message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
-  set(driver_tests datlog driftcomp driftcompmeas kaiser measure pwm resampler rpispi)
+  set(driver_tests datlog driftcomp driftcompmeas kaiser measure pwm resampler rpispi stop)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.

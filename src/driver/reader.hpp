@@ -80,6 +80,7 @@ struct GpioData final {
   struct ReadChunkResult final {
     Chunk chunk{};
     unsigned tco{};
+    bool piOk{};
   };
 
   static ReadChunkResult ReadChunk() noexcept
@@ -90,6 +91,7 @@ struct GpioData final {
       const auto d{Read()};
       result.chunk[1] = d.byte;
       result.tco = d.tco;
+      result.piOk = d.piOk;
     }
     for (unsigned i{2u}; i < result.chunk.size(); ++i)
       result.chunk[i] = Read().byte;
@@ -147,8 +149,8 @@ private:
     while (read_skip_count_ > 0) {
       WaitForPiOk();
       while (true) {
-        const auto [chunk, tco] = GpioData::ReadChunk();
-        if (tco != 0x00004000) break;
+        const auto [chunk, tco, piOk] = GpioData::ReadChunk();
+        if (!piOk || tco != 0x00004000) break;
       }
       --read_skip_count_;
     }
@@ -169,9 +171,9 @@ private:
     SensorsData out;
     out.reserve(8192);
     do {
-      const auto [chunk, tco] = GpioData::ReadChunk();
+      const auto [chunk, tco, piOk] = GpioData::ReadChunk();
       appendChunk(out, chunk, offsets_, mfactors_);
-      if (tco != 0x00004000) break;
+      if (!piOk || tco != 0x00004000) break;
     } while (true);
 
     sleep55ns();
