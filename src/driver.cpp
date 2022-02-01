@@ -789,6 +789,7 @@ private:
     struct Read_chunk_result final {
       Chunk chunk{};
       unsigned tco{};
+      bool pi_ok{};
     };
 
     static Read_chunk_result read_chunk() noexcept
@@ -799,6 +800,7 @@ private:
         const auto d = read();
         result.chunk[1] = d.byte;
         result.tco = d.tco;
+        result.pi_ok = d.pi_ok;
       }
       for (unsigned i{2}; i < result.chunk.size(); ++i)
         result.chunk[i] = read().byte;
@@ -902,8 +904,8 @@ private:
     while (read_skip_count_ > 0) {
       wait_for_pi_ok();
       while (true) {
-        const auto [chunk, tco] = Gpio_data::read_chunk();
-        if (tco != 0x00004000) break;
+        const auto [chunk, tco, pi_ok] = Gpio_data::read_chunk();
+        if (!pi_ok || tco != 0x00004000) break;
       }
       --read_skip_count_;
     }
@@ -924,10 +926,10 @@ private:
     Data result(max_channel_count());
     result.reserve_rows(8192);
     do {
-      const auto [chunk, tco] = Gpio_data::read_chunk();
+      const auto [chunk, tco, pi_ok] = Gpio_data::read_chunk();
       Gpio_data::append_chunk(result, chunk, calibration_slopes_,
         translation_offsets_, translation_slopes_);
-      if (tco != 0x00004000) break;
+      if (!pi_ok || tco != 0x00004000) break;
     } while (true);
 
     sleep_for_55ns();

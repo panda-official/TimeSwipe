@@ -511,7 +511,7 @@ if(PANDA_TIMESWIPE_TESTS)
   # Set the test lists.
   set(driver_tests board_settings driver_settings
     driftcomp driftcompmeas kaiser measure resampler rpispi
-    table)
+    table stop)
   set(firmware_tests button_event)
 
   # Set the link libraries per software.
