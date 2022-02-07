@@ -39,6 +39,7 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
 #include "error.hpp"
+#include "stopwatch.hpp"
 
 using namespace std::placeholders;
 
@@ -87,6 +88,8 @@ try {
         //step 0: clock init:
         sys_clock_init(); //->120MHz
 
+        const unsigned long start_time = os::get_tick_mS();
+
         //----------------creating I2C EEPROM-----------------------
         //creating shared mem buf:
         auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
@@ -126,6 +129,10 @@ try {
         std::shared_ptr<IPin> pQSPICS0Pin;
         std::shared_ptr<CDMSsr> pDMSsr;
 
+        const auto stopwatch = std::make_shared<Stopwatch>(start_time);
+        pDisp->Add("Uptime",
+          std::make_shared<CCmdSGHandler<Stopwatch, unsigned long>>(
+            stopwatch, &Stopwatch::uptime));
 
         //1st step:
         if(typeBoard::DMSBoard==ThisBoard)

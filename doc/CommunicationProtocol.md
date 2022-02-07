@@ -141,6 +141,7 @@ CalStatus       |   Holds board calibration status (boolean, false(0):true(1), r
 Voltage         |   Holds Output Voltage value (float, r/w) (mockup)
 Current         |   Holds Current Setting (float, 0-MaxCurrent, r/w) (mockup)
 MaxCurrent      |   Holds MaxCurrent Setting (Current max range) (float, r/w) (mockup)
+Uptime          |   Returns the uptime of the firmware (unsigned, r)
 
 
 

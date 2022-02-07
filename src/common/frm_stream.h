@@ -112,6 +112,8 @@ protected:
       sprintf(tbuf, "%d", *(static_cast<const int*>(pVar))  );
     } else if(ti==typeid(unsigned int)) {
       sprintf(tbuf, "%d", *(static_cast<const unsigned int*>(pVar))  );
+    } else if(ti==typeid(unsigned long)) {
+      sprintf(tbuf, "%lu", *(static_cast<const unsigned long*>(pVar))  );
     } else if(ti==typeid(float)) {
       sprintf(tbuf, "%g", *(static_cast<const float*>(pVar))  ); //+++not working with NanoLib, use NewLib
     } else if(ti==typeid(const char *)) {
@@ -233,6 +235,18 @@ public:
   CFrmStream& operator>>(unsigned int& val)
   {
     frm_vget<unsigned int>(val);
+    return *this;
+  }
+
+  CFrmStream& operator<<(unsigned long val)
+  {
+    frm_vset<unsigned long>(val);
+    return *this;
+  }
+
+  CFrmStream& operator>>(unsigned long& val)
+  {
+    frm_vget<unsigned long>(val);
     return *this;
   }
 
