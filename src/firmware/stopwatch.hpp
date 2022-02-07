@@ -32,6 +32,11 @@ public:
     return os::get_tick_mS() - start_time_;
   }
 
+  float uptime_seconds()
+  {
+    return uptime() / 1000.0f;
+  }
+
 private:
   unsigned long start_time_{};
 };

@@ -131,8 +131,8 @@ try {
 
         const auto stopwatch = std::make_shared<Stopwatch>(start_time);
         pDisp->Add("Uptime",
-          std::make_shared<CCmdSGHandler<Stopwatch, unsigned long>>(
-            stopwatch, &Stopwatch::uptime));
+          std::make_shared<CCmdSGHandler<Stopwatch, float>>(
+            stopwatch, &Stopwatch::uptime_seconds));
 
         //1st step:
         if(typeBoard::DMSBoard==ThisBoard)

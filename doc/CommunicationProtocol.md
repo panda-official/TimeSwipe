@@ -125,7 +125,7 @@ Sub domain (.freq):     Holds the Fan PWM frequency (unsigned int, 1:20000, r/w)
 ### Access points with only one root domain name:
 
  Access Point   |       Function
---------------  |    ------------------------------------------------------------------------------------------------------- 
+--------------  |    -------------------------------------------------------------------------------------------------------
 Gain            |   Holds Gain value (integer value, 1:4, r/w)
 Bridge          |   Holds Bridge Switch state (ON or OFF) (boolean, false(0):true(1), r/w)
 Record          |   Writing "1" to this variable initiates/restarts a record process (boolean, false(0):true(1), r/w)
@@ -141,7 +141,7 @@ CalStatus       |   Holds board calibration status (boolean, false(0):true(1), r
 Voltage         |   Holds Output Voltage value (float, r/w) (mockup)
 Current         |   Holds Current Setting (float, 0-MaxCurrent, r/w) (mockup)
 MaxCurrent      |   Holds MaxCurrent Setting (Current max range) (float, r/w) (mockup)
-Uptime          |   Returns the uptime of the firmware (unsigned, r)
+Uptime          |   Returns the uptime of the firmware in seconds (unsigned, r)
 
 
 
