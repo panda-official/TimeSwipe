@@ -200,7 +200,7 @@ public:
           m_PState=recLengthLSB;
           return true;
         }
-      if(m_FrameCnt++>10000)
+      if(m_FrameCnt++>100000)
         {
           m_PState=FSM::errTimeout;
           return false;
