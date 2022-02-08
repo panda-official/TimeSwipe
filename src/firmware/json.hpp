@@ -291,7 +291,7 @@ Error set(Json_value_view& view, const std::optional<T>& value)
 // -----------------------------------------------------------------------------
 
 /// Gets `mode` from the `view`.
-inline Error get(const Json_value_view& view, Error_result& error)
+inline Error get(const Json_value_view&, Error_result&)
 {
   return Errc::not_implemented;
 }
