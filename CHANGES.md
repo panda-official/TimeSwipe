@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [Changes][1.2.2] in version 1.2.2 relative to version 1.2.1
+
+  - Added support for SAME53N19A chip;
+  - Fixed the bug of TimeSwipe::Stop() which caused blocking of the working
+  thread if the firmware not available;
+  - Added `Uptime` SPI command which returns the uptime of firmware in seconds;
+  - Reduced the chance of SPI timeout error by increasing max byte count in a
+  silence frame.
+
 ## [Changes][1.2.1] in version 1.2.1 relative to version 0.1.1
 
   - Code improvements;
@@ -38,7 +47,8 @@
  configuration at start;
  - New API to set mode, gain and IEPE for each channel.
 
-[Unreleased]: https://github.com/panda-official/timeswipe/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/panda-official/timeswipe/compare/v1.2.2...HEAD
+[1.2.1]: https://github.com/panda-official/timeswipe/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/panda-official/timeswipe/compare/v0.1.1...v1.2.1
 [0.1.1]: https://github.com/panda-official/timeswipe/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/panda-official/timeswipe/compare/v0.0.16...v0.1.0

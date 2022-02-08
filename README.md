@@ -7,7 +7,7 @@ contains pre-built driver for both ARM32 and ARM64 architectures.
 
 ## Documentation
 
-[Driver API](https://panda-official.github.io/TimeSwipe/index.html)
+[Driver API](https://panda-official.github.io/TimeSwipe/b121)
 
 ### General documentation
 
