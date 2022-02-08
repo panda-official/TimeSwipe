@@ -2,12 +2,12 @@
 
 # PANDA Timeswipe driver and firmware
 
-The [releases section](https://github.com/panda-official/timeswipe/releases)
+The [releases section](https://github.com/panda-official/TimeSwipe/releases)
 contains pre-built driver for both ARM32 and ARM64 architectures.
 
 ## Documentation
 
-[Driver API](https://panda-official.github.io/timeswipe/index.html)
+[Driver API](https://panda-official.github.io/TimeSwipe/master)
 
 ### General documentation
 

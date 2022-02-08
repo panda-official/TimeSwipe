@@ -790,7 +790,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../../src/driver/error.hpp ../../src/driver/timeswipe.hpp
+INPUT                  = ../../src/driver.hpp ../../src/board_settings.hpp ../../src/driver_settings.hpp ../../src/error.hpp ../../src/table.hpp ../../src/types_fwd.hpp
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

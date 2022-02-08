@@ -10,7 +10,9 @@ on:
       - 'docker/driver.*'
   workflow_run:
     workflows: ["Publish Docker timeswipe_arch", "Publish Docker timeswipe_ubuntu"]
-    branches: [master, b1.2.1]
+    branches:
+      - master
+      - b1.2.1
     types:
       - completed
 jobs:
