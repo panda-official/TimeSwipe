@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - b1.2.1
     paths:
       - 'docker/driver.ubuntu'
 jobs:
