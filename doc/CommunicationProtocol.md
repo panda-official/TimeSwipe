@@ -175,7 +175,7 @@ where
 There are two types of responses:
 
 - result of successful request - is a JSON object of the following structure:
-`{"result": value}`, where `value` may be an any JSON value;
+`{"result": value}`, where `value` - is a JSON object;
 - result of failed request - is a JSON object of the following structure:
 `{"error": code, "what": "message"}`, where `code` - is a positive integer,
 `message` - is a JSON string with the error explanation string.
@@ -193,7 +193,7 @@ channel1DacRaw<2048\n
 ##### Response
 
 ```
-{"result":2048}\n
+{"result":{"channel1DacRaw":2048}}\n
 ```
 
 #### 2. Preset a value for analog output 3 to 2048 discrets to be controlled
@@ -208,7 +208,7 @@ analogOut3Raw<2048\n
 ##### Response
 
 ```
-{"result":2048}\n
+{"result":{"analogOut3Raw":2048}}\n
 ```
 
 #### 3. Activate the manual control over for analog outputs 3 and 4
@@ -227,7 +227,7 @@ analogOutsDacEnabled<true\n
 ##### Response
 
 ```
-{"result":true}\n
+{"result":{"analogOutsDacEnabled":true}}\n
 ```
 
 #### 4. Control the analog output 4 manually
@@ -245,7 +245,7 @@ analogOut4Raw<3000\n
 ##### Response
 
 ```
-{"result":3000}\n
+{"result":{"analogOut4Raw":3000}}\n
 ```
 
 #### 5. Reading actual adc2Raw value
@@ -259,7 +259,7 @@ adc2Raw>\n
 ##### Response
 
 ```
-{"result":2048}\n
+{"result":{"adc2Raw":2048}}\n
 ```
 
 #### 6. Update settings via `all` special command

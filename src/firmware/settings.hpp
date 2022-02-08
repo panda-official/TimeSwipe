@@ -116,6 +116,10 @@ public:
    */
   Error handle(Setting_request& request)
   {
+    using rapidjson::Value;
+    auto& result = request.output.value_ref();
+    auto& alloc = request.output.alloc_ref();
+    result.SetObject();
     if (request.name == "all" || request.name == "basic") {
       const auto is_should_be_skipped = [is_basic = request.name == "basic"]
         (const std::string& name) noexcept
@@ -123,10 +127,6 @@ public:
         return is_basic && name == "calibrationData";
       };
 
-      using rapidjson::Value;
-      auto& result = request.output.value_ref();
-      auto& alloc = request.output.alloc_ref();
-      result.SetObject();
       switch (request.type) {
       case Setting_request_type::read:
         for (const auto& handler : table_) {
@@ -166,10 +166,14 @@ public:
       }
       }
     } else if (!request.name.empty()) {
-      const auto handler = table_.find(request.name);
-      if (handler != table_.end())
-        return handler->second->handle(request);
-      else
+      if (const auto handler = table_.find(request.name); handler != table_.end()) {
+        Value res;
+        Setting_request req{request.name, request.type, request.input, {&res, &alloc}};
+        const auto err = handler->second->handle(req);
+        if (!err)
+          result.AddMember(Value{request.name, alloc}, std::move(res), alloc);
+        return err;
+      } else
         return Errc::board_settings_unknown;
     } else
       return Errc::bug;
