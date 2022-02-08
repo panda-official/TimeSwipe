@@ -147,7 +147,7 @@ private:
     if (!view.value_.IsObject())
       return Result{};
     else if (const auto i = optional_iterator__(view.value_, name);
-      i != view.value_.MemberEnd())
+      i != view.value_.MemberEnd() && !i->value.IsNull())
       return Result{i->value};
     else
       return Result{};
