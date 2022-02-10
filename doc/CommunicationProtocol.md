@@ -77,18 +77,19 @@ These settings are used to control board Fan output.
 |Name         |Description              |Range      |Access|Default|
 |:------------|:------------------------|:----------|:-----|:------|
 |fanEnabled   |Fan enabled?             |bool       |rw    |true   |
-|fanDutyCycle |Duty cycle (pulse width).|[.001,.999]|r     |       |
+|fanDutyCycle |Duty cycle (pulse width).|(0, 1)     |r     |       |
 |fanFrequency |Frequency.               |[1,20000]  |rw    |100    |
 
 ### Settings group `pwm`
 
-These settings are used to control PWMs of analog outputs `3` and `4`.
+These settings are used to control PWMs of analog outputs `3` and `4`. Each PWM
+generator will run for `(pwmRepeatCount / pwmFrequency)` seconds and then stop.
 
 |Name            |Description                   |Range         |Access|Default|
 |:---------------|:-----------------------------|:-------------|:-----|:------|
 |pwm%Enabled     |PWM enabled?                  |bool          |rw    |false  |
 |pwm%RepeatCount |Number of periods to generate.|[0,4294967295]|rw    |0      |
-|pwm%DutyCycle   |Duty cycle (pulse width).     |[0.001,0.999] |rw    |0.5    |
+|pwm%DutyCycle   |Duty cycle (pulse width).     |(0, 1)        |rw    |0.5    |
 |pwm%Frequency   |Frequency to generate.        |[1,1000]      |rw    |50     |
 |pwm%HighBoundary|High pulse boundary.          |[0,4095]      |rw    |3072   |
 |pwm%LowBoundary |Low pulse boundary            |[0,4095]      |rw    |2048   |

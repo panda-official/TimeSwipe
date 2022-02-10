@@ -177,29 +177,15 @@ public:
     return gain::ogain_max;
   }
 
+  /*
+   * @remarks Some settings cannot be applied if the measurement is started.
+   * It's up to firmware to check this.
+   */
   iDriver& set_board_settings(const Board_settings& settings) override
   {
     if (!is_initialized())
       throw Exception{Errc::driver_not_initialized,
         "cannot set board settings while driver is not initialized"};
-
-    // Some settings cannot be applied if the measurement is started.
-    if (is_measurement_started()) {
-      // Check if channel measurement modes setting presents.
-      if (settings.channel_measurement_modes())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board measurement modes when measurement started"};
-
-      // Check if channel gains setting presents.
-      if (settings.channel_gains())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board gains when measurement started"};
-
-      // Check if channel IEPEs setting presents.
-      if (settings.channel_iepes())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board IEPEs when measurement started"};
-    }
 
     // Define helper.
     static const auto throw_exception = [](const std::string& msg)
@@ -336,8 +322,8 @@ public:
 
     const auto bs = board_settings();
     const auto calib = calibration_map(bs);
-    const auto gains = bs.channel_gains();
-    const auto modes = bs.channel_measurement_modes();
+    const auto gains = channel_settings<int>(bs, "Gain");
+    const auto modes = channel_settings<Measurement_mode>(bs, "Mode");
     const auto srate = driver_settings().sample_rate();
     if (!handler)
       throw Exception{"cannot start measurement with invalid data handler"};
@@ -640,7 +626,7 @@ private:
       : driver_{driver}
       , resampler_{std::move(driver_.resampler_)} // store
       , driver_settings_{std::move(driver_.driver_settings_)} // settings
-      , chmm_{driver_.board_settings("basic").channel_measurement_modes()} // store
+      , board_settings_{driver_.board_settings("basic")} // store
     {
       /*
        * Change input modes to `current`.
@@ -648,9 +634,14 @@ private:
        * the measured value, which completely (according to PSpice) decays
        * after 1.5 ms.
        */
-      driver_.set_settings(Board_settings{}.set_channel_measurement_modes(
-        std::vector<Measurement_mode>(driver.max_channel_count(),
-          Measurement_mode::current)));
+      driver_.set_settings([this]
+      {
+        Board_settings bs;
+        const unsigned mcc = driver_.max_channel_count();
+        for (unsigned i{}; i < mcc; ++i)
+          bs.set_value("channel"+std::to_string(i+1)+"Mode", Measurement_mode::current);
+        return bs;
+      }());
 
       std::this_thread::sleep_for(driver_.switching_oscillation_period);
 
@@ -669,14 +660,14 @@ private:
         driver_.set_driver_settings(std::move(driver_settings_), std::move(resampler_));
 
         // Restore board settings.
-        if (chmm_)
-          driver_.set_settings(Board_settings{}.set_channel_measurement_modes(*chmm_));
+        driver_.set_board_settings(board_settings_);
       } catch (...) {}
     }
 
     iDriver& driver_;
     decltype(driver_.resampler_) resampler_;
     decltype(driver_.driver_settings_) driver_settings_;
+    Board_settings board_settings_;
     std::optional<std::vector<Measurement_mode>> chmm_;
   };
 
@@ -1017,6 +1008,23 @@ private:
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  /// @returns The channel setting from the specified board settings.
+  template<typename T>
+  std::optional<std::vector<T>> channel_settings(const Board_settings& bs,
+    const std::string_view name)
+  {
+    const unsigned mcc = max_channel_count();
+    std::vector<T> result(mcc);
+    for (unsigned i{}; i < mcc; ++i) {
+      const auto gain = bs.value("channel"+std::to_string(i+1)+"Gain");
+      if (gain.has_value())
+        result[i] = std::any_cast<T>(gain);
+      else
+        return {};
+    }
+    return result;
+  };
 
   /**
    * @returns Previous resampler if any.

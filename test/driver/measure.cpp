@@ -68,8 +68,14 @@ try {
   constexpr auto volt = ts::Measurement_mode::voltage;
   driver
     .set_settings(ts::Board_settings{}
-      .set_channel_gains({1.0,1.0,1.0,1.0})
-      .set_channel_measurement_modes({volt,volt,volt,volt}))
+      .set_value("channel1Gain", 1.0)
+      .set_value("channel2Gain", 1.0)
+      .set_value("channel3Gain", 1.0)
+      .set_value("channel4Gain", 1.0)
+      .set_value("channel1Mode", volt)
+      .set_value("channel2Mode", volt)
+      .set_value("channel3Mode", volt)
+      .set_value("channel4Mode", volt))
     .set_settings(ts::Driver_settings{}
       .set_sample_rate(sample_rate)
       .set_burst_buffer_size(sample_rate / frequency));
