@@ -23,7 +23,7 @@ namespace panda::timeswipe::detail {
  * `value`, or `value` otherwise.
  */
 template<typename T>
-constexpr T clamp(const T value, const T low, const T high) noexcept
+constexpr auto clamp(const T value, const T low, const T high) noexcept
 {
   return value < low ? low : value > high ? high : value;
 }
