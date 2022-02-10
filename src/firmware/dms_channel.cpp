@@ -21,8 +21,35 @@
 #include "board.hpp"
 #include "dms_channel.hpp"
 
-void Dms_channel::set_amplification_gain(const float value)
+Error Dms_channel::set_measurement_mode(const Measurement_mode mode)
 {
+  if (Board::instance().is_channels_adc_enabled())
+    return Error{Errc::board_measurement_started,
+      "cannot set channel measurement mode when measurement started"};
+
+  measurement_mode_ = mode;
+  pga_->SetMode(static_cast<CPGA280::mode>(mode));
+  update_offsets();
+  return {};
+}
+
+Error Dms_channel::set_iepe(const bool value)
+{
+  if (Board::instance().is_channels_adc_enabled())
+    return Error{Errc::board_measurement_started,
+      "cannot set channel IEPE mode when measurement started"};
+
+  is_iepe_ = value;
+  iepe_switch_pin_->write(value);
+  return {};
+}
+
+Error Dms_channel::set_amplification_gain(const float value)
+{
+  if (Board::instance().is_channels_adc_enabled())
+    return Error{Errc::board_measurement_started,
+      "cannot set channel gain when measurement started"};
+
   const auto index = gain::ogain_table_index(value);
   const auto igain = static_cast<CPGA280::igain>(index / 2);
   const auto ogain = static_cast<CPGA280::ogain>(index % 2);
@@ -31,6 +58,7 @@ void Dms_channel::set_amplification_gain(const float value)
     amplification_gain_ = gain::ogain_table[index];
     update_offsets();
   }
+  return {};
 }
 
 void Dms_channel::update_offsets()

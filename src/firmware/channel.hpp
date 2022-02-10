@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_FIRMWARE_CHANNEL_HPP
 
 #include "adcdac.hpp"
+#include "error.hpp"
 #include "json.hpp"
 #include "control/DataVis.h"
 
@@ -38,19 +39,19 @@ public:
   virtual std::optional<Measurement_mode> measurement_mode() const noexcept = 0;
 
   /// Sets The measurement mode.
-  virtual void set_measurement_mode(Measurement_mode mode) = 0;
+  virtual Error set_measurement_mode(Measurement_mode mode) = 0;
 
   /// @returns IEPE mode indicator.
   virtual bool is_iepe() const noexcept = 0;
 
   /// Sets IEPE mode indicator.
-  virtual void set_iepe(bool enable) = 0;
+  virtual Error set_iepe(bool enable) = 0;
 
   /// @returns The amplification gain.
   virtual std::optional<float> amplification_gain() const noexcept = 0;
 
   /// Sets the amplification gain.
-  virtual void set_amplification_gain(float gain) = 0;
+  virtual Error set_amplification_gain(float gain) = 0;
 
   /// @returns The zero-based channel index.
   virtual int channel_index() const noexcept = 0;
@@ -163,9 +164,10 @@ public:
     return measurement_mode_;
   }
 
-  void set_measurement_mode(const Measurement_mode mode) override
+  Error set_measurement_mode(const Measurement_mode mode) override
   {
     measurement_mode_ = mode;
+    return {};
   }
 
   bool is_iepe() const noexcept override
@@ -173,9 +175,10 @@ public:
     return is_iepe_;
   }
 
-  void set_iepe(bool value) override
+  Error set_iepe(bool value) override
   {
     is_iepe_ = value;
+    return {};
   }
 
   std::optional<float> amplification_gain() const noexcept override
@@ -183,9 +186,10 @@ public:
     return amplification_gain_;
   }
 
-  void set_amplification_gain(const float gain) override
+  Error set_amplification_gain(const float gain) override
   {
     amplification_gain_ = gain;
+    return {};
   }
 
   int channel_index() const noexcept override

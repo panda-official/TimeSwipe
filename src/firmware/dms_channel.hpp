@@ -50,12 +50,7 @@ public:
   }
 
   /// @see Channel::set_measurement_mode();
-  void set_measurement_mode(const Measurement_mode mode) override
-  {
-    measurement_mode_ = mode;
-    pga_->SetMode(static_cast<CPGA280::mode>(mode));
-    update_offsets();
-  }
+  Error set_measurement_mode(Measurement_mode mode) override;
 
   /// @see Channel::is_iepe();
   bool is_iepe() const noexcept override
@@ -64,11 +59,7 @@ public:
   }
 
   /// @see Channel::set_iepe();
-  void set_iepe(const bool value) override
-  {
-    is_iepe_ = value;
-    iepe_switch_pin_->write(value);
-  }
+  Error set_iepe(bool value) override;
 
   /// @see Channel::amplification_gain();
   std::optional<float> amplification_gain() const noexcept override
@@ -77,7 +68,7 @@ public:
   }
 
   /// @see Channel::set_amplification_gain();
-  void set_amplification_gain(float GainValue) override;
+  Error set_amplification_gain(float GainValue) override;
 
   int channel_index() const noexcept override
   {
