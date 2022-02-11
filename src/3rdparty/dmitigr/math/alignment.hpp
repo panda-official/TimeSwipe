@@ -20,8 +20,8 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_MATH_ALIGN_HPP
-#define DMITIGR_MATH_ALIGN_HPP
+#ifndef DMITIGR_MATH_ALIGNMENT_HPP
+#define DMITIGR_MATH_ALIGNMENT_HPP
 
 #include "exceptions.hpp"
 
@@ -71,4 +71,4 @@ constexpr T aligned(const T value, const T alignment)
 
 } // namespace dmitigr::math
 
-#endif  // DMITIGR_MATH_ALIGN_HPP
+#endif  // DMITIGR_MATH_ALIGNMENT_HPP

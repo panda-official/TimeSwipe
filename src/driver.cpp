@@ -31,8 +31,8 @@
 #include "driver_settings.cpp"
 
 #include "3rdparty/dmitigr/fs/filesystem.hpp"
-#include "3rdparty/dmitigr/math/stat.hpp"
-#include "3rdparty/dmitigr/rajson.hpp"
+#include "3rdparty/dmitigr/math/statistic.hpp"
+#include "3rdparty/dmitigr/rajson/rajson.hpp"
 #include "3rdparty/dmitigr/str/transform.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>

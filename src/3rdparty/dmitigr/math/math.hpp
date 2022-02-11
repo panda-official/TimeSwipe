@@ -23,10 +23,10 @@
 #ifndef DMITIGR_MATH_MATH_HPP
 #define DMITIGR_MATH_MATH_HPP
 
-#include "align.hpp"
+#include "alignment.hpp"
 #include "exceptions.hpp"
 #include "interval.hpp"
-#include "stat.hpp"
+#include "statistic.hpp"
 #include "version.hpp"
 
 #endif  // DMITIGR_MATH_MATH_HPP

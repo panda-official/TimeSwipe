@@ -23,7 +23,7 @@
 #include "exceptions.hpp"
 #include "hat.hpp"
 
-#include "3rdparty/dmitigr/rajson.hpp"
+#include "3rdparty/dmitigr/rajson/rajson.hpp"
 
 #include <optional>
 #include <string_view>

@@ -20,8 +20,8 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_MATH_STAT_HPP
-#define DMITIGR_MATH_STAT_HPP
+#ifndef DMITIGR_MATH_STATISTIC_HPP
+#define DMITIGR_MATH_STATISTIC_HPP
 
 #include "../base/assert.hpp"
 
@@ -53,7 +53,7 @@ template<class Container>
 constexpr double variance(const Container& data, const double avg,
   const bool general = true) noexcept
 {
-  const double den = data.size() - !general;
+  const auto den = static_cast<double>(data.size() - !general);
   double result{};
   for (const double num : data) {
     const double d = num - avg;
@@ -72,4 +72,4 @@ constexpr double variance(const Container& data, const bool general = true) noex
 
 } // namespace dmitigr::math
 
-#endif  // DMITIGR_MATH_STAT_HPP
+#endif  // DMITIGR_MATH_STATISTIC_HPP

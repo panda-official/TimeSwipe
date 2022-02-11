@@ -8,7 +8,7 @@
 */
 
 #include "../../src/driver.hpp"
-#include "../../src/3rdparty/dmitigr/progpar.hpp"
+#include "../../src/3rdparty/dmitigr/progpar/progpar.hpp"
 
 #include <chrono>
 #include <condition_variable>

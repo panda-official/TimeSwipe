@@ -23,8 +23,8 @@
 #ifndef DMITIGR_RAJSON_EXCEPTIONS_HPP
 #define DMITIGR_RAJSON_EXCEPTIONS_HPP
 
-#include "errctg.hpp"
 #include "../base/exceptions.hpp"
+#include "errctg.hpp"
 
 #include <stdexcept> // std::runtime_error
 
