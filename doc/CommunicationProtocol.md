@@ -145,6 +145,12 @@ To write multiple settings at once they must be specified in a JSON object,
 obviously, as: `{"setting":value, ...}`, where `setting` must not be a name of
 any special setting.
 
+##### Remarks
+
+If writting of at least one setting is failed the entire operation is aborted
+and error is returned. Therefore, if an error occurs upon attempt to modify
+multiple settings at once, the values of some settings still remain unaffected!
+
 #### Special setting `basic`
 
 The special setting `basic` - is a subset of `all` settings that doesn't include

@@ -137,8 +137,9 @@ public:
           Setting_request req{handler.first, Setting_request_type::read,
             request.input, {&res, &alloc}};
           if (const auto err = handler.second->handle(req))
-            set_error(res, err, alloc);
-          result.AddMember(Value{req.name, alloc}, std::move(res), alloc);
+            return err;
+          else
+            result.AddMember(Value{req.name, alloc}, std::move(res), alloc);
         }
         break;
       case Setting_request_type::write: {
@@ -150,17 +151,17 @@ public:
           if (is_should_be_skipped(name))
             continue;
 
-          Value res;
           if (!is_name_special(name)) {
-            Value in;
-            in.CopyFrom(member.value, alloc, true);
+            Value res;
+            Value in{member.value, alloc};
             Setting_request req{name, Setting_request_type::write,
               {&in}, {&res, &alloc}};
             if (const auto err = handle(req))
-              set_error(res, err, alloc);
+              return err;
+            else
+              result.AddMember(Value{name, alloc}, std::move(res), alloc);
           } else
-            set_error(res, Error{Errc::board_settings_invalid, "special name"}, alloc);
-          result.AddMember(Value{name, alloc}, std::move(res), alloc);
+            return Error{Errc::board_settings_invalid, "special name requested"};
         }
         break;
       }
