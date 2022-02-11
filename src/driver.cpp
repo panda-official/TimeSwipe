@@ -322,7 +322,7 @@ public:
 
     const auto bs = board_settings();
     const auto calib = calibration_map(bs);
-    const auto gains = channel_settings<int>(bs, "Gain");
+    const auto gains = channel_settings<float>(bs, "Gain");
     const auto modes = channel_settings<Measurement_mode>(bs, "Mode");
     const auto srate = driver_settings().sample_rate();
     if (!handler)
@@ -1017,9 +1017,9 @@ private:
     const unsigned mcc = max_channel_count();
     std::vector<T> result(mcc);
     for (unsigned i{}; i < mcc; ++i) {
-      const auto gain = bs.value("channel"+std::to_string(i+1)+"Gain");
-      if (gain.has_value())
-        result[i] = std::any_cast<T>(gain);
+      const auto val = bs.value("channel"+std::to_string(i+1).append(name));
+      if (val.has_value())
+        result[i] = std::any_cast<T>(val);
       else
         return {};
     }

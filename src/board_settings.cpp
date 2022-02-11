@@ -169,21 +169,15 @@ struct Board_settings::Rep final {
       set_member(name, any_cast<Measurement_mode>(value));
     else if (type == typeid(bool))
       set_member(name, any_cast<bool>(value));
-    else if (type == typeid(char) || type == typeid(std::int8_t))
-      set_member(name, any_cast<std::int8_t>(value));
-    else if (type == typeid(unsigned char) || type == typeid(std::uint8_t))
-      set_member(name, any_cast<std::uint8_t>(value));
-    else if (type == typeid(short) || type == typeid(std::int16_t))
-      set_member(name, any_cast<std::int16_t>(value));
-    else if (type == typeid(unsigned short) || type == typeid(std::uint16_t))
-      set_member(name, any_cast<std::uint16_t>(value));
-    else if (type == typeid(int) || type == typeid(std::int32_t))
+    else if (type == typeid(std::int8_t)  ||
+             type == typeid(std::int16_t) || type == typeid(std::int32_t))
       set_member(name, any_cast<std::int32_t>(value));
-    else if (type == typeid(unsigned int) || type == typeid(std::uint32_t))
+    else if (type == typeid(std::uint8_t)  ||
+             type == typeid(std::uint16_t) || type == typeid(std::uint32_t))
       set_member(name, any_cast<std::uint32_t>(value));
-    else if (type == typeid(long) || type == typeid(std::int64_t))
+    else if (type == typeid(std::int64_t))
       set_member(name, any_cast<std::int64_t>(value));
-    else if (type == typeid(unsigned long) || type == typeid(std::uint64_t))
+    else if (type == typeid(std::uint64_t))
       set_member(name, any_cast<std::uint64_t>(value));
     else if (type == typeid(float))
       set_member(name, any_cast<float>(value));

@@ -90,8 +90,8 @@ public:
    * The type of `value` must be one of the following:
    *   - Measurement_mode;
    *   - bool;
-   *   - (unsigned) char, short, int, long;
-   *   - std::int64_t, std::uint64_t;
+   *   - std::int8_t, std::int16_t, std::int32_t, std::int64_t;
+   *   - std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t;
    *   - float, double;
    *   - std::string, std::string_view.
    *
@@ -103,7 +103,14 @@ public:
 
   /**
    * @returns The value of the specified setting, or empty value if the setting
-   * is either not available or null.
+   * is either not available or null. Depending on the underlying type and `name`
+   * the type of the result can be one of the following:
+   *   - Measurement_mode;
+   *   - bool;
+   *   - std::int32_t, std::int64_t;
+   *   - std::uint32_t, std::uint64_t;
+   *   - float, double;
+   *   - std::string.
    *
    * @see set_value().
    */
