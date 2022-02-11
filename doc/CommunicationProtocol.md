@@ -147,7 +147,7 @@ any special setting.
 
 ##### Remarks
 
-If writting of at least one setting is failed the entire operation is aborted
+If writing of at least one setting is failed the entire operation is aborted
 and error is returned. Therefore, if an error occurs upon attempt to modify
 multiple settings at once, the values of some settings still remain unaffected!
 
