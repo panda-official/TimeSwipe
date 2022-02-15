@@ -876,7 +876,13 @@ private:
         result << data_bytes[i];
     }
 
-    /// Sets the `input` as the atom data.
+    /**
+     * @brief Sets the `input` as the atom data.
+     *
+     * @par Requires
+     * Memory in range `[data(), data() + input.size() + 2)` must be allocated.
+     * (2 bytes are reserved for CRC.)
+     */
     void set_data(const CFIFO& input)
     {
       // Set the data.
@@ -886,9 +892,12 @@ private:
         data_bytes[i] = input[i];
 
       // Set the data CRC.
-      auto* const crc = reinterpret_cast<std::uint16_t*>(data() + dlen_no_crc);
+      auto* const crc = reinterpret_cast<std::uint16_t*>(data_bytes + dlen_no_crc);
       *crc = dmitigr::hsh::crc16(reinterpret_cast<const char*>(this),
         dlen_no_crc + sizeof(*this));
+
+      // Update dlen.
+      dlen = dlen_no_crc + 2;
     }
 
     atom::Type type{}; // std::uint16_t
@@ -928,7 +937,8 @@ private:
     // Find atom.
     auto* atom = mem_buf + sizeof(Eeprom_header);
     for (unsigned i{}; i < pos; ++i) {
-      atom += sizeof(Atom_header) + reinterpret_cast<const Atom_header*>(atom)->dlen;
+      const auto* const atom_header = reinterpret_cast<const Atom_header*>(atom);
+      atom += sizeof(Atom_header) + atom_header->dlen;
       if (atom > mem_buf_end)
         return Errc::hat_eeprom_data_corrupted;
     }
@@ -991,7 +1001,7 @@ private:
       return err;
 
     const auto input_size = input.size();
-    const auto atom_old_size = (atom->dlen + 2) * !is_adding;
+    const auto atom_old_size = atom->dlen * !is_adding;
     const auto atom_new_size = input_size + 2 + sizeof(Atom_header) * is_adding;
     const auto atom_offset = reinterpret_cast<const char*>(atom) +
       sizeof(Atom_header) * !is_adding; // keep header when updating
@@ -1001,10 +1011,9 @@ private:
     // Refresh the `atom` after memory reallocation!
     get_atom_header(pos, &atom);
 
-    // Set the atom.
+    // Update the atom.
     atom->type = type;
     atom->count = pos;
-    atom->dlen = input_size + 2;
     atom->set_data(input);
 
     // Update the EEPROM header.
