@@ -137,9 +137,8 @@ public:
           Setting_request req{handler.first, Setting_request_type::read,
             request.input, {&res, &alloc}};
           if (const auto err = handler.second->handle(req))
-            return err;
-          else
-            result.AddMember(Value{req.name, alloc}, std::move(res), alloc);
+            set_error(res, err, alloc);
+          result.AddMember(Value{req.name, alloc}, std::move(res), alloc);
         }
         break;
       case Setting_request_type::write: {
