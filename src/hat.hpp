@@ -891,13 +891,13 @@ private:
       for (std::size_t i{}; i < dlen_no_crc; ++i)
         data_bytes[i] = input[i];
 
-      // Set the data CRC.
-      auto* const crc = reinterpret_cast<std::uint16_t*>(data_bytes + dlen_no_crc);
-      *crc = dmitigr::hsh::crc16(reinterpret_cast<const char*>(this),
-        dlen_no_crc + sizeof(*this));
-
       // Update dlen.
-      dlen = dlen_no_crc + 2;
+      dlen = dlen_no_crc + sizeof(std::uint16_t);
+
+      // Set the CRC.
+      auto* const crc = reinterpret_cast<std::uint16_t*>(data_bytes + dlen_no_crc);
+      const auto* const atom_offset = reinterpret_cast<const char*>(this);
+      *crc = dmitigr::hsh::crc16(atom_offset, sizeof(*this) + dlen_no_crc);
     }
 
     atom::Type type{}; // std::uint16_t
