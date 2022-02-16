@@ -1001,8 +1001,8 @@ private:
       return err;
 
     const auto input_size = input.size();
-    const auto atom_old_size = atom->dlen * !is_adding;
-    const auto atom_new_size = input_size + 2 + sizeof(Atom_header) * is_adding;
+    const auto atom_old_size = (sizeof(Atom_header) + atom->dlen) * !is_adding;
+    const auto atom_new_size = sizeof(Atom_header) + input_size + 2;
     const auto atom_offset = reinterpret_cast<const char*>(atom) +
       sizeof(Atom_header) * !is_adding; // keep header when updating
 
