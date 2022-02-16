@@ -107,7 +107,7 @@ public:
             return error("invalid calibration atom");
           else if (!offset_m->value.IsInt())
             return error("invalid calibration atom offset");
-          const auto offset = slope_m->value.GetInt();
+          const auto offset = offset_m->value.GetInt();
           if (!(std::numeric_limits<std::int16_t>::min() <= offset &&
               offset <= std::numeric_limits<std::int16_t>::max()))
             return error("invalid calibration atom offset");
