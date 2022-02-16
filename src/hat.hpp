@@ -839,15 +839,15 @@ private:
     /// @returns Error if the atom is invalid.
     Error error() const noexcept
     {
-      const auto dlen_no_crc = dlen - 2;
-      const auto* const atom_offset = reinterpret_cast<const char*>(this);
-      const auto* const data_offset = atom_offset + sizeof(*this);
-      const auto* const crc_offset = data_offset + dlen_no_crc;
+      const auto dlen_no_crc = dlen - sizeof(std::uint16_t);
+      const auto* const atom_bytes = reinterpret_cast<const char*>(this);
+      const auto* const data_bytes = data();
+      const auto* const crc_bytes = data_bytes + dlen_no_crc;
 
       // Check the CRC.
       using dmitigr::hsh::crc16;
-      const auto crc = *reinterpret_cast<const std::uint16_t*>(crc_offset);
-      const auto calc_crc = crc16(atom_offset, dlen_no_crc + sizeof(*this));
+      const auto crc = *reinterpret_cast<const std::uint16_t*>(crc_bytes);
+      const auto calc_crc = crc16(atom_bytes, sizeof(*this) + dlen_no_crc);
       if (crc != calc_crc)
         return Errc::hat_eeprom_atom_corrupted;
 
@@ -857,8 +857,8 @@ private:
     /// @returns The pointer to the atom data.
     const char* data() const noexcept
     {
-      const auto* const atom_offset = reinterpret_cast<const char*>(this);
-      return atom_offset + sizeof(*this);
+      const auto* const this_offset = reinterpret_cast<const char*>(this);
+      return this_offset + sizeof(*this);
     }
 
     /// @overload
@@ -871,7 +871,7 @@ private:
     void get_data(CFIFO& result) const
     {
       const auto* const data_bytes = data();
-      const auto dlen_no_crc = dlen - 2;
+      const auto dlen_no_crc = dlen - sizeof(std::uint16_t);
       for (int i{}; i < dlen_no_crc; ++i)
         result << data_bytes[i];
     }
@@ -896,8 +896,8 @@ private:
 
       // Set the CRC.
       auto* const crc = reinterpret_cast<std::uint16_t*>(data_bytes + dlen_no_crc);
-      const auto* const atom_offset = reinterpret_cast<const char*>(this);
-      *crc = dmitigr::hsh::crc16(atom_offset, sizeof(*this) + dlen_no_crc);
+      const auto* const atom_bytes = reinterpret_cast<const char*>(this);
+      *crc = dmitigr::hsh::crc16(atom_bytes, sizeof(*this) + dlen_no_crc);
     }
 
     atom::Type type{}; // std::uint16_t
