@@ -98,7 +98,7 @@ public:
           const auto slope_m = entry_v.FindMember("slope");
           if (slope_m == entry_v.MemberEnd())
             return error("invalid calibration atom");
-          else if (!slope_m->value.IsFloat() || !slope_m->value.IsLosslessFloat())
+          else if (!slope_m->value.IsFloat() && !slope_m->value.IsLosslessFloat())
             return error("invalid calibration atom slope");
           const auto slope = slope_m->value.GetFloat();
 
