@@ -872,7 +872,7 @@ private:
     {
       const auto* const data_bytes = data();
       const auto dlen_no_crc = dlen - sizeof(std::uint16_t);
-      for (int i{}; i < dlen_no_crc; ++i)
+      for (unsigned i{}; i < dlen_no_crc; ++i)
         result << data_bytes[i];
     }
 

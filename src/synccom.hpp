@@ -111,7 +111,7 @@ protected:
   int m_FrameCnt=0;
 
   /// Obtained message length
-  int m_TargetLength=0;
+  unsigned m_TargetLength=0;
 
 public:
   /**
@@ -195,7 +195,7 @@ public:
     case State::recLengthMSB:
       if(0!=ch)
         {
-          m_TargetLength=((int)(ch&0x7f))<<8;
+          m_TargetLength=((unsigned)(ch&0x7f))<<8;
           m_PState = State::recLengthLSB;
           return true;
         }

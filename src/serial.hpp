@@ -45,7 +45,7 @@ using Character = int;
 class CFIFO : public std::string
 {
 protected:
-        int m_ReadInd=0;
+    size_type m_ReadInd=0;
 
 public:
     /// The default constructor.
@@ -83,7 +83,7 @@ public:
          * \brief how many elements are available in the FIFO buffer?
          * \return the number of available elements.
          */
-        int in_avail() const { return size()-m_ReadInd; }
+        size_type in_avail() const { return size()-m_ReadInd; }
 
         /*!
          * \brief remove all elements from the buffer
