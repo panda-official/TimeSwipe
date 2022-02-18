@@ -542,7 +542,8 @@ if(PANDA_TIMESWIPE_TESTS)
       PROPERTIES
       LINKER_LANGUAGE "CXX"
       POSITION_INDEPENDENT_CODE True
-      DEBUG_POSTFIX "d")
+      # DEBUG_POSTFIX "d"
+      )
     target_link_libraries(${exe}
       PRIVATE ${${software}_tests_link_libraries} ${${test}_link_libraries})
     panda_target_compile_options(${exe})
