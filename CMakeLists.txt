@@ -509,7 +509,7 @@ if(PANDA_TIMESWIPE_TESTS)
   message(CHECK_START "Configuring the tests for ${software}.")
 
   # Set the test lists.
-  set(driver_tests board_settings driver_settings
+  set(driver_tests bs board_settings driver_settings
     driftcomp driftcompmeas kaiser measure resampler rpispi
     table stop)
   set(firmware_tests button_event)
