@@ -127,7 +127,10 @@ public:
       set_gpio_low(gpio_clock);
       set_gpio_high(gpio_reset);
 
-      // Some delay required to get SPI communication work.
+      /*
+       * On some devices delay is required to get SPI communication work.
+       * There is also delay in Bcm_spi::initialize().
+       */
       std::this_thread::sleep_for(milliseconds{100});
 
       is_gpio_inited_ = true;

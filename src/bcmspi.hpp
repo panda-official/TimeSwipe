@@ -28,6 +28,7 @@
 #include "3rdparty/bcm/bcm2835.h"
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <thread>
 
@@ -75,6 +76,9 @@ public:
     /// Initialize BCM.
     if (!is_initialized_ && !(is_initialized_ = bcm2835_init()))
       throw Exception{"cannot initialize BCM"};
+
+    // On some devices delay is required after bcm2835_init().
+    std::this_thread::sleep_for(std::chrono::seconds{1});
 
     /// Initialize SPI.
     if (!is_spi_initialized_[pins_] && !(is_spi_initialized_[pins_] =
