@@ -6,7 +6,9 @@ Copyright (c) 2019 Panda Team
 */
 
 #include "bcmspi.h"
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "../../3rdparty/BCMsrc/bcm2835.h"
 bool CBcmLIB::m_bLibInitialized=false;
@@ -20,6 +22,9 @@ CBcmLIB::CBcmLIB()
     if(!bcm2835_init())
         return;
     m_bLibInitialized=true;
+
+    // On some devices pause is required after bcm2835_init().
+    std::this_thread::sleep_for(std::chrono::seconds{1});
 }
 CBcmLIB::~CBcmLIB()
 {
@@ -122,7 +127,6 @@ CBcmSPI::CBcmSPI(iSPI nSPI)
     //set default rate:
     //SPI_set_speed_hz(100000);
     SPI_set_speed_hz(50000);
-
 }
 CBcmSPI::~CBcmSPI()
 {
