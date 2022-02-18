@@ -27,6 +27,7 @@
 #include "settings.hpp"
 #include "setting_handlers.hpp"
 #include "shiftreg.hpp"
+#include "stopwatch.hpp"
 #include "base/SPIcomm.h"
 #include "base/I2CmemHAT.h"
 #include "base/I2Cmem8Pin.h"
@@ -89,6 +90,9 @@ int main()
   // Initialize the system clock: 120 MHz.
   initialize_system_clock();
 
+  // Register the start time.
+  const auto start_time = os::get_tick_mS();
+
   // Create the control instance.
   const auto board = Board::instance().shared_from_this();
 
@@ -142,6 +146,13 @@ int main()
   std::shared_ptr<Pin> pUB1onPin;
   std::shared_ptr<Pin> pQSPICS0Pin;
   std::shared_ptr<CDMSsr> pDMSsr;
+
+  // Add uptime handler.
+  const auto stopwatch = std::make_shared<Stopwatch>(start_time);
+  setting_dispatcher->add("uptime",
+    std::make_shared<Setting_generic_handler<float>>(
+      stopwatch,
+      &Stopwatch::uptime_seconds));
 
   //1st step:
   if constexpr (board_type == Board_type::dms) {

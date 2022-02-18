@@ -115,6 +115,7 @@ These settings are used to control board voltage output.
 |armId             |ARM chip UUID.                           |string|r     |       |
 |firmwareVersion   |Firmware version.                        |string|r     |       |
 |temperature       |Core temperature of ARM chip.            |float |r     |       |
+|uptime            |The uptime of the firmware in seconds.   |float |r     |       |
 |Gain              |Gain.                                    |[1,4] |rw    |1      |
 |Record            |Starts/stops a record process.           |bool  |rw    |false  |
 |Mode              |Working mode of the board.               |[0,2] |rw    |0      |
