@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [Changes][1.2.3] in version 1.2.3 relative to version 1.2.2
+
+  - Added 1 second delay after BCM2835 initialization.
+
 ## [Changes][1.2.2] in version 1.2.2 relative to version 1.2.1
 
   - Added support for SAME53N19A chip;
@@ -47,7 +51,8 @@
  configuration at start;
  - New API to set mode, gain and IEPE for each channel.
 
-[Unreleased]: https://github.com/panda-official/timeswipe/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/panda-official/timeswipe/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/panda-official/timeswipe/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/panda-official/timeswipe/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/panda-official/timeswipe/compare/v0.1.1...v1.2.1
 [0.1.1]: https://github.com/panda-official/timeswipe/compare/v0.1.0...v0.1.1
