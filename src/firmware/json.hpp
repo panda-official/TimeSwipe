@@ -156,7 +156,7 @@ public:
   {
     using std::is_same_v;
     return is_same_v<T, bool> || is_same_v<T, int> || is_same_v<T, unsigned> ||
-      is_same_v<T, float> || is_same_v<T, std::string>;
+      is_same_v<T, unsigned long> || is_same_v<T, float> || is_same_v<T, std::string>;
   }
 
 private:
@@ -189,7 +189,8 @@ Error get(const Json_value_view& view, T& result)
       result = view.value()->GetInt();
     else
       what = "value is not integer";
-  } else if constexpr (is_same_v<T, unsigned>) {
+  } else if constexpr (is_same_v<T, unsigned> || is_same_v<T, unsigned long>) {
+    static_assert(sizeof(unsigned) == sizeof(unsigned long));
     if (view.value()->IsUint())
       result = view.value()->GetUint();
     else
@@ -260,7 +261,8 @@ Error set(Json_value_view& view, const T& value)
     view.value()->SetBool(value);
   } else if constexpr (is_same_v<T, int>) {
     view.value()->SetInt(value);
-  } else if constexpr (is_same_v<T, unsigned>) {
+  } else if constexpr (is_same_v<T, unsigned> || is_same_v<T, unsigned long>) {
+    static_assert(sizeof(unsigned) == sizeof(unsigned long));
     view.value()->SetUint(value);
   } else if constexpr (is_same_v<T, float>) {
     view.value()->SetFloat(value);
