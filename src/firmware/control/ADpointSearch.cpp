@@ -16,10 +16,10 @@ void CADpointSearch::Update()
     if(typePTsrcState::searching!=m_State)
         return;
 
-    int CurPoint=m_pADC->GetRawBinVal();
-    int CurSetPoint=m_pDAC->GetRawBinVal();
-    int err=(m_TargPoint-CurPoint);
-    bool  bErrSign=std::signbit(err);
+    int CurSetPoint{m_pDAC->GetRawBinVal()};
+    const int CurPoint{m_pADC->GetRawBinValDirectly()};
+    const int err{m_TargPoint - CurPoint};
+    const bool bErrSign{std::signbit(err)};
 
     //set test bit:
     if(m_ProcBits>0)

@@ -34,27 +34,25 @@ CSamADCchan::~CSamADCchan()
     m_pCont->m_Chans.remove(this);
 }
 
-void CSamADCchan::handle_measurement(const short)
+void CSamADCchan::handle_measurement(const short raw)
 {
-    // m_UnfilteredRawVal=RawVal;
-    // m_FilteredRawVal+=((float)RawVal - m_FilteredRawVal ) * ( (float)data_age() ) / m_filter_t_mSec;
-    m_MesTStamp=os::get_tick_mS();
+  // m_UnfilteredRawVal=RawVal;
+  filtered_raw_ += (static_cast<float>(raw) - filtered_raw_)
+    * static_cast<float>(data_age()) / filter_time_ms_;
+  m_MesTStamp = os::get_tick_mS();
 }
 
+int CSamADCchan::DirectMeasure(const int nMesCnt, const float alpha) const noexcept
+{
+  // Select a channel and no switching beetwen mes.
+  m_pCont->SelectInput(m_posIN, m_negIN);
 
- int CSamADCchan::DirectMeasure(int nMesCnt, float alpha) const noexcept
- {
-     //select one chanel and no switching beetwen mes:
-     m_pCont->SelectInput(m_posIN, m_negIN);
-
-     //measure and average:
-     float val=m_pCont->SingleConv();
-     for(int i=0; i<nMesCnt; i++)
-     {
-         val=alpha*val +(1.0f-alpha)*(m_pCont->SingleConv());
-     }
-     return (int)val;
- }
+  // Measure and average.
+  float val = m_pCont->SingleConv();
+  for (int i{}; i < nMesCnt; ++i)
+    val = alpha*val + (1.0f - alpha)*m_pCont->SingleConv();
+  return val;
+}
 
 bool CSamADCcntr::Update()
 {
@@ -103,7 +101,6 @@ short CSamADCcntr::SingleConv()
     //wait until finished:
     while(0==pADC->INTFLAG.bit.RESRDY && 0==pADC->INTFLAG.bit.OVERRUN){}
 
-    //return relult:
     return (pADC->RESULT.bit.RESULT); //2-compl code
 }
 

@@ -19,8 +19,8 @@ Copyright (c) 2019 Panda Team
 
 #include "../os.h"
 
-#include <memory>
 #include <list>
+#include <memory>
 
 /*!
  * \brief An enumeration of possible SAME54 ADC devices
@@ -73,7 +73,7 @@ private:
     /*!
      * \brief A filtered raw binary value of last ADC convertion
      */
-    // float         m_FilteredRawVal=0;
+    float filtered_raw_{};
 
     /*!
      * \brief Unfiltered raw binary value of last ADC conversion
@@ -83,7 +83,7 @@ private:
     /*!
      * \brief A 1st order digital filter time constant, milliseconds
      */
-    float         m_filter_t_mSec=50.0f;
+    constexpr static float filter_time_ms_{50.0f};
 
     /*!
      * \brief Returns the age of last ADC conversion.
@@ -91,7 +91,7 @@ private:
      */
     unsigned long data_age(){ return (os::get_tick_mS()-m_MesTStamp); }
 
-    void handle_measurement(short value);
+    void handle_measurement(short raw);
 
 public:
     /*!
@@ -111,7 +111,13 @@ public:
     /// @see Adcdac_channel::GetRawBinVal().
     int GetRawBinVal() const noexcept override
     {
-        return DirectMeasure(50, 0.8f);
+      return filtered_raw_;
+    }
+
+    /// @see Adc_channel::GetRawBinValDirectly().
+    int GetRawBinValDirectly() const noexcept override
+    {
+      return DirectMeasure(50, 0.8f);
     }
 
     /*!

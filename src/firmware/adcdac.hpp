@@ -44,7 +44,15 @@ public:
 };
 
 /// An ADC (Analog-to-Digital-Converter) channel.
-class Adc_channel : public Adcdac_channel {};
+class Adc_channel : public Adcdac_channel {
+public:
+  /**
+   * @brief Force direct measurement for this channel on ADC device without queuing.
+   *
+   * @returns Immediately measured analog value in raw-binary format.
+   */
+  virtual int GetRawBinValDirectly() const noexcept = 0;
+};
 
 /// A DAC (Digital-to-Analog-Converter) channel.
 class Dac_channel : public Adcdac_channel {
