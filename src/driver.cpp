@@ -387,18 +387,21 @@ public:
       throw;
     }
 
-    // Done.
-    is_measurement_started_ = true;
+    PANDA_TIMESWIPE_ASSERT(is_measurement_started());
   }
 
-  bool is_measurement_started() const noexcept override
+  bool is_measurement_started() const override
   {
-    return is_measurement_started_;
+    return spi_is_channels_adc_enabled();
   }
 
   void stop_measurement() override
   {
-    if (!is_measurement_started_) return;
+    if (!is_initialized())
+      throw Exception{Errc::driver_not_initialized,
+        "cannot stop measurement while driver isn't initialized"};
+
+    if (!is_measurement_started()) return;
 
     // Wait threads and reset state they are using.
     join_threads();
@@ -414,8 +417,7 @@ public:
       spi_set_channels_adc_enabled(false); // may throw
     }
 
-    // Done.
-    is_measurement_started_ = false;
+    PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
   }
 
   std::vector<float> calculate_drift_references() override
@@ -566,7 +568,6 @@ private:
   mutable detail::Bcm_spi spi_;
   std::atomic_bool is_initialized_{};
   std::atomic_bool is_gpio_inited_{};
-  std::atomic_bool is_measurement_started_{};
   std::atomic_bool is_threads_running_{};
 
   // ---------------------------------------------------------------------------
@@ -879,6 +880,12 @@ private:
   void spi_set_channels_adc_enabled(const bool value)
   {
     spi_.execute_set("channelsAdcEnabled", value ? "true" : "false");
+  }
+
+  bool spi_is_channels_adc_enabled() const
+  {
+    const auto doc = spi_.execute_get("channelsAdcEnabled");
+    return rajson::Value_view{doc}.mandatory<bool>("channelsAdcEnabled");
   }
 
   // -----------------------------------------------------------------------------

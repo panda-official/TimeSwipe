@@ -245,16 +245,16 @@ public:
    *
    * @remarks Implies is_initialized().
    *
-   * @par Thread-safety
-   * Thread-safe.
-   *
    * @see calculate_drift_references(), calculate_drift_deltas(),
    * start_measurement().
    */
-  virtual bool is_measurement_started() const noexcept = 0;
+  virtual bool is_measurement_started() const = 0;
 
   /**
    * @brief Stops the measurement.
+   *
+   * @par Requires
+   * `is_initialized()`.
    *
    * @par Effects
    * `!is_measurement_started()`.
