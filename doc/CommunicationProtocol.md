@@ -10,7 +10,7 @@ This way access points form a hierarchical data model.
 
 ## Possible access point types:
 
-### Type DAC: 
+### Type DAC:
 
 This access point type is used for setting offset on the input signal for each of 4 channels by controlling the input signal amplifier.
 The access point consists of two domain names.
@@ -42,7 +42,7 @@ AOUT3.raw <br />
 AOUT4.raw <br />
 
 
-### Type ADC: 
+### Type ADC:
 
 This access point type is used to control board's ADCs and consists of two domain names.
 
@@ -149,8 +149,8 @@ Uptime          |   Returns the uptime of the firmware in seconds (unsigned, r)
 ### JSON controlled access points:
 
  Access Point   |       Function
---------------  |    --------------------------------------------------------------------------------------------------------------------------------------- 
-js              |    ("JSON setpoint") Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).      
+--------------  |    ---------------------------------------------------------------------------------------------------------------------------------------
+js              |    ("JSON setpoint") Writing to this variable a JSON object leads to write operation on multiple variables pointed in this object. The result of the operation will be returned as a JSON object (see the protocol description below). Reading from this variable a JSON object leads to readout values from all of the pointed variables as a JSON object (JSON object, r/w).
 je              |    ("JSON event") Holds latest events description in form of a JSON object (JSON object, r)
 
 The structure of the JSON object can be arbitrary but must follow several semantic rules:
@@ -180,8 +180,8 @@ The response from a slave is a read back value in the case of success or an erro
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   DAC1.raw<2048\n
-successive response message: |   2048\n
+request message:             |   `DAC1.raw<2048\n`
+successive response message: |   `2048\n`
 
 <br />
 
@@ -189,8 +189,8 @@ successive response message: |   2048\n
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   AOUT3.raw<2048\n
-successive response message: |   2048\n
+request message:             |   `AOUT3.raw<2048\n`
+successive response message: |   `2048\n`
 
 <br />
 
@@ -200,8 +200,8 @@ successive response message: |   2048\n
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   DACsw<1\n
-successive response message: |   1\n
+request message:             |   `DACsw<1\n`
+successive response message: |   `1\n`
 
 <br />
 
@@ -209,8 +209,8 @@ successive response message: |   1\n
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   AOUT4.raw<3000\n
-successive response message: |   3000\n
+request message:             |   `AOUT4.raw<3000\n`
+successive response message: |   `3000\n`
 
 <br />
 
@@ -220,8 +220,8 @@ successive response message: |   3000\n
 
 Request/Response             |  Command
 ---------------------------- | --------------------
-request message:             |   ADC1.raw>\n
-successive response message: |    2048\n
+request message:             |   `ADC1.raw>\n`
+successive response message: |    `2048\n`
 
 <br />
 
@@ -229,8 +229,8 @@ successive response message: |    2048\n
 
 Request/Response              |  Command
 ----------------------------- | -------------------------------------------------------------------------------------------------------------------------
-request message:              |   js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
-successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+request message:              |   `js<{ "Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n`
+successive response message:  |       `{"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n`
 
 <br />
 
@@ -238,8 +238,8 @@ successive response message:  |       {"Gain" : 3, "Bridge" : true,   "DAC1.raw"
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>[ "Gain", "Bridge", "DAC1.raw", "DAC2.raw", "DAC3.raw", "DAC4.raw" ]\n
-successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+request message:               |  `js>[ "Gain", "Bridge", "DAC1.raw", "DAC2.raw", "DAC3.raw", "DAC4.raw" ]\n`
+successive response message:   |     `{"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n`
 
 <br />
 
@@ -247,8 +247,8 @@ successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" 
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>{ "Gain" : "?", "Bridge" : "?", "DAC1.raw" : "?", "DAC2.raw" : "?", "DAC3.raw" : "?", "DAC4.raw" : "?" }\n
-successive response message:   |     {"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n
+request message:               |  `js>{ "Gain" : "?", "Bridge" : "?", "DAC1.raw" : "?", "DAC2.raw" : "?", "DAC3.raw" : "?", "DAC4.raw" : "?" }\n`
+successive response message:   |     `{"Gain" : 3, "Bridge" : true,   "DAC1.raw" : 500, "DAC2.raw" : 700, "DAC3.raw" : 900, "DAC4.raw" : 1100 }\n`
 
 Note: When reading information from a variable via "js>" command, values in the pair "key:value" are ignored and should be set to a question mark. <br />
 
@@ -258,8 +258,8 @@ Note: When reading information from a variable via "js>" command, values in the 
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------
-request message:               |  js>\n
-successive response message:   |  {"ADC1.raw" : 2047, ...<all previous listed variables with a read access>... }\n
+request message:               |  `js>\n`
+successive response message:   |  `{"ADC1.raw" : 2047, ...<all previous listed variables with a read access>... }\n`
 
 <br />
 
@@ -267,8 +267,8 @@ successive response message:   |  {"ADC1.raw" : 2047, ...<all previous listed va
 
 Request/Response               |  Command
 ------------------------------ | -------------------------------------------------------------------------------------------------------------------------
-request message:               |  je>\n
-successive response message:   |  {"Button" : true, "ButtonStateCnt" : 3 } - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
+request message:               |  `je>\n`
+successive response message:   |  `{"Button" : true, "ButtonStateCnt" : 3 }` - indicates the board's button was pressed and shows its state counter: odd value means the button is pressed, even means it is released.
 
 Note: The event response message can vary depending on the current events active (please, see "EventSystem" documentation)
 
@@ -311,5 +311,3 @@ example: js>[ "ADC1.raw", "ADC2.raw", "js" ]
 
 
 The protocol is implemented by the board's driver over a specific SPI protocol.
-
-
