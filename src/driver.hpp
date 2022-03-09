@@ -122,9 +122,6 @@ public:
   /// @returns Max possible number of (data) channels the board provides.
   virtual unsigned max_channel_count() const = 0;
 
-  /// @returns Max possible number of PWM the board provides.
-  virtual unsigned max_pwm_count() const = 0;
-
   /// @returns Min possible channel gain value.
   virtual float min_channel_gain() const = 0;
 

@@ -185,6 +185,7 @@ int main()
     Sam_pin::Group::b,
     Sam_pin::Number::p13,
     true);
+  // [[deprecated]] by CPinPWM (see below).
   const auto pFanPin = std::make_shared<Sam_pin>(
     Sam_pin::Group::a,
     Sam_pin::Number::p09,
@@ -194,7 +195,7 @@ int main()
   board->set_ubr_pin(pUB1onPin);
   board->set_dac_mode_pin(pDAConPin);
   board->set_adc_measurement_enable_pin(pEnableMesPin);
-  board->set_fan_pin(pFanPin);
+  board->set_fan_pin(pFanPin); // [[deprecated]]
 
   auto pSamADC0 = std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
   std::shared_ptr<CSamADCchan> pADC[]={
@@ -235,18 +236,6 @@ int main()
         &Dac_channel::GetRawBinVal,
         &Dac_channel::set_raw));
   }
-  for (int i{3}; i <= 4; ++i) {
-    char cmd[64];
-    std::sprintf(cmd, "analogOut%dDacRaw", i);
-    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<int>>(
-        pSamDAC0,
-        &Dac_channel::GetRawBinVal,
-        &Dac_channel::set_raw));
-  }
-  setting_dispatcher->add("analogOutsDacEnabled", std::make_shared<Setting_generic_handler<bool>>(
-      pDAConPin,
-      &Pin::read_back,
-      &Pin::write));
 
   //2nd step:
   std::shared_ptr<Calibratable_dac> voltage_dac;
@@ -295,41 +284,6 @@ int main()
   //2 DAC PWMs:
   auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pDAConPin);
   auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pDAConPin);
-
-  //PWM commands:
-  for (int i{1}; i <= 2; ++i) {
-    char cmd[64];
-    std::sprintf(cmd, "pwm%dEnabled", i);
-    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<bool>>(
-        pPWM1,
-        &CDacPWMht::IsStarted,
-        &CDacPWMht::Start));
-    std::sprintf(cmd, "pwm%dRepeatCount", i);
-    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<unsigned>>(
-        pPWM1,
-        &CDacPWMht::GetRepeats,
-        &CDacPWMht::SetRepeats));
-    std::sprintf(cmd, "pwm%dDutyCycle", i);
-    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<float>>(
-        pPWM1,
-        &CDacPWMht::GetDutyCycle,
-        &CDacPWMht::SetDutyCycle));
-    std::sprintf(cmd, "pwm%dFrequency", i);
-    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<unsigned>>(
-        pPWM1,
-        &CDacPWMht::GetFrequency,
-        &CDacPWMht::SetFrequency));
-    std::sprintf(cmd, "pwm%dHighBoundary", i);
-    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<int>>(
-        pPWM1,
-        &CDacPWMht::GetHighLevel,
-        &CDacPWMht::SetHighLevel));
-    std::sprintf(cmd, "pwm%dLowBoundary", i);
-    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<int>>(
-        pPWM1,
-        &CDacPWMht::GetLowLevel,
-        &CDacPWMht::SetLowLevel));
-  }
 
   //temp sensor+ PIN PWM:
   auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
@@ -402,33 +356,6 @@ int main()
   //     board,
   //     &Board::is_fan_enabled,
   //     &Board::enable_fan));
-  // setting_dispatcher->add("Offset", std::make_shared<Setting_generic_handler<int>>(
-  //     board,
-  //     &Board::is_offset_search_started,
-  //     &Board::start_offset_search));
-  // setting_dispatcher->add("Offset.errtol", std::make_shared<Setting_generic_handler<int>>(
-  //     &CADpointSearch::GetTargErrTol,
-  //     &CADpointSearch::SetTargErrTol));
-  // setting_dispatcher->add("Gain", std::make_shared<Setting_generic_handler<int>>(
-  //     board,
-  //     &Board::gain,
-  //     &Board::set_gain));
-  // setting_dispatcher->add("Mode", std::make_shared<Setting_generic_handler<int>>(
-  //     board,
-  //     &Board::measurement_mode,
-  //     &Board::set_measurement_mode));
-  // setting_dispatcher->add("Record", std::make_shared<Setting_generic_handler<bool>>(
-  //     board,
-  //     &Board::is_record_started,
-  //     &Board::start_record));
-  // setting_dispatcher->add("Current", std::make_shared<Setting_generic_handler<float>>(
-  //     board,
-  //     &Board::current,
-  //     &Board::set_current));
-  // setting_dispatcher->add("MaxCurrent", std::make_shared<Setting_generic_handler<float>>(
-  //     board,
-  //     &Board::max_current,
-  //     &Board::set_max_current));
   setting_dispatcher->add("armId", std::make_shared<Setting_generic_handler<std::string>>(
       &CSamService::GetSerialString));
 
@@ -465,11 +392,10 @@ int main()
 
   CView &view=CView::Instance();
 #ifdef CALIBRATION_STATION
-  // [[deprecated]]
-  // setting_dispatcher->add("UItest", std::make_shared<Setting_generic_handler<bool>>(
-  //     pBtnHandler,
-  //     &CCalFWbtnHandler::HasUItestBeenDone,
-  //     &CCalFWbtnHandler::StartUItest));
+  setting_dispatcher->add("uiTest", std::make_shared<Setting_generic_handler<bool>>(
+      pBtnHandler,
+      &CCalFWbtnHandler::HasUItestBeenDone,
+      &CCalFWbtnHandler::StartUItest));
 
   //testing Ext EEPROM:
   setting_dispatcher->add("eepromTest", std::make_shared<Setting_generic_handler<bool>>(
@@ -489,7 +415,6 @@ int main()
    * storage handling which is currently broken!
    */
   // board->import_settings();
-  // board->set_measurement_mode(0); FIXME: remove. This is obsolete.
 #ifndef CALIBRATION_STATION
   view.BlinkAtStart();
 #endif

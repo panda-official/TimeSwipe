@@ -165,11 +165,6 @@ public:
     return detail::max_channel_count;
   }
 
-  unsigned max_pwm_count() const override
-  {
-    return 2;
-  }
-
   float min_channel_gain() const override
   {
     return gain::ogain_min;

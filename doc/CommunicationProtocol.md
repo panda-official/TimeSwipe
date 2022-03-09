@@ -11,24 +11,6 @@ For example, `channel1AdcRaw` means ADC raw value of channel 1.
 
 ## Settings
 
-### Settings group `analogOut`
-
-By default, the input signal amplifier controls connected to board's analog
-outputs. However, it's possible to attach 2-channel DAC output to analog
-outputs 3 and 4 by assigning `true` to the `analogOutsDacEnabled` setting, and
-to control these analog outputs via `analogOut%DacRaw` settings.
-
-|Name                |Description                  |Range   |Access|Default|
-|:-------------------|:----------------------------|:-------|:-----|:------|
-|analogOut%DacRaw    |Value in a raw binary format.|[0,4095]|rw    |2048   |
-|analogOutsDacEnabled|Analog outputs DAC enabled?  |bool    |rw    |0      |
-
-#### Details
-
-- `%` - is an index in range `[3, 4]`;
-- `analogOutsDacEnabled` range: `false` - disabled (amplified input signal),
-`true` - enabled and controllable via `analogOut%DacRaw`.
-
 ### Settings group `calibrationData`
 
 These settings are used to control the board calibration data.
@@ -42,7 +24,7 @@ These settings are used to control the board calibration data.
 
 #### Details
 
-- `calibrationData` range:
+- `calibrationData` is available only on a calibration station. It's range:
   - for read access: empty, positive integer or array of positive integers;
   - for write access: JSON array of the following layout:
   ```
@@ -80,25 +62,6 @@ These settings are used to control board Fan output.
 |fanDutyCycle |Duty cycle (pulse width).|(0, 1)     |r     |       |
 |fanFrequency |Frequency.               |[1,20000]  |rw    |100    |
 
-### Settings group `pwm`
-
-These settings are used to control PWMs of analog outputs `3` and `4`. Each PWM
-generator will run for `(pwmRepeatCount / pwmFrequency)` seconds and then stop.
-
-|Name            |Description                   |Range         |Access|Default|
-|:---------------|:-----------------------------|:-------------|:-----|:------|
-|pwm%Enabled     |PWM enabled?                  |bool          |rw    |false  |
-|pwm%RepeatCount |Number of periods to generate.|[0,4294967295]|rw    |0      |
-|pwm%DutyCycle   |Duty cycle (pulse width).     |(0, 1)        |rw    |0.5    |
-|pwm%Frequency   |Frequency to generate.        |[1,1000]      |rw    |50     |
-|pwm%HighBoundary|High pulse boundary.          |[0,4095]      |rw    |3072   |
-|pwm%LowBoundary |Low pulse boundary            |[0,4095]      |rw    |2048   |
-
-#### Details
-
-- `%` - is an index in range `[1, 2]`;
-- `pwm%RepeatCount` range: `0` - infinite.
-
 ### Settings group `voltageOut`
 
 These settings are used to control board voltage output.
@@ -113,23 +76,17 @@ These settings are used to control board voltage output.
 |Name              |Description                              |Range |Access|Default|
 |:-----------------|:----------------------------------------|:-----|:-----|:------|
 |armId             |ARM chip UUID.                           |string|r     |       |
+|eepromTest        |Starts EEPROM test or gets the result.   |bool  |rw    |       |
 |firmwareVersion   |Firmware version.                        |string|r     |       |
 |temperature       |Core temperature of ARM chip.            |float |r     |       |
+|uiTest            |Starts UI test or gets the result.       |bool  |rw    |       |
 |uptime            |The uptime of the firmware in seconds.   |float |r     |       |
-|Gain              |Gain.                                    |[1,4] |rw    |1      |
-|Record            |Starts/stops a record process.           |bool  |rw    |false  |
-|Mode              |Working mode of the board.               |[0,2] |rw    |0      |
-|Offset            |Starts/stops offset searching process.   |[0,3] |rw    |0      |
-|Offset.errtol     |Offset searching process error tolerance.|int   |rw    |25     |
-|Current           |Current.                                 |float |rw    |       |
-|MaxCurrent        |Max Current.                             |float |rw    |1000   |
 
 #### Details
 
+- `eepromTest` is available only on a calibration station.
 - `temperature` - value is in Celsius;
-- `Mode` range: `0` - IEPE, `1` - normal signal, `2`- digital;
-- `Offset` range: `0` - stopped, `1` - negative, `2` - zero, `3` - positive;
-- `Current`: `0` - is a back-reference to `MaxCurrent`.
+- `uiTest` is available only on a calibration station.
 
 ### Special settings
 
@@ -204,59 +161,7 @@ channel1DacRaw<2048\n
 {"result":{"channel1DacRaw":2048}}\n
 ```
 
-#### 2. Preset a value for analog output 3 to 2048 discrets to be controlled
-in the manual mode
-
-##### Request
-
-```
-analogOut3Raw<2048\n
-```
-
-##### Response
-
-```
-{"result":{"analogOut3Raw":2048}}\n
-```
-
-#### 3. Activate the manual control over for analog outputs 3 and 4
-
-##### Effects
-
-Amplifier's outputs 3 and 4 are disconnected, preset channels `aout3` and
-`aout4` are connected to analog outputs 3 and 4.
-
-##### Request
-
-```
-analogOutsDacEnabled<true\n
-```
-
-##### Response
-
-```
-{"result":{"analogOutsDacEnabled":true}}\n
-```
-
-#### 4. Control the analog output 4 manually
-
-##### Requires
-
-`analogOutsDacEnabled` is `true`.
-
-##### Request
-
-```
-analogOut4Raw<3000\n
-```
-
-##### Response
-
-```
-{"result":{"analogOut4Raw":3000}}\n
-```
-
-#### 5. Reading actual adc2Raw value
+#### 2. Reading actual adc2Raw value
 
 ##### Request
 
@@ -270,21 +175,21 @@ adc2Raw>\n
 {"result":{"adc2Raw":2048}}\n
 ```
 
-#### 6. Update settings via `all` special command
+#### 3. Update settings via `all` special command
 
 ##### Request
 
 ```
-all<{"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
+all<{"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
 ```
 
 ##### Response
 
 ```
-{"result": {"Gain":3,"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}}\n
+{"result": {"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}}\n
 ```
 
-#### 7. Read all available settings (except specials)
+#### 4. Read all available settings (except specials)
 
 ##### Request
 

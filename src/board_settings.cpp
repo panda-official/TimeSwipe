@@ -87,11 +87,6 @@ struct Board_settings::Rep final {
 
     using std::to_string;
 
-    // analogOut
-    for (int i{3}; i <= 4; ++i)
-      result.push_back(std::string{"analogOut"}.append(to_string(i)).append("DacRaw"));
-    result.push_back("analogOutsDacEnabled");
-
     // calibration
     for (const char* const name : {"Data", "DataEnabled", "DataValid"})
       result.push_back(std::string{"calibration"}.append(name));
@@ -108,20 +103,13 @@ struct Board_settings::Rep final {
     for (const char* const name : {"Enabled", "DutyCycle", "Frequency"})
       result.push_back(std::string{"fan"}.append(name));
 
-    // pwm
-    for (const char* const name : {"Enabled", "DutyCycle", "Frequency",
-        "HighBoundary", "LowBoundary", "RepeatCount"}) {
-      for (int i{1}; i <= mpc_; ++i)
-        result.push_back(std::string{"pwm"}.append(to_string(i)).append(name));
-    }
-
     // voltageOut
     for (const char* const name : {"Raw", "Value", "Enabled"})
       result.push_back(std::string{"voltageOut"}.append(name));
 
     // misc
     for (const char* const name : {"armId", "eepromTest", "firmwareVersion",
-        "temperature"})
+        "temperature", "uiTest", "uptime"})
       result.push_back(name);
 
     return result;
@@ -232,7 +220,6 @@ struct Board_settings::Rep final {
 
 private:
   inline static const unsigned mcc_{Driver::instance().max_channel_count()};
-  inline static const unsigned mpc_{Driver::instance().max_pwm_count()};
   rapidjson::Document doc_{rapidjson::Type::kObjectType};
 
   // ---------------------------------------------------------------------------

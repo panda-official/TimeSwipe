@@ -322,14 +322,14 @@ public:
   /// @returns The RAM-cached calibration data.
   Error_or<hat::Calibration_map> calibration_data() const noexcept;
 
-  /// Enables or disables the board cooler.
+  /// Enables or disables the board cooler. (Deprecated by CPinPWM.)
   [[deprecated]] void enable_fan(const bool enabled)
   {
     PANDA_TIMESWIPE_ASSERT(fan_pin_);
     fan_pin_->write(enabled);
   }
 
-  /// @returns `true` if the board cooler is enabled.
+  /// @returns `true` if the board cooler is enabled. (Deprecated by CPinPWM.)
   [[deprecated]] bool is_fan_enabled() const noexcept
   {
     PANDA_TIMESWIPE_ASSERT(fan_pin_);
