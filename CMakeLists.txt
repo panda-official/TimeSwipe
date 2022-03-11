@@ -319,6 +319,8 @@ if(PANDA_TIMESWIPE_FIRMWARE)
     cortex_handlers.cpp
     clock_generator.cpp
     clock_generator.hpp
+    dsu.hpp
+    dsu.cpp
     i2c_eeprom_master.cpp
     i2c_eeprom_master.hpp
     pin.cpp
