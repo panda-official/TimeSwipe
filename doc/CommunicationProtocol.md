@@ -112,7 +112,8 @@ multiple settings at once, the values of some settings still remain unaffected!
 #### Special setting `basic`
 
 The special setting `basic` - is a subset of `all` settings that doesn't include
-the `calibrationData` setting.
+the `calibrationData`, `calibrationDataApplyError` and `calibrationDataEepromError`
+settings.
 
 ##### Response format
 

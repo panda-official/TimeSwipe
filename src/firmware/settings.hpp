@@ -124,7 +124,9 @@ public:
       const auto is_should_be_skipped = [is_basic = request.name == "basic"]
         (const std::string& name) noexcept
       {
-        return is_basic && name == "calibrationData";
+        return is_basic && (name == "calibrationData" ||
+          name == "calibrationDataApplyError" ||
+          name == "calibrationDataEepromError");
       };
 
       switch (request.type) {
