@@ -22,7 +22,6 @@
 #include "../version.hpp"
 #include "board.hpp"
 #include "dms_channel.hpp"
-#include "loop.hpp"
 #include "os.h"
 #include "pga280.hpp"
 #include "settings.hpp"
@@ -421,16 +420,8 @@ int main()
 
   board->enable_calibration_data(true);
 
-  // Add loopLastIterationDuration handler.
-  const auto loop = std::make_shared<Loop>();
-  setting_dispatcher->add("loopLastIterationDuration",
-    std::make_shared<Setting_generic_handler<unsigned long>>(
-      loop,
-      &Loop::last_iteration_duration));
-
   // Loop endlessly. (main() must never return!)
   while (true) {
-    const auto start_moment = os::get_tick_mS();
     button.update();
     board->update();
     view.Update();
@@ -438,7 +429,5 @@ int main()
     sercom2_spi->Update();
     pSamADC0->Update();
     pFanControl->Update();
-    const auto end_moment = os::get_tick_mS();
-    loop->set_last_iteration_duration(end_moment - start_moment);
   }
 }
