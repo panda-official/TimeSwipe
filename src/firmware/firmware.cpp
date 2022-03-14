@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "../debug.hpp"
 #include "../error.hpp"
 #include "../hat.hpp"
 #include "../limits.hpp"
@@ -42,6 +43,7 @@
 #include "control/SemVer.h"
 #include "led/nodeLED.h"
 #include "sam/button.hpp"
+#include "sam/dsu.hpp"
 #include "sam/system_clock.hpp"
 #include "sam/SamSPIbase.h"
 #include "sam/SamQSPI.h"
@@ -68,6 +70,15 @@ int main()
 {
   namespace ts = panda::timeswipe;
   namespace detail = panda::timeswipe::detail;
+
+  const auto ps = product_series();
+#if defined(__SAME53N19A__)
+  PANDA_TIMESWIPE_ASSERT(ps == Product_series::e53);
+#elif defined(__SAME54P20A__)
+  PANDA_TIMESWIPE_ASSERT(ps == Product_series::e54);
+#else
+#error Unsupported SAM
+#endif
 
   constexpr int channel_count{detail::max_channel_count};
   constexpr std::size_t max_eeprom_size{2*1024};
