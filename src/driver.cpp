@@ -231,7 +231,7 @@ public:
   void set_driver_settings(const Driver_settings& settings,
     std::unique_ptr<Resampler> resampler)
   {
-    if (is_measurement_started())
+    if (is_measurement_started(true))
       /*
        * Currently, there are no driver settings which can be applied when
        * measurement in progress.
@@ -325,7 +325,7 @@ public:
     const auto srate = driver_settings().sample_rate();
     if (!handler)
       throw Exception{"cannot start measurement with invalid data handler"};
-    else if (is_measurement_started())
+    else if (is_measurement_started(true))
       throw Exception{Errc::board_measurement_started,
         "cannot start measurement because it's already started"};
     else if (!gains)
@@ -382,12 +382,21 @@ public:
       throw;
     }
 
+    // Done.
+    is_measurement_started_ = true;
     PANDA_TIMESWIPE_ASSERT(is_measurement_started());
   }
 
-  bool is_measurement_started() const override
+  bool is_measurement_started(const bool ask_board = {}) const override
   {
-    return spi_is_channels_adc_enabled();
+    if (ask_board) {
+      if (!is_initialized())
+        throw Exception{Errc::driver_not_initialized,
+          "cannot ask the board for measurement status while driver isn't initialized"};
+
+      return is_measurement_started_ = spi_is_channels_adc_enabled();
+    } else
+      return is_measurement_started_;
   }
 
   void stop_measurement() override
@@ -396,7 +405,7 @@ public:
       throw Exception{Errc::driver_not_initialized,
         "cannot stop measurement while driver isn't initialized"};
 
-    if (!is_measurement_started()) return;
+    if (!is_measurement_started(true)) return;
 
     // Wait threads and reset state they are using.
     join_threads();
@@ -412,6 +421,8 @@ public:
       spi_set_channels_adc_enabled(false); // may throw
     }
 
+    // Done.
+    is_measurement_started_ = false;
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
   }
 
@@ -564,6 +575,7 @@ private:
   std::atomic_bool is_initialized_{};
   std::atomic_bool is_gpio_inited_{};
   std::atomic_bool is_threads_running_{};
+  mutable std::atomic_bool is_measurement_started_{};
 
   // ---------------------------------------------------------------------------
   // Measurement data
@@ -879,6 +891,7 @@ private:
 
   bool spi_is_channels_adc_enabled() const
   {
+    PANDA_TIMESWIPE_ASSERT(is_initialized());
     const auto doc = spi_.execute_get("channelsAdcEnabled");
     return rajson::Value_view{doc}.mandatory<bool>("channelsAdcEnabled");
   }
@@ -1094,7 +1107,7 @@ private:
   template<typename F>
   Data collect_channels_data(const std::size_t samples_count, const F& state_guard)
   {
-    if (is_measurement_started())
+    if (is_measurement_started(true))
       throw Exception{Errc::board_measurement_started,
         "cannot collect channels data because measurement is started"};
 

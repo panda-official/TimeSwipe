@@ -134,7 +134,7 @@ public:
    * @returns `*this`.
    *
    * @warning Some of the board-level settings can be applied only when
-   * `!is_measurement_started()` as explained in the documentation of
+   * `!is_measurement_started(true)` as explained in the documentation of
    * Board_settings class.
    *
    * @par Requires
@@ -174,7 +174,7 @@ public:
    * @returns `*this`.
    *
    * @warning Some of the driver-level settings can be applied only when
-   * `!is_measurement_started()` as explained in the documentation of
+   * `!is_measurement_started(true)` as explained in the documentation of
    * Driver_settings class.
    *
    * @par Exception safety guarantee
@@ -222,7 +222,7 @@ public:
    * @par Requires
    * `(handler &&
    *   is_initialized() &&
-   *   !is_measurement_started() &&
+   *   !is_measurement_started(true) &&
    *   board_settings().channel_measurement_modes() &&
    *   board_settings().channel_gains() &&
    *   driver_settings().sample_rate())`.
@@ -240,12 +240,17 @@ public:
   /**
    * @returns `true` if the measurement mode is started.
    *
-   * @remarks Implies is_initialized().
+   * @param ask_board If `true` the board will be asked for the current
+   * measurement status. (Such a call is very slow and should be avoided
+   * whenever possible!) Otherwise, the last cached value will be returned.
+   *
+   * @par Requires
+   * `!ask_board || is_initialized()`.
    *
    * @see calculate_drift_references(), calculate_drift_deltas(),
    * start_measurement().
    */
-  virtual bool is_measurement_started() const = 0;
+  virtual bool is_measurement_started(bool ask_board = {}) const = 0;
 
   /**
    * @brief Stops the measurement.
@@ -294,7 +299,7 @@ public:
    * either it deleted directly or by calling clear_drift_references().
    *
    * @par Requires
-   * `is_initialized() && !is_measurement_started()`.
+   * `is_initialized() && !is_measurement_started(true)`.
    *
    * @par Effects
    * `!is_measurement_started() && drift_references()`.
@@ -329,7 +334,7 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Requires
-   * `is_initialized() && drift_references() && !is_measurement_started()`.
+   * `is_initialized() && drift_references() && !is_measurement_started(true)`.
    *
    * @par Effects
    * `!is_measurement_started() && drift_deltas()`.
