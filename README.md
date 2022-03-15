@@ -11,8 +11,7 @@ contains pre-built driver for both ARM32 and ARM64 architectures.
 
 ### General documentation
 
-- [Communication protocol](doc/CommunicationProtocol.md)
-- [Event system](doc/EventSystem.md)
+- [Firmware API](doc/firmware-api.md)
 
 ### Building and installing the software
 

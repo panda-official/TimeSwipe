@@ -350,11 +350,11 @@ private:
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Parser of simple text protocol described in CommunicationProtocol.md.
+ * @brief Parser of simple text protocol described in firmware-api.md.
  *
  * @details This class is responsible to parse the setting requests and to pass
  * them to a Setting_dispatcher. The syntax of requests is described in
- * CommunicationProtocol.md.
+ * firmware-api.md.
  *
  * @see Setting_dispatcher.
  */

@@ -32,7 +32,7 @@ namespace panda::timeswipe {
 /**
  * @brief Board-level settings.
  *
- * @details <a href="https://github.com/panda-official/TimeSwipe/blob/v2/doc/CommunicationProtocol.md">The Communication Protocol Description</a>.
+ * @details <a href="https://github.com/panda-official/TimeSwipe/blob/v2/doc/firmware-api.md">The Communication Protocol Description</a>.
  *
  * @see Driver::set_board_settings().
  */
