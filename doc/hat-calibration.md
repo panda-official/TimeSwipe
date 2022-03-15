@@ -1,5 +1,4 @@
-# Calibration Atom Specification
-Version 2 - 06/2021
+# HAT Calibration Atom Specification
 
 ## Calibration Data Map
 
