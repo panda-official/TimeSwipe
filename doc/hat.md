@@ -1,4 +1,4 @@
-# EEPROM Specification
+# HAT Specification
 
 **The Specification is based on https://github.com/raspberrypi/hats**
 
