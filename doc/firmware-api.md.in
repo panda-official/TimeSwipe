@@ -1,4 +1,4 @@
-# Timeswipe Firmware API v2.0.0
+# Timeswipe Firmware API v@firmware_version@
 
 There are settings to inspect or modify the state of Timeswipe board. Each
 board setting is uniquely named in the following form:
