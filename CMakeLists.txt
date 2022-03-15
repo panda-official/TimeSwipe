@@ -38,6 +38,9 @@ set(PANDA_ARM On CACHE BOOL
 set(PANDA_ARM64 Off CACHE BOOL
   "Build for ARM64?")
 
+set(PANDA_TIMESWIPE_DOC_PDF Off CACHE BOOL
+  "Build documentation PDFs?")
+
 set(PANDA_TIMESWIPE_FIRMWARE Off CACHE BOOL
   "Build firmware? (Disables driver build.)")
 
@@ -188,6 +191,16 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/doc/firmware-api.md.in"
   "${CMAKE_CURRENT_SOURCE_DIR}/doc/firmware-api.md"
   @ONLY
   NEWLINE_STYLE UNIX)
+
+if(PANDA_TIMESWIPE_DOC_PDF)
+  execute_process(COMMAND "pandoc" "-v" RESULT_VARIABLE pandoc_test_result
+    ERROR_QUIET OUTPUT_QUIET)
+  if(pandoc_test_result)
+    message(FATAL_ERROR "Cannot generate Firmware API documentation: pandoc not found")
+  else()
+    message("Documentation PDFs will be written to: ${panda_output_dir}")
+  endif()
+endif()
 
 # ------------------------------------------------------------------------------
 # Targets
@@ -414,11 +427,25 @@ if(PANDA_TIMESWIPE_FIRMWARE)
 
   add_executable(${target_name} ${firmware_elf_src})
   target_link_libraries(${target_name} PRIVATE firmware)
+
+  if(PANDA_TIMESWIPE_DOC_PDF)
+    add_custom_target(firmware_doc_api ALL
+      COMMAND "pandoc" "${CMAKE_CURRENT_SOURCE_DIR}/doc/firmware-api.md"
+      "-o" "${panda_output_dir}/firmware-api.pdf"
+      )
+    add_dependencies(firmware_doc_api ${target_name})
+  endif()
+
   add_custom_target(firmware_print_size ALL
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tool/firmware-size.sh
     ${panda_output_dir}/${target_name} ${sam_max_flash_size} ${sam_max_ram_size}
     )
-  add_dependencies(firmware_print_size ${target_name})
+  # firmware_print_size must be the last target.
+  if(PANDA_TIMESWIPE_DOC_PDF)
+    add_dependencies(firmware_print_size firmware_doc_api)
+  else()
+    add_dependencies(firmware_print_size ${target_name})
+  endif()
 
   message(CHECK_PASS "Ready to build the ${firmware_subtype} firmware.")
 else()
