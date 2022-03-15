@@ -181,13 +181,15 @@ adc2Raw>\n
 ##### Request
 
 ```
-all<{"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}\n
+all<{"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,
+     "channel3DacRaw":900,"channel4DacRaw":1100}\n
 ```
 
 ##### Response
 
 ```
-{"result": {"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,"channel3DacRaw":900,"channel4DacRaw":1100}}\n
+{"result": {"voltageOutEnabled":true,"channel1DacRaw":500,"channel2DacRaw":700,
+            "channel3DacRaw":900,"channel4DacRaw":1100}}\n
 ```
 
 #### 4. Read all available settings (except specials)
