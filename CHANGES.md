@@ -37,7 +37,7 @@
  - New high performance resampler;
  - Inverted formula for `VSUP.raw`: `Raw = Real*k + b` (was `Real = Raw*k + b`);
  - New `tool/flash.expect` for a simpler firmware flashing with `expect(1)`;
- - New [Calibration Atom Specification](doc/CalibrationAtomSpecification.md);
+ - New [Calibration Atom Specification](doc/hat-calibration.md);
  - New access point to control board's Fan output;
  - Reworked CMake scripts. Almost all CMake variables which affects the build
  now prefixed with `PANDA_`;
