@@ -196,7 +196,7 @@ if(PANDA_TIMESWIPE_DOC_PDF)
   execute_process(COMMAND "pandoc" "-v" RESULT_VARIABLE pandoc_test_result
     ERROR_QUIET OUTPUT_QUIET)
   if(pandoc_test_result)
-    message(FATAL_ERROR "Cannot generate Firmware API documentation: pandoc not found")
+    message(FATAL_ERROR "Cannot generate PDF documentation: pandoc not found")
   else()
     message("Documentation PDFs will be written to: ${panda_output_dir}")
   endif()
