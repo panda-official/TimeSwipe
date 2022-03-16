@@ -375,15 +375,17 @@ public:
 
     try {
       is_threads_running_ = true;
+      is_measurement_started_ = true;
       threads_.emplace_back(&iDriver::data_reading, this);
       threads_.emplace_back(&iDriver::data_processing, this, std::move(handler));
     } catch (...) {
+      is_measurement_started_ = false;
+      join_threads();
       calibration_slopes_.swap(new_calibration_slopes); // noexcept
       throw;
     }
 
     // Done.
-    is_measurement_started_ = true;
     PANDA_TIMESWIPE_ASSERT(is_measurement_started());
   }
 
