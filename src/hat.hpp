@@ -468,7 +468,13 @@ public:
       return Errc::board_settings_invalid;
   }
 
-  /// The constructor.
+  /**
+   * @brief The constructor.
+   *
+   * @details Initializes the entries of type:
+   *   -# Type::v_supply with slope of `-176`, offset of `4344`;
+   *   -# not Type::ana_out with slope of `1`, offset of `2048`.
+   */
   Calibration(const Type type, const std::uint16_t count)
     : header_{type, count, count * sizeof(Entry)}
     , entries_(count)
@@ -585,7 +591,11 @@ private:
 /// Calibration map.
 class Calibration_map final {
 public:
-  /// The default constructor.
+  /**
+   * @brief The default constructor.
+   *
+   * @see atom::Calibration.
+   */
   Calibration_map()
   {
     // Set data.

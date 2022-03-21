@@ -273,11 +273,20 @@ public:
       using hat::atom::Calibration;
       hat::Calibration_map result;
       const auto& doc = bs.rep_->doc();
-      const auto calib = doc.FindMember("calibrationData");
-      PANDA_TIMESWIPE_ASSERT(calib != doc.MemberEnd());
+
+      // Use default slopes and offsets if the calibration data is disabled.
+      if (const auto calib_enabled = rajson::Value_view{doc}.optional("calibrationDataEnabled")) {
+        PANDA_TIMESWIPE_ASSERT(calib_enabled->value().IsBool());
+        if (!rajson::to<bool>(calib_enabled->value()))
+          return result;
+      }
+
+      // Otherwise, use slopes and offset provided by firmware.
+      const auto calib = rajson::Value_view{doc}.mandatory("calibrationData");
+      PANDA_TIMESWIPE_ASSERT(calib.value().IsArray());
       try {
         // "calibrationData":[{"type":%, "data":[{"slope":%, "offset":%},...]},...]
-        for (const auto& catom_v : calib->value.GetArray()) {
+        for (const auto& catom_v : calib.value().GetArray()) {
           rajson::Value_view catom_view{catom_v};
 
           // Get the calibration atom type.
