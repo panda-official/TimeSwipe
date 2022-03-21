@@ -877,9 +877,9 @@ private:
       const std::uint8_t byte =
         ((all_gpio & gpio_data_position[0]) >> 17) |  // Bit 7
         ((all_gpio & gpio_data_position[1]) >> 19) |  //     6
-        ((all_gpio & gpio_data_position[2]) >> 2) |   //     5
-        ((all_gpio & gpio_data_position[3]) >> 1) |   //     4
-        ((all_gpio & gpio_data_position[4]) >> 3) |   //     3
+        ((all_gpio & gpio_data_position[2]) >>  2) |  //     5
+        ((all_gpio & gpio_data_position[3]) >>  1) |  //     4
+        ((all_gpio & gpio_data_position[4]) >>  3) |  //     3
         ((all_gpio & gpio_data_position[5]) >> 10) |  //     2
         ((all_gpio & gpio_data_position[6]) >> 12) |  //     1
         ((all_gpio & gpio_data_position[7]) >> 16);   //     0
