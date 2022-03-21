@@ -24,14 +24,18 @@ These settings are used to control the board calibration data.
 
 #### Details
 
-- `calibrationData` is available only on a calibration station. It's range:
-  - for read access: empty, positive integer or array of positive integers;
+- `calibrationData` range:
+  - for read access:
+    - empty to read all the calibration data;
+    - positive integer or array of positive integers to read the calibration
+      data of the specified calibration atom type(s);
   - for write access: JSON array of the following layout:
   ```
   [{"type":%, "data":[{"slope":%, "offset":%},...]},...]
   ```
   where `type` value is a calibration atom type, `slope` value is a float,
-  `offset` is a signed integer.
+  `offset` is a signed integer;
+- `calibrationDataEnabled` is available only on a calibration station.
 
 ### Settings group `channel`
 
