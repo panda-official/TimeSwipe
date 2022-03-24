@@ -27,6 +27,7 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 
 namespace panda::timeswipe::detail::hat {
 
@@ -476,9 +477,11 @@ public:
    *   -# not Type::ana_out with slope of `1`, offset of `2048`.
    */
   Calibration(const Type type, const std::uint16_t count)
-    : header_{type, count, count * sizeof(Entry)}
+    : header_{type, count, static_cast<std::uint32_t>(count * sizeof(Entry))}
     , entries_(count)
   {
+    static_assert(std::numeric_limits<std::uint16_t>::max() * sizeof(Entry) <=
+      std::numeric_limits<decltype(header_.dlen)>::max());
     const auto init_entries = [this](const float slope, const std::int16_t offset)
     {
       for (auto& entry : entries_) {
