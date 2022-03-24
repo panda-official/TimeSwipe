@@ -199,14 +199,14 @@ public:
    *
    * @see translation_offsets().
    */
-  Driver_settings& set_translation_offsets(const std::vector<int>& values);
+  Driver_settings& set_translation_offsets(const std::vector<float>& values);
 
   /**
    * @returns The translation offsets for all channels.
    *
    * @see set_translation_offsets().
    */
-  std::optional<std::vector<int>> translation_offsets() const;
+  std::optional<std::vector<float>> translation_offsets() const;
 
   /**
    * @brief Sets translation slopes for all channels.

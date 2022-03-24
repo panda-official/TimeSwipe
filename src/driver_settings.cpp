@@ -154,7 +154,7 @@ struct Driver_settings::Rep final {
     return member<int>("frequency");
   }
 
-  void set_translation_offsets(const std::vector<int>& values)
+  void set_translation_offsets(const std::vector<float>& values)
   {
     if (!(values.size() == Driver::instance().max_channel_count()))
       throw Exception{Errc::driver_settings_invalid,
@@ -163,9 +163,9 @@ struct Driver_settings::Rep final {
     set_member("translationOffsets", values);
   }
 
-  std::optional<std::vector<int>> translation_offsets() const
+  std::optional<std::vector<float>> translation_offsets() const
   {
-    return channel_array<int>("translationOffsets");
+    return channel_array<float>("translationOffsets");
   }
 
   void set_translation_slopes(const std::vector<float>& values)
@@ -345,13 +345,13 @@ std::optional<int> Driver_settings::frequency() const
   return rep_->frequency();
 }
 
-Driver_settings& Driver_settings::set_translation_offsets(const std::vector<int>& values)
+Driver_settings& Driver_settings::set_translation_offsets(const std::vector<float>& values)
 {
   rep_->set_translation_offsets(values);
   return *this;
 }
 
-std::optional<std::vector<int>> Driver_settings::translation_offsets() const
+std::optional<std::vector<float>> Driver_settings::translation_offsets() const
 {
   return rep_->translation_offsets();
 }

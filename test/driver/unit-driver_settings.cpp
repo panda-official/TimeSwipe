@@ -18,7 +18,7 @@ constexpr std::string_view json_text{R"(
 {
 "sampleRate": 24000,
 "burstBufferSize": 12000,
-"translationOffsets": [11, 22, 33, 44],
+"translationOffsets": [1.1, 2.2, 3.3, 4.4],
 "translationSlopes": [1.1, 2.2, 3.3, 4.4]
 }
   )"
@@ -48,7 +48,7 @@ try {
 
   // Translation offsets
   {
-    const std::vector<int> expected{11,22,33,44};
+    const std::vector<float> expected{1.1,2.2,3.3,4.4};
     ASSERT(ds.translation_offsets() == expected);
   }
 

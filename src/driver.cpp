@@ -597,7 +597,7 @@ private:
   static constexpr std::uint16_t channel_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
   std::vector<float> calibration_slopes_;
-  std::vector<int> translation_offsets_;
+  std::vector<float> translation_offsets_;
   std::vector<float> translation_slopes_;
   Driver_settings driver_settings_;
   std::unique_ptr<Resampler> resampler_;
@@ -823,7 +823,7 @@ private:
     static void append_chunk(Data& data,
       const Chunk& chunk,
       const std::vector<float>& slopes,
-      const std::vector<int>& translation_offsets,
+      const std::vector<float>& translation_offsets,
       const std::vector<float>& translation_slopes)
     {
       PANDA_TIMESWIPE_ASSERT((slopes.size() == translation_offsets.size())
