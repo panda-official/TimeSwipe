@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -31,6 +31,7 @@
 #include "simple_phrase.hpp"
 #include "stream.hpp"
 #include "substr.hpp"
+#include "time.hpp"
 #include "transform.hpp"
 #include "version.hpp"
 

@@ -5,21 +5,21 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-#include "SamSPIbase.h"
+#include "../../debug.hpp"
 #include "../os.h"
-#include "../../3rdparty/sam/sam.h"
+#include "SamSPIbase.h"
 
-#include <cassert>
+#include <sam.h>
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
 
-CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
-                         CSamPORT::pxy MOSI, CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS,
-                         std::shared_ptr<CSamCLK> pCLK) :
-    CSamSercom(nSercom)
+CSamSPIbase::CSamSPIbase(bool bMaster, Id ident, Sam_pin::Id MOSI,
+  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
+  std::shared_ptr<Sam_clock_generator> pCLK)
+  : Sam_sercom{ident}
 {
-    CSamPORT::pxy DO, DI;
+    Sam_pin::Id DO, DI;
 
     m_bMaster=bMaster;
     if(bMaster)
@@ -34,27 +34,27 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     }
 
     bool bRes;
-    CSamPORT::pad DOpad, DIpad, CLOCKpad; //, CSpad;
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    Sam_pin::Pad DOpad, DIpad, CLOCKpad; //, CSpad;
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
    // Port *pPort=PORT;
 
     //enable sercom bus:
-    CSamSercom::EnableSercomBus(nSercom, true);
+    enable_internal_bus(true);
 
-    bRes=CSamPORT::MUX(DO, nSercom, DOpad);
-    assert(bRes);
-    bRes=CSamPORT::MUX(DI, nSercom, DIpad);
-    assert(bRes);
-    bRes=CSamPORT::MUX(CLOCK, nSercom, CLOCKpad);
-    assert(bRes);
-    assert(CSamPORT::pad::PAD1==CLOCKpad); //always
+    bRes=Sam_pin::connect(DO, id(), DOpad);
+    PANDA_TIMESWIPE_ASSERT(bRes);
+    bRes=Sam_pin::connect(DI, id(), DIpad);
+    PANDA_TIMESWIPE_ASSERT(bRes);
+    bRes=Sam_pin::connect(CLOCK, id(), CLOCKpad);
+    PANDA_TIMESWIPE_ASSERT(bRes);
+    PANDA_TIMESWIPE_ASSERT(Sam_pin::Pad::pad1==CLOCKpad); //always
 
-    if(CSamPORT::pxy::none!=CS)
+    if(CS)
     {
-        m_pCS=CSamPORT::FactoryPin(CS, bMaster);
-        assert(m_pCS);
-        bRes=m_pCS->MUX(nSercom);
-        assert(bRes && CSamPORT::pad::PAD2==m_pCS->GetPAD()); //always
+        m_pCS = std::make_shared<Sam_pin>(*CS, bMaster);
+        PANDA_TIMESWIPE_ASSERT(m_pCS);
+        bRes=m_pCS->connect(id());
+        PANDA_TIMESWIPE_ASSERT(bRes && Sam_pin::Pad::pad2==m_pCS->pad()); //always
 
         //if set CS pin in constructor, make it hardware controlled:
         pSPI->CTRLB.bit.MSSEN=bMaster; //auto cs
@@ -62,11 +62,11 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
 
 
     //config DIPO/DOPO depending on PAD:
-   // assert(CSamPORT::pad::PAD0==DOpad || CSamPORT::pad::PAD3==DIpad);
-    if(CSamPORT::pad::PAD0==DOpad) //variant DOPO=0
+   // PANDA_TIMESWIPE_ASSERT(Sam_pin::pad::PAD0==DOpad || Sam_pin::pad::PAD3==DIpad);
+    if(Sam_pin::Pad::pad0==DOpad) //variant DOPO=0
     {
         //DI->PAD3
-        assert(CSamPORT::pad::PAD3==DIpad);
+        PANDA_TIMESWIPE_ASSERT(Sam_pin::Pad::pad3==DIpad);
 
         pSPI->CTRLA.bit.DOPO=0x00;
         pSPI->CTRLA.bit.DIPO=0x03;
@@ -74,7 +74,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
     else                            //variant DOPO=2
     {
         //DI->PAD0
-        assert(CSamPORT::pad::PAD0==DIpad);
+        PANDA_TIMESWIPE_ASSERT(Sam_pin::Pad::pad0==DIpad);
 
         pSPI->CTRLA.bit.DOPO=0x02;
         pSPI->CTRLA.bit.DIPO=0x00;
@@ -92,11 +92,11 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
         }
         else
         {
-            m_pCLK=CSamCLK::Factory();  //or generate automatically
-            assert(m_pCLK);
+            m_pCLK=Sam_clock_generator::make();  //or generate automatically
+            PANDA_TIMESWIPE_ASSERT(m_pCLK);
         }
-        ConnectGCLK(m_nSercom, m_pCLK->CLKind());
-        m_pCLK->Enable(true);
+        connect_clock_generator(m_pCLK->id());
+        m_pCLK->enable(true);
         pSPI->BAUD.bit.BAUD=0xff; //lowest possible by default
      }
      else
@@ -117,7 +117,7 @@ CSamSPIbase::CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
 
 uint32_t CSamSPIbase::transfer_char(uint32_t nChar)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     while( 0==(pSPI->INTFLAG.bit.DRE) ){}
     pSPI->DATA.bit.DATA=nChar;
@@ -127,7 +127,7 @@ uint32_t CSamSPIbase::transfer_char(uint32_t nChar)
 
 bool CSamSPIbase::send_char(uint32_t ch)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     unsigned long WaitBeginTime=os::get_tick_mS();
     while( 0==(pSPI->INTFLAG.bit.DRE) )
@@ -146,7 +146,7 @@ bool CSamSPIbase::send_char(uint32_t ch)
 bool CSamSPIbase::transfer(CFIFO &out_msg, CFIFO &in_msg)
 {
     //only possible in the master mode (means master clock is provided)
-    assert(m_bMaster);
+    PANDA_TIMESWIPE_ASSERT(m_bMaster);
 
     in_msg.reset(); //???
 
@@ -189,7 +189,7 @@ bool CSamSPIbase::send(CFIFO &out_msg)
 
 void CSamSPIbase::set_phpol(bool bPhase, bool bPol)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     while( pSPI->SYNCBUSY.bit.ENABLE ){} //wait sync
     pSPI->CTRLA.bit.ENABLE=0;
@@ -203,7 +203,7 @@ void CSamSPIbase::set_phpol(bool bPhase, bool bPol)
 }
 void CSamSPIbase::set_baud_div(unsigned char div)
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
 
     pSPI->BAUD.bit.BAUD=div;
 
@@ -213,7 +213,7 @@ void CSamSPIbase::set_baud_div(unsigned char div)
 void CSamSPIbase::EnableIRQs(bool how)
 {
     //select ptr:
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
  //   Port *pPort=PORT;
 
     m_bIRQmode=how;
@@ -228,8 +228,8 @@ void CSamSPIbase::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
+    Sam_sercom::enable_irq(Irq::irq0, how);
+    Sam_sercom::enable_irq(Irq::irq1, how);
+    Sam_sercom::enable_irq(Irq::irq2, how);
+    Sam_sercom::enable_irq(Irq::irq3, how);
 }

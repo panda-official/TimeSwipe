@@ -16,10 +16,10 @@ void CADpointSearch::Update()
     if(typePTsrcState::searching!=m_State)
         return;
 
-    int CurPoint=m_pADC->DirectMeasure();
-    int CurSetPoint=m_pDAC->GetRawBinVal();
-    int err=(m_TargPoint-CurPoint);
-    bool  bErrSign=std::signbit(err);
+    int CurSetPoint{m_pDAC->GetRawBinVal()};
+    const int CurPoint{m_pADC->GetRawBinValDirectly()};
+    const int err{m_TargPoint - CurPoint};
+    const bool bErrSign{std::signbit(err)};
 
     //set test bit:
     if(m_ProcBits>0)
@@ -33,7 +33,7 @@ void CADpointSearch::Update()
         CurSetPoint&=~(1L<<m_ProcBits);
     }
 
-    m_pDAC->SetRawOutput(CurSetPoint);
+    m_pDAC->set_raw(CurSetPoint);
     if(0==m_ProcBits--)
     {
         //m_State=(std::abs(err) < m_TargErrTolerance) ? typePTsrcState::found : typePTsrcState::error;

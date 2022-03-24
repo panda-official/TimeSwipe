@@ -10,9 +10,9 @@
 #include "../../src/driver.hpp"
 #include "../../src/error.hpp"
 #include "../../src/resampler.hpp"
-#include "../../src/3rdparty/dmitigr/filesystem.hpp"
-#include "../../src/3rdparty/dmitigr/progpar.hpp"
-#include "../../src/3rdparty/dmitigr/str.hpp"
+#include "../../src/3rdparty/dmitigr/fs/filesystem.hpp"
+#include "../../src/3rdparty/dmitigr/progpar/progpar.hpp"
+#include "../../src/3rdparty/dmitigr/str/transform.hpp"
 
 #include <algorithm>
 #include <cassert>

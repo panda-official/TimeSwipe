@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -51,7 +51,7 @@ to_string(Number value, const Number base = 10)
   static_assert(std::numeric_limits<Number>::min() <= 2 && std::numeric_limits<Number>::max() >= 36);
 
   if (!(2 <= base && base <= 36))
-    throw Generic_exception{"cannot convert number to text by using invalid base"};
+    throw Exception{"cannot convert number to text by using invalid base"};
 
   static const char digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',

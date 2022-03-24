@@ -5,13 +5,14 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-
+#include "../../debug.hpp"
 #include "PINPWM.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
-CPinPWM::CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin) : CSamTC(typeSamTC::Tc6)
+CPinPWM::CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin) : CSamTC(typeSamTC::Tc6)
 {
     m_prmPortGroup=nGroup;
     m_prmPortMask=(1L<<nPin);
@@ -21,9 +22,10 @@ CPinPWM::CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin) : CSamTC(typeSamTC:
     CSamTC::EnableAPBbus(true);
     CSamTC::EnableAPBbus(static_cast<typeSamTC>(static_cast<int>(m_nTC)+1), true);
 
-    m_pCLK=CSamCLK::Factory();
-    CSamTC::ConnectGCLK(m_pCLK->CLKind());
-    m_pCLK->Enable(true);
+    m_pCLK=Sam_clock_generator::make();
+    PANDA_TIMESWIPE_ASSERT(m_pCLK);
+    CSamTC::ConnectGCLK(m_pCLK->id());
+    m_pCLK->enable(true);
 
     CSamDMAC &dmac=CSamDMAC::Instance();
 

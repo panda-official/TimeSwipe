@@ -19,15 +19,14 @@ void CCalMan::Serialize(CStorage &st)
         st.ser( (ch.m_PrmOffset) );
         if(bSet)
         {
-            ch.m_pDAC->SetRawOutput(ch.m_PrmOffset);
+            ch.m_pDAC->set_raw(ch.m_PrmOffset);
         }
     }
 }
 
 void CCalMan::Start(int val)
 {
-    //nlohmann::json v=true;
-    //Fire_on_event("Zero", v);
+    //Fire_on_event("Zero", true);
 
     m_PState=FSM::running;
     unsigned int nSize=m_ChanCal.size();
@@ -50,8 +49,7 @@ void CCalMan::Start(int val)
      m_PState=FSM::halted;
      CView::Instance().ZeroSearchCompleted();
 
-     //nlohmann::json v=false;
-     //Fire_on_event("Zero", v);
+     //Fire_on_event("Zero", false);
  }
 void CCalMan::Update()
 {

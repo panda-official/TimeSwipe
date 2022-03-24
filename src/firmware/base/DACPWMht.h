@@ -15,9 +15,9 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include "adcdac.hpp"
-#include "../Pin.h"
+#include "../pin.hpp"
 #include "../PWM.h"
-#include "sam/SamCLK.h"
+#include "sam/clock_generator.hpp"
 #include "sam/SamTC.h"
 #include "sam/SamDMAC.h"
 
@@ -61,7 +61,7 @@ protected:
     /*!
      * \brief The pointer to the DAC mode switcher
      */
-    std::shared_ptr<CPin>  m_pDACsw;
+    std::shared_ptr<Pin>  m_pDACsw;
 
     /*!
      * \brief The 16-bit variable holding the HighLevel of PWM output to be mapped onto the DAC by the DMA
@@ -84,7 +84,7 @@ protected:
     std::shared_ptr<CSamDMAChannel> m_pLLevDMAch;
 
     /*!
-     * \brief The PWM periods counter. Used to stop generation if "repeats"!=0
+     * \brief The PWM periods counter. Used to stop generation if "repeat count"!=0
      */
     CSamTC m_PeriodsCounter;
 
@@ -92,7 +92,7 @@ protected:
     /*!
      * \brief An associated clock generator
      */
-    static std::shared_ptr<CSamCLK> m_pCLK;
+    static std::shared_ptr<Sam_clock_generator> m_pCLK;
 
     /*!
      * \brief Called from the base class for additional specific actions for this class
@@ -119,5 +119,5 @@ protected:
 
 
 public:
-    CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
+    CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, CDacPWMht::mode nOpMode=CDacPWMht::mode::DMA);
 };

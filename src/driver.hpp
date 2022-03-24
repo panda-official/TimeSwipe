@@ -20,15 +20,18 @@
 #define PANDA_TIMESWIPE_DRIVER_HPP
 
 // All the public API headers.
+#include "basics.hpp"
 #include "board_settings.hpp"
 #include "driver_settings.hpp"
-#include "error.hpp"
+#include "errc.hpp"
+#include "exceptions.hpp"
 #include "table.hpp"
 #include "types_fwd.hpp"
 
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace panda::timeswipe {
@@ -52,7 +55,7 @@ public:
    *   - positive value indicates the number of data losts;
    *   - negative value indicates the negated error code (some value of
    *   panda::timeswipe::Errc with the minus sign) in case of fatal
-   *   error when the measurement process is about to stop.
+   *   error when the measurement is about to stop.
    *
    * @see start_measurement().
    */
@@ -119,9 +122,6 @@ public:
   /// @returns Max possible number of (data) channels the board provides.
   virtual unsigned max_channel_count() const = 0;
 
-  /// @returns Max possible number of PWM the board provides.
-  virtual unsigned max_pwm_count() const = 0;
-
   /// @returns Min possible channel gain value.
   virtual float min_channel_gain() const = 0;
 
@@ -134,7 +134,7 @@ public:
    * @returns `*this`.
    *
    * @warning Some of the board-level settings can be applied only when
-   * `!is_measurement_started()` as explained in the documentation of
+   * `!is_measurement_started(true)` as explained in the documentation of
    * Board_settings class.
    *
    * @par Requires
@@ -154,11 +154,16 @@ public:
   }
 
   /**
+   * @param criteria One of the following:
+   *   - `all` (or empty) - all the board settings;
+   *   - `basic` - subset of `all`, excluding `calibrationData`;
+   *   - any setting name, such as `calibrationData`.
+   *
    * @returns The board-level settings.
    *
    * @see set_board_settings().
    */
-  virtual const Board_settings& board_settings() const = 0;
+  virtual Board_settings board_settings(std::string_view criteria={}) const = 0;
 
   /**
    * @brief Sets the driver-level settings.
@@ -169,7 +174,7 @@ public:
    * @returns `*this`.
    *
    * @warning Some of the driver-level settings can be applied only when
-   * `!is_measurement_started()` as explained in the documentation of
+   * `!is_measurement_started(true)` as explained in the documentation of
    * Driver_settings class.
    *
    * @par Exception safety guarantee
@@ -199,7 +204,7 @@ public:
   /// @{
 
   /**
-   * @brief Initiates the start of measurement.
+   * @brief Starts the measurement.
    *
    * @details Repeatedly calls the `handler` with frequency (Hz) that depends on
    * the burst buffer size, specified in the driver settings: the greater it's
@@ -217,7 +222,7 @@ public:
    * @par Requires
    * `(handler &&
    *   is_initialized() &&
-   *   !is_measurement_started() &&
+   *   !is_measurement_started(true) &&
    *   board_settings().channel_measurement_modes() &&
    *   board_settings().channel_gains() &&
    *   driver_settings().sample_rate())`.
@@ -233,20 +238,25 @@ public:
   virtual void start_measurement(Data_handler handler) = 0;
 
   /**
-   * @returns `true` if the measurement in progress.
+   * @returns `true` if the measurement mode is started.
    *
-   * @remarks Implies is_initialized().
+   * @param ask_board If `true` the board will be asked for the current
+   * measurement status. (Such a call is very slow and should be avoided
+   * whenever possible!) Otherwise, the last cached value will be returned.
    *
-   * @par Thread-safety
-   * Thread-safe.
+   * @par Requires
+   * `!ask_board || is_initialized()`.
    *
    * @see calculate_drift_references(), calculate_drift_deltas(),
    * start_measurement().
    */
-  virtual bool is_measurement_started() const noexcept = 0;
+  virtual bool is_measurement_started(bool ask_board = {}) const = 0;
 
   /**
    * @brief Stops the measurement.
+   *
+   * @par Requires
+   * `is_initialized()`.
    *
    * @par Effects
    * `!is_measurement_started()`.
@@ -273,11 +283,11 @@ public:
   /// can be useful in cases like power failures. The deltas can only be
   /// calculated if there are references available, otherwise and exception
   /// will be thrown. Unlike the references, the deltas are not saved to a file.
-  /// Either the references or the deltas can be recalculated an arbitrary number
-  /// of times. It's also possible to clear either the references or the deltas
-  /// in order to stop correcting the input values and pass them to the user
-  /// read callback unmodified. Please note, that in order to calculate or clear
-  /// either the references or deltas the measurement must not be in progress.
+  /// Either the references or the deltas can be recalculated an unlimited number
+  /// of times. Clearing of either the references or the deltas would disable
+  /// the drift compensation feature.
+  /// Please note, that in order to calculate or clear either the references or
+  /// deltas the measurement must not be started.
   ///
   /// @{
 
@@ -289,7 +299,7 @@ public:
    * either it deleted directly or by calling clear_drift_references().
    *
    * @par Requires
-   * `is_initialized() && !is_measurement_started()`.
+   * `is_initialized() && !is_measurement_started(true)`.
    *
    * @par Effects
    * `!is_measurement_started() && drift_references()`.
@@ -324,7 +334,7 @@ public:
    * @brief Calculates drift deltas based on calculated drift references.
    *
    * @par Requires
-   * `is_initialized() && drift_references() && !is_measurement_started()`.
+   * `is_initialized() && drift_references() && !is_measurement_started(true)`.
    *
    * @par Effects
    * `!is_measurement_started() && drift_deltas()`.

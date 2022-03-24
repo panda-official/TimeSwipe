@@ -42,7 +42,7 @@ The Command Dispatcher is used to dispatch command request in protocol-independe
 format to corresponding command handler.
 
 Finally, to implement primary communication protocol based on "access point"
-concept (see [Communication Protocol](doc/CommunicationProtocol.md)) its necessary
+concept (see [Firmware API](doc/firmware-api.md)) its necessary
 to transform a command request from protocol-independent format to C++ function/class
 method call with `get` and `set` signatures like `APtype get()` and `void set(APtype)`
 where `APtype` is an access point type. For this purpose two special command handlers

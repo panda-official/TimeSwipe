@@ -6,9 +6,10 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "FanControlSimple.h"
-#include "../../3rdparty/sam/sam.h"
 
-CFanControlSimple::CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, CSamPORT::group nGroup, CSamPORT::pin nPin,
+#include <sam.h>
+
+CFanControlSimple::CFanControlSimple(std::shared_ptr<CSamTempSensor> &pTempSens, Sam_pin::Group nGroup, Sam_pin::Number nPin,
                                      float TempOnC0, float TempOffC0)
 {
     m_pTempSens=pTempSens;

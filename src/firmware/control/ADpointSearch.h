@@ -69,25 +69,31 @@ protected:
     /*!
      * \brief A signal source to be controlled
      */
-    std::shared_ptr<CAdc> m_pADC;
+    std::shared_ptr<Adc_channel> m_pADC;
 
     /*!
      * \brief A control signal
      */
-    std::shared_ptr<CDac> m_pDAC;
+    std::shared_ptr<Dac_channel> m_pDAC;
 
 public:
     /*!
      * \brief A getter for m_TargErrTolerance
      * \return m_TargErrTolerance value
      */
-    static int  GetTargErrTol() {return m_TargErrTolerance; }
+    [[deprecated]] static int GetTargErrTol() noexcept
+    {
+      return m_TargErrTolerance;
+    }
 
     /*!
      * \brief A setter for m_TargErrTolerance
      * \param val A value to be set for m_TargErrTolerance
      */
-    static void SetTargErrTol(int val){ if(val<1) val=1; m_TargErrTolerance=val;}
+    [[deprecated]] static void SetTargErrTol(const int val) noexcept
+    {
+      m_TargErrTolerance = (val >= 1) ? val : 1;
+    }
 
     /*!
      * \brief Returns the  algorithm state
@@ -100,7 +106,7 @@ public:
      * \param pADC A signal source to be controlled
      * \param pDAC A control signal
      */
-    CADpointSearch(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC)
+    CADpointSearch(const std::shared_ptr<Adc_channel> &pADC, const std::shared_ptr<Dac_channel> &pDAC)
     {
         m_State=typePTsrcState::idle;
 
@@ -120,7 +126,7 @@ public:
         m_TargPoint=val;
         m_State=typePTsrcState::searching;
         m_ProcBits=12;
-        m_pDAC->SetRawBinVal(0);
+        m_pDAC->set_raw(0);
 
         return m_State;
     }

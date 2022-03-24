@@ -14,16 +14,18 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "SamSercom.h"
-#include "SamPORT.h"
+#include "sercom.hpp"
+#include "pin.hpp"
 
 #include "../os.h"
 #include "../../spi.hpp"
 
+#include <optional>
+
 /*!
  * \brief The class implements basic functionality of SAME54 Sercom SPI
  */
-class CSamSPIbase : public CSamSercom, public CSPI
+class CSamSPIbase : public Sam_sercom, public CSPI
 {
 protected:
     /*!
@@ -45,7 +47,7 @@ protected:
     /*!
      * \brief An associated clock generator: used only in a master mode
      */
-    std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<Sam_clock_generator> m_pCLK;
 
     /*!
      * \brief The single character send timeout. Used only in a slave mode to prevent hanging when master device stops providing clock frequency
@@ -56,7 +58,7 @@ protected:
     /*!
      * \brief The pointer to the internal Sercom chip select pin, if specified in the class constructor
      */
-    std::shared_ptr<CSamPin> m_pCS;
+    std::shared_ptr<Sam_pin> m_pCS;
 
     /*!
      * \brief Performs a SPI transfer operation for a single character in a master mode (8/32 bits)
@@ -72,6 +74,22 @@ protected:
      */
     bool send_char(uint32_t ch);
 
+  /// @see Sam_sercom::handle_irq0();
+  void handle_irq0() override
+  {}
+
+  /// @see Sam_sercom::handle_irq1();
+  void handle_irq1() override
+  {}
+
+  /// @see Sam_sercom::handle_irq2();
+  void handle_irq2() override
+  {}
+
+  /// @see Sam_sercom::handle_irq3();
+  void handle_irq3() override
+  {}
+
 public:
     /*!
      * \brief The class constructor
@@ -80,20 +98,20 @@ public:
      * \param MOSI - Master-Output-Slave-Input Pin of SAME54 for selected Sercom
      * \param MISO - Master-Input-Slave-Output Pin of SAME54 for selected Sercom
      * \param CLOCK - Clock input pin for selected Sercom
-     * \param CS - specify this only if you'd like CS pin to be automaically controlled by SAM's internal logic, otherwise specify CSamPORT::pxy::none
+     * \param CS - specify this only if you'd like CS pin to be automaically controlled by SAM's internal logic, otherwise specify Sam_pin::Id::none
      * \param pCLK - Predefined Generic Clock to be used with this SPI instance in a master mode.
      *  If nullptr is specified a new Generic Clock will be created from available in a master mode. In the Slave mode Generic Clock is not required.
      */
 
-    CSamSPIbase(bool bMaster, typeSamSercoms nSercom,
-                CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none,
-                std::shared_ptr<CSamCLK> pCLK=nullptr);
+     CSamSPIbase(bool bMaster, Sam_sercom::Id nSercom,
+      Sam_pin::Id MOSI,  Sam_pin::Id MISO, Sam_pin::Id CLOCK, std::optional<Sam_pin::Id> CS,
+                std::shared_ptr<Sam_clock_generator> pCLK);
 
     /*!
      * \brief Returns the pointer to the CS pin instance
      * \return the pointer to the CS pin instance if it was specified in the class constructor, otherwise nullptr
      */
-    std::shared_ptr<CSamPin> GetCSpin(){
+    std::shared_ptr<Sam_pin> GetCSpin(){
 
         return m_pCS;
     }

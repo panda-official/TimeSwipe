@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 #define DMITIGR_STR_STREAM_HPP
 
 #include "version.hpp"
-#include "../filesystem.hpp"
+#include "../fs/filesystem.hpp"
 
 #include <array>
 #include <cstddef>
@@ -45,7 +45,7 @@ namespace dmitigr::str {
  * @param is_binary The indicator of binary read mode.
  */
 template<typename Pred>
-std::vector<std::string> to_strings_if(std::istream& input,
+std::vector<std::string> read_to_strings_if(std::istream& input,
   const Pred& pred, const char delimiter = '\n')
 {
   std::vector<std::string> result;
@@ -64,34 +64,34 @@ std::vector<std::string> to_strings_if(std::istream& input,
  * @param is_binary The indicator of binary read mode.
  */
 template<typename Pred>
-std::vector<std::string> to_strings_if(const std::filesystem::path& path,
+std::vector<std::string> read_to_strings_if(const std::filesystem::path& path,
   const Pred& pred, const char delimiter = '\n', const bool is_binary = true)
 {
   constexpr std::ios_base::openmode in{std::ios_base::in};
   std::ifstream input{path, is_binary ? in | std::ios_base::binary : in};
-  return to_strings_if(input, pred, delimiter);
+  return read_to_strings_if(input, pred, delimiter);
 }
 
 /**
- * @brief The convenient shortcut of to_strings_if().
+ * @brief The convenient shortcut of read_to_strings_if().
  *
- * @see to_strings_if().
+ * @see read_to_strings_if().
  */
-inline std::vector<std::string> to_strings(std::istream& input,
+inline std::vector<std::string> read_to_strings(std::istream& input,
   const char delimiter = '\n')
 {
-  return to_strings_if(input, [](const auto&){return true;}, delimiter);
+  return read_to_strings_if(input, [](const auto&){return true;}, delimiter);
 }
 
 /**
- * @brief The convenient shortcut of to_strings_if().
+ * @brief The convenient shortcut of read_to_strings_if().
  *
- * @see to_strings_if().
+ * @see read_to_strings_if().
  */
-inline std::vector<std::string> to_strings(const std::filesystem::path& path,
+inline std::vector<std::string> read_to_strings(const std::filesystem::path& path,
   const char delimiter = '\n', const bool is_binary = true)
 {
-  return to_strings_if(path, [](const auto&){return true;}, delimiter, is_binary);
+  return read_to_strings_if(path, [](const auto&){return true;}, delimiter, is_binary);
 }
 
 /**
@@ -99,7 +99,7 @@ inline std::vector<std::string> to_strings(const std::filesystem::path& path,
  *
  * @returns The string with the content read from the `input`.
  */
-inline std::string to_string(std::istream& input)
+inline std::string read_to_string(std::istream& input)
 {
   std::string result;
   std::array<char, 4096> buffer;
@@ -118,13 +118,13 @@ inline std::string to_string(std::istream& input)
  *
  * @returns The string with the file data.
  */
-inline std::string to_string(const std::filesystem::path& path,
+inline std::string read_to_string(const std::filesystem::path& path,
   const bool is_binary = true)
 {
   constexpr std::ios_base::openmode in{std::ios_base::in};
   std::ifstream input{path, is_binary ? in | std::ios_base::binary : in};
   if (input)
-    return to_string(input);
+    return read_to_string(input);
   else
     throw std::runtime_error{"unable to open \"" + path.generic_string() + "\""};
 }

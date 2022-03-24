@@ -14,7 +14,7 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-#include "SamSercom.h"
+#include "sercom.hpp"
 
 /*!
  * \brief The CSamI2Cmem class emulates CAT24C32 EEPROM chip in the read-only mode
@@ -24,7 +24,7 @@ Copyright (c) 2019 Panda Team
  */
 
 
-class CSamI2Cmem : public CSamSercom
+class CSamI2Cmem : public Sam_sercom
 {
 public:
 
@@ -98,22 +98,22 @@ protected:
     }
 
 
-    virtual void OnIRQ0();
-    virtual void OnIRQ1();
-    virtual void OnIRQ2();
-    virtual void OnIRQ3();
+    void handle_irq0() override;
+    void handle_irq1() override;
+    void handle_irq2() override;
+    void handle_irq3() override;
 
 public:
     /*!
      * \brief The class constructor
      * \param nSercom The SERCOM ID
      * \details The constructor does the following:
-     * 1) calls CSamSercom constructor
+     * 1) calls Sam_sercom constructor
      * 2) enables communication bus with corresponding SERCOM
      * 3) turns SERCOM to I2Cslave
      * 4) performs final tuning and enables SERCOM I2Cslave
      */
-    CSamI2Cmem(typeSamSercoms nSercom);
+    CSamI2Cmem(Id id);
 
     /*!
      * \brief Is in interrupt mode (SERCOM interrupt lines are enabled)
@@ -131,7 +131,7 @@ public:
      * \brief Setups the buffer to read EEPROM data from
      * \param pFIFObuf A pointer to the buffer
      */
-    void SetMemBuf(std::shared_ptr<CFIFO> &pFIFObuf)
+    void SetMemBuf(const std::shared_ptr<CFIFO>& pFIFObuf)
     {
         m_pFIFObuf=pFIFObuf;
         obtain_membuf();

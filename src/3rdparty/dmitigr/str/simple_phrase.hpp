@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 #define DMITIGR_STR_SIMPLE_PHRASE_HPP
 
 #include "version.hpp"
-#include "../error/assert.hpp"
+#include "../base/assert.hpp"
 
 #include <istream>
 #include <locale>
@@ -33,19 +33,19 @@
 namespace dmitigr::str {
 
 /**
- * A phrase The "simple phrase" - an unquoted expression without spaces, or
+ * @brief A "simple phrase" - an unquoted expression without spaces, or
  * quoted expression (which can include any characters).
  */
 class Simple_phrase final {
 public:
-  /// A phrase status.
+  /// @brief A phrase status.
   enum class Status {
     ok = 0,
     stream_error = 1,
     invalid_input = 2
   };
 
-  /// Default-constructible.
+  /// @brief Default-constructible.
   Simple_phrase() = default;
 
   /**

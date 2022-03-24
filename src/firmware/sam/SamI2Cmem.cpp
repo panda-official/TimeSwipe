@@ -7,17 +7,18 @@ Copyright (c) 2019 Panda Team
 
 
 #include "SamI2Cmem.h"
-#include "../../3rdparty/sam/sam.h"
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+#include <sam.h>
+
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMI2C(nSercom) &(glob_GetSercomPtr(nSercom)->I2CS)
 
-CSamI2Cmem::CSamI2Cmem(typeSamSercoms nSercom) : CSamSercom(nSercom)
+CSamI2Cmem::CSamI2Cmem(const Id ident)
+  : Sam_sercom{ident}
 {
+    SercomI2cs *pI2C=SELECT_SAMI2C(id());
 
-    SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
-
-    CSamSercom::EnableSercomBus(m_nSercom, true);
+    enable_internal_bus(true);
 
     //perform a soft reset before use:
     pI2C->CTRLA.bit.SWRST=1;
@@ -60,7 +61,7 @@ bool CSamI2Cmem::send(CFIFO &msg){ return false;}
 //IRQ handling:
 void CSamI2Cmem::IRQhandler()
 {
-    SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
+    SercomI2cs *pI2C=SELECT_SAMI2C(id());
 
     if(pI2C->INTFLAG.bit.AMATCH) //adress match
     {
@@ -148,19 +149,19 @@ void CSamI2Cmem::IRQhandler()
     }
 }
 
-void CSamI2Cmem::OnIRQ0()  //#0
+void CSamI2Cmem::handle_irq0()
 {
     IRQhandler();
 }
-void CSamI2Cmem::OnIRQ1()  //#1
+void CSamI2Cmem::handle_irq1()
 {
     IRQhandler();
 }
-void CSamI2Cmem::OnIRQ2()  //#2
+void CSamI2Cmem::handle_irq2()
 {
     IRQhandler();
 }
-void CSamI2Cmem::OnIRQ3()  //#3
+void CSamI2Cmem::handle_irq3()
 {
     IRQhandler();
 }
@@ -168,7 +169,7 @@ void CSamI2Cmem::OnIRQ3()  //#3
 void CSamI2Cmem::EnableIRQs(bool how)
 {
     //select ptr:
-    SercomI2cs *pI2C=SELECT_SAMI2C(m_nSercom);
+    SercomI2cs *pI2C=SELECT_SAMI2C(id());
 
     m_bIRQmode=how;
     if(how)
@@ -182,10 +183,10 @@ void CSamI2Cmem::EnableIRQs(bool how)
     }
 
     //tune NVIC:
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ0, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ1, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ2, how);
-    CSamSercom::EnableIRQ(typeSamSercomIRQs::IRQ3, how);
+    Sam_sercom::enable_irq(Irq::irq0, how);
+    Sam_sercom::enable_irq(Irq::irq1, how);
+    Sam_sercom::enable_irq(Irq::irq2, how);
+    Sam_sercom::enable_irq(Irq::irq3, how);
 }
 
 //mem interface:

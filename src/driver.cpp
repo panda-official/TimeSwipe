@@ -16,19 +16,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "basics.hpp"
 #include "bcmlib.hpp"
 #include "bcmspi.hpp"
+#include "debug.hpp"
 #include "driver.hpp"
-#include "error.hpp"
+#include "exceptions.hpp"
+#include "gain.hpp"
 #include "hat.hpp"
+#include "limits.hpp"
 #include "pidfile.hpp"
 #include "resampler.hpp"
 #include "version.hpp"
+#include "board_settings.cpp"
+#include "driver_settings.cpp"
 
-#include "3rdparty/dmitigr/filesystem.hpp"
-#include "3rdparty/dmitigr/math.hpp"
-#include "3rdparty/dmitigr/rajson.hpp"
+#include "3rdparty/dmitigr/fs/filesystem.hpp"
+#include "3rdparty/dmitigr/math/statistic.hpp"
+#include "3rdparty/dmitigr/rajson/rajson.hpp"
+#include "3rdparty/dmitigr/str/transform.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 
@@ -40,13 +45,14 @@
 #include <fstream>
 #include <mutex>
 #include <numeric>
-#include <sstream>
-#include <stdexcept>
 #include <thread>
 #include <type_traits>
 
+namespace chrono = std::chrono;
 namespace rajson = dmitigr::rajson;
 namespace ts = panda::timeswipe;
+using chrono::milliseconds;
+using chrono::microseconds;
 
 namespace panda::timeswipe {
 namespace detail {
@@ -56,8 +62,9 @@ public:
 
   ~iDriver()
   {
-    stop_measurement();
-    join_threads();
+    try {
+      stop_measurement();
+    } catch (...){}
   }
 
   iDriver()
@@ -76,6 +83,10 @@ public:
     fill(begin(calibration_slopes_), end(calibration_slopes_), 1);
     fill(begin(translation_offsets_), end(translation_offsets_), 0);
     fill(begin(translation_slopes_), end(translation_slopes_), 1);
+
+    // Initialize default driver settings.
+    driver_settings_.set_translation_offsets(translation_offsets_);
+    driver_settings_.set_translation_slopes(translation_slopes_);
 
     // Lock PID file.
     pid_file_.lock();
@@ -116,44 +127,14 @@ public:
       set_gpio_low(gpio_clock);
       set_gpio_high(gpio_reset);
 
-      // Some delay required to get SPI communication work.
-      std::this_thread::sleep_for(std::chrono::milliseconds{100});
+      /*
+       * On some devices delay is required to get SPI communication work.
+       * There is also delay in Bcm_spi::initialize().
+       */
+      std::this_thread::sleep_for(milliseconds{100});
 
       is_gpio_inited_ = true;
     }
-
-    // Get the calibration data.
-    calibration_map_ = [this]
-    {
-      using Ct = hat::atom::Calibration::Type;
-      hat::Calibration_map result;
-      for (const auto ct :
-             {Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4,
-              Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4}) {
-        const auto settings_request = R"({"cAtom":)" +
-          std::to_string(static_cast<int>(ct)) + R"(})";
-        const auto json_obj = spi_.execute_get_many(settings_request);
-        const auto doc = rajson::to_document(json_obj);
-        const rajson::Value_view doc_view{doc};
-        const auto doc_cal_entries = doc_view.mandatory("data");
-        if (const auto& v = doc_cal_entries.value(); v.IsArray() && !v.Empty()) {
-          auto& atom = result.atom(ct);
-          const auto cal_entries = v.GetArray();
-          const auto cal_entries_size = cal_entries.Size();
-          for (std::decay_t<decltype(cal_entries_size)> i{}; i < cal_entries_size; ++i) {
-            const rajson::Value_view cal_entry{cal_entries[i]};
-            if (!cal_entry.value().IsObject())
-              throw Exception{Errc::calib_data_invalid, "invalid calibration atom entry"};
-            const auto slope = cal_entry.mandatory<float>("m");
-            const auto offset = cal_entry.mandatory<std::int16_t>("b");
-            const hat::atom::Calibration::Entry entry{slope, offset};
-            atom.set_entry(i, entry);
-          }
-        } else
-          throw Exception{Errc::calib_data_invalid, "invalid calibration data"};
-      }
-      return result;
-    }();
 
     is_initialized_ = true;
     return *this;
@@ -166,7 +147,7 @@ public:
 
   int version() const override
   {
-    return detail::version;
+    return detail::driver_version;
   }
 
   int min_sample_rate() const override
@@ -184,11 +165,6 @@ public:
     return detail::max_channel_count;
   }
 
-  unsigned max_pwm_count() const override
-  {
-    return 2;
-  }
-
   float min_channel_gain() const override
   {
     return gain::ogain_min;
@@ -199,46 +175,50 @@ public:
     return gain::ogain_max;
   }
 
+  /*
+   * @remarks Some settings cannot be applied if the measurement is started.
+   * It's up to firmware to check this.
+   */
   iDriver& set_board_settings(const Board_settings& settings) override
   {
     if (!is_initialized())
       throw Exception{Errc::driver_not_initialized,
         "cannot set board settings while driver is not initialized"};
 
-    // Some settings cannot be applied if the measurement started.
-    if (is_measurement_started()) {
-      // Check if channel measurement modes setting presents.
-      if (settings.channel_measurement_modes())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board measurement modes when measurement started"};
+    // Define helper.
+    static const auto throw_exception = [](const std::string& msg)
+    {
+      throw Exception{Errc::board_settings_invalid, msg};
+    };
 
-      // Check if channel gains setting presents.
-      if (settings.channel_gains())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board gains when measurement started"};
+    // Get the document.
+    const auto& doc = settings.rep_->doc();
 
-      // Check if channel IEPEs setting presents.
-      if (settings.channel_iepes())
-        throw Exception{Errc::board_measurement_started,
-          "cannot set board IEPEs when measurement started"};
+    // Direct application of some settings are prohibited.
+    const auto prohibited = settings.inapplicable_names();
+    for (const auto& setting : doc.GetObject()) {
+      const std::string name{setting.name.GetString(),
+        setting.name.GetStringLength()};
+      if (any_of(cbegin(prohibited), cend(prohibited),
+          [name](const auto& prohibited_name)
+          {
+            return name == prohibited_name;
+          }))
+        throw_exception(std::string{"direct application of "}.append(name)
+          .append(" board setting is prohibited"));
     }
 
-    Board_settings new_settings{board_settings_}; // may throw
-    new_settings.set(settings); // may throw
-    spi_.execute_set_many(settings.to_json_text()); // may throw
-    board_settings_.swap(new_settings); // noexcept
+    // Attempt to apply.
+    spi_.execute_set("all", rajson::to_text(doc));
     return *this;
   }
 
-  const Board_settings& board_settings() const override
+  Board_settings board_settings(std::string_view criteria={}) const override
   {
-    return board_settings_;
-  }
-
-  /// Method is hidden for now.
-  Board_settings raw_board_settings() const
-  {
-    return Board_settings{spi_.execute_get_many("")};
+    if (criteria.empty())
+      criteria = "all";
+    auto doc = spi_.execute_get(criteria);
+    return Board_settings{std::make_unique<Board_settings::Rep>(std::move(doc))};
   }
 
   iDriver& set_driver_settings(const Driver_settings& settings) override
@@ -251,7 +231,7 @@ public:
   void set_driver_settings(const Driver_settings& settings,
     std::unique_ptr<Resampler> resampler)
   {
-    if (is_measurement_started())
+    if (is_measurement_started(true))
       /*
        * Currently, there are no driver settings which can be applied when
        * measurement in progress.
@@ -287,12 +267,74 @@ public:
       throw Exception{Errc::driver_not_initialized,
         "cannot start measurement while driver isn't initialized"};
 
-    const auto gains = board_settings().channel_gains();
-    const auto modes = board_settings().channel_measurement_modes();
+    /// @returns The calibration map from board settings.
+    static const auto calibration_map = [](const Board_settings& bs)
+    {
+      using hat::atom::Calibration;
+      hat::Calibration_map result;
+      const auto& doc = bs.rep_->doc();
+
+      // Use default slopes and offsets if the calibration data is disabled.
+      if (const auto calib_enabled = rajson::Value_view{doc}.optional("calibrationDataEnabled")) {
+        PANDA_TIMESWIPE_ASSERT(calib_enabled->value().IsBool());
+        if (!rajson::to<bool>(calib_enabled->value()))
+          return result;
+      }
+
+      // Otherwise, use slopes and offset provided by firmware.
+      const auto calib = rajson::Value_view{doc}.mandatory("calibrationData");
+      PANDA_TIMESWIPE_ASSERT(calib.value().IsArray());
+      try {
+        // "calibrationData":[{"type":%, "data":[{"slope":%, "offset":%},...]},...]
+        for (const auto& catom_v : calib.value().GetArray()) {
+          rajson::Value_view catom_view{catom_v};
+
+          // Get the calibration atom type.
+          const auto type = catom_view.mandatory<Calibration::Type>("type");
+
+          // Check that data member is array.
+          const auto& catom_data_view = catom_view.mandatory("data");
+          if (!catom_data_view.value().IsArray())
+            throw Exception{"data member is not array"};
+
+          // Get the data array and ensure it has the proper size.
+          const auto& catom_data = catom_data_view.value().GetArray();
+          const auto catom_data_size = catom_data.Size();
+          if (catom_data_size != result.atom(type).entry_count())
+            throw Exception{"invalid data member size"};
+
+          // Extract each entry with slope and offset from the data array.
+          for (std::decay_t<decltype(catom_data_size)> i{}; i < catom_data_size; ++i) {
+            const auto& catom_data_entry = catom_data[i];
+            if (!catom_data_entry.IsObject())
+              throw Exception{"data entry is not object"};
+
+            rajson::Value_view catom_data_entry_view{catom_data_entry};
+            const auto slope = catom_data_entry_view.mandatory<float>("slope");
+            const auto offset = catom_data_entry_view.mandatory<std::int16_t>("offset");
+            const Calibration::Entry entry{slope, offset};
+            result.atom(type).set_entry(i, entry);
+          }
+        }
+      } catch (const std::exception& e) {
+        throw Exception{Errc::board_settings_invalid,
+          std::string{"cannot use calibration data: "}.append(e.what())};
+      } catch (...) {
+        throw Exception{Errc::board_settings_invalid,
+          "cannot use calibration data: unknown error"};
+      }
+
+      return result;
+    };
+
+    const auto bs = board_settings();
+    const auto calib = calibration_map(bs);
+    const auto gains = channel_settings<float>(bs, "Gain");
+    const auto modes = channel_settings<Measurement_mode>(bs, "Mode");
     const auto srate = driver_settings().sample_rate();
     if (!handler)
       throw Exception{"cannot start measurement with invalid data handler"};
-    else if (is_measurement_started())
+    else if (is_measurement_started(true))
       throw Exception{Errc::board_measurement_started,
         "cannot start measurement because it's already started"};
     else if (!gains)
@@ -305,14 +347,13 @@ public:
       throw Exception{Errc::driver_settings_insufficient,
         "cannot start measurement with unspecified sample rate"};
 
-    join_threads(); // may throw
-
     // Pick up the calibration slopes depending on both the gain and measurement mode.
     const auto mcc = max_channel_count();
     PANDA_TIMESWIPE_ASSERT(gains && modes &&
       (gains->size() == modes->size()) &&
       (gains->size() >= mcc));
-    decltype(calibration_slopes_) new_calibration_slopes{calibration_slopes_}; // may throw
+    // may throw
+    decltype(calibration_slopes_) new_calibration_slopes{calibration_slopes_};
     for (std::decay_t<decltype(mcc)> i{}; i < mcc; ++i) {
       const auto gain = gains->at(i);
       const auto mode = modes->at(i);
@@ -321,7 +362,7 @@ public:
       constexpr Array v_types{Ct::v_in1, Ct::v_in2, Ct::v_in3, Ct::v_in4};
       constexpr Array c_types{Ct::c_in1, Ct::c_in2, Ct::c_in3, Ct::c_in4};
       const auto& types = (mode == Measurement_mode::voltage) ? v_types : c_types;
-      const auto& atom = calibration_map_.atom(types[i]);
+      const auto& atom = calib.atom(types[i]);
       const auto ogain_index = gain::ogain_table_index(gain);
       PANDA_TIMESWIPE_ASSERT(ogain_index < atom.entry_count());
       new_calibration_slopes[i] = atom.entry(ogain_index).slope();
@@ -337,43 +378,63 @@ public:
      */
     {
       PANDA_TIMESWIPE_ASSERT(is_gpio_inited_);
-      std::this_thread::sleep_for(std::chrono::milliseconds{1});
-      spi_set_enable_ad_mes(true);
+      std::this_thread::sleep_for(milliseconds{1});
+      spi_set_channels_adc_enabled(true);
     }
 
     try {
+      is_threads_running_ = true;
       is_measurement_started_ = true;
-      threads_.emplace_back(&iDriver::fetcher_loop, this);
-      threads_.emplace_back(&iDriver::poller_loop, this, std::move(handler));
+      threads_.emplace_back(&iDriver::data_reading, this);
+      threads_.emplace_back(&iDriver::data_processing, this, std::move(handler));
     } catch (...) {
+      is_measurement_started_ = false;
+      join_threads();
       calibration_slopes_.swap(new_calibration_slopes); // noexcept
       throw;
     }
+
+    // Done.
+    PANDA_TIMESWIPE_ASSERT(is_measurement_started());
   }
 
-  bool is_measurement_started() const noexcept override
+  bool is_measurement_started(const bool ask_board = {}) const override
   {
-    return is_measurement_started_;
+    if (ask_board) {
+      if (!is_initialized())
+        throw Exception{Errc::driver_not_initialized,
+          "cannot ask the board for measurement status while driver isn't initialized"};
+
+      return is_measurement_started_ = spi_is_channels_adc_enabled();
+    } else
+      return is_measurement_started_;
   }
 
   void stop_measurement() override
   {
-    if (!is_measurement_started_) return;
+    if (!is_initialized())
+      throw Exception{Errc::driver_not_initialized,
+        "cannot stop measurement while driver isn't initialized"};
 
-    // Stop threads and reset state they using.
-    is_measurement_started_ = false;
+    if (!is_measurement_started(true)) return;
+
+    // Wait threads and reset state they are using.
     join_threads();
     while (record_queue_.pop());
     read_skip_count_ = initial_invalid_datasets_count;
 
-    // Sends the command to the firmware to stop the measurement.
+    // Send the command to the firmware to stop the measurement.
     {
-      // Reset Clock
+      // Reset clock.
       set_gpio_low(gpio_clock);
 
-      // Stop Measurement
-      spi_set_enable_ad_mes(false); // may throw
+      // Stop measurement.
+      spi_set_channels_adc_enabled(false); // may throw
     }
+
+    // Done.
+    is_measurement_started_ = false;
+    PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
   }
 
   std::vector<float> calculate_drift_references() override
@@ -510,7 +571,7 @@ private:
   // ---------------------------------------------------------------------------
 
   // "Switching oscillation" completely (according to PSpice) decays after 1.5ms.
-  static constexpr std::chrono::microseconds switching_oscillation_period{1500};
+  static constexpr microseconds switching_oscillation_period{1500};
 
   // Only 5ms of raw data is needed. (5ms * 48kHz = 240 values.)
   static constexpr std::size_t drift_samples_count{5*48000/1000};
@@ -524,7 +585,8 @@ private:
   mutable detail::Bcm_spi spi_;
   std::atomic_bool is_initialized_{};
   std::atomic_bool is_gpio_inited_{};
-  std::atomic_bool is_measurement_started_{};
+  std::atomic_bool is_threads_running_{};
+  mutable std::atomic_bool is_measurement_started_{};
 
   // ---------------------------------------------------------------------------
   // Measurement data
@@ -537,8 +599,6 @@ private:
   std::vector<float> calibration_slopes_;
   std::vector<int> translation_offsets_;
   std::vector<float> translation_slopes_;
-  hat::Calibration_map calibration_map_;
-  Board_settings board_settings_;
   Driver_settings driver_settings_;
   std::unique_ptr<Resampler> resampler_;
 
@@ -588,7 +648,7 @@ private:
       : driver_{driver}
       , resampler_{std::move(driver_.resampler_)} // store
       , driver_settings_{std::move(driver_.driver_settings_)} // settings
-      , chmm_{driver_.board_settings().channel_measurement_modes()} // store
+      , board_settings_{driver_.board_settings("basic")} // store
     {
       /*
        * Change input modes to `current`.
@@ -596,9 +656,14 @@ private:
        * the measured value, which completely (according to PSpice) decays
        * after 1.5 ms.
        */
-      driver_.set_settings(Board_settings{}.set_channel_measurement_modes(
-        std::vector<Measurement_mode>(driver.max_channel_count(),
-          Measurement_mode::current)));
+      driver_.set_settings([this]
+      {
+        Board_settings bs;
+        const unsigned mcc = driver_.max_channel_count();
+        for (unsigned i{}; i < mcc; ++i)
+          bs.set_value("channel"+std::to_string(i+1)+"Mode", Measurement_mode::current);
+        return bs;
+      }());
 
       std::this_thread::sleep_for(driver_.switching_oscillation_period);
 
@@ -617,14 +682,14 @@ private:
         driver_.set_driver_settings(std::move(driver_settings_), std::move(resampler_));
 
         // Restore board settings.
-        if (chmm_)
-          driver_.set_settings(Board_settings{}.set_channel_measurement_modes(*chmm_));
+        driver_.set_board_settings(board_settings_);
       } catch (...) {}
     }
 
     iDriver& driver_;
     decltype(driver_.resampler_) resampler_;
     decltype(driver_.driver_settings_) driver_settings_;
+    Board_settings board_settings_;
     std::optional<std::vector<Measurement_mode>> chmm_;
   };
 
@@ -737,6 +802,7 @@ private:
     struct Read_chunk_result final {
       Chunk chunk{};
       unsigned tco{};
+      bool pi_ok{};
     };
 
     static Read_chunk_result read_chunk() noexcept
@@ -747,6 +813,7 @@ private:
         const auto d = read();
         result.chunk[1] = d.byte;
         result.tco = d.tco;
+        result.pi_ok = d.pi_ok;
       }
       for (unsigned i{2}; i < result.chunk.size(); ++i)
         result.chunk[i] = read().byte;
@@ -810,9 +877,9 @@ private:
       const std::uint8_t byte =
         ((all_gpio & gpio_data_position[0]) >> 17) |  // Bit 7
         ((all_gpio & gpio_data_position[1]) >> 19) |  //     6
-        ((all_gpio & gpio_data_position[2]) >> 2) |   //     5
-        ((all_gpio & gpio_data_position[3]) >> 1) |   //     4
-        ((all_gpio & gpio_data_position[4]) >> 3) |   //     3
+        ((all_gpio & gpio_data_position[2]) >>  2) |  //     5
+        ((all_gpio & gpio_data_position[3]) >>  1) |  //     4
+        ((all_gpio & gpio_data_position[4]) >>  3) |  //     3
         ((all_gpio & gpio_data_position[5]) >> 10) |  //     2
         ((all_gpio & gpio_data_position[6]) >> 12) |  //     1
         ((all_gpio & gpio_data_position[7]) >> 16);   //     0
@@ -828,9 +895,16 @@ private:
   // SPI stuff
   // ---------------------------------------------------------------------------
 
-  void spi_set_enable_ad_mes(const bool value)
+  void spi_set_channels_adc_enabled(const bool value)
   {
-    spi_.execute_set_one("EnableADmes", std::to_string(value));
+    spi_.execute_set("channelsAdcEnabled", value ? "true" : "false");
+  }
+
+  bool spi_is_channels_adc_enabled() const
+  {
+    PANDA_TIMESWIPE_ASSERT(is_initialized());
+    const auto doc = spi_.execute_get("channelsAdcEnabled");
+    return rajson::Value_view{doc}.mandatory<bool>("channelsAdcEnabled");
   }
 
   // -----------------------------------------------------------------------------
@@ -843,15 +917,15 @@ private:
     static const auto wait_for_pi_ok = []
     {
       // Matches 12 MHz Quartz.
-      std::this_thread::sleep_for(std::chrono::microseconds{700});
+      std::this_thread::sleep_for(microseconds{700});
     };
 
     // Skip data sets if needed. (First 32 data sets are always invalid.)
     while (read_skip_count_ > 0) {
       wait_for_pi_ok();
       while (true) {
-        const auto [chunk, tco] = Gpio_data::read_chunk();
-        if (tco != 0x00004000) break;
+        const auto [chunk, tco, pi_ok] = Gpio_data::read_chunk();
+        if (!pi_ok || tco != 0x00004000) break;
       }
       --read_skip_count_;
     }
@@ -872,10 +946,10 @@ private:
     Data result(max_channel_count());
     result.reserve_rows(8192);
     do {
-      const auto [chunk, tco] = Gpio_data::read_chunk();
+      const auto [chunk, tco, pi_ok] = Gpio_data::read_chunk();
       Gpio_data::append_chunk(result, chunk, calibration_slopes_,
         translation_offsets_, translation_slopes_);
-      if (tco != 0x00004000) break;
+      if (!pi_ok || tco != 0x00004000) break;
     } while (true);
 
     sleep_for_55ns();
@@ -885,27 +959,27 @@ private:
   }
 
   // ---------------------------------------------------------------------------
-  // Thread loops
+  // Threads
   // ---------------------------------------------------------------------------
 
-  void fetcher_loop()
+  void data_reading()
   {
-    while (is_measurement_started_) {
+    while (is_threads_running_) {
       if (const auto data = read_data(); !record_queue_.push(data))
         ++record_error_count_;
     }
   }
 
-  void poller_loop(Data_handler&& handler)
+  void data_processing(Data_handler&& handler)
   {
     PANDA_TIMESWIPE_ASSERT(handler);
-    while (is_measurement_started_) {
+    while (is_threads_running_) {
       Data records[10];
       const auto num = record_queue_.pop(records);
       const auto errors = record_error_count_.fetch_and(0);
 
       if (!num) {
-        std::this_thread::sleep_for(std::chrono::milliseconds{1});
+        std::this_thread::sleep_for(milliseconds{1});
         continue;
       }
 
@@ -964,6 +1038,23 @@ private:
   // Helpers
   // ---------------------------------------------------------------------------
 
+  /// @returns The channel setting from the specified board settings.
+  template<typename T>
+  std::optional<std::vector<T>> channel_settings(const Board_settings& bs,
+    const std::string_view name)
+  {
+    const unsigned mcc = max_channel_count();
+    std::vector<T> result(mcc);
+    for (unsigned i{}; i < mcc; ++i) {
+      const auto val = bs.value("channel"+std::to_string(i+1).append(name));
+      if (val.has_value())
+        result[i] = std::any_cast<T>(val);
+      else
+        return {};
+    }
+    return result;
+  };
+
   /**
    * @returns Previous resampler if any.
    *
@@ -1001,14 +1092,9 @@ private:
     return result;
   }
 
-  static std::filesystem::path tmp_dir()
-  {
-    const auto cwd = std::filesystem::current_path();
-    return cwd/".panda"/"timeswipe";
-  }
-
   void join_threads()
   {
+    is_threads_running_ = false;
     for (auto it = threads_.begin(); it != threads_.end();) {
       if (it->get_id() == std::this_thread::get_id()) {
         ++it;
@@ -1032,9 +1118,9 @@ private:
   template<typename F>
   Data collect_channels_data(const std::size_t samples_count, const F& state_guard)
   {
-    if (is_measurement_started())
+    if (is_measurement_started(true))
       throw Exception{Errc::board_measurement_started,
-        "cannot collect channels data because measurment is started"};
+        "cannot collect channels data because measurement is started"};
 
     const auto guard{state_guard()};
 
@@ -1075,6 +1161,13 @@ private:
       throw Exception{errc, "cannot collect channels data"};
 
     return result;
+  }
+
+  /// @returns Path to directory for temporary files.
+  static std::filesystem::path tmp_dir()
+  {
+    const auto cwd = std::filesystem::current_path();
+    return cwd/".panda"/"timeswipe";
   }
 };
 } // namespace detail

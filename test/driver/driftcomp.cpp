@@ -7,9 +7,9 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
+#include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
-#include "../../src/error.hpp"
-#include "../../src/3rdparty/dmitigr/filesystem.hpp"
+#include "../../src/3rdparty/dmitigr/fs/filesystem.hpp"
 
 #include <algorithm>
 #include <chrono>

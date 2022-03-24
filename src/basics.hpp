@@ -16,71 +16,55 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/**
+ * @file
+ *
+ * @remarks The code of this file is exception-free!
+ */
+
 #ifndef PANDA_TIMESWIPE_BASICS_HPP
 #define PANDA_TIMESWIPE_BASICS_HPP
 
-#include <algorithm>
-#include <array>
+#include <optional>
+#include <string_view>
 
-namespace panda::timeswipe::detail {
+namespace panda::timeswipe {
 
-/// The absolute maximum possible number of data channels.
-constexpr unsigned max_channel_count{4};
+// -----------------------------------------------------------------------------
+// Measurement_mode
+// -----------------------------------------------------------------------------
 
-/// The absolute maximum possible number of PWMs.
-constexpr unsigned max_pwm_count{2};
-
-namespace gain {
-
-/// Output gain table factor for even entries.
-constexpr float ogain_table_factor{1.375};
-
-/// Output gain table.
-constexpr std::array<float, 22> ogain_table{
-  1,
-  1*ogain_table_factor,
-  2,
-  2*ogain_table_factor,
-  4,
-  4*ogain_table_factor,
-  8,
-  8*ogain_table_factor,
-  16,
-  16*ogain_table_factor,
-  32,
-  32*ogain_table_factor,
-  64,
-  64*ogain_table_factor,
-  128,
-  128*ogain_table_factor,
-  256,
-  256*ogain_table_factor,
-  512,
-  512*ogain_table_factor,
-  1024,
-  1024*ogain_table_factor
+/// Measurement mode.
+enum class Measurement_mode {
+  voltage,
+  current
 };
-static_assert(!(ogain_table.size() % 2));
 
-/// The minimum possible channel gain value.
-constexpr float ogain_min{ogain_table.front()};
-
-/// The maximum possible channel gain value.
-constexpr float ogain_max{ogain_table.back()};
-
-/// @returns An index of `ogain_table` by `value`.
-inline std::size_t ogain_table_index(const float value) noexcept
+/**
+ * @returns The value of type `Measurement_mode` converted from `value`, or
+ * `std::nullopt` if `value` doesn't corresponds to any member of Measurement_mode.
+ */
+constexpr std::optional<Measurement_mode> to_measurement_mode(const
+  std::string_view value) noexcept
 {
-  const auto beg = cbegin(ogain_table);
-  const auto end = cend(ogain_table);
-  // Add .0001 to value to compensate possible inaccuracies upon comparing floats.
-  const auto itr = std::find_if(beg, end, [val = value + .0001f](const auto threshold)
-  {
-    return val < threshold;
-  });
-  return std::max<decltype(itr - beg)>(0, itr - beg - 1);
+  if (value == "voltage") return Measurement_mode::voltage;
+  else if (value == "current") return Measurement_mode::current;
+  else return {};
 }
-} // namespace gain
-} // namespace panda::timeswipe::detail
+
+/**
+ * @returns The character literal converted from `value`, or `nullptr`
+ * if `value` doesn't corresponds to any member of Measurement_mode.
+ */
+constexpr const char* to_literal(const Measurement_mode value) noexcept
+{
+  switch (value) {
+  case Measurement_mode::voltage: return "voltage";
+  case Measurement_mode::current: return "current";
+  }
+  return nullptr;
+}
+
+} // namespace panda::timeswipe
 
 #endif  // PANDA_TIMESWIPE_BASICS_HPP

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -23,32 +23,17 @@
 #ifndef DMITIGR_STR_EXCEPTIONS_HPP
 #define DMITIGR_STR_EXCEPTIONS_HPP
 
-#include "../error/exceptions.hpp"
+#include "../base/exceptions.hpp"
 
 namespace dmitigr::str {
 
-// -----------------------------------------------------------------------------
-// Exception
-// -----------------------------------------------------------------------------
-
 /**
  * @ingroup errors
  *
- * The base exception class.
+ * @brief The generic exception class.
  */
-class Exception : public dmitigr::Exception {};
-
-// -----------------------------------------------------------------------------
-// Generic_exception
-// -----------------------------------------------------------------------------
-
-/**
- * @ingroup errors
- *
- * The generic exception class.
- */
-class Generic_exception final : public Basic_generic_exception<Exception> {
-  using Basic_generic_exception::Basic_generic_exception;
+class Exception final : public dmitigr::Exception {
+  using dmitigr::Exception::Exception;
 };
 
 } // namespace dmitigr::str

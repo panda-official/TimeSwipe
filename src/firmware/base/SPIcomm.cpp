@@ -6,14 +6,15 @@ Copyright (c) 2019-2020 Panda Team
 */
 
 #include "SPIcomm.h"
-#include "../../3rdparty/sam/sam.h"
 
-Sercom *glob_GetSercomPtr(typeSamSercoms nSercom);
+#include <sam.h>
+
+Sercom *glob_GetSercomPtr(Sam_sercom::Id nSercom);
 #define SELECT_SAMSPI(nSercom) &(glob_GetSercomPtr(nSercom)->SPI)
 
 void CSPIcomm::IRQhandler()
 {
-    SercomSpi *pSPI=SELECT_SAMSPI(m_nSercom);
+    SercomSpi *pSPI=SELECT_SAMSPI(id());
     if(pSPI->INTFLAG.bit.RXC)
     {
         Character ch=pSPI->DATA.bit.DATA;
@@ -38,19 +39,22 @@ void CSPIcomm::IRQhandler()
     }
 }
 
-void CSPIcomm::OnIRQ0()
+void CSPIcomm::handle_irq0()
 {
     IRQhandler();
 }
-void CSPIcomm::OnIRQ1()
+
+void CSPIcomm::handle_irq1()
 {
     IRQhandler();
 }
-void CSPIcomm::OnIRQ2()
+
+void CSPIcomm::handle_irq2()
 {
     IRQhandler();
 }
-void CSPIcomm::OnIRQ3()
+
+void CSPIcomm::handle_irq3()
 {
     IRQhandler();
 }

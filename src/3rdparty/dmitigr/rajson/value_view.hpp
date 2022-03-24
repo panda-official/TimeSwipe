@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2021 Dmitry Igrishin
+// Copyright (C) 2022 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -58,40 +58,9 @@ public:
   }
 
   /**
-   * @returns The iterator that points to the member named by `name`, or
-   * `value().MemberEnd()` if no such a member presents.
-   */
-  auto optional_iterator(const std::string_view name) const
-  {
-    return optional_iterator__(value_, name);
-  }
-
-  /// @overload
-  auto optional_iterator(const std::string_view name)
-  {
-    return optional_iterator__(value_, name);
-  }
-
-  /**
-   * @returns The iterator that points to the member named by `name`.
-   *
-   * @par Requires
-   * `optional_iterator(name) != value().MemberEnd()`.
-   */
-  auto mandatory_iterator(const std::string_view name) const
-  {
-    return mandatory_iterator__(*this, name);
-  }
-
-  /// @overload
-  auto mandatory_iterator(const std::string_view name)
-  {
-    return mandatory_iterator__(*this, name);
-  }
-
-  /**
    * @returns The value of member named by `name` converted to type `R` by
-   * using rajson::Conversions, or `std::nullopt` if no such a member presents.
+   * using rajson::Conversions, or `std::nullopt` if either `!value().IsObject()`,
+   * or no such a member presents, or if the member is `null`.
    */
   template<typename R>
   std::optional<R> optional(const std::string_view name) const
@@ -108,7 +77,8 @@ public:
 
   /**
    * @returns The instance of `std::optional<Value_view>` bound to member
-   * named by `name`.
+   * named by `name`, or `std::nullopt` if either `!value().IsObject()`,
+   * or no such a member presents, or if the member is `null`.
    */
   auto optional(const std::string_view name) const
   {
@@ -148,7 +118,7 @@ public:
   template<typename R>
   R mandatory(const std::string_view name) const
   {
-    return rajson::to<R>(mandatory_iterator(name)->value);
+    return rajson::to<R>(mandatory(name).value());
   }
 
 private:
@@ -166,48 +136,40 @@ private:
   }
 
   template<class ValueView>
-  static auto mandatory_iterator__(ValueView& view, const std::string_view name)
-  {
-    if (auto result = view.optional_iterator(name); result != view.value_.MemberEnd())
-      return result;
-    else
-      throw Generic_exception{std::string{"JSON member \""}.append(name).append("\"")
-        .append(" not found")};
-  }
-
-  template<typename R, class ValueView>
-  static std::optional<R> optional__(ValueView& view, const std::string_view name)
-  {
-    if (const auto i = view.optional_iterator(name); i != view.value_.MemberEnd())
-      return rajson::to<R>(i->value);
-    else
-      return std::nullopt;
-  }
-
-  template<class ValueView>
   static auto optional__(ValueView& view, const std::string_view name)
   {
-    using Value = decltype(view.optional_iterator(name)->value);
+    using Value = decltype(optional_iterator__(view.value_, name)->value);
     using Result = std::conditional_t<
       std::is_const_v<typename std::remove_reference_t<decltype(view.value_)>>,
       std::optional<Value_view<std::add_const_t<Value>>>,
       std::optional<Value_view<Value>>
       >;
-    if (const auto i = view.optional_iterator(name); i != view.value_.MemberEnd())
+    if (!view.value_.IsObject())
+      return Result{};
+    else if (const auto i = optional_iterator__(view.value_, name);
+      i != view.value_.MemberEnd() && !i->value.IsNull())
       return Result{i->value};
     else
       return Result{};
   }
 
+  template<typename R, class ValueView>
+  static std::optional<R> optional__(ValueView& view, const std::string_view name)
+  {
+    if (auto result = optional__(view, name))
+      return rajson::to<R>(std::move(result->value()));
+    else
+      return std::nullopt;
+  }
+
   template<class ValueView>
   static auto mandatory__(ValueView& view, const std::string_view name)
   {
-    using Value = decltype(view.mandatory_iterator(name)->value);
-    using Result = std::conditional_t<
-      std::is_const_v<typename std::remove_reference_t<decltype(view.value_)>>,
-      Value_view<std::add_const_t<Value>>,
-      Value_view<Value>>;
-    return Result{view.mandatory_iterator(name)->value};
+    if (auto result = optional__(view, name); result)
+      return *result;
+    else
+      throw Exception{std::string{"JSON member \""}.append(name).append("\"")
+        .append(" not found")};
   }
 };
 

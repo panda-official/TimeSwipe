@@ -19,17 +19,11 @@ enum class typeSamDAC{Dac0, Dac1};
 
 
 #include "adcdac.hpp"
-#include "SamCLK.h"
+#include "clock_generator.hpp"
 
-/*!
- * \brief The class implements a single SAME54 DAC channel
- * \details The control functionality of a channel is implemented directly via
- *  overridden CDac::DriverSetVal().
- */
-class CSamDACcntr : public CDac
-{
+/// A single SAME54 DAC channel.
+class CSamDACcntr final : public Dac_channel {
 protected:
-
     /*!
      * \brief The channel ID
      */
@@ -45,7 +39,7 @@ protected:
     /*!
      * \brief An associated clock generator: must be provided to perform conversions
      */
-    std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<Sam_clock_generator> m_pCLK;
 
 
     /*!
@@ -53,24 +47,33 @@ protected:
      */
     void common_init();
 
-    /*!
-     * \brief Override of CDac::DriverSetVal(...) for the class
-     * \param val Ignored
-     * \param out_bin A value to set in a raw-binary format
-     */
-    virtual void DriverSetVal(float val, int out_bin);
-
 public:
     /*!
      * \brief The class constructor
      * \param nChan The channel ID(index) of SAME54 DAC
-     * \param RangeMin Minimum range in the real units (V, A, etc)
-     * \param RangeMax Maximum range in the real measurement units (V, A, etc)
      * \details The constructor does the following:
      * 1) setups corresponding PINs and its multiplexing
      * 2) enables communication bus with SAME54 DACs
      * 3) connects available clock generator via CSom CLK service
      * 4) performs final tuning and enables the DAC
      */
-    CSamDACcntr(typeSamDAC nChan, float RangeMin, float RangeMax);
+  explicit CSamDACcntr(typeSamDAC nChan);
+
+  /// @see Adcdac_channel::GetRawBinVal().
+  int GetRawBinVal() const noexcept override
+  {
+    return raw_;
+  }
+
+  /// @see Dac_channel::SetRawBinVal().
+  void SetRawBinVal(int raw) override;
+
+  /// @see Dac_channel::raw_range().
+  std::pair<int, int> raw_range() const noexcept override
+  {
+    return {0, 4095};
+  }
+
+private:
+  int raw_{};
 };

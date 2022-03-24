@@ -15,12 +15,12 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include "adcdac.hpp"
-#include "SamCLK.h"
+#include "clock_generator.hpp"
 
 #include "../os.h"
 
-#include <memory>
 #include <list>
+#include <memory>
 
 /*!
  * \brief An enumeration of possible SAME54 ADC devices
@@ -45,10 +45,10 @@ class CSamADCcntr;
  * \details The class object should be used in conjunction with CSamADCcntr - an ADC "board" virtual device
  *  that holds a collection of channels and can poll them in a queue
  */
-class CSamADCchan : public CAdc
+class CSamADCchan final : public Adc_channel
 {
 friend class CSamADCcntr;
-protected:
+private:
 
     /*!
      * \brief A pointer to the ADC board (channel container)
@@ -73,17 +73,17 @@ protected:
     /*!
      * \brief A filtered raw binary value of last ADC convertion
      */
-    float         m_FilteredRawVal=0;
+    float filtered_raw_{};
 
     /*!
      * \brief Unfiltered raw binary value of last ADC conversion
      */
-    int           m_UnfilteredRawVal=0;
+    // int           m_UnfilteredRawVal=0;
 
     /*!
      * \brief A 1st order digital filter time constant, milliseconds
      */
-    float         m_filter_t_mSec=50.0f;
+    constexpr static float filter_time_ms_{50.0f};
 
     /*!
      * \brief Returns the age of last ADC conversion.
@@ -91,12 +91,7 @@ protected:
      */
     unsigned long data_age(){ return (os::get_tick_mS()-m_MesTStamp); }
 
-    /*!
-     * \brief Overrides the method ADchan::SetRawBinVal(...)
-     * \param A conversion result to be set
-     */
-    void SetRawBinVal(int RawVal);
-
+    void handle_measurement(short raw);
 
 public:
     /*!
@@ -104,24 +99,25 @@ public:
      * \param pCont A pointer to the ADC board (channel container)
      * \param posIN A positive input for this channel
      * \param negIN A negative input for this channel (can be none=only positive mode)
-     * \param RangeMin Minimum range in the real measurement units (V, A, etc)
-     * \param RangeMax Maximum range in the real measurement units (V, A, etc)
      * \param AutoUpd auto updation flag: true=channel will be updated(measured) by the container Update function, false=channel is responsible for its updation
      */
-    CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax, bool bAutoUpd=true);
+    CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, bool bAutoUpd=true);
 
     /*!
      * \brief The class virtual destructor
      */
     virtual ~CSamADCchan();
 
-    /*!
-     * \brief Override "DirectMeasure" methode
-     * \return
-     */
-    virtual int DirectMeasure()
+    /// @see Adcdac_channel::GetRawBinVal().
+    int GetRawBinVal() const noexcept override
     {
-        return CSamADCchan::DirectMeasure(50, 0.8f);
+      return filtered_raw_;
+    }
+
+    /// @see Adc_channel::GetRawBinValDirectly().
+    int GetRawBinValDirectly() const noexcept override
+    {
+      return DirectMeasure(50, 0.8f);
     }
 
     /*!
@@ -131,7 +127,7 @@ public:
      * \return An averaged ADC raw binary conversion result.
      * \details The averaging method used for the methode is: Result=alpha*Result +(1.0f-alpha)*ADC_conversion_result
      */
-    int DirectMeasure(int nMesCnt, float alpha);
+    int DirectMeasure(int nMesCnt, float alpha) const noexcept;
 };
 
 /*!
@@ -157,7 +153,7 @@ protected:
     /*!
      * \brief An associated clock generator: must be provided to perform conversions
      */
-    std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<Sam_clock_generator> m_pCLK;
 
 public:
     /*!

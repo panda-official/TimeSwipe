@@ -5,8 +5,10 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
+#include "../../debug.hpp"
 #include "SamTC.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 CSamTC::CSamTC(typeSamTC nTC)
 {
@@ -41,30 +43,28 @@ void CSamTC::EnableAPBbus(typeSamTC nTC, bool how)
         case typeSamTC::Tc7 : MCLK->APBDMASK.bit.TC7_=set; break;
     }
 }
-void CSamTC::ConnectGCLK(typeSamCLK nCLK)
+void CSamTC::ConnectGCLK(const std::optional<Sam_clock_generator::Id> id)
 {
-    int pind;
-    switch(m_nTC)
-    {
-        case typeSamTC::Tc0: pind=9;   break;
-        case typeSamTC::Tc1: pind=9;   break;
-        case typeSamTC::Tc2: pind=26;  break;
-        case typeSamTC::Tc3: pind=26;  break;
-        case typeSamTC::Tc4: pind=30;  break;
-        case typeSamTC::Tc5: pind=30;  break;
-        case typeSamTC::Tc6: pind=39;  break;
-        case typeSamTC::Tc7: pind=39;
+  const int pind = [this]
+  {
+    switch (m_nTC) {
+    case typeSamTC::Tc0: return 9;
+    case typeSamTC::Tc1: return 9;
+    case typeSamTC::Tc2: return 26;
+    case typeSamTC::Tc3: return 26;
+    case typeSamTC::Tc4: return 30;
+    case typeSamTC::Tc5: return 30;
+    case typeSamTC::Tc6: return 39;
+    case typeSamTC::Tc7: return 39;
     }
+    PANDA_TIMESWIPE_ASSERT(false);
+  }();
 
-    if(nCLK==typeSamCLK::none)
-    {
-        GCLK->PCHCTRL[pind].bit.CHEN=0; //remove
-    }
-    else
-    {
-       GCLK->PCHCTRL[pind].bit.GEN=(uint32_t)nCLK;
-       GCLK->PCHCTRL[pind].bit.CHEN=1; //add
-    }
+  if (id) {
+    GCLK->PCHCTRL[pind].bit.GEN = static_cast<std::uint32_t>(*id);
+    GCLK->PCHCTRL[pind].bit.CHEN = 1; // add
+  } else
+    GCLK->PCHCTRL[pind].bit.CHEN = 0; // remove
 }
 
 Tc *glob_GetTcPtr(typeSamTC nTc)

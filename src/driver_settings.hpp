@@ -102,7 +102,7 @@ public:
    * performance of the resampling.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_started(true)`.
    *
    * @see sample_rate(), Driver::min_sample_rate(), Driver::max_sample_rate().
    */
@@ -130,7 +130,7 @@ public:
    * Driver::Data_handler.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_started(true)`.
    *
    * @see burst_buffer_size().
    */
@@ -157,7 +157,7 @@ public:
    * Driver::Data_handler.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_started(true)`.
    *
    * @see frequency().
    */
@@ -179,10 +179,10 @@ public:
   /// used to provide values for transformations of the values, measured in
   /// `mV`, by applying the following formula for that purpose:
   /// ```
-  /// sensorsDataRecord[i] = (value[i] - translationOffsets[i]) * translationSlopes[i]
+  /// data[i] = (value[i] - translationOffsets[i]) * translationSlopes[i]
   /// ```
-  /// where: `i` - is a sensor number, `value` - is a value, measured in `mV` by the
-  /// sensor `i`.
+  /// where: `i` - is a sensor number, `value` - is a value, measured in `mV`
+  /// by the sensor `i`.
   ///
   /// @{
 
@@ -195,7 +195,7 @@ public:
    * @returns The reference to this instance.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_started(true)`.
    *
    * @see translation_offsets().
    */
@@ -217,7 +217,7 @@ public:
    * @returns The reference to this instance.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
-   * only if `!Driver::instance().is_measurement_started()`.
+   * only if `!Driver::instance().is_measurement_started(true)`.
    *
    * @see translation_slopes().
    */

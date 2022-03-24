@@ -14,7 +14,6 @@ Copyright (c) 2019 Panda Team
 #pragma once
 
 #include "../adcdac.hpp"
-#include "../json/json_evsys.h"
 #include "ADpointSearch.h"
 #include "../Storage.h"
 #include "View.h"
@@ -86,7 +85,7 @@ public:
      * \param pDAC A control signal
      * \param pLED A LED indicator to bind
      */
-    void Add(const std::shared_ptr<CAdc> &pADC, const std::shared_ptr<CDac> &pDAC, CView::vischan nCh)
+    void Add(const std::shared_ptr<Adc_channel> &pADC, const std::shared_ptr<Dac_channel> &pDAC, CView::vischan nCh)
     {
         m_ChanCal.emplace_back(pADC, pDAC);
         m_VisChan.emplace_back(nCh);
@@ -97,7 +96,7 @@ public:
      * \brief Is group search process started?
      * \return true=at least one search algorithm in collection is started, false=no any searching is performed
      */
-    bool IsStarted(){ return (FSM::halted!=m_PState); }
+    bool IsStarted() const noexcept { return (FSM::halted!=m_PState); }
 
     /*!
      * \brief Starts all searching algorithms in collection

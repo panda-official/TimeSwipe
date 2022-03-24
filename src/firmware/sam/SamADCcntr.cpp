@@ -5,9 +5,11 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
+#include "../../debug.hpp"
 #include "SamADCcntr.h"
 #include "NVMpage.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 #define SELECT_SAMADC(x) (x==(typeSamADC::Adc0) ? ADC0:ADC1);
 
@@ -16,13 +18,11 @@ Copyright (c) 2019 Panda Team
 #define GCLK_ADC1   41
 
 
-CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, float RangeMin, float RangeMax, bool bAutoUpd)
+CSamADCchan::CSamADCchan(std::shared_ptr<CSamADCcntr> &pCont, typeSamADCmuxpos posIN, typeSamADCmuxneg negIN, bool bAutoUpd)
 {
     m_pCont=pCont;
     m_posIN=posIN;
     m_negIN=negIN;
-    m_IntRange=4095;
-    SetRange(RangeMin, RangeMax);
 
     if(bAutoUpd)
     {
@@ -34,45 +34,36 @@ CSamADCchan::~CSamADCchan()
     m_pCont->m_Chans.remove(this);
 }
 
-void CSamADCchan::SetRawBinVal(int RawVal)
+void CSamADCchan::handle_measurement(const short raw)
 {
-    m_UnfilteredRawVal=RawVal;
-    m_FilteredRawVal+=((float)RawVal - m_FilteredRawVal ) * ( (float)data_age() ) / m_filter_t_mSec;
-    m_MesTStamp=os::get_tick_mS();
-
-    CADchan::SetRawBinVal(m_FilteredRawVal);
+  // m_UnfilteredRawVal=RawVal;
+  filtered_raw_ += (static_cast<float>(raw) - filtered_raw_)
+    * static_cast<float>(data_age()) / filter_time_ms_;
+  m_MesTStamp = os::get_tick_mS();
 }
 
+int CSamADCchan::DirectMeasure(const int nMesCnt, const float alpha) const noexcept
+{
+  // Select a channel and no switching beetwen mes.
+  m_pCont->SelectInput(m_posIN, m_negIN);
 
- int CSamADCchan::DirectMeasure(int nMesCnt, float alpha)
- {
-     //select one chanel and no switching beetwen mes:
-     m_pCont->SelectInput(m_posIN, m_negIN);
+  // Measure and average.
+  float val = m_pCont->SingleConv();
+  for (int i{}; i < nMesCnt; ++i)
+    val = alpha*val + (1.0f - alpha)*m_pCont->SingleConv();
+  return val;
+}
 
-     //measure and average:
-     float val=m_pCont->SingleConv();
-     for(int i=0; i<nMesCnt; i++)
-     {
-         val=alpha*val +(1.0f-alpha)*(m_pCont->SingleConv());
-     }
-     return (int)val;
- }
-
-
-//updation with single conv:
 bool CSamADCcntr::Update()
 {
-    for(const auto pCh: m_Chans)
-    {
-        if(pCh->data_age()>=1){
-
-        SelectInput(pCh->m_posIN, pCh->m_negIN);
-        short mes=SingleConv();
-        pCh->CSamADCchan::SetRawBinVal(mes);
-
-        }
+  for (auto* const pCh: m_Chans) {
+    if (pCh->data_age() >= 1) {
+      SelectInput(pCh->m_posIN, pCh->m_negIN);
+      const short mes{SingleConv()};
+      pCh->handle_measurement(mes);
     }
-    return true;
+  }
+  return true;
 }
 
 void CSamADCcntr::SelectInput(typeSamADCmuxpos nPos, typeSamADCmuxneg nNeg)
@@ -110,7 +101,6 @@ short CSamADCcntr::SingleConv()
     //wait until finished:
     while(0==pADC->INTFLAG.bit.RESRDY && 0==pADC->INTFLAG.bit.OVERRUN){}
 
-    //return relult:
     return (pADC->RESULT.bit.RESULT); //2-compl code
 }
 
@@ -170,13 +160,14 @@ CSamADCcntr::CSamADCcntr(typeSamADC nADC)
     //-------------------------------------------------------------------
 
     //----------------------connect default gen--------------------------
-    m_pCLK=CSamCLK::Factory();
+    m_pCLK = Sam_clock_generator::make();
+    PANDA_TIMESWIPE_ASSERT(m_pCLK);
 
     int pchind=typeSamADC::Adc0==m_nADC ? GCLK_ADC0:GCLK_ADC1;
-    GCLK->PCHCTRL[pchind].bit.GEN=static_cast<uint32_t>(m_pCLK->CLKind());
+    GCLK->PCHCTRL[pchind].bit.GEN=static_cast<uint32_t>(m_pCLK->id());
     GCLK->PCHCTRL[pchind].bit.CHEN=1;
 
-     m_pCLK->Enable(true);
+     m_pCLK->enable(true);
     //------------------------------------------------------------------
 
 

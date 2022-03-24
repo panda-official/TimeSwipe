@@ -13,12 +13,12 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "../button.h"
+#include "../button.hpp"
 
 /*!
  * \brief The Menu v2.0 controller
  */
-class CNewMenu  : public CButtonEvent
+class CNewMenu  : public Button_event
 {
 public:
     /*!
@@ -35,7 +35,7 @@ public:
     * \brief A handler for button events
     * \param nState current button state
     */
-    virtual void OnButtonState(typeButtonState nState);
+    void handle_state(Button_state state) override;
 
     /*!
     * \brief The class constructor

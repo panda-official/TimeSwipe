@@ -18,13 +18,16 @@
 
 #include "basics.hpp"
 #include "board_settings.hpp"
+#include "debug.hpp"
 #include "driver.hpp"
-#include "error.hpp"
+#include "exceptions.hpp"
 #include "rajson.hpp"
 
 #include <algorithm>
-#include <utility>
+#include <cstdint>
+#include <regex>
 #include <type_traits>
+#include <utility>
 
 namespace rajson = dmitigr::rajson;
 
@@ -39,49 +42,27 @@ struct Board_settings::Rep final {
   Rep()
   {}
 
-  explicit Rep(const std::string_view json_text) try
-    : doc_{rajson::to_document(json_text)}
+  explicit Rep(rapidjson::Document doc)
+    : doc_{std::move(doc)}
   {
-    // Convert to object if NULL passed.
-    if (doc_.IsNull()) doc_.SetObject();
+    // Ensure that the input is the object. (Convert to object if NULL passed.)
+    if (doc_.IsNull())
+      doc_.SetObject();
+    else if (!doc_.IsObject())
+      throw Exception{Errc::board_settings_invalid, "not a JSON object"};
 
-    // Check measurement modes.
-    channel_measurement_modes();
+    // Assert invariant.
+    PANDA_TIMESWIPE_ASSERT(doc_.IsObject());
+  }
 
-    // Check channel gains settings.
-    if (const auto gains = channel_gains()) {
-      for (std::decay_t<decltype(mcc_)> i{}; i < mcc_; ++i)
-        check_channel_gain((*gains)[i]);
-    }
-
-    // Check channel IEPEs settings.
-    channel_iepes();
-
-    // Check PWM-related settings.
-    pwms();
-    {
-      static const auto apply = [](const auto& checker, const auto& values)
-      {
-        if (values) {
-          const auto values_size = values->size();
-          PANDA_TIMESWIPE_ASSERT(values_size == mpc_);
-          for (std::decay_t<decltype(values_size)> i{}; i < values_size; ++i)
-            checker(values->at(i));
-        }
-      };
-      apply(check_pwm_frequency, pwm_frequencies());
-      apply(check_pwm_signal_level, pwm_signal_levels());
-      apply(check_pwm_repeat_count, pwm_repeat_counts());
-      apply(check_pwm_duty_cycle, pwm_duty_cycles());
-    }
+  explicit Rep(const std::string_view json_text) try
+    : Rep{rajson::to_document(json_text)}
+  {
   } catch (const rajson::Parse_exception& e) {
     throw Exception{Errc::board_settings_invalid,
       std::string{"cannot parse board settings: error near position "}
         .append(std::to_string(e.parse_result().Offset())).append(": ")
         .append(e.what())};
-  } catch (const std::exception& e) {
-    throw Exception{Errc::board_settings_invalid,
-      std::string{"invalid board settings: "}.append(e.what())};
   }
 
   Rep(const Rep& rhs)
@@ -100,6 +81,45 @@ struct Board_settings::Rep final {
 
   Rep& operator=(Rep&&) = default;
 
+  std::vector<std::string> names() const
+  {
+    std::vector<std::string> result;
+
+    using std::to_string;
+
+    // calibration
+    for (const char* const name : {"Data", "DataEnabled", "DataValid"})
+      result.push_back(std::string{"calibration"}.append(name));
+
+    // channel
+    for (const char* const name : {"AdcRaw", "DacRaw", "Gain", "Iepe", "Mode",
+        "Color"}) {
+      for (int i{1}; i <= mcc_; ++i)
+        result.push_back(std::string{"channel"}.append(to_string(i)).append(name));
+    }
+    result.push_back("channelsAdcEnabled");
+
+    // fan
+    for (const char* const name : {"Enabled", "DutyCycle", "Frequency"})
+      result.push_back(std::string{"fan"}.append(name));
+
+    // voltageOut
+    for (const char* const name : {"Raw", "Value", "Enabled"})
+      result.push_back(std::string{"voltageOut"}.append(name));
+
+    // misc
+    for (const char* const name : {"armId", "eepromTest", "firmwareVersion",
+        "temperature", "uiTest", "uptime"})
+      result.push_back(name);
+
+    return result;
+  }
+
+  std::vector<std::string> inapplicable_names() const
+  {
+    return {"channelsAdcEnabled"};
+  }
+
   void swap(Rep& rhs) noexcept
   {
     doc_.Swap(rhs.doc_);
@@ -107,18 +127,15 @@ struct Board_settings::Rep final {
 
   void set(const Rep& other)
   {
-    const auto apply = [this](const auto& setter, const auto& data)
-    {
-      if (data) (this->*setter)(*data);
-    };
-    apply(&Rep::set_channel_measurement_modes, other.channel_measurement_modes());
-    apply(&Rep::set_channel_gains, other.channel_gains());
-    apply(&Rep::set_channel_iepes, other.channel_iepes());
-    apply(&Rep::set_pwms, other.pwms());
-    apply(&Rep::set_pwm_frequencies, other.pwm_frequencies());
-    apply(&Rep::set_pwm_signal_levels, other.pwm_signal_levels());
-    apply(&Rep::set_pwm_repeat_counts, other.pwm_repeat_counts());
-    apply(&Rep::set_pwm_duty_cycles, other.pwm_duty_cycles());
+    using rapidjson::Value;
+    auto& alloc = doc_.GetAllocator();
+    for (const auto& other_m : other.doc_.GetObject()) {
+      if (auto mi = doc_.FindMember(other_m.name); mi == doc_.MemberEnd())
+        doc_.AddMember(Value{other_m.name, alloc, true},
+          Value{other_m.value, alloc, true}, alloc);
+      else
+        mi->value.CopyFrom(other_m.value, alloc, true);
+    }
   }
 
   std::string to_json_text() const
@@ -128,242 +145,85 @@ struct Board_settings::Rep final {
 
   bool is_empty() const
   {
-    return doc_.ObjectEmpty() ||
-      !(channel_measurement_modes() ||
-        channel_gains() ||
-        channel_iepes() ||
-        pwms() ||
-        pwm_frequencies() ||
-        pwm_signal_levels() ||
-        pwm_repeat_counts() ||
-        pwm_duty_cycles());
+    return doc_.ObjectEmpty();
   }
 
   // ---------------------------------------------------------------------------
 
-  void set_channel_measurement_modes(const std::vector<Measurement_mode>& values)
+  void set_value(const std::string_view name, std::any value)
   {
-    set_channel_values(values, "mode", "measurement modes", [](auto){return true;});
+    using std::any_cast;
+    if (const auto& type = value.type(); type == typeid(Measurement_mode))
+      set_member(name, any_cast<Measurement_mode>(value));
+    else if (type == typeid(bool))
+      set_member(name, any_cast<bool>(value));
+    else if (type == typeid(std::int8_t)  ||
+             type == typeid(std::int16_t) || type == typeid(std::int32_t))
+      set_member(name, any_cast<std::int32_t>(value));
+    else if (type == typeid(std::uint8_t)  ||
+             type == typeid(std::uint16_t) || type == typeid(std::uint32_t))
+      set_member(name, any_cast<std::uint32_t>(value));
+    else if (type == typeid(std::int64_t))
+      set_member(name, any_cast<std::int64_t>(value));
+    else if (type == typeid(std::uint64_t))
+      set_member(name, any_cast<std::uint64_t>(value));
+    else if (type == typeid(float))
+      set_member(name, any_cast<float>(value));
+    else if (type == typeid(double))
+      set_member(name, any_cast<double>(value));
+    else if (type == typeid(std::string))
+      set_member(name, any_cast<std::string>(value));
+    else if (type == typeid(std::string_view))
+      set_member(name, any_cast<std::string_view>(value));
+    else
+      throw Exception{Errc::board_settings_invalid, "unsupported value type"};
   }
 
-  std::optional<std::vector<Measurement_mode>> channel_measurement_modes() const
+  std::any value(const std::string_view name)
   {
-    return channel_values<Measurement_mode>("mode");
-  }
-
-  void set_channel_gains(const std::vector<float>& values)
-  {
-    set_channel_values(values, "gain", "gains", [](auto){return true;});
-  }
-
-  std::optional<std::vector<float>> channel_gains() const
-  {
-    return channel_values<float>("gain");
-  }
-
-  void set_channel_iepes(const std::vector<bool>& values)
-  {
-    set_channel_values(values, "iepe", "IEPEs", [](auto){return true;});
-  }
-
-  std::optional<std::vector<bool>> channel_iepes() const
-  {
-    return channel_values<bool>("iepe");
+    if (const auto result = member(name)) {
+      using rajson::to;
+      if (const auto& val = result->value(); val.IsBool())
+        return to<bool>(val);
+      else if (val.IsInt()) {
+        if (std::regex_match(std::string{name}, std::regex{R"(channel\dMode)"}))
+          return to<Measurement_mode>(val);
+        else
+          return to<std::int32_t>(val);
+      } else if (val.IsUint())
+        return to<std::uint32_t>(val);
+      else if (val.IsInt64())
+        return to<std::int64_t>(val);
+      else if (val.IsUint64())
+        return to<std::uint64_t>(val);
+      else if (val.IsFloat() || val.IsLosslessFloat())
+        return to<float>(val);
+      else if (val.IsDouble() || val.IsLosslessDouble())
+        return to<double>(val);
+      else if (val.IsString())
+        return to<std::string>(val);
+    }
+    return {};
   }
 
   // ---------------------------------------------------------------------------
 
-  void set_pwms(const std::vector<bool>& values)
+  const rapidjson::Document& doc() const noexcept
   {
-    set_pwm_values(values, "", "start flags", [](auto){return true;});
+    return doc_;
   }
 
-  std::optional<std::vector<bool>> pwms() const
+  rapidjson::Document& doc() noexcept
   {
-    return pwm_values<bool>("");
-  }
-
-  void set_pwm_frequencies(const std::vector<int>& values)
-  {
-    set_pwm_values(values, "freq", "frequencies", check_pwm_frequency);
-  }
-
-  std::optional<std::vector<int>> pwm_frequencies() const
-  {
-    return pwm_values<int>("freq");
-  }
-
-  void set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values)
-  {
-    if (!(values.size() == mpc_))
-      throw Exception{"invalid number of PWM signal levels"};
-
-    // Ensure all the values are ok before applying them.
-    for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i)
-      check_pwm_signal_level(values[i]);
-
-    // Apply the values.
-    for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i) {
-      set_member("PWM", i + 1, "low", values[i].first);
-      set_member("PWM", i + 1, "high", values[i].second);
-    }
-  }
-
-  std::optional<std::vector<std::pair<int, int>>> pwm_signal_levels() const
-  {
-    std::vector<std::pair<int, int>> result;
-    result.reserve(mpc_);
-    for (std::decay_t<decltype(mpc_)> i{}; i < mpc_; ++i) {
-      const auto low = member<int>("PWM", i + 1, "low");
-      if (!low) return std::nullopt;
-      const auto high = member<int>("PWM", i + 1, "high");
-      if (!high) return std::nullopt;
-
-      result.emplace_back(*low, *high);
-    }
-    return result;
-  }
-
-  void set_pwm_repeat_counts(const std::vector<int>& values)
-  {
-    set_pwm_values(values, "repeats", "repeat counts", check_pwm_repeat_count);
-  }
-
-  std::optional<std::vector<int>> pwm_repeat_counts() const
-  {
-    return pwm_values<int>("repeats");
-  }
-
-  void set_pwm_duty_cycles(const std::vector<float>& values)
-  {
-    set_pwm_values(values, "duty", "duty cycles", check_pwm_duty_cycle);
-  }
-
-  std::optional<std::vector<float>> pwm_duty_cycles() const
-  {
-    return pwm_values<float>("duty");
+    return doc_;
   }
 
 private:
   inline static const unsigned mcc_{Driver::instance().max_channel_count()};
-  inline static const unsigned mpc_{Driver::instance().max_pwm_count()};
   rapidjson::Document doc_{rapidjson::Type::kObjectType};
 
   // ---------------------------------------------------------------------------
-  // Checkers
-  // ---------------------------------------------------------------------------
-
-  static void check_channel_gain(const float value)
-  {
-    if (!(Driver::instance().min_channel_gain() <= value &&
-        value <= Driver::instance().max_channel_gain()))
-      throw Exception{Errc::board_settings_invalid, "invalid channel gain"};
-  }
-
-  static void check_pwm_frequency(const int value)
-  {
-    if (!(1 <= value && value <= 1000))
-      throw Exception{Errc::board_settings_invalid, "invalid PWM frequency"};
-  }
-
-  static void check_pwm_signal_level(const std::pair<int, int>& value)
-  {
-    static const auto check_value = [](const int value)
-    {
-      if (!(0 <= value && value <= 4095))
-        throw Exception{Errc::board_settings_invalid, "invalid PWM signal level"};
-    };
-    const auto low = value.first;
-    const auto high = value.second;
-    check_value(low);
-    check_value(high);
-    if (!(low <= high))
-      throw Exception{Errc::board_settings_invalid, "invalid range of PWM signal level"};
-  }
-
-  static void check_pwm_repeat_count(const int value)
-  {
-    if (!(value >= 0))
-      throw Exception{Errc::board_settings_invalid, "invalid PWM repeat count"};
-  }
-
-  static void check_pwm_duty_cycle(const float value)
-  {
-    if (!(0 < value && value < 1))
-      throw Exception{Errc::board_settings_invalid, "invalid PWM duty cycle"};
-  }
-
-  // ---------------------------------------------------------------------------
-  // High-level helpers setters and getters
-  // ---------------------------------------------------------------------------
-
-  template<typename T, typename F>
-  void set_values(const std::vector<T>& values, const std::size_t values_req_size,
-    std::string root_name, const std::string_view sub_name,
-    const std::string_view plural,
-    const F& check_value)
-  {
-    if (!(values.size() == values_req_size))
-      throw Exception{std::string{"invalid number of "}.append(plural)};
-
-    for (std::size_t i{}; i < values_req_size; ++i)
-      check_value(values[i]);
-
-    for (std::size_t i{}; i < values_req_size; ++i)
-      set_member(root_name, i + 1, sub_name, values[i]);
-  }
-
-  template<typename T>
-  std::optional<std::vector<T>> values(std::string root_name,
-    const std::string_view sub_name, const std::size_t result_size) const
-  {
-    std::vector<T> result;
-    result.reserve(result_size);
-    for (std::size_t i{}; i < result_size; ++i) {
-      if (const auto mm = member<T>(root_name, i + 1, sub_name))
-        result.push_back(*mm);
-    }
-    if (result.empty())
-      return std::nullopt;
-    else if (result.size() == result_size)
-      return result;
-    else
-      throw Exception{Errc::board_settings_invalid,
-        std::string{"invalid number of "}.append(root_name)};
-  }
-
-  template<typename T, typename F>
-  void set_channel_values(const std::vector<T>& values,
-    const std::string_view sub_name, const std::string_view plural,
-    const F& check_value)
-  {
-    set_values(values, mcc_, "CH", sub_name,
-      std::string{"channel "}.append(plural), check_value);
-  }
-
-  template<typename T>
-  std::optional<std::vector<T>> channel_values(const std::string_view sub_name) const
-  {
-    return values<T>("CH", sub_name, mcc_);
-  }
-
-  template<typename T, typename F>
-  void set_pwm_values(const std::vector<T>& values,
-    const std::string_view sub_name, const std::string_view plural,
-    const F& check_value)
-  {
-    set_values(values, mpc_, "PWM", sub_name,
-      std::string{"PWM "}.append(plural), check_value);
-  }
-
-  template<typename T>
-  std::optional<std::vector<T>> pwm_values(const std::string_view sub_name) const
-  {
-    return values<T>("PWM", sub_name, mpc_);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Low-level helpers setters and getters
+  // Helpers
   // ---------------------------------------------------------------------------
 
   /// Adds or modifies the member named by `name` by using the given `value`.
@@ -373,57 +233,11 @@ private:
     detail::set_member(doc_, doc_.GetAllocator(), name, std::forward<T>(value));
   }
 
-  /// @returns The full name of access point at the given `index`.
-  std::string member_name(std::string root_name, const std::size_t index) const
+  /// @returns The value of `name` variable.
+  std::optional<const rajson::Value_view<const rapidjson::Value>>
+  member(const std::string_view name) const
   {
-    return root_name.append(std::to_string(index));
-  }
-
-  /// @overload
-  std::string member_name(std::string root_name, const std::size_t index,
-    const std::string_view sub_name) const
-  {
-    return sub_name.empty() ? member_name(root_name, index) :
-      root_name.append(std::to_string(index)).append(".").append(sub_name);
-  }
-
-  /// Sets `root_name` variable with index `index` to `value`.
-  template<typename T>
-  void set_member(std::string root_name, const std::size_t index, T&& value)
-  {
-    set_member(member_name(std::move(root_name), index), std::forward<T>(value));
-  }
-
-  /// @overload
-  template<typename T>
-  void set_member(std::string root_name, const std::size_t index,
-    const std::string_view sub_name, T&& value)
-  {
-    set_member(member_name(std::move(root_name), index, sub_name),
-      std::forward<T>(value));
-  }
-
-  /// @returns The value of `root_name` variable.
-  template<typename T>
-  std::optional<T> member(const std::string_view root_name) const
-  {
-    return rajson::Value_view{doc_}.optional<T>(root_name);
-  }
-
-  /// @returns The variable at `index`.
-  template<typename T>
-  std::optional<T> member(std::string root_name, const std::size_t index) const
-  {
-    return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name), index));
-  }
-
-  /// @overload
-  template<typename T>
-  std::optional<T> member(std::string root_name, const std::size_t index,
-    const std::string_view sub_name) const
-  {
-    return rajson::Value_view{doc_}.optional<T>(member_name(std::move(root_name),
-        index, sub_name));
+    return rajson::Value_view{doc_}.optional(name);
   }
 };
 
@@ -455,6 +269,12 @@ Board_settings& Board_settings::operator=(Board_settings&& rhs)
   return *this;
 }
 
+Board_settings::Board_settings(std::unique_ptr<Rep> rep)
+  : rep_{std::move(rep)}
+{
+  PANDA_TIMESWIPE_ASSERT(rep_);
+}
+
 Board_settings::Board_settings()
   : rep_{std::make_unique<Rep>()}
 {}
@@ -463,15 +283,26 @@ Board_settings::Board_settings(const std::string_view stringified_json)
   : rep_{std::make_unique<Rep>(stringified_json)}
 {}
 
+std::vector<std::string> Board_settings::names() const
+{
+  return rep_->names();
+}
+
+std::vector<std::string> Board_settings::inapplicable_names() const
+{
+  return rep_->inapplicable_names();
+}
+
 void Board_settings::swap(Board_settings& other) noexcept
 {
   using std::swap;
   swap(rep_, other.rep_);
 }
 
-void Board_settings::set(const Board_settings& other)
+Board_settings& Board_settings::set(const Board_settings& other)
 {
   rep_->set(*other.rep_);
+  return *this;
 }
 
 std::string Board_settings::to_json_text() const
@@ -484,97 +315,15 @@ bool Board_settings::is_empty() const
   return rep_->is_empty();
 }
 
-// -----------------------------------------------------------------------------
-
-Board_settings& Board_settings::set_channel_measurement_modes(const
-  std::vector<Measurement_mode>& values)
+Board_settings& Board_settings::set_value(const std::string_view name, std::any value)
 {
-  rep_->set_channel_measurement_modes(values);
+  rep_->set_value(name, std::move(value));
   return *this;
 }
 
-std::optional<std::vector<Measurement_mode>> Board_settings::channel_measurement_modes() const
+std::any Board_settings::value(const std::string_view name) const
 {
-  return rep_->channel_measurement_modes();
-}
-
-Board_settings& Board_settings::set_channel_gains(const std::vector<float>& values)
-{
-  rep_->set_channel_gains(values);
-  return *this;
-}
-
-std::optional<std::vector<float>> Board_settings::channel_gains() const
-{
-  return rep_->channel_gains();
-}
-
-Board_settings& Board_settings::set_channel_iepes(const std::vector<bool>& values)
-{
-  rep_->set_channel_iepes(values);
-  return *this;
-}
-
-std::optional<std::vector<bool>> Board_settings::channel_iepes() const
-{
-  return rep_->channel_iepes();
-}
-
-// -----------------------------------------------------------------------------
-
-Board_settings& Board_settings::set_pwms(const std::vector<bool>& values)
-{
-  rep_->set_pwms(values);
-  return *this;
-}
-
-std::optional<std::vector<bool>> Board_settings::pwms() const
-{
-  return rep_->pwms();
-}
-
-Board_settings& Board_settings::set_pwm_frequencies(const std::vector<int>& values)
-{
-  rep_->set_pwm_frequencies(values);
-  return *this;
-}
-
-std::optional<std::vector<int>> Board_settings::pwm_frequencies() const
-{
-  return rep_->pwm_frequencies();
-}
-
-Board_settings& Board_settings::set_pwm_signal_levels(const std::vector<std::pair<int, int>>& values)
-{
-  rep_->set_pwm_signal_levels(values);
-  return *this;
-}
-
-std::optional<std::vector<std::pair<int, int>>> Board_settings::pwm_signal_levels() const
-{
-  return rep_->pwm_signal_levels();
-}
-
-Board_settings& Board_settings::set_pwm_repeat_counts(const std::vector<int>& values)
-{
-  rep_->set_pwm_repeat_counts(values);
-  return *this;
-}
-
-std::optional<std::vector<int>> Board_settings::pwm_repeat_counts() const
-{
-  return rep_->pwm_repeat_counts();
-}
-
-Board_settings& Board_settings::set_pwm_duty_cycles(const std::vector<float>& values)
-{
-  rep_->set_pwm_duty_cycles(values);
-  return *this;
-}
-
-std::optional<std::vector<float>> Board_settings::pwm_duty_cycles() const
-{
-  return rep_->pwm_duty_cycles();
+  return rep_->value(name);
 }
 
 } // namespace panda::timeswipe

@@ -19,12 +19,16 @@
 #ifndef PANDA_TIMESWIPE_BCMSPI_HPP
 #define PANDA_TIMESWIPE_BCMSPI_HPP
 
-#include "error.hpp"
+#include "debug.hpp"
+#include "exceptions.hpp"
+#include "rajson.hpp"
 #include "spi.hpp"
 #include "synccom.hpp"
+
 #include "3rdparty/bcm/bcm2835.h"
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <thread>
 
@@ -73,6 +77,9 @@ public:
     if (!is_initialized_ && !(is_initialized_ = bcm2835_init()))
       throw Exception{"cannot initialize BCM"};
 
+    // On some devices delay is required after bcm2835_init().
+    std::this_thread::sleep_for(std::chrono::seconds{1});
+
     /// Initialize SPI.
     if (!is_spi_initialized_[pins_] && !(is_spi_initialized_[pins_] =
         (pins_ == Pins::spi0) ? bcm2835_spi_begin() : bcm2835_aux_spi_begin()))
@@ -104,7 +111,7 @@ public:
    * @throws An instance of Exception with either `Errc::spi_send_failed`
    * or `Errc::spi_receive_failed`.
    */
-  std::string execute(const std::string& request)
+  rapidjson::Document execute(const std::string_view request)
   {
     send_throw(request);
     return receive_throw();
@@ -115,9 +122,10 @@ public:
    *
    * @throws See execute().
    */
-  std::string execute_set_one(const std::string& name, const std::string& value)
+  rapidjson::Document execute_set(const std::string_view name,
+    const std::string_view json)
   {
-    return execute(name + "<" + value + "\n");
+    return execute(std::string{name}.append("<").append(json).append("\n"));
   }
 
   /**
@@ -125,29 +133,9 @@ public:
    *
    * @throws See execute().
    */
-  std::string execute_get_one(const std::string& name)
+  rapidjson::Document execute_get(const std::string_view name)
   {
-    return execute(name + ">\n");
-  }
-
-  /**
-   * @brief Executes the SPI "set many" request.
-   *
-   * @throws See execute().
-   */
-  std::string execute_set_many(const std::string& json_object)
-  {
-    return execute("js<" + json_object + "\n");
-  }
-
-  /**
-   * @brief Executes the SPI "get many" request.
-   *
-   * @throws See execute().
-   */
-  std::string execute_get_many(const std::string& json_object)
-  {
-    return execute("js>" + json_object + "\n");
+    return execute(std::string{name}.append(">\n"));
   }
 
   // ---------------------------------------------------------------------------
@@ -210,51 +198,11 @@ public:
   }
 
   /**
-   * @brief Sends the SPI "set one" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_set_one(const std::string& name, const std::string& value)
-  {
-    send_throw(name + "<" + value + "\n");
-  }
-
-  /**
-   * @brief Sends the SPI "get one" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_get_one(const std::string& name)
-  {
-    send_throw(name + ">\n");
-  }
-
-  /**
-   * @brief Sends the SPI "set many" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_set_many(const std::string& json_object)
-  {
-    send_throw("js<" + json_object + "\n");
-  }
-
-  /**
-   * @brief Sends the SPI "get many" request.
-   *
-   * @throws See send_throw().
-   */
-  void send_get_many(const std::string& json_array)
-  {
-    send_throw("js>" + json_array + "\n");
-  }
-
-  /**
    * @brief Sends the SPI `request`.
    *
    * @throws An Exception with Errc::spi_send_failed.
    */
-  void send_throw(const std::string& request)
+  void send_throw(const std::string_view request)
   {
     CFIFO fifo;
     fifo += request;
@@ -270,24 +218,53 @@ public:
    * @throws An Exception with either Errc::spi_receive_failed or
    * Errc::spi_command_failed.
    */
-  std::string receive_throw()
+  rapidjson::Document receive_throw()
   {
-    std::string result;
+    namespace rajson = dmitigr::rajson;
+
+    // Receive.
     CFIFO fifo;
-    if (receive(fifo)) {
-      result = fifo;
-      // If error returned throw exception.
-      if (!result.empty() && result[0] == '!')
-        throw Exception{Errc::spi_command_failed,
-          std::string{"SPI command failed ("}.append(result).append(")")};
+    if (!receive(fifo))
+      throw Exception{Errc::spi_receive_failed, "cannot receive SPI response"};
 
-      // Strip result.
-      if (!result.empty() && result.back() == '\n')
-        result.pop_back();
+    // Check on emptiness.
+    std::string_view result_str = fifo;
+    if (result_str.empty())
+      throw Exception{Errc::bug, "received empty SPI response"};
 
-      return result;
-    }
-    throw Exception{Errc::spi_receive_failed, "cannot receive SPI response"};
+    // Strip.
+    if (result_str.back() == '\n')
+      result_str = {result_str.data(), result_str.size() - 1};
+
+    // Parse.
+    auto result = [result_str]
+    {
+      try {
+        return dmitigr::rajson::to_document(result_str);
+      } catch (const rajson::Parse_exception&) {
+        throw_invalid_json_in_spi_response();
+      }
+    }();
+
+    // Analyze.
+    if (!result.IsObject())
+      throw_invalid_json_in_spi_response();
+    const auto end = result.MemberEnd();
+    if (const auto code = result.FindMember("error"); code != end) {
+      const auto what = result.FindMember("what");
+      if (what == end || result.MemberCount() != 2 ||
+        !code->value.IsInt() || !what->value.IsString())
+        throw_invalid_json_in_spi_response();
+      using rajson::to;
+      throw Exception{to<Errc>(code->value), to<std::string>(what->value)}; // error
+    } else if (const auto res = result.FindMember("result"); res != end) {
+      if (result.MemberCount() != 1)
+        throw_invalid_json_in_spi_response();
+      rapidjson::Document doc;
+      doc.CopyFrom(res->value, doc.GetAllocator(), true);
+      return doc; // result
+    } else
+      throw_invalid_json_in_spi_response();
   }
 
 private:
@@ -352,6 +329,11 @@ private:
     else
       bcm2835_aux_spi_setClockDivider(bcm2835_aux_spi_CalcClockDivider(speed_hz));
   }
+
+  [[noreturn]] static void throw_invalid_json_in_spi_response()
+  {
+    throw Exception{Errc::bug, "invalid JSON in SPI response"};
+  };
 };
 
 } // namespace panda::timeswipe::detail

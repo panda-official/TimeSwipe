@@ -1,418 +1,444 @@
-/*
-This Source Code Form is subject to the terms of the GNU General Public License v3.0.
-If a copy of the GPL was not distributed with this
-file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
-Copyright (c) 2019-2020 Panda Team
-*/
+// -*- C++ -*-
 
-//build for ADCs-DACs:
+// PANDA Timeswipe Project
+// Copyright (C) 2021  PANDA GmbH
 
-#include "../basics.hpp"
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include "../debug.hpp"
 #include "../error.hpp"
 #include "../hat.hpp"
+#include "../limits.hpp"
 #include "../version.hpp"
-#include "cmd.h"
+#include "board.hpp"
+#include "dms_channel.hpp"
 #include "os.h"
-#include "std_port.h"
+#include "pga280.hpp"
+#include "settings.hpp"
+#include "setting_handlers.hpp"
+#include "shiftreg.hpp"
+#include "stopwatch.hpp"
 #include "base/SPIcomm.h"
-#include "base/SAMbutton.h"
-#include "base/DMSchannel.h"
 #include "base/I2CmemHAT.h"
 #include "base/I2Cmem8Pin.h"
-#include "base/DACmax5715.h"
+#include "base/dac_max5715.hpp"
 #include "base/DACPWMht.h"
-#include "base/ShiftReg.h"
-#include "base/PGA280.h"
 #include "base/RawBinStorage.h"
 #include "base/FanControl.h"
 #include "control/NewMenu.h"
 #include "control/CalFWbtnHandler.h"
 #include "control/View.h"
-#include "control/nodeControl.h"
 #include "control/zerocal_man.h"
 #include "control/SemVer.h"
-#include "json/jsondisp.h"
 #include "led/nodeLED.h"
+#include "sam/button.hpp"
+#include "sam/dsu.hpp"
+#include "sam/system_clock.hpp"
 #include "sam/SamSPIbase.h"
 #include "sam/SamQSPI.h"
-#include "sam/SamI2CeepromMaster.h"
+#include "sam/i2c_eeprom_master.hpp"
 #include "sam/SamADCcntr.h"
 #include "sam/SamDACcntr.h"
 #include "sam/SamService.h"
 #include "sam/SamNVMCTRL.h"
 
-// -----------------------------------------------------------------------------
-// volatile bool stopflag{};
-// stopflag = true;
+// #define PANDA_TIMESWIPE_FIRMWARE_DEBUG
+
+#ifdef PANDA_TIMESWIPE_FIRMWARE_DEBUG
+volatile bool stopflag{true};
 // while (stopflag) os::wait(10);
-// -----------------------------------------------------------------------------
+#endif  // PANDA_TIMESWIPE_FIRMWARE_DEBUG
 
-namespace ts = panda::timeswipe;
-using namespace std::placeholders;
-
-
-/*!
- * \brief Setups the CPU main clock frequency to 120MHz
- * \return 0=frequency tuning was successful
+/**
+ * @brief The firmware assemblage point.
+ *
+ * @details Creates all the neccesary objects and the corresponding bindings,
+ * establishing the references between of them.
  */
-int sys_clock_init(void);
-
-
-
-/*!
-*  \brief The current firmware assemblage point
-*
-*  \details Here is all neccesary firmware objects and modules are created at run-time
-*  and corresponding bindings and links are established between them
-*
-*  \todo Add or remove desired objects to change the firmware behavior,
-*  or add/remove desired functionality
-*
-*/
-
 int main()
 {
-  try {
-    namespace detail = panda::timeswipe::detail;
-    constexpr int nChannels{detail::max_channel_count};
-    constexpr std::size_t EEPROMsize{2*1024}; // 2kb for EEPROM data
+  namespace ts = panda::timeswipe;
+  namespace detail = panda::timeswipe::detail;
+
+  const auto ps = product_series();
+#if defined(__SAME53N19A__)
+  PANDA_TIMESWIPE_ASSERT(ps == Product_series::e53);
+#elif defined(__SAME54P20A__)
+  PANDA_TIMESWIPE_ASSERT(ps == Product_series::e54);
+#else
+#error Unsupported SAM
+#endif
+
+  constexpr int channel_count{detail::max_channel_count};
+  constexpr std::size_t max_eeprom_size{2*1024};
 
 #ifdef CALIBRATION_STATION
-    bool bVisEnabled=false;
+  constexpr auto is_visualization_enabled = false;
 #else
-    bool bVisEnabled=true;
+  constexpr auto is_visualization_enabled = true;
 #endif
 
 #ifdef DMS_BOARD
-    typeBoard ThisBoard=typeBoard::DMSBoard;
+  constexpr auto board_type = Board_type::dms;
 #else
-    typeBoard ThisBoard=typeBoard::IEPEBoard;
+  constexpr auto board_type = Board_type::iepe;
 #endif
 
-    auto pVersion=std::make_shared<CSemVer>(detail::version_major,
-      detail::version_minor, detail::version_patch);
-
-    CSamNVMCTRL::Instance(); //check/setup SmartEEPROM before clock init
-
-    //step 0: clock init:
-    sys_clock_init(); //->120MHz
-
-    //----------------creating I2C EEPROM-----------------------
-    //creating shared mem buf:
-    auto pEEPROM_MemBuf=std::make_shared<CFIFO>();
-    pEEPROM_MemBuf->reserve(EEPROMsize); // reserve for EEPROM data
-
-    //creating an I2C EEPROM master to operate with an external chip:
-    auto pEEPROM_MasterBus= std::make_shared<CSamI2CeepromMaster>();
-    pEEPROM_MasterBus->EnableIRQs(true);
-
-    //request data from an external chip:
-    pEEPROM_MasterBus->SetDataAddrAndCountLim(0, EEPROMsize);
-    pEEPROM_MasterBus->SetDeviceAddr(0xA0);
-    pEEPROM_MasterBus->receive(*pEEPROM_MemBuf);
-
-    //create 2 I2C slaves for Read-only EEPROM data from extension plugs and connect them to the bufer:
-    auto pEEPROM_HAT=std::make_shared<CSamI2CmemHAT>();
-    pEEPROM_HAT->SetMemBuf(pEEPROM_MemBuf);
-    pEEPROM_HAT->EnableIRQs(true);
-
-    //set iface:
-    auto& nc = nodeControl::Instance();
-    nc.SetEEPROMiface(pEEPROM_MasterBus, pEEPROM_MemBuf);
-    //----------------------------------------------------------
-
-
-    //communication bus:
-    auto pSPIsc2    =std::make_shared<CSPIcomm>(typeSamSercoms::Sercom2, CSamPORT::pxy::PA12, CSamPORT::pxy::PA15, CSamPORT::pxy::PA13, CSamPORT::pxy::PA14);
-    pSPIsc2->EnableIRQs(true);
-    auto pDisp=         std::make_shared<CCmdDispatcher>();
-    auto pStdPort=      std::make_shared<CStdPort>(pDisp, pSPIsc2);
-    pSPIsc2->AdviseSink(pStdPort);
-
-
-    nc.SetBoardType(ThisBoard);
-    std::shared_ptr<IPin> pDAConPin;
-    std::shared_ptr<IPin> pUB1onPin;
-    std::shared_ptr<IPin> pQSPICS0Pin;
-    std::shared_ptr<CDMSsr> pDMSsr;
-
-
-    //1st step:
-    if(typeBoard::DMSBoard==ThisBoard)
-      {
-        pDMSsr=std::make_shared<CDMSsr>(
-          CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P05, true),
-          CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P06, true),
-          CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P07, true) );
-
-        pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
-        pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
-
-        auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0); pCS0->SetInvertedBehaviour(true);  pQSPICS0Pin=pCS0; pCS0->Set(false);
-
-#ifdef DMS_TEST_MODE
-        pDisp->Add("SR", std::make_shared< CCmdSGHandler<CDMSsr, unsigned int> >(pDMSsr, &CDMSsr::GetShiftReg, &CDMSsr::SetShiftReg) );
-#endif
-
-      }
-    else
-      {
-        pDAConPin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P04, true);
-        pUB1onPin=CSamPORT::FactoryPin(CSamPORT::group::C, CSamPORT::pin::P07, true); //pUB1onPin->SetInvertedBehaviour(true); pUB1onPin->Set(false);
-        pQSPICS0Pin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P11, true);
-
-        //old IEPE gain switches:
-        auto pGain0=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P15, true);
-        auto pGain1=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P14, true);
-        nc.SetIEPEboardGainSwitches(pGain0, pGain1);
-
-      }
-    auto pEnableMesPin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P13, true);
-    auto pFanPin=CSamPORT::FactoryPin(CSamPORT::group::A, CSamPORT::pin::P09, true);
-
-    //setup control:
-    nc.SetUBRpin(pUB1onPin);
-    nc.SetDAConPin(pDAConPin);
-    nc.SetEnableMesPin(pEnableMesPin);
-    nc.SetFanPin(pFanPin);
-
-
-    auto pSamADC0   =std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
-    std::shared_ptr<CSamADCchan> pADC[]={std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none, 0.0f, 4095.0f),
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN3, typeSamADCmuxneg::none, 0.0f, 4095.0f),
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN6, typeSamADCmuxneg::none, 0.0f, 4095.0f),
-      std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none, 0.0f, 4095.0f) };
-
-    CSamQSPI objQSPI;
-    std::shared_ptr<CDac5715sa> pDAC[]={std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACA, 0.0f, 4095.0f),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACB, 0.0f, 4095.0f),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACC, 0.0f, 4095.0f),
-      std::make_shared<CDac5715sa>(&objQSPI, pQSPICS0Pin, typeDac5715chan::DACD, 0.0f, 4095.0f) };
-
-    auto pSamDAC0   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac0, 0.0f, 4095.0f);
-    auto pSamDAC1   =std::make_shared<CSamDACcntr>(typeSamDAC::Dac1, 0.0f, 4095.0f);
-    pSamDAC0->SetRawBinVal(2048);
-    pSamDAC1->SetRawBinVal(2048);
-
-    //add ADC/DAC commands:
-    for(int i=0; i<nChannels; i++)
-      {
-        char cmd[64];
-        int nInd=i+1;
-        std::sprintf(cmd, "ADC%d.raw", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CAdc, int> >(pADC[i], &CAdc::DirectMeasure) );
-        std::sprintf(cmd, "DAC%d.raw", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CDac, int> >(pDAC[i], &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-      }
-    pDisp->Add("AOUT3.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC0, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-    pDisp->Add("AOUT4.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pSamDAC1, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-    pDisp->Add("DACsw", std::make_shared< CCmdSGHandler<CPin, bool> >(pDAConPin, &CPin::RbSet,  &CPin::Set) );
-
-
-
-    //2nd step:
-    if(typeBoard::DMSBoard==ThisBoard)
-      {
-        auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1); pCS1->SetInvertedBehaviour(true);  pCS1->Set(false);
-
-        //create PGA280 extension bus:
-        auto pInaSpi=std::make_shared<CSamSPIbase>(true, typeSamSercoms::Sercom5,
-          CSamPORT::pxy::PB16, CSamPORT::pxy::PB19, CSamPORT::pxy::PB17, CSamPORT::none);
-
-
-        auto pInaSpiCSpin=CSamPORT::FactoryPin(CSamPORT::group::B, CSamPORT::pin::P18, true);
-        pInaSpiCSpin->SetInvertedBehaviour(true);
-        pInaSpiCSpin->Set(false);
-
-        auto pDAC2A=std::make_shared<CDac5715sa>(&objQSPI, pCS1, typeDac5715chan::DACA, 2.5f, 24.0f);
-        // #ifdef CALIBRATION_STATION
-        // pDAC2A->SetLinearFactors(-0.005786666f, 25.2f);
-        // #endif
-        pDAC2A->SetVal(0);
-        nc.SetVoltageDAC(pDAC2A);
-
-#ifdef CALIBRATION_STATION
-        //ability to control VSUP dac raw value:
-        pDisp->Add("VSUP.raw", std::make_shared< CCmdSGHandler<CDac, int> >(pDAC2A, &CDac::GetRawBinVal, &CDac::SetRawOutput ) );
-#endif
-
-        //create 4 PGAs:
-        CDMSsr::pins IEPEpins[]={CDMSsr::pins::IEPE1_On, CDMSsr::pins::IEPE2_On, CDMSsr::pins::IEPE3_On, CDMSsr::pins::IEPE4_On};
-        for(int i=0; i<nChannels; i++)
-          {
-            auto pPGA_CS=std::make_shared<CPGA_CS>(static_cast<CDMSsr::pga_sel>(i), pDMSsr, pInaSpiCSpin);
-            auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
-            auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
-
-            nc.AddMesChannel( std::make_shared<CDMSchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, bVisEnabled) );
-#ifdef DMS_TEST_MODE
-
-            //add commands to each:
-            char cmd[64];
-            int nInd=i+1;
-            //for testing only:
-            std::sprintf(cmd, "PGA%d.rsel", nInd);
-            pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, unsigned int> >(pPGA280, &CPGA280::GetSelectedReg, &CPGA280::SelectReg) );
-            std::sprintf(cmd, "PGA%d.rval", nInd);
-            pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CPGA280, int> >(pPGA280, &CPGA280::ReadSelectedReg, &CPGA280::WriteSelectedReg) );
-#endif
-
-          }
-      }
-    else
-      {
-        for(int i=0; i<nChannels; i++)
-          {
-            nc.AddMesChannel( std::make_shared<CIEPEchannel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), bVisEnabled) );
-          }
-      }
-
-
-    //2 DAC PWMs:
-    auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pDAConPin);
-    auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pDAConPin);
-
-    //PWM commands:
-    pDisp->Add("PWM1", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM1, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
-    pDisp->Add("PWM1.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
-    pDisp->Add("PWM1.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM1, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
-    pDisp->Add("PWM1.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM1, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
-    pDisp->Add("PWM1.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
-    pDisp->Add("PWM1.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM1, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
-
-
-    pDisp->Add("PWM2", std::make_shared< CCmdSGHandler<CDacPWMht, bool> >(pPWM2, &CDacPWMht::IsStarted,  &CDacPWMht::Start) );
-    pDisp->Add("PWM2.repeats", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetRepeats,  &CDacPWMht::SetRepeats) );
-    pDisp->Add("PWM2.duty", std::make_shared< CCmdSGHandler<CDacPWMht, float> >(pPWM2, &CDacPWMht::GetDutyCycle,  &CDacPWMht::SetDutyCycle) );
-    pDisp->Add("PWM2.freq", std::make_shared< CCmdSGHandler<CDacPWMht, unsigned int> >(pPWM2, &CDacPWMht::GetFrequency,  &CDacPWMht::SetFrequency) );
-    pDisp->Add("PWM2.high", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetHighLevel,  &CDacPWMht::SetHighLevel) );
-    pDisp->Add("PWM2.low", std::make_shared< CCmdSGHandler<CDacPWMht, int> >(pPWM2, &CDacPWMht::GetLowLevel,  &CDacPWMht::SetLowLevel) );
-
-
-    //temp sensor+ PIN PWM:
-    auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
-    auto pFanPWM=std::make_shared<CPinPWM>(CSamPORT::group::A, CSamPORT::pin::P09);
-    auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
-
-    //temp sens+fan control:
-    pDisp->Add("Temp", std::make_shared< CCmdSGHandler<CSamTempSensor, float> >(pTempSens,  &CSamTempSensor::GetTempCD) );
-    pDisp->Add("Fan.duty", std::make_shared< CCmdSGHandler<CPinPWM, float> >(pFanPWM, &CPinPWM::GetDutyCycle) );
-    pDisp->Add("Fan.freq", std::make_shared< CCmdSGHandler<CPinPWM, unsigned int> >(pFanPWM, &CPinPWM::GetFrequency, &CPinPWM::SetFrequency) );
-    pDisp->Add("Fan", std::make_shared< CCmdSGHandler<CFanControl, bool> >(pFanControl, &CFanControl::GetEnabled, &CFanControl::SetEnabled) );
-
-    //button:
-#ifdef CALIBRATION_STATION
-    auto pBtnHandler=std::make_shared<CCalFWbtnHandler>();
-#else
-    auto pBtnHandler=std::make_shared<CNewMenu>();
-#endif
-
-    SAMButton &button=SAMButton::Instance();
-    button.AdviseSink( pBtnHandler );
-
-
-    //---------------------------------------------------command system------------------------------------------------------
-    //channel commands:
-    for(int i=0; i<nChannels; i++)
-      {
-        char cmd[64];
-        int nInd=i+1;
-        auto pCH=nc.GetMesChannel(i);
-
-        std::sprintf(cmd, "CH%d.mode", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, unsigned int> >(pCH, &CMesChannel::CmGetMesMode, &CMesChannel::CmSetMesMode) );
-        std::sprintf(cmd, "CH%d.gain", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, float> >(pCH, &CMesChannel::GetActualAmpGain, &CMesChannel::SetAmpGain) );
-        std::sprintf(cmd, "CH%d.iepe", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, bool> >(pCH, &CMesChannel::IsIEPEon, &CMesChannel::IEPEon) );
-
-#ifdef CALIBRATION_STATION
-        std::sprintf(cmd, "CH%d.clr", nInd);
-        pDisp->Add(cmd, std::make_shared< CCmdSGHandler<CMesChannel, typeLEDcol> >(pCH, &CMesChannel::GetColor, &CMesChannel::SetColor) );
-#endif
-
-      }
-
-
-
-    pDisp->Add("Offset.errtol", std::make_shared< CCmdSGHandlerF<int> >(&CADpointSearch::GetTargErrTol,  &CADpointSearch::SetTargErrTol) );
-    pDisp->Add("ARMID", std::make_shared< CCmdSGHandlerF<std::string> >(&CSamService::GetSerialString) );
-    pDisp->Add("fwVersion", std::make_shared< CCmdSGHandler<CSemVer, std::string> >(pVersion, &CSemVer::GetVersionString) );
-
-    //control commands:
-    const std::shared_ptr<nodeControl> &pNC=nc.shared_from_this();
-    pDisp->Add("Gain", std::make_shared< CCmdSGHandler<nodeControl, int> >(pNC, &nodeControl::GetGain, &nodeControl::SetGain) );
-    pDisp->Add("Bridge", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::GetBridge,  &nodeControl::SetBridge) );
-    pDisp->Add("Record", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::IsRecordStarted,  &nodeControl::StartRecord) );
-    pDisp->Add("Offset", std::make_shared< CCmdSGHandler<nodeControl, int> >(pNC, &nodeControl::GetOffsetRunSt,  &nodeControl::SetOffset) );
-    pDisp->Add("EnableADmes", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::IsMeasurementsEnabled,  &nodeControl::EnableMeasurements) );
-    pDisp->Add("Mode", std::make_shared< CCmdSGHandler<nodeControl, int> >(pNC, &nodeControl::GetMode,  &nodeControl::SetMode) );
-    pDisp->Add("CalStatus", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC, &nodeControl::GetCalStatus) );
-    pDisp->Add("Voltage", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetVoltage, &nodeControl::SetVoltage) );
-    pDisp->Add("Current", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetCurrent, &nodeControl::SetCurrent) );
-    pDisp->Add("MaxCurrent", std::make_shared< CCmdSGHandler<nodeControl, float> >(pNC, &nodeControl::GetMaxCurrent, &nodeControl::SetMaxCurrent) );
-    //pDisp->Add("Fan", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsFanStarted,  &nodeControl::StartFan) );
-
-
-    CView &view=CView::Instance();
-#ifdef CALIBRATION_STATION
-    pDisp->Add("UItest", std::make_shared< CCmdSGHandler<CCalFWbtnHandler, bool> >(pBtnHandler,
-        &CCalFWbtnHandler::HasUItestBeenDone,
-        &CCalFWbtnHandler::StartUItest) );
-    //testing Ext EEPROM:
-    pDisp->Add("EEPROMTest", std::make_shared< CCmdSGHandler<CSamI2CeepromMaster, bool> >(pEEPROM_MasterBus,
-        &CSamI2CeepromMaster::GetSelfTestResult,  &CSamI2CeepromMaster::RunSelfTest) );
-
-    pDisp->Add("CalEnable", std::make_shared< CCmdSGHandler<nodeControl, bool> >(pNC,  &nodeControl::IsCalEnabled,  &nodeControl::EnableCal) );
-
-#endif
-
-
-    //--------------------JSON- ---------------------
-    auto pJC=std::make_shared<CJSONDispatcher>(pDisp);
-    pDisp->Add("js", pJC);
-    pJC->AddSubHandler("cAtom", std::bind(&nodeControl::procCAtom, std::ref(*pNC), _1, _2, _3 ) );
-
-    //#ifdef CALIBRATION_STATION
-
-    //#endif
-
-
-    //------------------JSON EVENTS-------------------
-    auto pJE=std::make_shared<CJSONEvDispatcher>(pDisp);
-    pDisp->Add("je", pJE);
-    button.CJSONEvCP::AdviseSink(pJE);
-    nodeControl::Instance().AdviseSink(pJE);
-    //--------------------------------------------------------------------------------------------------------------
-
-
-    /*
-     * nodeControl::LoadSettings() activates the persistent
-     * storage handling which is currently broken!
-     */
-    // nc.LoadSettings();
-    nc.SetMode(0); //set default mode
-#ifndef CALIBRATION_STATION
-    view.BlinkAtStart();
-#endif
-
-    // Enable calibration settings.
-    nc.EnableCal(true);
-
-    // Loop endlessly.
-    while (true) {
-      button.update();
-      nc.Update();
-      view.Update();
-
-      pSPIsc2->Update();
-      pSamADC0->Update();
-      pFanControl->Update();
-    }
-  } catch (const std::exception& e) {
-  } catch (...) {
+  // Check/setup SmartEEPROM before clock init.
+  CSamNVMCTRL::Instance();
+
+  // Initialize the system clock: 120 MHz.
+  initialize_system_clock();
+
+  // Register the start time.
+  const auto start_time = os::get_tick_mS();
+
+  // Create the control instance.
+  const auto board = Board::instance().shared_from_this();
+
+  // -------------------------------------------------------------------------
+  // Create I2C EEPROM
+  // -------------------------------------------------------------------------
+
+  // Create in-memory buffer for EEPROM.
+  const auto eeprom_buffer = std::make_shared<CFIFO>();
+  eeprom_buffer->reserve(max_eeprom_size);
+
+  // Create I2C EEPROM master to operate with the external chip.
+  const auto i2c_eeprom_master = std::make_shared<Sam_i2c_eeprom_master>();
+  // auto* volatile eeprom_master = i2c_eeprom_master.get(); // for debugging
+  i2c_eeprom_master->enable_irq(true);
+  i2c_eeprom_master->set_eeprom_base_address(0);
+  i2c_eeprom_master->set_eeprom_max_read_amount(max_eeprom_size);
+  i2c_eeprom_master->set_eeprom_chip_address(0xA0);
+
+  // Read the data from the external EEPROM.
+  i2c_eeprom_master->receive(*eeprom_buffer);
+
+  /*
+   * Create 2 I2C slaves for read-only EEPROM data from extension plugs and
+   * attach the EEPROM buffer to them.
+   */
+  const auto eeprom_hat = std::make_shared<CSamI2CmemHAT>();
+  eeprom_hat->SetMemBuf(eeprom_buffer);
+  eeprom_hat->EnableIRQs(true);
+
+  // Set handles.
+  board->set_eeprom_handles(i2c_eeprom_master, eeprom_buffer);
+
+  // -------------------------------------------------------------------------
+  // Setup communication bus
+  // -------------------------------------------------------------------------
+
+  const auto sercom2_spi = std::make_shared<CSPIcomm>(Sam_sercom::Id::sercom2,
+    Sam_pin::Id::pa12,
+    Sam_pin::Id::pa15,
+    Sam_pin::Id::pa13,
+    Sam_pin::Id::pa14);
+  sercom2_spi->EnableIRQs(true);
+  const auto setting_dispatcher = std::make_shared<Setting_dispatcher>();
+  const auto setting_parser = std::make_shared<Setting_parser>(setting_dispatcher,
+    sercom2_spi);
+  sercom2_spi->AdviseSink(setting_parser);
+
+  board->set_board_type(board_type);
+  std::shared_ptr<Pin> pDAConPin;
+  std::shared_ptr<Pin> pUB1onPin;
+  std::shared_ptr<Pin> pQSPICS0Pin;
+  std::shared_ptr<CDMSsr> pDMSsr;
+
+  // Add uptime handler.
+  const auto stopwatch = std::make_shared<Stopwatch>(start_time);
+  setting_dispatcher->add("uptime",
+    std::make_shared<Setting_generic_handler<float>>(
+      stopwatch,
+      &Stopwatch::uptime_seconds));
+
+  //1st step:
+  if constexpr (board_type == Board_type::dms) {
+    pDMSsr=std::make_shared<CDMSsr>(
+      std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p05, true),
+      std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p06, true),
+      std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true));
+
+    pDAConPin=pDMSsr->FactoryPin(CDMSsr::pins::DAC_On);
+    pUB1onPin=pDMSsr->FactoryPin(CDMSsr::pins::UB1_On);
+
+    auto pCS0=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS0);
+    pCS0->set_inverted(true);
+    pQSPICS0Pin=pCS0;
+    pCS0->write(false);
+  } else {
+    pDAConPin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p04, true);
+    pUB1onPin=std::make_shared<Sam_pin>(Sam_pin::Group::c, Sam_pin::Number::p07, true);
+    // pUB1onPin->set_inverted(true);
+    // pUB1onPin->set(false);
+    pQSPICS0Pin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p11, true);
+
+    //old IEPE gain switches:
+    auto pGain0=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p15, true);
+    auto pGain1=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p14, true);
+    board->set_iepe_gain_pins(pGain0, pGain1);
+  }
+  const auto pEnableMesPin = std::make_shared<Sam_pin>(
+    Sam_pin::Group::b,
+    Sam_pin::Number::p13,
+    true);
+  // [[deprecated]] by CPinPWM (see below).
+  const auto pFanPin = std::make_shared<Sam_pin>(
+    Sam_pin::Group::a,
+    Sam_pin::Number::p09,
+    true);
+
+  //setup control:
+  board->set_ubr_pin(pUB1onPin);
+  board->set_dac_mode_pin(pDAConPin);
+  board->set_adc_measurement_enable_pin(pEnableMesPin);
+  board->set_fan_pin(pFanPin); // [[deprecated]]
+
+  auto pSamADC0 = std::make_shared<CSamADCcntr>(typeSamADC::Adc0);
+  std::shared_ptr<CSamADCchan> pADC[]={
+    std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN2, typeSamADCmuxneg::none),
+    std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN3, typeSamADCmuxneg::none),
+    std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN6, typeSamADCmuxneg::none),
+    std::make_shared<CSamADCchan>(pSamADC0, typeSamADCmuxpos::AIN7, typeSamADCmuxneg::none)};
+
+  CSamQSPI objQSPI;
+  std::shared_ptr<Dac_max5715> pDAC[]={
+    std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::a,
+      50, 4045),
+    std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::b,
+      50, 4045),
+    std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::c,
+      50, 4045),
+    std::make_shared<Dac_max5715>(&objQSPI, pQSPICS0Pin, Dac_max5715::Channel::d,
+      50, 4045)};
+  for (const auto& dac : pDAC)
+    dac->set_raw(dac->raw_range().second);
+
+  auto pSamDAC0=std::make_shared<CSamDACcntr>(typeSamDAC::Dac0);
+  auto pSamDAC1=std::make_shared<CSamDACcntr>(typeSamDAC::Dac1);
+  pSamDAC0->set_raw(2048);
+  pSamDAC1->set_raw(2048);
+
+  // channel%dAdcRaw, channel%dDacRaw
+  for (int i{}; i < channel_count; ++i) {
+    char cmd[64];
+    const int nInd=i+1;
+    std::sprintf(cmd, "channel%dAdcRaw", nInd);
+    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<int>>(
+        pADC[i],
+        &Adc_channel::GetRawBinVal));
+    std::sprintf(cmd, "channel%dDacRaw", nInd);
+    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<int>>(
+        pDAC[i],
+        &Dac_channel::GetRawBinVal,
+        &Dac_channel::set_raw));
   }
 
-  // main() must never return.
-  while (true) os::wait(10);
+  //2nd step:
+  std::shared_ptr<Calibratable_dac> voltage_dac;
+  if constexpr (board_type == Board_type::dms) {
+    auto pCS1=pDMSsr->FactoryPin(CDMSsr::pins::QSPI_CS1);
+    pCS1->set_inverted(true);
+    pCS1->write(false);
+
+    //create PGA280 extension bus:
+    auto pInaSpi=std::make_shared<CSamSPIbase>(true, Sam_sercom::Id::sercom5,
+      Sam_pin::Id::pb16, Sam_pin::Id::pb19, Sam_pin::Id::pb17, std::nullopt, nullptr);
+
+    auto pInaSpiCSpin=std::make_shared<Sam_pin>(Sam_pin::Group::b, Sam_pin::Number::p18, true);
+    pInaSpiCSpin->set_inverted(true);
+    pInaSpiCSpin->write(false);
+
+    voltage_dac = std::make_shared<Calibratable_dac>(
+      std::make_shared<Dac_max5715>(&objQSPI, pCS1, Dac_max5715::Channel::a,
+        120, 3904), 2.5, 24);
+    voltage_dac->set_value(voltage_dac->value_range().first);
+    board->set_voltage_dac(voltage_dac);
+
+#ifdef CALIBRATION_STATION
+    //ability to control Voltage DAC's raw value:
+    setting_dispatcher->add("voltageOutRaw", std::make_shared<Setting_generic_handler<int>>(
+        voltage_dac,
+        &Calibratable_dac::GetRawBinVal,
+        &Calibratable_dac::set_raw));
+#endif
+
+    //create 4 PGAs:
+    CDMSsr::pins IEPEpins[]={CDMSsr::pins::IEPE1_On, CDMSsr::pins::IEPE2_On, CDMSsr::pins::IEPE3_On, CDMSsr::pins::IEPE4_On};
+    for (int i{}; i < channel_count; ++i) {
+      auto pPGA_CS=std::make_shared<CPGA_CS>(static_cast<CDMSsr::pga_sel>(i), pDMSsr, pInaSpiCSpin);
+      auto pIEPEon=pDMSsr->FactoryPin(IEPEpins[i]);
+      auto pPGA280=std::make_shared<CPGA280>(pInaSpi, pPGA_CS);
+
+      board->add_channel(std::make_shared<Dms_channel>(i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), pIEPEon, pPGA280, is_visualization_enabled));
+    }
+  } else {
+    for (int i{}; i < channel_count; ++i)
+      board->add_channel(std::make_shared<CIEPEchannel>(
+          i, pADC[i], pDAC[i], static_cast<CView::vischan>(i), is_visualization_enabled));
+  }
+
+  //2 DAC PWMs:
+  auto pPWM1=std::make_shared<CDacPWMht>(CDacPWMht::PWM1, pDAConPin);
+  auto pPWM2=std::make_shared<CDacPWMht>(CDacPWMht::PWM2, pDAConPin);
+
+  //temp sensor+ PIN PWM:
+  auto pTempSens=std::make_shared<CSamTempSensor>(pSamADC0);
+  auto pFanPWM=std::make_shared<CPinPWM>(Sam_pin::Group::a, Sam_pin::Number::p09);
+  auto pFanControl=std::make_shared<CFanControl>(pTempSens, pFanPWM);
+
+  //temp sens+fan control:
+  setting_dispatcher->add("temperature", std::make_shared<Setting_generic_handler<float>>(
+      pTempSens,
+      &CSamTempSensor::GetTempCD));
+  setting_dispatcher->add("fanDutyCycle", std::make_shared<Setting_generic_handler<float>>(
+      pFanPWM,
+      &CPinPWM::GetDutyCycle));
+  setting_dispatcher->add("fanFrequency", std::make_shared<Setting_generic_handler<unsigned>>(
+      pFanPWM,
+      &CPinPWM::GetFrequency,
+      &CPinPWM::SetFrequency));
+  setting_dispatcher->add("fanEnabled", std::make_shared<Setting_generic_handler<bool>>(
+      pFanControl,
+      &CFanControl::GetEnabled,
+      &CFanControl::SetEnabled));
+
+  //button:
+#ifdef CALIBRATION_STATION
+  auto pBtnHandler=std::make_shared<CCalFWbtnHandler>();
+#else
+  auto pBtnHandler=std::make_shared<CNewMenu>();
+#endif
+
+  auto& button = Sam_button::instance();
+  button.set_extra_handler(pBtnHandler);
+
+  //---------------------------------------------------command system------------------------------------------------------
+  //channel commands:
+  for (int i{}; i < channel_count; ++i) {
+    char cmd[64];
+    const int nInd=i+1;
+    const auto channel = board->channel(i);
+
+    std::sprintf(cmd, "channel%dMode", nInd);
+    using Ch_mode_handler = Setting_generic_handler<std::optional<Measurement_mode>,
+      Measurement_mode>;
+    setting_dispatcher->add(cmd, std::make_shared<Ch_mode_handler>(
+        channel,
+        &Channel::measurement_mode,
+        &Channel::set_measurement_mode));
+    std::sprintf(cmd, "channel%dGain", nInd);
+    using Ch_gain_handler = Setting_generic_handler<std::optional<float>, float>;
+    setting_dispatcher->add(cmd, std::make_shared<Ch_gain_handler>(
+        channel,
+        &Channel::amplification_gain,
+        &Channel::set_amplification_gain));
+    std::sprintf(cmd, "channel%dIepe", nInd);
+    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<bool>>(
+        channel,
+        &Channel::is_iepe,
+        &Channel::set_iepe));
+
+#ifdef CALIBRATION_STATION
+    std::sprintf(cmd, "channel%dColor", nInd);
+    setting_dispatcher->add(cmd, std::make_shared<Setting_generic_handler<typeLEDcol>>(
+        channel,
+        &Channel::color,
+        &Channel::set_color));
+#endif
+  }
+
+  // [[deprecated]]
+  // setting_dispatcher->add("fanEnabled", std::make_shared<Setting_generic_handler<bool>>(
+  //     board,
+  //     &Board::is_fan_enabled,
+  //     &Board::enable_fan));
+  setting_dispatcher->add("armId", std::make_shared<Setting_generic_handler<std::string>>(
+      &CSamService::GetSerialString));
+
+  const auto version = std::make_shared<CSemVer>(detail::firmware_version_major,
+    detail::firmware_version_minor, detail::firmware_version_patch);
+  setting_dispatcher->add("firmwareVersion",
+    std::make_shared<Setting_generic_handler<std::string>>(
+      version,
+      &CSemVer::GetVersionString));
+
+  //control commands:
+  setting_dispatcher->add("voltageOutEnabled", std::make_shared<Setting_generic_handler<bool>>(
+      board,
+      &Board::is_bridge_enabled,
+      &Board::enable_bridge));
+  setting_dispatcher->add("channelsAdcEnabled", std::make_shared<Setting_generic_handler<bool>>(
+      board,
+      &Board::is_channels_adc_enabled,
+      &Board::enable_channels_adc));
+  setting_dispatcher->add("calibrationData",
+    std::make_shared<Calibration_data_handler>());
+  setting_dispatcher->add("calibrationDataApplyError",
+    std::make_shared<Setting_generic_handler<Error_result>>(
+      board,
+      &Board::calibration_data_apply_error));
+  setting_dispatcher->add("calibrationDataEepromError",
+    std::make_shared<Setting_generic_handler<Error_result>>(
+      board,
+      &Board::calibration_data_eeprom_error));
+  setting_dispatcher->add("voltageOutValue", std::make_shared<Setting_generic_handler<float>>(
+      board,
+      &Board::voltage,
+      &Board::set_voltage));
+
+  CView &view=CView::Instance();
+#ifdef CALIBRATION_STATION
+  setting_dispatcher->add("uiTest", std::make_shared<Setting_generic_handler<bool>>(
+      pBtnHandler,
+      &CCalFWbtnHandler::HasUItestBeenDone,
+      &CCalFWbtnHandler::StartUItest));
+
+  //testing Ext EEPROM:
+  setting_dispatcher->add("eepromTest", std::make_shared<Setting_generic_handler<bool>>(
+      i2c_eeprom_master,
+      &Sam_i2c_eeprom_master::self_test_result,
+      &Sam_i2c_eeprom_master::run_self_test));
+
+  setting_dispatcher->add("calibrationDataEnabled",
+    std::make_shared<Setting_generic_handler<bool>>(
+      board,
+      &Board::is_calibration_data_enabled,
+      &Board::enable_calibration_data));
+#endif
+
+  /*
+   * Board::import_settings() activates the persistent
+   * storage handling which is currently broken!
+   */
+  // board->import_settings();
+#ifndef CALIBRATION_STATION
+  view.BlinkAtStart();
+#endif
+
+  board->enable_calibration_data(true);
+
+  // Loop endlessly. (main() must never return!)
+  while (true) {
+    button.update();
+    board->update();
+    view.Update();
+
+    sercom2_spi->Update();
+    pSamADC0->Update();
+    pFanControl->Update();
+  }
 }

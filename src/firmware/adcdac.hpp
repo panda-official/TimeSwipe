@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-// PANDA TimeSwipe Project
+// PANDA Timeswipe Project
 // Copyright (C) 2021  PANDA GmbH
 
 // This program is free software: you can redistribute it and/or modify
@@ -19,223 +19,171 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_ADCDAC_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_ADCDAC_HPP
 
+#include "../debug.hpp"
+#include "../util.hpp"
+using namespace panda::timeswipe::detail; // FIXME: remove
+
+#include <cstdint>
+#include <memory>
+#include <utility>
+
 /**
- * @brief Analog-to-Digital or Digital-to-Analog measurement/control channel.
+ * @brief Analog-to-Digital or Digital-to-Analog measurement (control) channel.
  *
- * `ADC` and `DAC` devices usually contain a number of measurement/controlling
- * units called channels. Measured/control values are stored in real units, such
- * as *Volts*, *A/mA* etc. The range of the channel is also in real units, for
- * example, `[-10, +10]` Volts.
+ * @details `ADC` and `DAC` devices usually contains various measurement
+ * (controlling) units called channels. Measured/control values are interpreted
+ * as real units, such as *Volts*, *A/mA* etc.
  */
-class CADchan {
-protected:
-  /// Proportional convertion factor k: Raw = Real*k + b.
-  float m_k{};
-
-  /// Zero offset: Raw = Real*k + b.
-  float m_b{};
-
-  /// The range of the chip in discrets(raw-binary fromat).
-  int m_IntRange{}; // ADCrange
-
-  /// The minimum range of the channel in real units (V, a, mA...).
-  float m_RangeMin{};
-
-  /// The maximum range of the channel in real units (V, a, mA...).
-  float m_RangeMax{};
-
-  /// An actual value of the channel in the raw-binary format (native chip format).
-  int m_Raw{};
-
-  /// @returns A valid raw value in range `[0, m_IntRange]`.
-  int ValidRaw(const int value) const noexcept
-  {
-    return value < 0 ? 0 : value > m_IntRange ? m_IntRange : value;
-  }
-
-  /// @returns A valid real value in range `[m_RangeMin, m_RangeMax]`.
-  float ValidReal(const float value) const noexcept
-  {
-    return value < m_RangeMin ? m_RangeMin : value > m_RangeMax ? m_RangeMax : value;
-  }
-
-  /**
-   * @brief Conversion from raw value (native for the ADC/DAC chip or
-   * board) to real units value.
-   *
-   * @param value The value in a raw-binary format.
-   *
-   * @return Real value in defined units.
-   */
-  float RawToReal(const int value) const noexcept
-  {
-    return (ValidRaw(value) - m_b) / m_k;
-  }
-
-  /**
-   * @brief Conversion from real value to raw value (native for the
-   * ADC/DAC chip or board).
-   *
-   * @param value The value in a real units.
-   *
-   * @return Raw-binary value.
-   */
-  int RealToRaw(const float value) const noexcept
-  {
-    return ValidReal(value) * m_k + m_b;
-  }
-
+class Adcdac_channel {
 public:
   /// The destructor.
-  virtual ~CADchan() = default;
+  virtual ~Adcdac_channel() = default;
 
-  /// The default constructor.
-  CADchan() noexcept
-  {
-    SetRange(0, 1);
-  }
-
-  /// @returns An actual measured/controlled value in real units.
-  float GetRealVal() const noexcept
-  {
-    return RawToReal(m_Raw);
-  }
-
-  /// @returns An actual measured/controlled value in raw-binary format
-  int GetRawBinVal() // FIXME: const noexcept
-  {
-    return m_Raw;
-  }
-
-  /**
-   * Sets the actual measured/controlled `value` in real units. If the `value`
-   * is not in range `[m_RangeMin, m_RangeMax]` it will be adjusted to the
-   * nearest border of that range.
-   */
-  void SetRealVal(const float value) noexcept
-  {
-    m_Raw = RealToRaw(ValidReal(value));
-  }
-
-  /// Sets the actual measured/controlled value in raw-binary format.
-  void SetRawBinVal(const int value) noexcept
-  {
-    m_Raw = ValidRaw(value);
-  }
-
-  /**
-   * @brief Gets the real value range.
-   *
-   * @param min Minimum range.
-   * @param max Maximum range.
-   */
-  void GetRange(float& min, float& max) noexcept
-  {
-    min = m_RangeMin;
-    max = m_RangeMax;
-  }
-
-  /**
-   * @brief Sets the real value range.
-   *
-   * @param min Minimum range.
-   * @param max Maximum range.
-   */
-  void SetRange(const float min, const float max) noexcept
-  {
-    const auto old_real{GetRealVal()};
-    m_RangeMin = min;
-    m_RangeMax = max;
-    // Update the stored value according to new range.
-    SetRealVal(old_real);
-  }
-
-  /// Sets the conversion factors directly.
-  void SetLinearFactors(const float k, const float b) noexcept
-  {
-    const auto old_real{GetRealVal()};
-    m_k = k;
-    m_b = b;
-    // Update the stored value according to new coefs.
-    SetRealVal(old_real);
-  }
+  /// @returns The raw content of a data register of the underlying hardware.
+  virtual int GetRawBinVal() const noexcept = 0;
 };
 
-// -----------------------------------------------------------------------------
-// Class CAdc
-// -----------------------------------------------------------------------------
-
-/**
- * @brief An ADC (Analog-to-Digital-Converter) channel.
- *
- * @remarks Uses only ADC functionality from CADchan.
- */
-class CAdc : public CADchan {
+/// An ADC (Analog-to-Digital-Converter) channel.
+class Adc_channel : public Adcdac_channel {
 public:
   /**
    * @brief Force direct measurement for this channel on ADC device without queuing.
    *
    * @returns Immediately measured analog value in raw-binary format.
    */
-  virtual int DirectMeasure() // FIXME: const noexcept
-  {
-    return GetRawBinVal();
-  }
+  virtual int GetRawBinValDirectly() const noexcept = 0;
 };
 
-// -----------------------------------------------------------------------------
-// Class CDac
-// -----------------------------------------------------------------------------
+/// A DAC (Digital-to-Analog-Converter) channel.
+class Dac_channel : public Adcdac_channel {
+private:
+  friend class Calibratable_dac;
 
-/**
- * @brief A DAC (Digital-to-Analog-Converter) channel.
- *
- * @remarks Uses only DAC functionality of CADchan.
- */
-class CDac : public CADchan {
-protected:
   /**
-   * @brief Sets the output value to the real DAC device
+   * @brief Sets the raw content of a data register of the underlying hardware.
    *
-   * The function is used to transfer a control value from the abstract DAC
-   * channel to the real DAC device and must be overriden in a real device
-   * control class.
+   * @param raw The value that is guaranteed to be in range raw_range().
    *
-   * @param val A value to set in a real-unit format for devices that can accept
-   * it (some PCI boards for example).
-   * @param out_bin A value to set in a raw-binary format - most common format
-   * for DAC devices.
+   * @remarks This function is called by set_raw().
+   *
+   * @see set_raw().
    */
-  virtual void DriverSetVal(float val, int out_bin) = 0;
+  virtual void SetRawBinVal(const int raw) = 0;
 
 public:
-  /// Set the current control value for this channel.
-  void SetVal() noexcept
+  /**
+   * @brief Sets the raw content of a data register of the underlying hardware.
+   *
+   * @param raw The value that will be narrowed to range raw_range().
+   *
+   * @see SetRawBinVal().
+   */
+  void set_raw(const int raw)
   {
-    DriverSetVal(GetRealVal(), GetRawBinVal());
+    const auto [min_raw, max_raw] = raw_range();
+    SetRawBinVal(clamp(raw, min_raw, max_raw));
+  }
+
+  /// @returns The defined range of the underlying hardware data register.
+  virtual std::pair<int, int> raw_range() const noexcept = 0;
+};
+
+/**
+ * @brief Decorator for the Dac_channel class.
+ *
+ * @details This class is follows the Decorator design pattern, allowing to
+ * associate the DAC with the calibration data and provides the API for working
+ * with the real values (Volts, Amperes etc) instead of raw values. The
+ * calibration data is used to convert from real values to raw values.
+ */
+class Calibratable_dac final : public Dac_channel {
+private:
+  /// @see Dac_channel::SetRawBinVal().
+  void SetRawBinVal(const int raw) override
+  {
+    return dac_->SetRawBinVal(raw);
+  }
+
+public:
+  /**
+   * @brief The constructor.
+   *
+   * @param dac The decoratable object.
+   * @param min_value The minimum allowed real value (Volts, Amperes etc).
+   * @param max_value The maximum allowed real value (Volts, Amperes etc).
+   *
+   * @par Requires
+   * `(dac && min_value <= max_value)`.
+   */
+  Calibratable_dac(std::shared_ptr<Dac_channel> dac,
+    const float min_value, const float max_value)
+    : dac_{std::move(dac)}
+    , min_value_{min_value}
+    , max_value_{max_value}
+  {
+    PANDA_TIMESWIPE_ASSERT(dac_ && min_value_ <= max_value_);
+  }
+
+  /// @see Dac_channel::GetRawBinVal().
+  int GetRawBinVal() const noexcept override
+  {
+    return dac_->GetRawBinVal();
+  }
+
+  /// @see Dac_channel::raw_range().
+  std::pair<int, int> raw_range() const noexcept override
+  {
+    return dac_->raw_range();
+  }
+
+  /// @returns The stored real value.
+  float value() const noexcept
+  {
+    return value_;
   }
 
   /**
-   * @brief Set control value in a real unit format for this channel.
+   * @brief Sets the real value.
    *
-   * @param value A value in a real unit format
+   * @details Stores the real value, converts it to the raw value by using
+   * linear_factors() and calls set_raw().
+   *
+   * @param value The value that will be narrowed to range value_range().
    */
-  void SetVal(const float value) noexcept
+  void set_value(float value)
   {
-    SetRealVal(value);
-    DriverSetVal(GetRealVal(), GetRawBinVal());
+    value = clamp(value, min_value_, max_value_);
+    set_raw(value * slope_ + offset_);
+    value_ = value;
   }
 
-  /**
-   * @brief Set control value in a raw binary format for this channel.
-   *
-   * @param value A value in a raw binary format.
-   */
-  void SetRawOutput(const int value) noexcept
+  /// @returns The defined value range.
+  std::pair<float, float> value_range() const noexcept
   {
-    SetRawBinVal(value);
-    DriverSetVal(GetRealVal(), GetRawBinVal());
+    return {min_value_, max_value_};
   }
+
+  /// @returns The defined linear factors which are used to convert value to raw.
+  std::pair<float, std::int16_t> linear_factors() const noexcept
+  {
+    return {slope_, offset_};
+  }
+
+  /// Sets the conversion factors directly.
+  void set_linear_factors(const float slope, const std::int16_t offset) noexcept
+  {
+    slope_ = slope;
+    offset_ = offset;
+    set_value(value_); // update with new slope_ and offset_
+  }
+
+private:
+  std::shared_ptr<Dac_channel> dac_;
+  const float min_value_{};
+  const float max_value_{};
+  float value_{};
+  float slope_{1};
+  std::int16_t offset_{};
 };
 
 #endif  // PANDA_TIMESWIPE_FIRMWARE_ADCDAC_HPP

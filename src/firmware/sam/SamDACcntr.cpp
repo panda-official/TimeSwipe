@@ -7,41 +7,41 @@ Copyright (c) 2019 Panda Team
 
 //SAM DAC controller class impl:
 
-#include "SamDACcntr.h"
+#include "../../debug.hpp"
 #include "../os.h"
-#include "../../3rdparty/sam/sam.h"
+#include "SamDACcntr.h"
+
+#include <sam.h>
 
 #define GCLK_DAC   42
 
 bool   CSamDACcntr::m_bInitialized=false;
 
-CSamDACcntr::CSamDACcntr(typeSamDAC nChan, float RangeMin, float RangeMax)
+CSamDACcntr::CSamDACcntr(typeSamDAC nChan)
 {
     m_chan=nChan;
-    m_IntRange=4095;
-    SetRange(RangeMin, RangeMax);
-
     common_init();
 }
 
-//driver function:
-void CSamDACcntr::DriverSetVal(float val, int out_bin)
+void CSamDACcntr::SetRawBinVal(const int raw)
 {
     //1: wait while DAC is ready:
     if(typeSamDAC::Dac0==m_chan)
     {
         while(0==DAC->STATUS.bit.READY0){}
         while(DAC->SYNCBUSY.bit.DATA0){}
-        DAC->DATA[0].bit.DATA=out_bin;
+        DAC->DATA[0].bit.DATA=raw;
         while(0==DAC->STATUS.bit.EOC0){}
     }
     else
     {
          while(0==DAC->STATUS.bit.READY1){}
          while(DAC->SYNCBUSY.bit.DATA1){}
-         DAC->DATA[1].bit.DATA=out_bin;
+         DAC->DATA[1].bit.DATA=raw;
          while(0==DAC->STATUS.bit.EOC1){}
     }
+
+    raw_ = raw;
 }
 void CSamDACcntr::common_init() //common settings for both dacs
 {
@@ -67,14 +67,15 @@ void CSamDACcntr::common_init() //common settings for both dacs
     //----------------------------------------------------------------
 
     //-----------------------connect default generator----------------
-    m_pCLK=CSamCLK::Factory();
+    m_pCLK=Sam_clock_generator::make();
+    PANDA_TIMESWIPE_ASSERT(m_pCLK);
 
     //enable gclk: set to Current Control default: CC100K GCLK_DAC ≤ 1.2MHz (100kSPS) 48MHz/64=750KHz
-    GCLK->PCHCTRL[GCLK_DAC].bit.GEN=static_cast<uint32_t>(m_pCLK->CLKind());
+    GCLK->PCHCTRL[GCLK_DAC].bit.GEN=static_cast<uint32_t>(m_pCLK->id());
     GCLK->PCHCTRL[GCLK_DAC].bit.CHEN=1;
 
-    m_pCLK->SetDiv(6);
-    m_pCLK->Enable(true);
+    m_pCLK->set_frequency_divider(6);
+    m_pCLK->enable(true);
     //----------------------------------------------------------------
 
 

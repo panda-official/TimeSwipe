@@ -18,6 +18,8 @@ Copyright (c) 2019-2020 Panda Team
 #include "../../synccom.hpp"
 #include "sam/SamSPIbase.h"
 
+#include <optional>
+
 /*!
  * \brief The class providing functionality for external communication via SPI with integrated flow-control (CSyncSerComFSM)
  * \details The external communication via SPI is based on a simple flow control protocol, please see CSyncSerComFSM description for details
@@ -34,9 +36,9 @@ public:
      * \param CLOCK   - Clock input for selected Sercom
      * \param CS      - Chip Select input for selected Sercom
      */
-    CSPIcomm(typeSamSercoms nSercom,
-                         CSamPORT::pxy MOSI,  CSamPORT::pxy MISO, CSamPORT::pxy CLOCK, CSamPORT::pxy CS=CSamPORT::pxy::none) :
-    CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, nullptr)
+  CSPIcomm(Id nSercom, Sam_pin::Id MOSI, Sam_pin::Id MISO, Sam_pin::Id CLOCK,
+    std::optional<Sam_pin::Id> CS)
+    : CSamSPIbase(false, nSercom, MOSI, MISO, CLOCK, CS, nullptr)
     {
 
     }
@@ -79,25 +81,17 @@ protected:
      */
     void IRQhandler();
 
-    /*!
-     * \brief The handler of the 1st IRQ line of the Sercom
-     */
-    void OnIRQ0() override;
+    /// @see Sam_sercom::handle_irq0();
+    void handle_irq0() override;
 
-    /*!
-     * \brief The handler of the 2nd IRQ line of the Sercom
-     */
-    void OnIRQ1() override;
+    /// @see Sam_sercom::handle_irq1();
+    void handle_irq1() override;
 
-    /*!
-     * \brief The handler of the 3rd IRQ line of the Sercom
-     */
-    void OnIRQ2() override;
+    /// @see Sam_sercom::handle_irq2();
+    void handle_irq2() override;
 
-    /*!
-     * \brief The handler of the 4th IRQ line of the Sercom
-     */
-    void OnIRQ3() override;
+    /// @see Sam_sercom::handle_irq3();
+    void handle_irq3() override;
 
     /*!
      * \brief Sends a serial message to the SPI bus

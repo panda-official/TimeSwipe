@@ -5,10 +5,12 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
+#include "../../debug.hpp"
 #include "DACPWMht.h"
-#include "../../3rdparty/sam/sam.h"
 
-std::shared_ptr<CSamCLK> CDacPWMht::m_pCLK;
+#include <sam.h>
+
+std::shared_ptr<Sam_clock_generator> CDacPWMht::m_pCLK;
 
 
 //light IRQs:
@@ -58,7 +60,7 @@ void TC5_Handler(void)
 
 
 Tc *glob_GetTcPtr(typeSamTC nTc);
-CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, mode nOpMode) :
+CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<Pin> &pDACsw, mode nOpMode) :
     CSamTC(PWM1==nPWM ? typeSamTC::Tc0 : typeSamTC::Tc2),
     m_PeriodsCounter(PWM1==nPWM ? typeSamTC::Tc4 : typeSamTC::Tc5)
 {
@@ -74,10 +76,11 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, mode nOpMode
     //get clock:
     if(!m_pCLK)
     {
-        m_pCLK=CSamCLK::Factory();
-        m_pCLK->Enable(true); //???
+        m_pCLK = Sam_clock_generator::make();
+        PANDA_TIMESWIPE_ASSERT(m_pCLK);
+        m_pCLK->enable(true); //???
     }
-    CSamTC::ConnectGCLK(m_pCLK->CLKind());
+    CSamTC::ConnectGCLK(m_pCLK->id());
 
 
     //DMA support:
@@ -130,7 +133,7 @@ CDacPWMht::CDacPWMht(PWM nPWM, const std::shared_ptr<CPin> &pDACsw, mode nOpMode
     pTc2->COUNT16.WAVE.bit.WAVEGEN=1; //MFRQ: CC0=TOP
     pTc2->COUNT16.INTENSET.reg=(TC_INTFLAG_MC0);
 
-    m_PeriodsCounter.ConnectGCLK(m_pCLK->CLKind()); //clock is always required
+    m_PeriodsCounter.ConnectGCLK(m_pCLK->id()); //clock is always required
     m_PeriodsCounter.EnableIRQ(true);
 }
 
@@ -197,7 +200,7 @@ void CDacPWMht::impl_Start(bool bHow)
     {
         on_settings_changed();
         synced_DAC_set(m_prmHighLevel); //start with high
-        m_pDACsw->Set(true);
+        m_pDACsw->write(true);
 
         while(pTc2->COUNT16.SYNCBUSY.bit.ENABLE){}
         if(m_prmRepeats)

@@ -1,6 +1,6 @@
 // -*- C++ -*-
 
-// PANDA TimeSwipe Project
+// PANDA Timeswipe Project
 // Copyright (C) 2021  PANDA GmbH
 
 // This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "../os.h"
-#include "../../3rdparty/sam/sam.h"
+
+#include <sam.h>
 
 //timer func for M4:
 // FIXME: atomic

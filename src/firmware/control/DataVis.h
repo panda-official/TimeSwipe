@@ -81,7 +81,7 @@ protected:
     /*!
      * \brief The pointer to input data source
      */
-   // std::shared_ptr<CAdc> m_pADC;
+   // std::shared_ptr<Adc_channel> m_pADC;
 
     /*!
      * \brief The pointer to visualization LED to display processed data
@@ -153,7 +153,10 @@ public:
      */
     CDataVis(CView::vischan nCh);
 
-    inline CView::vischan GetVisChannel(){ return m_nCh; }
+    CView::vischan GetVisChannel() const noexcept
+    {
+      return m_nCh;
+    }
 
     /*!
      * \brief The object state update method

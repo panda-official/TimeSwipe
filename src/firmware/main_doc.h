@@ -1,9 +1,9 @@
 /*!
- * 
+ *
  * \file
  * \brief this file is used only to generate the documentation
- * 
- * \mainpage TimeSwipe Firmware Manual
+ *
+ * \mainpage Timeswipe Firmware Manual
  *
  *\section intro_sec Introduction
  *
@@ -44,7 +44,7 @@
  *
  * \ref ADCDAC_page - Analog to Digital Converters and Digital to Analog Converters
  *
- * \ref Board_page  - TimeSwipe board specific components
+ * \ref Board_page  - Timeswipe board specific components
  *
  * \ref BusinessLogic_page - Business Logic parts that determine behavior of the board UI components - menus, LEDs and so on
  *

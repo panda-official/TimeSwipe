@@ -30,7 +30,7 @@ jobs:
           cd build-driver-arm64
           cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_ARM64=On -DCMAKE_VERBOSE_MAKEFILE=On ..
           cmake --build . --parallel `nproc`
-          export destdir="$PWD"/timeswipe_`cat ../.version`.aarch64
+          export destdir="$PWD"/timeswipe_`cat ../.driver_version`.aarch64
           make -j DESTDIR=$destdir install
           cp -p -r DEBIAN $destdir
           dpkg-deb --build $destdir
@@ -40,7 +40,7 @@ jobs:
           cd build-driver-arm32
           cmake -DCMAKE_INSTALL_PREFIX=/usr -DPANDA_ARM=On -DCMAKE_VERBOSE_MAKEFILE=On ..
           cmake --build . --parallel `nproc`
-          export destdir="$PWD"/timeswipe_`cat ../.version`.armv7l
+          export destdir="$PWD"/timeswipe_`cat ../.driver_version`.armv7l
           make -j DESTDIR=$destdir install
           cp -p -r DEBIAN $destdir
           dpkg-deb --build $destdir

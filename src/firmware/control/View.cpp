@@ -5,8 +5,8 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
+#include "../board.hpp"
 #include "View.h"
-#include "nodeControl.h"
 
 void CViewChannel::SelectVisMode(vismode nMode)
 {
@@ -65,7 +65,7 @@ void CViewChannel::SetColor(typeLEDcol col)
     m_LED.SetColor(col);
     m_LED.ON(col);
 }
-typeLEDcol CViewChannel::GetColor()
+typeLEDcol CViewChannel::GetColor() const noexcept
 {
     return m_LED.GetColor();
 }
@@ -160,11 +160,11 @@ void CView::ResetSettings()
     SetDefaultModeAfter(1200);
 }
 
-void CView::SetButtonHeartbeat(bool how)
+void CView::SetButtonHeartbeat(const bool how)
 {
     m_ButtonLEDphase=how;
     m_ButtonLEDphaseBeginTime_mS=os::get_tick_mS();
-    SAMButton::Instance().TurnButtonLED(how);
+    Sam_button::instance().enable_led(how);
 }
 
 void CView::CalUItest()
@@ -179,7 +179,7 @@ void CView::CalUItest()
         m_Channels[i].m_LED.SetBlinkMode(false);
     }
     SetButtonHeartbeat(false);
-    nodeControl::Instance().StartFan(true);
+    Board::instance().enable_fan(true);
     CalUItest_stepLEDsRed();
 }
 
@@ -189,8 +189,8 @@ bool CView::CalUItest_IsBroken()
         return false;
 
     //stop fan here:
-    nodeControl::Instance().StartFan(false);
-    SAMButton::Instance().TurnButtonLED(false);
+    Board::instance().enable_fan(false);
+    Sam_button::instance().enable_led(false);
 
     //exit proc:
     m_bCalUItestDone=true;
@@ -207,7 +207,7 @@ void CView::CalUItest_stepLEDsRed()
     {
         m_Channels[i].m_LED.SetColor(LEDrgb(255, 0, 0));
     }
-    SAMButton::Instance().ToggleButtonLED();
+    Sam_button::instance().toggle_led();
     Delay(1000, &CView::CalUItest_stepLEDsGreen);
 }
 
@@ -220,7 +220,7 @@ void CView::CalUItest_stepLEDsGreen()
     {
         m_Channels[i].m_LED.SetColor(LEDrgb(0, 255, 0));
     }
-    SAMButton::Instance().ToggleButtonLED();
+    Sam_button::instance().toggle_led();
     Delay(1000, &CView::CalUItest_stepLEDsBlue);
 }
 void CView::CalUItest_stepLEDsBlue()
@@ -232,7 +232,7 @@ void CView::CalUItest_stepLEDsBlue()
     {
         m_Channels[i].m_LED.SetColor(LEDrgb(0, 0, 255));
     }
-    SAMButton::Instance().ToggleButtonLED();
+    Sam_button::instance().toggle_led();
     Delay(1000, &CView::CalUItest_stepLEDsRed);
 }
 
@@ -264,8 +264,6 @@ void CView::Update()
         }
 
         m_ButtonLEDphaseBeginTime_mS=time_now;
-        SAMButton::Instance().TurnButtonLED(m_ButtonLEDphase&1);
-
+        Sam_button::instance().enable_led(m_ButtonLEDphase & 1);
     }
 }
-

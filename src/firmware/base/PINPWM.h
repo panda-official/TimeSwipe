@@ -15,10 +15,10 @@ Copyright (c) 2019-2020 Panda Team
 #pragma once
 
 #include "../PWM.h"
-#include "sam/SamCLK.h"
+#include "sam/clock_generator.hpp"
 #include "sam/SamTC.h"
 #include "sam/SamDMAC.h"
-#include "sam/SamPORT.h"
+#include "sam/pin.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -37,7 +37,7 @@ public:
      * \param nGroup - Port Group of the fan control pin
      * \param nPin - Port Pin of the fan control pin
      */
-    CPinPWM(CSamPORT::group nGroup, CSamPORT::pin nPin);
+    CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin);
 
 protected:
     /*!
@@ -48,7 +48,7 @@ protected:
     /*!
      * \brief Port Group of the fan control pin
      */
-    CSamPORT::group m_prmPortGroup;
+    Sam_pin::Group m_prmPortGroup;
 
     /*!
      * \brief The DMA channel used to map m_prmHighLevel16 onto the DAC
@@ -63,7 +63,7 @@ protected:
     /*!
      * \brief An associated clock generator
      */
-    std::shared_ptr<CSamCLK> m_pCLK;
+    std::shared_ptr<Sam_clock_generator> m_pCLK;
 
     /*!
      * \brief Called from the base class for additional specific actions for this class

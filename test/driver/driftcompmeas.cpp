@@ -8,9 +8,9 @@
 */
 
 #include "../../src/firmware/json.hpp"
+#include "../../src/debug.hpp"
 #include "../../src/driver.hpp"
-#include "../../src/error.hpp"
-#include "../../src/3rdparty/dmitigr/math.hpp"
+#include "../../src/3rdparty/dmitigr/math/statistic.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -88,17 +88,6 @@ try {
   const auto dur{argc > 1 ? ms{std::stoi(argv[1])} : ms{500}};
   if (dur <= ms::zero())
     throw std::invalid_argument{"invalid duration"};
-
-  // Process the config file.
-  const auto cfg_file_name{argc > 2 ? argv[2] : "driftcompmeas.json"};
-  if (std::ifstream in{cfg_file_name}) {
-    nlohmann::json config;
-    in >> config;
-    if (const auto cs = config.find("CONFIG_SCRIPT"); cs != config.end()) {
-      if (!cs->empty())
-        driver.set_settings(ts::Board_settings{cs->dump()});
-    }
-  }
 
   if (!driver.drift_references()) {
     // Normally, it means the first program run.

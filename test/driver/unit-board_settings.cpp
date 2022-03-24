@@ -7,8 +7,9 @@
   Copyright (c) 2021 PANDA GmbH / Dmitry Igrishin
 */
 
-#include "../../src/error.hpp"
+#include "../../src/basics.hpp"
 #include "../../src/board_settings.hpp"
+#include "../../src/debug.hpp"
 
 #include <iostream>
 
@@ -16,14 +17,15 @@
 
 constexpr std::string_view json_text{R"(
 {
-"CH1.mode": 0, "CH2.mode": 0, "CH3.mode": 1, "CH4.mode": 1,
-"CH1.gain": 1.1, "CH2.gain": 2.2, "CH3.gain": 3.3, "CH4.gain": 4.4,
-"CH1.iepe": true, "CH2.iepe": false, "CH3.iepe": false, "CH4.iepe": true,
-"PWM1": false, "PWM2": true,
-"PWM1.freq": 1, "PWM2.freq": 10,
-"PWM1.low": 11, "PWM1.high": 22, "PWM2.low": 33, "PWM2.high": 44,
-"PWM1.repeats": 0, "PWM2.repeats": 11,
-"PWM1.duty": 0.11, "PWM2.duty": 0.22
+"channel1Mode": 0, "channel2Mode": 0, "channel3Mode": 1, "channel4Mode": 1,
+"channel1Gain": 1.1, "channel2Gain": 2.2, "channel3Gain": 3.3, "channel4Gain": 4.4,
+"channel1Iepe": true, "channel2Iepe": false, "channel3Iepe": false, "channel4Iepe": true,
+"pwm1Enabled": false, "pwm2Enabled": true,
+"pwm1Frequency": 1, "pwm2Frequency": 10,
+"pwm1LowBoundary": 11, "pwm1HighBoundary": 22,
+"pwm2LowBoundary": 33, "pwm2HighBoundary": 44,
+"pwm1RepeatCount": 0, "pwm2RepeatCount": 11,
+"pwm1DutyCycle": 0.11, "pwm2DutyCycle": 0.22
 }
   )"
 };
@@ -31,65 +33,66 @@ constexpr std::string_view json_text{R"(
 int main()
 try {
   namespace ts = panda::timeswipe;
+  using Mm = ts::Measurement_mode;
+  using std::any_cast;
   ts::Board_settings bs{json_text};
 
   // Measurement mode.
   {
-    constexpr auto c = ts::Measurement_mode::current;
-    constexpr auto v = ts::Measurement_mode::voltage;
-    const std::vector<ts::Measurement_mode> expected{v,v,c,c};
-    ASSERT(bs.channel_measurement_modes() == expected);
+    constexpr auto c = Mm::current;
+    constexpr auto v = Mm::voltage;
+    ASSERT(any_cast<Mm>(bs.value("channel1Mode")) == v);
+    ASSERT(any_cast<Mm>(bs.value("channel2Mode")) == v);
+    ASSERT(any_cast<Mm>(bs.value("channel3Mode")) == c);
+    ASSERT(any_cast<Mm>(bs.value("channel4Mode")) == c);
   }
 
   // Channel gains.
   {
-    const std::vector<float> expected{1.1,2.2,3.3,4.4};
-    ASSERT(bs.channel_gains() == expected);
+    ASSERT(static_cast<int>(10*any_cast<float>(bs.value("channel1Gain"))) == 11);
+    ASSERT(static_cast<int>(10*any_cast<float>(bs.value("channel2Gain"))) == 22);
+    ASSERT(static_cast<int>(10*any_cast<float>(bs.value("channel3Gain"))) == 33);
+    ASSERT(static_cast<int>(10*any_cast<float>(bs.value("channel4Gain"))) == 44);
   }
 
   // Channel IEPEs.
   {
-    const std::vector<bool> expected{true,false,false,true};
-    ASSERT(bs.channel_iepes() == expected);
+    ASSERT(any_cast<bool>(bs.value("channel1Iepe")) == true);
+    ASSERT(any_cast<bool>(bs.value("channel2Iepe")) == false);
+    ASSERT(any_cast<bool>(bs.value("channel3Iepe")) == false);
+    ASSERT(any_cast<bool>(bs.value("channel4Iepe")) == true);
   }
 
-  // PWMs.
+  // PWM enabled.
   {
-    const std::vector<bool> expected{false,true};
-    ASSERT(bs.pwms() == expected);
+    ASSERT(any_cast<bool>(bs.value("pwm1Enabled")) == false);
+    ASSERT(any_cast<bool>(bs.value("pwm2Enabled")) == true);
   }
 
   // PWM frequencies.
   {
-    const std::vector<int> expected{1,10};
-    ASSERT(bs.pwm_frequencies() == expected);
+    ASSERT(any_cast<int>(bs.value("pwm1Frequency")) == 1);
+    ASSERT(any_cast<int>(bs.value("pwm2Frequency")) == 10);
   }
 
-  // PWM signal levels.
+  // PWM boundaries.
   {
-    const std::vector<std::pair<int,int>> expected{{11,22},{33,44}};
-    ASSERT(bs.pwm_signal_levels() == expected);
+    ASSERT(any_cast<int>(bs.value("pwm1LowBoundary"))  == 11);
+    ASSERT(any_cast<int>(bs.value("pwm1HighBoundary")) == 22);
+    ASSERT(any_cast<int>(bs.value("pwm2LowBoundary"))  == 33);
+    ASSERT(any_cast<int>(bs.value("pwm2HighBoundary")) == 44);
   }
 
   // PWM repeat counts.
   {
-    const std::vector<int> expected{0,11};
-    ASSERT(bs.pwm_repeat_counts() == expected);
+    ASSERT(any_cast<int>(bs.value("pwm1RepeatCount")) == 0);
+    ASSERT(any_cast<int>(bs.value("pwm2RepeatCount")) == 11);
   }
 
   // PWM duty cycles.
   {
-    const std::vector<float> expected{.11,.22};
-    ASSERT(bs.pwm_duty_cycles() == expected);
-  }
-
-  {
-    ts::Board_settings bs;
-    bs.set_channel_gains({1.0,1.0,1.0,1.0});
-    ASSERT(bs.channel_gains());
-    constexpr auto volt = ts::Measurement_mode::voltage;
-    bs.set_channel_measurement_modes({volt,volt,volt,volt});
-    ASSERT(bs.channel_measurement_modes());
+    ASSERT(static_cast<int>(100*any_cast<float>(bs.value("pwm1DutyCycle"))) == 11);
+    ASSERT(static_cast<int>(100*any_cast<float>(bs.value("pwm2DutyCycle"))) == 22);
   }
  } catch (const std::exception& e) {
   std::cerr << "error: " << e.what() << std::endl;

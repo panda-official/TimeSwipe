@@ -20,7 +20,7 @@ Copyright (c) 2019 Panda Team
 /*!
  * \brief A hardware-dependent realization of CAT2430 EEPROM chip emulation for HAT's outputs
  */
-class CSamI2CmemHAT : public CSamI2Cmem
+class CSamI2CmemHAT final : public CSamI2Cmem
 {
 public:
     /*!

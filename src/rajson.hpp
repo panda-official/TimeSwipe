@@ -19,10 +19,11 @@
 #ifndef PANDA_TIMESWIPE_RAJSON_HPP
 #define PANDA_TIMESWIPE_RAJSON_HPP
 
-#include "board_settings.hpp"
-#include "error.hpp"
+#include "basics.hpp"
+#include "exceptions.hpp"
+#include "hat.hpp"
 
-#include "3rdparty/dmitigr/rajson.hpp"
+#include "3rdparty/dmitigr/rajson/rajson.hpp"
 
 #include <optional>
 #include <string_view>
@@ -32,11 +33,27 @@ namespace panda::timeswipe::detail {
 /// Traits structure for enumerations.
 template<class> struct Enum_traits;
 
+/// Full specialization for Errc.
+template<> struct Enum_traits<Errc> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "error condition";
+  }
+};
+
 /// Full specialization for Measurement_mode.
 template<> struct Enum_traits<Measurement_mode> final {
   static constexpr const char* singular_name() noexcept
   {
     return "measurement mode";
+  }
+};
+
+/// Full specialization for Measurement_mode.
+template<> struct Enum_traits<hat::atom::Calibration::Type> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "calibration atom type";
   }
 };
 
@@ -69,8 +86,19 @@ namespace dmitigr::rajson {
 
 /// Full specialization for `panda::timeswipe::Measurement_mode`.
 template<>
+struct Conversions<panda::timeswipe::Errc> final :
+  panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Errc>{};
+
+/// Full specialization for `panda::timeswipe::Measurement_mode`.
+template<>
 struct Conversions<panda::timeswipe::Measurement_mode> final :
   panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Measurement_mode>{};
+
+/// Full specialization for `panda::timeswipe::detail::hat::atom::Calibration::Type`.
+template<>
+struct Conversions<panda::timeswipe::detail::hat::atom::Calibration::Type> final :
+  panda::timeswipe::detail::Enum_conversions<
+    panda::timeswipe::detail::hat::atom::Calibration::Type>{};
 
 } // dmitigr::rajson
 

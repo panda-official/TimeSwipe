@@ -13,11 +13,13 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include "board_type.h"
-#include "rgbacol.h"
-#include "../base/SAMbutton.h"
-#include "../led/nodeLED.h"
+#include "../basics.hpp"
+using namespace panda::timeswipe::firmware; // FIXME: remove
+
 #include "../os.h"
+#include "../led/nodeLED.h"
+#include "../sam/button.hpp"
+#include "rgbacol.h"
 
 #include <vector>
 
@@ -108,7 +110,7 @@ public:
      * \brief Returns setpoint color of the channel's LED
      * \return setpoint color of the LED
      */
-    typeLEDcol GetColor();
+    typeLEDcol GetColor() const noexcept;
 };
 
 
@@ -347,11 +349,11 @@ public:
     /*!
      * \brief Sets the current board type
      * \param nBrd The board type
-     * \todo should be placed to nodeControl or some super-control class
+     * \todo should be placed to Board or some super-control class
      */
-    void SetupBoardType(typeBoard nBrd)
+    void SetupBoardType(const Board_type type)
     {
-        m_BasicBoardCol=typeBoard::DMSBoard==nBrd ? DMS_COLOR : IEPE_COLOR;
+      m_BasicBoardCol = (type == Board_type::dms) ? DMS_COLOR : IEPE_COLOR;
     }
 
     /*!
@@ -436,7 +438,7 @@ public:
      * \brief Shows whether Calibration UI test has been done(true) or not (false)
      * \details getter of m_bCalUItestDone flag
      */
-    bool HasCalUItestBeenDone()
+    bool HasCalUItestBeenDone() const noexcept
     {
         return m_bCalUItestDone;
     }
@@ -474,7 +476,7 @@ private:
 
             m_bCalUItestDone=false;
 
-            SetupBoardType(typeBoard::IEPEBoard);
+            SetupBoardType(Board_type::iepe);
 
             nodeLED::init();
             m_Channels.reserve(4);
