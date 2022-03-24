@@ -221,15 +221,16 @@ public:
     return Board_settings{std::make_unique<Board_settings::Rep>(std::move(doc))};
   }
 
-  iDriver& set_driver_settings(const Driver_settings& settings) override
+  iDriver& set_driver_settings(const Driver_settings& settings,
+    const bool merge_not_null) override
   {
-    set_driver_settings(settings, {});
+    set_driver_settings(settings, {}, merge_not_null);
     return *this;
   }
 
   /// @overload
   void set_driver_settings(const Driver_settings& settings,
-    std::unique_ptr<Resampler> resampler)
+    std::unique_ptr<Resampler> resampler, const bool merge_not_null = true)
   {
     if (is_measurement_started(true))
       /*
@@ -253,7 +254,10 @@ public:
     if (const auto values = settings.translation_slopes())
       translation_slopes_ = std::move(*values);
 
-    driver_settings_.merge_not_null(settings); // may throw
+    if (merge_not_null)
+      driver_settings_.merge_not_null(settings); // may throw
+    else
+      driver_settings_ = settings; // may throw
   }
 
   const Driver_settings& driver_settings() const override

@@ -168,8 +168,10 @@ public:
   /**
    * @brief Sets the driver-level settings.
    *
-   * @details Each call of this method affects only a subset of driver settings,
-   * allowing to apply the driver settings gradually.
+   * @param settings The settings to set.
+   * @param merge_not_null If `true`, then the `settings` which are not null
+   * will be merged into the current driver settings. Otherwise, the current
+   * driver settings will be overwritten by `settings` completely.
    *
    * @returns `*this`.
    *
@@ -182,12 +184,13 @@ public:
    *
    * @see driver_settings(), Driver_settings.
    */
-  virtual Driver& set_driver_settings(const Driver_settings& settings) = 0;
+  virtual Driver& set_driver_settings(const Driver_settings& settings,
+    bool merge_not_null = true) = 0;
 
   /// Shortcut of set_driver_settings().
-  Driver& set_settings(const Driver_settings& settings)
+  Driver& set_settings(const Driver_settings& settings, bool merge_not_null = true)
   {
-    return set_driver_settings(settings);
+    return set_driver_settings(settings, merge_not_null);
   }
 
   /**
