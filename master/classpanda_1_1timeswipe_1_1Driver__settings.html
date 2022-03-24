@@ -319,7 +319,7 @@ board".</td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">frequency</td><td>The number of times per second the driver should deliver the data to <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a7674b3218d015765463deba1c9e2dfc3" title="An alias of a function to handle the incoming data.">Driver::Data_handler</a>. <code>std::nullopt</code> means "max frequency
-possible".</td></tr>
+possible" (that may be even greater than Driver::instace().min_sample_rate()).</td></tr>
   </table>
   </dd>
 </dl>
