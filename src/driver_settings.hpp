@@ -148,7 +148,8 @@ public:
    * @brief Indirect way to set the burst buffer size.
    *
    * @par Requires
-   * `!frequency || (1 <= *frequency && *frequency <= sample_rate())`.
+   * `!frequency || (1 <= *frequency &&
+   * *frequency <= Driver::instace().min_sample_rate())`.
    *
    * @par Effects
    * Affects the value returned by burst_buffer_size() and to_json_text().

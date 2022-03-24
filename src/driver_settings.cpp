@@ -51,7 +51,7 @@ struct Driver_settings::Rep final {
       throw Exception{Errc::driver_settings_invalid,
         "cannot set mutually exclusive settings: burstBufferSize, frequency"};
     check_burst_buffer_size(bbs);
-    check_frequency(freq, srate);
+    check_frequency(freq);
 
     // Check translation offsets.
     check_translation_offsets(translation_offsets());
@@ -144,7 +144,7 @@ struct Driver_settings::Rep final {
 
   void set_frequency(const std::optional<int> frequency)
   {
-    check_frequency(frequency, sample_rate());
+    check_frequency(frequency);
     set_member("frequency", frequency);
     doc_.EraseMember("burstBufferSize");
   }
@@ -203,15 +203,10 @@ private:
     }
   }
 
-  static void check_frequency(const std::optional<int> frequency,
-    const std::optional<int> srate)
+  static void check_frequency(const std::optional<int> frequency)
   {
     if (frequency) {
-      if (!srate)
-        throw Exception{Errc::driver_settings_invalid,
-          "cannot set frequency without sample rate"};
-
-      if (!(1 <= *frequency && *frequency <= *srate))
+      if (!(1 <= *frequency && *frequency <= Driver::instance().min_sample_rate()))
         throw Exception{Errc::driver_settings_invalid, "invalid frequency"};
     }
   }
