@@ -157,7 +157,7 @@ public:
    *
    * @param frequency The number of times per second the driver should deliver
    * the data to Driver::Data_handler. `std::nullopt` means "max frequency
-   * possible".
+   * possible" (that may be even greater than Driver::instace().min_sample_rate()).
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
    * only if `!Driver::instance().is_measurement_started(true)`.
