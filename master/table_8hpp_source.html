@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.3"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TimeSwipe: /github/workspace/src/table.hpp Source File</title>
+<title>Timeswipe: /github/workspace/src/table.hpp Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">TimeSwipe
+   <div id="projectname">Timeswipe
    </div>
   </td>
  </tr>
@@ -90,7 +90,7 @@ $(function() {
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#ifndef PANDA_TIMESWIPE_TABLE_HPP</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#define PANDA_TIMESWIPE_TABLE_HPP</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;error.hpp&quot;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;exceptions.hpp&quot;</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;limits&gt;</span></div>
@@ -134,7 +134,7 @@ $(function() {
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classpanda_1_1timeswipe_1_1Table.html#a3749d4fd5418b90ae311e74b7354e7f9">   78</a></span>  <span class="keyword">const</span> <a class="code hl_typedef" href="classpanda_1_1timeswipe_1_1Table.html#a0c9a2b0e708718690273b3fd2e495408">Column</a>&amp; <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a3749d4fd5418b90ae311e74b7354e7f9">column</a>(<span class="keyword">const</span> <a class="code hl_typedef" href="classpanda_1_1timeswipe_1_1Table.html#a24a7e3960fb70d8684a8112887a2fe3d">Size</a> index)<span class="keyword"> const</span></div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="keyword">  </span>{</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordflow">if</span> (!(index &lt; <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a48ed98059b7c10069ad6f11abe8cd5d3">column_count</a>()))</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      <span class="keywordflow">throw</span> <a class="code hl_class" href="classpanda_1_1timeswipe_1_1Exception.html">Exception</a>{<span class="stringliteral">&quot;cannot get table column by invalid index&quot;</span>};</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      <span class="keywordflow">throw</span> Exception{<span class="stringliteral">&quot;cannot get table column by invalid index&quot;</span>};</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordflow">return</span> columns_[index];</div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  }</div>
@@ -142,9 +142,9 @@ $(function() {
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno"><a class="line" href="classpanda_1_1timeswipe_1_1Table.html#aef5db109447c5bff0e1654624c6bdf49">   93</a></span>  <span class="keyword">const</span> <a class="code hl_typedef" href="classpanda_1_1timeswipe_1_1Table.html#a125e1f12cbc8d2d7eb48c9a0bfc78551">Value</a>&amp; <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#aef5db109447c5bff0e1654624c6bdf49">value</a>(<span class="keyword">const</span> <a class="code hl_typedef" href="classpanda_1_1timeswipe_1_1Table.html#a24a7e3960fb70d8684a8112887a2fe3d">Size</a> <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a3749d4fd5418b90ae311e74b7354e7f9">column</a>, <span class="keyword">const</span> <a class="code hl_typedef" href="classpanda_1_1timeswipe_1_1Table.html#a24a7e3960fb70d8684a8112887a2fe3d">Size</a> row)<span class="keyword"> const</span></div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="keyword">  </span>{</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordflow">if</span> (!(<a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a3749d4fd5418b90ae311e74b7354e7f9">column</a> &lt; <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a48ed98059b7c10069ad6f11abe8cd5d3">column_count</a>()))</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      <span class="keywordflow">throw</span> <a class="code hl_class" href="classpanda_1_1timeswipe_1_1Exception.html">Exception</a>{<span class="stringliteral">&quot;cannot get table value by invalid column index&quot;</span>};</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      <span class="keywordflow">throw</span> Exception{<span class="stringliteral">&quot;cannot get table value by invalid column index&quot;</span>};</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!(row &lt; <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a6d8741f7196640250e143128884d4793">row_count</a>()))</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      <span class="keywordflow">throw</span> <a class="code hl_class" href="classpanda_1_1timeswipe_1_1Exception.html">Exception</a>{<span class="stringliteral">&quot;cannot get table value by invalid row index&quot;</span>};</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      <span class="keywordflow">throw</span> Exception{<span class="stringliteral">&quot;cannot get table value by invalid row index&quot;</span>};</div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordflow">return</span> columns_[<a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a3749d4fd5418b90ae311e74b7354e7f9">column</a>][row];</div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  }</div>
@@ -158,7 +158,7 @@ $(function() {
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classpanda_1_1timeswipe_1_1Table.html#a5899316035912f914e251e9ac9cdae95">  122</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a5899316035912f914e251e9ac9cdae95">append_emplaced_row</a>(Types&amp;&amp; ... args)</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  {</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a48ed98059b7c10069ad6f11abe8cd5d3">column_count</a>() != <span class="keyword">sizeof</span>...(args))</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>      <span class="keywordflow">throw</span> <a class="code hl_class" href="classpanda_1_1timeswipe_1_1Exception.html">Exception</a>{<span class="stringliteral">&quot;cannot append table row with invalid number of columns&quot;</span>};</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>      <span class="keywordflow">throw</span> Exception{<span class="stringliteral">&quot;cannot append table row with invalid number of columns&quot;</span>};</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    append_emplaced_row__(std::make_index_sequence&lt;<span class="keyword">sizeof</span>...(args)&gt;{},</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>      std::forward&lt;Types&gt;(args)...);</div>
@@ -182,7 +182,7 @@ $(function() {
 <div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>      columns_ = {}; <span class="comment">// prevent UB if instance was moved</span></div>
 <div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>      columns_.resize(other.column_count());</div>
 <div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!(<a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a48ed98059b7c10069ad6f11abe8cd5d3">column_count</a>() == other.column_count()))</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>      <span class="keywordflow">throw</span> <a class="code hl_class" href="classpanda_1_1timeswipe_1_1Exception.html">Exception</a>{<span class="stringliteral">&quot;cannot append table rows from table with different &quot;</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>      <span class="keywordflow">throw</span> Exception{<span class="stringliteral">&quot;cannot append table rows from table with different &quot;</span></div>
 <div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>        <span class="stringliteral">&quot;column count&quot;</span>};</div>
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <span class="keyword">const</span> <a class="code hl_typedef" href="classpanda_1_1timeswipe_1_1Table.html#a24a7e3960fb70d8684a8112887a2fe3d">Size</a> cc = <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a48ed98059b7c10069ad6f11abe8cd5d3">column_count</a>();</div>
@@ -215,7 +215,7 @@ $(function() {
 <div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keyword">static_assert</span>(std::is_same_v&lt;std::decay_t&lt;C&gt;, <a class="code hl_typedef" href="classpanda_1_1timeswipe_1_1Table.html#a0c9a2b0e708718690273b3fd2e495408">Column</a>&gt;);</div>
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span> </div>
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    <span class="keywordflow">if</span> (!(!<a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a48ed98059b7c10069ad6f11abe8cd5d3">column_count</a>() || (<a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a6d8741f7196640250e143128884d4793">row_count</a>() == <a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a3749d4fd5418b90ae311e74b7354e7f9">column</a>.size())))</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>      <span class="keywordflow">throw</span> <a class="code hl_class" href="classpanda_1_1timeswipe_1_1Exception.html">Exception</a>{<span class="stringliteral">&quot;cannot append table column with different row count&quot;</span>};</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>      <span class="keywordflow">throw</span> Exception{<span class="stringliteral">&quot;cannot append table column with different row count&quot;</span>};</div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span> </div>
 <div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    columns_.push_back(std::forward&lt;C&gt;(<a class="code hl_function" href="classpanda_1_1timeswipe_1_1Table.html#a3749d4fd5418b90ae311e74b7354e7f9">column</a>));</div>
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  }</div>
@@ -293,7 +293,6 @@ $(function() {
 <div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>} <span class="comment">// namespace panda::timeswipe</span></div>
 <div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span> </div>
 <div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span><span class="preprocessor">#endif  </span><span class="comment">// PANDA_TIMESWIPE_TABLE_HPP</span></div>
-<div class="ttc" id="aclasspanda_1_1timeswipe_1_1Exception_html"><div class="ttname"><a href="classpanda_1_1timeswipe_1_1Exception.html">panda::timeswipe::Exception</a></div><div class="ttdoc">The generic exception class.</div><div class="ttdef"><b>Definition:</b> error.hpp:221</div></div>
 <div class="ttc" id="aclasspanda_1_1timeswipe_1_1Table_html"><div class="ttname"><a href="classpanda_1_1timeswipe_1_1Table.html">panda::timeswipe::Table</a></div><div class="ttdoc">Table.</div><div class="ttdef"><b>Definition:</b> table.hpp:34</div></div>
 <div class="ttc" id="aclasspanda_1_1timeswipe_1_1Table_html_a053852dd924f78f4555df1ce701d59e5"><div class="ttname"><a href="classpanda_1_1timeswipe_1_1Table.html#a053852dd924f78f4555df1ce701d59e5">panda::timeswipe::Table::Table</a></div><div class="ttdeci">Table(const Size column_count, const Size row_count)</div><div class="ttdoc">Constructs table with given number of columns and rows.</div><div class="ttdef"><b>Definition:</b> table.hpp:54</div></div>
 <div class="ttc" id="aclasspanda_1_1timeswipe_1_1Table_html_a0c9a2b0e708718690273b3fd2e495408"><div class="ttname"><a href="classpanda_1_1timeswipe_1_1Table.html#a0c9a2b0e708718690273b3fd2e495408">panda::timeswipe::Table::Column</a></div><div class="ttdeci">std::vector&lt; Value &gt; Column</div><div class="ttdoc">Alias of the column type.</div><div class="ttdef"><b>Definition:</b> table.hpp:40</div></div>
@@ -320,7 +319,7 @@ $(function() {
 <div class="ttc" id="aclasspanda_1_1timeswipe_1_1Table_html_ad5475229329a1aae020138141370539d"><div class="ttname"><a href="classpanda_1_1timeswipe_1_1Table.html#ad5475229329a1aae020138141370539d">panda::timeswipe::Table::columns_cend</a></div><div class="ttdeci">auto columns_cend() const noexcept</div><div class="ttdef"><b>Definition:</b> table.hpp:329</div></div>
 <div class="ttc" id="aclasspanda_1_1timeswipe_1_1Table_html_add88afd0b8e51bb6b034f2c13523eb75"><div class="ttname"><a href="classpanda_1_1timeswipe_1_1Table.html#add88afd0b8e51bb6b034f2c13523eb75">panda::timeswipe::Table::clear_rows</a></div><div class="ttdeci">void clear_rows() noexcept</div><div class="ttdoc">Clears rows of this table.</div><div class="ttdef"><b>Definition:</b> table.hpp:312</div></div>
 <div class="ttc" id="aclasspanda_1_1timeswipe_1_1Table_html_aef5db109447c5bff0e1654624c6bdf49"><div class="ttname"><a href="classpanda_1_1timeswipe_1_1Table.html#aef5db109447c5bff0e1654624c6bdf49">panda::timeswipe::Table::value</a></div><div class="ttdeci">const Value &amp; value(const Size column, const Size row) const</div><div class="ttdef"><b>Definition:</b> table.hpp:93</div></div>
-<div class="ttc" id="anamespacepanda_1_1timeswipe_html"><div class="ttname"><a href="namespacepanda_1_1timeswipe.html">panda::timeswipe</a></div><div class="ttdoc">Public API.</div><div class="ttdef"><b>Definition:</b> driver.hpp:34</div></div>
+<div class="ttc" id="anamespacepanda_1_1timeswipe_html"><div class="ttname"><a href="namespacepanda_1_1timeswipe.html">panda::timeswipe</a></div><div class="ttdoc">Public API.</div><div class="ttdef"><b>Definition:</b> driver.hpp:37</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

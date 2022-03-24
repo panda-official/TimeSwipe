@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.3"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TimeSwipe: /github/workspace/src/types_fwd.hpp Source File</title>
+<title>Timeswipe: /github/workspace/src/types_fwd.hpp Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">TimeSwipe
+   <div id="projectname">Timeswipe
    </div>
   </td>
  </tr>
@@ -92,8 +92,8 @@ $(function() {
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepanda_1_1timeswipe.html">panda::timeswipe</a> {</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespacepanda_1_1timeswipe.html#aebf0ca7e03c11065434af15f83ba4776">Errc</a>;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">enum class</span> <a class="code hl_enumeration" href="namespacepanda_1_1timeswipe.html#a76ccba6f697457fb4eea68cff510b7e5">Measurement_mode</a>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">enum class</span> Errc;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">enum class</span> Measurement_mode;</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keyword">class </span>Exception;</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">class </span>Generic_error_category;</div>
@@ -103,15 +103,15 @@ $(function() {
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keyword">class </span>Driver_settings;</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span>&gt; <span class="keyword">class </span>Table;</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespacepanda_1_1timeswipe_1_1detail.html">   37</a></span><span class="keyword">namespace </span>detail {</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">namespace </span>detail {</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">class </span>iDriver;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>} <span class="comment">// namespace detail</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>} <span class="comment">// namespace panda::timeswipe</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="preprocessor">#endif  </span><span class="comment">// PANDA_TIMESWIPE_TYPES_FWD_HPP</span></div>
-<div class="ttc" id="anamespacepanda_1_1timeswipe_html"><div class="ttname"><a href="namespacepanda_1_1timeswipe.html">panda::timeswipe</a></div><div class="ttdoc">Public API.</div><div class="ttdef"><b>Definition:</b> driver.hpp:34</div></div>
-<div class="ttc" id="anamespacepanda_1_1timeswipe_html_a76ccba6f697457fb4eea68cff510b7e5"><div class="ttname"><a href="namespacepanda_1_1timeswipe.html#a76ccba6f697457fb4eea68cff510b7e5">panda::timeswipe::Measurement_mode</a></div><div class="ttdeci">Measurement_mode</div><div class="ttdoc">Measurement mode.</div><div class="ttdef"><b>Definition:</b> board_settings.hpp:37</div></div>
-<div class="ttc" id="anamespacepanda_1_1timeswipe_html_aebf0ca7e03c11065434af15f83ba4776"><div class="ttname"><a href="namespacepanda_1_1timeswipe.html#aebf0ca7e03c11065434af15f83ba4776">panda::timeswipe::Errc</a></div><div class="ttdeci">Errc</div><div class="ttdoc">Generic error conditions.</div><div class="ttdef"><b>Definition:</b> error.hpp:40</div></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">class </span>Error;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span>&gt; <span class="keyword">struct </span>Error_or;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>} <span class="comment">// namespace detail</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>} <span class="comment">// namespace panda::timeswipe</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#endif  </span><span class="comment">// PANDA_TIMESWIPE_TYPES_FWD_HPP</span></div>
+<div class="ttc" id="anamespacepanda_1_1timeswipe_html"><div class="ttname"><a href="namespacepanda_1_1timeswipe.html">panda::timeswipe</a></div><div class="ttdoc">Public API.</div><div class="ttdef"><b>Definition:</b> driver.hpp:37</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -1,4 +1,8 @@
 var searchData=
 [
-  ['operator_3d_0',['operator=',['../classpanda_1_1timeswipe_1_1Driver.html#a184698def3d0277b71ef2d6978086bbd',1,'panda::timeswipe::Driver::operator=(const Driver &amp;)=delete'],['../classpanda_1_1timeswipe_1_1Driver.html#a236fbc8120eacede2acf720f5066b8c4',1,'panda::timeswipe::Driver::operator=(Driver &amp;&amp;)=delete'],['../classpanda_1_1timeswipe_1_1Board__settings.html#a38dcf90b1473ae493e46e94dfef18d34',1,'panda::timeswipe::Board_settings::operator=(const Board_settings &amp;)'],['../classpanda_1_1timeswipe_1_1Board__settings.html#a7eb37262bafa76f1fa2827ac9d33a922',1,'panda::timeswipe::Board_settings::operator=(Board_settings &amp;&amp;)'],['../classpanda_1_1timeswipe_1_1Driver__settings.html#a21a14320977e6ce1df9d236645361668',1,'panda::timeswipe::Driver_settings::operator=(const Driver_settings &amp;)'],['../classpanda_1_1timeswipe_1_1Driver__settings.html#ad0ed90d97513aa936ba36dc757223880',1,'panda::timeswipe::Driver_settings::operator=(Driver_settings &amp;&amp;)']]]
+  ['remove_5fbegin_5frows_0',['remove_begin_rows',['../classpanda_1_1timeswipe_1_1Table.html#a181c41926dd19f5ea6cc86dcaaef6114',1,'panda::timeswipe::Table']]],
+  ['remove_5fend_5frows_1',['remove_end_rows',['../classpanda_1_1timeswipe_1_1Table.html#a987ad152e2dfd88309d4fe921fb24a01',1,'panda::timeswipe::Table']]],
+  ['reserve_5fcolumns_2',['reserve_columns',['../classpanda_1_1timeswipe_1_1Table.html#a1c003eb20cb3306d6559291c034e8fb3',1,'panda::timeswipe::Table']]],
+  ['reserve_5frows_3',['reserve_rows',['../classpanda_1_1timeswipe_1_1Table.html#abc3e776527d4415c7283f57f97be5677',1,'panda::timeswipe::Table']]],
+  ['row_5fcount_4',['row_count',['../classpanda_1_1timeswipe_1_1Table.html#a6d8741f7196640250e143128884d4793',1,'panda::timeswipe::Table']]]
 ];

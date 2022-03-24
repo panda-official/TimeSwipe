@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.3"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TimeSwipe: panda::timeswipe::Driver_settings Class Reference</title>
+<title>Timeswipe: panda::timeswipe::Driver_settings Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">TimeSwipe
+   <div id="projectname">Timeswipe
    </div>
   </td>
  </tr>
@@ -136,7 +136,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set</b> (const <a cla
 <tr class="separator:a4a649da48cf6464814f6dc4260594b0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Measured values transformation control</div></td></tr>
 <tr><td colspan="2"><div class="groupText"><p >This API allows to control how the values, measured in <code>mV</code> must be transformed.</p>
-<p >Parameters <code>translationOffsets</code> and <code>translationSlopes</code> can be used to provide values for transformations of the values, measured in <code>mV</code>, by applying the following formula for that purpose: </p><div class="fragment"><div class="line">sensorsDataRecord[i] = (value[i] - translationOffsets[i]) * translationSlopes[i]</div>
+<p >Parameters <code>translationOffsets</code> and <code>translationSlopes</code> can be used to provide values for transformations of the values, measured in <code>mV</code>, by applying the following formula for that purpose: </p><div class="fragment"><div class="line">data[i] = (value[i] - translationOffsets[i]) * translationSlopes[i]</div>
 </div><!-- fragment --><p> where: <code>i</code> - is a sensor number, <code>value</code> - is a value, measured in <code>mV</code> by the sensor <code>i</code>. </p>
 </div></td></tr>
 <tr class="memitem:a73c483abd3f5dca66a306f66b1161051"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html">Driver_settings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a73c483abd3f5dca66a306f66b1161051">set_translation_offsets</a> (const std::vector&lt; int &gt; &amp;values)</td></tr>
@@ -184,7 +184,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set</b> (const <a cla
 <li><code>burstBufferSize</code> - an integer (see <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a9d9f65520dba7d47303cca1af67a6d3e">burst_buffer_size()</a>);</li>
 <li><code>frequency</code> - an integer (see <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a4a649da48cf6464814f6dc4260594b0f">frequency()</a>);</li>
 <li><code>translationOffsets</code> - an array of integers (see <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a9e5b6c6a84db46aa8760040f33d1c856">translation_offsets()</a>);</li>
-<li><code>translationSlopes</code> - an array of floats (see <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#aab5e84bdf3c69e431772ab26315be5eb">translation_slopes()</a>). The exception with code <code><a class="el" href="namespacepanda_1_1timeswipe.html#aebf0ca7e03c11065434af15f83ba4776a85621f15c1aad9d9438c6bdfe8238ed2" title="At least one of the driver settings invalid.">Errc::driver_settings_invalid</a></code> will be thrown if both <code>burstBufferSize</code> and <code>frequency</code> are presents in the same JSON input.</li>
+<li><code>translationSlopes</code> - an array of floats (see <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#aab5e84bdf3c69e431772ab26315be5eb">translation_slopes()</a>). The exception with code <code>Errc::driver_settings_invalid</code> will be thrown if both <code>burstBufferSize</code> and <code>frequency</code> are presents in the same JSON input.</li>
 </ul>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#ad9d54ea26e35c1a450b2e017fc784c15">to_json_text()</a>. </dd></dl>
 
@@ -291,7 +291,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set</b> (const <a cla
   </table>
   </dd>
 </dl>
-<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started()</code>.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started(true)</code>.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a9d9f65520dba7d47303cca1af67a6d3e">burst_buffer_size()</a>. </dd></dl>
 
 </div>
@@ -321,7 +321,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set</b> (const <a cla
   </table>
   </dd>
 </dl>
-<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started()</code>.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started(true)</code>.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a4a649da48cf6464814f6dc4260594b0f">frequency()</a>. </dd></dl>
 
 </div>
@@ -354,7 +354,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set</b> (const <a cla
 <dl class="section user"><dt>Requires</dt><dd><code>(Driver::instace().min_sample_rate() &lt;= rate &amp;&amp; rate &lt;= <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a3b268818832e52b8655fd7026e110099">Driver::instance()</a>.max_sample_rate())</code>.</dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>It's highly recommended to use <code>rate</code> for which <code>(<a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a3b268818832e52b8655fd7026e110099">Driver::instance()</a>.max_sample_rate() % rate == 0)</code> for best performance! In other words, the lower the value of <code>std::gcd(<a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a3b268818832e52b8655fd7026e110099">Driver::instance()</a>.max_sample_rate(), rate)</code>, the worse the performance of the resampling.</dd>
 <dd>
-This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started()</code>.</dd></dl>
+This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started(true)</code>.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#acc8965157a58cff48b73b9cf31a9126b">sample_rate()</a>, <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#aa4148e278086f5025dcfe499787efd32">Driver::min_sample_rate()</a>, <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a790702bf279635e01a68c58c66f127e0">Driver::max_sample_rate()</a>. </dd></dl>
 
 </div>
@@ -378,7 +378,7 @@ This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1
 <p>Sets translation offsets for all channels. </p>
 <dl class="section user"><dt>Requires</dt><dd><code>(values.size() == <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a3b268818832e52b8655fd7026e110099">Driver::instance()</a>.max_channel_count())</code>.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The reference to this instance.</dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started()</code>.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started(true)</code>.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a9e5b6c6a84db46aa8760040f33d1c856">translation_offsets()</a>. </dd></dl>
 
 </div>
@@ -402,7 +402,7 @@ This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1
 <p>Sets translation slopes for all channels. </p>
 <dl class="section user"><dt>Requires</dt><dd><code>(values.size() == <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a3b268818832e52b8655fd7026e110099">Driver::instance()</a>.max_channel_count())</code>.</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The reference to this instance.</dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started()</code>.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>This setting can be applied with <a class="el" href="classpanda_1_1timeswipe_1_1Driver.html#a76f6c2eafa0984c2760227cbea203c87" title="Sets the driver-level settings.">Driver::set_driver_settings()</a> only if <code>!Driver::instance().is_measurement_started(true)</code>.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#aab5e84bdf3c69e431772ab26315be5eb">translation_slopes()</a>. </dd></dl>
 
 </div>
