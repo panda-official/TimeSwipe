@@ -314,7 +314,7 @@ board".</td></tr>
 </div><div class="memdoc">
 
 <p>Indirect way to set the burst buffer size. </p>
-<dl class="section user"><dt>Requires</dt><dd><code>!frequency || (1 &lt;= *frequency &amp;&amp; *frequency &lt;= <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#acc8965157a58cff48b73b9cf31a9126b">sample_rate()</a>)</code>.</dd></dl>
+<dl class="section user"><dt>Requires</dt><dd><code>!frequency || (1 &lt;= *frequency &amp;&amp; *frequency &lt;= Driver::instace().min_sample_rate())</code>.</dd></dl>
 <dl class="section user"><dt>Effects</dt><dd>Affects the value returned by <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#a9d9f65520dba7d47303cca1af67a6d3e">burst_buffer_size()</a> and <a class="el" href="classpanda_1_1timeswipe_1_1Driver__settings.html#ad9d54ea26e35c1a450b2e017fc784c15">to_json_text()</a>. (The later will be without the <code>burstBufferSize</code> member.)</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
