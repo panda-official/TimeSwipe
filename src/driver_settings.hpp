@@ -179,7 +179,7 @@ public:
   /// used to provide values for transformations of the values, measured in
   /// `mV`, by applying the following formula for that purpose:
   /// ```
-  /// data[i] = (value[i] - translationOffsets[i]) * translationSlopes[i]
+  /// data[i] = (value[i] - translationOffsets[i]) / translationSlopes[i]
   /// ```
   /// where: `i` - is a sensor number, `value` - is a value, measured in `mV`
   /// by the sensor `i`.
