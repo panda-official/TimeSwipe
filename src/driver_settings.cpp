@@ -54,10 +54,10 @@ struct Driver_settings::Rep final {
     check_frequency(freq, srate);
 
     // Check translation offsets.
-    translation_offsets();
+    check_translation_offsets(translation_offsets());
 
     // Check translation slopes.
-    translation_slopes();
+    check_translation_slopes(translation_slopes());
   } catch (const rajson::Parse_exception& e) {
     throw Exception{Errc::driver_settings_invalid,
       std::string{"cannot parse driver settings: error near position "}
@@ -89,11 +89,11 @@ struct Driver_settings::Rep final {
     doc_.Swap(rhs.doc_);
   }
 
-  void set(const Rep& other)
+  void merge_not_null(const Rep& other)
   {
     const auto apply = [this](const auto& setter, const auto& data)
     {
-      if (data) (this->*setter)(*data);
+      if (data) (this->*setter)(data);
     };
     apply(&Rep::set_sample_rate, other.sample_rate());
     apply(&Rep::set_burst_buffer_size, other.burst_buffer_size());
@@ -119,7 +119,7 @@ struct Driver_settings::Rep final {
 
   // ---------------------------------------------------------------------------
 
-  void set_sample_rate(const int rate)
+  void set_sample_rate(const std::optional<int> rate)
   {
     check_sample_rate(rate);
     set_member("sampleRate", rate);
@@ -130,7 +130,7 @@ struct Driver_settings::Rep final {
     return member<int>("sampleRate");
   }
 
-  void set_burst_buffer_size(const std::size_t size)
+  void set_burst_buffer_size(const std::optional<std::size_t> size)
   {
     check_burst_buffer_size(size);
     set_member("burstBufferSize", size);
@@ -142,7 +142,7 @@ struct Driver_settings::Rep final {
     return member<std::size_t>("burstBufferSize");
   }
 
-  void set_frequency(const int frequency)
+  void set_frequency(const std::optional<int> frequency)
   {
     check_frequency(frequency, sample_rate());
     set_member("frequency", frequency);
@@ -154,32 +154,26 @@ struct Driver_settings::Rep final {
     return member<int>("frequency");
   }
 
-  void set_translation_offsets(const std::vector<float>& values)
+  void set_translation_offsets(const std::optional<std::vector<float>>& values)
   {
-    if (!(values.size() == Driver::instance().max_channel_count()))
-      throw Exception{Errc::driver_settings_invalid,
-        "invalid number of translation offsets"};
-
+    check_translation_offsets(values);
     set_member("translationOffsets", values);
   }
 
   std::optional<std::vector<float>> translation_offsets() const
   {
-    return channel_array<float>("translationOffsets");
+    return member<std::vector<float>>("translationOffsets");
   }
 
-  void set_translation_slopes(const std::vector<float>& values)
+  void set_translation_slopes(const std::optional<std::vector<float>>& values)
   {
-    if (!(values.size() == Driver::instance().max_channel_count()))
-      throw Exception{Errc::driver_settings_invalid,
-        "invalid number of translation slopes"};
-
+    check_translation_slopes(values);
     set_member("translationSlopes", values);
   }
 
   std::optional<std::vector<float>> translation_slopes() const
   {
-    return channel_array<float>("translationSlopes");
+    return member<std::vector<float>>("translationSlopes");
   }
 
 private:
@@ -222,20 +216,18 @@ private:
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // High-level helpers setters and getters
-  // ---------------------------------------------------------------------------
-
-  template<typename T>
-  std::optional<std::vector<T>> channel_array(const std::string_view name) const
+  static void check_translation_offsets(const std::optional<std::vector<float>>& values)
   {
-    if (auto result = member<std::vector<T>>(name); !result)
-      return std::nullopt;
-    else if (result->size() == Driver::instance().max_channel_count())
-      return result;
-    else
+    if (!(!values || (values->size() == Driver::instance().max_channel_count())))
       throw Exception{Errc::driver_settings_invalid,
-        std::string{"invalid "}.append(name)};
+        "invalid number of translation offsets"};
+  }
+
+  static void check_translation_slopes(const std::optional<std::vector<float>>& values)
+  {
+    if (!(!values || (values->size() == Driver::instance().max_channel_count())))
+      throw Exception{Errc::driver_settings_invalid,
+        "invalid number of translation slopes"};
   }
 
   // ---------------------------------------------------------------------------
@@ -243,9 +235,12 @@ private:
   // ---------------------------------------------------------------------------
 
   template<typename T>
-  void set_member(const std::string_view name, T&& value)
+  void set_member(const std::string_view name, const std::optional<T>& value)
   {
-    detail::set_member(doc_, doc_.GetAllocator(), name, std::forward<T>(value));
+    if (value)
+      detail::set_member(doc_, doc_.GetAllocator(), name, *value);
+    else
+      detail::set_member(doc_, doc_.GetAllocator(), name, rapidjson::Value{});
   }
 
   template<typename T>
@@ -297,9 +292,9 @@ void Driver_settings::swap(Driver_settings& other) noexcept
   swap(rep_, other.rep_);
 }
 
-void Driver_settings::set(const Driver_settings& other)
+void Driver_settings::merge_not_null(const Driver_settings& other)
 {
-  rep_->set(*other.rep_);
+  rep_->merge_not_null(*other.rep_);
 }
 
 std::string Driver_settings::to_json_text() const
@@ -312,7 +307,7 @@ bool Driver_settings::is_empty() const
   return rep_->is_empty();
 }
 
-Driver_settings& Driver_settings::set_sample_rate(const int rate)
+Driver_settings& Driver_settings::set_sample_rate(const std::optional<int> rate)
 {
   rep_->set_sample_rate(rate);
   return *this;
@@ -323,7 +318,8 @@ std::optional<int> Driver_settings::sample_rate() const
   return rep_->sample_rate();
 }
 
-Driver_settings& Driver_settings::set_burst_buffer_size(const std::size_t size)
+Driver_settings&
+Driver_settings::set_burst_buffer_size(const std::optional<std::size_t> size)
 {
   rep_->set_burst_buffer_size(size);
   return *this;
@@ -334,7 +330,7 @@ std::optional<std::size_t> Driver_settings::burst_buffer_size() const
   return rep_->burst_buffer_size();
 }
 
-Driver_settings& Driver_settings::set_frequency(const int frequency)
+Driver_settings& Driver_settings::set_frequency(const std::optional<int> frequency)
 {
   rep_->set_frequency(frequency);
   return *this;
@@ -345,7 +341,8 @@ std::optional<int> Driver_settings::frequency() const
   return rep_->frequency();
 }
 
-Driver_settings& Driver_settings::set_translation_offsets(const std::vector<float>& values)
+Driver_settings&
+Driver_settings::set_translation_offsets(const std::optional<std::vector<float>>& values)
 {
   rep_->set_translation_offsets(values);
   return *this;
@@ -356,7 +353,8 @@ std::optional<std::vector<float>> Driver_settings::translation_offsets() const
   return rep_->translation_offsets();
 }
 
-Driver_settings& Driver_settings::set_translation_slopes(const std::vector<float>& values)
+Driver_settings&
+Driver_settings::set_translation_slopes(const std::optional<std::vector<float>>& values)
 {
   rep_->set_translation_slopes(values);
   return *this;

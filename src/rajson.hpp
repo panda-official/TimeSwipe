@@ -107,16 +107,24 @@ namespace panda::timeswipe::detail {
 /// Adds or modifies the member named by `name` by using the given `value`.
 template<typename Encoding, typename Allocator, typename T>
 void set_member(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& alloc,
+  const std::string_view name, rapidjson::GenericValue<Encoding, Allocator>&& value)
+{
+  namespace rajson = dmitigr::rajson;
+  const auto name_ref = rajson::to_string_ref(name);
+  if (const auto i = json.FindMember(name_ref); i != json.MemberEnd())
+    i->value = std::move(value);
+  else
+    json.AddMember(rapidjson::Value{name.data(), name.size(), alloc},
+      std::move(value), alloc);
+}
+
+/// Adds or modifies the member named by `name` by using the given `value`.
+template<typename Encoding, typename Allocator, typename T>
+void set_member(rapidjson::GenericValue<Encoding, Allocator>& json, Allocator& alloc,
   const std::string_view name, T&& value)
 {
   namespace rajson = dmitigr::rajson;
-  auto val = rajson::to_value(std::forward<T>(value), alloc);
-  const auto name_ref = rajson::to_string_ref(name);
-  if (const auto i = json.FindMember(name_ref); i != json.MemberEnd())
-    i->value = std::move(val);
-  else
-    json.AddMember(rapidjson::Value{name.data(), name.size(), alloc},
-      std::move(val), alloc);
+  set_member(json, alloc, name, rajson::to_value(std::forward<T>(value), alloc));
 }
 
 } // namespace panda::timeswipe::detail

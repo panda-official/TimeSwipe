@@ -253,7 +253,7 @@ public:
     if (const auto values = settings.translation_slopes())
       translation_slopes_ = std::move(*values);
 
-    driver_settings_.set(settings); // may throw
+    driver_settings_.merge_not_null(settings); // may throw
   }
 
   const Driver_settings& driver_settings() const override

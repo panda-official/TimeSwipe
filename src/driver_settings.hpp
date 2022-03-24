@@ -72,8 +72,8 @@ public:
   /// Swaps this instance with the `other` one.
   void swap(Driver_settings& other) noexcept;
 
-  /// Sets settings from `other` instance.
-  void set(const Driver_settings& other);
+  /// Merges not null settings from `other` instance.
+  void merge_not_null(const Driver_settings& other);
 
   /// @returns The result of conversion of this instance to a JSON text.
   std::string to_json_text() const;
@@ -92,8 +92,8 @@ public:
    * @returns The reference to this instance.
    *
    * @par Requires
-   * `(Driver::instace().min_sample_rate() <= rate &&
-   *  rate <= Driver::instance().max_sample_rate())`.
+   * `!rate || (Driver::instace().min_sample_rate() <= *rate &&
+   *  *rate <= Driver::instance().max_sample_rate())`.
    *
    * @warning It's highly recommended to use `rate` for which
    * `(Driver::instance().max_sample_rate() % rate == 0)` for best performance!
@@ -106,7 +106,7 @@ public:
    *
    * @see sample_rate(), Driver::min_sample_rate(), Driver::max_sample_rate().
    */
-  Driver_settings& set_sample_rate(int rate);
+  Driver_settings& set_sample_rate(std::optional<int> rate);
 
   /**
    * @returns The current sample rate.
@@ -119,22 +119,23 @@ public:
    * @brief Sets the burst buffer size.
    *
    * @par Requires
-   * `(Driver::instance().min_sample_rate() <= size &&
-   *  size <= Driver::instance().max_sample_rate())`.
+   * `!size || (Driver::instance().min_sample_rate() <= *size &&
+   *  *size <= Driver::instance().max_sample_rate())`.
    *
    * @par Effects
    * Affects the values returned by frequency() and to_json_text().
    * (The later will be without the `frequency` member.)
    *
    * @param size The number of records that the driver should deliver to
-   * Driver::Data_handler.
+   * Driver::Data_handler. `std::nullopt` means "as much as provided by the
+   * board".
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
    * only if `!Driver::instance().is_measurement_started(true)`.
    *
    * @see burst_buffer_size().
    */
-  Driver_settings& set_burst_buffer_size(std::size_t size);
+  Driver_settings& set_burst_buffer_size(std::optional<std::size_t> size);
 
   /**
    * @returns The burst buffer size.
@@ -147,21 +148,22 @@ public:
    * @brief Indirect way to set the burst buffer size.
    *
    * @par Requires
-   * `(1 <= frequency && frequency <= sample_rate())`.
+   * `!frequency || (1 <= *frequency && *frequency <= sample_rate())`.
    *
-   *  @par Effects
-   *  Affects the value returned by burst_buffer_size() and to_json_text().
-   *  (The later will be without the `burstBufferSize` member.)
+   * @par Effects
+   * Affects the value returned by burst_buffer_size() and to_json_text().
+   * (The later will be without the `burstBufferSize` member.)
    *
-   * @param size The number of records that the driver should deliver to
-   * Driver::Data_handler.
+   * @param frequency The number of times per second the driver should deliver
+   * the data to Driver::Data_handler. `std::nullopt` means "max frequency
+   * possible".
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
    * only if `!Driver::instance().is_measurement_started(true)`.
    *
    * @see frequency().
    */
-  Driver_settings& set_frequency(int frequency);
+  Driver_settings& set_frequency(std::optional<int> frequency);
 
   /**
    * @returns The frequency value: `sample_rate() / burst_buffer_size()`.
@@ -190,7 +192,7 @@ public:
    * @brief Sets translation offsets for all channels.
    *
    * @par Requires
-   * `(values.size() == Driver::instance().max_channel_count())`.
+   * `!values || (values->size() == Driver::instance().max_channel_count())`.
    *
    * @returns The reference to this instance.
    *
@@ -199,7 +201,8 @@ public:
    *
    * @see translation_offsets().
    */
-  Driver_settings& set_translation_offsets(const std::vector<float>& values);
+  Driver_settings&
+  set_translation_offsets(const std::optional<std::vector<float>>& values);
 
   /**
    * @returns The translation offsets for all channels.
@@ -212,7 +215,7 @@ public:
    * @brief Sets translation slopes for all channels.
    *
    * @par Requires
-   * `(values.size() == Driver::instance().max_channel_count())`.
+   * `!values || (values->size() == Driver::instance().max_channel_count())`.
    *
    * @returns The reference to this instance.
    *
@@ -221,7 +224,8 @@ public:
    *
    * @see translation_slopes().
    */
-  Driver_settings& set_translation_slopes(const std::vector<float>& values);
+  Driver_settings& set_translation_slopes(const std::optional<std::vector<float>>&
+    values);
 
   /**
    * @returns The translation slope for all channels.
