@@ -190,11 +190,20 @@ Error get(const Json_value_view& view, T& result)
     else
       what = "value is not integer";
   } else if constexpr (is_same_v<T, unsigned> || is_same_v<T, unsigned long>) {
-    static_assert(sizeof(unsigned) == sizeof(unsigned long));
-    if (view.value()->IsUint())
-      result = view.value()->GetUint();
-    else
-      what = "value is not unsigned integer";
+    static_assert(sizeof(T) <= 8);
+    if constexpr (sizeof(T) < 8) {
+      if (view.value()->IsUint())
+        result = view.value()->GetUint();
+      else
+        what = "value is not unsigned integer";
+    } else {
+      if (view.value()->IsUint())
+        result = view.value()->GetUint();
+      else if (view.value()->IsUint64())
+        result = view.value()->GetUint64();
+      else
+        what = "value is not unsigned integer";
+    }
   } else if constexpr (is_same_v<T, float>) {
     if (view.value()->IsFloat() || view.value()->IsLosslessFloat())
       result = view.value()->GetFloat();
@@ -262,8 +271,12 @@ Error set(Json_value_view& view, const T& value)
   } else if constexpr (is_same_v<T, int>) {
     view.value()->SetInt(value);
   } else if constexpr (is_same_v<T, unsigned> || is_same_v<T, unsigned long>) {
-    static_assert(sizeof(unsigned) == sizeof(unsigned long));
-    view.value()->SetUint(value);
+    static_assert(sizeof(T) <= 8);
+    if constexpr (sizeof(T) < 8) {
+      view.value()->SetUint(value);
+    } else {
+      view.value()->SetUint64(value);
+    }
   } else if constexpr (is_same_v<T, float>) {
     view.value()->SetFloat(value);
   } else if constexpr (is_same_v<T, std::string>) {
