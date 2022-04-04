@@ -17,6 +17,7 @@
 constexpr std::string_view json_text{R"(
 {
 "sampleRate": 24000,
+"cutoffFrequency": 0.25,
 "burstBufferSize": 12000,
 "translationOffsets": [1.1, 2.2, 3.3, 4.4],
 "translationSlopes": [1.1, 2.2, 3.3, 4.4]
@@ -33,6 +34,12 @@ try {
   {
     const int expected{24000};
     ASSERT(ds.sample_rate() == expected);
+  }
+
+  // Cutoff frequency.
+  {
+    const double expected{.25};
+    ASSERT(ds.cutoff_frequency() == expected);
   }
 
   // Burst buffer size.

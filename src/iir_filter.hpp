@@ -40,7 +40,11 @@ public:
    * @param target_sample_rate Resulting sample rate after passing the values
    * calculated by apply() to the downsampler.
    * @param source_sample_rate Source sample rate.
-   * @param cutoff Cutoff frequency at half the Nyquist frequency.
+   * @param cutoff Cutoff frequency. (`1` corresponds to the Nyquist frequency.)
+   *
+   * @par Requires
+   * `target_sample_rate > 0` and `source_sample_rate > 0` and
+   * `cutoff_freq ∋ [0, 1]`.
    */
   Iir_filter(const int target_sample_rate, const int source_sample_rate,
     const double cutoff_freq = .25)
@@ -51,6 +55,8 @@ public:
       throw std::runtime_error{"invalid source sample rate"};
     else if (target_sample_rate > source_sample_rate)
       throw std::runtime_error{"filtering for upsampling doesn't supported"};
+    else if (!(0 <= cutoff_freq && cutoff_freq <= 1))
+      throw std::runtime_error{"invalid cutoff frequency"};
 
     // Fill A2, B0.
     using std::pow;

@@ -44,6 +44,9 @@ struct Driver_settings::Rep final {
     const auto srate = sample_rate();
     check_sample_rate(srate);
 
+    // Check cutoff frequency.
+    check_cutoff_frequency(cutoff_frequency());
+
     // Check burst buffer and frequency possible conflict.
     const auto bbs = burst_buffer_size();
     const auto freq = frequency();
@@ -96,6 +99,7 @@ struct Driver_settings::Rep final {
       if (data) (this->*setter)(data);
     };
     apply(&Rep::set_sample_rate, other.sample_rate());
+    apply(&Rep::set_cutoff_frequency, other.cutoff_frequency());
     apply(&Rep::set_burst_buffer_size, other.burst_buffer_size());
     apply(&Rep::set_frequency, other.frequency());
     apply(&Rep::set_translation_offsets, other.translation_offsets());
@@ -111,6 +115,7 @@ struct Driver_settings::Rep final {
   {
     return doc_.ObjectEmpty() ||
       !(sample_rate() ||
+        cutoff_frequency() ||
         burst_buffer_size() ||
         frequency() ||
         translation_offsets() ||
@@ -128,6 +133,17 @@ struct Driver_settings::Rep final {
   std::optional<int> sample_rate() const
   {
     return member<int>("sampleRate");
+  }
+
+  void set_cutoff_frequency(const std::optional<double> value)
+  {
+    check_cutoff_frequency(value);
+    set_member("cutoffFrequency", value);
+  }
+
+  std::optional<double> cutoff_frequency() const
+  {
+    return member<double>("cutoffFrequency");
   }
 
   void set_burst_buffer_size(const std::optional<std::size_t> size)
@@ -189,6 +205,14 @@ private:
       if (!(Driver::instance().min_sample_rate() <= *rate &&
           *rate <= Driver::instance().max_sample_rate()))
         throw Exception{Errc::driver_settings_invalid, "invalid sample rate"};
+    }
+  }
+
+  static void check_cutoff_frequency(const std::optional<double> freq)
+  {
+    if (freq) {
+      if (!(0 <= *freq && *freq <= 1))
+        throw Exception{Errc::driver_settings_invalid, "invalid cutoff frequency"};
     }
   }
 
@@ -311,6 +335,17 @@ Driver_settings& Driver_settings::set_sample_rate(const std::optional<int> rate)
 std::optional<int> Driver_settings::sample_rate() const
 {
   return rep_->sample_rate();
+}
+
+Driver_settings& Driver_settings::set_cutoff_frequency(const std::optional<double> value)
+{
+  rep_->set_cutoff_frequency(value);
+  return *this;
+}
+
+std::optional<double> Driver_settings::cutoff_frequency() const
+{
+  return rep_->cutoff_frequency();
 }
 
 Driver_settings&

@@ -84,8 +84,7 @@ public:
   /**
    * @brief Set sample rate.
    *
-   * @details If this setting isn't set, the driver will use
-   * `Driver::instance().max_sample_rate()`.
+   * @details This settings is required to start measurement.
    *
    * @param rate The value of sample rate.
    *
@@ -114,6 +113,32 @@ public:
    * @see set_sample_rate().
    */
   std::optional<int> sample_rate() const;
+
+  /**
+   * @brief Set cutoff frequency.
+   *
+   * @details This settings is required to start measurement.
+   *
+   * @param value The value of cutoff frequency.
+   *
+   * @returns The reference to this instance.
+   *
+   * @par Requires
+   * `value ∋ [0, 1]`.
+   *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started()`.
+   *
+   * @see cutoff_frequency().
+   */
+  Driver_settings& set_cutoff_frequency(std::optional<double> value);
+
+  /**
+   * @returns The current cutoff frequency.
+   *
+   * @see set_cutoff_frequency();
+   */
+  std::optional<double> cutoff_frequency() const;
 
   /**
    * @brief Sets the burst buffer size.
