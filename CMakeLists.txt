@@ -561,7 +561,6 @@ if(PANDA_TIMESWIPE_TESTS)
   set(resampler_link_libraries)
 
   # Set the extra sources per test.
-
   set(button_event_extra_sources src/3rdparty/${sam_startup_file})
 
   # Configure the tests from the lists above.
