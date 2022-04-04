@@ -13,8 +13,10 @@
 #include "../../src/3rdparty/dmitigr/rajson/rajson.hpp"
 #include "../../src/3rdparty/dmitigr/str/str.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <csignal>
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -29,6 +31,7 @@ namespace str = dmitigr::str;
 namespace ts = panda::timeswipe;
 
 inline prg::Parameters params;
+inline std::atomic_int stop;
 
 template<typename ... Types>
 void message_error(Types&& ... parts)
@@ -45,10 +48,18 @@ void print_usage()
     "  --config - a path to configuration file\n");
 }
 
+void handle_signal(const int sig)
+{
+  stop = sig;
+}
+
 int main(const int argc, const char* const argv[])
 try {
   using ms = chrono::milliseconds;
   using ns = chrono::nanoseconds;
+
+  std::signal(SIGINT, handle_signal);
+  std::signal(SIGTERM, handle_signal);
 
   // Get command-line parameters.
   params = {argc, argv};
@@ -74,15 +85,29 @@ try {
     std::ofstream out_file;
     std::ofstream log_file;
 
+    const auto finish_measurement = [&finish, &finished, &finished_mutex]
+    {
+      const std::lock_guard lk{finished_mutex};
+      finished = true;
+      finish.notify_one();
+    };
+
     driver.start_measurement([
         logs_ready = false, &out_file, &log_file,
         i = 0, out_count,
         d = ns::zero(), duration = duration_cast<ns>(out_duration),
         t_curr = chrono::system_clock::time_point{},
-        &finish, &finished, &finished_mutex](const auto data, const auto err) mutable
+        &finished, &finish_measurement](const auto data, const auto err) mutable
     {
       // Short-circuit if finished.
       if (finished) return;
+
+      // Check stop-condition.
+      if (stop) {
+        std::clog << "received signal " << stop << std::endl;
+        finish_measurement();
+        return;
+      }
 
       // Check and update finish-conditions.
       const auto t_prev = t_curr;
@@ -96,9 +121,7 @@ try {
           d = {};
           i++;
           if (i >= out_count) {
-            const std::lock_guard lk{finished_mutex};
-            finished = true;
-            finish.notify_one();
+            finish_measurement();
             return;
           } else
             logs_ready = false;
@@ -138,7 +161,7 @@ try {
   // Cleanup.
   for (int i{}; i < out_count; ++i) {
     const auto log_name = "meas_"+std::to_string(i)+".log";
-    if (!fs::file_size(log_name))
+    if (fs::exists(log_name) && !fs::file_size(log_name))
       fs::remove(log_name);
   }
 } catch (const prg::Exception& e) {
