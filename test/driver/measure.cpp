@@ -8,11 +8,13 @@
 */
 
 #include "../../src/driver.hpp"
-#include "../../src/3rdparty/dmitigr/progpar/progpar.hpp"
+#include "../../src/3rdparty/dmitigr/fs/filesystem.hpp"
+#include "../../src/3rdparty/dmitigr/prg/parameters.hpp"
+#include "../../src/3rdparty/dmitigr/rajson/rajson.hpp"
+#include "../../src/3rdparty/dmitigr/str/str.hpp"
 
 #include <chrono>
 #include <condition_variable>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -21,124 +23,111 @@
 
 namespace chrono = std::chrono;
 namespace fs = std::filesystem;
-namespace progpar = dmitigr::progpar;
+namespace prg = dmitigr::prg;
+namespace rajson = dmitigr::rajson;
+namespace str = dmitigr::str;
 namespace ts = panda::timeswipe;
 
-inline progpar::Program_parameters params;
+inline prg::Parameters params;
 
 template<typename ... Types>
 void message_error(Types&& ... parts)
 {
-  std::cerr << params.path().string() << ": ";
-  (std::cerr << ... << parts) << std::endl;
+  std::cerr << params.path().filename().string() << ": ";
+  (std::cerr << ... << std::forward<Types>(parts)) << std::endl;
 }
 
 template<typename ... Types>
 void print_usage()
 {
-  message_error("usage:\n",
-    "  ", params.path().string(),
-    " --count=<uint> --duration=<uint> --sample-rate=<uint> --frequency=<uint>\n\n"
+  message_error("usage: ", params.path().filename().string(), " --config=<path>\n\n"
     "Options:\n"
-    "  --count - a number of measurements\n"
-    "  --duration - a duration of each measurement, seconds\n"
-    "  --sample-rate - a sample rate to use\n"
-    "  --frequency - a frequency to use\n");
+    "  --config - a path to configuration file\n");
 }
 
 int main(const int argc, const char* const argv[])
 try {
-  using chrono::seconds;
+  using ms = chrono::milliseconds;
+  using ns = chrono::nanoseconds;
 
   // Get command-line parameters.
   params = {argc, argv};
-  const auto [count_o, duration_o, sample_rate_o, frequency_o] =
-    params.options("count", "duration", "sample-rate", "frequency");
-  const auto count = std::stoul(count_o.not_empty_value());
-  const seconds duration{std::stol(duration_o.not_empty_value())};
-  const auto sample_rate = std::stoul(sample_rate_o.not_empty_value());
-  const auto frequency = std::stoul(frequency_o.not_empty_value());
-
-  // Check parameters.
-  if (frequency > sample_rate)
-    throw std::runtime_error{"frequency cannot be greater than sample-rate"};
+  const auto json = rajson::to_document(
+    str::to_string(fs::path{params.option("config").not_empty_value()}));
+  rajson::Value_view jv{json};
+  const ts::Board_settings board_settings{rajson::to_text(jv.mandatory("board").value())};
+  const ts::Driver_settings driver_settings{rajson::to_text(jv.mandatory("driver").value())};
+  const auto out_count = jv.optional<int>("outPartCount").value_or(0);
+  const ms out_duration{jv.optional<std::int64_t>("outPartDuration").value_or(10000)};
 
   // Initialize the driver.
   auto& driver = ts::Driver::instance().initialize();
-  constexpr auto volt = ts::Measurement_mode::voltage;
-  driver
-    .set_settings(ts::Board_settings{}
-      .set_value("channel1Gain", 1.0)
-      .set_value("channel2Gain", 1.0)
-      .set_value("channel3Gain", 1.0)
-      .set_value("channel4Gain", 1.0)
-      .set_value("channel1Mode", volt)
-      .set_value("channel2Mode", volt)
-      .set_value("channel3Mode", volt)
-      .set_value("channel4Mode", volt))
-    .set_settings(ts::Driver_settings{}
-      .set_sample_rate(sample_rate)
-      .set_burst_buffer_size(sample_rate / frequency));
+  driver.set_settings(board_settings).set_settings(driver_settings);
 
   // Enable measurement.
   {
     using chrono::duration_cast;
-    using Dur = chrono::nanoseconds;
 
     std::condition_variable finish;
     bool finished{};
     std::mutex finished_mutex;
+    std::ofstream out_file;
     std::ofstream log_file;
-    std::ofstream elog_file;
 
     driver.start_measurement([
-        logs_ready = false, &log_file, &elog_file,
-        i = 0u, count,
-        d = Dur{}, delta = duration_cast<Dur>(seconds{1}) / frequency, duration = duration_cast<Dur>(duration),
-        &finish, &finished, &finished_mutex](auto data, const auto eco) mutable
+        logs_ready = false, &out_file, &log_file,
+        i = 0, out_count,
+        d = ns::zero(), duration = duration_cast<ns>(out_duration),
+        t_curr = chrono::system_clock::time_point{},
+        &finish, &finished, &finished_mutex](const auto data, const auto err) mutable
     {
+      // Short-circuit if finished.
       if (finished) return;
+
+      // Check and update finish-conditions.
+      const auto t_prev = t_curr;
+      t_curr = chrono::system_clock::now();
+      if (t_prev.time_since_epoch() != ns::zero()) {
+        const auto delta = duration_cast<ns>(t_curr - t_prev);
+        d += delta;
+        // std::clog << "d = " << d.count() << ", delta = " << delta.count() << std::endl;
+        if (d >= duration) {
+          std::clog << "done" << std::endl;
+          d = {};
+          i++;
+          if (i >= out_count) {
+            const std::lock_guard lk{finished_mutex};
+            finished = true;
+            finish.notify_one();
+            return;
+          } else
+            logs_ready = false;
+        }
+      }
 
       // (Re-)open logs.
       if (!logs_ready) {
-        const auto log_name = "measurement_"+std::to_string(i)+".csv";
-        const auto elog_name = "measurement_errors_"+std::to_string(i)+".csv";
-        constexpr auto log_mode{std::ios_base::trunc | std::ios_base::out};
-        log_file = std::ofstream{log_name, log_mode};
-        log_file.precision(5 + 4);
-        elog_file = std::ofstream{elog_name, log_mode};
-        std::clog << "Writing " << log_name
-                  << " (" << duration_cast<seconds>(duration).count() << " seconds)" << "...";
+        const auto out_name = "meas_"+std::to_string(i)+".csv";
+        const auto log_name = "meas_"+std::to_string(i)+".log";
+        constexpr auto fmode{std::ios_base::trunc | std::ios_base::out};
+        out_file = std::ofstream{out_name, fmode};
+        out_file.precision(5 + 4);
+        log_file = std::ofstream{log_name, fmode};
+        std::clog << "Writing " << out_name
+                  << " (" << duration_cast<ms>(duration).count() << " ms)...";
         logs_ready = true;
       }
 
       // Write data.
-      const auto begin = chrono::system_clock::now();
       const auto row_count = data.row_count();
       const auto col_count = data.column_count();
       for (std::size_t row{}; row < row_count; ++row) {
         for (std::size_t col{}; col < col_count; ++col)
-          log_file << data.value(col, row) << " ";
-        log_file << "\n";
+          out_file << data.value(col, row) << " ";
+        out_file << "\n";
       }
-      if (eco)
-        elog_file << eco << std::endl;
-      const auto end = chrono::system_clock::now();
-
-      // Check post-conditions.
-      d += delta + end - begin;
-      // std::clog << "d = " << d.count() << ", delta = " << delta.count() << std::endl;
-      if (d >= duration) {
-        std::clog << "done" << std::endl;
-        d = {};
-        i++;
-        if (i >= count) {
-          const std::lock_guard lk{finished_mutex};
-          finished = true;
-          finish.notify_one();
-        } else
-          logs_ready = false;
-      }
+      if (err)
+        log_file << err << std::endl;
     });
 
     std::unique_lock lk{finished_mutex};
@@ -147,12 +136,12 @@ try {
   }
 
   // Cleanup.
-  for (unsigned i{}; i < count; ++i) {
-    const auto elog_name = "measurement_errors_"+std::to_string(i)+".csv";
-    if (!fs::file_size(elog_name))
-      fs::remove(elog_name);
+  for (int i{}; i < out_count; ++i) {
+    const auto log_name = "meas_"+std::to_string(i)+".log";
+    if (!fs::file_size(log_name))
+      fs::remove(log_name);
   }
-} catch (const progpar::Exception& e) {
+} catch (const prg::Exception& e) {
   std::cerr << e.what() << std::endl;
   print_usage();
   return 1;
