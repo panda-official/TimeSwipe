@@ -9,7 +9,7 @@
 
 #include "../../src/driver.hpp"
 #include "../../src/3rdparty/dmitigr/fs/filesystem.hpp"
-#include "../../src/3rdparty/dmitigr/prg/parameters.hpp"
+#include "../../src/3rdparty/dmitigr/progpar/progpar.hpp"
 #include "../../src/3rdparty/dmitigr/rajson/rajson.hpp"
 #include "../../src/3rdparty/dmitigr/str/str.hpp"
 
@@ -25,12 +25,12 @@
 
 namespace chrono = std::chrono;
 namespace fs = std::filesystem;
-namespace prg = dmitigr::prg;
+namespace progpar = dmitigr::progpar;
 namespace rajson = dmitigr::rajson;
 namespace str = dmitigr::str;
 namespace ts = panda::timeswipe;
 
-inline prg::Parameters params;
+inline progpar::Program_parameters params;
 inline std::atomic_int stop;
 
 template<typename ... Types>
@@ -68,7 +68,7 @@ try {
   params = {argc, argv};
   const auto out_suffix = params.option("out-part-suffix").value_or("");
   const auto json = rajson::to_document(
-    str::to_string(fs::path{params.option("config").not_empty_value()}));
+    str::read_to_string(fs::path{params.option("config").not_empty_value()}));
   rajson::Value_view jv{json};
   const ts::Board_settings board_settings{rajson::to_text(jv.mandatory("board").value())};
   const ts::Driver_settings driver_settings{rajson::to_text(jv.mandatory("driver").value())};
@@ -174,7 +174,7 @@ try {
     if (fs::exists(log_name) && !fs::file_size(log_name))
       fs::remove(log_name);
   }
-} catch (const prg::Exception& e) {
+} catch (const progpar::Exception& e) {
   std::cerr << e.what() << std::endl;
   print_usage();
   return 1;

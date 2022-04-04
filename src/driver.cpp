@@ -688,7 +688,7 @@ private:
     {
       try {
         // Restore driver settings.
-        driver_.set_driver_settings(std::move(driver_settings_));
+        driver_.set_driver_settings(driver_settings_, false);
 
         // Restore board settings.
         driver_.set_board_settings(board_settings_);
