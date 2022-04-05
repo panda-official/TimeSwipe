@@ -44,7 +44,7 @@ constexpr int firmware_version_major{2};
 static_assert(0 <= firmware_version_major && firmware_version_major <= 99);
 
 /// Current minor firmware version.
-constexpr int firmware_version_minor{0};
+constexpr int firmware_version_minor{1};
 static_assert(0 <= firmware_version_minor && firmware_version_minor <= 99);
 
 /// Current patch firmware version.
