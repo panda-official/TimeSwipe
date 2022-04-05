@@ -53,8 +53,10 @@ These settings are used to control board channels.
 #### Details
 
 - `%` - is an index in range `[1, 4]`;
-- `channel%Mode` range: `0` - voltage, `1` - current;
-- `channel%AdcRaw`, `channel%DacRaw` - values are in a raw binary format.
+- `channel%AdcRaw`, `channel%DacRaw` - values are in a raw binary format;
+- `channel%Mode` range: `0` - voltage, `1` - current; Can be set only if
+`channelsAdcEnabled` is `false`;
+- `channel%Gain` can be set only if `channelsAdcEnabled` is `false`.
 
 ### Settings group `fan`
 

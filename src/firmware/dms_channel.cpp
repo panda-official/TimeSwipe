@@ -35,10 +35,10 @@ Error Dms_channel::set_measurement_mode(const Measurement_mode mode)
 
 Error Dms_channel::set_iepe(const bool value)
 {
-  if (Board::instance().is_channels_adc_enabled())
-    return Error{Errc::board_measurement_started,
-      "cannot set channel IEPE mode when measurement started"};
-
+  /*
+   * IEPE mode can be set even when measurement started, as we can get
+   * insights about the IEPE sensor connection by flipping IEPE current.
+   */
   is_iepe_ = value;
   iepe_switch_pin_->write(value);
   return {};
