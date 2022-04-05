@@ -15,11 +15,11 @@
 #ifndef PANDA_TIMESWIPE_IIR_FILTER_HPP
 #define PANDA_TIMESWIPE_IIR_FILTER_HPP
 
-#include "error.hpp"
+#include "debug.hpp"
+#include "exceptions.hpp"
 
 #include <array>
 #include <cmath>
-#include <stdexcept>
 
 namespace panda::timeswipe::detail {
 

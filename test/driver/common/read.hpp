@@ -16,13 +16,10 @@
 #include <string>
 #include <vector>
 
-inline std::vector<double> read_whole_column(const std::string& path)
+namespace panda::timeswipe::test {
+
+inline std::vector<double> read_whole_column(std::istream& in)
 {
-  std::ifstream in{path, std::ios_base::in | std::ios_base::binary};
-  if (!in) {
-    std::cerr << "cannot open file " << path << "\n";
-    std::exit(1);
-  }
   std::string line(128, '\0');
   std::vector<double> result;
   while (in) {
@@ -35,5 +32,17 @@ inline std::vector<double> read_whole_column(const std::string& path)
   }
   return result;
 }
+
+inline std::vector<double> read_whole_column(const std::string& path)
+{
+  std::ifstream in{path, std::ios_base::in | std::ios_base::binary};
+  if (!in) {
+    std::cerr << "cannot open file " << path << "\n";
+    std::exit(1);
+  }
+  return read_whole_column(in);
+}
+
+} // namespace panda::timeswipe::test
 
 #endif  // COMMON_READ_HPP

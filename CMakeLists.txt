@@ -593,7 +593,12 @@ if(PANDA_TIMESWIPE_TESTS)
 
   # Custom commands
   if(NOT PANDA_TIMESWIPE_FIRMWARE)
+    set(prefix ${CMAKE_CURRENT_SOURCE_DIR}/test/driver/data)
     add_custom_target(panda_copy_test_resources ALL
+      COMMAND cmake -E copy_if_different
+      "${prefix}/iir_cos.csv" "${panda_output_dir}"
+      COMMAND cmake -E copy_if_different
+      "${prefix}/iir_sin.csv" "${panda_output_dir}"
       )
   endif()
 

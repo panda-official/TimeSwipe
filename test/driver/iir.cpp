@@ -9,15 +9,22 @@
 
 #include "common/read.hpp"
 #include "../../src/3rdparty/dmitigr/progpar/progpar.hpp"
+#include "../../src/iir_filter.hpp"
+
+#include <iostream>
+#include <stdexcept>
+#include <tuple>
 
 namespace progpar = dmitigr::progpar;
+namespace ts = panda::timeswipe;
+namespace test = ts::test;
 
 inline progpar::Program_parameters params;
 
 [[noreturn]] inline void usage()
 {
   std::cerr << "usage: iir --target-sample-rate=<int> --source-sample-rate=<int> "
-            << "[--cutoff-freq=<float>] file.csv\n";
+            << "[--cutoff-freq=<float>] [file.csv]\n";
   std::exit(1);
 }
 
@@ -25,18 +32,34 @@ int main(const int argc, const char* const argv[])
 {
   // Parse arguments.
   params = progpar::Program_parameters{argc, argv};
-  try {
-    const auto target_sample_rate =
-      stoi(params["target-sample-rate"].not_empty_value());
-    const auto source_sample_rate =
-      stoi(params["source-sample-rate"].not_empty_value());
-    const auto cutoff_freq =
-      stof(params["cutoff-freq"].value_or("0.25"));
-    const auto& file = params[0];
-  } catch (...) {
-    usage();
-  }
+  const auto [target_sample_rate, source_sample_rate, cutoff_freq, file] =
+    []
+    {
+      try {
+        const auto tsr = stoi(params["target-sample-rate"].not_empty_value());
+        const auto ssr = stoi(params["source-sample-rate"].not_empty_value());
+        const auto cf = stod(params["cutoff-freq"].value_or("0.25"));
 
-  // Set output precision.
-  std::clog.precision(std::numeric_limits<double>::max_digits10);
+        const auto param_count = params.arguments().size();
+        if (param_count > 1)
+          throw std::runtime_error{""};
+        const auto& file = param_count && !params[0].empty() ? params[0] : "-";
+        return std::make_tuple(tsr, ssr, cf, file);
+      } catch (...) {
+        usage();
+      }
+    }();
+
+  // Make IIR filter.
+  using ts::detail::Iir_filter;
+  Iir_filter filter{target_sample_rate, source_sample_rate, cutoff_freq};
+
+  // Read the input from either the specified file or standard input.
+  auto data = file == "-" ?
+    test::read_whole_column(std::cin) : test::read_whole_column(file);
+
+  // Filter the input and write the standard output.
+  std::cout.precision(std::numeric_limits<double>::max_digits10);
+  for (auto& d : data)
+    std::cout << filter(d) << '\n';
 }
