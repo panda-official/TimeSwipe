@@ -280,7 +280,8 @@ public:
       const auto& doc = bs.rep_->doc();
 
       // Use default slopes and offsets if the calibration data is disabled.
-      if (const auto calib_enabled = rajson::Value_view{doc}.optional("calibrationDataEnabled")) {
+      if (const auto calib_enabled =
+        rajson::Value_view{doc}.optional("calibrationDataEnabled")) {
         PANDA_TIMESWIPE_ASSERT(calib_enabled->value().IsBool());
         if (!rajson::to<bool>(calib_enabled->value()))
           return result;
@@ -530,7 +531,8 @@ public:
     drift_deltas_.reset();
   }
 
-  std::optional<std::vector<float>> drift_references(const bool force = {}) const override
+  std::optional<std::vector<float>>
+  drift_references(const bool force = {}) const override
   {
     if (!force && drift_references_)
       return drift_references_;
@@ -842,11 +844,13 @@ private:
       static_assert(sizeof(channel_offset) == sizeof(digits[0]));
       PANDA_TIMESWIPE_ASSERT(data.column_count() <= digits.size());
 
-      constexpr auto set_bit = [](std::uint16_t& word, const std::uint8_t N, const bool bit) noexcept
+      constexpr auto set_bit = [](std::uint16_t& word,
+        const std::uint8_t N, const bool bit) noexcept
       {
         word = (word & ~(1UL << N)) | (bit << N);
       };
-      constexpr auto bit = [](const std::uint8_t byte, const std::uint8_t N) noexcept -> bool
+      constexpr auto bit = [](const std::uint8_t byte,
+        const std::uint8_t N) noexcept -> bool
       {
         return (byte & (1UL << N));
       };
@@ -896,7 +900,8 @@ private:
       sleep_for_55ns();
       sleep_for_55ns();
 
-      return {byte, (all_gpio & gpio_tco_position), (all_gpio & gpio_pi_status_position) != 0};
+      return {byte, (all_gpio & gpio_tco_position),
+        (all_gpio & gpio_pi_status_position) != 0};
     }
   };
 
