@@ -43,7 +43,7 @@ public:
    * @param cutoff_freq Cutoff frequency.
    *
    * @par Requires
-   * `input_freq > 0` and `target_freq > 0` and `cutoff_freq ∋ [0, 1]`.
+   * `input_freq > 0` and `target_freq > 0` and `cutoff_freq ∋ (0, 1]`.
    */
   Iir_filter(const int input_freq, const int target_freq,
     const double cutoff_freq = .25)
@@ -52,7 +52,7 @@ public:
       throw Exception{"invalid input signal frequency"};
     else if (target_freq <= 0 || target_freq > input_freq)
       throw Exception{"invalid target signal frequency"};
-    else if (!(0 <= cutoff_freq && cutoff_freq <= 1))
+    else if (!(0 < cutoff_freq && cutoff_freq <= 1))
       throw Exception{"invalid cutoff frequency"};
 
     // Fill A2, B0.

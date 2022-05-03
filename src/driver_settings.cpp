@@ -211,7 +211,7 @@ private:
   static void check_cutoff_frequency(const std::optional<double> freq)
   {
     if (freq) {
-      if (!(0 <= *freq && *freq <= 1))
+      if (!(0 < *freq && *freq <= 1))
         throw Exception{Errc::driver_settings_invalid, "invalid cutoff frequency"};
     }
   }

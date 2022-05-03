@@ -124,7 +124,7 @@ public:
    * @returns The reference to this instance.
    *
    * @par Requires
-   * `value ∋ [0, 1]`.
+   * `value ∋ (0, 1]`.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
    * only if `!Driver::instance().is_measurement_started()`.
