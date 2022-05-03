@@ -353,9 +353,6 @@ public:
     else if (!srate)
       throw Exception{Errc::driver_settings_insufficient,
         "cannot start measurement with unspecified sample rate"};
-    else if (!cfreq)
-      throw Exception{Errc::driver_settings_insufficient,
-        "cannot start measurement with unspecified cutoff frequency"};
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
     const auto mcc = max_channel_count();
@@ -380,7 +377,7 @@ public:
     calibration_slopes_.swap(new_calibration_slopes); // noexcept
 
     // Reset filters.
-    reset_filters(*srate, *cfreq);
+    reset_filters(*srate, cfreq);
 
     /*
      * Send the command to the firmware to start the measurement.
@@ -1075,17 +1072,16 @@ private:
    * @par Exception safety guarantee
    * Strong.
    */
-  void reset_filters(const int rate, const double cutoff_freq)
+  void reset_filters(const int rate, const std::optional<double> cutoff_freq)
   {
-    const auto max_rate = max_sample_rate();
-    PANDA_TIMESWIPE_ASSERT(1 <= rate && rate <= max_rate);
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
 
-    // Get channel count.
+    // Get limits.
     const auto cc = max_channel_count();
+    const auto max_rate = max_sample_rate();
 
     // Reset IIR filters.
-    filter_ = {cc, rate, max_rate, cutoff_freq};
+    filter_ = Filter{cc, max_rate, rate, cutoff_freq};
 
     // Reset FIR resamplers.
     if (rate != max_rate) {

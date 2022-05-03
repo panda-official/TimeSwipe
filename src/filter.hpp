@@ -12,6 +12,7 @@
 
 #include "iir_filter.hpp"
 
+#include <utility>
 #include <vector>
 
 namespace panda::timeswipe::detail {
@@ -28,13 +29,22 @@ public:
   /// Default-constructible.
   Filter() = default;
 
-  /// Constructors `channel_count` filters.
-  Filter(const unsigned channel_count,
-    const int target_sample_rate, const int source_sample_rate,
-    const double cutoff_freq = .25)
+  /**
+   * @brief Constructs `channel_count` filters.
+   *
+   * @param channel_count The number of channels.
+   * @param args The arguments to be passed to Iir_filter constructor.
+   *
+   * @see Iir_filter.
+   */
+  template<typename ... Types>
+  explicit Filter(const unsigned channel_count, Types&& ... args)
   {
+    if (!channel_count)
+      throw Exception{"cannot create IIR filter(s): invalid channel count"};
+
     for (unsigned i{}; i < channel_count; ++i)
-      filters_.emplace_back(target_sample_rate, source_sample_rate, cutoff_freq);
+      filters_.emplace_back(std::forward<Types>(args)...);
   }
 
   /// Applies filter of th egiven `channel` to `value`.

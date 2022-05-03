@@ -16,10 +16,12 @@
 #define PANDA_TIMESWIPE_IIR_FILTER_HPP
 
 #include "debug.hpp"
+#include "driver.hpp"
 #include "exceptions.hpp"
 
 #include <array>
 #include <cmath>
+#include <optional>
 
 namespace panda::timeswipe::detail {
 
@@ -40,19 +42,26 @@ public:
    * @param input_freq The input signal frequency.
    * @param target_freq The target signal frequency (i.e. the signal frequency
    * after assumed downsampling with FIR for example).
-   * @param cutoff_freq Cutoff frequency.
+   * @param cutoff_freq Cutoff frequency. Value of `std::nullopt` means the
+   * default value of `0.25`.
    *
    * @par Requires
-   * `input_freq > 0` and `target_freq > 0` and `cutoff_freq ∋ (0, 1]`.
+   *   - `input_freq ∋ (0, Driver::instance().max_sample_rate()]`;
+   *   - `target_freq ∋ (0, Driver::instance().max_sample_rate()]`;
+   *   - `target_freq <= input_freq`;
+   *   - `cutoff_freq ∋ (0, 1]`.
    */
   Iir_filter(const int input_freq, const int target_freq,
-    const double cutoff_freq = .25)
+    std::optional<double> cutoff_freq = .25)
   {
-    if (input_freq <= 0)
+    if (!(0 < input_freq && input_freq <= Driver::instance().max_sample_rate()))
       throw Exception{"invalid input signal frequency"};
-    else if (target_freq <= 0 || target_freq > input_freq)
+    else if (!(0 < target_freq && target_freq <= Driver::instance().max_sample_rate()) ||
+      target_freq > input_freq)
       throw Exception{"invalid target signal frequency"};
-    else if (!(0 < cutoff_freq && cutoff_freq <= 1))
+
+    cutoff_freq = cutoff_freq.value_or(.25);
+    if (!(0 < cutoff_freq && cutoff_freq <= 1))
       throw Exception{"invalid cutoff frequency"};
 
     // Fill A2, B0.
@@ -95,7 +104,7 @@ public:
 
     PANDA_TIMESWIPE_ASSERT(a.size() == b0_.size());
     PANDA_TIMESWIPE_ASSERT(b0_.size() == a2_.size());
-    const double trans{1.0 / std::tan(M_PI*cutoff_freq)};
+    const double trans{1.0 / std::tan(M_PI * *cutoff_freq)};
     const auto b_trans_trans = b*trans*trans;
     for (int i{}; i < stage_count_; ++i) {
       const auto a_trans = a[i]*trans;
