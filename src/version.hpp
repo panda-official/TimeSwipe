@@ -26,7 +26,7 @@ constexpr int driver_version_major{2};
 static_assert(0 <= driver_version_major && driver_version_major <= 99);
 
 /// Current minor driver version.
-constexpr int driver_version_minor{0};
+constexpr int driver_version_minor{1};
 static_assert(0 <= driver_version_minor && driver_version_minor <= 99);
 
 /// Current patch driver version.
