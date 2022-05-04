@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+  - Firmware: always allow `channel%Iepe` to be set.
+
 ## [Changes][2.0.0] in v2.0.0 relative to v0.1.1
 
   - Completely redesigned the API of both driver and firmware;
