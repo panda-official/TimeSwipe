@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_RESAMPLER_HPP
 
 #include "debug.hpp"
+#include "driver_basics.hpp"
 #include "exceptions.hpp"
 #include "fir_resampler.hpp"
 #include "math.hpp"
@@ -328,8 +329,28 @@ private:
   }
 };
 
+/// The generic table data resampler.
+template<typename T>
+class Generic_table_resampler {
+public:
+  /// The destructor.
+  virtual ~Generic_table_resampler() = default;
+
+  /// @returns `table`.
+  virtual Table<T> apply(Table<T> table)
+  {
+    return table;
+  }
+
+  /// @returns The empty table.
+  virtual Table<T> flush()
+  {
+    return Table<T>{};
+  }
+};
+
 /**
- * @brief A resampler.
+ * @brief A FIR table resampler.
  *
  * @details This class is the wrapper of the class Fir_resampler and provides
  * the stream-style API in order to resample the chunks of variable length.
@@ -343,13 +364,13 @@ private:
  * @see apply(), flush(), Fir_resampler.
  */
 template<typename T>
-class Resampler final {
+class Fir_table_resampler final : public Generic_table_resampler<T> {
 public:
   /// An alias of Resampler_options.
   using Options = Resampler_options;
 
   /// The constructor.
-  explicit Resampler(Options options)
+  explicit Fir_table_resampler(Options options)
     : options_{std::move(options)}
     , rstates_(options_.channel_count())
   {
@@ -357,10 +378,12 @@ public:
     const auto firc = [this]
     {
       std::clog << "Calculating FIR coefficients...";
-      std::vector<double> firc = firls(options_.filter_length() - 1, options_.freq(), options_.ampl());
+      std::vector<double> firc = firls(options_.filter_length() - 1,
+        options_.freq(), options_.ampl());
       if (firc.size() > std::numeric_limits<int>::max())
         throw Exception{"too many FIR coefficients required"};
-      PANDA_TIMESWIPE_ASSERT(static_cast<unsigned>(options_.filter_length()) == firc.size());
+      PANDA_TIMESWIPE_ASSERT(static_cast<unsigned>(
+          options_.filter_length()) == firc.size());
       std::clog << firc.size() << " coefficients will be used\n";
       // print_firc(firc);
 
@@ -371,11 +394,16 @@ public:
        */
       const auto clog_prec = std::clog.precision();
       std::clog.precision(std::numeric_limits<double>::max_digits10);
-      std::clog << "Guessing the best shape factor for Kaiser window of size "<<firc.size()<<"...";
+      std::clog << "Guessing the best shape factor for Kaiser window of size "
+                << firc.size() << "...";
       std::vector<double> result(firc.size());
 
-      // Create convenient applicator of Kaiser window and adder of the result of application.
-      const auto apply_kaiser_and_sum = [&firc, &result, u = options_.up_factor()](const double beta)
+      /*
+       * Create convenient applicator of Kaiser window and adder of the result
+       * of application.
+       */
+      const auto apply_kaiser_and_sum = [&firc, &result,
+        u = options_.up_factor()](const double beta)
       {
         const auto window = kaiser(firc.size(), beta);
         PANDA_TIMESWIPE_ASSERT(firc.size() == window.size());
@@ -447,7 +475,7 @@ public:
    *
    * @returns The resampled table.
    */
-  Table<T> apply(const Table<T>& table)
+  Table<T> apply(Table<T> table) override
   {
     if (table.column_count() != rstates_.size())
       throw Exception{std::string{"cannot resample table with "}
@@ -457,7 +485,7 @@ public:
         .append(std::to_string(rstates_.size()))
         .append(")")};
 
-    return resample([this, &table](const std::size_t column_index)
+    return resample([this, table = std::move(table)](const std::size_t column_index)
     {
       auto& rstate = rstates_[column_index];
       auto& resampler = rstate.resampler;
@@ -470,11 +498,13 @@ public:
       auto result = make_zero_result(resampler, input_size);
       const auto out = resampler.apply(cbegin(input), cend(input), begin(result));
       using Sz = decltype(result.size());
-      PANDA_TIMESWIPE_ASSERT(result.size() == static_cast<Sz>(std::distance(begin(result), out)));
+      PANDA_TIMESWIPE_ASSERT(result.size() ==
+        static_cast<Sz>(std::distance(begin(result), out)));
       if (rstate.unskipped_leading_count) {
         PANDA_TIMESWIPE_ASSERT(options_.crop_extra());
         const auto b = cbegin(result);
-        const auto skip_count = std::min<std::size_t>(rstate.unskipped_leading_count, result.size());
+        const auto skip_count =
+          std::min<std::size_t>(rstate.unskipped_leading_count, result.size());
         result.erase(b, b + skip_count);
         rstate.unskipped_leading_count -= skip_count;
       }
@@ -491,7 +521,7 @@ public:
    * @remarks Normally, this method should be called after the resampling of
    * the last chunk of data.
    */
-  Table<T> flush()
+  Table<T> flush() override
   {
     return resample([this](const std::size_t column_index)
     {

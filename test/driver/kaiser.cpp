@@ -28,7 +28,7 @@ int main()
         Resampler_options options;
         options.set_channel_count(4);
         for (unsigned down{1}; down <= max_factor; ++down)
-          Resampler<float> resampler{options.set_up_down(up, down)};
+          Fir_table_resampler<float> resampler{options.set_up_down(up, down)};
       }
     }};
   }

@@ -497,7 +497,8 @@ try {
     {
       std::function<void(const Table&, bool)> result;
       if (is_resampling_mode()) {
-        const auto resampler = std::make_shared<ts::detail::Resampler<float>>(r_opts);
+        const auto resampler =
+          std::make_shared<ts::detail::Fir_table_resampler<float>>(r_opts);
         result = [resampler, &os, output_format, &output_columns]
           (const Table& table, const bool end)
         {

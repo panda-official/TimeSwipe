@@ -325,7 +325,7 @@ public:
     return columns_.cbegin();
   }
 
-  /// @returns Constant iterator that points to an one-past-the-last channel.
+  /// @returns Constant iterator that points to an one-past-the-last column.
   auto columns_cend() const noexcept
   {
     return columns_.cend();

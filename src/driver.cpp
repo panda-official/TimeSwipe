@@ -59,8 +59,6 @@ namespace panda::timeswipe {
 namespace detail {
 class iDriver final : public Driver {
 public:
-  using Resampler = detail::Resampler<Data::Value>;
-
   ~iDriver()
   {
     try {
@@ -225,14 +223,6 @@ public:
   iDriver& set_driver_settings(const Driver_settings& settings,
     const bool merge_not_null) override
   {
-    set_driver_settings(settings, {}, merge_not_null);
-    return *this;
-  }
-
-  /// @overload
-  void set_driver_settings(const Driver_settings& settings,
-    std::unique_ptr<Resampler> resampler, const bool merge_not_null = true)
-  {
     if (is_measurement_started(true))
       /*
        * Currently, there are no driver settings which can be applied when
@@ -259,6 +249,8 @@ public:
       driver_settings_.merge_not_null(settings); // may throw
     else
       driver_settings_ = settings; // may throw
+
+    return *this;
   }
 
   const Driver_settings& driver_settings() const override
@@ -612,12 +604,12 @@ private:
   static constexpr int initial_invalid_datasets_count{32};
   static constexpr std::uint16_t channel_offset{32768};
   int read_skip_count_{initial_invalid_datasets_count};
-  std::vector<float> calibration_slopes_;
-  std::vector<float> translation_offsets_;
-  std::vector<float> translation_slopes_;
+  std::vector<Data::Value> calibration_slopes_;
+  std::vector<Data::Value> translation_offsets_;
+  std::vector<Data::Value> translation_slopes_;
   std::unique_ptr<Generic_filters> filters_;
   Driver_settings driver_settings_;
-  std::unique_ptr<Resampler> resampler_;
+  std::unique_ptr<Generic_table_resampler<Data::Value>> resampler_;
 
   // Record queue capacity must be enough to store records for 1s.
   boost::lockfree::spsc_queue<Data, boost::lockfree::capacity<48000/32*2>> record_queue_;
@@ -1014,32 +1006,23 @@ private:
         }
       }
 
-      Data* records_ptr{};
+      PANDA_TIMESWIPE_ASSERT(resampler_);
       Data samples;
-      if (resampler_) {
-        for (std::decay_t<decltype(num)> i{}; i < num; ++i) {
-          auto s = resampler_->apply(std::move(records[i]));
-          samples.append_rows(std::move(s));
-        }
-        records_ptr = &samples;
-      } else {
-        for (std::decay_t<decltype(num)> i{1}; i < num; ++i)
-          records[0].append_rows(std::move(records[i]));
-        records_ptr = records;
-      }
+      for (std::decay_t<decltype(num)> i{}; i < num; ++i)
+        samples.append_rows(resampler_->apply(std::move(records[i])));
 
       // std::clog << "burst_buffer_.row_count() = " << burst_buffer_.row_count()
       //           << "burst_buffer_size_ = " << burst_buffer_size_ << std::endl;
-      if (burst_buffer_.row_count() || records_ptr->row_count() < burst_buffer_size_) {
+      if (burst_buffer_.row_count() || samples.row_count() < burst_buffer_size_) {
         // Go through burst buffer.
-        burst_buffer_.append_rows(std::move(*records_ptr));
+        burst_buffer_.append_rows(std::move(samples));
         if (burst_buffer_.row_count() >= burst_buffer_size_) {
           handler(std::move(burst_buffer_), errors);
           burst_buffer_ = Data(max_channel_count());
         }
       } else
         // Go directly (burst buffer not used or smaller than data).
-        handler(std::move(*records_ptr), errors);
+        handler(std::move(samples), errors);
     }
 
     // Flush the resampler instance into the burst buffer.
@@ -1105,10 +1088,10 @@ private:
       const auto rates_gcd = std::gcd(rate, max_rate);
       const auto up = rate / rates_gcd;
       const auto down = max_rate / rates_gcd;
-      resampler_ = std::make_unique<Resampler>(detail::Resampler_options{}
-        .set_channel_count(cc).set_up_down(up, down));
+      resampler_ = std::make_unique<Fir_table_resampler<Data::Value>>(
+        detail::Resampler_options{}.set_channel_count(cc).set_up_down(up, down));
     } else
-      resampler_.reset();
+      resampler_ = std::make_unique<Generic_table_resampler<Data::Value>>();
   }
 
   void join_threads()
