@@ -19,6 +19,8 @@
 #ifndef PANDA_TIMESWIPE_DRIVER_SETTINGS_HPP
 #define PANDA_TIMESWIPE_DRIVER_SETTINGS_HPP
 
+#include "driver_basics.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -82,9 +84,9 @@ public:
   bool is_empty() const;
 
   /**
-   * @brief Set sample rate.
+   * @brief Sets sample rate.
    *
-   * @details This settings is required to start measurement.
+   * @details This setting is required to start measurement.
    *
    * @param rate The value of sample rate.
    *
@@ -115,7 +117,49 @@ public:
   std::optional<int> sample_rate() const;
 
   /**
-   * @brief Set cutoff frequency.
+   * @brief Sets resampler mode.
+   *
+   * @details This setting is required to start measurement.
+   *
+   * @returns The reference to this instance.
+   *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started(true)`.
+   *
+   * @see resampler_mode().
+   */
+  Driver_settings& set_resampler_mode(std::optional<Resampler_mode> value);
+
+  /**
+   * @returns The current resampler mode.
+   *
+   * @see set_resampler_mode().
+   */
+  std::optional<Resampler_mode> resampler_mode() const;
+
+  /**
+   * @brief Sets filter mode.
+   *
+   * @details This setting is required to start measurement.
+   *
+   * @returns The reference to this instance.
+   *
+   * @warning This setting can be applied with Driver::set_driver_settings()
+   * only if `!Driver::instance().is_measurement_started(true)`.
+   *
+   * @see filter_mode().
+   */
+  Driver_settings& set_filter_mode(std::optional<Filter_mode> value);
+
+  /**
+   * @returns The current filter mode.
+   *
+   * @see set_filter_mode().
+   */
+  std::optional<Filter_mode> filter_mode() const;
+
+  /**
+   * @brief Sets cutoff frequency.
    *
    * @details This settings is required to start measurement.
    *

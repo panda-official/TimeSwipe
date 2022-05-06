@@ -10,6 +10,7 @@
 #ifndef PANDA_TIMESWIPE_FILTER_HPP
 #define PANDA_TIMESWIPE_FILTER_HPP
 
+#include "driver_basics.hpp"
 #include "iir_filter.hpp"
 
 #include <utility>
@@ -17,42 +18,19 @@
 
 namespace panda::timeswipe::detail {
 
-/**
- * @brief Data filter.
- *
- * @details This class is the wrapper of the class Iir_filter.
- *
- * @see Iir_filter.
- */
-class Filter final {
+/// The generic data filters.
+class Generic_filters {
 public:
+  /// The destructor.
+  virtual ~Generic_filters() = default;
+
   /// Default-constructible.
-  Filter() = default;
+  Generic_filters() = default;
 
-  /**
-   * @brief Constructs `channel_count` filters.
-   *
-   * @param channel_count The number of channels.
-   * @param args The arguments to be passed to Iir_filter constructor.
-   *
-   * @see Iir_filter.
-   */
-  template<typename ... Types>
-  explicit Filter(const unsigned channel_count, Types&& ... args)
+  /// @returns `value`.
+  virtual double apply(const unsigned /*channel*/, const double value) const
   {
-    if (!channel_count)
-      throw Exception{"cannot create IIR filter(s): invalid channel count"};
-
-    for (unsigned i{}; i < channel_count; ++i)
-      filters_.emplace_back(std::forward<Types>(args)...);
-  }
-
-  /// Applies filter of th egiven `channel` to `value`.
-  double apply(const unsigned channel, const double value) const
-  {
-    if (!(channel < filters_.size()))
-      throw Exception{"invalid channel index for IIR filtering"};
-    return filters_[channel].apply(value);
+    return value;
   }
 
   /**
@@ -63,6 +41,42 @@ public:
   double operator()(const unsigned channel, const double value) const
   {
     return apply(channel, value);
+  }
+};
+
+/**
+ * @brief IIR data filters.
+ *
+ * @see Iir_filter.
+ */
+class Iir_filters final : public Generic_filters {
+public:
+  /// Default-constructible.
+  Iir_filters() = default;
+
+  /**
+   * @brief Constructs `channel_count` filters.
+   *
+   * @param channel_count The number of channels.
+   * @param args The arguments to be passed to filter constructor according to
+   * the filter_mode parameter.
+   */
+  template<typename ... Types>
+  explicit Iir_filters(const unsigned channel_count, Types&& ... args)
+  {
+    if (!channel_count)
+      throw Exception{"cannot create filter(s): invalid channel count"};
+
+    for (unsigned i{}; i < channel_count; ++i)
+      filters_.emplace_back(std::forward<Types>(args)...);
+  }
+
+  /// Applies filter of th egiven `channel` to `value`.
+  double apply(const unsigned channel, const double value) const override
+  {
+    if (!(channel < filters_.size()))
+      throw Exception{"invalid channel index for filtering"};
+    return filters_[channel].apply(value);
   }
 
 private:

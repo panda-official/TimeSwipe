@@ -20,6 +20,7 @@
 #define PANDA_TIMESWIPE_RAJSON_HPP
 
 #include "basics.hpp"
+#include "driver_basics.hpp"
 #include "exceptions.hpp"
 #include "hat.hpp"
 
@@ -49,7 +50,23 @@ template<> struct Enum_traits<Measurement_mode> final {
   }
 };
 
-/// Full specialization for Measurement_mode.
+/// Full specialization for Resampler_mode.
+template<> struct Enum_traits<Resampler_mode> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "resampler mode";
+  }
+};
+
+/// Full specialization for Filter_mode.
+template<> struct Enum_traits<Filter_mode> final {
+  static constexpr const char* singular_name() noexcept
+  {
+    return "filter mode";
+  }
+};
+
+/// Full specialization for hat::atom::Calibration::Type.
 template<> struct Enum_traits<hat::atom::Calibration::Type> final {
   static constexpr const char* singular_name() noexcept
   {
@@ -84,7 +101,7 @@ struct Enum_conversions {
 
 namespace dmitigr::rajson {
 
-/// Full specialization for `panda::timeswipe::Measurement_mode`.
+/// Full specialization for `panda::timeswipe::Errc`.
 template<>
 struct Conversions<panda::timeswipe::Errc> final :
   panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Errc>{};
@@ -93,6 +110,16 @@ struct Conversions<panda::timeswipe::Errc> final :
 template<>
 struct Conversions<panda::timeswipe::Measurement_mode> final :
   panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Measurement_mode>{};
+
+/// Full specialization for `panda::timeswipe::Resampler_mode`.
+template<>
+struct Conversions<panda::timeswipe::Resampler_mode> final :
+  panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Resampler_mode>{};
+
+/// Full specialization for `panda::timeswipe::Filter_mode`.
+template<>
+struct Conversions<panda::timeswipe::Filter_mode> final :
+  panda::timeswipe::detail::Enum_conversions<panda::timeswipe::Filter_mode>{};
 
 /// Full specialization for `panda::timeswipe::detail::hat::atom::Calibration::Type`.
 template<>

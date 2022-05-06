@@ -338,7 +338,9 @@ public:
     const auto gains = channel_settings<float>(bs, "Gain");
     const auto modes = channel_settings<Measurement_mode>(bs, "Mode");
     const auto srate = driver_settings().sample_rate();
-    const auto cfreq = driver_settings().cutoff_frequency();
+    const auto res_mode = driver_settings().resampler_mode();
+    const auto fil_mode = driver_settings().filter_mode();
+    const auto cut_freq = driver_settings().cutoff_frequency();
     if (!handler)
       throw Exception{"cannot start measurement with invalid data handler"};
     else if (is_measurement_started(true))
@@ -353,6 +355,12 @@ public:
     else if (!srate)
       throw Exception{Errc::driver_settings_insufficient,
         "cannot start measurement with unspecified sample rate"};
+    else if (!res_mode)
+      throw Exception{Errc::driver_settings_insufficient,
+        "cannot start measurement with unspecified resampler mode"};
+    else if (!fil_mode)
+      throw Exception{Errc::driver_settings_insufficient,
+        "cannot start measurement with unspecified filter mode"};
 
     // Pick up the calibration slopes depending on both the gain and measurement mode.
     const auto mcc = max_channel_count();
@@ -377,7 +385,7 @@ public:
     calibration_slopes_.swap(new_calibration_slopes); // noexcept
 
     // Reset filters.
-    reset_filters(*srate, cfreq);
+    reset_filters(*srate, *res_mode, *fil_mode, cut_freq);
 
     /*
      * Send the command to the firmware to start the measurement.
@@ -607,7 +615,7 @@ private:
   std::vector<float> calibration_slopes_;
   std::vector<float> translation_offsets_;
   std::vector<float> translation_slopes_;
-  Filter filter_;
+  std::unique_ptr<Generic_filters> filters_;
   Driver_settings driver_settings_;
   std::unique_ptr<Resampler> resampler_;
 
@@ -832,7 +840,7 @@ private:
       const std::vector<float>& slopes,
       const std::vector<float>& translation_offsets,
       const std::vector<float>& translation_slopes,
-      const Filter& filter)
+      const Generic_filters& filters)
     {
       PANDA_TIMESWIPE_ASSERT((slopes.size() == translation_offsets.size())
         && (slopes.size() == translation_slopes.size()));
@@ -868,7 +876,7 @@ private:
       data.append_generated_row([&](const auto i)
       {
         const auto mv = (digits[i] - channel_offset) / slopes[i];
-        return filter(i, (mv - translation_offsets[i]) / translation_slopes[i]);
+        return filters(i, (mv - translation_offsets[i]) / translation_slopes[i]);
       });
     }
 
@@ -959,7 +967,7 @@ private:
     do {
       const auto [chunk, tco, pi_ok] = Gpio_data::read_chunk();
       Gpio_data::append_chunk(result, chunk, calibration_slopes_,
-        translation_offsets_, translation_slopes_, filter_);
+        translation_offsets_, translation_slopes_, *filters_);
       if (!pi_ok || tco != 0x00004000) break;
     } while (true);
 
@@ -1072,7 +1080,10 @@ private:
    * @par Exception safety guarantee
    * Strong.
    */
-  void reset_filters(const int rate, const std::optional<double> cutoff_freq)
+  void reset_filters(const int rate,
+    const Resampler_mode res_mode,
+    const Filter_mode fil_mode,
+    const std::optional<double> cutoff_freq)
   {
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
 
@@ -1081,10 +1092,16 @@ private:
     const auto max_rate = max_sample_rate();
 
     // Reset IIR filters.
-    filter_ = Filter{cc, max_rate, rate, cutoff_freq};
+    if (fil_mode == Filter_mode::disabled)
+      filters_ = std::make_unique<Generic_filters>();
+    else if (fil_mode == Filter_mode::iir)
+      filters_ = std::make_unique<Iir_filters>(cc, max_rate, rate, cutoff_freq);
+    else
+      PANDA_TIMESWIPE_ASSERT(false);
 
     // Reset FIR resamplers.
-    if (rate != max_rate) {
+    if (rate != max_rate && res_mode != Resampler_mode::disabled) {
+      PANDA_TIMESWIPE_ASSERT(res_mode == Resampler_mode::fir);
       const auto rates_gcd = std::gcd(rate, max_rate);
       const auto up = rate / rates_gcd;
       const auto down = max_rate / rates_gcd;

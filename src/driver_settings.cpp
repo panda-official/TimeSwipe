@@ -44,6 +44,12 @@ struct Driver_settings::Rep final {
     const auto srate = sample_rate();
     check_sample_rate(srate);
 
+    // Check resampler mode.
+    resampler_mode();
+
+    // Check filter mode.
+    filter_mode();
+
     // Check cutoff frequency.
     check_cutoff_frequency(cutoff_frequency());
 
@@ -115,6 +121,8 @@ struct Driver_settings::Rep final {
   {
     return doc_.ObjectEmpty() ||
       !(sample_rate() ||
+        resampler_mode() ||
+        filter_mode() ||
         cutoff_frequency() ||
         burst_buffer_size() ||
         frequency() ||
@@ -133,6 +141,26 @@ struct Driver_settings::Rep final {
   std::optional<int> sample_rate() const
   {
     return member<int>("sampleRate");
+  }
+
+  void set_resampler_mode(const std::optional<Resampler_mode> value)
+  {
+    set_member("resamplerMode", value);
+  }
+
+  std::optional<Resampler_mode> resampler_mode() const
+  {
+    return member<Resampler_mode>("resamplerMode");
+  }
+
+  void set_filter_mode(std::optional<Filter_mode> value)
+  {
+    set_member("filterMode", value);
+  }
+
+  std::optional<Filter_mode> filter_mode() const
+  {
+    return member<Filter_mode>("filterMode");
   }
 
   void set_cutoff_frequency(const std::optional<double> value)
@@ -335,6 +363,31 @@ Driver_settings& Driver_settings::set_sample_rate(const std::optional<int> rate)
 std::optional<int> Driver_settings::sample_rate() const
 {
   return rep_->sample_rate();
+}
+
+Driver_settings&
+Driver_settings::set_resampler_mode(const std::optional<Resampler_mode> value)
+{
+  rep_->set_resampler_mode(value);
+  return *this;
+}
+
+std::optional<Resampler_mode> Driver_settings::resampler_mode() const
+{
+  return rep_->resampler_mode();
+}
+
+Driver_settings&
+Driver_settings::set_filter_mode(const std::optional<Filter_mode> value)
+{
+  rep_->set_filter_mode(value);
+  return *this;
+}
+
+std::optional<Filter_mode>
+Driver_settings::filter_mode() const
+{
+  return rep_->filter_mode();
 }
 
 Driver_settings& Driver_settings::set_cutoff_frequency(const std::optional<double> value)
