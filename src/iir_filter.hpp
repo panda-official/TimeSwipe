@@ -43,7 +43,7 @@ public:
    * @param target_freq The target signal frequency (i.e. the signal frequency
    * after assumed downsampling with FIR for example).
    * @param cutoff_freq Cutoff frequency. Value of `std::nullopt` means the
-   * default value of `0.25`.
+   * default value of `0.25*(target_freq/Driver::instance().max_sample_rate())`.
    *
    * @par Requires
    *   - `input_freq ∋ (0, Driver::instance().max_sample_rate()]`;
@@ -52,7 +52,7 @@ public:
    *   - `cutoff_freq ∋ (0, 1]`.
    */
   Iir_filter(const int input_freq, const int target_freq,
-    std::optional<double> cutoff_freq = .25)
+    std::optional<double> cutoff_freq = {})
   {
     if (!(0 < input_freq && input_freq <= Driver::instance().max_sample_rate()))
       throw Exception{"invalid input signal frequency"};
@@ -60,7 +60,8 @@ public:
       target_freq > input_freq)
       throw Exception{"invalid target signal frequency"};
 
-    cutoff_freq = cutoff_freq.value_or(.25);
+    cutoff_freq = cutoff_freq.value_or(.25*(target_freq /
+        Driver::instance().max_sample_rate()));
     if (!(0 < cutoff_freq && cutoff_freq <= 1))
       throw Exception{"invalid cutoff frequency"};
 
