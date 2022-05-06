@@ -607,7 +607,7 @@ private:
   std::vector<Data::Value> calibration_slopes_;
   std::vector<Data::Value> translation_offsets_;
   std::vector<Data::Value> translation_slopes_;
-  std::unique_ptr<Generic_filters> filters_;
+  std::unique_ptr<Generic_filter_container> filters_;
   Driver_settings driver_settings_;
   std::unique_ptr<Generic_table_resampler<Data::Value>> resampler_;
 
@@ -832,7 +832,7 @@ private:
       const std::vector<float>& slopes,
       const std::vector<float>& translation_offsets,
       const std::vector<float>& translation_slopes,
-      const Generic_filters& filters)
+      const Generic_filter_container& filters)
     {
       PANDA_TIMESWIPE_ASSERT((slopes.size() == translation_offsets.size())
         && (slopes.size() == translation_slopes.size()));
@@ -1076,9 +1076,9 @@ private:
 
     // Reset IIR filters.
     if (fil_mode == Filter_mode::disabled)
-      filters_ = std::make_unique<Generic_filters>();
+      filters_ = std::make_unique<Generic_filter_container>();
     else if (fil_mode == Filter_mode::iir)
-      filters_ = std::make_unique<Iir_filters>(cc, max_rate, rate, cutoff_freq);
+      filters_ = std::make_unique<Iir_filter_vector>(cc, max_rate, rate, cutoff_freq);
     else
       PANDA_TIMESWIPE_ASSERT(false);
 

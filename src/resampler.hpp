@@ -38,6 +38,10 @@
 
 namespace panda::timeswipe::detail {
 
+// -----------------------------------------------------------------------------
+// Resampler_options
+// -----------------------------------------------------------------------------
+
 /// A timeswipe resampler options.
 class Resampler_options final {
 public:
@@ -329,6 +333,10 @@ private:
   }
 };
 
+// -----------------------------------------------------------------------------
+// Generic_table_resampler
+// -----------------------------------------------------------------------------
+
 /// The generic table data resampler.
 template<typename T>
 class Generic_table_resampler {
@@ -348,6 +356,10 @@ public:
     return Table<T>{};
   }
 };
+
+// -----------------------------------------------------------------------------
+// Fir_table_resampler
+// -----------------------------------------------------------------------------
 
 /**
  * @brief A FIR table resampler.

@@ -18,14 +18,15 @@
 
 namespace panda::timeswipe::detail {
 
-/// The generic data filters.
-class Generic_filters {
+// -----------------------------------------------------------------------------
+// Generic_filter_container
+// -----------------------------------------------------------------------------
+
+/// The generic data filter container.
+class Generic_filter_container {
 public:
   /// The destructor.
-  virtual ~Generic_filters() = default;
-
-  /// Default-constructible.
-  Generic_filters() = default;
+  virtual ~Generic_filter_container() = default;
 
   /// @returns `value`.
   virtual double apply(const unsigned /*channel*/, const double value) const
@@ -44,25 +45,29 @@ public:
   }
 };
 
+// -----------------------------------------------------------------------------
+// Iir_filter_vector
+// -----------------------------------------------------------------------------
+
 /**
- * @brief IIR data filters.
+ * @brief IIR data filter vector.
  *
  * @see Iir_filter.
  */
-class Iir_filters final : public Generic_filters {
+class Iir_filter_vector final : public Generic_filter_container {
 public:
   /// Default-constructible.
-  Iir_filters() = default;
+  Iir_filter_vector() = default;
 
   /**
-   * @brief Constructs `channel_count` filters.
+   * @brief Constructs the filter vector of size `channel_count`.
    *
    * @param channel_count The number of channels.
    * @param args The arguments to be passed to filter constructor according to
    * the filter_mode parameter.
    */
   template<typename ... Types>
-  explicit Iir_filters(const unsigned channel_count, Types&& ... args)
+  explicit Iir_filter_vector(const unsigned channel_count, Types&& ... args)
   {
     if (!channel_count)
       throw Exception{"cannot create filter(s): invalid channel count"};
