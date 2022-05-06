@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+  - Added IIR filter;
+  - Added driver settings: `resamplerMode` and `filterMode` which can be used
+  to disable both the FIR resampler and IIR filter.
+
 ## [Changes][2.0.0] in v2.0.0 relative to v0.1.1
 
   - Completely redesigned the API of both driver and firmware;
