@@ -1026,8 +1026,8 @@ private:
     }
 
     // Flush the resampler instance into the burst buffer.
-    if (resampler_)
-      burst_buffer_.append_rows(resampler_->flush());
+    PANDA_TIMESWIPE_ASSERT(resampler_);
+    burst_buffer_.append_rows(resampler_->flush());
 
     // Flush the remaining values from the burst buffer.
     if (burst_buffer_.row_count()) {
