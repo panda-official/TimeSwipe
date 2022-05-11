@@ -105,6 +105,8 @@ struct Driver_settings::Rep final {
       if (data) (this->*setter)(data);
     };
     apply(&Rep::set_sample_rate, other.sample_rate());
+    apply(&Rep::set_resampler_mode, other.resampler_mode());
+    apply(&Rep::set_filter_mode, other.filter_mode());
     apply(&Rep::set_cutoff_frequency, other.cutoff_frequency());
     apply(&Rep::set_burst_buffer_size, other.burst_buffer_size());
     apply(&Rep::set_frequency, other.frequency());
