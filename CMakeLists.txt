@@ -525,6 +525,7 @@ Hint: CMAKE_PREFIX_PATH can be used to point the root directory where it's insta
     src/basics.hpp
     src/board_settings.hpp
     src/driver.hpp
+    src/driver_basics.hpp
     src/driver_settings.hpp
     src/errc.hpp
     src/exceptions.hpp

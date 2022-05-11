@@ -22,6 +22,7 @@
 // All the public API headers.
 #include "basics.hpp"
 #include "board_settings.hpp"
+#include "driver_basics.hpp"
 #include "driver_settings.hpp"
 #include "errc.hpp"
 #include "exceptions.hpp"
