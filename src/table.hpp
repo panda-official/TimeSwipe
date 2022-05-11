@@ -110,10 +110,11 @@ public:
    * @brief Appends row specified as `args` to the end of this table.
    *
    * @par Requires
-   * `(column_count() == sizeof...(args))`.
+   * `!sizeof...(args) || !column_count() || (column_count() == sizeof...(args))`.
    *
    * @par Effects
-   * row_count() increased by one.
+   * If `sizeof...(args)` then row_count() increased by one and
+   * `column_count() == sizeof...(args)`.
    *
    * @par Exception safety guarantee
    * Basic.
@@ -121,11 +122,13 @@ public:
   template<typename ... Types>
   void append_emplaced_row(Types&& ... args)
   {
-    if (column_count() != sizeof...(args))
-      throw Exception{"cannot append table row with invalid number of columns"};
+    if constexpr (sizeof...(args)) {
+      if (!(!column_count() || (column_count() == sizeof...(args))))
+        throw Exception{"cannot append table row with invalid number of columns"};
 
-    append_emplaced_row__(std::make_index_sequence<sizeof...(args)>{},
-      std::forward<Types>(args)...);
+      append_emplaced_row__(std::make_index_sequence<sizeof...(args)>{},
+        std::forward<Types>(args)...);
+    }
   }
 
   /**
@@ -154,11 +157,13 @@ public:
    * table.
    *
    * @par Requires
-   * `(!column_count() || (column_count() == other.column_count()))`.
+   * `!column_count() || !other.column_count() ||
+   *  (column_count() == other.column_count())`.
    *
    * @par Effects
-   * `(column_count() == other.column_count())`.
-   * row_count() increased by `std::min(other.row_count(), count)`.
+   *   - `(column_count() == other.column_count())` if `!column_count()`;
+   *   - row_count() increased by `std::min(other.row_count(), count)` if
+   * `other.column_count()`.
    *
    * @par Exception safety guarantee
    * Basic.
@@ -172,6 +177,8 @@ public:
     if (!column_count()) {
       columns_ = {}; // prevent UB if instance was moved
       columns_.resize(other.column_count());
+    } else if (!other.column_count()) {
+      return;
     } else if (!(column_count() == other.column_count()))
       throw Exception{"cannot append table rows from table with different "
         "column count"};
@@ -219,7 +226,7 @@ public:
    * @param column Column to append.
    *
    * @par Requires
-   * `(!column_count() || (row_count() == column.size()))`.
+   * `!column_count() || (row_count() == column.size())`.
    * Column must be of type Column.
    *
    * @par Effects
