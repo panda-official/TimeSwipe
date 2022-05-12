@@ -60,8 +60,10 @@ public:
       target_freq > input_freq)
       throw Exception{"invalid target signal frequency"};
 
-    cutoff_freq = cutoff_freq.value_or(.25*(target_freq /
-        Driver::instance().max_sample_rate()));
+    using Cutoff_type = decltype(cutoff_freq)::value_type;
+    cutoff_freq = cutoff_freq.value_or(.25*(
+        static_cast<Cutoff_type>(target_freq) /
+        static_cast<Cutoff_type>(Driver::instance().max_sample_rate())));
     if (!(0 < cutoff_freq && cutoff_freq <= 1))
       throw Exception{"invalid cutoff frequency"};
 
