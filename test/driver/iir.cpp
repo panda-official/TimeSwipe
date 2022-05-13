@@ -23,8 +23,7 @@ inline progpar::Program_parameters params;
 
 [[noreturn]] inline void usage()
 {
-  std::cerr << "usage: iir --input-freq=<int> --target-freq=<int> "
-            << "[--cutoff-freq=<float>] [file.csv]\n";
+  std::cerr << "usage: iir --sample-rate=<int> [--cutoff-freq=<int>] [file.csv]\n";
   std::exit(1);
 }
 
@@ -32,19 +31,22 @@ int main(const int argc, const char* const argv[])
 {
   // Parse arguments.
   params = progpar::Program_parameters{argc, argv};
-  const auto [input_freq, target_freq, cutoff_freq, file] =
+  const auto [sample_rate, cutoff_freq, file] =
     []
     {
       try {
-        const auto inf = stoi(params["input-freq"].not_empty_value());
-        const auto taf = stoi(params["target-freq"].not_empty_value());
-        const auto cuf = stod(params["cutoff-freq"].value_or("0.25"));
+        const auto srate = stoi(params["sample-rate"].not_empty_value());
+        const auto cutoff = [cutopt = params["cutoff-freq"]]
+        {
+            return cutopt.is_valid_throw_if_no_value() ?
+              std::make_optional<int>(stoi(*cutopt.value())) : std::nullopt;
+        }();
 
         const auto param_count = params.arguments().size();
         if (param_count > 1)
           throw std::runtime_error{""};
         const auto& file = param_count && !params[0].empty() ? params[0] : "-";
-        return std::make_tuple(inf, taf, cuf, file);
+        return std::make_tuple(srate, cutoff, file);
       } catch (...) {
         usage();
       }
@@ -52,7 +54,7 @@ int main(const int argc, const char* const argv[])
 
   // Make IIR filter.
   using ts::detail::Iir_filter;
-  Iir_filter filter{input_freq, target_freq, cutoff_freq};
+  Iir_filter filter{sample_rate, cutoff_freq};
 
   // Read the input from either the specified file or standard input.
   auto data = file == "-" ?

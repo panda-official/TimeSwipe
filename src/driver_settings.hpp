@@ -168,21 +168,21 @@ public:
    * @returns The reference to this instance.
    *
    * @par Requires
-   * `value ∋ (0, 1]`.
+   * `value ∋ (0, *sample_rate()]`.
    *
    * @warning This setting can be applied with Driver::set_driver_settings()
    * only if `!Driver::instance().is_measurement_started()`.
    *
    * @see cutoff_frequency().
    */
-  Driver_settings& set_cutoff_frequency(std::optional<double> value);
+  Driver_settings& set_cutoff_frequency(std::optional<int> value);
 
   /**
    * @returns The current cutoff frequency.
    *
    * @see set_cutoff_frequency();
    */
-  std::optional<double> cutoff_frequency() const;
+  std::optional<int> cutoff_frequency() const;
 
   /**
    * @brief Sets the burst buffer size.

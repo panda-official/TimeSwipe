@@ -1066,7 +1066,7 @@ private:
   void reset_filters(const int rate,
     const Resampler_mode res_mode,
     const Filter_mode fil_mode,
-    const std::optional<double> cutoff_freq)
+    const std::optional<int> cutoff_freq)
   {
     PANDA_TIMESWIPE_ASSERT(!is_measurement_started());
 
@@ -1078,7 +1078,7 @@ private:
     if (fil_mode == Filter_mode::disabled)
       filters_ = std::make_unique<Generic_filter_container>();
     else if (fil_mode == Filter_mode::iir)
-      filters_ = std::make_unique<Iir_filter_vector>(cc, max_rate, rate, cutoff_freq);
+      filters_ = std::make_unique<Iir_filter_vector>(cc, rate, cutoff_freq);
     else
       PANDA_TIMESWIPE_ASSERT(false);
 

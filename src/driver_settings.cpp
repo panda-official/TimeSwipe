@@ -51,7 +51,7 @@ struct Driver_settings::Rep final {
     filter_mode();
 
     // Check cutoff frequency.
-    check_cutoff_frequency(cutoff_frequency());
+    check_cutoff_frequency(cutoff_frequency(), srate);
 
     // Check burst buffer and frequency possible conflict.
     const auto bbs = burst_buffer_size();
@@ -165,13 +165,13 @@ struct Driver_settings::Rep final {
     return member<Filter_mode>("filterMode");
   }
 
-  void set_cutoff_frequency(const std::optional<double> value)
+  void set_cutoff_frequency(const std::optional<int> value)
   {
-    check_cutoff_frequency(value);
+    check_cutoff_frequency(value, sample_rate());
     set_member("cutoffFrequency", value);
   }
 
-  std::optional<double> cutoff_frequency() const
+  std::optional<int> cutoff_frequency() const
   {
     return member<double>("cutoffFrequency");
   }
@@ -238,10 +238,14 @@ private:
     }
   }
 
-  static void check_cutoff_frequency(const std::optional<double> freq)
+  static void check_cutoff_frequency(const std::optional<int> freq,
+    const std::optional<int> rate)
   {
     if (freq) {
-      if (!(0 < *freq && *freq <= 1))
+      if (!rate)
+        throw Exception{Errc::driver_settings_insufficient,
+          "cannot check cutoff frequency: unknown sample rate"};
+      else if (!(0 < *freq && *freq <= *rate))
         throw Exception{Errc::driver_settings_invalid, "invalid cutoff frequency"};
     }
   }
@@ -392,13 +396,13 @@ Driver_settings::filter_mode() const
   return rep_->filter_mode();
 }
 
-Driver_settings& Driver_settings::set_cutoff_frequency(const std::optional<double> value)
+Driver_settings& Driver_settings::set_cutoff_frequency(const std::optional<int> value)
 {
   rep_->set_cutoff_frequency(value);
   return *this;
 }
 
-std::optional<double> Driver_settings::cutoff_frequency() const
+std::optional<int> Driver_settings::cutoff_frequency() const
 {
   return rep_->cutoff_frequency();
 }
