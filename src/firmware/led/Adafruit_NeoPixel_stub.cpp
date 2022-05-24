@@ -5,7 +5,11 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-//SAME54 PORTS for ino (implementation of Adafruit_NeoPixel_stub.h):
+/**
+ * @file
+ * SAME5x PORTS for ino (implementation of Adafruit_NeoPixel_stub.h): a glue
+ * between the classes listed above and the Adafruit NeoPixel library.
+ */
 
 #include "../../3rdparty/adafruit/neopixel/Adafruit_NeoPixel_stub.h"
 

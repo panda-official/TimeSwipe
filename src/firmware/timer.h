@@ -24,8 +24,9 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_TIMER_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_TIMER_HPP
 
-/*!
- * \brief A callback interface used to notify the derived class that a timer event happened
+/**
+ * @brief A callback interface used to notify the derived class that a timer
+ * event happened.
  */
 class CTimerEvent{
 public:

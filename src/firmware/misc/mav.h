@@ -5,27 +5,16 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-
-/*!
-*   \file
-*   \brief A definition file for
-*   CMA
-*/
-
-
 #pragma once
 
-#include <math.h>
 #include "ringbuffer.h"
 
-template <typename T>
-/*!
- * \brief The implementation of Moving Average(MA) with Standard Deviation(StdDev) function
- */
-class CMA
-{
-protected:
+#include <cmath>
 
+/// Moving Average (MA) with Standard Deviation (StdDev) functor.
+template <typename T>
+class CMA final {
+private:
     /*!
      * \brief The initialized flag: shows the raw data ring buffer is filled and MA can be calculated
      */

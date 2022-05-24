@@ -5,23 +5,20 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSamQSPI
-*/
-
 #pragma once
+
 #include "../pin.hpp"
 #include "../../spi.hpp"
 
-/*!
- * \brief An implementation of SAM E54 QSPI bus
- * \details "The QSPI can be used in “SPI mode” to interface serial peripherals, such as ADCs, DACs, LCD
- *   controllers and sensors, or in “Serial Memory Mode” to interface serial Flash memories." manual, page 1087
+/**
+ * @brief An implementation of SAME5x QSPI (Quad SPI) bus which is used to
+ * control MAX15xx board's DAC.
+ *
+ * @details "The QSPI can be used in “SPI mode” to interface serial peripherals,
+ * such as ADCs, DACs, LCD controllers and sensors, or in “Serial Memory Mode”
+ * to interface serial Flash memories." manual, page 1087.
  */
-class CSamQSPI : public CSPI
-{
+class CSamQSPI final : public CSPI {
 public:
     /*!
      * \brief The class constructor
@@ -66,5 +63,5 @@ public:
     void set_tprofile_divs(unsigned char CSminDel, unsigned char IntertransDel, unsigned char BeforeClockDel);
 
     //! The virtual destructor of the class
-    virtual ~CSamQSPI(){}
+    virtual ~CSamQSPI() = default;
 };

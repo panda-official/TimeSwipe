@@ -21,7 +21,17 @@
 
 #include <memory>
 
-/// A SAME5x clock generator.
+/**
+ * @brief A SAME5x clock generator.
+ *
+ * @details According to the SAME5x Manual: "Depending on the application,
+ * peripherals may require specific clock frequencies to operate correctly. The
+ * Generic Clock controller (GCLK) features 12 Generic Clock Generators that can
+ * provide a wide range of clock frequencies."
+ * In other words, SAME5x peripherals are not provided with clock frequency by
+ * default, but require a clock generator to be properly tuned and connected.
+ * This class is designed for this purpose.
+ */
 class Sam_clock_generator final {
 public:
   /// Clock generator ID.

@@ -4,24 +4,16 @@ If a copy of the GPL was not distributed with this
 file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
-/*!
-*   \file
-*   \brief A definition file for
-*   typeSamDAC, CSamDACcntr
-*/
 
 #pragma once
-
-/*!
- * \brief An enumeration of possible SAME54 DAC devices
- */
-enum class typeSamDAC{Dac0, Dac1};
-
 
 #include "adcdac.hpp"
 #include "clock_generator.hpp"
 
-/// A single SAME54 DAC channel.
+/// A possible SAME5x DAC device.
+enum class typeSamDAC { Dac0, Dac1 };
+
+/// A single SAME5x DAC channel.
 class CSamDACcntr final : public Dac_channel {
 protected:
     /*!

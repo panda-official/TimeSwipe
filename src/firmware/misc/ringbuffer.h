@@ -5,24 +5,14 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CRingBuffer
-*/
-
 #pragma once
 
 #include <vector>
 
+/// The simple ring buffer.
 template <typename T>
-/*!
- * \brief The simple ring buffer
- */
-class CRingBuffer
-{
-protected:
-
+class CRingBuffer final {
+private:
     /*!
      * \brief The buffer to store data
      */

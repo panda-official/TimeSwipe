@@ -26,8 +26,7 @@
 /**
  * @brief Panda board button.
  *
- * @details This class follows the Singleton design pattern. Emits JSON event
- * according to the button state.
+ * @details This class follows the Singleton design pattern.
  */
 class Sam_button final : public Pin_button<Sam_button> {
 public:

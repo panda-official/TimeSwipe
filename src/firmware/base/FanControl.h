@@ -5,25 +5,17 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-
-/*!
-*   \file
-*   \brief A definition file for
-*   CFanControl
-*/
-
 #pragma once
 
 #include "PINPWM.h"
 #include "../os.h"
 #include "sam/SamTempSensor.h"
 
-/*!
- * \brief The class implements control of fan in PWM mode with several fixed speeds
+/**
+ * @brief A control of fan in PWM mode with several fixed speeds.
  */
-class CFanControl
-{
-protected:
+class CFanControl final {
+private:
     /*!
      * \brief The minimum temperature of the range
      */

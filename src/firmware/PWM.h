@@ -16,24 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
-* @file
-* PWM stuff.
-*/
-
 #ifndef PANDA_TIMESWIPE_FIRMWARE_PWM_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_PWM_HPP
 
 #include "os.h"
 
-/*!
- * \brief The PWM base class
- */
+/// A PWM base.
 template <class T>
-class CPWM
-{
+class CPWM {
 protected:
-
     /*!
      * \brief Pulse halh-period durations
      */

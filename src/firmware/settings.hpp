@@ -350,13 +350,13 @@ private:
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Parser of simple text protocol described in firmware-api.md.
+ * @brief Parser of the text protocol described in firmware-api.md.
  *
  * @details This class is responsible to parse the setting requests and to pass
  * them to a Setting_dispatcher. The syntax of requests is described in
  * firmware-api.md.
  *
- * @see Setting_dispatcher.
+ * @see Setting_dispatcher, Setting_request.
  */
 class Setting_parser final : public Serial_event_handler {
 public:

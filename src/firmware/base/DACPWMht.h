@@ -5,13 +5,6 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CDacPWMht
-*/
-
-
 #pragma once
 
 #include "adcdac.hpp"
@@ -24,13 +17,13 @@ Copyright (c) 2019-2020 Panda Team
 #include <cstdint>
 #include <memory>
 
-/*!
- * \brief The class implements a PWM which output is controlled by the DAC with DMA or timer IRQ support
- * \details The class is designed to generate PWM without using of CPU time
+/**
+ * @brief A PWM which's output is controlled by the DAC with DMA or timer IRQ support.
+ *
+ * @details The class is designed to generate PWM without using of CPU time.
  */
-class CDacPWMht : public CPWM<CDacPWMht>, public CSamTC
-{
-friend class CPWM;
+class CDacPWMht final : public CPWM<CDacPWMht>, public CSamTC {
+  friend CPWM;
 public:
 
     /*!
@@ -51,7 +44,7 @@ public:
         IRQ     //!<IRQ mode: CortexM4 core timer interrupt handlers are used to set DAC output
     };
 
-protected:
+private:
 
     /*!
      * \brief The PWM index of the instance

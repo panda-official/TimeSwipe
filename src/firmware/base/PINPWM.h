@@ -5,13 +5,6 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CPinPWM
-*/
-
-
 #pragma once
 
 #include "../PWM.h"
@@ -23,15 +16,13 @@ Copyright (c) 2019-2020 Panda Team
 #include <cstdint>
 #include <memory>
 
-/*!
- * \brief The class implements a PWM which output is controlled by the PIN with DMA support
- * \details The class is designed to generate PWM without using of CPU time
+/**
+ * @brief A PWM which output is controlled by the PIN with DMA support.
+ *
+ * @details The class is designed to generate PWM without using of CPU time.
  */
-class CPinPWM : public CPWM<CPinPWM>, public CSamTC
-{
-friend class CPWM;
+class CPinPWM final : public CPWM<CPinPWM>, public CSamTC {
 public:
-
     /*!
      * \brief The class constructor
      * \param nGroup - Port Group of the fan control pin
@@ -39,7 +30,9 @@ public:
      */
     CPinPWM(Sam_pin::Group nGroup, Sam_pin::Number nPin);
 
-protected:
+private:
+    friend CPWM;
+
     /*!
      * \brief The 32-bit variable holding the PORT output mask
      */

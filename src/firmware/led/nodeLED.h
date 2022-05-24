@@ -5,20 +5,12 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CLED and nodeLED
-*/
-
-
 #pragma once
-#include <memory>
-#include <list>
 
-/*!
- * \brief A type for LED color
- */
+#include <list>
+#include <memory>
+
+/// A type for LED color.
 typedef unsigned int typeLEDcol;
 
 /*!
@@ -31,22 +23,21 @@ typedef unsigned int typeLEDcol;
 inline constexpr unsigned int LEDrgb(unsigned int r, unsigned int g, unsigned int b){return ((r<<16)|(g<<8)|b); }
 
 
-/*!
- * \brief An enumeration of possible LEDs (started from 1 for compatibility)
- */
-enum class typeLED:int {LED1=1, LED2, LED3, LED4}; //start from 1 for comp
+/// A possible LED (started from 1 for compatibility).
+enum class typeLED { LED1 = 1, LED2, LED3, LED4 };
 typedef typeLED typeLEDind;
-
 
 class nodeLED;
 
-/*!
- * \brief A class providing an interface for controlling a single LED
+/**
+ * @brief A class providing an interface for controlling a single LED.
+ *
+ * @details Provides methods for switching LED on/off, changing its color and
+ * mode (blinking/steady).
  */
-class CLED
-{
-friend class nodeLED;
-protected:
+class CLED final {
+private:
+    friend nodeLED;
 
     /*!
      * \brief The index of this LED (used as ID and for obtaining a LED index for 3rd party library (Adafruit) )
@@ -100,9 +91,10 @@ public:
      * \brief Obtains a LED zero-based index to be used in 3rd-party library (Adafruit)
      * \return A zero based index for Adafruit
      */
-    inline int get_zerob_ind(){ return (4 - static_cast<int>(m_nLED)); }
-
-//public:
+    int get_zerob_ind() const noexcept
+    {
+      return (4 - static_cast<int>(m_nLED));
+    }
 
     /*!
      * \brief The class constructor
@@ -168,13 +160,14 @@ public:
 };
 
 
-/*!
- * \brief A container for collection of LED class objects
- * \details Provides a group control over a collection of LED class objects
+/**
+ * @brief A container for collection of LED class objects.
+ *
+ * @details Provides a group control over a collection of LED class objects.
  */
-class nodeLED{
-friend class CLED;
-protected:
+class nodeLED final {
+private:
+    friend CLED;
 
     /*!
      * \brief A list of LED class object. A LED object is added automatically to the list when its constructor is called.

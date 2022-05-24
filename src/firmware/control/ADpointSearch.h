@@ -5,41 +5,45 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CADpointSearch
-*/
-
 #pragma once
+
+#include "adcdac.hpp"
 
 #include <memory>
 #include <vector>
-#include "adcdac.hpp"
 
-/*!
- * \brief The Finite States for search for the required value of the control signal to obtain the output signal of the desired value algorithm
+/**
+ * @brief The Finite States for search for the required value of the control
+ * signal to obtain the output signal of the desired value algorithm.
  */
-enum class typePTsrcState
-{
+enum class typePTsrcState {
     idle,           //!<inactive state, no operation performed
     searching,      //!<searching
     found,          //!<the point is found
     error           //!<searching failed
 };
-/*!
- * \brief The class implements search algorithm for the required value of the control signal to obtain the output signal of the desired value
- * \details The control signal is changed as following: For the most significant byte of a control word, a trial "1" is set.
- * If the measured signal exceeds the desired value "1" is replaced by "0". if not, "1" is kept.
- * Then procedure is repeated for the next bit toward a least significant bit of the control word untill
- *  all bits in the word will be processed.
- * Search successful if the final measured value fits into the range TargetValue+-TargErrTolerance
+
+/**
+ * @brief Implements searching algorithm for the required value of the control
+ * signal to obtain the output signal of the desired value.
  *
+ * @details The control signal is changed as following: for the most significant
+ * byte of a control word, a trial `1` is set. If the measured signal exceeds the
+ * desired value `1` is replaced by `0`. Otherwise, `1` is kept. Then procedure
+ * repeats for the next bit toward a least significant bit of the control word
+ * until all the bits in the word will be processed. Search is successful if the
+ * final measured value fits into the range
+ * `[TargetValue - TargErrTolerance, TargetValue + TargErrTolerance]`.
+ *
+ * @remarks This class implements an algorithm for finding offset for single
+ * channel. To find offsets for several channels at once there is special
+ * infrastructure class CCalMan.
+ *
+ * @see CCalMan.
  */
-class CADpointSearch
-{
-friend class CCalMan;
-protected:
+class CADpointSearch final {
+private:
+    friend class CCalMan;
 
     /*!
      * \brief A valid offset for the channel

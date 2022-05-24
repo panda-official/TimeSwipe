@@ -36,8 +36,7 @@ using namespace panda::timeswipe::detail;
 /**
  * @brief Controls the basic behavior of the board.
  *
- * @details This class follows the Singleton design pattern. Emits JSON event
- * on each change of the board settings and receives such events from others.
+ * @details This class follows the Singleton design pattern.
  */
 class Board final : public ISerialize
                   , public std::enable_shared_from_this<Board> {

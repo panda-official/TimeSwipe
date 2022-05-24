@@ -31,17 +31,15 @@
 /// Character type.
 using Character = int;
 
-/*!
- * \brief A First-In-First-Out buffer implementation.
+/**
+ * @brief A FIFO buffer implementation.
  *
- * \details The FIFO buffer is used as basic data storage/exchange primitive type in the firmware.
- * Derived from std::string it also inherits std::string and std::vector functionality
+ * @details The FIFO buffer is used as basic data storage/exchange primitive
+ * type in the firmware. Derived from std::string it also inherits std::string
+ * and std::vector functionality
  *
- * \todo Maybe it was not really good idea to inherit std::string and std::vector in a pure FIFO buffer
- * but it is often required a functionality of a memory buffer with a random access.
- * any ideas?
+ * @todo Don't inherit from std::string.
  */
-
 class CFIFO : public std::string
 {
 protected:
@@ -232,6 +230,8 @@ protected:
 /**
  * @brief A callback interface used to notify the derived classes about some
  * event emitted by a serial device.
+ *
+ * @see ISerial.
  */
 class Serial_event_handler {
 public:

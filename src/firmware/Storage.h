@@ -26,16 +26,15 @@
 
 #include <typeinfo>
 
-/*!
- * \brief   The base class defining an interface for a persistent data storage
+/**
+ * @brief The base class defining an interface for a persistent data storage.
  *
- * \details The class defines methods for serialization of primitive data types: bool, int, unsigned int, float
+ * @details The class defines methods for serialization of primitive data types:
+ * `bool`, `int`, `unsigned int`, `float`.
  *
- * \todo    Extend/add stored data types
- *
+ * @todo Extend/add stored data types.
  */
-class  CStorage
-{
+class CStorage {
 protected:
     /*!
      * \brief The flag defining if data is importing(=true) from the storage or exporting to the storage(=false)
@@ -113,11 +112,8 @@ public:
     }
 };
 
-/*!
- * \brief A callback interface used to seialize the content of the derived class
- */
-struct ISerialize
-{
+/// A callback interface used to serialize the content of the derived class.
+struct ISerialize {
     /*!
      * \brief Should provide the serialization of the object content
      * \param st A reference to the storage from which the object content is importing or exporting to

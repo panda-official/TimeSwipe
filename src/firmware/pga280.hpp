@@ -297,9 +297,7 @@ typedef union {
 } typeCPGA280ISw2Reg;
 
 
-/*!
- * \brief The PGA280 amplifier control class
- */
+/// The PGA280 amplifier control of the DMS board.
 class CPGA280 final {
 public:
     /*!

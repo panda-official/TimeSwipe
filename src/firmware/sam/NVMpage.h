@@ -7,24 +7,17 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
+#include <cstdint>
 
-/*!
-*   \file
-*   \brief A definition file for NVMscpage (NVM Software Calibration Area Mapping) CPU "fuses" and User Page
-*
-*/
-
-/*!
- * \brief NVM Software Calibration Area Mapping
+/**
+ * @brief NVM Software Calibration Area Mapping (User Page).
  *
- * \details "The NVM Software Calibration Area contains calibration data that are determined and written during
- *           production test. These calibration values should be read by the application software and written back to
- *           the corresponding register." manual, pages 59-60
+ * @details "The NVM Software Calibration Area contains calibration data that
+ * are determined and written during production test. These calibration values
+ * should be read by the application software and written back to the
+ * corresponding register." manual, pages 59-60.
  */
-
-#include <stdint.h>
-struct NVMscpage{
-
+struct NVMscpage final {
     //16-bit block1:
     uint16_t AC_BIAS            :2; //!<AC Comparator 0/1 Bias Scaling. To be written to the AC CALIB register.
     uint16_t ADC0_BIASCOMP      :3; //!<Bias comparator scaling. To be written to the ADC0 CALIB register.
@@ -68,11 +61,8 @@ struct NVMscpage{
     uint32_t VCH                :12; //!<Temperature calibration parameter4
 };
 
-/*!
- * \brief The CPU "fuses" (essential settings surviving chip-erase operation)
- */
-struct NVMfuses{
-
+/// The CPU "fuses" (essential settings surviving chip-erase operation).
+struct NVMfuses final {
     //32-bit block1:
     uint32_t BOD33_Disable                  :1;
     uint32_t BOD33_Level                    :8;
@@ -116,12 +106,8 @@ struct NVMfuses{
     uint32_t FactorySettings7;
 };
 
-/*!
- * \brief The User Page description
- */
-struct NVM_UserPage
-{
+/// The User Page description
+struct NVM_UserPage final {
     struct NVMfuses Fuses;
     uint32_t UserPages[120];
 };
-

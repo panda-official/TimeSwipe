@@ -6,28 +6,19 @@ Copyright (c) 2019 Panda Team
 */
 
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSamI2Cmem
-*/
-
 #pragma once
 
 #include "sercom.hpp"
 
-/*!
- * \brief The CSamI2Cmem class emulates CAT24C32 EEPROM chip in the read-only mode
+/**
+ * @brief Emulates CAT24C32 (CAT2430) EEPROM chip in the read-only mode.
  *
- * \details
+ * @remarks Implementations for concrete pinouts are CSamI2CmemHAT and CSamI2Cmem8Pin.
  *
+ * @see CSamI2CmemHAT, CSamI2Cmem8Pin.
  */
-
-
-class CSamI2Cmem : public Sam_sercom
-{
+class CSamI2Cmem : public Sam_sercom {
 public:
-
     //! Finite State Machine used to handle I2C bus states according to communication algorithm (see CAT24C32 manual)
     enum    FSM{
 

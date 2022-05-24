@@ -24,8 +24,8 @@
 #ifndef PANDA_TIMESWIPE_FIRMWARE_OS_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_OS_HPP
 
-/*!
- *  \brief an operating system interface namespace
+/**
+ * @brief An operating system interface.
  */
 namespace os {
 

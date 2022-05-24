@@ -23,13 +23,13 @@ Copyright (c) 2019-2020 Panda Team
 typedef std::bitset<32> typeRegister;
 class CShiftRegPin;
 
-/*!
- * \brief The pin-controlled shift register implementation
- * \details This class implements common shift register that has Data, Clock and Strobe inputs
+/**
+ * @brief The pin-controlled shift register implementation.
+ *
+ * @details Implements common shift register that has Data, Clock and Strobe inputs.
  */
-class CShiftReg : public std::enable_shared_from_this<CShiftReg>
-{
-friend class CShiftRegPin;
+class CShiftReg : public std::enable_shared_from_this<CShiftReg> {
+  friend CShiftRegPin;
 protected:
 
     /*!
@@ -114,8 +114,10 @@ protected:
 
 };
 
-/*!
- * \brief The common shift register single pin control class
+/**
+ * @brief The common shift register single pin control class.
+ *
+ * @details Controls Shift Register of the DMS board to provide pins extension.
  */
 class CShiftRegPin : public Pin
 {

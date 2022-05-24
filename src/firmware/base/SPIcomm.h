@@ -5,13 +5,6 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSPIcomm
-*/
-
-
 #ifndef SPICOMM_H
 #define SPICOMM_H
 
@@ -20,14 +13,13 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <optional>
 
-/*!
- * \brief The class providing functionality for external communication via SPI with integrated flow-control (CSyncSerComFSM)
- * \details The external communication via SPI is based on a simple flow control protocol, please see CSyncSerComFSM description for details
+/**
+ * @brief An API for external communication via SPI with integrated flow-control.
+ *
+ * @see CSyncSerComFSM.
  */
-class CSPIcomm : public CSamSPIbase
-{
+class CSPIcomm final : public CSamSPIbase {
 public:
-
     /*!
      * \brief The class constructor
      * \param nSercom - SAME54 Sercom unit to be used as SPI

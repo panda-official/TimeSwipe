@@ -26,12 +26,18 @@
 
 #include "serial.hpp"
 
-/*!
- * \brief   A basic class for SPI devices
- * \details This pure virtual class declares some specific SPI interfaces for setting phase and polarity set_phpol() ,
+/**
+ * @brief An SPI device.
+ *
+ * @details Adds specific SPI bus functionality to a `CSerial` device. In real
+ * hardware devices a data (series of bytes) are normally stored in FIFO buffer.
+ *
+ *
+ * @details A specific SPI interface for setting phase and polarity set_phpol() ,
  * baud rate divisor set_baud_div(), setting time profile for transfer operation set_tprofile_divs()
  * \todo seems to be deprecated,too complex...
  *
+ * @see CFIFO.
  */
 class CSPI : public virtual ISerial {
 public:

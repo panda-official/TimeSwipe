@@ -7,23 +7,18 @@ Copyright (c) 2019-2020 Panda Team
 
 #pragma once
 
-#include <stdint.h>
 #include "NVMpage.h"
 
-/*!
-*   @file
-*   @brief A definition file for SAM's Nonvolatile Memory Controller:
-*   CSamNVMCTRL
-*/
+#include <cstdint>
 
-/*!
- * \brief The SAM's Nonvolatile Memory Controller implementation
+/**
+ * @brief The SAM's Nonvolatile Memory Controller implementation.
  *
- * \details Provides methods for working with SmartEEPROM. Designed as singleton
+ * @details Provides methods for working with SmartEEPROM. Follows the Singleton
+ * design pattern.
  */
-class CSamNVMCTRL
-{
-protected:
+class CSamNVMCTRL final {
+private:
     /*!
      * \brief The size of SmartEEPROM in bytes
      */
@@ -95,7 +90,6 @@ public:
      * \brief Returns the reference to the created class object instance. (The object created only once)
      * \return
      */
-
     static CSamNVMCTRL& Instance()
     {
        static CSamNVMCTRL instance;

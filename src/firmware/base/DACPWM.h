@@ -14,21 +14,10 @@ Copyright (c) 2019-2020 Panda Team
 
 #include <memory>
 
-/*!
-*   @file
-*   @brief A definition file for DAC controlled PWM:
-*   CDacPWM
-*
-*/
-
-/*!
- * \brief The class implements a PWM which output is controlled by the DAC
- */
-class CDacPWM : public CPWM<CDacPWM>
-{
-friend class CPWM;
-protected:
-
+/// A PWM which's output is controlled by the DAC.
+class CDacPWM final : public CPWM<CDacPWM> {
+  friend CPWM;
+private:
     /*!
      * \brief The pointer to the controlling DAC
      */

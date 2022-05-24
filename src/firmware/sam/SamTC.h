@@ -5,30 +5,18 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSamTC, typeSamTC
-*/
-
 #pragma once
 
 #include "clock_generator.hpp"
 
 #include <optional>
 
-/*!
- * \brief An enumeration of possible SAME54 TC devices
- */
-enum class typeSamTC : int {Tc0=0, Tc1, Tc2, Tc3, Tc4, Tc5, Tc6, Tc7};
+/// A possible SAME5x TC device.
+enum class typeSamTC { Tc0, Tc1, Tc2, Tc3, Tc4, Tc5, Tc6, Tc7 };
 
-/*!
- * \brief The implementation of SAME54's basic Timer/Counter(TC).
- */
-class CSamTC
-{
+/// A SAME5x basic Timer/Counter (TC).
+class CSamTC {
 protected:
-
     /*!
      * \brief The TC ID
      */
@@ -42,7 +30,6 @@ protected:
     void EnableAPBbus(typeSamTC nTC, bool how);
 
 public:
-
     /*!
      * \brief The class constructor
      * \param nTC The TC's ID

@@ -5,12 +5,6 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CView, CViewChannel
-*/
-
 #pragma once
 
 #include "../basics.hpp"
@@ -30,10 +24,9 @@ typedef void (CView::*pfn_ViewProc)();
  * \brief The View class for a single visualization channel
  * \details The single visualization channel is linked with corresponding LED
  */
-class CViewChannel
-{
-friend class CView;
-protected:
+class CViewChannel final {
+private:
+    friend CView;
 
     /*!
      * \brief Controlled LED
@@ -114,21 +107,20 @@ public:
 };
 
 
-/*!
- * \brief The application View class
- * \details The class can be considered as somewhat usually called "view" in MCV pattern.
- * It should determine the overall behaviour of board visualization elements.
- * The actual view instance is accesible via Instance() method.
+/**
+ * @brief The application View class.
  *
- * \todo This is a prototype of a view class. All colour constants and visualization routines should be moved here.
- * Currently designed as "singleton", but the possibility of changing views can be added.
+ * @details The class can be considered as somewhat usually called "view" in MVC
+ * pattern. It should determine the overall behaviour of board visualization
+ * elements. The actual view instance is accesible via Instance() method.
+ *
+ * @todo This is a prototype of a view class. All colour constants and visualization
+ * routines should be moved here. Currently designed as "singleton", but the
+ * possibility of changing views can be added.
  * The CView::Instance() that returns current view must remain.
- *
  */
-class CView
-{
-friend class CViewChannel;
-
+class CView final {
+  friend CViewChannel;
 public:
     /*!
      * \brief Possible menus
@@ -144,7 +136,7 @@ public:
     };
 
 
-protected:
+private:
     /*!
      * \brief DMS board base color
      */
@@ -443,7 +435,7 @@ public:
         return m_bCalUItestDone;
     }
 
-protected:
+private:
     /*!
      * \brief Set the flag to break Calibration UI test
      */

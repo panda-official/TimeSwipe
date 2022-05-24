@@ -5,28 +5,17 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSamSPIbase
-*/
-
-
 #pragma once
 
-#include "sercom.hpp"
-#include "pin.hpp"
-
-#include "../os.h"
 #include "../../spi.hpp"
+#include "../os.h"
+#include "pin.hpp"
+#include "sercom.hpp"
 
 #include <optional>
 
-/*!
- * \brief The class implements basic functionality of SAME54 Sercom SPI
- */
-class CSamSPIbase : public Sam_sercom, public CSPI
-{
+/// Implements basic functionality of SAME5x Sercom SPI.
+class CSamSPIbase : public Sam_sercom, public CSPI {
 protected:
     /*!
      * \brief Is acting as a master or as a slave?

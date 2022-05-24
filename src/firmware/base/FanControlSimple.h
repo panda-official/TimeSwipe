@@ -5,12 +5,6 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CFanControlSimple
-*/
-
 #pragma once
 
 #include "../os.h"
@@ -18,14 +12,14 @@ Copyright (c) 2019-2020 Panda Team
 #include "sam/SamTempSensor.h"
 #include "sam/pin.hpp"
 
-/*!
- * \brief The class implements simple control of fan in ON/OFF mode
- * \details Two temperature thresholds set: when higher one is exceeded fan is started, when temperature drops below lower threshold fan is stopped
+/**
+ * @brief A simple control of fan in ON/OFF mode.
+ *
+ * @details Two temperature thresholds set: when higher one is exceeded fan is
+ * started, when temperature drops below lower threshold fan is stopped.
  */
-class CFanControlSimple
-{
-protected:
-
+class CFanControlSimple final {
+private:
     /*!
      * \brief Higher temperature threshold
      */

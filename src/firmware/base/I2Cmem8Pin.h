@@ -8,24 +8,14 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-/*!
-*   \file
-*   \brief A definition file for realization of CAT2430 EEPROM chip emulation for external 8-Pin plug outputs
-*   CSamI2Cmem8Pin
-*
-*/
-
 #include "sam/SamI2Cmem.h"
 
-/*!
- * \brief A hardware-dependent realization of CAT2430 EEPROM chip emulation for external 8-Pin plug outputs
+/**
+ * @brief A hardware-dependent implementation of CAT2430 EEPROM chip emulation
+ * for external 8-Pin plug outputs.
  */
-class CSamI2Cmem8Pin : public CSamI2Cmem
-{
+class CSamI2Cmem8Pin final : public CSamI2Cmem {
 public:
-
-    /*!
-     * \brief The class constructor. The implementation contains the PINs function setup
-     */
-    CSamI2Cmem8Pin();
+  /// Setups PINs.
+  CSamI2Cmem8Pin();
 };

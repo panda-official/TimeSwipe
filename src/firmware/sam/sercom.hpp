@@ -60,11 +60,11 @@ void SERCOM7_3_Handler();
 } // extern "C"
 
 /**
- * @brief An implementation of SAME54 basic Serial Communication Interface.
+ * @brief An implementation of SAME5x basic Serial Communication Interface.
  *
  * @details Depending on settings it can be turned into USART, SPI, I2C-master
  * or I2C-slave. The functionality of SERCOM is provided by handling interrupts,
- * enabling and connecting corresponding Sam_clock_generator.
+ * enabling and connecting the corresponding Sam_clock_generator.
  */
 class Sam_sercom : virtual public CSerial {
 public:

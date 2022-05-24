@@ -5,21 +5,20 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CNewMenu
-*/
-
 #pragma once
 
 #include "../button.hpp"
 
-/*!
- * \brief The Menu v2.0 controller
+/**
+ * @brief The Menu v2.0 controller.
+ *
+ * @details Another feature is a data visualization allowing to display the
+ * measured signal levels by using LEDs when an user is not interacting with the
+ * board (default View mode). This feature is implemented in the class `CDataVis`.
+ *
+ * @see CDataVis.
  */
-class CNewMenu  : public Button_event
-{
+class CNewMenu final : public Button_event {
 public:
     /*!
      * \brief The menu modes
@@ -42,7 +41,7 @@ public:
     */
     CNewMenu();
 
-protected:
+private:
 
     /*!
      * \brief The current menu mode

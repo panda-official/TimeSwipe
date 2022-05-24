@@ -39,8 +39,8 @@ enum I2c_bus_state : std::uint16_t {
 };
 
 /**
-* @brief An I2C master class for communication with an external EEPROM chip
-* (CAT24C32).
+* @brief An I2C master for communication with an external (real) EEPROM chip
+* CAT24C32 (CAT2430).
 */
 class Sam_i2c_eeprom_master final : public Sam_sercom {
 public:

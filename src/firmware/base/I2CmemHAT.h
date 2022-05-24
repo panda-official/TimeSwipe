@@ -8,23 +8,14 @@ Copyright (c) 2019 Panda Team
 
 #pragma once
 
-/*!
-*   \file
-*   \brief A definition file for realization of CAT2430 EEPROM chip emulation for HAT's outputs
-*   CSamI2CmemHAT
-*
-*/
-
 #include "sam/SamI2Cmem.h"
 
-/*!
- * \brief A hardware-dependent realization of CAT2430 EEPROM chip emulation for HAT's outputs
+/**
+ * @brief A hardware-dependent implementation of CAT2430 EEPROM chip emulation
+ * for HAT's outputs.
  */
-class CSamI2CmemHAT final : public CSamI2Cmem
-{
+class CSamI2CmemHAT final : public CSamI2Cmem {
 public:
-    /*!
-     * \brief The class constructor. The implementation contains the PINs function setup
-     */
-    CSamI2CmemHAT();
+  /// Setups PINs.
+  CSamI2CmemHAT();
 };

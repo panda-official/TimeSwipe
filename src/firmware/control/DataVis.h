@@ -5,33 +5,28 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CDataVis
-*/
-
 #pragma once
 
-#include <memory>
 #include "adcdac.hpp"
 #include "View.h"
 #include "misc/mav.h"
 
-/*!
- * \brief Data visualization class: displays the measured signal levels of the ADC channel using the LED indicator. Like this it visualizes the actual measurement values.
- * \details The intensity normalized value is calculated as I=(B^x-1)/(B-1), where x [0, 1]
- *
- * https://www.mikrocontroller.net/articles/LED-Fading
- *
- * To get Intensity in the middle x=0.5 the equation I=(B^0.5-1)/(B-1) has to be solved.
- * The roots are: B=( ( 1+- sqrt(1- 4I(1-I)) )/2I )^2
- * For I=0.4 the larger root is 2.25
-*/
-class CDataVis
-{
-protected:
+#include <memory>
 
+/**
+ * @brief A data visualizator: displays the measured signal levels of the ADC
+ * channel using the LED indicator.
+ *
+ * @details Like this it visualizes the actual measurement values. The intensity
+ * normalized value is calculated as `I = (B^x - 1)/(B - 1)`, where `x ∈ [0, 1]`.
+ * To get Intensity in the middle `x = 0.5` the equation `I = (B^0.5 - 1)/(B - 1)`
+ * has to be solved. The roots are: `B = ((1 +- sqrt(1 - 4I(1 - I)))/2I)^2`. For
+ * `I = 0.4` the larger root is `2.25`.
+ *
+ * @see https://www.mikrocontroller.net/articles/LED-Fading
+ */
+class CDataVis final {
+private:
     /*!
      * \brief The sum of raw ADC values for m_AvPeriod
      */

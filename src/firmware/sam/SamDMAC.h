@@ -5,28 +5,25 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSamDMABlock, CSamDMAChannel, CSamDMAC
-*/
-
 #pragma once
 
+#include <list>
 #include <memory>
 #include <vector>
-#include <list>
+
 class CSamDMAChannel;
 class CSamDMAC;
 
-/*!
- * \brief The helper class for working with single data block of DMA transfer
- * \details The DMA transfer organized as a sequence of data blocks assigned to a DMA channel
+/**
+ * @brief The helper class for working with single data block of DMA transfer.
+ *
+ * @details The DMA transfer organized as a sequence of data blocks assigned to
+ * a DMA channel.
  */
-class CSamDMABlock
-{
-friend class CSamDMAChannel;
-protected:
+class CSamDMABlock final {
+private:
+    friend CSamDMAChannel;
+
     /*!
      * \brief The pointer to the block descriptor (struct DmacDescriptor, 128bit-aligned)
      */
@@ -45,13 +42,10 @@ public:
      */
     CSamDMABlock(CSamDMAChannel *pCont, int nInd);
 
-public:
     /*!
      * \brief THe class destructor
      */
     ~CSamDMABlock();
-
-public:
 
     /*!
      * \brief The beatsize enum
@@ -72,20 +66,22 @@ public:
      * \param nBeats        - number of beats to transfer from source to destionation
      * \param nBsize        - a beat size for this block (8, 16 or 32 bits)
      */
-    void Setup(const void *pSourceAddres, const void *pDestAddress, unsigned int nBeats=1,
-               CSamDMABlock::beatsize nBsize= CSamDMABlock::beatsize::BYTE);
-
+    void Setup(const void *pSourceAddres,
+      const void *pDestAddress,
+      unsigned int nBeats=1,
+      CSamDMABlock::beatsize nBsize= CSamDMABlock::beatsize::BYTE);
 };
 
-/*!
- * \brief The helper class providing a DMA channel interface
- * \details The class instance must be factored from DMA controller instance: CSamDMAC::Instance().Factory()
+/**
+ * @brief The helper class providing a DMA channel interface.
+ *
+ * @details The class instance must be factored from DMA controller instance:
+ * CSamDMAC::Instance().Factory().
  */
-class CSamDMAChannel
-{
-friend class CSamDMABlock;
-friend class CSamDMAC;
-protected:
+class CSamDMAChannel final {
+private:
+  friend CSamDMABlock;
+  friend CSamDMAC;
 
     /*!
      * \brief The channel index
@@ -116,12 +112,10 @@ protected:
     CSamDMAChannel(CSamDMAC *pCont, int nInd);
 
 public:
-
     /*!
      * \brief The action to perform on transfer request from a peripheral
      */
-    enum trigact{
-
+    enum trigact {
         BLOCK=0,        //!<single block transfer
         BURST=2,        //!<burst transfer of the current block
         TRANSACTION=3   //!<run full transfer sequence (all blocks will be transfered)
@@ -132,7 +126,6 @@ public:
      * \todo Complete the table with rest possible values
      */
     enum trigsrc{
-
         TC0OVF=0x2C,    //!<TC0 counter overflow
         TC0MC0=0x2D,    //!<TC0 counter match0
         TC0MC1=0x2E,    //!<TC0 counter match1
@@ -196,13 +189,14 @@ public:
 
 };
 
-/*!
- * \brief The DMA controller class
+/**
+ * @brief A DMA controller.
+ *
+ * @details Follows the Singleton design pattern.
  */
-class CSamDMAC
-{
-friend class CSamDMAChannel;
-protected:
+class CSamDMAC final {
+private:
+  friend CSamDMAChannel;
 
     /*!
      *  \brief maximum channels number
@@ -243,7 +237,7 @@ public:
     std::shared_ptr<CSamDMAChannel> Factory();
 
     /*!
-     * \brief Returns the reference to the created class object instance. (The object created only once)
+     * \brief Returns the reference to the created class object instance.
      * \return the reference to the created class object instance
      */
     static CSamDMAC& Instance()

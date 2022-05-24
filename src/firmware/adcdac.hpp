@@ -30,9 +30,10 @@ using namespace panda::timeswipe::detail; // FIXME: remove
 /**
  * @brief Analog-to-Digital or Digital-to-Analog measurement (control) channel.
  *
- * @details `ADC` and `DAC` devices usually contains various measurement
- * (controlling) units called channels. Measured/control values are interpreted
- * as real units, such as *Volts*, *A/mA* etc.
+ * @details ADC and DAC device management is based on the AD channel concept:
+ * ADC and DAC devices usually contains various measurement (controlling) units
+ * called *channels*. Measured/control values are interpreted as real units,
+ * such as *Volts*, *A/mA* etc.
  */
 class Adcdac_channel {
 public:
@@ -48,6 +49,9 @@ class Adc_channel : public Adcdac_channel {
 public:
   /**
    * @brief Force direct measurement for this channel on ADC device without queuing.
+   *
+   * @details This function can be used to avoid waiting of update and switching
+   * between channels.
    *
    * @returns Immediately measured analog value in raw-binary format.
    */

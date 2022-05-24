@@ -5,23 +5,16 @@ file, You can obtain one at https://www.gnu.org/licenses/gpl-3.0.html
 Copyright (c) 2019-2020 Panda Team
 */
 
-/*!
-*   \file
-*   \brief A definition file for
-*   CSamTempSensor
-*/
-
 #pragma once
 
-/*!
- * \brief The CSamTempSensor class: implements SAME54 temperature sensor
- */
-
 #include "SamADCcntr.h"
-class CSamTempSensor
-{
-protected:
 
+/**
+ * @brief Implements SAME5x temperature sensor which is used to measure SAME5x
+ * core temperature.
+ */
+class CSamTempSensor final {
+private:
     /*!
      * \brief the ADC channels of two temperature sensors:
      *

@@ -16,11 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * @file
- * CPin stuff.
- */
-
 #ifndef PANDA_TIMESWIPE_FIRMWARE_PIN_HPP
 #define PANDA_TIMESWIPE_FIRMWARE_PIN_HPP
 
@@ -29,7 +24,7 @@
 #include <chrono>
 
 /**
- * Pin abstraction.
+ * @brief Pin control abstraction.
  *
  * @details There are two possible Pin behaviors:
  *   - normal behavior: logical `true` denotes high output level (1), logical
