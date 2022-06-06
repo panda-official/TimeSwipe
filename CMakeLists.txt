@@ -601,3 +601,5 @@ if(PANDA_TIMESWIPE_TESTS)
 
   message(CHECK_PASS "Tests configuration for ${software} completed.")
 endif()
+
+message(WARNING "This codebase is maintained in a private repository!!! This repository is no longer updated!!!")

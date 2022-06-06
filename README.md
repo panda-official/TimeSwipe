@@ -5,6 +5,11 @@
 The [releases section](https://github.com/panda-official/TimeSwipe/releases)
 contains pre-built driver for both ARM32 and ARM64 architectures.
 
+## Warning
+
+This codebase is maintained in a private repository!!! This repository is no
+longer updated!!!
+
 ## Documentation
 
 [Driver API](https://panda-official.github.io/TimeSwipe/master)
